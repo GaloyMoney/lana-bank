@@ -982,6 +982,7 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
+ "schemars",
  "serde",
  "sqlx",
  "strum",
@@ -1045,6 +1046,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
+ "schemars",
  "serde",
  "serde_json",
  "serde_with",
@@ -1069,6 +1071,7 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
+ "schemars",
  "serde",
  "sqlx",
  "strum",
@@ -1101,6 +1104,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
+ "schemars",
  "serde",
  "serde_json",
  "sim-time",
@@ -1135,6 +1139,7 @@ dependencies = [
  "async-graphql",
  "rust_decimal",
  "rust_decimal_macros",
+ "schemars",
  "serde",
  "thiserror 2.0.12",
 ]
@@ -1940,6 +1945,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "outbox",
+ "schemars",
  "serde",
  "sqlx",
  "strum",
@@ -2589,7 +2595,11 @@ dependencies = [
  "clap",
  "customer-server",
  "lana-app",
+ "lana-events",
+ "outbox",
+ "schemars",
  "serde",
+ "serde_json",
  "serde_yaml",
  "sim-bootstrap",
  "sim-time",
@@ -2608,6 +2618,7 @@ dependencies = [
  "core-deposit",
  "governance",
  "outbox",
+ "schemars",
  "serde",
 ]
 
@@ -3027,6 +3038,7 @@ dependencies = [
  "chrono",
  "es-entity",
  "futures",
+ "schemars",
  "serde",
  "serde_json",
  "sqlx",
@@ -3949,6 +3961,30 @@ dependencies = [
 ]
 
 [[package]]
+name = "schemars"
+version = "0.8.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fbf2ae1b8bc8e02df939598064d22402220cd5bbcca1c76f7d6a310974d5615"
+dependencies = [
+ "dyn-clone",
+ "schemars_derive",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "schemars_derive"
+version = "0.8.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32e265784ad618884abaea0600a9adf15393368d840e0222d101a072f3f7534d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn 2.0.101",
+]
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3980,6 +4016,17 @@ name = "serde_derive"
 version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
+]
+
+[[package]]
+name = "serde_derive_internals"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711"
 dependencies = [
  "proc-macro2",
  "quote",

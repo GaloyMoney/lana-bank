@@ -5,6 +5,15 @@ license = "FSL-1.1-ALv2"
 edition = "2021"
 
 [features]
+schemars = [
+  "dep:schemars",
+  "governance/schemars",
+  "core-access/schemars", 
+  "core-customer/schemars",
+  "core-credit/schemars",
+  "core-deposit/schemars",
+  "outbox/schemars"
+]
 
 fail-on-warnings = []
 
@@ -17,3 +26,4 @@ core-deposit = { path = "../../core/deposit" }
 outbox = { path = "../../lib/outbox" }
 
 serde = { workspace = true }
+schemars = { version = "0.8.22", optional = true }

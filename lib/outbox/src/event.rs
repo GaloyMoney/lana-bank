@@ -4,6 +4,17 @@ use std::sync::Arc;
 
 es_entity::entity_id! { OutboxEventId }
 
+#[cfg(feature = "schemars")]
+impl schemars::JsonSchema for OutboxEventId {
+    fn schema_name() -> String {
+        "OutboxEventId".to_string()
+    }
+
+    fn json_schema(gen: &mut schemars::gen::SchemaGenerator) -> schemars::schema::Schema {
+        String::json_schema(gen)
+    }
+}
+
 pub trait OutboxEventMarker<E>:
     serde::de::DeserializeOwned + serde::Serialize + Send + Sync + 'static + Unpin + From<E>
 {
@@ -45,6 +56,7 @@ where
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub struct PersistentOutboxEvent<T>
 where
     T: Serialize + DeserializeOwned + Send,
@@ -53,7 +65,9 @@ where
     pub sequence: EventSequence,
     #[serde(bound = "T: DeserializeOwned")]
     pub payload: Option<T>,
+    #[cfg_attr(feature = "schemars", schemars(skip))]
     pub(crate) tracing_context: Option<tracing_utils::persistence::SerializableTraceContext>,
+    #[cfg_attr(feature = "schemars", schemars(skip))]
     pub recorded_at: chrono::DateTime<chrono::Utc>,
 }
 
@@ -97,6 +111,7 @@ where
 #[derive(
     sqlx::Type, PartialEq, Eq, PartialOrd, Ord, Hash, Debug, Copy, Clone, Serialize, Deserialize,
 )]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct EventSequence(i64);

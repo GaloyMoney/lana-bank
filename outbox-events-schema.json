@@ -1,0 +1,891 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "PersistentOutboxEvent_for_LanaEvent",
+  "type": "object",
+  "required": [
+    "id",
+    "sequence"
+  ],
+  "properties": {
+    "id": {
+      "$ref": "#/definitions/OutboxEventId"
+    },
+    "payload": {
+      "anyOf": [
+        {
+          "$ref": "#/definitions/LanaEvent"
+        },
+        {
+          "type": "null"
+        }
+      ]
+    },
+    "sequence": {
+      "type": "integer",
+      "format": "int64"
+    }
+  },
+  "definitions": {
+    "AccountStatus": {
+      "type": "string",
+      "enum": [
+        "inactive",
+        "active"
+      ]
+    },
+    "ApprovalProcessId": {
+      "type": "string"
+    },
+    "CollateralAction": {
+      "type": "string",
+      "enum": [
+        "Add",
+        "Remove"
+      ]
+    },
+    "CollateralizationState": {
+      "type": "string",
+      "enum": [
+        "FullyCollateralized",
+        "UnderMarginCallThreshold",
+        "UnderLiquidationThreshold",
+        "NoCollateral"
+      ]
+    },
+    "CreditFacilityId": {
+      "type": "string"
+    },
+    "CustomerId": {
+      "type": "string"
+    },
+    "CustomerType": {
+      "type": "string",
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ]
+    },
+    "DepositAccountHolderId": {
+      "type": "string"
+    },
+    "DepositAccountId": {
+      "type": "string"
+    },
+    "DepositId": {
+      "type": "string"
+    },
+    "LanaEvent": {
+      "oneOf": [
+        {
+          "type": "object",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "approved",
+                "id",
+                "process_type",
+                "target_ref",
+                "type"
+              ],
+              "properties": {
+                "approved": {
+                  "type": "boolean"
+                },
+                "denied_reason": {
+                  "type": [
+                    "string",
+                    "null"
+                  ]
+                },
+                "id": {
+                  "$ref": "#/definitions/ApprovalProcessId"
+                },
+                "process_type": {
+                  "type": "string"
+                },
+                "target_ref": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ApprovalProcessConcluded"
+                  ]
+                }
+              }
+            }
+          ],
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "module": {
+              "type": "string",
+              "enum": [
+                "Governance"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "email",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "id": {
+                  "$ref": "#/definitions/UserId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "UserCreated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/UserId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "UserRemoved"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "role_id",
+                "role_name",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/UserId"
+                },
+                "role_id": {
+                  "$ref": "#/definitions/RoleId"
+                },
+                "role_name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "UserGrantedRole"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "role_id",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/UserId"
+                },
+                "role_id": {
+                  "$ref": "#/definitions/RoleId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "UserRevokedRole"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "name",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/RoleId"
+                },
+                "name": {
+                  "type": "string"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "RoleCreated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "permission_set_id",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/RoleId"
+                },
+                "permission_set_id": {
+                  "$ref": "#/definitions/PermissionSetId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "RoleGainedPermissionSet"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "permission_set_id",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/RoleId"
+                },
+                "permission_set_id": {
+                  "$ref": "#/definitions/PermissionSetId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "RoleLostPermissionSet"
+                  ]
+                }
+              }
+            }
+          ],
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "module": {
+              "type": "string",
+              "enum": [
+                "Access"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "customer_type",
+                "email",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "customer_type": {
+                  "$ref": "#/definitions/CustomerType"
+                },
+                "email": {
+                  "type": "string"
+                },
+                "id": {
+                  "$ref": "#/definitions/CustomerId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "CustomerCreated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "customer_type",
+                "id",
+                "status",
+                "type"
+              ],
+              "properties": {
+                "customer_type": {
+                  "$ref": "#/definitions/CustomerType"
+                },
+                "id": {
+                  "$ref": "#/definitions/CustomerId"
+                },
+                "status": {
+                  "$ref": "#/definitions/AccountStatus"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "CustomerAccountStatusUpdated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "email",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "email": {
+                  "type": "string"
+                },
+                "id": {
+                  "$ref": "#/definitions/CustomerId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "CustomerEmailUpdated"
+                  ]
+                }
+              }
+            }
+          ],
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "module": {
+              "type": "string",
+              "enum": [
+                "Customer"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "FacilityCreated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "FacilityApproved"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "FacilityActivated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "id",
+                "type"
+              ],
+              "properties": {
+                "id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "FacilityCompleted"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "credit_facility_id",
+                "obligation_id",
+                "obligation_type",
+                "payment_id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "obligation_id": {
+                  "$ref": "#/definitions/ObligationId"
+                },
+                "obligation_type": {
+                  "$ref": "#/definitions/ObligationType"
+                },
+                "payment_id": {
+                  "$ref": "#/definitions/PaymentAllocationId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "FacilityRepaymentRecorded"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "abs_diff",
+                "action",
+                "credit_facility_id",
+                "new_amount",
+                "type"
+              ],
+              "properties": {
+                "abs_diff": {
+                  "$ref": "#/definitions/Satoshis"
+                },
+                "action": {
+                  "$ref": "#/definitions/CollateralAction"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "new_amount": {
+                  "$ref": "#/definitions/Satoshis"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "FacilityCollateralUpdated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "collateral",
+                "id",
+                "state",
+                "type"
+              ],
+              "properties": {
+                "collateral": {
+                  "$ref": "#/definitions/Satoshis"
+                },
+                "id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "state": {
+                  "$ref": "#/definitions/CollateralizationState"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "FacilityCollateralizationChanged"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "credit_facility_id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "DisbursalSettled"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "credit_facility_id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "AccrualPosted"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "credit_facility_id",
+                "id",
+                "obligation_type",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "id": {
+                  "$ref": "#/definitions/ObligationId"
+                },
+                "obligation_type": {
+                  "$ref": "#/definitions/ObligationType"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ObligationCreated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "credit_facility_id",
+                "id",
+                "obligation_type",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "id": {
+                  "$ref": "#/definitions/ObligationId"
+                },
+                "obligation_type": {
+                  "$ref": "#/definitions/ObligationType"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ObligationDue"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "credit_facility_id",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "id": {
+                  "$ref": "#/definitions/ObligationId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ObligationOverdue"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "credit_facility_id",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "id": {
+                  "$ref": "#/definitions/ObligationId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ObligationDefaulted"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "credit_facility_id",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "credit_facility_id": {
+                  "$ref": "#/definitions/CreditFacilityId"
+                },
+                "id": {
+                  "$ref": "#/definitions/ObligationId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "ObligationCompleted"
+                  ]
+                }
+              }
+            }
+          ],
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "module": {
+              "type": "string",
+              "enum": [
+                "Credit"
+              ]
+            }
+          }
+        },
+        {
+          "type": "object",
+          "oneOf": [
+            {
+              "type": "object",
+              "required": [
+                "account_holder_id",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "account_holder_id": {
+                  "$ref": "#/definitions/DepositAccountHolderId"
+                },
+                "id": {
+                  "$ref": "#/definitions/DepositAccountId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "DepositAccountCreated"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "deposit_account_id",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "deposit_account_id": {
+                  "$ref": "#/definitions/DepositAccountId"
+                },
+                "id": {
+                  "$ref": "#/definitions/DepositId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "DepositInitialized"
+                  ]
+                }
+              }
+            },
+            {
+              "type": "object",
+              "required": [
+                "amount",
+                "deposit_account_id",
+                "id",
+                "type"
+              ],
+              "properties": {
+                "amount": {
+                  "$ref": "#/definitions/UsdCents"
+                },
+                "deposit_account_id": {
+                  "$ref": "#/definitions/DepositAccountId"
+                },
+                "id": {
+                  "$ref": "#/definitions/WithdrawalId"
+                },
+                "type": {
+                  "type": "string",
+                  "enum": [
+                    "WithdrawalConfirmed"
+                  ]
+                }
+              }
+            }
+          ],
+          "required": [
+            "module"
+          ],
+          "properties": {
+            "module": {
+              "type": "string",
+              "enum": [
+                "Deposit"
+              ]
+            }
+          }
+        }
+      ]
+    },
+    "ObligationId": {
+      "type": "string"
+    },
+    "ObligationType": {
+      "type": "string",
+      "enum": [
+        "Disbursal",
+        "Interest"
+      ]
+    },
+    "OutboxEventId": {
+      "type": "string"
+    },
+    "PaymentAllocationId": {
+      "type": "string"
+    },
+    "PermissionSetId": {
+      "type": "string"
+    },
+    "RoleId": {
+      "type": "string"
+    },
+    "Satoshis": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "UsdCents": {
+      "type": "integer",
+      "format": "uint64",
+      "minimum": 0.0
+    },
+    "UserId": {
+      "type": "string"
+    },
+    "WithdrawalId": {
+      "type": "string"
+    }
+  }
+}

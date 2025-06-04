@@ -11,6 +11,7 @@ pub use governance::GovernanceEvent;
 pub use outbox::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 #[serde(tag = "module")]
 pub enum LanaEvent {
     Governance(GovernanceEvent),

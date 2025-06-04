@@ -14,6 +14,52 @@ es_entity::entity_id! { UserId }
 
 es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
+#[cfg(feature = "schemars")]
+mod entity_id_schemas {
+    use super::*;
+    use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+
+    impl JsonSchema for UserId {
+        fn schema_name() -> String {
+            "UserId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for AuthenticationId {
+        fn schema_name() -> String {
+            "AuthenticationId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for PermissionSetId {
+        fn schema_name() -> String {
+            "PermissionSetId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for RoleId {
+        fn schema_name() -> String {
+            "RoleId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+}
+
 pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 
 pub const PERMISSION_SET_ACCESS_WRITER: &str = "access_writer";

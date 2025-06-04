@@ -40,7 +40,94 @@ es_entity::entity_id! {
     PaymentAllocationId => LedgerTxId,
 }
 
+#[cfg(feature = "schemars")]
+mod entity_id_schemas {
+    use super::*;
+    use schemars::{gen::SchemaGenerator, schema::Schema, JsonSchema};
+
+    impl JsonSchema for CreditFacilityId {
+        fn schema_name() -> String {
+            "CreditFacilityId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for DisbursalId {
+        fn schema_name() -> String {
+            "DisbursalId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for PaymentId {
+        fn schema_name() -> String {
+            "PaymentId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for PaymentAllocationId {
+        fn schema_name() -> String {
+            "PaymentAllocationId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for ChartOfAccountsIntegrationConfigId {
+        fn schema_name() -> String {
+            "ChartOfAccountsIntegrationConfigId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for CollateralId {
+        fn schema_name() -> String {
+            "CollateralId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for ObligationId {
+        fn schema_name() -> String {
+            "ObligationId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+
+    impl JsonSchema for InterestAccrualCycleId {
+        fn schema_name() -> String {
+            "InterestAccrualCycleId".to_string()
+        }
+
+        fn json_schema(gen: &mut SchemaGenerator) -> Schema {
+            String::json_schema(gen)
+        }
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum ObligationStatus {
     NotYetDue,
     Due,
@@ -50,12 +137,14 @@ pub enum ObligationStatus {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum ObligationType {
     Disbursal,
     Interest,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum BalanceUpdatedType {
     Disbursal,
     InterestAccrual,
@@ -70,7 +159,8 @@ impl From<ObligationType> for BalanceUpdatedType {
     }
 }
 
-#[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum BalanceUpdatedSource {
     Obligation(ObligationId),
     PaymentAllocation(PaymentAllocationId),
@@ -479,6 +569,7 @@ impl From<ObligationAction> for CoreCreditAction {
     strum::EnumString,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum CreditFacilityStatus {
     #[default]
     PendingCollateralization,
@@ -490,6 +581,7 @@ pub enum CreditFacilityStatus {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum DisbursalStatus {
     New,
     Approved,
@@ -515,6 +607,7 @@ impl InterestAccrualCycleIdx {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum CollateralAction {
     Add,
     Remove,
@@ -533,6 +626,7 @@ pub enum CollateralAction {
     strum::EnumString,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "schemars", derive(schemars::JsonSchema))]
 pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,

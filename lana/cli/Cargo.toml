@@ -17,6 +17,8 @@ fail-on-warnings = []
 lana-app = { path = "../app" }
 admin-server = { path = "../admin-server" }
 customer-server = { path = "../customer-server" }
+lana-events = { path = "../events", features = ["schemars"] }
+outbox = { path = "../../lib/outbox", features = ["schemars"] }
 
 sim-bootstrap = { path = "../sim-bootstrap", optional = true }
 
@@ -28,5 +30,7 @@ anyhow = { workspace = true }
 clap = { workspace = true }
 serde = { workspace = true }
 serde_yaml = { workspace = true }
+serde_json = { workspace = true }
 tokio = { workspace = true }
 sqlx = { workspace = true }
+schemars = { version = "0.8.22" }

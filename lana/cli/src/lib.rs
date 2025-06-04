@@ -5,7 +5,7 @@ pub mod config;
 mod db;
 
 use anyhow::Context;
-use clap::Parser;
+use clap::{Parser, Subcommand};
 use std::{fs, path::PathBuf};
 
 use self::config::{Config, EnvSecrets};
@@ -38,10 +38,27 @@ struct Cli {
     sa_creds_base64_raw: String,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
+    #[clap(subcommand)]
+    command: Option<Commands>,
+}
+
+#[derive(Subcommand)]
+enum Commands {
+    /// Generate JSON schema for outbox events
+    GenerateSchema {
+        /// Output file path for the JSON schema
+        #[clap(short, long, default_value = "outbox-events-schema.json")]
+        output: PathBuf,
+    },
 }
 
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
+
+    // Handle schema generation command separately
+    if let Some(Commands::GenerateSchema { output }) = cli.command {
+        return generate_outbox_schema(&output);
+    }
 
     let sa_creds_base64 = if cli.sa_creds_base64_raw.is_empty() {
         None
@@ -61,6 +78,37 @@ pub async fn run() -> anyhow::Result<()> {
     )?;
 
     run_cmd(&cli.lana_home, config).await?;
+
+    Ok(())
+}
+
+fn generate_outbox_schema(output_path: &PathBuf) -> anyhow::Result<()> {
+    use lana_events::LanaEvent;
+    use outbox::PersistentOutboxEvent;
+    use schemars::schema_for;
+
+    // Generate schema for the complete outbox event structure
+    let schema = schema_for!(PersistentOutboxEvent<LanaEvent>);
+
+    // Convert to pretty JSON
+    let json_schema =
+        serde_json::to_string_pretty(&schema).context("Failed to serialize schema to JSON")?;
+
+    // Write to file
+    fs::write(output_path, json_schema)
+        .with_context(|| format!("Failed to write schema to {}", output_path.display()))?;
+
+    println!(
+        "✅ Generated outbox events JSON schema at: {}",
+        output_path.display()
+    );
+    println!("📋 This schema includes all event types that implement OutboxEventMarker:");
+    println!("   - CoreCustomerEvent");
+    println!("   - CoreDepositEvent");
+    println!("   - CoreAccessEvent");
+    println!("   - CoreCreditEvent");
+    println!("   - GovernanceEvent");
+    println!("💡 Use this schema to detect changes in your dbt scripts when events are added or modified.");
 
     Ok(())
 }
