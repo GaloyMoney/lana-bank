@@ -109,7 +109,7 @@
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
           CARGO_BUILD_TARGET = rustTarget;
-          cargoExtraArgs = "-p lana-cli --features sim-time --target ${rustTarget}";
+          cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
 
           # Add musl target for static linking
           depsBuildBuild = with pkgs; [
@@ -215,8 +215,6 @@
           debug = lana-cli-debug;
           release = lana-cli-release;
           static = lana-cli-static;
-          deps-debug = debugCargoArtifacts;
-          deps-release = releaseCargoArtifacts;
         };
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
