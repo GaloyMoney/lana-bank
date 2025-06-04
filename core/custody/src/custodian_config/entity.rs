@@ -27,7 +27,6 @@ impl core::fmt::Debug for KomainuConfig {
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum Custodian {
-    Manual,
     Komainu(KomainuConfig),
 }
 

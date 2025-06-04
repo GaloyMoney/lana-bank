@@ -706,7 +706,6 @@ type CreditModuleConfigurePayload {
 }
 
 enum Custodian {
-	MANUAL
 	KOMAINU
 }
 
@@ -734,7 +733,6 @@ type CustodianConfigConnection {
 }
 
 input CustodianConfigCreateInput @oneOf {
-	manual: ManualConfig
 	komainu: KomainuConfig
 }
 
@@ -1259,10 +1257,6 @@ type LedgerTransactionEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
-}
-
-input ManualConfig {
-	name: String!
 }
 
 input ManualTransactionEntryInput {

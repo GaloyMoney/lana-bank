@@ -37,7 +37,6 @@ impl CustodianConfig {
 
     async fn custodian(&self) -> Custodian {
         match &self.entity.custodian {
-            DomainCustodian::Manual => Custodian::Manual,
             DomainCustodian::Komainu(_) => Custodian::Komainu,
         }
     }
@@ -45,13 +44,7 @@ impl CustodianConfig {
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum Custodian {
-    Manual,
     Komainu,
-}
-
-#[derive(InputObject)]
-pub struct ManualConfig {
-    name: String,
 }
 
 #[derive(InputObject)]
@@ -78,14 +71,12 @@ impl From<KomainuConfig> for DomainKomainuConfig {
 
 #[derive(OneofObject)]
 pub enum CustodianConfigCreateInput {
-    Manual(ManualConfig),
     Komainu(KomainuConfig),
 }
 
 impl CustodianConfigCreateInput {
     pub fn name(&self) -> &str {
         match self {
-            CustodianConfigCreateInput::Manual(conf) => &conf.name,
             CustodianConfigCreateInput::Komainu(conf) => &conf.name,
         }
     }
@@ -94,7 +85,6 @@ impl CustodianConfigCreateInput {
 impl From<CustodianConfigCreateInput> for DomainCustodian {
     fn from(input: CustodianConfigCreateInput) -> Self {
         match input {
-            CustodianConfigCreateInput::Manual(_) => DomainCustodian::Manual,
             CustodianConfigCreateInput::Komainu(config) => DomainCustodian::Komainu(config.into()),
         }
     }

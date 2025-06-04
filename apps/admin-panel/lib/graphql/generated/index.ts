@@ -721,8 +721,7 @@ export type CreditModuleConfigurePayload = {
 };
 
 export enum Custodian {
-  Komainu = 'KOMAINU',
-  Manual = 'MANUAL'
+  Komainu = 'KOMAINU'
 }
 
 export type CustodianConfig = {
@@ -745,8 +744,7 @@ export type CustodianConfigConnection = {
 };
 
 export type CustodianConfigCreateInput =
-  { komainu: KomainuConfig; manual?: never; }
-  |  { komainu?: never; manual: ManualConfig; };
+  { komainu: KomainuConfig; };
 
 export type CustodianConfigCreatePayload = {
   __typename?: 'CustodianConfigCreatePayload';
@@ -1248,10 +1246,6 @@ export type LedgerTransactionEdge = {
 export type Loan = {
   __typename?: 'Loan';
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
-};
-
-export type ManualConfig = {
-  name: Scalars['String']['input'];
 };
 
 export type ManualTransactionEntryInput = {
