@@ -359,6 +359,7 @@ where
         disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
         amount: UsdCents,
         terms: TermValues,
+        // custody_config_id: Option<CustodyConfigId>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
             .subject_can_create(sub, true)
@@ -375,12 +376,25 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
+        // if let Some(custody_config_id) = custody_config_id {
+        //   let custody_config = self
+        //       .custody
+        //       .find_by_id(sub, custody_config_id)
+        //       .await?
+        //       .ok_or(CoreCreditError::CustomerNotFound)?;
+
+        //   validate custody_config
+        //   let facility_wallet_id = self.custody.create_new_wallet(external_id: collateral_id).await?
+        //   let btc_address = self.custody.new_address_for_wallet(facility_wallet_id).await?;
+        // }
+
         let id = CreditFacilityId::new();
         let collateral_id = CollateralId::new();
         let account_ids = CreditFacilityAccountIds::new();
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .ledger_tx_id(LedgerTxId::new())
+            //.cusstody_config_id(custody_config_id)
             .approval_process_id(id)
             .collateral_id(collateral_id)
             .customer_id(customer_id)
@@ -602,6 +616,9 @@ where
             .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
+
+        // check if facility has custody_config???
+        // if it does this should error
 
         let mut db = self.facilities.begin_op().await?;
 
