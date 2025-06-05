@@ -1034,6 +1034,7 @@ dependencies = [
  "chrono",
  "cloud-storage",
  "core-accounting",
+ "core-custody",
  "core-customer",
  "core-money",
  "core-price",

@@ -23,6 +23,7 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
 pub mod action {
     use core_accounting::CoreAccountingAction;
     use core_credit::CoreCreditAction;
+    use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
     use governance::GovernanceAction;
 
@@ -43,6 +44,12 @@ pub mod action {
 
     impl From<CoreCustomerAction> for DummyAction {
         fn from(_: CoreCustomerAction) -> Self {
+            Self
+        }
+    }
+
+    impl From<CoreCustodyAction> for DummyAction {
+        fn from(_: CoreCustodyAction) -> Self {
             Self
         }
     }
@@ -72,6 +79,7 @@ pub mod action {
 pub mod object {
     use core_accounting::CoreAccountingObject;
     use core_credit::CoreCreditObject;
+    use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
     use governance::GovernanceObject;
 
@@ -97,6 +105,12 @@ pub mod object {
 
     impl From<CustomerObject> for DummyObject {
         fn from(_: CustomerObject) -> Self {
+            Self
+        }
+    }
+
+    impl From<CoreCustodyObject> for DummyObject {
+        fn from(_: CoreCustodyObject) -> Self {
             Self
         }
     }
