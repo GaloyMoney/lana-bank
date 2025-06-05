@@ -1,7 +1,7 @@
 load "helpers"
 
 setup_file() {
-  start_server_nix
+  start_server
   login_superadmin
 }
 

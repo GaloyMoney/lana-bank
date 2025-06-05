@@ -43,7 +43,7 @@ nix build . -L
 
 # --- Start Lana Server (Moved outside Bats) ---
 echo "--- Starting Lana server for tests ---"
-start_server_nix # Function from helpers.bash
+start_server # Function from helpers.bash
 # Optional: Add a more robust check here to ensure the server is fully ready
 # Check the return status of start_server
 if [[ $? -ne 0 ]]; then

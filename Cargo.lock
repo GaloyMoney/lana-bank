@@ -2604,6 +2604,7 @@ version = "0.3.606-dev"
 dependencies = [
  "admin-server",
  "anyhow",
+ "chrono",
  "clap",
  "customer-server",
  "lana-app",

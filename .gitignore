@@ -14,7 +14,6 @@ target/
 -
 .e2e-logs
 *.e2e-logs
-.lana
 .env
 tilt.log
 
@@ -42,3 +41,4 @@ meltano/.venv/
 meltano/transform_duckdb/models
 meltano/.build
 meltano/**/dbt.log
+.venv
