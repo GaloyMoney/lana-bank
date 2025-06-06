@@ -1,36 +1,31 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use uuid::Uuid;
 
 use ::job::*;
 
-use crate::email::EmailNotification;
-
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum EmailType {
-    CustomerWelcome { customer_id: Uuid },
-}
-
-#[derive(Serialize, Deserialize)]
 pub struct EmailSenderJobConfig {
-    pub email_type: EmailType,
+    pub recipient: String,
+    pub subject: String,
+    pub template_name: String,
+    pub template_data: serde_json::Value,
 }
 
 impl JobConfig for EmailSenderJobConfig {
     type Initializer = EmailSenderJobInitializer;
 }
 
-pub struct EmailSenderJobInitializer {
-    notification: EmailNotification,
-}
+#[derive(Clone)]
+pub struct EmailSenderJobInitializer;
 
 impl EmailSenderJobInitializer {
-    pub fn new(notification: EmailNotification) -> Self {
-        Self { notification }
+    pub fn new() -> Self {
+        Self
     }
 }
 
 const EMAIL_SENDER_JOB: JobType = JobType::new("email-sender");
+
 impl JobInitializer for EmailSenderJobInitializer {
     fn job_type() -> JobType {
         EMAIL_SENDER_JOB
@@ -39,15 +34,11 @@ impl JobInitializer for EmailSenderJobInitializer {
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         let config = job.config::<EmailSenderJobConfig>()?;
 
-        Ok(Box::new(EmailSenderJobRunner {
-            notification: self.notification.clone(),
-            config,
-        }))
+        Ok(Box::new(EmailSenderJobRunner { config }))
     }
 }
 
 pub struct EmailSenderJobRunner {
-    notification: EmailNotification,
     config: EmailSenderJobConfig,
 }
 
@@ -57,11 +48,13 @@ impl JobRunner for EmailSenderJobRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        match &self.config.email_type {
-            EmailType::CustomerWelcome { customer_id } => {
-                self.notification.send_customer_welcome(customer_id).await?
-            }
-        }
+        println!(
+            "Sending email to {}: subject={}, template={}, data={:?}",
+            self.config.recipient,
+            self.config.subject,
+            self.config.template_name,
+            self.config.template_data
+        );
         Ok(JobCompletion::Complete)
     }
 }

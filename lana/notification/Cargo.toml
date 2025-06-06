@@ -11,6 +11,8 @@ fail-on-warnings = []
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 lana-events = { path = "../events" }
+core-access = { path = "../../core/access" }
+audit = { path = "../../lib/audit" }
 
 uuid = { workspace = true }
 strum = { workspace = true }
