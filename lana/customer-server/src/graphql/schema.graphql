@@ -39,7 +39,7 @@ type CreditFacility {
 	maturesAt: Timestamp
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
-	currentCvl: FacilityCVL!
+	currentCvl: CVLPct!
 	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
@@ -257,11 +257,6 @@ type Disbursed {
 type Duration {
 	period: Period!
 	units: Int!
-}
-
-type FacilityCVL {
-	total: CVLPct!
-	disbursed: CVLPct!
 }
 
 type FacilityRemaining {

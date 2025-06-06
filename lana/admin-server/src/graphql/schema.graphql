@@ -386,7 +386,7 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
-	currentCvl: FacilityCVL!
+	currentCvl: CVLPct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
@@ -1073,11 +1073,6 @@ type Duration {
 input DurationInput {
 	period: Period!
 	units: Int!
-}
-
-type FacilityCVL {
-	total: CVLPct!
-	disbursed: CVLPct!
 }
 
 type FacilityRemaining {

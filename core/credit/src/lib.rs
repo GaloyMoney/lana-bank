@@ -724,19 +724,13 @@ where
         Ok(self.outstanding(entity).await?.is_zero())
     }
 
-    pub async fn facility_cvl(
-        &self,
-        entity: &CreditFacility,
-    ) -> Result<FacilityCVL, CoreCreditError> {
+    pub async fn current_cvl(&self, entity: &CreditFacility) -> Result<CVLPct, CoreCreditError> {
         let balances = self
             .ledger
             .get_credit_facility_balance(entity.account_ids)
             .await?;
         let price = self.price.usd_cents_per_btc().await?;
-        Ok(FacilityCVL {
-            total: balances.facility_amount_cvl(price),
-            disbursed: balances.outstanding_amount_cvl(price),
-        })
+        Ok(balances.current_cvl(price))
     }
 
     pub async fn outstanding(&self, entity: &CreditFacility) -> Result<UsdCents, CoreCreditError> {

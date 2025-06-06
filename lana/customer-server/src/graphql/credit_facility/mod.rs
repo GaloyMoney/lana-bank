@@ -8,7 +8,7 @@ use async_graphql::*;
 
 pub use lana_app::credit::{
     CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
-    FacilityCVL, ListDirection, Sort,
+    ListDirection, Sort,
 };
 
 use crate::{primitives::*, LanaApp};
@@ -73,9 +73,9 @@ impl CreditFacility {
         Ok(CreditFacilityBalance::from(balance))
     }
 
-    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<FacilityCVL> {
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let app = ctx.data_unchecked::<LanaApp>();
-        Ok(app.credit().facility_cvl(&self.entity).await?)
+        Ok(app.credit().current_cvl(&self.entity).await?)
     }
 
     async fn history(
