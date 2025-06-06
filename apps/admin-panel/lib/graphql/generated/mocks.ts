@@ -1,58 +1,58 @@
 /* eslint-disable */
 // @ts-nocheck
-import {
-    UsdCents,
-    Satoshis,
-    SignedUsdCents,
-    SignedSatoshis,
+import { 
+  UsdCents, 
+  Satoshis, 
+  SignedUsdCents, 
+  SignedSatoshis,
 } from 'types';
 
 faker.seed(12345);
 
 const getRandomEnumValue = <T extends Record<string, any>>(enumObj: T): T[keyof T] => {
-    const enumValues = Object.values(enumObj).filter(v => typeof v === 'string') as T[keyof T][];
-    return faker.helpers.arrayElement(enumValues);
+  const enumValues = Object.values(enumObj).filter(v => typeof v === 'string') as T[keyof T][];
+  return faker.helpers.arrayElement(enumValues);
 };
 
 // Generate mock values dynamically
 const generateMockValue = {
-    uuid: () => faker.string.uuid(),
-    email: () => faker.internet.email(),
-    telegramId: () => faker.string.alphanumeric(10),
-    name: () => faker.person.fullName(),
-    url: () => faker.internet.url(),
-    description: () => faker.lorem.paragraph(),
-    timestamp: () => faker.date.recent().toISOString(),
-    reference: () => faker.string.alphanumeric(12),
-    filename: () => faker.system.fileName(),
-    boolean: () => faker.datatype.boolean(),
-    usdCents: () => faker.number.int({ min: 0, max: 1000000 }) as UsdCents,
-    satoshis: () => faker.number.int({ min: 0, max: 100000000 }) as Satoshis,
-    signedUsdCents: () => faker.number.int({ min: -1000000, max: 1000000 }) as SignedUsdCents,
-    signedSatoshis: () => faker.number.int({ min: -100000000, max: 100000000 }) as SignedSatoshis,
-    int: () => faker.number.int({ min: 0, max: 1000 }),
-    cursor: () => faker.string.alphanumeric(20),
-    deniedReason: () => null,
-    applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null,
-    oneTimeFeeRate: () => faker.number.int({ min: 0, max: 5 })
+  uuid: () => faker.string.uuid(),
+  email: () => faker.internet.email(),
+  telegramId: () => faker.string.alphanumeric(10),
+  name: () => faker.person.fullName(),
+  url: () => faker.internet.url(),
+  description: () => faker.lorem.paragraph(),
+  timestamp: () => faker.date.recent().toISOString(),
+  reference: () => faker.string.alphanumeric(12),
+  filename: () => faker.system.fileName(),
+  boolean: () => faker.datatype.boolean(),
+  usdCents: () => faker.number.int({ min: 0, max: 1000000 }) as UsdCents,
+  satoshis: () => faker.number.int({ min: 0, max: 100000000 }) as Satoshis,
+  signedUsdCents: () => faker.number.int({ min: -1000000, max: 1000000 }) as SignedUsdCents,
+  signedSatoshis: () => faker.number.int({ min: -100000000, max: 100000000 }) as SignedSatoshis,
+  int: () => faker.number.int({ min: 0, max: 1000 }),
+  cursor: () => faker.string.alphanumeric(20),
+  deniedReason: () => null,
+  applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null,
+  oneTimeFeeRate: () => faker.number.int({ min: 0, max: 5 })
 };
 
 const mockEnums = {
-    accountStatus: () => getRandomEnumValue(AccountStatus),
-    approvalProcessStatus: () => getRandomEnumValue(ApprovalProcessStatus),
-    approvalProcessType: () => getRandomEnumValue(ApprovalProcessType),
-    collateralAction: () => getRandomEnumValue(CollateralAction),
-    collateralizationState: () => getRandomEnumValue(CollateralizationState),
-    creditFacilityStatus: () => getRandomEnumValue(CreditFacilityStatus),
-    disbursalStatus: () => getRandomEnumValue(DisbursalStatus),
-    documentStatus: () => getRandomEnumValue(DocumentStatus),
-    interestInterval: () => getRandomEnumValue(InterestInterval),
-    kycLevel: () => getRandomEnumValue(KycLevel),
-    period: () => getRandomEnumValue(Period),
-    reportProgress: () => getRandomEnumValue(ReportProgress),
-    role: () => getRandomEnumValue(Role),
-    sortDirection: () => getRandomEnumValue(SortDirection),
-    withdrawalStatus: () => getRandomEnumValue(WithdrawalStatus)
+  accountStatus: () => getRandomEnumValue(AccountStatus),
+  approvalProcessStatus: () => getRandomEnumValue(ApprovalProcessStatus),
+  approvalProcessType: () => getRandomEnumValue(ApprovalProcessType),
+  collateralAction: () => getRandomEnumValue(CollateralAction),
+  collateralizationState: () => getRandomEnumValue(CollateralizationState),
+  creditFacilityStatus: () => getRandomEnumValue(CreditFacilityStatus),
+  disbursalStatus: () => getRandomEnumValue(DisbursalStatus),
+  documentStatus: () => getRandomEnumValue(DocumentStatus),
+  interestInterval: () => getRandomEnumValue(InterestInterval),
+  kycLevel: () => getRandomEnumValue(KycLevel),
+  period: () => getRandomEnumValue(Period),
+  reportProgress: () => getRandomEnumValue(ReportProgress),
+  role: () => getRandomEnumValue(Role),
+  sortDirection: () => getRandomEnumValue(SortDirection),
+  withdrawalStatus: () => getRandomEnumValue(WithdrawalStatus)
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
@@ -944,7 +944,7 @@ export const mockCustodianCreateInput = (override?: CustodianCreateInput, _relat
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustodianCreateInput');
     return {
-        ...(override ? override : { komainu: relationshipsToOmit.has('KomainuConfig') ? {} as KomainuConfig : mockKomainuConfig({}, relationshipsToOmit) }),
+        ...(override ? override : {komainu : relationshipsToOmit.has('KomainuConfig') ? {} as KomainuConfig : mockKomainuConfig({}, relationshipsToOmit)}),
     };
 };
 

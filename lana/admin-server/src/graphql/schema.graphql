@@ -1684,6 +1684,7 @@ input TermsInput {
 	duration: DurationInput!
 	interestDueFromAccrualAfterDays: DurationInput!
 	obligationOverdueFromDueAfterDays: DurationInput!
+	obligationLiquidationFromDueAfterDays: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }
@@ -1706,6 +1707,7 @@ input TermsTemplateCreateInput {
 	duration: DurationInput!
 	interestDueFromAccrualAfterDays: DurationInput!
 	obligationOverdueFromDueAfterDays: DurationInput!
+	obligationLiquidationFromDueAfterDays: DurationInput!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
@@ -1725,6 +1727,7 @@ input TermsTemplateUpdateInput {
 	duration: DurationInput!
 	interestDueFromAccrualAfterDays: DurationInput!
 	obligationOverdueFromDueAfterDays: DurationInput!
+	obligationLiquidationFromDueAfterDays: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
 }

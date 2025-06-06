@@ -227,6 +227,8 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub obligation_overdue_from_due_after_days: Option<ObligationDuration>,
     #[builder(setter(into))]
+    pub obligation_liquidation_from_due_after_days: Option<ObligationDuration>,
+    #[builder(setter(into))]
     pub accrual_cycle_interval: InterestInterval,
     #[builder(setter(into))]
     pub accrual_interval: InterestInterval,
@@ -394,6 +396,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .interest_due_from_accrual_after_days(ObligationDuration::Days(0))
             .obligation_overdue_from_due_after_days(None)
+            .obligation_liquidation_from_due_after_days(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
@@ -617,6 +620,7 @@ mod test {
             .duration(FacilityDuration::Months(3))
             .interest_due_from_accrual_after_days(ObligationDuration::Days(0))
             .obligation_overdue_from_due_after_days(None)
+            .obligation_liquidation_from_due_after_days(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))

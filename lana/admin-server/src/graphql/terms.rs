@@ -43,6 +43,7 @@ pub struct TermsInput {
     pub duration: DurationInput,
     pub interest_due_from_accrual_after_days: DurationInput,
     pub obligation_overdue_from_due_after_days: DurationInput,
+    pub obligation_liquidation_from_due_after_days: DurationInput,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
 }
