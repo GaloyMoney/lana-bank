@@ -8,7 +8,10 @@ use std::cmp::Ordering;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
+use crate::{
+    liquidation_process::NewLiquidationProcess, payment_allocation::NewPaymentAllocation,
+    primitives::*,
+};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -292,6 +295,10 @@ impl Obligation {
             })
     }
 
+    pub fn has_outstanding_balance(&self) -> bool {
+        !self.outstanding().is_zero()
+    }
+
     pub(crate) fn record_due(
         &mut self,
         effective: chrono::NaiveDate,
@@ -393,6 +400,77 @@ impl Obligation {
 
         Ok(Idempotent::Executed(res))
     }
+
+    pub(crate) fn start_liquidation(
+        &mut self,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<NewLiquidationProcess> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::LiquidationProcessStarted { .. },
+            => ObligationEvent::LiquidationProcessConcluded {..}
+        );
+
+        match self.status() {
+            ObligationStatus::NotYetDue | ObligationStatus::Due | ObligationStatus::Overdue => (),
+            _ => return Idempotent::Ignored,
+        }
+
+        if !self.has_outstanding_balance() {
+            return Idempotent::Ignored;
+        }
+
+        let liquidation_process_id = LiquidationProcessId::new();
+        let new_liquidation_process = NewLiquidationProcess::builder()
+            .id(liquidation_process_id)
+            .credit_facility_id(self.credit_facility_id)
+            .parent_obligation_id(self.id)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new payment allocation");
+
+        self.events
+            .push(ObligationEvent::LiquidationProcessStarted {
+                liquidation_process_id,
+                audit_info: audit_info.clone(),
+            });
+
+        Idempotent::Executed(new_liquidation_process)
+    }
+
+    pub(crate) fn conclude_liquidation(
+        &mut self,
+        effective: chrono::NaiveDate,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::LiquidationProcessConcluded { .. },
+            => ObligationEvent::LiquidationProcessStarted {..}
+        );
+
+        let liquidation_process_id = self
+            .events
+            .iter_all()
+            .rev()
+            .find_map(|e| match e {
+                ObligationEvent::LiquidationProcessStarted {
+                    liquidation_process_id,
+                    ..
+                } => Some(*liquidation_process_id),
+                _ => None,
+            })
+            .expect("LiquidationProcessStarted event not found");
+
+        self.events
+            .push(ObligationEvent::LiquidationProcessConcluded {
+                liquidation_process_id,
+                audit_info: audit_info.clone(),
+            });
+
+        Idempotent::Executed(())
+    }
+
     pub(crate) fn allocate_payment(
         &mut self,
         amount: UsdCents,
