@@ -1,58 +1,58 @@
 /* eslint-disable */
 // @ts-nocheck
-import { 
-  UsdCents, 
-  Satoshis, 
-  SignedUsdCents, 
-  SignedSatoshis,
+import {
+    UsdCents,
+    Satoshis,
+    SignedUsdCents,
+    SignedSatoshis,
 } from 'types';
 
 faker.seed(12345);
 
 const getRandomEnumValue = <T extends Record<string, any>>(enumObj: T): T[keyof T] => {
-  const enumValues = Object.values(enumObj).filter(v => typeof v === 'string') as T[keyof T][];
-  return faker.helpers.arrayElement(enumValues);
+    const enumValues = Object.values(enumObj).filter(v => typeof v === 'string') as T[keyof T][];
+    return faker.helpers.arrayElement(enumValues);
 };
 
 // Generate mock values dynamically
 const generateMockValue = {
-  uuid: () => faker.string.uuid(),
-  email: () => faker.internet.email(),
-  telegramId: () => faker.string.alphanumeric(10),
-  name: () => faker.person.fullName(),
-  url: () => faker.internet.url(),
-  description: () => faker.lorem.paragraph(),
-  timestamp: () => faker.date.recent().toISOString(),
-  reference: () => faker.string.alphanumeric(12),
-  filename: () => faker.system.fileName(),
-  boolean: () => faker.datatype.boolean(),
-  usdCents: () => faker.number.int({ min: 0, max: 1000000 }) as UsdCents,
-  satoshis: () => faker.number.int({ min: 0, max: 100000000 }) as Satoshis,
-  signedUsdCents: () => faker.number.int({ min: -1000000, max: 1000000 }) as SignedUsdCents,
-  signedSatoshis: () => faker.number.int({ min: -100000000, max: 100000000 }) as SignedSatoshis,
-  int: () => faker.number.int({ min: 0, max: 1000 }),
-  cursor: () => faker.string.alphanumeric(20),
-  deniedReason: () => null,
-  applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null,
-  oneTimeFeeRate: () => faker.number.int({ min: 0, max: 5 })
+    uuid: () => faker.string.uuid(),
+    email: () => faker.internet.email(),
+    telegramId: () => faker.string.alphanumeric(10),
+    name: () => faker.person.fullName(),
+    url: () => faker.internet.url(),
+    description: () => faker.lorem.paragraph(),
+    timestamp: () => faker.date.recent().toISOString(),
+    reference: () => faker.string.alphanumeric(12),
+    filename: () => faker.system.fileName(),
+    boolean: () => faker.datatype.boolean(),
+    usdCents: () => faker.number.int({ min: 0, max: 1000000 }) as UsdCents,
+    satoshis: () => faker.number.int({ min: 0, max: 100000000 }) as Satoshis,
+    signedUsdCents: () => faker.number.int({ min: -1000000, max: 1000000 }) as SignedUsdCents,
+    signedSatoshis: () => faker.number.int({ min: -100000000, max: 100000000 }) as SignedSatoshis,
+    int: () => faker.number.int({ min: 0, max: 1000 }),
+    cursor: () => faker.string.alphanumeric(20),
+    deniedReason: () => null,
+    applicantId: () => faker.datatype.boolean() ? faker.string.uuid() : null,
+    oneTimeFeeRate: () => faker.number.int({ min: 0, max: 5 })
 };
 
 const mockEnums = {
-  accountStatus: () => getRandomEnumValue(AccountStatus),
-  approvalProcessStatus: () => getRandomEnumValue(ApprovalProcessStatus),
-  approvalProcessType: () => getRandomEnumValue(ApprovalProcessType),
-  collateralAction: () => getRandomEnumValue(CollateralAction),
-  collateralizationState: () => getRandomEnumValue(CollateralizationState),
-  creditFacilityStatus: () => getRandomEnumValue(CreditFacilityStatus),
-  disbursalStatus: () => getRandomEnumValue(DisbursalStatus),
-  documentStatus: () => getRandomEnumValue(DocumentStatus),
-  interestInterval: () => getRandomEnumValue(InterestInterval),
-  kycLevel: () => getRandomEnumValue(KycLevel),
-  period: () => getRandomEnumValue(Period),
-  reportProgress: () => getRandomEnumValue(ReportProgress),
-  role: () => getRandomEnumValue(Role),
-  sortDirection: () => getRandomEnumValue(SortDirection),
-  withdrawalStatus: () => getRandomEnumValue(WithdrawalStatus)
+    accountStatus: () => getRandomEnumValue(AccountStatus),
+    approvalProcessStatus: () => getRandomEnumValue(ApprovalProcessStatus),
+    approvalProcessType: () => getRandomEnumValue(ApprovalProcessType),
+    collateralAction: () => getRandomEnumValue(CollateralAction),
+    collateralizationState: () => getRandomEnumValue(CollateralizationState),
+    creditFacilityStatus: () => getRandomEnumValue(CreditFacilityStatus),
+    disbursalStatus: () => getRandomEnumValue(DisbursalStatus),
+    documentStatus: () => getRandomEnumValue(DocumentStatus),
+    interestInterval: () => getRandomEnumValue(InterestInterval),
+    kycLevel: () => getRandomEnumValue(KycLevel),
+    period: () => getRandomEnumValue(Period),
+    reportProgress: () => getRandomEnumValue(ReportProgress),
+    role: () => getRandomEnumValue(Role),
+    sortDirection: () => getRandomEnumValue(SortDirection),
+    withdrawalStatus: () => getRandomEnumValue(WithdrawalStatus)
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
@@ -944,7 +944,7 @@ export const mockCustodianCreateInput = (override?: CustodianCreateInput, _relat
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustodianCreateInput');
     return {
-        ...(override ? override : {komainu : relationshipsToOmit.has('KomainuConfig') ? {} as KomainuConfig : mockKomainuConfig({}, relationshipsToOmit)}),
+        ...(override ? override : { komainu: relationshipsToOmit.has('KomainuConfig') ? {} as KomainuConfig : mockKomainuConfig({}, relationshipsToOmit) }),
     };
 };
 
@@ -2078,7 +2078,7 @@ export const mockTermsInput = (overrides?: Partial<TermsInput>, _relationshipsTo
         interestDueFromAccrualAfterDays: overrides && overrides.hasOwnProperty('interestDueFromAccrualAfterDays') ? overrides.interestDueFromAccrualAfterDays! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
-        obligationOverdueDuration: overrides && overrides.hasOwnProperty('obligationOverdueDuration') ? overrides.obligationOverdueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
+        obligationOverdueFromDueAfterDays: overrides && overrides.hasOwnProperty('obligationOverdueFromDueAfterDays') ? overrides.obligationOverdueFromDueAfterDays! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
     };
 };
@@ -2110,7 +2110,7 @@ export const mockTermsTemplateCreateInput = (overrides?: Partial<TermsTemplateCr
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
-        obligationOverdueDuration: overrides && overrides.hasOwnProperty('obligationOverdueDuration') ? overrides.obligationOverdueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
+        obligationOverdueFromDueAfterDays: overrides && overrides.hasOwnProperty('obligationOverdueFromDueAfterDays') ? overrides.obligationOverdueFromDueAfterDays! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
     };
 };
@@ -2137,7 +2137,7 @@ export const mockTermsTemplateUpdateInput = (overrides?: Partial<TermsTemplateUp
         interestDueFromAccrualAfterDays: overrides && overrides.hasOwnProperty('interestDueFromAccrualAfterDays') ? overrides.interestDueFromAccrualAfterDays! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
-        obligationOverdueDuration: overrides && overrides.hasOwnProperty('obligationOverdueDuration') ? overrides.obligationOverdueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
+        obligationOverdueFromDueAfterDays: overrides && overrides.hasOwnProperty('obligationOverdueFromDueAfterDays') ? overrides.obligationOverdueFromDueAfterDays! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
     };
 };
