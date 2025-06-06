@@ -33,9 +33,9 @@ checksums:
     Permissions/accounting_writer/label: 3d8def43666d10ff58c6de5e275d5f6f
     Permissions/accounting_writer/description: c1c4979bc08582bfe879bfec7bd3c2f6
     Permissions/app_viewer/label: e6cdeb791c8dfe428ff4f63f9c35501f
-    Permissions/app_viewer/description: 0accfdb45981eaeebef0a6102c5a3fde
+    Permissions/app_viewer/description: 90732eeda6a3d709e9894b8eeb6bcae1
     Permissions/app_writer/label: 4642c9936756fc1dfd9651283238da90
-    Permissions/app_writer/description: 519e8441e98639b7a386edf19b51ebed
+    Permissions/app_writer/description: 90d6fee2d69667647db144f796e1d4dd
     Permissions/credit_viewer/label: ddd981efff42fb3ae35dbc7512badf65
     Permissions/credit_viewer/description: 5691969095c092d6b600fcb3fbf84bde
     Permissions/credit_writer/label: 1c68d14fb5d28661dc717870fa30bee5

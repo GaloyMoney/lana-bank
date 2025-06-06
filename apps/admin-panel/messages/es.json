@@ -45,11 +45,11 @@
     },
     "app_viewer": {
       "label": "Visualizador de aplicación",
-      "description": "Puede listar y ver documentos de aplicación, informes y auditorías"
+      "description": "Puede listar y ver documentos, informes y auditorías de la aplicación"
     },
     "app_writer": {
       "label": "Editor de aplicación",
-      "description": "Puede crear, actualizar, archivar y eliminar documentos de aplicación e informes"
+      "description": "Puede crear, actualizar, archivar y eliminar documentos e informes de la aplicación"
     },
     "credit_viewer": {
       "label": "Visualizador de crédito",
