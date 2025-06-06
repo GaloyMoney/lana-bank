@@ -4,7 +4,6 @@ use uuid::Uuid;
 
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobId, JobInitializer, JobRunner, JobType, Jobs,
-    RetrySettings,
 };
 
 use crate::email::sender_job::EmailSenderJobConfig;
@@ -17,7 +16,7 @@ use core_access::user::Users;
 use core_access::{CoreAccessAction, CoreAccessObject, UserId};
 use outbox::OutboxEventMarker;
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct ObligationOverdueNotificationJobConfig<Audit, E> {
     pub obligation_id: Uuid,
     pub credit_facility_id: Uuid,
@@ -60,8 +59,11 @@ where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    pub fn new(users: Users<Audit, E>, jobs: Jobs) -> Self {
-        Self { users, jobs }
+    pub fn new(users: &Users<Audit, E>, jobs: &Jobs) -> Self {
+        Self {
+            users: users.clone(),
+            jobs: jobs.clone(),
+        }
     }
 }
 
@@ -81,16 +83,11 @@ where
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        let config = job.config::<ObligationOverdueNotificationJobConfig<Audit, E>>()?;
         Ok(Box::new(ObligationOverdueNotificationJobRunner {
             users: self.users.clone(),
             jobs: self.jobs.clone(),
-            config,
+            config: job.config()?,
         }))
-    }
-
-    fn retry_on_error_settings() -> RetrySettings {
-        RetrySettings::repeat_indefinitely()
     }
 }
 
@@ -122,11 +119,14 @@ where
         let users = self.users.list_users(&subject).await?;
         for user in users {
             // email sender job for each user
+            // TODO: build template for this email
             let email_config = EmailSenderJobConfig {
                 recipient: user.email,
                 subject: "Obligation overdue".to_string(),
                 template_name: "obligation_overdue".to_string(),
-                template_data: serde_json::Value::default(),
+                template_data: serde_json::json!({
+                    "obligation_id": self.config.obligation_id,
+                }),
             };
             let mut tx = self.jobs.begin_op().await?;
             self.jobs

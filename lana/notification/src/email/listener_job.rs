@@ -131,17 +131,7 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
         while let Some(message) = stream.next().await {
             if let Some(event) = &message.payload {
-                if let Some(dispatcher_config) = self.map_event_to_dispatcher_config(event) {
-                    let mut db = self.jobs.begin_op().await?;
-                    self.jobs
-                        .create_and_spawn_in_op::<ObligationOverdueNotificationJobConfig<Audit, E>>(
-                            &mut db,
-                            JobId::new(),
-                            dispatcher_config,
-                        )
-                        .await?;
-                    db.commit().await?;
-                }
+                self.handle_event(event).await?;
             }
             state.sequence = message.sequence;
             current_job.update_execution_state(state.clone()).await?;
@@ -158,20 +148,29 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    fn map_event_to_dispatcher_config(
-        &self,
-        event: &LanaEvent,
-    ) -> Option<ObligationOverdueNotificationJobConfig<Audit, E>> {
+    async fn handle_event(&self, event: &LanaEvent) -> Result<(), Box<dyn std::error::Error>> {
         match event {
             LanaEvent::Credit(CoreCreditEvent::ObligationOverdue {
                 id,
                 credit_facility_id,
                 ..
-            }) => Some(ObligationOverdueNotificationJobConfig::new(
-                id.into(),
-                credit_facility_id.into(),
-            )),
-            _ => None,
+            }) => {
+                let config = ObligationOverdueNotificationJobConfig::new(
+                    id.into(),
+                    credit_facility_id.into(),
+                );
+                let mut db = self.jobs.begin_op().await?;
+                self.jobs
+                    .create_and_spawn_in_op::<ObligationOverdueNotificationJobConfig<Audit, E>>(
+                        &mut db,
+                        JobId::new(),
+                        config,
+                    )
+                    .await?;
+                db.commit().await?;
+            }
+            _ => {}
         }
+        Ok(())
     }
 }

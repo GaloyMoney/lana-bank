@@ -10,8 +10,6 @@ pub enum EmailError {
     Template(String),
     #[error("EmailError - Job: {0}")]
     Job(#[from] ::job::error::JobError),
-    #[error("EmailError - Database: {0}")]
-    Database(#[from] sqlx::Error),
     #[error("EmailError - Outbox: {0}")]
     Outbox(String),
 }
