@@ -1133,6 +1133,9 @@ impl Mutation {
             .duration(input.duration)
             .interest_due_from_accrual_after_days(input.interest_due_from_accrual_after_days)
             .obligation_overdue_from_due_after_days(input.obligation_overdue_from_due_after_days)
+            .obligation_liquidation_from_due_after_days(
+                input.obligation_liquidation_from_due_after_days,
+            )
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1163,6 +1166,9 @@ impl Mutation {
             .duration(input.duration)
             .interest_due_from_accrual_after_days(input.interest_due_from_accrual_after_days)
             .obligation_overdue_from_due_after_days(input.obligation_overdue_from_due_after_days)
+            .obligation_liquidation_from_due_after_days(
+                input.obligation_liquidation_from_due_after_days,
+            )
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
@@ -1333,6 +1339,9 @@ impl Mutation {
             .duration(terms.duration)
             .interest_due_from_accrual_after_days(terms.interest_due_from_accrual_after_days)
             .obligation_overdue_from_due_after_days(terms.obligation_overdue_from_due_after_days)
+            .obligation_liquidation_from_due_after_days(
+                terms.obligation_liquidation_from_due_after_days,
+            )
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)
