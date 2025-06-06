@@ -335,22 +335,22 @@ impl Query {
         )
     }
 
-    async fn custodian_configs(
+    async fn custodians(
         &self,
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<CustodianConfigsByNameCursor, CustodianConfig, EmptyFields, EmptyFields>,
+        Connection<CustodiansByNameCursor, Custodian, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            CustodianConfigsByNameCursor,
-            CustodianConfig,
+            CustodiansByNameCursor,
+            Custodian,
             ctx,
             after,
             first,
-            |query| app.custody().list_custodian_configs(sub, query)
+            |query| app.custody().list_custodians(sub, query)
         )
     }
 
@@ -1420,15 +1420,15 @@ impl Mutation {
         )
     }
 
-    async fn custodian_config_create(
+    async fn custodian_create(
         &self,
         ctx: &Context<'_>,
-        input: CustodianConfigCreateInput,
-    ) -> async_graphql::Result<CustodianConfigCreatePayload> {
+        input: CustodianCreateInput,
+    ) -> async_graphql::Result<CustodianCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            CustodianConfigCreatePayload,
-            CustodianConfig,
+            CustodianCreatePayload,
+            Custodian,
             ctx,
             app.custody()
                 .create_custodian_config(sub, input.name().to_owned(), input.into())

@@ -1,7 +1,7 @@
 use authz::{AllOrOne, action_description::*};
 
 es_entity::entity_id! {
-    CustodianConfigId;
+    CustodianId;
 }
 
 pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";
@@ -11,14 +11,12 @@ pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCustodyAction {
-    CustodianConfig(CustodianConfigAction),
+    Custodian(CustodianAction),
 }
 
 impl CoreCustodyAction {
-    pub const CUSTODIAN_CONFIG_CREATE: Self =
-        CoreCustodyAction::CustodianConfig(CustodianConfigAction::Create);
-    pub const CUSTODIAN_CONFIG_LIST: Self =
-        CoreCustodyAction::CustodianConfig(CustodianConfigAction::List);
+    pub const CUSTODIAN_CREATE: Self = CoreCustodyAction::Custodian(CustodianAction::Create);
+    pub const CUSTODIAN_LIST: Self = CoreCustodyAction::Custodian(CustodianAction::List);
 
     pub fn entities() -> Vec<(
         CoreCustodyActionDiscriminants,
@@ -30,7 +28,7 @@ impl CoreCustodyAction {
 
         for entity in <CoreCustodyActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                CustodianConfig => CustodianConfigAction::describe(),
+                Custodian => CustodianAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -44,7 +42,7 @@ impl core::fmt::Display for CoreCustodyAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:", CoreCustodyActionDiscriminants::from(self))?;
         match self {
-            Self::CustodianConfig(action) => action.fmt(f),
+            Self::Custodian(action) => action.fmt(f),
         }
     }
 }
@@ -58,7 +56,7 @@ impl core::str::FromStr for CoreCustodyAction {
         let action = elems.next().expect("missing second element");
         use CoreCustodyActionDiscriminants::*;
         let res = match entity.parse()? {
-            CustodianConfig => CoreCustodyAction::from(action.parse::<CustodianConfigAction>()?),
+            Custodian => CoreCustodyAction::from(action.parse::<CustodianAction>()?),
         };
 
         Ok(res)
@@ -67,12 +65,12 @@ impl core::str::FromStr for CoreCustodyAction {
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
-pub enum CustodianConfigAction {
+pub enum CustodianAction {
     Create,
     List,
 }
 
-impl CustodianConfigAction {
+impl CustodianAction {
     pub fn describe() -> Vec<ActionDescription<NoPath>> {
         let mut res = vec![];
 
@@ -91,24 +89,24 @@ impl CustodianConfigAction {
     }
 }
 
-impl From<CustodianConfigAction> for CoreCustodyAction {
-    fn from(action: CustodianConfigAction) -> Self {
-        Self::CustodianConfig(action)
+impl From<CustodianAction> for CoreCustodyAction {
+    fn from(action: CustodianAction) -> Self {
+        Self::Custodian(action)
     }
 }
 
-pub type CustodianConfigAllOrOne = AllOrOne<CustodianConfigId>;
+pub type CustodianAllOrOne = AllOrOne<CustodianId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCustodyObject {
-    CustodianConfig(CustodianConfigAllOrOne),
+    Custodian(CustodianAllOrOne),
 }
 
 impl CoreCustodyObject {
-    pub const fn all_custodian_configs() -> Self {
-        CoreCustodyObject::CustodianConfig(AllOrOne::All)
+    pub const fn all_custodians() -> Self {
+        CoreCustodyObject::Custodian(AllOrOne::All)
     }
 }
 
@@ -116,7 +114,7 @@ impl core::fmt::Display for CoreCustodyObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = CoreCustodyObjectDiscriminants::from(self);
         match self {
-            Self::CustodianConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Custodian(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -128,11 +126,11 @@ impl core::str::FromStr for CoreCustodyObject {
         let (entity, id) = s.split_once('/').expect("missing slash");
         use CoreCustodyObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
-            CustodianConfig => {
+            Custodian => {
                 let obj_ref = id
                     .parse()
                     .map_err(|_| "could not parse CoreCustodyObject")?;
-                Self::CustodianConfig(obj_ref)
+                Self::Custodian(obj_ref)
             }
         };
         Ok(res)

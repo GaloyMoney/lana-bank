@@ -8,7 +8,7 @@ pub use core_credit::{
     CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
     PaymentAllocationId, PaymentId,
 };
-pub use core_custody::CustodianConfigId;
+pub use core_custody::CustodianId;
 pub use core_customer::CustomerId;
 pub use core_deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use core_money::*;

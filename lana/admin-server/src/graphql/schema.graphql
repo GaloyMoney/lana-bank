@@ -705,19 +705,19 @@ type CreditModuleConfigurePayload {
 	creditConfig: CreditModuleConfig!
 }
 
-enum Custodian {
-	KOMAINU
-}
-
-type CustodianConfig {
+type Custodian {
 	id: ID!
 	custodianConfigId: UUID!
 	createdAt: Timestamp!
 	name: String!
-	custodian: Custodian!
+	custodianConfig: CustodianConfig!
 }
 
-type CustodianConfigConnection {
+enum CustodianConfig {
+	KOMAINU
+}
+
+type CustodianConnection {
 	"""
 	Information to aid in pagination.
 	"""
@@ -725,29 +725,29 @@ type CustodianConfigConnection {
 	"""
 	A list of edges.
 	"""
-	edges: [CustodianConfigEdge!]!
+	edges: [CustodianEdge!]!
 	"""
 	A list of nodes.
 	"""
-	nodes: [CustodianConfig!]!
+	nodes: [Custodian!]!
 }
 
-input CustodianConfigCreateInput @oneOf {
+input CustodianCreateInput @oneOf {
 	komainu: KomainuConfig
 }
 
-type CustodianConfigCreatePayload {
-	custodianConfig: CustodianConfig!
+type CustodianCreatePayload {
+	custodianConfig: Custodian!
 }
 
 """
 An edge in a connection.
 """
-type CustodianConfigEdge {
+type CustodianEdge {
 	"""
 	The item at the end of the edge
 	"""
-	node: CustodianConfig!
+	node: Custodian!
 	"""
 	A cursor for use in pagination
 	"""
@@ -1299,7 +1299,7 @@ type Mutation {
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
-	custodianConfigCreate(input: CustodianConfigCreateInput!): CustodianConfigCreatePayload!
+	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
@@ -1501,7 +1501,7 @@ type Query {
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal
 	disbursals(first: Int!, after: String): CreditFacilityDisbursalConnection!
-	custodianConfigs(first: Int!, after: String): CustodianConfigConnection!
+	custodians(first: Int!, after: String): CustodianConnection!
 	committee(id: UUID!): Committee
 	committees(first: Int!, after: String): CommitteeConnection!
 	policy(id: UUID!): Policy

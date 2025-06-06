@@ -81,17 +81,17 @@ impl Loader<RoleId> for LanaLoader {
     }
 }
 
-impl Loader<CustodianConfigId> for LanaLoader {
-    type Value = CustodianConfig;
+impl Loader<CustodianId> for LanaLoader {
+    type Value = Custodian;
     type Error = Arc<CoreCustodyError>;
 
     async fn load(
         &self,
-        keys: &[CustodianConfigId],
-    ) -> Result<HashMap<CustodianConfigId, CustodianConfig>, Self::Error> {
+        keys: &[CustodianId],
+    ) -> Result<HashMap<CustodianId, Custodian>, Self::Error> {
         self.app
             .custody()
-            .find_all_custodian_configs(keys)
+            .find_all_custodians(keys)
             .await
             .map_err(Arc::new)
     }
