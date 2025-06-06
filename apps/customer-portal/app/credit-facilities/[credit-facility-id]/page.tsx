@@ -94,10 +94,7 @@ gql`
           usdBalance
         }
       }
-      currentCvl {
-        total
-        disbursed
-      }
+      currentCvl
       repaymentPlan {
         repaymentType
         status

@@ -45,10 +45,7 @@ gql`
           createdAt
           status
           facilityAmount
-          currentCvl {
-            disbursed
-            total
-          }
+          currentCvl
           balance {
             collateral {
               btcBalance
@@ -150,7 +147,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "currentCvl",
     label: t("table.headers.cvl"),
-    render: (cvl) => `${cvl.disbursed}%`,
+    render: (cvl) => `${cvl}%`,
     sortable: true,
   },
   {

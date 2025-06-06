@@ -35,10 +35,7 @@ gql`
     maturesAt
     collateralizationState
     createdAt
-    currentCvl {
-      total
-      disbursed
-    }
+    currentCvl
     collateralToMatchInitialCvl @client
     disbursals {
       status

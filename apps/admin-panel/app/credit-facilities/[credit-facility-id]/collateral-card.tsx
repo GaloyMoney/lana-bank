@@ -122,10 +122,10 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
       label: t("details.currentCvl"),
       value: (
         <div className="flex items-center gap-2">
-          <span>{creditFacility.currentCvl.total}%</span>
+          <span>{creditFacility.currentCvl}%</span>
           {creditFacility.status === CreditFacilityStatus.Active && (
             <CvlStatusText
-              currentCvl={creditFacility.currentCvl.total}
+              currentCvl={creditFacility.currentCvl}
               initialCvl={creditFacility.creditFacilityTerms.initialCvl}
               marginCallCvl={creditFacility.creditFacilityTerms.marginCallCvl}
               liquidationCvl={creditFacility.creditFacilityTerms.liquidationCvl}
