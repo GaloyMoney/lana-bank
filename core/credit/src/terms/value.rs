@@ -223,7 +223,7 @@ pub struct TermValues {
     #[builder(setter(into))]
     pub duration: FacilityDuration,
     #[builder(setter(into))]
-    pub interest_due_duration: ObligationDuration,
+    pub interest_due_from_accrual_after_days: ObligationDuration,
     #[builder(setter(into))]
     pub obligation_overdue_duration: Option<ObligationDuration>,
     #[builder(setter(into))]
@@ -392,7 +392,7 @@ mod test {
         TermValues::builder()
             .annual_rate(AnnualRatePct(dec!(12)))
             .duration(FacilityDuration::Months(3))
-            .interest_due_duration(ObligationDuration::Days(0))
+            .interest_due_from_accrual_after_days(ObligationDuration::Days(0))
             .obligation_overdue_duration(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
@@ -615,7 +615,7 @@ mod test {
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(FacilityDuration::Months(3))
-            .interest_due_duration(ObligationDuration::Days(0))
+            .interest_due_from_accrual_after_days(ObligationDuration::Days(0))
             .obligation_overdue_duration(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
