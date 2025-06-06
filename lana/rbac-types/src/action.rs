@@ -175,7 +175,6 @@ macro_rules! impl_trivial_action {
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppAction {
-    TermsTemplate(TermsTemplateAction),
     Report(ReportAction),
     Audit(AuditAction),
     Document(DocumentAction),
@@ -189,7 +188,6 @@ impl AppAction {
 
         for entity in <AppActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                TermsTemplate => TermsTemplateAction::describe(),
                 Report => ReportAction::describe(),
                 Audit => AuditAction::describe(),
                 Document => DocumentAction::describe(),
@@ -207,7 +205,6 @@ impl Display for AppAction {
         write!(f, "{}:", AppActionDiscriminants::from(self))?;
         use AppAction::*;
         match self {
-            TermsTemplate(action) => action.fmt(f),
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
             Document(action) => action.fmt(f),
@@ -224,7 +221,6 @@ impl FromStr for AppAction {
         let action = elems.next().expect("missing second element");
         use AppActionDiscriminants::*;
         let res = match entity.parse()? {
-            TermsTemplate => AppAction::from(action.parse::<TermsTemplateAction>()?),
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
             Document => AppAction::from(action.parse::<DocumentAction>()?),
@@ -233,39 +229,6 @@ impl FromStr for AppAction {
     }
 }
 
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum TermsTemplateAction {
-    Read,
-    Update,
-    Create,
-    List,
-}
-
-impl TermsTemplateAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        use TermsTemplateAction::*;
-
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Read => ActionDescription::new(variant, &[PERMISSION_SET_APP_VIEWER]),
-                Update => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_WRITER, PERMISSION_SET_APP_VIEWER],
-                ),
-            };
-            res.push(action_description);
-        }
-
-        res
-    }
-}
-
-impl_trivial_action!(TermsTemplateAction, TermsTemplate);
 
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
