@@ -1682,7 +1682,7 @@ input TermsInput {
 	liquidationCvl: CVLPct!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
-	interestDueDuration: DurationInput!
+	interestDueFromAccrualAfterDays: DurationInput!
 	obligationOverdueDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
@@ -1704,7 +1704,7 @@ input TermsTemplateCreateInput {
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
-	interestDueDuration: DurationInput!
+	interestDueFromAccrualAfterDays: DurationInput!
 	obligationOverdueDuration: DurationInput!
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
@@ -1723,7 +1723,7 @@ input TermsTemplateUpdateInput {
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	liquidationCvl: CVLPct!
 	duration: DurationInput!
-	interestDueDuration: DurationInput!
+	interestDueFromAccrualAfterDays: DurationInput!
 	obligationOverdueDuration: DurationInput!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
