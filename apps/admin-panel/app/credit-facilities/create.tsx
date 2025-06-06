@@ -227,6 +227,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 period: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.PERIOD,
                 units: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.UNITS,
               },
+              obligationLiquidationFromDueAfterDays: {
+                period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.PERIOD,
+                units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.UNITS,
+              },
             },
           },
         },
