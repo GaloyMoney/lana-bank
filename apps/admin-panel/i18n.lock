@@ -275,6 +275,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/not_yet_due: 5610cbe51dcb79a9eba7b5ea20945fe3
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/due: f68d8596e02773955b31c98a23ecbd95
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/overdue: a63e7496e60dfa38beffe0b1d40d7b51
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/moved_to_liquidation: 1a16e679149f9258ef10ffef5b608f1d
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/paid: 57d83a58e2cfe732ed864f5155156033
     CreditFacilities/CreditFacilityDetails/Disbursals/title: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Disbursals/description: df7b13aead3a8b21cf6abca7792937a7

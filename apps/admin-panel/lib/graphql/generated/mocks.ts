@@ -805,7 +805,7 @@ export const mockCreditFacilityRepaymentPlanEntry = (overrides?: Partial<CreditF
         initial: overrides && overrides.hasOwnProperty('initial') ? overrides.initial! : generateMockValue.usdCents(),
         outstanding: overrides && overrides.hasOwnProperty('outstanding') ? overrides.outstanding! : generateMockValue.usdCents(),
         repaymentType: overrides && overrides.hasOwnProperty('repaymentType') ? overrides.repaymentType! : CreditFacilityRepaymentType.Disbursal,
-        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityRepaymentStatus.Defaulted,
+        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityRepaymentStatus.Due,
     };
 };
 
@@ -2078,6 +2078,7 @@ export const mockTermsInput = (overrides?: Partial<TermsInput>, _relationshipsTo
         interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
+        obligationLiquidationDuration: overrides && overrides.hasOwnProperty('obligationLiquidationDuration') ? overrides.obligationLiquidationDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         obligationOverdueDuration: overrides && overrides.hasOwnProperty('obligationOverdueDuration') ? overrides.obligationOverdueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
     };
@@ -2110,6 +2111,7 @@ export const mockTermsTemplateCreateInput = (overrides?: Partial<TermsTemplateCr
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        obligationLiquidationDuration: overrides && overrides.hasOwnProperty('obligationLiquidationDuration') ? overrides.obligationLiquidationDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         obligationOverdueDuration: overrides && overrides.hasOwnProperty('obligationOverdueDuration') ? overrides.obligationOverdueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
     };
@@ -2137,6 +2139,7 @@ export const mockTermsTemplateUpdateInput = (overrides?: Partial<TermsTemplateUp
         interestDueDuration: overrides && overrides.hasOwnProperty('interestDueDuration') ? overrides.interestDueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         liquidationCvl: overrides && overrides.hasOwnProperty('liquidationCvl') ? overrides.liquidationCvl! : generateMockValue.int(),
         marginCallCvl: overrides && overrides.hasOwnProperty('marginCallCvl') ? overrides.marginCallCvl! : generateMockValue.int(),
+        obligationLiquidationDuration: overrides && overrides.hasOwnProperty('obligationLiquidationDuration') ? overrides.obligationLiquidationDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         obligationOverdueDuration: overrides && overrides.hasOwnProperty('obligationOverdueDuration') ? overrides.obligationOverdueDuration! : relationshipsToOmit.has('DurationInput') ? {} as DurationInput : mockDurationInput({}, relationshipsToOmit),
         oneTimeFeeRate: overrides && overrides.hasOwnProperty('oneTimeFeeRate') ? overrides.oneTimeFeeRate! : faker.lorem.word(),
     };

@@ -164,6 +164,10 @@ Cypress.Commands.add(
             period: input.obligationOverdueDuration.period,
             units: input.obligationOverdueDuration.units,
           },
+          obligationLiquidationDuration: {
+            period: input.obligationLiquidationDuration.period,
+            units: input.obligationLiquidationDuration.units,
+          },
           liquidationCvl: input.liquidationCvl,
           marginCallCvl: input.marginCallCvl,
           initialCvl: input.initialCvl,
@@ -278,4 +282,4 @@ Cypress.Commands.add("uploadChartOfAccounts", () => {
     .should("be.visible")
 })
 
-export {}
+export { }

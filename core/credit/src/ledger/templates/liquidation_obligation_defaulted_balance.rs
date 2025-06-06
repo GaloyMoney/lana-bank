@@ -8,10 +8,11 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE: &str = "RECORD_OBLIGATION_DEFAULTED_BALANCE";
+pub const RECORD_LIQUIDATION_OBLIGATION_DEFAULTED_BALANCE_CODE: &str =
+    "RECORD_LIQUIDATION_OBLIGATION_DEFAULTED_BALANCE";
 
 #[derive(Debug)]
-pub struct RecordObligationDefaultedBalanceParams {
+pub struct RecordLiquidationObligationDefaultedBalanceParams {
     pub journal_id: JournalId,
     pub amount: Decimal,
     pub receivable_account_id: CalaAccountId,
@@ -19,7 +20,7 @@ pub struct RecordObligationDefaultedBalanceParams {
     pub effective: chrono::NaiveDate,
 }
 
-impl RecordObligationDefaultedBalanceParams {
+impl RecordLiquidationObligationDefaultedBalanceParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -50,15 +51,15 @@ impl RecordObligationDefaultedBalanceParams {
         ]
     }
 }
-impl From<RecordObligationDefaultedBalanceParams> for Params {
+impl From<RecordLiquidationObligationDefaultedBalanceParams> for Params {
     fn from(
-        RecordObligationDefaultedBalanceParams {
+        RecordLiquidationObligationDefaultedBalanceParams {
             journal_id,
             amount,
             receivable_account_id,
             defaulted_account_id,
             effective,
-        }: RecordObligationDefaultedBalanceParams,
+        }: RecordLiquidationObligationDefaultedBalanceParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
@@ -71,20 +72,23 @@ impl From<RecordObligationDefaultedBalanceParams> for Params {
     }
 }
 
-pub struct RecordObligationDefaultedBalance;
+pub struct RecordLiquidationObligationDefaultedBalance;
 
-impl RecordObligationDefaultedBalance {
-    #[instrument(name = "ledger.record_obligation_defaulted_balance.init", skip_all)]
+impl RecordLiquidationObligationDefaultedBalance {
+    #[instrument(
+        name = "ledger.record_liquidation_obligation_defaulted_balance.init",
+        skip_all
+    )]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .description("'Record a defaulted obligation balance'")
+            .description("'Record a defaulted in-liquidation obligation balance'")
             .build()
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_OBLIGATION_DEFAULTED_BALANCE_CR'")
+                .entry_type("'RECORD_LIQUIDATION_OBLIGATION_DEFAULTED_BALANCE_CR'")
                 .currency("'USD'")
                 .account_id("params.receivable_account_id")
                 .direction("CREDIT")
@@ -93,7 +97,7 @@ impl RecordObligationDefaultedBalance {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_OBLIGATION_DEFAULTED_BALANCE_DR'")
+                .entry_type("'RECORD_LIQUIDATION_OBLIGATION_DEFAULTED_BALANCE_DR'")
                 .currency("'USD'")
                 .account_id("params.defaulted_account_id")
                 .direction("DEBIT")
@@ -103,10 +107,10 @@ impl RecordObligationDefaultedBalance {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordObligationDefaultedBalanceParams::defs();
+        let params = RecordLiquidationObligationDefaultedBalanceParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE)
+            .code(RECORD_LIQUIDATION_OBLIGATION_DEFAULTED_BALANCE_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

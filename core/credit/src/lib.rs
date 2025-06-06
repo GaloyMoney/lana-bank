@@ -10,6 +10,7 @@ mod history;
 mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
+mod liquidation_obligation;
 mod obligation;
 mod payment;
 mod payment_allocation;
@@ -46,6 +47,7 @@ pub use history::*;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
+pub use liquidation_obligation::*;
 pub use obligation::{obligation_cursor::*, *};
 pub use payment::*;
 pub use payment_allocation::*;
@@ -139,7 +141,16 @@ where
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
-        let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
+        let liquidation_obligations =
+            LiquidationObligations::new(pool, authz, cala, jobs, &publisher);
+        let obligations = Obligations::new(
+            pool,
+            authz,
+            cala,
+            &liquidation_obligations,
+            jobs,
+            &publisher,
+        );
         let credit_facilities = CreditFacilities::new(
             pool,
             authz,
@@ -235,9 +246,15 @@ where
             ),
         );
         jobs.add_initializer(
-            obligation_defaulted::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+            obligation_moved_to_liquidation::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
                 &ledger,
                 &obligations,
+            ),
+        );
+        jobs.add_initializer(
+            liquidation_obligation_defaulted::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+                &ledger,
+                &liquidation_obligations,
             ),
         );
         jobs.add_initializer_and_spawn_unique(
@@ -511,6 +528,10 @@ where
             .terms
             .obligation_overdue_duration
             .map(|d| d.end_date(due_date));
+        let liquidation_date = facility
+            .terms
+            .obligation_liquidation_duration
+            .map(|d| d.end_date(due_date));
 
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
@@ -521,6 +542,7 @@ where
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
             .disbursal_due_date(due_date)
             .disbursal_overdue_date(overdue_date)
+            .disbursal_liquidation_date(liquidation_date)
             .audit_info(audit_info)
             .build()?;
 

@@ -6,11 +6,14 @@ use authz::PermissionCheck;
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
+use crate::{
+    event::CoreCreditEvent, ledger::CreditLedger, liquidation_obligation::LiquidationObligations,
+    primitives::*,
+};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreditFacilityJobConfig<Perms, E> {
-    pub obligation_id: ObligationId,
+    pub liquidation_obligation_id: LiquidationObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -28,7 +31,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    obligations: Obligations<Perms, E>,
+    liquidation_obligations: LiquidationObligations<Perms, E>,
     ledger: CreditLedger,
 }
 
@@ -39,10 +42,13 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(ledger: &CreditLedger, obligations: &Obligations<Perms, E>) -> Self {
+    pub fn new(
+        ledger: &CreditLedger,
+        liquidation_obligations: &LiquidationObligations<Perms, E>,
+    ) -> Self {
         Self {
             ledger: ledger.clone(),
-            obligations: obligations.clone(),
+            liquidation_obligations: liquidation_obligations.clone(),
         }
     }
 }
@@ -66,7 +72,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
             config: job.config()?,
-            obligations: self.obligations.clone(),
+            liquidation_obligations: self.liquidation_obligations.clone(),
             ledger: self.ledger.clone(),
         }))
     }
@@ -78,7 +84,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     config: CreditFacilityJobConfig<Perms, E>,
-    obligations: Obligations<Perms, E>,
+    liquidation_obligations: LiquidationObligations<Perms, E>,
     ledger: CreditLedger,
 }
 
@@ -94,11 +100,15 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut db = self.obligations.begin_op().await?;
+        let mut db = self.liquidation_obligations.begin_op().await?;
 
         let data = self
-            .obligations
-            .record_defaulted_in_op(&mut db, self.config.obligation_id, self.config.effective)
+            .liquidation_obligations
+            .record_defaulted_in_op(
+                &mut db,
+                self.config.liquidation_obligation_id,
+                self.config.effective,
+            )
             .await?;
 
         let defaulted = if let Some(defaulted) = data {
@@ -108,7 +118,7 @@ where
         };
 
         self.ledger
-            .record_obligation_defaulted(db, defaulted)
+            .record_liquidation_obligation_defaulted(db, defaulted)
             .await?;
 
         Ok(JobCompletion::Complete)

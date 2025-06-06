@@ -12,8 +12,6 @@ pub struct ObligationDataForEntry {
     pub outstanding: UsdCents,
 
     pub due_at: DateTime<Utc>,
-    pub overdue_at: Option<DateTime<Utc>>,
-    pub defaulted_at: Option<DateTime<Utc>>,
 
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
@@ -64,7 +62,7 @@ pub enum RepaymentStatus {
     NotYetDue,
     Due,
     Overdue,
-    Defaulted,
+    MovedToLiquidation,
     Paid,
 }
 
@@ -74,7 +72,7 @@ impl From<ObligationStatus> for RepaymentStatus {
             ObligationStatus::NotYetDue => RepaymentStatus::NotYetDue,
             ObligationStatus::Due => RepaymentStatus::Due,
             ObligationStatus::Overdue => RepaymentStatus::Overdue,
-            ObligationStatus::Defaulted => RepaymentStatus::Defaulted,
+            ObligationStatus::MovedToLiquidation => RepaymentStatus::MovedToLiquidation,
             ObligationStatus::Paid => RepaymentStatus::Paid,
         }
     }

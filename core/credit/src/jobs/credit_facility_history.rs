@@ -75,11 +75,19 @@ where
                         credit_facility_id: id,
                         ..
                     }
-                    | ObligationDefaulted {
+                    | ObligationCompleted {
                         credit_facility_id: id,
                         ..
                     }
-                    | ObligationCompleted {
+                    | ObligationMovedToLiquidation {
+                        credit_facility_id: id,
+                        ..
+                    }
+                    | LiquidationStarted {
+                        credit_facility_id: id,
+                        ..
+                    }
+                    | LiquidationObligationDefaulted {
                         credit_facility_id: id,
                         ..
                     } => *id,

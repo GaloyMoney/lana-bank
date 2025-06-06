@@ -8,6 +8,9 @@ use crate::{
     interest_accrual_cycle::{
         InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
     },
+    liquidation_obligation::{
+        LiquidationObligation, LiquidationObligationEvent, error::LiquidationObligationError,
+    },
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
@@ -244,7 +247,7 @@ where
 
                     due_at: entity.due_at(),
                     overdue_at: entity.overdue_at(),
-                    defaulted_at: entity.defaulted_at(),
+                    liquidation_at: entity.liquidation_at(),
                     recorded_at: event.recorded_at,
                     effective: *effective,
                 }),
@@ -259,15 +262,52 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                 }),
-                DefaultedRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDefaulted {
+                MovedToLiquidation {
+                    liquidation_obligation_id,
+                    outstanding,
+                    defaulted_date,
+                    ..
+                } => Some(CoreCreditEvent::ObligationMovedToLiquidation {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
-                    amount: *amount,
+                    liquidation_obligation_id: *liquidation_obligation_id,
+                    defaulted_at: *defaulted_date,
+                    amount: *outstanding,
                 }),
                 Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                 }),
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(db.tx(), publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_liquidation_obligation(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &LiquidationObligation,
+        new_events: es_entity::LastPersisted<'_, LiquidationObligationEvent>,
+    ) -> Result<(), LiquidationObligationError> {
+        use LiquidationObligationEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                Initialized { .. } => Some(CoreCreditEvent::LiquidationStarted {
+                    id: entity.id,
+                    parent_obligation_id: entity.parent_obligation_id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
+                DefaultedRecorded { amount, .. } => {
+                    Some(CoreCreditEvent::LiquidationObligationDefaulted {
+                        id: entity.id,
+                        credit_facility_id: entity.credit_facility_id,
+                        amount: *amount,
+                    })
+                }
                 _ => None,
             })
             .collect::<Vec<_>>();

@@ -60,8 +60,6 @@ impl CreditFacilityRepaymentPlan {
                 outstanding: structuring_fee,
 
                 due_at: maturity_date,
-                overdue_at: None,
-                defaulted_at: None,
                 recorded_at: activated_at,
                 effective: activated_at.date_naive(),
             }),
@@ -73,8 +71,6 @@ impl CreditFacilityRepaymentPlan {
                 outstanding: facility_amount,
 
                 due_at: maturity_date,
-                overdue_at: None,
-                defaulted_at: None,
                 recorded_at: activated_at,
                 effective: activated_at.date_naive(),
             }),
@@ -125,8 +121,6 @@ impl CreditFacilityRepaymentPlan {
                     outstanding: interest,
 
                     due_at: period.end,
-                    overdue_at: None,
-                    defaulted_at: None,
                     recorded_at: period.end,
                     effective: period.end.date_naive(),
                 },
@@ -160,8 +154,6 @@ impl CreditFacilityRepaymentPlan {
                 obligation_type,
                 amount,
                 due_at,
-                overdue_at,
-                defaulted_at,
                 recorded_at,
                 effective,
                 ..
@@ -174,8 +166,6 @@ impl CreditFacilityRepaymentPlan {
                     outstanding: *amount,
 
                     due_at: *due_at,
-                    overdue_at: *overdue_at,
-                    defaulted_at: *defaulted_at,
                     recorded_at: *recorded_at,
                     effective: *effective,
                 };
@@ -215,7 +205,7 @@ impl CreditFacilityRepaymentPlan {
             | CoreCreditEvent::ObligationOverdue {
                 id: obligation_id, ..
             }
-            | CoreCreditEvent::ObligationDefaulted {
+            | CoreCreditEvent::ObligationMovedToLiquidation {
                 id: obligation_id, ..
             }
             | CoreCreditEvent::ObligationCompleted {
@@ -232,7 +222,9 @@ impl CreditFacilityRepaymentPlan {
                     data.status = match event {
                         CoreCreditEvent::ObligationDue { .. } => RepaymentStatus::Due,
                         CoreCreditEvent::ObligationOverdue { .. } => RepaymentStatus::Overdue,
-                        CoreCreditEvent::ObligationDefaulted { .. } => RepaymentStatus::Defaulted,
+                        CoreCreditEvent::ObligationMovedToLiquidation { .. } => {
+                            RepaymentStatus::MovedToLiquidation
+                        }
                         CoreCreditEvent::ObligationCompleted { .. } => RepaymentStatus::Paid,
                         _ => unreachable!(),
                     };
@@ -286,6 +278,7 @@ mod tests {
             .duration(FacilityDuration::Months(3))
             .interest_due_duration(ObligationDuration::Days(0))
             .obligation_overdue_duration(None)
+            .obligation_liquidation_duration(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))
@@ -398,7 +391,7 @@ mod tests {
                 amount: UsdCents::from(100_000_00),
                 due_at: default_start_date(),
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at,
                 effective: recorded_at.date_naive(),
             },
@@ -439,7 +432,7 @@ mod tests {
                 amount: UsdCents::from(100_000_00),
                 due_at: disbursal_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
             },
@@ -450,7 +443,7 @@ mod tests {
                 amount: UsdCents::from(1_000_00),
                 due_at: interest_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
             },
@@ -493,7 +486,7 @@ mod tests {
                 amount: UsdCents::from(100_000_00),
                 due_at: disbursal_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
             },
@@ -504,7 +497,7 @@ mod tests {
                 amount: UsdCents::from(1_000_00),
                 due_at: interest_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
             },
@@ -570,7 +563,7 @@ mod tests {
                 amount: UsdCents::from(100_000_00),
                 due_at: disbursal_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
             },
@@ -581,7 +574,7 @@ mod tests {
                 amount: UsdCents::from(1_000_00),
                 due_at: interest_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: interest_recorded_at,
                 effective: interest_recorded_at.date_naive(),
             },
@@ -671,7 +664,7 @@ mod tests {
                 amount: UsdCents::from(100_000_00),
                 due_at: disbursal_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: disbursal_recorded_at,
                 effective: disbursal_recorded_at.date_naive(),
             },
@@ -682,7 +675,7 @@ mod tests {
                 amount: UsdCents::from(1_000_00),
                 due_at: interest_1_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: interest_1_recorded_at,
                 effective: interest_1_recorded_at.date_naive(),
             },
@@ -693,7 +686,7 @@ mod tests {
                 amount: UsdCents::from(1_000_00),
                 due_at: interest_2_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: interest_2_recorded_at,
                 effective: interest_2_recorded_at.date_naive(),
             },
@@ -704,7 +697,7 @@ mod tests {
                 amount: UsdCents::from(1_000_00),
                 due_at: interest_3_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: interest_3_recorded_at,
                 effective: interest_3_recorded_at.date_naive(),
             },
@@ -715,7 +708,7 @@ mod tests {
                 amount: UsdCents::from(33_00),
                 due_at: interest_4_recorded_at,
                 overdue_at: None,
-                defaulted_at: None,
+                liquidation_at: None,
                 recorded_at: interest_4_recorded_at,
                 effective: interest_4_recorded_at.date_naive(),
             },

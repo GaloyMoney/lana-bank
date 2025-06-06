@@ -1,5 +1,7 @@
-use crate::primitives::*;
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+
+use crate::primitives::*;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub struct ObligationAccounts {
@@ -23,12 +25,10 @@ pub struct ObligationOverdueReallocationData {
     pub effective: chrono::NaiveDate,
 }
 
-pub struct ObligationDefaultedReallocationData {
-    pub tx_id: LedgerTxId,
-    pub amount: UsdCents,
-    pub receivable_account_id: CalaAccountId,
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct LiquidationData {
     pub defaulted_account_id: CalaAccountId,
-    pub effective: chrono::NaiveDate,
+    pub defaulted_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]

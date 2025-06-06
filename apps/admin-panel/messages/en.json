@@ -443,6 +443,7 @@
           "not_yet_due": "NOT YET DUE",
           "due": "DUE",
           "overdue": "OVERDUE",
+          "moved_to_liquidation": "MOVED TO LIQUIDATION",
           "paid": "PAID"
         }
       },

@@ -79,7 +79,7 @@ pub enum CoreCreditEvent {
 
         due_at: DateTime<Utc>,
         overdue_at: Option<DateTime<Utc>>,
-        defaulted_at: Option<DateTime<Utc>>,
+        liquidation_at: Option<DateTime<Utc>>,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },
@@ -94,13 +94,25 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     },
-    ObligationDefaulted {
+    ObligationMovedToLiquidation {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
+        liquidation_obligation_id: LiquidationObligationId,
+        defaulted_at: Option<DateTime<Utc>>,
         amount: UsdCents,
     },
     ObligationCompleted {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
+    },
+    LiquidationStarted {
+        id: LiquidationObligationId,
+        parent_obligation_id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+    },
+    LiquidationObligationDefaulted {
+        id: LiquidationObligationId,
+        credit_facility_id: CreditFacilityId,
+        amount: UsdCents,
     },
 }
