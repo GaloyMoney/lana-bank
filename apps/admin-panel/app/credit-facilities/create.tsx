@@ -219,9 +219,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 units: parseInt(durationUnits),
                 period: DEFAULT_TERMS.DURATION_PERIOD,
               },
-              interestDueDuration: {
-                period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
-                units: DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
+              interestDueFromAccrualAfterDays: {
+                period: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.PERIOD,
+                units: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.UNITS,
               },
               obligationOverdueDuration: {
                 period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
