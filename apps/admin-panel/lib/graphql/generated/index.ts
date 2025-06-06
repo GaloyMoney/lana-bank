@@ -2063,7 +2063,7 @@ export type TermsInput = {
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   initialCvl: Scalars['CVLPct']['input'];
-  interestDueDuration: DurationInput;
+  interestDueFromAccrualAfterDays: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   obligationOverdueDuration: DurationInput;
@@ -2086,7 +2086,7 @@ export type TermsTemplateCreateInput = {
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   initialCvl: Scalars['CVLPct']['input'];
-  interestDueDuration: DurationInput;
+  interestDueFromAccrualAfterDays: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   name: Scalars['String']['input'];
@@ -2106,7 +2106,7 @@ export type TermsTemplateUpdateInput = {
   duration: DurationInput;
   id: Scalars['UUID']['input'];
   initialCvl: Scalars['CVLPct']['input'];
-  interestDueDuration: DurationInput;
+  interestDueFromAccrualAfterDays: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   obligationOverdueDuration: DurationInput;

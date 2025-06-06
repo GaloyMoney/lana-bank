@@ -5,7 +5,7 @@ export const DEFAULT_TERMS = {
     UNITS: 85,
     PERIOD: Period.Days,
   },
-  INTEREST_DUE_DURATION: {
+  INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS: {
     UNITS: 0,
     PERIOD: Period.Days,
   },
