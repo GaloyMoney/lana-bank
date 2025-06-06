@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^1.0.11
-        version: 1.0.11
+        specifier: ^1.0.16
+        version: 1.0.16
       '@mermaid-js/mermaid-cli':
         specifier: ^11.4.2
         version: 11.4.2(puppeteer@24.10.0(typescript@5.8.3))(typescript@5.8.3)
@@ -37,7 +37,7 @@ importers:
         version: 1.20.11
       '@t3-oss/env-nextjs':
         specifier: ^0.13.6
-        version: 0.13.6(typescript@5.8.3)(zod@3.25.51)
+        version: 0.13.6(typescript@5.8.3)(zod@3.25.55)
       apollo-upload-client:
         specifier: ^18.0.1
         version: 18.0.1(@apollo/client@3.13.8(@types/react@19.1.6)(graphql-ws@6.0.5(graphql@16.11.0)(ws@8.18.2))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(graphql@16.11.0)
@@ -99,8 +99,8 @@ importers:
         specifier: ^3.3.0
         version: 3.3.0
       zod:
-        specifier: ^3.25.51
-        version: 3.25.51
+        specifier: ^3.25.55
+        version: 3.25.55
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.0-next.16
@@ -235,11 +235,11 @@ importers:
         specifier: ^1.20.11
         version: 1.20.11
       '@sumsub/websdk-react':
-        specifier: ^2.3.16
-        version: 2.3.16(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
+        specifier: ^2.3.17
+        version: 2.3.17(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@t3-oss/env-nextjs':
         specifier: ^0.13.6
-        version: 0.13.6(typescript@5.8.3)(zod@3.25.51)
+        version: 0.13.6(typescript@5.8.3)(zod@3.25.55)
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -292,8 +292,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       zod:
-        specifier: ^3.25.51
-        version: 3.25.51
+        specifier: ^3.25.55
+        version: 3.25.55
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.0
@@ -529,8 +529,8 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anthropic-ai/claude-code@1.0.11':
-    resolution: {integrity: sha512-ezYfkSxCiQjReJoBJkayTpzhWRWKmfEy6Ria2TdufBmDR7Kj/iP4IY10M5JOTgB8pw7XfjYpijgnomiFZmVRbg==}
+  '@anthropic-ai/claude-code@1.0.16':
+    resolution: {integrity: sha512-Lqf2yPnNF5fMZ4xw41lON+4J5RLNjIYO+2OgoLqzxRTT4u3gLQJ2uSrW0lSL9otDThMiY5SokzbMU1MAm7KKPA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -2789,8 +2789,8 @@ packages:
     peerDependencies:
       storybook: ^8.6.14
 
-  '@sumsub/websdk-react@2.3.16':
-    resolution: {integrity: sha512-P3pIgs2s3rdDcQd0eQ4emRzzcEOOc6VbbDAwtT3OGjLvgsyzmcO9Wmv+9vlK50NLcZa7yY/+mr/7Js9B0WxuHg==}
+  '@sumsub/websdk-react@2.3.17':
+    resolution: {integrity: sha512-ipNBpaPNsvda3uj5NhAmqr7HtaXNBCqYXb1t2/Li6LajjoVXIwWhntt3EZ3NgWAptTtbE2sAmi/hZ+ZRP8SvGQ==}
     peerDependencies:
       react: '>=16.8.0'
       react-dom: '>=16.8.0'
@@ -8843,8 +8843,8 @@ packages:
     resolution: {integrity: sha512-9qv4rlDiopXg4E69k+vMHjNN63YFMe9sZMrdlvKnCjlCRWeCBswPPMPUfx+ipsAWq1LXHe70RcbaHdJJpS6hyQ==}
     engines: {node: '>= 10'}
 
-  zod@3.25.51:
-    resolution: {integrity: sha512-TQSnBldh+XSGL+opiSIq0575wvDPqu09AqWe1F7JhUMKY+M91/aGlK4MhpVNO7MgYfHcVCB1ffwAUTJzllKJqg==}
+  zod@3.25.55:
+    resolution: {integrity: sha512-219huNnkSLQnLsQ3uaRjXsxMrVm5C9W3OOpEVt2k5tvMKuA8nBSu38e0B//a+he9Iq2dvmk2VyYVlHqiHa4YBA==}
 
 snapshots:
 
@@ -8864,7 +8864,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anthropic-ai/claude-code@1.0.11':
+  '@anthropic-ai/claude-code@1.0.16':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -11783,7 +11783,7 @@ snapshots:
       '@vitest/spy': 2.0.5
       storybook: 9.0.5(@testing-library/dom@10.4.0)(prettier@3.5.3)
 
-  '@sumsub/websdk-react@2.3.16(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
+  '@sumsub/websdk-react@2.3.17(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
       react: 19.1.0
       react-dom: 19.1.0(react@19.1.0)
@@ -11910,17 +11910,17 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@t3-oss/env-core@0.13.6(typescript@5.8.3)(zod@3.25.51)':
+  '@t3-oss/env-core@0.13.6(typescript@5.8.3)(zod@3.25.55)':
     optionalDependencies:
       typescript: 5.8.3
-      zod: 3.25.51
+      zod: 3.25.55
 
-  '@t3-oss/env-nextjs@0.13.6(typescript@5.8.3)(zod@3.25.51)':
+  '@t3-oss/env-nextjs@0.13.6(typescript@5.8.3)(zod@3.25.55)':
     dependencies:
-      '@t3-oss/env-core': 0.13.6(typescript@5.8.3)(zod@3.25.51)
+      '@t3-oss/env-core': 0.13.6(typescript@5.8.3)(zod@3.25.55)
     optionalDependencies:
       typescript: 5.8.3
-      zod: 3.25.51
+      zod: 3.25.55
 
   '@tanstack/virtual-core@3.13.9': {}
 
@@ -13474,7 +13474,7 @@ snapshots:
     dependencies:
       devtools-protocol: 0.0.1452169
       mitt: 3.0.1
-      zod: 3.25.51
+      zod: 3.25.55
 
   ci-info@4.2.0: {}
 
@@ -18854,4 +18854,4 @@ snapshots:
       compress-commons: 4.1.2
       readable-stream: 3.6.2
 
-  zod@3.25.51: {}
+  zod@3.25.55: {}
