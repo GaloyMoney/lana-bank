@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 use super::terms::*;
 
-use lana_app::terms_template::TermsTemplate as DomainTermsTemplate;
+use lana_app::credit::TermsTemplate as DomainTermsTemplate;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

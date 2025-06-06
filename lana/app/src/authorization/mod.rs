@@ -22,10 +22,10 @@ pub async fn get_visible_navigation_items(
         term: authz
             .check_all_permissions(
                 sub,
-                Object::all_terms_templates(),
+                CoreCreditObject::all_terms_templates(),
                 &[
-                    Action::TermsTemplate(TermsTemplateAction::Read),
-                    Action::TermsTemplate(TermsTemplateAction::List),
+                    CoreCreditAction::TERMS_TEMPLATE_READ,
+                    CoreCreditAction::TERMS_TEMPLATE_LIST,
                 ],
             )
             .await?,

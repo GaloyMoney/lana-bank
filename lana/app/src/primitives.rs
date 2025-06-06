@@ -6,7 +6,7 @@ pub use core_access::{PermissionSetId, RoleId, UserId};
 pub use core_accounting::{BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId};
 pub use core_credit::{
     CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
-    PaymentAllocationId, PaymentId,
+    PaymentAllocationId, PaymentId, TermsTemplateId,
 };
 pub use core_custody::CustodianConfigId;
 pub use core_customer::CustomerId;

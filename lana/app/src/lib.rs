@@ -9,7 +9,6 @@ pub mod document;
 pub mod primitives;
 pub mod report;
 pub mod service_account;
-pub mod terms_template;
 
 pub mod storage {
     pub use cloud_storage::*;
@@ -134,8 +133,13 @@ pub mod credit {
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
         FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
         InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation, RepaymentStatus, Sort,
+        TermsTemplate, TermsTemplates,
         APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
     };
+
+    pub mod terms_template {
+        pub use core_credit::terms_template::*;
+    }
 
     pub type Credit =
         core_credit::CoreCredit<crate::authorization::Authorization, lana_events::LanaEvent>;

@@ -18,7 +18,7 @@ mod processes;
 mod publisher;
 mod repayment_plan;
 mod terms;
-mod terms_template;
+pub mod terms_template;
 mod time;
 
 use audit::{AuditInfo, AuditSvc};
