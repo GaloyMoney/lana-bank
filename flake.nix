@@ -130,6 +130,8 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
+      meltano = pkgs.callPackage ./meltano.nix {};
+
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
@@ -215,6 +217,7 @@
           debug = lana-cli-debug;
           release = lana-cli-release;
           static = lana-cli-static;
+          inherit meltano;
         };
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
