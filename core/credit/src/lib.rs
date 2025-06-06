@@ -18,6 +18,7 @@ mod processes;
 mod publisher;
 mod repayment_plan;
 mod terms;
+mod terms_template;
 mod time;
 
 use audit::{AuditInfo, AuditSvc};
@@ -56,6 +57,7 @@ pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 pub use terms::*;
+pub use terms_template::*;
 
 pub struct CoreCredit<Perms, E>
 where
@@ -81,6 +83,7 @@ where
     obligations: Obligations<Perms, E>,
     collaterals: Collaterals<Perms, E>,
     chart_of_accounts_integrations: ChartOfAccountsIntegrations<Perms>,
+    terms_templates: TermsTemplates<Perms>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -109,6 +112,7 @@ where
             approve_disbursal: self.approve_disbursal.clone(),
             approve_credit_facility: self.approve_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
+            terms_templates: self.terms_templates.clone(),
         }
     }
 }
@@ -169,6 +173,7 @@ where
             authz.audit(),
         );
         let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(authz, &ledger);
+        let terms_templates = TermsTemplates::new(pool, authz);
 
         jobs.add_initializer_and_spawn_unique(
             collateralization_from_price::CreditFacilityCollateralizationFromPriceJobInitializer::<
@@ -274,6 +279,7 @@ where
             approve_disbursal,
             approve_credit_facility,
             chart_of_accounts_integrations,
+            terms_templates,
         })
     }
 
@@ -299,6 +305,10 @@ where
 
     pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
         &self.chart_of_accounts_integrations
+    }
+
+    pub fn terms_templates(&self) -> &TermsTemplates<Perms> {
+        &self.terms_templates
     }
 
     pub async fn subject_can_create(
