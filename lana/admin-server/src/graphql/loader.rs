@@ -286,7 +286,7 @@ impl Loader<TransactionTemplateId> for LanaLoader {
 
 impl Loader<TermsTemplateId> for LanaLoader {
     type Value = TermsTemplate;
-    type Error = Arc<lana_app::terms_template::error::TermsTemplateError>;
+    type Error = Arc<lana_app::credit::terms_template_error::TermsTemplateError>;
 
     async fn load(
         &self,

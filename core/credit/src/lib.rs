@@ -18,7 +18,7 @@ mod processes;
 mod publisher;
 mod repayment_plan;
 mod terms;
-pub mod terms_template;
+mod terms_template;
 mod time;
 
 use audit::{AuditInfo, AuditSvc};
@@ -32,8 +32,8 @@ use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::{
-    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
-    ChartOfAccountsIntegrations, error::ChartOfAccountsIntegrationError,
+    error::ChartOfAccountsIntegrationError, ChartOfAccountsIntegrationConfig,
+    ChartOfAccountsIntegrationConfigBuilderError, ChartOfAccountsIntegrations,
 };
 pub use collateral::*;
 pub use config::*;
@@ -57,7 +57,7 @@ pub use processes::approve_disbursal::*;
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 pub use terms::*;
-pub use terms_template::*;
+pub use terms_template::{error as terms_template_error, *};
 
 pub struct CoreCredit<Perms, E>
 where

@@ -126,14 +126,15 @@ pub mod custody {
 
 pub mod credit {
     pub use core_credit::{
-        error, ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
-        CreditFacility, CreditFacilityApproved, CreditFacilityBalanceSummary,
-        CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
-        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
-        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
-        InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation, RepaymentStatus, Sort,
-        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
+        error, terms_template_error, ChartOfAccountsIntegrationConfig, CollateralUpdated,
+        CollateralizationUpdated, CoreCreditEvent, CreditConfig, CreditFacilitiesCursor,
+        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry,
+        CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
+        DisbursalsSortBy, FacilityCVL, FindManyCreditFacilities, FindManyDisbursals,
+        IncrementalPayment, InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation,
+        RepaymentStatus, Sort, TermsTemplate, APPROVE_CREDIT_FACILITY_PROCESS,
+        APPROVE_DISBURSAL_PROCESS,
     };
 
     pub type Credit =
@@ -145,8 +146,4 @@ pub mod terms {
         AnnualRatePct, CVLPct, CollateralizationState, FacilityDuration, InterestInterval,
         ObligationDuration, OneTimeFeeRatePct, TermValues,
     };
-}
-
-pub mod terms_template {
-    pub use core_credit::terms_template::{error, TermsTemplate, TermsTemplates};
 }
