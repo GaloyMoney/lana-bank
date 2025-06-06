@@ -133,13 +133,8 @@ pub mod credit {
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
         FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
         InterestAccrualsPosted, ListDirection, Payment, PaymentAllocation, RepaymentStatus, Sort,
-        TermsTemplate, TermsTemplates,
         APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
     };
-
-    pub mod terms_template {
-        pub use core_credit::terms_template::*;
-    }
 
     pub type Credit =
         core_credit::CoreCredit<crate::authorization::Authorization, lana_events::LanaEvent>;
@@ -150,4 +145,8 @@ pub mod terms {
         AnnualRatePct, CVLPct, CollateralizationState, FacilityDuration, InterestInterval,
         ObligationDuration, OneTimeFeeRatePct, TermValues,
     };
+}
+
+pub mod terms_template {
+    pub use core_credit::terms_template::{error, TermsTemplate, TermsTemplates};
 }

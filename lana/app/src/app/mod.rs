@@ -230,9 +230,6 @@ impl LanaApp {
         &self.access
     }
 
-    pub fn terms_templates(&self) -> &core_credit::TermsTemplates<crate::authorization::Authorization> {
-        self.credit.terms_templates()
-    }
 
     pub fn documents(&self) -> &Documents {
         &self.documents

@@ -47,6 +47,7 @@ impl AuthenticatedSubject {
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
+            .credit()
             .terms_templates()
             .subject_can_create_terms_template(sub, false)
             .await
