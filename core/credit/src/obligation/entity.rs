@@ -308,6 +308,18 @@ impl Obligation {
             .unwrap_or(0)
     }
 
+    pub fn is_in_liquidation(&self) -> bool {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|e| match e {
+                ObligationEvent::LiquidationProcessStarted { .. } => Some(true),
+                ObligationEvent::LiquidationProcessConcluded { .. } => Some(false),
+                _ => None,
+            })
+            .unwrap_or_default()
+    }
+
     pub(crate) fn record_due(
         &mut self,
         effective: chrono::NaiveDate,
@@ -465,6 +477,9 @@ impl Obligation {
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
+            return Idempotent::Ignored;
+        }
+        if self.is_in_liquidation() {
             return Idempotent::Ignored;
         }
 
@@ -839,6 +854,22 @@ mod test {
             )
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::Paid);
+    }
+
+    #[test]
+    fn payment_allocation_ignored_in_liquidation() {
+        let mut obligation = obligation_from(initial_events());
+        let _ = obligation.start_liquidation(Utc::now().date_naive(), &dummy_audit_info());
+        assert!(
+            obligation
+                .allocate_payment(
+                    UsdCents::ONE,
+                    PaymentId::new(),
+                    Utc::now().date_naive(),
+                    &dummy_audit_info(),
+                )
+                .was_ignored()
+        );
     }
 
     mod is_status_up_to_date {
