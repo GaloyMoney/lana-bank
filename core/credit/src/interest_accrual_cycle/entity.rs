@@ -283,7 +283,7 @@ impl InterestAccrualCycle {
         let due_date = self.accrual_cycle_ends_at();
         let overdue_date = self
             .terms
-            .obligation_overdue_duration
+            .obligation_overdue_from_due_after_days
             .map(|d| d.end_date(due_date));
         Idempotent::Executed(
             NewObligation::builder()
@@ -376,7 +376,7 @@ mod test {
             .annual_rate(dec!(12))
             .duration(FacilityDuration::Months(3))
             .interest_due_from_accrual_after_days(ObligationDuration::Days(0))
-            .obligation_overdue_duration(None)
+            .obligation_overdue_from_due_after_days(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::ZERO)

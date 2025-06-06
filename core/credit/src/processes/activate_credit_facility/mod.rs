@@ -97,7 +97,7 @@ where
                 let due_date = credit_facility.matures_at.expect("Facility is not active");
                 let overdue_date = credit_facility
                     .terms
-                    .obligation_overdue_duration
+                    .obligation_overdue_from_due_after_days
                     .map(|d| d.end_date(due_date));
                 let new_disbursal = NewDisbursal::builder()
                     .id(DisbursalId::new())
