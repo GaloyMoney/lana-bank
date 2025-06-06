@@ -149,9 +149,6 @@
       # Create a separate Crane lib for musl builds
       craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
-      aliases = [
-        (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
-      ];
       nativeBuildInputs = with pkgs;
         [
           rustToolchain
@@ -185,6 +182,7 @@
           curl
           tilt
           procps
+          meltano
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -199,8 +197,7 @@
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
-        ]
-        ++ aliases;
+        ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         PGDATABASE = "pg";
