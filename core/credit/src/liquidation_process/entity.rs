@@ -22,8 +22,6 @@ pub enum LiquidationProcessEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct LiquidationProcess {
     pub id: LiquidationProcessId,
-    pub parent_obligation_id: ObligationId,
-    pub credit_facility_id: CreditFacilityId,
     events: EntityEvents<LiquidationProcessEvent>,
 }
 
@@ -34,17 +32,7 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
         let mut builder = LiquidationProcessBuilder::default();
         for event in events.iter_all() {
             match event {
-                LiquidationProcessEvent::Initialized {
-                    id,
-                    parent_obligation_id,
-                    credit_facility_id,
-                    ..
-                } => {
-                    builder = builder
-                        .id(*id)
-                        .parent_obligation_id(*parent_obligation_id)
-                        .credit_facility_id(*credit_facility_id)
-                }
+                LiquidationProcessEvent::Initialized { id, .. } => builder = builder.id(*id),
             }
         }
         builder.events(events).build()

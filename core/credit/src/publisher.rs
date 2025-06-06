@@ -264,6 +264,22 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                 }),
+                LiquidationProcessStarted {
+                    liquidation_process_id,
+                    ..
+                } => Some(CoreCreditEvent::LiquidationProcessStarted {
+                    id: *liquidation_process_id,
+                    parent_obligation_id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
+                LiquidationProcessConcluded {
+                    liquidation_process_id,
+                    ..
+                } => Some(CoreCreditEvent::LiquidationProcessConcluded {
+                    id: *liquidation_process_id,
+                    parent_obligation_id: entity.id,
+                    credit_facility_id: entity.credit_facility_id,
+                }),
                 Completed { .. } => Some(CoreCreditEvent::ObligationCompleted {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
