@@ -30,6 +30,7 @@ es_entity::entity_id! {
     ChartOfAccountsIntegrationConfigId,
     CollateralId,
     ObligationId,
+    LiquidationProcessId,
     InterestAccrualCycleId,
     TermsTemplateId;
 
