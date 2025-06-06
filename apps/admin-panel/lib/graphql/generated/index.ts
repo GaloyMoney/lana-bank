@@ -2066,6 +2066,7 @@ export type TermsInput = {
   interestDueFromAccrualAfterDays: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
+  obligationLiquidationFromDueAfterDays: DurationInput;
   obligationOverdueFromDueAfterDays: DurationInput;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
 };
@@ -2090,6 +2091,7 @@ export type TermsTemplateCreateInput = {
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
   name: Scalars['String']['input'];
+  obligationLiquidationFromDueAfterDays: DurationInput;
   obligationOverdueFromDueAfterDays: DurationInput;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
 };
@@ -2109,6 +2111,7 @@ export type TermsTemplateUpdateInput = {
   interestDueFromAccrualAfterDays: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
   marginCallCvl: Scalars['CVLPct']['input'];
+  obligationLiquidationFromDueAfterDays: DurationInput;
   obligationOverdueFromDueAfterDays: DurationInput;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
 };

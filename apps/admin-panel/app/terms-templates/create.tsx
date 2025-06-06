@@ -107,6 +107,10 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
               period: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.PERIOD,
               units: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.UNITS,
             },
+            obligationLiquidationFromDueAfterDays: {
+              period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.UNITS,
+            },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
