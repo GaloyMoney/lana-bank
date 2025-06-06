@@ -45,11 +45,11 @@
     },
     "app_viewer": {
       "label": "App Viewer",
-      "description": "Can list and view application documents, reports, audits, and terms templates"
+      "description": "Can list and view application documents, reports, and audits"
     },
     "app_writer": {
       "label": "App Writer",
-      "description": "Can create, update, archive, and delete application documents, reports, and terms templates"
+      "description": "Can create, update, archive, and delete application documents and reports"
     },
     "credit_viewer": {
       "label": "Credit Viewer",
