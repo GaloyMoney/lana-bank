@@ -147,9 +147,6 @@
       # Create a separate Crane lib for musl builds
       craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
-      aliases = [
-        (mkAlias "meltano" ''docker compose run --rm meltano -- "$@"'')
-      ];
       nativeBuildInputs = with pkgs;
         [
           rustToolchain
@@ -183,6 +180,8 @@
           curl
           tilt
           procps
+          python312
+          python312Packages.pip
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -197,8 +196,7 @@
         ]
         ++ lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
-        ]
-        ++ aliases;
+        ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         PGDATABASE = "pg";
@@ -207,6 +205,7 @@
         PGHOST = "127.0.0.1";
         DATABASE_URL = "postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5433/pg";
         PG_CON = "${DATABASE_URL}";
+        MELTANO_PROJECT_ROOT = "./meltano";
       };
     in
       with pkgs; {
@@ -219,8 +218,51 @@
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
-        devShells.default =
-          mkShell (devEnvVars // {inherit nativeBuildInputs;});
+        devShells.default = mkShell (devEnvVars
+          // {
+            inherit nativeBuildInputs;
+            shellHook = ''
+              set -e # Exit immediately if a command exits with a non-zero status.
+
+              if [ -n "$CI" ]; then
+                echo "CI environment detected, skipping meltano setup." >&2
+              else
+                # Meltano setup
+                VENV_DIR=".venv" # Relative to the project root
+                INSTALL_MARKER="$VENV_DIR/.plugins_installed"
+
+                # Create a virtual environment if it doesn't exist
+                if [ ! -d "$VENV_DIR" ]; then
+                  echo "Creating virtual environment at $VENV_DIR..."
+                  ${pkgs.python312}/bin/python -m venv "$VENV_DIR"
+                else
+                  echo "Virtual environment $VENV_DIR already exists."
+                fi
+
+                # Activate the virtual environment
+                source "$VENV_DIR/bin/activate"
+                echo "Activating virtual environment..."
+
+                # Install meltano if not already installed
+                if [ ! -f "$INSTALL_MARKER" ]; then
+                  echo "Installing meltano..."
+                  pip install --upgrade pip
+                  pip install meltano
+                  touch "$INSTALL_MARKER"
+                  echo "Meltano installed."
+                else
+                  echo "Meltano already installed."
+                fi
+
+                # Set environment variables to persist the virtual environment
+                export VIRTUAL_ENV="$(pwd)/$VENV_DIR"
+                export PATH="$VIRTUAL_ENV/bin:$PATH"
+                export PYTHONPATH="$VIRTUAL_ENV/lib/python3.12/site-packages:$PYTHONPATH"
+
+                echo "Environment ready. You can use 'meltano' now."
+              fi
+            '';
+          });
 
         formatter = alejandra;
       });

@@ -4,12 +4,12 @@ FROM $MELTANO_IMAGE
 
 WORKDIR /project
 
-# Install any additional requirements
-COPY ./requirements.txt .
-RUN pip install -r requirements.txt
+# Copy only the meltano directory to maintain the same structure as local dev
+COPY . ./meltano/
 
-# Copy over Meltano project directory
-COPY . .
+# Set the Meltano project root to the meltano subdirectory
+ENV MELTANO_PROJECT_ROOT=./meltano
+
 RUN meltano install
 
 # Don't allow changes to containerized project files

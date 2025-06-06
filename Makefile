@@ -12,7 +12,7 @@ clean-deps:
 	./bin/clean-deps.sh
 
 start-deps:
-	./bin/docker-compose-up.sh integration-deps
+	./bin/docker-compose-up.sh
 
 # Rust backend
 setup-db:

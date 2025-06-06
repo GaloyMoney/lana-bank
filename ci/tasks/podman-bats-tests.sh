@@ -31,7 +31,7 @@ echo "--- Podman service started (attempted) ---"
 
 # --- Start Dependencies ---
 echo "--- Starting Dependencies with Podman Compose ---"
-ENGINE_DEFAULT=podman bin/docker-compose-up.sh integration-deps
+ENGINE_DEFAULT=podman bin/docker-compose-up.sh
 echo "--- Podman-compose up done ---"
 
 # --- DB Setup ---
