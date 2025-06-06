@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use crate::email::{executor::EmailExecutor, templates::EmailTemplate};
 use ::job::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
@@ -16,11 +17,14 @@ impl JobConfig for EmailSenderJobConfig {
 }
 
 #[derive(Clone)]
-pub struct EmailSenderJobInitializer;
+pub struct EmailSenderJobInitializer {
+    executor: EmailExecutor,
+    template: EmailTemplate,
+}
 
 impl EmailSenderJobInitializer {
-    pub fn new() -> Self {
-        Self
+    pub fn new(executor: EmailExecutor, template: EmailTemplate) -> Self {
+        Self { executor, template }
     }
 }
 
@@ -32,14 +36,18 @@ impl JobInitializer for EmailSenderJobInitializer {
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        let config = job.config::<EmailSenderJobConfig>()?;
-
-        Ok(Box::new(EmailSenderJobRunner { config }))
+        Ok(Box::new(EmailSenderJobRunner {
+            config: job.config()?,
+            executor: self.executor.clone(),
+            template: self.template.clone(),
+        }))
     }
 }
 
 pub struct EmailSenderJobRunner {
     config: EmailSenderJobConfig,
+    executor: EmailExecutor,
+    template: EmailTemplate,
 }
 
 #[async_trait]
@@ -48,13 +56,15 @@ impl JobRunner for EmailSenderJobRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        println!(
-            "Sending email to {}: subject={}, template={}, data={:?}",
-            self.config.recipient,
-            self.config.subject,
-            self.config.template_name,
-            self.config.template_data
-        );
+        self.executor
+            .execute_email(
+                &self.config.recipient,
+                &self.config.subject,
+                &self.config.template_name,
+                &self.config.template_data,
+                &self.template,
+            )
+            .await?;
         Ok(JobCompletion::Complete)
     }
 }

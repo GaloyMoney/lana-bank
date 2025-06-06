@@ -1,13 +1,11 @@
 pub mod config;
 pub mod error;
-mod executor;
+pub mod executor;
 mod listener_job;
 mod obligation_overdue_notification_job;
-mod sender_job;
+pub mod sender_job;
 mod smtp;
-mod templates;
-
-use sqlx::PgPool;
+pub mod templates;
 
 pub use config::EmailConfig;
 use core_access::user::Users;
@@ -18,6 +16,7 @@ use listener_job::EmailListenerJobInitializer;
 use obligation_overdue_notification_job::ObligationOverdueNotificationJobInitializer;
 use sender_job::EmailSenderJobInitializer;
 use smtp::SmtpClient;
+use templates::EmailTemplate;
 
 use audit::AuditSvc;
 use core_access::event::CoreAccessEvent;
@@ -26,57 +25,54 @@ use job::Jobs;
 use lana_events::LanaEvent;
 use outbox::{Outbox, OutboxEventMarker};
 
-#[derive(Clone)]
-pub struct EmailNotification {
-    pool: PgPool,
-    executor: EmailExecutor,
+pub struct EmailNotification<Audit, E>
+where
+    Audit: AuditSvc,
+    E: OutboxEventMarker<CoreAccessEvent>,
+{
+    _phantom: std::marker::PhantomData<(Audit, E)>,
 }
 
-impl EmailNotification {
-    pub async fn init<Audit, E>(
-        pool: &PgPool,
+impl<Audit, E> Clone for EmailNotification<Audit, E>
+where
+    Audit: AuditSvc,
+    E: OutboxEventMarker<CoreAccessEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            _phantom: std::marker::PhantomData,
+        }
+    }
+}
+
+impl<Audit, E> EmailNotification<Audit, E>
+where
+    Audit: AuditSvc,
+    <Audit as AuditSvc>::Subject: From<UserId>,
+    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
+    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
+    E: OutboxEventMarker<CoreAccessEvent>,
+{
+    pub async fn init(
         jobs: &Jobs,
         outbox: &Outbox<LanaEvent>,
         config: EmailConfig,
         users: &Users<Audit, E>,
-    ) -> Result<Self, EmailError>
-    where
-        Audit: AuditSvc,
-        <Audit as AuditSvc>::Subject: From<UserId>,
-        <Audit as AuditSvc>::Action: From<CoreAccessAction>,
-        <Audit as AuditSvc>::Object: From<CoreAccessObject>,
-        E: OutboxEventMarker<CoreAccessEvent>,
-    {
+    ) -> Result<Self, EmailError> {
         let smtp_client = SmtpClient::init(config.smtp)?;
-        let notification = Self {
-            pool: pool.clone(),
-            executor: EmailExecutor::new(smtp_client),
-        };
-        jobs.add_initializer(EmailSenderJobInitializer::new());
-        jobs.add_initializer(ObligationOverdueNotificationJobInitializer::new(
-            users.clone(),
-            jobs.clone(),
-        ));
+        let executor = EmailExecutor::new(smtp_client);
+        let template = EmailTemplate::new(&config.templates_path)?;
         jobs.add_initializer_and_spawn_unique(
-            EmailListenerJobInitializer::<Audit, E>::new(outbox, jobs),
+            EmailListenerJobInitializer::new(outbox, jobs),
             EmailListenerJobConfig::<Audit, E>::new(),
         )
         .await?;
-
-        Ok(notification)
-    }
-
-    pub async fn send_email(
-        &self,
-        recipient: &str,
-        subject: &str,
-        template_name: &str,
-        template_data: serde_json::Value,
-    ) -> Result<(), EmailError> {
-        println!(
-            "Sending email to {}: subject={}, template={}, data={:?}",
-            recipient, subject, template_name, template_data
-        );
-        Ok(())
+        jobs.add_initializer(ObligationOverdueNotificationJobInitializer::new(
+            users, jobs,
+        ));
+        jobs.add_initializer(EmailSenderJobInitializer::new(executor, template));
+        Ok(Self {
+            _phantom: std::marker::PhantomData,
+        })
     }
 }

@@ -31,7 +31,8 @@ pub mod user_onboarding {
 pub mod notification {
     pub use notification::email::EmailConfig;
     pub type Notification = notification::Notification<crate::audit::Audit, lana_events::LanaEvent>;
-    pub type EmailNotification = notification::email::EmailNotification;
+    pub type EmailNotification =
+        notification::email::EmailNotification<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod rbac {

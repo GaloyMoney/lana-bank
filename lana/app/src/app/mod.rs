@@ -116,8 +116,7 @@ impl LanaApp {
         let customer_sync =
             CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
 
-        let notification =
-            Notification::init(&pool, &jobs, &outbox, config.email, access.users()).await?;
+        let notification = Notification::init(&jobs, &outbox, config.email, access.users()).await?;
 
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
