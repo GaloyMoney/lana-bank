@@ -438,39 +438,6 @@ impl Obligation {
         Idempotent::Executed(new_liquidation_process)
     }
 
-    pub(crate) fn conclude_liquidation(
-        &mut self,
-        effective: chrono::NaiveDate,
-        audit_info: &AuditInfo,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            ObligationEvent::LiquidationProcessConcluded { .. },
-            => ObligationEvent::LiquidationProcessStarted {..}
-        );
-
-        let liquidation_process_id = self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|e| match e {
-                ObligationEvent::LiquidationProcessStarted {
-                    liquidation_process_id,
-                    ..
-                } => Some(*liquidation_process_id),
-                _ => None,
-            })
-            .expect("LiquidationProcessStarted event not found");
-
-        self.events
-            .push(ObligationEvent::LiquidationProcessConcluded {
-                liquidation_process_id,
-                audit_info: audit_info.clone(),
-            });
-
-        Idempotent::Executed(())
-    }
-
     pub(crate) fn allocate_payment(
         &mut self,
         amount: UsdCents,
