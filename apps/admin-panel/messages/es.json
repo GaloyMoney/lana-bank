@@ -19,7 +19,9 @@
     "upload": "Subir",
     "close": "Cerrar",
     "submit": "Enviar",
-    "set": "Establecer"
+    "set": "Establecer",
+    "customerType": "Tipo de Cliente",
+    "dateOfIssuance": "Fecha de Emisión"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permisos que tiene este rol",
@@ -396,6 +398,7 @@
     "table": {
       "headers": {
         "customer": "Cliente",
+        "state": "Estado",
         "status": "Estado",
         "outstanding": "Pendiente",
         "collateralizationState": "Estado",
@@ -528,7 +531,8 @@
           "customerEmail": "Correo Electrónico del Cliente",
           "collateralizationState": "Estado de Colateralización",
           "status": "Estado",
-          "expiresAt": "Vence El"
+          "expiresAt": "Vence El",
+          "monthlyPayment": "Pago Mensual"
         },
         "buttons": {
           "loanTerms": "Términos del Préstamo",
