@@ -229,7 +229,6 @@ impl FromStr for AppAction {
     }
 }
 
-
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum AuditAction {

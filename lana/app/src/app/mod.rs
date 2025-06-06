@@ -230,7 +230,6 @@ impl LanaApp {
         &self.access
     }
 
-
     pub fn documents(&self) -> &Documents {
         &self.documents
     }
