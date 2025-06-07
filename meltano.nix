@@ -30,6 +30,11 @@ setup(
     version=version,
     packages=find_packages(where="src"),
     package_dir={"": "src"},
+    package_data={
+        "meltano.core.bundle": ["*.yml"],
+        "meltano": ["py.typed"],
+    },
+    include_package_data=True,
     install_requires=[
         "click>=8.0.0",
         "pyyaml>=6.0",
