@@ -64,6 +64,8 @@ python3.pkgs.buildPythonApplication rec {
     azure-storage-blob
     atomicwrites
     smart-open
+    dateparser
+    anyio
   ];
 
   # Skip tests as they require network access and additional setup
