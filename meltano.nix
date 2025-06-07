@@ -1,7 +1,7 @@
 {
   lib,
   python3,
-  fetchFromGitHub,
+  fetchPypi,
 }:
 
 python3.pkgs.buildPythonApplication rec {
@@ -9,11 +9,9 @@ python3.pkgs.buildPythonApplication rec {
   version = "3.5.1";
   format = "setuptools";
 
-  src = fetchFromGitHub {
-    owner = "meltano";
-    repo = "meltano";
-    rev = "v${version}";
-    hash = "sha256-sdTodSh6DYwQboCmFM4qdlwCgbrDy+j5Ljeg9FtWDPY=";
+  src = fetchPypi {
+    inherit pname version;
+    hash = "sha256-FdfMGoDec+LVxz7ibAq0a9zvMPThgRGOIaSYKvBycDg=";
   };
 
   postPatch = ''
