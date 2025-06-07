@@ -18,40 +18,10 @@ podman-check:
 	@echo "--- Podman binaries found ---"
 
 podman-configure:
-	@echo "--- Configuring Podman ---"
-	@if [ "$$(uname)" = "Linux" ]; then \
-		echo "Applying Linux-specific podman configuration..." && \
-		mkdir -p /etc/containers && \
-		echo '{ "default": [{"type": "insecureAcceptAnything"}]}' > /etc/containers/policy.json || true && \
-		echo 'unqualified-search-registries = ["docker.io"]' > /etc/containers/registries.conf || true && \
-		grep -q "host.containers.internal" /etc/hosts || echo "127.0.0.1 host.containers.internal" >> /etc/hosts || true; \
-	else \
-		echo "Non-Linux system detected, skipping container configuration"; \
-	fi
-	@echo "--- Podman configuration done ---"
+	@./dev/bin/podman-configure.sh
 
 podman-service-start:
-	@echo "--- Starting Podman service ---"
-	@if [ "$$(uname)" = "Linux" ]; then \
-		echo "Checking if podman socket is working..." && \
-		if [ -S /run/podman/podman.sock ] && CONTAINER_HOST=unix:///run/podman/podman.sock timeout 3s podman version >/dev/null 2>&1; then \
-			echo "Podman socket already working!"; \
-		else \
-			echo "Starting podman system service..." && \
-			mkdir -p /run/podman && \
-			podman system service --time=0 unix:///run/podman/podman.sock & \
-			echo "Waiting for socket to be created..." && \
-			for i in 1 2 3 4 5; do \
-				if [ -S /run/podman/podman.sock ] && CONTAINER_HOST=unix:///run/podman/podman.sock timeout 3s podman version >/dev/null 2>&1; then \
-					echo "Socket created and working!"; \
-					break; \
-				fi; \
-				echo "Waiting... ($$i/5)"; \
-				sleep 2; \
-			done; \
-		fi; \
-	fi
-	@echo "--- Podman service ready ---"
+	@./dev/bin/podman-service-start.sh
 
 podman-service-stop:
 	@echo "--- Stopping Podman service ---"
@@ -94,17 +64,8 @@ test-bats-podman: start-deps-podman
 	@echo "--- Running BATS Tests with Podman ---"
 	@$(MAKE) setup-db
 	@nix build . -L
-	@$(MAKE) run-bats-with-server
+	@./dev/bin/run-bats-with-server.sh
 	@$(MAKE) clean-deps-podman
-
-run-bats-with-server:
-	@echo "--- Starting Lana server for BATS tests ---"
-	@export REPO_ROOT=$$(git rev-parse --show-toplevel) && \
-	source "$$REPO_ROOT/bats/helpers.bash" && \
-	start_server_nix && \
-	trap 'echo "--- Stopping Lana server ---"; stop_server' EXIT && \
-	echo "--- Running BATS tests ---" && \
-	bats -t bats
 
 next-watch:
 	cargo watch -s 'cargo nextest run'
