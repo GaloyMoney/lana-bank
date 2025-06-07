@@ -5,6 +5,71 @@ dev-up:
 dev-down:
 	cd dev && tilt down
 
+# ── Podman Setup ──────────────────────────────────────────────────────────────────
+# These targets handle podman setup in an OS-aware manner:
+# - Linux: Configures /etc/containers policy and registries
+# - macOS: Uses default podman configuration (no additional setup needed)
+podman-setup: podman-check podman-configure podman-service-start
+
+podman-check:
+	@echo "--- Checking for Podman ---"
+	@command -v podman >/dev/null 2>&1 || { echo "Error: podman not found. Please install podman first."; exit 1; }
+	@command -v podman-compose >/dev/null 2>&1 || { echo "Error: podman-compose not found. Please install podman-compose first."; exit 1; }
+	@echo "--- Podman binaries found ---"
+
+podman-configure:
+	@./dev/bin/podman-configure.sh
+
+podman-service-start:
+	@./dev/bin/podman-service-start.sh
+
+podman-service-stop:
+	@echo "--- Stopping Podman service ---"
+	@pkill -f "podman system service" || echo "No podman service to stop"
+	@echo "--- Podman service stopped ---"
+
+podman-debug:
+	@echo "--- Podman Debug Information ---"
+	@echo "OS: $$(uname)"
+	@echo "Podman version:"
+	@podman version || echo "Podman not found"
+	@echo "Docker version:"
+	@docker version || echo "Docker not found"
+	@echo "Podman info:"
+	@podman info || echo "Podman info failed"
+	@echo "Socket status:"
+	@ls -la /run/podman/podman.sock 2>/dev/null || echo "System socket not found at /run/podman/podman.sock"
+	@ls -la $${XDG_RUNTIME_DIR:-/run/user/$$(id -u)}/podman/podman.sock 2>/dev/null || echo "User socket not found"
+	@echo "Dynamic socket detection result:"
+	@./dev/bin/podman-get-socket.sh || echo "Socket detection failed"
+	@echo "Running podman processes:"
+	@ps aux | grep podman || echo "No podman processes found"
+	@echo "DOCKER_HOST: $${DOCKER_HOST:-not set}"
+	@echo "--- End Debug Information ---"
+
+# ── Container Management ──────────────────────────────────────────────────────────
+start-deps-podman: podman-setup
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+
+clean-deps-podman: 
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+
+reset-deps-podman: clean-deps-podman start-deps-podman setup-db
+
+# ── Test Targets ───────────────────────────────────────────────────────────────────
+test-integration-podman: start-deps-podman
+	@echo "--- Running Integration Tests with Podman ---"
+	@$(MAKE) setup-db
+	@cargo nextest run --verbose --locked
+	@$(MAKE) clean-deps-podman
+
+test-bats-podman: start-deps-podman
+	@echo "--- Running BATS Tests with Podman ---"
+	@$(MAKE) setup-db
+	@nix build . -L
+	@./dev/bin/run-bats-with-server.sh
+	@$(MAKE) clean-deps-podman
+
 next-watch:
 	cargo watch -s 'cargo nextest run'
 
@@ -12,7 +77,7 @@ clean-deps:
 	./bin/clean-deps.sh
 
 start-deps:
-	./bin/docker-compose-up.sh integration-deps
+	./bin/docker-compose-up.sh
 
 # Rust backend
 setup-db:

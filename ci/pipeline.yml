@@ -80,8 +80,8 @@ jobs:
 
                 nix develop --command true | cachix push lana-ci
 
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-tests.sh                
+                nix -L develop --command make test-integration-podman
+                nix -L develop --command make test-bats-podman
 
   - name: check-code
     serial: true
@@ -530,7 +530,7 @@ resources:
         - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
+      branch: ci--moving-podman-install-script-to-makefile
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out
