@@ -80,8 +80,8 @@ jobs:
 
                 nix develop --command true | cachix push lana-ci
 
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-integration-tests.sh
-                nix -L develop --command sh -exc ../pipeline-tasks/ci/tasks/podman-bats-tests.sh                
+                nix -L develop --command make test-integration-podman
+                nix -L develop --command make test-bats-podman
 
   - name: check-code
     serial: true
