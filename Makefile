@@ -33,19 +33,36 @@ podman-configure:
 podman-service-start:
 	@echo "--- Starting Podman service ---"
 	@if [ "$$(uname)" = "Linux" ]; then \
-		echo "Starting podman service for Linux..." && \
-		export DOCKER_HOST=unix:///run/podman/podman.sock; \
+		echo "Setting up podman service for Linux..." && \
+		mkdir -p /run/podman && \
+		echo "Stopping any existing podman services..." && \
+		pkill -f "podman system service" || true && \
+		sleep 2 && \
+		echo "Starting podman system service..." && \
+		podman system service --time=0 unix:///run/podman/podman.sock & \
+		echo "Waiting for podman socket to be ready..." && \
+		for i in $$(seq 1 20); do \
+			if [ -S /run/podman/podman.sock ]; then \
+				echo "Socket file exists, testing connectivity..." && \
+				if DOCKER_HOST=unix:///run/podman/podman.sock timeout 10s docker version >/dev/null 2>&1; then \
+					echo "Podman socket is ready and accessible"; \
+					break; \
+				fi; \
+			fi; \
+			echo "Waiting for podman socket... ($$i/20)"; \
+			sleep 3; \
+		done && \
+		if [ ! -S /run/podman/podman.sock ]; then \
+			echo "ERROR: Podman socket not created" && \
+			exit 1; \
+		fi; \
 	else \
-		echo "Starting podman service for macOS..." && \
-		PODMAN_SOCKET_PATH=$$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}' 2>/dev/null || echo "$$HOME/.local/share/containers/podman/machine/podman.sock") && \
-		export DOCKER_HOST="unix://$$PODMAN_SOCKET_PATH"; \
-	fi && \
-	if ! podman info >/dev/null 2>&1; then \
-		echo "Starting new podman service..." && \
-		podman system service --time=0 &>/dev/null & \
-		sleep 5; \
-	else \
-		echo "Podman service already running"; \
+		echo "Setting up podman service for macOS..." && \
+		if ! podman info >/dev/null 2>&1; then \
+			echo "Starting podman service..." && \
+			podman system service --time=0 & \
+			sleep 5; \
+		fi; \
 	fi
 	@echo "--- Podman service ready ---"
 
@@ -54,12 +71,30 @@ podman-service-stop:
 	@pkill -f "podman system service" || echo "No podman service to stop"
 	@echo "--- Podman service stopped ---"
 
+podman-debug:
+	@echo "--- Podman Debug Information ---"
+	@echo "OS: $$(uname)"
+	@echo "Podman version:"
+	@podman version || echo "Podman not found"
+	@echo "Docker version:"
+	@docker version || echo "Docker not found"
+	@echo "Podman info:"
+	@podman info || echo "Podman info failed"
+	@echo "Socket status:"
+	@ls -la /run/podman/podman.sock 2>/dev/null || echo "Socket not found at /run/podman/podman.sock"
+	@echo "Running podman processes:"
+	@ps aux | grep podman || echo "No podman processes found"
+	@echo "DOCKER_HOST: $${DOCKER_HOST:-not set}"
+	@echo "--- End Debug Information ---"
+
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
-	ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+	@echo "--- Starting dependencies with Podman ---"
+	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
 
 clean-deps-podman: 
-	ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+	@echo "--- Cleaning dependencies with Podman ---"
+	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
