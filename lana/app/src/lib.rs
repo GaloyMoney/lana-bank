@@ -28,6 +28,13 @@ pub mod user_onboarding {
         user_onboarding::UserOnboarding<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
+pub mod notification {
+    pub use notification::email::EmailConfig;
+    pub type Notification = notification::Notification<crate::audit::Audit, lana_events::LanaEvent>;
+    pub type EmailNotification =
+        notification::email::EmailNotification<crate::audit::Audit, lana_events::LanaEvent>;
+}
+
 pub mod rbac {
     pub use rbac_types::PermissionSetName;
 }
