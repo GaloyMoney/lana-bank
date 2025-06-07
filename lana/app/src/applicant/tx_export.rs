@@ -14,6 +14,7 @@ use crate::{
     job::*,
     outbox::Outbox,
 };
+use job::error::JobRunError;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct SumsubExportJobConfig;
@@ -70,10 +71,7 @@ pub struct SumsubExportJobRunner {
 #[async_trait]
 impl JobRunner for SumsubExportJobRunner {
     #[tracing::instrument(name = "applicant.sumsub_export", skip_all, fields(insert_id), err)]
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, mut current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut state = current_job
             .execution_state::<SumsubExportJobData>()?
             .unwrap_or_default();

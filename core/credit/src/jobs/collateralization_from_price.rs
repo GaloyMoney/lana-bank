@@ -6,6 +6,7 @@ use std::time::Duration;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use job::error::JobRunError;
 use job::*;
 use outbox::OutboxEventMarker;
 
@@ -102,10 +103,7 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    async fn run(
-        &self,
-        _current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, _current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         self.credit_facilities
             .update_collateralization_from_price(self.config.upgrade_buffer_cvl_pct)
             .await?;

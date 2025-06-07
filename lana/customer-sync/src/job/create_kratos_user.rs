@@ -13,6 +13,7 @@ use core_deposit::{
 };
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use job::error::JobRunError;
 use job::*;
 
 use crate::config::*;
@@ -127,10 +128,7 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    async fn run(
-        &self,
-        current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let state = current_job
             .execution_state::<CreateKratosUserJobData>()?
             .unwrap_or_default();

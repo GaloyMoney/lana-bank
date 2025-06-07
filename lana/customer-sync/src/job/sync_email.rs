@@ -8,6 +8,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use kratos_admin::KratosAdmin;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use job::error::JobRunError;
 use job::*;
 
 use crate::config::*;
@@ -119,10 +120,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, mut current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut state = current_job
             .execution_state::<SyncEmailJobData>()?
             .unwrap_or_default();

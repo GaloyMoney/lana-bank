@@ -4,6 +4,7 @@ use authz::PermissionCheck;
 
 use audit::AuditSvc;
 use cloud_storage::Storage;
+use job::error::JobRunError;
 use job::*;
 use serde::{Deserialize, Serialize};
 
@@ -108,10 +109,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    async fn run(
-        &self,
-        _current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, _current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut export = self.repo.find_by_id(self.config.accounting_csv_id).await?;
         let mut db = self.repo.begin_op().await?;
         let audit_info = self

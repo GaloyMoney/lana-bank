@@ -12,6 +12,7 @@ use core_deposit::{
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
+use job::error::JobRunError;
 use job::*;
 
 use crate::config::*;
@@ -136,10 +137,7 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, mut current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut state = current_job
             .execution_state::<CustomerActiveSyncJobData>()?
             .unwrap_or_default();

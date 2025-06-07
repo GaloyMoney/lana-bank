@@ -1,6 +1,7 @@
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 
+use job::error::JobRunError;
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
@@ -21,10 +22,7 @@ impl<E> JobRunner for HistoryProjectionJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, mut current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         use CoreCreditEvent::*;
 
         let mut state = current_job

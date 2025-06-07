@@ -32,6 +32,37 @@ pub enum JobError {
 
 es_entity::from_es_entity_error!(JobError);
 
+#[derive(Debug)]
+pub enum JobRunError {
+    Transient(Box<dyn std::error::Error + Send + Sync>),
+    Permanent(Box<dyn std::error::Error + Send + Sync>),
+}
+
+impl std::fmt::Display for JobRunError {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        match self {
+            Self::Transient(e) | Self::Permanent(e) => write!(f, "{}", e),
+        }
+    }
+}
+
+impl std::error::Error for JobRunError {
+    fn source(&self) -> Option<&(dyn std::error::Error + 'static)> {
+        match self {
+            Self::Transient(e) | Self::Permanent(e) => Some(&**e),
+        }
+    }
+}
+
+impl<E> From<E> for JobRunError
+where
+    E: std::error::Error + Send + Sync + 'static,
+{
+    fn from(e: E) -> Self {
+        Self::Transient(Box::new(e))
+    }
+}
+
 impl From<Box<dyn std::error::Error>> for JobError {
     fn from(error: Box<dyn std::error::Error>) -> Self {
         JobError::JobExecutionError(error.to_string())
