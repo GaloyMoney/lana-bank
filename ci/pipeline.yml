@@ -529,8 +529,8 @@ resources:
         - "ci/*[^md]"
         - apps/**/*
       fetch_tags: true
-      uri: ci--moving-podman-install-script-to-makefile
-      branch: #@ data.values.git_branch
+      uri: #@ data.values.git_uri
+      branch: ci--moving-podman-install-script-to-makefile
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
   - name: repo-dev-out
