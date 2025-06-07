@@ -5,6 +5,85 @@ dev-up:
 dev-down:
 	cd dev && tilt down
 
+# ── Podman Setup ──────────────────────────────────────────────────────────────────
+# These targets handle podman setup in an OS-aware manner:
+# - Linux: Configures /etc/containers policy and registries
+# - macOS: Uses default podman configuration (no additional setup needed)
+podman-setup: podman-check podman-configure podman-service-start
+
+podman-check:
+	@echo "--- Checking for Podman ---"
+	@command -v podman >/dev/null 2>&1 || { echo "Error: podman not found. Please install podman first."; exit 1; }
+	@command -v podman-compose >/dev/null 2>&1 || { echo "Error: podman-compose not found. Please install podman-compose first."; exit 1; }
+	@echo "--- Podman binaries found ---"
+
+podman-configure:
+	@echo "--- Configuring Podman ---"
+	@if [ "$$(uname)" = "Linux" ]; then \
+		echo "Applying Linux-specific podman configuration..." && \
+		mkdir -p /etc/containers && \
+		echo '{ "default": [{"type": "insecureAcceptAnything"}]}' > /etc/containers/policy.json || true && \
+		echo 'unqualified-search-registries = ["docker.io"]' > /etc/containers/registries.conf || true && \
+		grep -q "host.containers.internal" /etc/hosts || echo "127.0.0.1 host.containers.internal" >> /etc/hosts || true; \
+	else \
+		echo "Non-Linux system detected, skipping container configuration"; \
+	fi
+	@echo "--- Podman configuration done ---"
+
+podman-service-start:
+	@echo "--- Starting Podman service ---"
+	@if [ "$$(uname)" = "Linux" ]; then \
+		echo "Starting podman service for Linux..." && \
+		export DOCKER_HOST=unix:///run/podman/podman.sock; \
+	else \
+		echo "Starting podman service for macOS..." && \
+		PODMAN_SOCKET_PATH=$$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}' 2>/dev/null || echo "$$HOME/.local/share/containers/podman/machine/podman.sock") && \
+		export DOCKER_HOST="unix://$$PODMAN_SOCKET_PATH"; \
+	fi && \
+	if ! podman info >/dev/null 2>&1; then \
+		echo "Starting new podman service..." && \
+		podman system service --time=0 &>/dev/null & \
+		sleep 5; \
+	else \
+		echo "Podman service already running"; \
+	fi
+	@echo "--- Podman service ready ---"
+
+podman-service-stop:
+	@echo "--- Stopping Podman service ---"
+	@pkill -f "podman system service" || echo "No podman service to stop"
+	@echo "--- Podman service stopped ---"
+
+# ── Container Management ──────────────────────────────────────────────────────────
+start-deps-podman: podman-setup
+	ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+
+clean-deps-podman: 
+	ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+
+reset-deps-podman: clean-deps-podman start-deps-podman setup-db
+
+# ── Test Targets ───────────────────────────────────────────────────────────────────
+test-integration-podman: start-deps-podman
+	@echo "--- Running Integration Tests with Podman ---"
+	@cargo nextest run --verbose --locked
+	@$(MAKE) clean-deps-podman
+
+test-bats-podman: start-deps-podman
+	@echo "--- Running BATS Tests with Podman ---"
+	@nix build . -L
+	@$(MAKE) run-bats-with-server
+	@$(MAKE) clean-deps-podman
+
+run-bats-with-server:
+	@echo "--- Starting Lana server for BATS tests ---"
+	@export REPO_ROOT=$$(git rev-parse --show-toplevel) && \
+	source "$$REPO_ROOT/bats/helpers.bash" && \
+	start_server_nix && \
+	trap 'echo "--- Stopping Lana server ---"; stop_server' EXIT && \
+	echo "--- Running BATS tests ---" && \
+	bats -t bats
+
 next-watch:
 	cargo watch -s 'cargo nextest run'
 
@@ -12,7 +91,7 @@ clean-deps:
 	./bin/clean-deps.sh
 
 start-deps:
-	./bin/docker-compose-up.sh integration-deps
+	./bin/docker-compose-up.sh
 
 # Rust backend
 setup-db:
