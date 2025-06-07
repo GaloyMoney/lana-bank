@@ -86,11 +86,13 @@ reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 # ── Test Targets ───────────────────────────────────────────────────────────────────
 test-integration-podman: start-deps-podman
 	@echo "--- Running Integration Tests with Podman ---"
+	@$(MAKE) setup-db
 	@cargo nextest run --verbose --locked
 	@$(MAKE) clean-deps-podman
 
 test-bats-podman: start-deps-podman
 	@echo "--- Running BATS Tests with Podman ---"
+	@$(MAKE) setup-db
 	@nix build . -L
 	@$(MAKE) run-bats-with-server
 	@$(MAKE) clean-deps-podman
