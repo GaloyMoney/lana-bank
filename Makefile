@@ -72,10 +72,10 @@ podman-debug:
 
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
-	ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
 
 clean-deps-podman: 
-	ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
