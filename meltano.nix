@@ -66,6 +66,7 @@ python3.pkgs.buildPythonApplication rec {
     smart-open
     dateparser
     anyio
+    virtualenv
   ];
 
   # Skip tests as they require network access and additional setup
