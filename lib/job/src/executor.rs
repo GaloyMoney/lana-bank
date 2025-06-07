@@ -330,7 +330,7 @@ impl JobExecutor {
                 Self::reschedule_job(op, id, t).await?;
             }
             JobCompletion::RescheduleAt(t) => {
-                span.record("conclusion", "RescheduleAtAt");
+                span.record("conclusion", "RescheduleAt");
                 let op = repo.begin_op().await?;
                 Self::reschedule_job(op, id, t).await?;
             }
