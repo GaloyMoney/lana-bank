@@ -33,32 +33,19 @@ podman-configure:
 podman-service-start:
 	@echo "--- Starting Podman service ---"
 	@if [ "$$(uname)" = "Linux" ]; then \
-		echo "Setting up podman for Linux CI..." && \
-		mkdir -p /run/podman && \
-		echo "Cleaning up..." && \
-		pkill -f "podman.*system.*service" >/dev/null 2>&1 || true && \
-		rm -f /run/podman/podman.sock && \
-		sleep 1 && \
-		echo "Starting podman service..." && \
-		podman system service --time=0 unix:///run/podman/podman.sock & \
-		PODMAN_PID=$$! && \
-		echo "Waiting for socket (PID: $$PODMAN_PID)..." && \
-		for i in 1 2 3 4 5 6 7 8 9 10; do \
-			if [ -S /run/podman/podman.sock ]; then \
-				echo "Socket found, testing..." && \
-				if DOCKER_HOST=unix:///run/podman/podman.sock timeout 3s docker version >/dev/null 2>&1; then \
-					echo "Podman service ready!"; \
-					break; \
-				fi; \
-			fi; \
-			echo "Attempt $$i/10, waiting..."; \
-			sleep 2; \
-		done && \
-		if [ ! -S /run/podman/podman.sock ]; then \
-			echo "FAILED: Socket not created" && exit 1; \
-		fi; \
+		echo "Starting podman service for Linux..." && \
+		export DOCKER_HOST=unix:///run/podman/podman.sock; \
 	else \
-		echo "Non-Linux system, skipping service setup"; \
+		echo "Starting podman service for macOS..." && \
+		PODMAN_SOCKET_PATH=$$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}' 2>/dev/null || echo "$$HOME/.local/share/containers/podman/machine/podman.sock") && \
+		export DOCKER_HOST="unix://$$PODMAN_SOCKET_PATH"; \
+	fi && \
+	if ! podman info >/dev/null 2>&1; then \
+		echo "Starting new podman service..." && \
+		podman system service --time=0 &>/dev/null & \
+		sleep 5; \
+	else \
+		echo "Podman service already running"; \
 	fi
 	@echo "--- Podman service ready ---"
 
@@ -85,12 +72,10 @@ podman-debug:
 
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
-	@echo "--- Starting dependencies with Podman ---"
-	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+	ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
 
 clean-deps-podman: 
-	@echo "--- Cleaning dependencies with Podman ---"
-	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+	ENGINE_DEFAULT=podman ./bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
