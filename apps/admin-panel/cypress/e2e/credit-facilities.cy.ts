@@ -30,13 +30,17 @@ describe("credit facility", () => {
         units: 12 * 100,
         period: Period.Months,
       },
-      interestDueDuration: {
-        units: DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
-        period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
+      interestDueFromAccrualAfterDays: {
+        units: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.UNITS,
+        period: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.PERIOD,
       },
-      obligationOverdueDuration: {
-        units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
-        period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
+      obligationOverdueFromDueAfterDays: {
+        units: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.UNITS,
+        period: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.PERIOD,
+      },
+      obligationLiquidationFromDueAfterDays: {
+        period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.PERIOD,
+        units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.UNITS,
       },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)

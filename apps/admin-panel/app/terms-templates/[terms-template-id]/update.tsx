@@ -100,13 +100,17 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               period: DEFAULT_TERMS.DURATION_PERIOD,
               units: parseInt(formValues.durationUnits),
             },
-            interestDueDuration: {
-              period: DEFAULT_TERMS.INTEREST_DUE_DURATION.PERIOD,
-              units: DEFAULT_TERMS.INTEREST_DUE_DURATION.UNITS,
+            interestDueFromAccrualAfterDays: {
+              period: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.PERIOD,
+              units: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.UNITS,
             },
-            obligationOverdueDuration: {
-              period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.PERIOD,
-              units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION.UNITS,
+            obligationOverdueFromDueAfterDays: {
+              period: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.UNITS,
+            },
+            obligationLiquidationFromDueAfterDays: {
+              period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.UNITS,
             },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,

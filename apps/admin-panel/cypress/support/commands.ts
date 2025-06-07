@@ -156,13 +156,17 @@ Cypress.Commands.add(
             period: input.duration.period,
             units: input.duration.units,
           },
-          interestDueDuration: {
-            period: input.interestDueDuration.period,
-            units: input.interestDueDuration.units,
+          interestDueFromAccrualAfterDays: {
+            period: input.interestDueFromAccrualAfterDays.period,
+            units: input.interestDueFromAccrualAfterDays.units,
           },
-          obligationOverdueDuration: {
-            period: input.obligationOverdueDuration.period,
-            units: input.obligationOverdueDuration.units,
+          obligationOverdueFromDueAfterDays: {
+            period: input.obligationOverdueFromDueAfterDays.period,
+            units: input.obligationOverdueFromDueAfterDays.units,
+          },
+          obligationLiquidationFromDueAfterDays: {
+            period: input.obligationLiquidationFromDueAfterDays.period,
+            units: input.obligationLiquidationFromDueAfterDays.units,
           },
           liquidationCvl: input.liquidationCvl,
           marginCallCvl: input.marginCallCvl,
@@ -278,4 +282,4 @@ Cypress.Commands.add("uploadChartOfAccounts", () => {
     .should("be.visible")
 })
 
-export {}
+export { }
