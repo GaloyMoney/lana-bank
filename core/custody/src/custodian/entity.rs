@@ -6,7 +6,9 @@ use es_entity::*;
 
 use crate::primitives::CustodianId;
 
-#[derive(Clone, Serialize, Deserialize)]
+use super::custodian_config::CustodianConfig;
+
+#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KomainuConfig {
     pub api_key: String,
     pub api_secret: String,
@@ -23,11 +25,6 @@ impl core::fmt::Debug for KomainuConfig {
             .field("secret_key", &"<redacted>")
             .finish()
     }
-}
-
-#[derive(Clone, Debug, Serialize, Deserialize)]
-pub enum CustodianConfig {
-    Komainu(KomainuConfig),
 }
 
 #[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
