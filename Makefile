@@ -33,32 +33,22 @@ podman-configure:
 podman-service-start:
 	@echo "--- Starting Podman service ---"
 	@if [ "$$(uname)" = "Linux" ]; then \
-		echo "Setting up podman service for Linux..." && \
-		mkdir -p /run/podman && \
-		echo "Cleaning up any existing services..." && \
-		pkill -f "podman.*system.*service" >/dev/null 2>&1 || true && \
-		rm -f /run/podman/podman.sock && \
-		echo "Starting podman system service..." && \
-		podman system service --time=0 unix:///run/podman/podman.sock & \
-		echo "Waiting for socket to be ready..." && \
-		for i in 1 2 3 4 5 6 7 8 9 10; do \
-			if [ -S /run/podman/podman.sock ] && DOCKER_HOST=unix:///run/podman/podman.sock timeout 5s docker version >/dev/null 2>&1; then \
-				echo "Podman socket is working!"; \
-				break; \
-			fi; \
-			echo "Waiting for socket... ($$i/10)"; \
-			sleep 2; \
-		done; \
-	else \
-		echo "Starting podman service for macOS..." && \
-		PODMAN_SOCKET_PATH=$$(podman machine inspect --format '{{.ConnectionInfo.PodmanSocket.Path}}' 2>/dev/null || echo "$$HOME/.local/share/containers/podman/machine/podman.sock") && \
-		export DOCKER_HOST="unix://$$PODMAN_SOCKET_PATH" && \
-		if ! podman info >/dev/null 2>&1; then \
-			echo "Starting new podman service..." && \
-			podman system service --time=0 &>/dev/null & \
-			sleep 5; \
+		echo "Checking if podman socket file exists..." && \
+		if [ -S /run/podman/podman.sock ] && DOCKER_HOST=unix:///run/podman/podman.sock timeout 3s docker version >/dev/null 2>&1; then \
+			echo "Podman socket already working!"; \
 		else \
-			echo "Podman service already running"; \
+			echo "Starting podman system service..." && \
+			mkdir -p /run/podman && \
+			podman system service --time=0 unix:///run/podman/podman.sock & \
+			echo "Waiting for socket to be created..." && \
+			for i in 1 2 3 4 5; do \
+				if [ -S /run/podman/podman.sock ]; then \
+					echo "Socket created successfully!"; \
+					break; \
+				fi; \
+				echo "Waiting... ($$i/5)"; \
+				sleep 2; \
+			done; \
 		fi; \
 	fi
 	@echo "--- Podman service ready ---"
