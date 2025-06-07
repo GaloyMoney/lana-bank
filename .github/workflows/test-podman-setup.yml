@@ -29,6 +29,6 @@ jobs:
               image: alpine:latest
               command: echo 'Hello from podman-compose!'" > test-compose.yml
           
-          DOCKER_HOST=unix:///run/podman/podman.sock podman-compose -f test-compose.yml up --abort-on-container-exit
+          DOCKER_HOST=$(./dev/bin/podman-get-socket.sh) podman-compose -f test-compose.yml up --abort-on-container-exit
           
           echo "--- Podman setup test complete ---" 

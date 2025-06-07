@@ -38,7 +38,10 @@ podman-debug:
 	@echo "Podman info:"
 	@podman info || echo "Podman info failed"
 	@echo "Socket status:"
-	@ls -la /run/podman/podman.sock 2>/dev/null || echo "Socket not found at /run/podman/podman.sock"
+	@ls -la /run/podman/podman.sock 2>/dev/null || echo "System socket not found at /run/podman/podman.sock"
+	@ls -la $${XDG_RUNTIME_DIR:-/run/user/$$(id -u)}/podman/podman.sock 2>/dev/null || echo "User socket not found"
+	@echo "Dynamic socket detection result:"
+	@./dev/bin/podman-get-socket.sh || echo "Socket detection failed"
 	@echo "Running podman processes:"
 	@ps aux | grep podman || echo "No podman processes found"
 	@echo "DOCKER_HOST: $${DOCKER_HOST:-not set}"
@@ -46,10 +49,10 @@ podman-debug:
 
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
-	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
 
 clean-deps-podman: 
-	@DOCKER_HOST=unix:///run/podman/podman.sock ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
