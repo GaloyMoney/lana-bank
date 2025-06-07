@@ -140,3 +140,7 @@ make init-bq
 ```
 
 If you are doing work that requires adding a new big query table you need to add it to `./tf/bq-setup/bq.tf`
+
+## Internal Libraries
+
+- [Job crate](lib/job/README.md) - persistent background job executor.
