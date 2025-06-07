@@ -33,36 +33,32 @@ podman-configure:
 podman-service-start:
 	@echo "--- Starting Podman service ---"
 	@if [ "$$(uname)" = "Linux" ]; then \
-		echo "Setting up podman service for Linux..." && \
+		echo "Setting up podman for Linux CI..." && \
 		mkdir -p /run/podman && \
-		echo "Stopping any existing podman services..." && \
-		pkill -f "podman system service" || true && \
-		sleep 2 && \
-		echo "Starting podman system service..." && \
+		echo "Cleaning up..." && \
+		pkill -f "podman.*system.*service" >/dev/null 2>&1 || true && \
+		rm -f /run/podman/podman.sock && \
+		sleep 1 && \
+		echo "Starting podman service..." && \
 		podman system service --time=0 unix:///run/podman/podman.sock & \
-		echo "Waiting for podman socket to be ready..." && \
-		for i in $$(seq 1 20); do \
+		PODMAN_PID=$$! && \
+		echo "Waiting for socket (PID: $$PODMAN_PID)..." && \
+		for i in 1 2 3 4 5 6 7 8 9 10; do \
 			if [ -S /run/podman/podman.sock ]; then \
-				echo "Socket file exists, testing connectivity..." && \
-				if DOCKER_HOST=unix:///run/podman/podman.sock timeout 10s docker version >/dev/null 2>&1; then \
-					echo "Podman socket is ready and accessible"; \
+				echo "Socket found, testing..." && \
+				if DOCKER_HOST=unix:///run/podman/podman.sock timeout 3s docker version >/dev/null 2>&1; then \
+					echo "Podman service ready!"; \
 					break; \
 				fi; \
 			fi; \
-			echo "Waiting for podman socket... ($$i/20)"; \
-			sleep 3; \
+			echo "Attempt $$i/10, waiting..."; \
+			sleep 2; \
 		done && \
 		if [ ! -S /run/podman/podman.sock ]; then \
-			echo "ERROR: Podman socket not created" && \
-			exit 1; \
+			echo "FAILED: Socket not created" && exit 1; \
 		fi; \
 	else \
-		echo "Setting up podman service for macOS..." && \
-		if ! podman info >/dev/null 2>&1; then \
-			echo "Starting podman service..." && \
-			podman system service --time=0 & \
-			sleep 5; \
-		fi; \
+		echo "Non-Linux system, skipping service setup"; \
 	fi
 	@echo "--- Podman service ready ---"
 
