@@ -4,6 +4,7 @@ use futures::StreamExt;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use job::error::JobRunError;
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
 
@@ -127,14 +128,15 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     #[allow(clippy::single_match)]
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, mut current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut state = current_job
             .execution_state::<CreditFacilityApprovalJobData>()?
             .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+        let mut stream = self
+            .outbox
+            .listen_persisted(Some(state.sequence))
+            .await
+            .map_err(JobRunError::Transient)?;
 
         while let Some(message) = stream.next().await {
             match message.as_ref().as_event() {
@@ -144,9 +146,15 @@ where
                     process_type,
                     ..
                 }) if process_type == &super::APPROVE_CREDIT_FACILITY_PROCESS => {
-                    self.process.execute(*id, *approved).await?;
+                    self.process
+                        .execute(*id, *approved)
+                        .await
+                        .map_err(JobRunError::Permanent)?;
                     state.sequence = message.sequence;
-                    current_job.update_execution_state(state).await?;
+                    current_job
+                        .update_execution_state(state)
+                        .await
+                        .map_err(JobRunError::Transient)?;
                 }
                 _ => {}
             }

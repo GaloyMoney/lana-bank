@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 
+use job::error::JobRunError;
 use job::*;
 
 use crate::{repo::DashboardRepo, values::*, Outbox};
@@ -62,10 +63,7 @@ pub struct DashboardProjectionJobRunner {
 #[async_trait]
 impl JobRunner for DashboardProjectionJobRunner {
     #[allow(clippy::single_match)]
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, mut current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut state = current_job
             .execution_state::<DashboardProjectionJobData>()?
             .unwrap_or_default();

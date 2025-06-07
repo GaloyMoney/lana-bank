@@ -5,6 +5,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use job::error::JobRunError;
 use job::*;
 use outbox::OutboxEventMarker;
 
@@ -126,10 +127,7 @@ where
         skip(self, current_job),
         fields(attempt)
     )]
-    async fn run(
-        &self,
-        current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let span = tracing::Span::current();
         span.record("attempt", current_job.attempt());
 
