@@ -6,7 +6,7 @@ use es_entity::*;
 
 use crate::primitives::CustodianId;
 
-use super::custodian_config::CustodianConfig;
+use super::{custodian_config::*, error::*};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
 pub struct KomainuConfig {
@@ -27,14 +27,17 @@ impl core::fmt::Debug for KomainuConfig {
     }
 }
 
-#[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
+#[derive(EsEvent, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CustodianId")]
 pub enum CustodianEvent {
     Initialized {
         id: CustodianId,
         name: String,
-        custodian: CustodianConfig,
+        audit_info: AuditInfo,
+    },
+    ConfigUpdated {
+        encrypted_custodian_config: Option<(ConfigCypher, Nonce)>,
         audit_info: AuditInfo,
     },
 }
@@ -43,8 +46,8 @@ pub enum CustodianEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Custodian {
     pub id: CustodianId,
+    pub encrypted_custodian_config: Option<(ConfigCypher, Nonce)>,
     pub name: String,
-    pub custodian: CustodianConfig,
     events: EntityEvents<CustodianEvent>,
 }
 
@@ -54,6 +57,29 @@ impl Custodian {
             .entity_first_persisted_at()
             .expect("No events for Custodian")
     }
+
+    pub fn update_custodian_config(
+        &mut self,
+        config: CustodianConfig,
+        secret: &EncryptionKey,
+        audit_info: AuditInfo,
+    ) -> Result<(), CustodianError> {
+        let encrypted_config = config.encrypt(secret)?;
+        self.encrypted_custodian_config = Some(encrypted_config.clone());
+
+        self.events.push(CustodianEvent::ConfigUpdated {
+            encrypted_custodian_config: Some(encrypted_config),
+            audit_info,
+        });
+
+        Ok(())
+    }
+
+    pub fn custodian_config(&self, key: EncryptionKey) -> Option<CustodianConfig> {
+        self.encrypted_custodian_config
+            .as_ref()
+            .and_then(|(cfg, nonce)| CustodianConfig::decrypt(&key, cfg, nonce).ok())
+    }
 }
 
 impl TryFromEvents<CustodianEvent> for Custodian {
@@ -62,16 +88,14 @@ impl TryFromEvents<CustodianEvent> for Custodian {
 
         for event in events.iter_all() {
             match event {
-                CustodianEvent::Initialized {
-                    id,
-                    name,
-                    custodian,
+                CustodianEvent::Initialized { id, name, .. } => {
+                    builder = builder.id(*id).name(name.clone())
+                }
+                CustodianEvent::ConfigUpdated {
+                    encrypted_custodian_config,
                     ..
                 } => {
-                    builder = builder
-                        .id(*id)
-                        .name(name.clone())
-                        .custodian(custodian.clone())
+                    builder = builder.encrypted_custodian_config(encrypted_custodian_config.clone())
                 }
             }
         }
@@ -85,7 +109,6 @@ pub struct NewCustodian {
     #[builder(setter(into))]
     pub(super) id: CustodianId,
     pub(super) name: String,
-    pub(super) custodian: CustodianConfig,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -102,7 +125,6 @@ impl IntoEvents<CustodianEvent> for NewCustodian {
             [CustodianEvent::Initialized {
                 id: self.id,
                 name: self.name,
-                custodian: self.custodian,
                 audit_info: self.audit_info,
             }],
         )

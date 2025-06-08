@@ -35,10 +35,19 @@ impl Custodian {
         &self.entity.name
     }
 
-    async fn custodian_config(&self) -> CustodianConfig {
-        match &self.entity.custodian {
-            DomainCustodianConfig::Komainu(_) => CustodianConfig::Komainu,
-        }
+    async fn custodian_config(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<CustodianConfig>> {
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
+
+        if let Some(config) = app.custody().custodian_config(&self.entity) {
+            match config {
+                DomainCustodianConfig::Komainu(_) => return Ok(Some(CustodianConfig::Komainu)),
+            }
+        };
+
+        Ok(None)
     }
 }
 

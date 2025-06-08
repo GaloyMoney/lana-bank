@@ -7,9 +7,9 @@ use chacha20poly1305::{
 use serde::{Deserialize, Serialize};
 
 pub type EncryptionKey = chacha20poly1305::Key;
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct ConfigCypher(pub(super) Vec<u8>);
-#[derive(Clone)]
+#[derive(Clone, Serialize, Deserialize)]
 pub struct Nonce(pub(super) Vec<u8>);
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Default)]

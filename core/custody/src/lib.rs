@@ -22,6 +22,7 @@ where
 {
     authz: Perms,
     custodians: CustodianRepo,
+    custodian_encryption: CustodianEncryptionConfig,
 }
 
 impl<Perms> CoreCustody<Perms>
@@ -31,22 +32,31 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
 {
     pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
+        use chacha20poly1305::{
+            ChaCha20Poly1305,
+            aead::{KeyInit, OsRng},
+        };
+
         Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
+            // TODO: This should be configurable, not hardcoded
+            custodian_encryption: CustodianEncryptionConfig {
+                key: ChaCha20Poly1305::generate_key(&mut OsRng),
+            },
         }
     }
 
     #[instrument(
-        name = "core_custody.create_custodian_config",
-        skip(self, custodian),
+        name = "core_custody.create_custodian",
+        skip(self, custodian_config),
         err
     )]
-    pub async fn create_custodian_config(
+    pub async fn create_custodian(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: impl AsRef<str> + std::fmt::Debug,
-        custodian: CustodianConfig,
+        custodian_config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
         let audit_info = self
             .authz
@@ -59,12 +69,29 @@ where
 
         let new_custodian = NewCustodian::builder()
             .name(name.as_ref().to_owned())
-            .custodian(custodian)
-            .audit_info(audit_info)
+            .audit_info(audit_info.clone())
             .build()
             .expect("all fields provided");
+        let mut op = self.custodians.begin_op().await?;
 
-        Ok(self.custodians.create(new_custodian).await?)
+        let mut custodian = self.custodians.create_in_op(&mut op, new_custodian).await?;
+
+        custodian.update_custodian_config(
+            custodian_config,
+            &self.custodian_encryption.key,
+            audit_info,
+        )?;
+        self.custodians
+            .update_in_op(&mut op, &mut custodian)
+            .await?;
+
+        op.commit().await?;
+
+        Ok(custodian)
+    }
+
+    pub fn custodian_config(&self, custodian: &Custodian) -> Option<CustodianConfig> {
+        custodian.custodian_config(self.custodian_encryption.key)
     }
 
     #[instrument(name = "core_custody.find_all_custodians", skip(self), err)]

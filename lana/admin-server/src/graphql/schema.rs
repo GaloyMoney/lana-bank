@@ -1441,7 +1441,7 @@ impl Mutation {
             Custodian,
             ctx,
             app.custody()
-                .create_custodian_config(sub, input.name().to_owned(), input.into())
+                .create_custodian(sub, input.name().to_owned(), input.into())
         )
     }
 
