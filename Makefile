@@ -117,12 +117,9 @@ build:
 	SQLX_OFFLINE=true cargo build --locked
 
 build-for-tests:
-	SQLX_OFFLINE=true cargo build --locked --features sim-time
-
-build-for-tests-nix:
 	nix build .
 
-e2e: clean-deps start-deps build-for-tests-nix
+e2e: clean-deps start-deps build-for-tests
 	bats -t bats
 
 sdl-rust:
@@ -198,10 +195,6 @@ test-in-ci: start-deps setup-db
 
 build-x86_64-unknown-linux-musl-release:
 	SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
-
-e2e-in-ci: clean-deps start-deps build-for-tests
-	lsof -i :5253 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true
-	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats -t bats
 
 # Login code retrieval
 get-admin-login-code:
