@@ -33,7 +33,7 @@ server_cmd() {
 server_cmd_nix() {
   server_location="$(nix build . --print-out-paths)/bin/lana-cli"
 
-  bash -c ${server_location} $@
+  bash -c "${server_location} --config ${LANA_CONFIG}" $@
 }
 
 start_server() {
