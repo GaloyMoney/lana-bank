@@ -35,7 +35,7 @@ python311.pkgs.buildPythonApplication rec {
     structlog
     watchdog
     click-default-group
-    fasteners
+    (fasteners.overridePythonAttrs (old: { doCheck = false; }))
     croniter
     pathvalidate
     click-didyoumean
