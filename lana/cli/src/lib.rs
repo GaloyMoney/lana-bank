@@ -38,6 +38,8 @@ struct Cli {
     sa_creds_base64_raw: String,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
+    #[clap(long, env = "CUSTODIAN_ENCRYPTION_KEY", default_value = "")]
+    custodian_encryption_key: String,
 }
 
 pub async fn run() -> anyhow::Result<()> {
@@ -56,6 +58,7 @@ pub async fn run() -> anyhow::Result<()> {
             sumsub_key: cli.sumsub_key,
             sumsub_secret: cli.sumsub_secret,
             sa_creds_base64,
+            custodian_encryption_key: cli.custodian_encryption_key,
         },
         cli.dev_env_name_prefix,
     )?;

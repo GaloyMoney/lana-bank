@@ -30,3 +30,5 @@ serde = { workspace = true }
 serde_yaml = { workspace = true }
 tokio = { workspace = true }
 sqlx = { workspace = true }
+hex = { workspace = true }
+chacha20poly1305 = { workspace = true }

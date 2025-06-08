@@ -43,6 +43,7 @@ pub struct EnvSecrets {
     pub sumsub_key: String,
     pub sumsub_secret: String,
     pub sa_creds_base64: Option<String>,
+    pub custodian_encryption_key: String,
 }
 
 impl Config {
@@ -53,6 +54,7 @@ impl Config {
             sumsub_key,
             sumsub_secret,
             sa_creds_base64,
+            custodian_encryption_key,
         }: EnvSecrets,
         dev_env_name_prefix: Option<String>,
     ) -> anyhow::Result<Self> {
@@ -83,6 +85,17 @@ impl Config {
         } else {
             config.app.report.service_account = Some(config.app.service_account.clone());
         };
+
+        let key_bytes = hex::decode(custodian_encryption_key)?;
+        if key_bytes.len() != 32 {
+            return Err(anyhow::anyhow!(
+                "Custodian encryption key must be 32 bytes, got {}",
+                key_bytes.len()
+            ));
+        }
+
+        config.app.custody.custodian_encryption.key =
+            chacha20poly1305::Key::clone_from_slice(key_bytes.as_ref());
 
         Ok(config)
     }

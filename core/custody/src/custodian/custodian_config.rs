@@ -1,14 +1,16 @@
-use super::{entity::KomainuConfig, error::CustodianError};
-
 use chacha20poly1305::{
     ChaCha20Poly1305,
     aead::{Aead, AeadCore, KeyInit, OsRng},
 };
 use serde::{Deserialize, Serialize};
 
+use super::{entity::KomainuConfig, error::CustodianError};
+
 pub type EncryptionKey = chacha20poly1305::Key;
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct ConfigCypher(pub(super) Vec<u8>);
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Nonce(pub(super) Vec<u8>);
 
