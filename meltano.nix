@@ -3,7 +3,6 @@
   python311,
   fetchPypi,
 }:
-
 python311.pkgs.buildPythonApplication rec {
   pname = "meltano";
   version = "3.7.8";
@@ -35,7 +34,7 @@ python311.pkgs.buildPythonApplication rec {
     structlog
     watchdog
     click-default-group
-    (fasteners.overridePythonAttrs (old: { doCheck = false; }))
+    (fasteners.overridePythonAttrs (old: {doCheck = false;}))
     croniter
     pathvalidate
     click-didyoumean
