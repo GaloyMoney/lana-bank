@@ -274,16 +274,21 @@ getEmailCode() {
   KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
 
   local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
-  local result=$(psql $KRATOS_PG_CON -t -c "${query}")
+    for i in {1..10}; do
+    local result=$(psql $KRATOS_PG_CON -t -c "${query}")
+    
+    if [[ -n "$result" ]]; then
+      local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
+      echo "$code"
+      return 0
+    fi
+    
+    echo "Waiting for email message for ${email} (attempt $i/10)..." >&2
+    sleep 1
+  done
 
-  if [[ -z "$result" ]]; then
-    echo "No message for email ${email}" >&2
-    exit 1
-  fi
-
-  local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
-
-  echo "$code"
+  echo "No message for email ${email} after 10 attempts" >&2
+  exit 1
 }
 
 generate_email() {
