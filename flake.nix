@@ -206,6 +206,7 @@
         PGHOST = "127.0.0.1";
         DATABASE_URL = "postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5433/pg";
         PG_CON = "${DATABASE_URL}";
+        MELTANO_PROJECT_ROOT = "./meltano";
       };
     in
       with pkgs; {
