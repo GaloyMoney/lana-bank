@@ -271,7 +271,6 @@ reset_log_files() {
 getEmailCode() {
   local email="$1"
 
-  # Always use admin Kratos instance
   local container_name="${COMPOSE_PROJECT_NAME}-kratos-admin-pg-1"
 
   local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
