@@ -91,10 +91,14 @@ sqlx-prepare:
 reset-deps: clean-deps start-deps setup-db
 
 run-server:
-	cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+	CUSTODIAN_ENCRYPTION_KEY="0000000000000000000000000000000000000000000000000000000000000000" \
+	cargo run --features sim-time --bin lana-cli -- daemon \
+		--config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 run-server-with-bootstrap:
-	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
+	CUSTODIAN_ENCRYPTION_KEY="0000000000000000000000000000000000000000000000000000000000000000" \
+	cargo run --all-features --bin lana-cli -- daemon \
+	--config ./bats/lana-sim-time.yml | tee .e2e-logs
 
 check-code: check-code-rust check-code-apps check-code-tf
 

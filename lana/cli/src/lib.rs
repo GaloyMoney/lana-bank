@@ -5,7 +5,8 @@ pub mod config;
 mod db;
 
 use anyhow::Context;
-use clap::Parser;
+use chacha20poly1305::{aead::OsRng, ChaCha20Poly1305, KeyInit};
+use clap::{Parser, Subcommand};
 use std::{fs, path::PathBuf};
 
 use self::config::{Config, EnvSecrets};
@@ -13,14 +14,9 @@ use self::config::{Config, EnvSecrets};
 #[derive(Parser)]
 #[clap(long_about = None)]
 struct Cli {
-    #[clap(
-        short,
-        long,
-        env = "LANA_CONFIG",
-        default_value = "lana.yml",
-        value_name = "FILE"
-    )]
-    config: PathBuf,
+    #[clap(subcommand)]
+    command: Command,
+
     #[clap(
         long,
         env = "LANA_HOME",
@@ -28,42 +24,87 @@ struct Cli {
         value_name = "DIRECTORY"
     )]
     lana_home: String,
-    #[clap(env = "PG_CON")]
-    pg_con: String,
-    #[clap(env = "SUMSUB_KEY", default_value = "")]
-    sumsub_key: String,
-    #[clap(env = "SUMSUB_SECRET", default_value = "")]
-    sumsub_secret: String,
-    #[clap(env = "SA_CREDS_BASE64", default_value = "")]
-    sa_creds_base64_raw: String,
-    #[clap(env = "DEV_ENV_NAME_PREFIX")]
-    dev_env_name_prefix: Option<String>,
-    #[clap(long, env = "CUSTODIAN_ENCRYPTION_KEY", default_value = "")]
-    custodian_encryption_key: String,
+}
+
+#[derive(Subcommand)]
+enum Command {
+    Utils {
+        #[clap(subcommand)]
+        command: UtilsCommands,
+    },
+
+    Daemon {
+        /// Sets a custom config file
+        #[clap(
+            short,
+            long,
+            env = "LANA_CONFIG",
+            default_value = "lana.yml",
+            value_name = "FILE"
+        )]
+        config: PathBuf,
+        /// Connection string for the Postgres
+        #[clap(env = "PG_CON")]
+        pg_con: String,
+        #[clap(env = "SUMSUB_KEY", default_value = "")]
+        sumsub_key: String,
+        #[clap(env = "SUMSUB_SECRET", default_value = "")]
+        sumsub_secret: String,
+        #[clap(env = "SA_CREDS_BASE64", default_value = "")]
+        sa_creds_base64_raw: String,
+        #[clap(env = "DEV_ENV_NAME_PREFIX")]
+        dev_env_name_prefix: Option<String>,
+        #[clap(long, env = "CUSTODIAN_ENCRYPTION_KEY", default_value = "")]
+        custodian_encryption_key: String,
+    },
+}
+
+#[derive(Subcommand)]
+enum UtilsCommands {
+    Genencryptionkey,
 }
 
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    let sa_creds_base64 = if cli.sa_creds_base64_raw.is_empty() {
-        None
-    } else {
-        Some(cli.sa_creds_base64_raw)
-    };
-
-    let config = Config::init(
-        cli.config,
-        EnvSecrets {
-            pg_con: cli.pg_con,
-            sumsub_key: cli.sumsub_key,
-            sumsub_secret: cli.sumsub_secret,
-            sa_creds_base64,
-            custodian_encryption_key: cli.custodian_encryption_key,
+    match cli.command {
+        Command::Utils { command } => match command {
+            UtilsCommands::Genencryptionkey => {
+                let key = ChaCha20Poly1305::generate_key(&mut OsRng);
+                println!("{}", hex::encode(key));
+            }
         },
-        cli.dev_env_name_prefix,
-    )?;
+        Command::Daemon {
+            config,
+            pg_con,
+            sumsub_key,
+            sumsub_secret,
+            sa_creds_base64_raw,
+            dev_env_name_prefix,
+            custodian_encryption_key,
+            ..
+        } => {
+            let sa_creds_base64 = if sa_creds_base64_raw.is_empty() {
+                None
+            } else {
+                Some(sa_creds_base64_raw)
+            };
 
-    run_cmd(&cli.lana_home, config).await?;
+            let config = Config::init(
+                config,
+                EnvSecrets {
+                    pg_con,
+                    sumsub_key,
+                    sumsub_secret,
+                    sa_creds_base64,
+                    custodian_encryption_key,
+                },
+                dev_env_name_prefix,
+            )?;
+
+            run_cmd(&cli.lana_home, config).await?;
+        }
+    }
 
     Ok(())
 }
