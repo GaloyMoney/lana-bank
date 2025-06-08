@@ -98,7 +98,7 @@ check-code: check-code-rust check-code-apps check-code-tf
 
 check-code-tf:
 	tofu fmt -recursive .
-	git diff --exit-code
+	git diff --exit-code *.tf
 
 check-code-rust: sdl-rust
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
