@@ -11,33 +11,20 @@ GQL_APP_ENDPOINT="${OATHKEEPER_PROXY}/app/graphql"
 GQL_ADMIN_ENDPOINT="${OATHKEEPER_PROXY}/admin/graphql"
 
 LANA_HOME="${LANA_HOME:-.lana}"
-export LANA_CONFIG="${REPO_ROOT}/bats/lana-sim-time.yml"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
+
+export LANA_CONFIG="${REPO_ROOT}/bats/lana-sim-time.yml"
 
 LOG_FILE=".e2e-logs"
 
-reset_pg() {
-  docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "DROP SCHEMA public CASCADE"
-  docker exec "${COMPOSE_PROJECT_NAME}-core-pg-1" psql $PG_CON -c "CREATE SCHEMA public"
-}
-
 server_cmd() {
-  server_location="${REPO_ROOT}/target/debug/lana-cli"
-  if [[ ! -z ${CARGO_TARGET_DIR} ]]; then
-    server_location="${CARGO_TARGET_DIR}/debug/lana-cli"
-  fi
-
-  bash -c ${server_location} $@
-}
-
-server_cmd_nix() {
   server_location="$(nix build . --print-out-paths)/bin/lana-cli"
 
   bash -c ${server_location} $@
 }
 
 start_server() {
-    echo "--- Starting server make ---"
+  echo "--- Starting server ---"
 
   # Check for running server
   if pgrep -f '[l]ana-cli' >/dev/null; then
@@ -62,37 +49,6 @@ start_server() {
     fi
   done
 }
-
-start_server_nix() {
-  echo "--- Starting server nix ---"
-
-  # Check for running server
-  if pgrep -f '[l]ana-cli' >/dev/null; then
-    rm -f "$SERVER_PID_FILE"
-    return 0
-  fi
-
-  echo "LANA_CONFIG: $LANA_CONFIG"
-
-  # Start server if not already running
-  background server_cmd_nix > "$LOG_FILE" 2>&1
-  echo "--- Server started ---"
-  for i in {1..20}; do
-    echo "--- Checking if server is running ${i} ---"
-    if grep -q 'Starting' "$LOG_FILE"; then
-      break
-    elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
-      stop_server
-      sleep 1
-      background server_cmd_nix > "$LOG_FILE" 2>&1
-    else
-      sleep 1
-      echo "--- Server not running ---"
-      cat "$LOG_FILE"
-    fi
-  done
-}
-
 stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
     kill -9 $(cat "$SERVER_PID_FILE") || true
