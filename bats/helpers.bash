@@ -9,6 +9,9 @@ OATHKEEPER_PROXY="http://localhost:4455"
 GQL_APP_ENDPOINT="${OATHKEEPER_PROXY}/app/graphql"
 GQL_ADMIN_ENDPOINT="${OATHKEEPER_PROXY}/admin/graphql"
 
+LANA_HOME="${LANA_HOME:-.lana}"
+SERVER_PID_FILE="${LANA_HOME}/server-pid"
+
 export LANA_CONFIG="${REPO_ROOT}/bats/lana-sim-time.yml"
 
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
@@ -22,14 +25,16 @@ server_cmd() {
 }
 
 start_server() {
-  # Check for running server
-  stop_server
-
   echo "--- Starting server ---"
+
+  # Check for running server
+  if pgrep -f '[l]ana-cli' >/dev/null; then
+    rm -f "$SERVER_PID_FILE"
+    return 0
+  fi
 
   # Start server if not already running
   background server_cmd > "$LOG_FILE" 2>&1
-  echo "--- Server started ---"
   for i in {1..20}; do
     echo "--- Checking if server is running ${i} ---"
     if grep -q 'Starting' "$LOG_FILE"; then
@@ -45,12 +50,9 @@ start_server() {
     fi
   done
 }
-
 stop_server() {
-  echo "--- Stopping server ---"
-  if pgrep -f '[l]ana-cli' >/dev/null; then
-    echo "--- Killing server ---"
-    kill -9 $(pgrep -f '[l]ana-cli') || true
+  if [[ -f "$SERVER_PID_FILE" ]]; then
+    kill -9 $(cat "$SERVER_PID_FILE") || true
   fi
 }
 
