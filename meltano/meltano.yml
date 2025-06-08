@@ -68,11 +68,11 @@ plugins:
     - public-*.*
   - name: tap-bitfinexapi
     namespace: tap_bitfinexapi
-    pip_url: -e extract/tap-bitfinexapi
+    pip_url: -e ./meltano/extract/tap-bitfinexapi
     executable: tap-bitfinexapi
   - name: tap-sumsubapi
     namespace: tap_sumsubapi
-    pip_url: -e extract/tap-sumsubapi
+    pip_url: -e ./meltano/extract/tap-sumsubapi
     executable: tap-sumsubapi
     settings:
     - name: host
