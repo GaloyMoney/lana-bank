@@ -10,8 +10,8 @@ on:
       - "feature/**"
 
 jobs:
-  check-code-backend:
-    name: Check Code Backend
+  check-code:
+    name: Check Code
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -20,24 +20,3 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
       - run: nix develop -c make check-code
-
-  check-code-apps:
-    name: Check Code Apps
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-nix
-        with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
-          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
-      - uses: ./.github/actions/cache-pnpm
-      - run: nix develop -c make check-code-apps
-
-  fmt:
-    name: Check terraform files formatting
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@v4
-    - uses: hashicorp/setup-terraform@v3
-    - run: terraform fmt -recursive .
-    - run: git diff --exit-code

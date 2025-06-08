@@ -94,7 +94,11 @@ run-server:
 run-server-with-bootstrap:
 	cargo run --bin lana-cli --all-features -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
 
-check-code: check-code-rust check-code-apps
+check-code: check-code-rust check-code-apps check-code-tf
+
+check-code-tf:
+	tofu fmt -recursive .
+	git diff --exit-code
 
 check-code-rust: sdl-rust
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
