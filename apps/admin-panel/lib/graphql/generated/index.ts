@@ -720,44 +720,44 @@ export type CreditModuleConfigurePayload = {
   creditConfig: CreditModuleConfig;
 };
 
-export enum Custodian {
-  Komainu = 'KOMAINU'
-}
-
-export type CustodianConfig = {
-  __typename?: 'CustodianConfig';
+export type Custodian = {
+  __typename?: 'Custodian';
   createdAt: Scalars['Timestamp']['output'];
-  custodian: Custodian;
+  custodianConfig: CustodianConfig;
   custodianConfigId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
 
-export type CustodianConfigConnection = {
-  __typename?: 'CustodianConfigConnection';
+export enum CustodianConfig {
+  Komainu = 'KOMAINU'
+}
+
+export type CustodianConnection = {
+  __typename?: 'CustodianConnection';
   /** A list of edges. */
-  edges: Array<CustodianConfigEdge>;
+  edges: Array<CustodianEdge>;
   /** A list of nodes. */
-  nodes: Array<CustodianConfig>;
+  nodes: Array<Custodian>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
 };
 
-export type CustodianConfigCreateInput =
+export type CustodianCreateInput =
   { komainu: KomainuConfig; };
 
-export type CustodianConfigCreatePayload = {
-  __typename?: 'CustodianConfigCreatePayload';
-  custodianConfig: CustodianConfig;
+export type CustodianCreatePayload = {
+  __typename?: 'CustodianCreatePayload';
+  custodianConfig: Custodian;
 };
 
 /** An edge in a connection. */
-export type CustodianConfigEdge = {
-  __typename?: 'CustodianConfigEdge';
+export type CustodianEdge = {
+  __typename?: 'CustodianEdge';
   /** A cursor for use in pagination */
   cursor: Scalars['String']['output'];
   /** The item at the end of the edge */
-  node: CustodianConfig;
+  node: Custodian;
 };
 
 export type Customer = {
@@ -1278,7 +1278,7 @@ export type Mutation = {
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   creditModuleConfigure: CreditModuleConfigurePayload;
-  custodianConfigCreate: CustodianConfigCreatePayload;
+  custodianCreate: CustodianCreatePayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
@@ -1380,8 +1380,8 @@ export type MutationCreditModuleConfigureArgs = {
 };
 
 
-export type MutationCustodianConfigCreateArgs = {
-  input: CustodianConfigCreateInput;
+export type MutationCustodianCreateArgs = {
+  input: CustodianCreateInput;
 };
 
 
@@ -1667,7 +1667,7 @@ export type Query = {
   creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
-  custodianConfigs: CustodianConfigConnection;
+  custodians: CustodianConnection;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
   customers: CustomerConnection;
@@ -1760,7 +1760,7 @@ export type QueryCreditFacilityArgs = {
 };
 
 
-export type QueryCustodianConfigsArgs = {
+export type QueryCustodiansArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
 };

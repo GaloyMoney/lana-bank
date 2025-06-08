@@ -137,6 +137,8 @@ full-sdl: sdl-rust sdl-js
 
 # Frontend Apps
 check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
+	git diff --exit-code apps/admin-panel/lib/graphql/generated/
+	git diff --exit-code apps/customer-portal/lib/graphql/generated/
 
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
