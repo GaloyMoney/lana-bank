@@ -116,7 +116,7 @@ impl LanaApp {
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
-        let custody = Custody::new(&pool, &authz);
+        let custody = Custody::new(&pool, &authz, config.custody);
 
         let credit = Credit::init(
             &pool,

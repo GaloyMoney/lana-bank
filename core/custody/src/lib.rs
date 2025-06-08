@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod config;
 pub mod custodian;
 pub mod error;
 mod primitives;
@@ -12,6 +13,7 @@ use authz::PermissionCheck;
 
 pub use custodian::*;
 
+pub use config::*;
 use error::CoreCustodyError;
 pub use primitives::*;
 
@@ -22,7 +24,7 @@ where
 {
     authz: Perms,
     custodians: CustodianRepo,
-    custodian_encryption: CustodianEncryptionConfig,
+    config: CustodyConfig,
 }
 
 impl<Perms> CoreCustody<Perms>
@@ -31,19 +33,11 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
-        use chacha20poly1305::{
-            ChaCha20Poly1305,
-            aead::{KeyInit, OsRng},
-        };
-
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, config: CustodyConfig) -> Self {
         Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
-            // TODO: This should be configurable, not hardcoded
-            custodian_encryption: CustodianEncryptionConfig {
-                key: ChaCha20Poly1305::generate_key(&mut OsRng),
-            },
+            config,
         }
     }
 
@@ -78,7 +72,7 @@ where
 
         custodian.update_custodian_config(
             custodian_config,
-            &self.custodian_encryption.key,
+            &self.config.custodian_encryption.key,
             audit_info,
         )?;
         self.custodians
@@ -91,7 +85,7 @@ where
     }
 
     pub fn custodian_config(&self, custodian: &Custodian) -> Option<CustodianConfig> {
-        custodian.custodian_config(self.custodian_encryption.key)
+        custodian.custodian_config(self.config.custodian_encryption.key)
     }
 
     #[instrument(name = "core_custody.find_all_custodians", skip(self), err)]
