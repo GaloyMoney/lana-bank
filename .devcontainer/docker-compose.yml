@@ -1,0 +1,32 @@
+services:
+  devcontainer:
+    build:
+      context: ..
+      dockerfile: .devcontainer/Dockerfile
+    volumes:
+      - ../..:/workspaces:cached
+      - /var/run/docker.sock:/var/run/docker-host.sock
+    working_dir: /workspaces/lana-bank
+    command: sleep infinity
+    environment:
+      # User setup
+      - USER=vscode
+      - HOME=/home/vscode
+      # Database connections (matching flake.nix devEnvVars)
+      - PGHOST=core-pg
+      - PGDATABASE=pg
+      - PGUSER=user
+      - PGPASSWORD=password
+      - DATABASE_URL=postgres://user:password@core-pg:5432/pg
+      - PG_CON=postgres://user:password@core-pg:5432/pg
+      - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-agent:4317
+      # Other environment variables
+      - MELTANO_PROJECT_ROOT=/workspaces/lana-bank/meltano
+      - SQLX_OFFLINE=true
+      - NIX_CONFIG=experimental-features = nix-command flakes
+      # Add Nix to PATH  
+      - PATH=/home/vscode/.nix-profile/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
+    cap_add:
+      - SYS_PTRACE
+    security_opt:
+      - seccomp:unconfined 

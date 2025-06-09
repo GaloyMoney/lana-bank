@@ -1,0 +1,48 @@
+{
+    "name": "Lana Bank Dev Environment",
+    "dockerComposeFile": [
+        "docker-compose.yml",
+        "../docker-compose.yml"
+    ],
+    "service": "devcontainer",
+    "workspaceFolder": "/workspaces/lana-bank",
+    "shutdownAction": "stopCompose",
+    "features": {
+        "ghcr.io/devcontainers/features/git:1": {}
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "jnoortheen.nix-ide",
+                "bradlc.vscode-tailwindcss",
+                "esbenp.prettier-vscode",
+                "ms-vscode.vscode-typescript-next",
+                "GraphQL.vscode-graphql",
+                "redhat.vscode-yaml"
+            ],
+            "settings": {
+                "rust-analyzer.checkOnSave.command": "clippy",
+                "nix.enableLanguageServer": true,
+                "editor.formatOnSave": true,
+                "terminal.integrated.shellIntegration.timeout": 300
+            }
+        }
+    },
+    "forwardPorts": [
+        5433, // core-pg database
+        4433, // kratos-admin api
+        4455, // oathkeeper proxy
+        3000, // frontend dev server
+        5253 // lana backend
+    ],
+    "postCreateCommand": "echo 'Dev environment ready! Use: nix develop'",
+    "remoteEnv": {
+        "SQLX_OFFLINE": "true"
+    },
+    "initializeCommand": "echo 'Initializing dev container...'",
+    "containerEnv": {
+        "SHELL": "/bin/bash"
+    },
+    "remoteUser": "vscode"
+}
