@@ -99,4 +99,25 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
     }
 }
 
-crate::mutation_payload! { CustodianCreatePayload, custodian_config: Custodian }
+#[derive(OneofObject)]
+pub enum CustodianConfigInput {
+    Komainu(KomainuConfig),
+}
+
+impl From<CustodianConfigInput> for DomainCustodianConfig {
+    fn from(input: CustodianConfigInput) -> Self {
+        match input {
+            CustodianConfigInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
+        }
+    }
+}
+
+#[derive(InputObject)]
+pub struct CustodianConfigUpdateInput {
+    pub custodian_id: UUID,
+    pub config: CustodianConfigInput,
+}
+
+crate::mutation_payload! { CustodianCreatePayload, custodian: Custodian }
+
+crate::mutation_payload! { CustodianConfigUpdatePayload, custodian: Custodian }

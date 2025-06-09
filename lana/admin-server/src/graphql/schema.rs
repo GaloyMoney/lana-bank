@@ -1445,6 +1445,21 @@ impl Mutation {
         )
     }
 
+    async fn custodian_config_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CustodianConfigUpdateInput,
+    ) -> async_graphql::Result<CustodianConfigUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            CustodianConfigUpdatePayload,
+            Custodian,
+            ctx,
+            app.custody()
+                .update_config(sub, input.custodian_id, input.config.into())
+        )
+    }
+
     async fn committee_create(
         &self,
         ctx: &Context<'_>,

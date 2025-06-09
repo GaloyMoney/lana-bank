@@ -95,6 +95,38 @@ where
         Ok(custodian)
     }
 
+    pub async fn update_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        custodian_id: impl Into<CustodianId> + std::fmt::Debug,
+        config: CustodianConfig,
+    ) -> Result<Custodian, CoreCustodyError> {
+        let id = custodian_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreCustodyObject::custodian(id),
+                CoreCustodyAction::CUSTODIAN_CREATE,
+            )
+            .await?;
+        let mut custodian = self.custodians.find_by_id(id).await?;
+
+        let _ = custodian.update_custodian_config(
+            config,
+            &self.config.custodian_encryption.key,
+            audit_info,
+        );
+
+        let mut op = self.custodians.begin_op().await?;
+        self.custodians
+            .update_config_in_op(&mut op, &mut custodian)
+            .await?;
+        op.commit().await?;
+
+        Ok(custodian)
+    }
+
     async fn rotate_encryption_key(
         &self,
         deprecated_encryption_key: &DeprecatedEncryptionKey,

@@ -108,6 +108,10 @@ impl CoreCustodyObject {
     pub const fn all_custodians() -> Self {
         CoreCustodyObject::Custodian(AllOrOne::All)
     }
+
+    pub const fn custodian(id: CustodianId) -> Self {
+        CoreCustodyObject::Custodian(AllOrOne::ById(id))
+    }
 }
 
 impl core::fmt::Display for CoreCustodyObject {

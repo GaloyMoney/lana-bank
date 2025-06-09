@@ -710,11 +710,24 @@ type Custodian {
 	custodianConfigId: UUID!
 	createdAt: Timestamp!
 	name: String!
-	custodianConfig: CustodianConfig!
+	custodianConfig: CustodianConfig
 }
 
 enum CustodianConfig {
 	KOMAINU
+}
+
+input CustodianConfigInput @oneOf {
+	komainu: KomainuConfig
+}
+
+input CustodianConfigUpdateInput {
+	custodianId: UUID!
+	config: CustodianConfigInput!
+}
+
+type CustodianConfigUpdatePayload {
+	custodian: Custodian!
 }
 
 type CustodianConnection {
@@ -737,7 +750,7 @@ input CustodianCreateInput @oneOf {
 }
 
 type CustodianCreatePayload {
-	custodianConfig: Custodian!
+	custodian: Custodian!
 }
 
 """
@@ -1300,6 +1313,7 @@ type Mutation {
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
+	custodianConfigUpdate(input: CustodianConfigUpdateInput!): CustodianConfigUpdatePayload!
 	committeeCreate(input: CommitteeCreateInput!): CommitteeCreatePayload!
 	committeeAddUser(input: CommitteeAddUserInput!): CommitteeAddUserPayload!
 	committeeRemoveUser(input: CommitteeRemoveUserInput!): CommitteeRemoveUserPayload!
