@@ -48,8 +48,6 @@ jobs:
       - name: Find every Poetry project and audit
         run: |
           set -euo pipefail
-
-          # 1. Collect unique directories that contain a poetry.lock
           mapfile -t PROJECT_DIRS < <(
             find . -type f -name 'poetry.lock' -exec dirname {} \; | sort -u
           )
@@ -59,9 +57,8 @@ jobs:
             exit 0
           fi
 
-          # 2. Run pip-audit on each project in turn
           for dir in "${PROJECT_DIRS[@]}"; do
             echo ""
             echo "🔍 pip-audit → $dir"
-            pip-audit --summary "$dir"
+            pip-audit "$dir"
           done
