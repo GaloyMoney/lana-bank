@@ -49,7 +49,7 @@ jobs:
         run: |
           set -euo pipefail
 
-          # 1. Collect unique directories that contain a poetry.lock
+          # 1 — collect all folders that have a poetry.lock
           mapfile -t PROJECT_DIRS < <(
             find . -type f -name 'poetry.lock' -exec dirname {} \; | sort -u
           )
@@ -59,14 +59,14 @@ jobs:
             exit 0
           fi
 
-          # 2. For each project:
+          # 2 — for each project, export the lock and audit it
           for dir in "${PROJECT_DIRS[@]}"; do
             echo ""
             echo "🔍 Exporting $dir/poetry.lock → requirements.txt"
             tmp_req="$(mktemp)"
-            poetry --directory "$dir" export -f requirements.txt \
-                   --without-hashes --output "$tmp_req"
+            python -m poetry --directory "$dir" export -f requirements.txt \
+                              --without-hashes --output "$tmp_req"
 
-            echo "🔍 pip-audit → $dir (exported requirements)"
+            echo "🔍 pip-audit → $dir"
             pip-audit -r "$tmp_req"
           done
