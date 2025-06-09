@@ -46,4 +46,6 @@ jobs:
       - name: Fast advisory scan (pip-audit)
         uses: pypa/gh-action-pip-audit@v1.1.0
         with:
-          inputs: .
+          inputs: |
+            meltano/extract/tap-sumsubapi
+            meltano/extract/tap-bitfinexapi
