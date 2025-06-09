@@ -26,9 +26,9 @@ teardown_file() {
           period: "MONTHS",
           units: 12
         },
-        interestDueFromAccrualAfterDays: { period: "DAYS", units: 0 },
-        obligationOverdueFromDueAfterDays: { period: "DAYS", units: 50 },
-        obligationLiquidationFromDueAfterDays: { period: "DAYS", units: 60 },
+        interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
+        obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
+        obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
         liquidationCvl: 80,
         marginCallCvl: 90,
         initialCvl: 100
@@ -61,9 +61,9 @@ teardown_file() {
           period: "MONTHS",
           units: 24
         },
-        interestDueFromAccrualAfterDays: { period: "DAYS", units: 0 },
-        obligationOverdueFromDueAfterDays: { period: "DAYS", units: 50 },
-        obligationLiquidationFromDueAfterDays: { period: "DAYS", units: 60 },
+        interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
+        obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
+        obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
         liquidationCvl: 75,
         marginCallCvl: 85,
         initialCvl: 95

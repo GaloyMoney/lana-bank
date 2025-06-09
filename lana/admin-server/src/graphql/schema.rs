@@ -1131,10 +1131,10 @@ impl Mutation {
             .accrual_cycle_interval(input.accrual_cycle_interval)
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
-            .interest_due_from_accrual_after_days(input.interest_due_from_accrual_after_days)
-            .obligation_overdue_from_due_after_days(input.obligation_overdue_from_due_after_days)
-            .obligation_liquidation_from_due_after_days(
-                input.obligation_liquidation_from_due_after_days,
+            .interest_due_duration_from_accrual(input.interest_due_duration_from_accrual)
+            .obligation_overdue_duration_from_due(input.obligation_overdue_duration_from_due)
+            .obligation_liquidation_duration_from_due(
+                input.obligation_liquidation_duration_from_due,
             )
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
@@ -1164,10 +1164,10 @@ impl Mutation {
             .accrual_cycle_interval(input.accrual_cycle_interval)
             .one_time_fee_rate(input.one_time_fee_rate)
             .duration(input.duration)
-            .interest_due_from_accrual_after_days(input.interest_due_from_accrual_after_days)
-            .obligation_overdue_from_due_after_days(input.obligation_overdue_from_due_after_days)
-            .obligation_liquidation_from_due_after_days(
-                input.obligation_liquidation_from_due_after_days,
+            .interest_due_duration_from_accrual(input.interest_due_duration_from_accrual)
+            .obligation_overdue_duration_from_due(input.obligation_overdue_duration_from_due)
+            .obligation_liquidation_duration_from_due(
+                input.obligation_liquidation_duration_from_due,
             )
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
@@ -1337,10 +1337,10 @@ impl Mutation {
             .accrual_cycle_interval(terms.accrual_cycle_interval)
             .one_time_fee_rate(terms.one_time_fee_rate)
             .duration(terms.duration)
-            .interest_due_from_accrual_after_days(terms.interest_due_from_accrual_after_days)
-            .obligation_overdue_from_due_after_days(terms.obligation_overdue_from_due_after_days)
-            .obligation_liquidation_from_due_after_days(
-                terms.obligation_liquidation_from_due_after_days,
+            .interest_due_duration_from_accrual(terms.interest_due_duration_from_accrual)
+            .obligation_overdue_duration_from_due(terms.obligation_overdue_duration_from_due)
+            .obligation_liquidation_duration_from_due(
+                terms.obligation_liquidation_duration_from_due,
             )
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)

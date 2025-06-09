@@ -156,17 +156,17 @@ Cypress.Commands.add(
             period: input.duration.period,
             units: input.duration.units,
           },
-          interestDueFromAccrualAfterDays: {
-            period: input.interestDueFromAccrualAfterDays.period,
-            units: input.interestDueFromAccrualAfterDays.units,
+          interestDueDurationFromAccrual: {
+            period: input.interestDueDurationFromAccrual.period,
+            units: input.interestDueDurationFromAccrual.units,
           },
-          obligationOverdueFromDueAfterDays: {
-            period: input.obligationOverdueFromDueAfterDays.period,
-            units: input.obligationOverdueFromDueAfterDays.units,
+          obligationOverdueDurationFromDue: {
+            period: input.obligationOverdueDurationFromDue.period,
+            units: input.obligationOverdueDurationFromDue.units,
           },
-          obligationLiquidationFromDueAfterDays: {
-            period: input.obligationLiquidationFromDueAfterDays.period,
-            units: input.obligationLiquidationFromDueAfterDays.units,
+          obligationLiquidationDurationFromDue: {
+            period: input.obligationLiquidationDurationFromDue.period,
+            units: input.obligationLiquidationDurationFromDue.units,
           },
           liquidationCvl: input.liquidationCvl,
           marginCallCvl: input.marginCallCvl,

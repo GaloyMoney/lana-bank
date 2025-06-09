@@ -519,7 +519,7 @@ where
         let due_date = facility.matures_at.expect("Facility is not active");
         let overdue_date = facility
             .terms
-            .obligation_overdue_from_due_after_days
+            .obligation_overdue_duration_from_due
             .map(|d| d.end_date(due_date));
 
         let new_disbursal = NewDisbursal::builder()

@@ -100,17 +100,17 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
               period: DEFAULT_TERMS.DURATION_PERIOD,
               units: parseInt(formValues.durationUnits),
             },
-            interestDueFromAccrualAfterDays: {
-              period: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.PERIOD,
-              units: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.UNITS,
+            interestDueDurationFromAccrual: {
+              period: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.PERIOD,
+              units: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.UNITS,
             },
-            obligationOverdueFromDueAfterDays: {
-              period: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.PERIOD,
-              units: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.UNITS,
+            obligationOverdueDurationFromDue: {
+              period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.UNITS,
             },
-            obligationLiquidationFromDueAfterDays: {
-              period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.PERIOD,
-              units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.UNITS,
+            obligationLiquidationDurationFromDue: {
+              period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.PERIOD,
+              units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.UNITS,
             },
             liquidationCvl: formValues.liquidationCvl,
             marginCallCvl: formValues.marginCallCvl,

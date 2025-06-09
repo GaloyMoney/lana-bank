@@ -30,17 +30,17 @@ describe("credit facility", () => {
         units: 12 * 100,
         period: Period.Months,
       },
-      interestDueFromAccrualAfterDays: {
-        units: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.UNITS,
-        period: DEFAULT_TERMS.INTEREST_DUE_FROM_ACCRUAL_AFTER_DAYS.PERIOD,
+      interestDueDurationFromAccrual: {
+        units: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.UNITS,
+        period: DEFAULT_TERMS.INTEREST_DUE_DURATION_FROM_ACCRUAL.PERIOD,
       },
-      obligationOverdueFromDueAfterDays: {
-        units: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.UNITS,
-        period: DEFAULT_TERMS.OBLIGATION_OVERDUE_FROM_DUE_AFTER_DAYS.PERIOD,
+      obligationOverdueDurationFromDue: {
+        units: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.UNITS,
+        period: DEFAULT_TERMS.OBLIGATION_OVERDUE_DURATION_FROM_DUE.PERIOD,
       },
-      obligationLiquidationFromDueAfterDays: {
-        period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.PERIOD,
-        units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_FROM_DUE_AFTER_DAYS.UNITS,
+      obligationLiquidationDurationFromDue: {
+        period: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.PERIOD,
+        units: DEFAULT_TERMS.OBLIGATION_LIQUIDATION_DURATION_FROM_DUE.UNITS,
       },
     }).then((id) => {
       cy.log(`Created terms template with ID: ${id}`)
