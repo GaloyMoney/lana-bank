@@ -12,19 +12,19 @@ pub use lana_app::custody::custodian::CustodiansByNameCursor;
 #[graphql(complex)]
 pub struct Custodian {
     id: ID,
-    custodian_config_id: UUID,
+    custodian_id: UUID,
     created_at: Timestamp,
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainCustodian>,
 }
 
 impl From<DomainCustodian> for Custodian {
-    fn from(custodian_config: DomainCustodian) -> Self {
+    fn from(custodian: DomainCustodian) -> Self {
         Self {
-            id: custodian_config.id.to_global_id(),
-            custodian_config_id: custodian_config.id.into(),
-            created_at: custodian_config.created_at().into(),
-            entity: Arc::new(custodian_config),
+            id: custodian.id.to_global_id(),
+            custodian_id: custodian.id.into(),
+            created_at: custodian.created_at().into(),
+            entity: Arc::new(custodian),
         }
     }
 }

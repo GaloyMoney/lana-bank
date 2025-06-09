@@ -46,6 +46,7 @@ pub enum CustodianEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Custodian {
     pub id: CustodianId,
+    #[builder(default)]
     pub encrypted_custodian_config: Option<EncryptedCustodianConfig>,
     pub name: String,
     events: EntityEvents<CustodianEvent>,

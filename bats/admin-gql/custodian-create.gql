@@ -1,0 +1,8 @@
+mutation CustodianCreate($input: CustodianCreateInput!) {
+  custodianCreate(input: $input) {
+    custodian {
+      custodianId
+      custodianConfig
+    }
+  }
+}

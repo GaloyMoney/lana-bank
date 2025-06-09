@@ -1,0 +1,8 @@
+mutation CustodianConfigUpdate($input: CustodianConfigUpdateInput!) {
+  custodianConfigUpdate(input: $input) {
+    custodian {
+      custodianId
+      custodianConfig
+    }
+  }
+}

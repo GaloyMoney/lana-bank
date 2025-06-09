@@ -707,7 +707,7 @@ type CreditModuleConfigurePayload {
 
 type Custodian {
 	id: ID!
-	custodianConfigId: UUID!
+	custodianId: UUID!
 	createdAt: Timestamp!
 	name: String!
 	custodianConfig: CustodianConfig

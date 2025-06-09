@@ -74,6 +74,7 @@ where
             .await?;
 
         let new_custodian = NewCustodian::builder()
+            .id(CustodianId::new())
             .name(name.as_ref().to_owned())
             .audit_info(audit_info.clone())
             .build()
@@ -107,16 +108,16 @@ where
             .enforce_permission(
                 sub,
                 CoreCustodyObject::custodian(id),
-                CoreCustodyAction::CUSTODIAN_CREATE,
+                CoreCustodyAction::CUSTODIAN_UPDATE,
             )
             .await?;
         let mut custodian = self.custodians.find_by_id(id).await?;
 
-        let _ = custodian.update_custodian_config(
+        custodian.update_custodian_config(
             config,
             &self.config.custodian_encryption.key,
             audit_info,
-        );
+        )?;
 
         let mut op = self.custodians.begin_op().await?;
         self.custodians
@@ -136,7 +137,7 @@ where
             .audit()
             .record_system_entry(
                 CoreCustodyObject::all_custodians(),
-                CoreCustodyAction::CUSTODIAN_CREATE,
+                CoreCustodyAction::CUSTODIAN_UPDATE,
             )
             .await?;
 

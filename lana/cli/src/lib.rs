@@ -15,7 +15,7 @@ use self::config::{Config, EnvSecrets};
 #[clap(long_about = None)]
 struct Cli {
     #[clap(subcommand)]
-    command: Option<UtilsCommands>, // optional now
+    command: Option<UtilsCommands>,
 
     #[clap(
         long,
@@ -24,7 +24,6 @@ struct Cli {
         value_name = "DIRECTORY"
     )]
     lana_home: String,
-
     #[clap(
         short,
         long,
@@ -33,22 +32,16 @@ struct Cli {
         value_name = "FILE"
     )]
     config: PathBuf,
-
     #[clap(env = "PG_CON")]
     pg_con: String,
-
     #[clap(env = "SUMSUB_KEY", default_value = "")]
     sumsub_key: String,
-
     #[clap(env = "SUMSUB_SECRET", default_value = "")]
     sumsub_secret: String,
-
     #[clap(env = "SA_CREDS_BASE64", default_value = "")]
     sa_creds_base64_raw: String,
-
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
-
     #[clap(long, env = "CUSTODIAN_ENCRYPTION_KEY", default_value = "")]
     custodian_encryption_key: String,
 }
