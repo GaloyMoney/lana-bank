@@ -45,9 +45,11 @@ jobs:
           python-version: "3.12"
       - name: Install pip-audit
         run: pip install --no-cache-dir pip-audit
-      - name: Find every Poetry project and audit
+      - name: Find every poetry.lock and audit it
         run: |
           set -euo pipefail
+
+          # 1. Collect unique directories that contain a poetry.lock
           mapfile -t PROJECT_DIRS < <(
             find . -type f -name 'poetry.lock' -exec dirname {} \; | sort -u
           )
@@ -57,8 +59,14 @@ jobs:
             exit 0
           fi
 
+          # 2. For each project:
           for dir in "${PROJECT_DIRS[@]}"; do
             echo ""
-            echo "🔍 pip-audit → $dir"
-            pip-audit "$dir"
+            echo "🔍 Exporting $dir/poetry.lock → requirements.txt"
+            tmp_req="$(mktemp)"
+            poetry --directory "$dir" export -f requirements.txt \
+                   --without-hashes --output "$tmp_req"
+
+            echo "🔍 pip-audit → $dir (exported requirements)"
+            pip-audit -r "$tmp_req"
           done
