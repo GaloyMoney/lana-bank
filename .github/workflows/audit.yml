@@ -43,8 +43,13 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install pip-audit
-        run: pip install --no-cache-dir pip-audit
+      - name: Install Poetry + pip-audit
+        run: |
+          # 1 ▸ install for the current user
+          python -m pip install --user --no-cache-dir "poetry>=1.8,<2.0" pip-audit
+          # 2 ▸ ensure the user-level bin directory is on PATH
+          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
+
       - name: Find every poetry.lock and audit it
         run: |
           set -euo pipefail
