@@ -13,18 +13,16 @@ job = { path = "../../lib/job" }
 lana-events = { path = "../events" }
 core-access = { path = "../../core/access" }
 audit = { path = "../../lib/audit" }
+es-entity = { workspace = true }
 
 uuid = { workspace = true }
-strum = { workspace = true }
-sqlx = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
-chrono = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-async-graphql = { workspace = true }
 lettre = { workspace = true }
+handlebars = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

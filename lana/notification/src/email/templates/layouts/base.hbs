@@ -1,0 +1,29 @@
+<html lang="en">
+  <head>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta http-equiv="Content-Type" content="text/html; charset=UTF-8" />
+    <title>{{subject}}</title>
+    {{> styles}}
+  </head>
+  <body>
+    <table role="presentation" width="100%" cellspacing="0" cellpadding="0">
+      <tr>
+        <td align="center">
+          <table class="centered-content" role="presentation" cellspacing="0" cellpadding="0">
+            {{> @partial-block}}
+            <tr>
+              <td class="footer-section" align="center">
+                <p class="footer-text">
+                  This is an automated email. For support, contact us.
+                </p>
+                <p class="footer-link">
+                  <a href="https://lanabank.com">lanabank.com</a>
+                </p>
+              </td>
+            </tr>
+          </table>
+        </td>
+      </tr>
+    </table>
+  </body>
+</html> 

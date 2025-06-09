@@ -8,8 +8,7 @@ use ::job::*;
 pub struct EmailSenderJobConfig {
     pub recipient: String,
     pub subject: String,
-    pub template_name: String,
-    pub template_data: serde_json::Value,
+    pub template_data: String,
 }
 
 impl JobConfig for EmailSenderJobConfig {
@@ -60,7 +59,6 @@ impl JobRunner for EmailSenderJobRunner {
             .execute_email(
                 &self.config.recipient,
                 &self.config.subject,
-                &self.config.template_name,
                 &self.config.template_data,
                 &self.template,
             )

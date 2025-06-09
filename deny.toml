@@ -101,6 +101,7 @@ allow = [
     "MPL-2.0",
     "LicenseRef-FSL-1.1-ALv2",
     "CDLA-Permissive-2.0",
+    "0BSD",
 ]
 # The confidence threshold for detecting a license from license text.
 # The higher the value, the more closely the license text must be to the
@@ -271,6 +272,11 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "user-onboarding"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
+crate = "notification"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 

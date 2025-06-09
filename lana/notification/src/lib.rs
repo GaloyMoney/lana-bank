@@ -3,6 +3,7 @@ pub mod error;
 
 use ::job::Jobs;
 use core_access::user::Users;
+use email::job::{EmailListenerJobConfig, EmailListenerJobInitializer};
 use email::{EmailConfig, EmailNotification};
 use lana_events::LanaEvent;
 
@@ -11,7 +12,7 @@ use core_access::event::CoreAccessEvent;
 use core_access::{CoreAccessAction, CoreAccessObject, UserId};
 use outbox::OutboxEventMarker;
 
-pub type Outbox = outbox::Outbox<LanaEvent>;
+pub type NotificationOutbox = outbox::Outbox<LanaEvent>;
 
 pub struct Notification<Audit, E>
 where
@@ -43,11 +44,17 @@ where
 {
     pub async fn init(
         jobs: &Jobs,
-        outbox: &Outbox,
+        outbox: &NotificationOutbox,
         email_config: EmailConfig,
         users: &Users<Audit, E>,
     ) -> Result<Self, error::NotificationError> {
-        let email = EmailNotification::init(jobs, outbox, email_config, users).await?;
+        let email = EmailNotification::init(jobs, email_config, users).await?;
+        jobs.add_initializer_and_spawn_unique(
+            EmailListenerJobInitializer::new(outbox, &email),
+            EmailListenerJobConfig::new(),
+        )
+        .await?;
+
         Ok(Self { email })
     }
 }

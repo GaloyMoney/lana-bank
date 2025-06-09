@@ -14,15 +14,13 @@ impl EmailExecutor {
         &self,
         recipient: &str,
         subject: &str,
-        template_name: &str,
-        template_data: &serde_json::Value,
+        body: &str,
         template: &EmailTemplate,
     ) -> Result<(), EmailError> {
-        let body = template.render(template_name, template_data)?;
-
+        let rendered_body = template.generic_email_template(subject, body)?;
         self.smtp_client
-            .send_email(recipient, subject, body)
-            .await
-            .map_err(EmailError::from)
+            .send_email(recipient, subject, rendered_body)
+            .await?;
+        Ok(())
     }
 }
