@@ -37,7 +37,7 @@ pub enum CustodianEvent {
         audit_info: AuditInfo,
     },
     ConfigUpdated {
-        encrypted_custodian_config: Option<(ConfigCypher, Nonce)>,
+        encrypted_custodian_config: Option<EncryptedCustodianConfig>,
         audit_info: AuditInfo,
     },
 }
@@ -46,7 +46,7 @@ pub enum CustodianEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Custodian {
     pub id: CustodianId,
-    pub encrypted_custodian_config: Option<(ConfigCypher, Nonce)>,
+    pub encrypted_custodian_config: Option<EncryptedCustodianConfig>,
     pub name: String,
     events: EntityEvents<CustodianEvent>,
 }
@@ -79,6 +79,29 @@ impl Custodian {
         self.encrypted_custodian_config
             .as_ref()
             .and_then(|(cfg, nonce)| CustodianConfig::decrypt(&key, cfg, nonce).ok())
+    }
+
+    pub fn rotate_encryption_key(
+        &mut self,
+        encryption_key: &EncryptionKey,
+        deprecated_encryption_key: &DeprecatedEncryptionKey,
+        audit_info: &AuditInfo,
+    ) -> Result<(), CustodianError> {
+        if let Some(old_encrypted_config) = &self.encrypted_custodian_config {
+            let encrypted_config = CustodianConfig::rotate_encryption_key(
+                encryption_key,
+                old_encrypted_config,
+                deprecated_encryption_key,
+            )?;
+
+            self.encrypted_custodian_config = Some(encrypted_config.clone());
+            self.events.push(CustodianEvent::ConfigUpdated {
+                encrypted_custodian_config: Some(encrypted_config),
+                audit_info: audit_info.clone(),
+            });
+        }
+
+        Ok(())
     }
 }
 

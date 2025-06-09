@@ -14,6 +14,8 @@ pub enum CustodianError {
     FromHex(#[from] hex::FromHexError),
     #[error("CustodianError - SerdeJsonError: {0}")]
     SerdeJsonError(#[from] serde_json::Error),
+    #[error("CustodianError - Could not decrypt deprecated encryption key: {0}")]
+    CouldNotDecryptDeprecatedEncryptionKey(chacha20poly1305::Error),
 }
 
 es_entity::from_es_entity_error!(CustodianError);

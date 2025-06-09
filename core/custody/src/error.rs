@@ -4,6 +4,8 @@ use thiserror::Error;
 pub enum CoreCustodyError {
     #[error("CoreCustodyError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CoreCustodyError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
     #[error("CoreCustodyError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
 

@@ -33,12 +33,24 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, config: CustodyConfig) -> Self {
-        Self {
+    pub async fn init(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        config: CustodyConfig,
+    ) -> Result<Self, CoreCustodyError> {
+        let custody = Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
             config,
+        };
+
+        if let Some(deprecated_encryption_key) = custody.config.deprecated_encryption_key.as_ref() {
+            custody
+                .rotate_encryption_key(deprecated_encryption_key)
+                .await?;
         }
+
+        Ok(custody)
     }
 
     #[instrument(
@@ -78,14 +90,43 @@ where
         self.custodians
             .update_in_op(&mut op, &mut custodian)
             .await?;
-
         op.commit().await?;
 
         Ok(custodian)
     }
 
-    pub fn custodian_config(&self, custodian: &Custodian) -> Option<CustodianConfig> {
-        custodian.custodian_config(self.config.custodian_encryption.key)
+    async fn rotate_encryption_key(
+        &self,
+        deprecated_encryption_key: &DeprecatedEncryptionKey,
+    ) -> Result<(), CoreCustodyError> {
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry(
+                CoreCustodyObject::all_custodians(),
+                CoreCustodyAction::CUSTODIAN_CREATE,
+            )
+            .await?;
+
+        let mut custodians = self.custodians.list_all().await?;
+
+        let mut op = self.custodians.begin_op().await?;
+
+        for custodian in custodians.iter_mut() {
+            custodian.rotate_encryption_key(
+                &self.config.custodian_encryption.key,
+                deprecated_encryption_key,
+                &audit_info,
+            )?;
+
+            self.custodians
+                .update_config_in_op(&mut op, custodian)
+                .await?;
+        }
+
+        op.commit().await?;
+
+        Ok(())
     }
 
     #[instrument(name = "core_custody.find_all_custodians", skip(self), err)]
@@ -114,5 +155,9 @@ where
             .custodians
             .list_by_name(query, es_entity::ListDirection::Ascending)
             .await?)
+    }
+
+    pub fn custodian_config(&self, custodian: &Custodian) -> Option<CustodianConfig> {
+        custodian.custodian_config(self.config.custodian_encryption.key)
     }
 }

@@ -14,11 +14,19 @@ pub struct ConfigCypher(pub(super) Vec<u8>);
 #[derive(Clone, Serialize, Deserialize)]
 pub struct Nonce(pub(super) Vec<u8>);
 
+pub type EncryptedCustodianConfig = (ConfigCypher, Nonce);
+
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
 #[serde(into = "RawCustodianEncryptionConfig")]
 #[serde(try_from = "RawCustodianEncryptionConfig")]
 pub struct CustodianEncryptionConfig {
     pub key: EncryptionKey,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DeprecatedEncryptionKey {
+    pub nonce: String,
+    pub key: String,
 }
 
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
@@ -55,6 +63,25 @@ impl CustodianConfig {
             .map_err(CustodianError::CouldNotDecryptCustodianConfig)?;
         let config: CustodianConfig = serde_json::from_slice(decrypted_config.as_slice())?;
         Ok(config)
+    }
+
+    pub(super) fn rotate_encryption_key(
+        encryption_key: &EncryptionKey,
+        encrypted_config: &EncryptedCustodianConfig,
+        deprecated_encryption_key: &DeprecatedEncryptionKey,
+    ) -> Result<EncryptedCustodianConfig, CustodianError> {
+        let cipher = ChaCha20Poly1305::new(encryption_key);
+        let nonce_bytes = hex::decode(&deprecated_encryption_key.nonce)?;
+        let nonce = chacha20poly1305::Nonce::from_slice(nonce_bytes.as_slice());
+        let deprecated_encrypted_key_bytes = hex::decode(&deprecated_encryption_key.key)?;
+        let deprecated_key_bytes = cipher
+            .decrypt(nonce, deprecated_encrypted_key_bytes.as_slice())
+            .map_err(CustodianError::CouldNotDecryptDeprecatedEncryptionKey)?;
+        let deprecated_key = EncryptionKey::clone_from_slice(deprecated_key_bytes.as_ref());
+
+        let new_config = Self::decrypt(&deprecated_key, &encrypted_config.0, &encrypted_config.1)?;
+
+        new_config.encrypt(encryption_key)
     }
 }
 

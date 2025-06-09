@@ -1,0 +1,14 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            UPDATE core_custodian_events\n            SET event = jsonb_set(event, '{encrypted_custodian_config}', 'null', false)\n            WHERE id = $1 \n              AND event_type = 'config_updated'\n              AND event->'encrypted_custodian_config' IS NOT NULL;\n            ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "d500be924ce11a8d7c378203d731f64b3f8d03328839cb6627a8f35f12578242"
+}

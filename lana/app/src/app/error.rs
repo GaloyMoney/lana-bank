@@ -48,4 +48,6 @@ pub enum ApplicationError {
     StorageError(#[from] crate::storage::error::StorageError),
     #[error("ApplicationError - ApplicantError: {0}")]
     ApplicantError(#[from] crate::applicant::error::ApplicantError),
+    #[error("ApplicationError - CustodyError: {0}")]
+    CustodyError(#[from] crate::custody::error::CoreCustodyError),
 }
