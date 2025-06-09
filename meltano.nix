@@ -39,6 +39,12 @@ let
       
       celery = super.celery.overridePythonAttrs (old: {
         doCheck = false;
+        # Fix potential permission issues during build
+        preBuild = ''
+          # Ensure proper permissions on source files
+          find . -type f -exec chmod 644 {} \;
+          find . -type d -exec chmod 755 {} \;
+        '';
       });
       
       geoip2 = super.geoip2.overridePythonAttrs (old: {
