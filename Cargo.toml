@@ -30,6 +30,7 @@ members = [
   "lib/jwks-utils",
   "lib/kratos-admin",
   "lib/cloud-storage",
+  "lib/bitgo",
 ]
 
 [workspace.dependencies]

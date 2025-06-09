@@ -24,7 +24,9 @@ mod time;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use core_custody::CoreCustody;
+use core_custody::{
+    CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
+};
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -33,8 +35,8 @@ use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::{
-    error::ChartOfAccountsIntegrationError, ChartOfAccountsIntegrationConfig,
-    ChartOfAccountsIntegrationConfigBuilderError, ChartOfAccountsIntegrations,
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
+    ChartOfAccountsIntegrations, error::ChartOfAccountsIntegrationError,
 };
 pub use collateral::*;
 pub use config::*;
@@ -65,6 +67,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
@@ -83,6 +86,7 @@ where
     approve_credit_facility: ApproveCreditFacility<Perms, E>,
     obligations: Obligations<Perms, E>,
     collaterals: Collaterals<Perms, E>,
+    custody: CoreCustody<Perms, E>,
     chart_of_accounts_integrations: ChartOfAccountsIntegrations<Perms>,
     terms_templates: TermsTemplates<Perms>,
 }
@@ -92,6 +96,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
@@ -100,6 +105,7 @@ where
             facilities: self.facilities.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
+            custody: self.custody.clone(),
             disbursals: self.disbursals.clone(),
             payments: self.payments.clone(),
             history_repo: self.history_repo.clone(),
@@ -121,12 +127,17 @@ where
 impl<Perms, E> CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CustomerObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<GovernanceAction>
+        + From<CoreCustomerAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<GovernanceObject>
+        + From<CustomerObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[allow(clippy::too_many_arguments)]
@@ -137,7 +148,7 @@ where
         jobs: &Jobs,
         authz: &Perms,
         customer: &Customers<Perms, E>,
-        _custody: &CoreCustody<Perms>,
+        custody: &CoreCustody<Perms, E>,
         price: &Price,
         outbox: &Outbox<E>,
         cala: &CalaLedger,
@@ -269,6 +280,7 @@ where
             facilities: credit_facilities,
             obligations,
             collaterals,
+            custody: custody.clone(),
             disbursals,
             payments,
             history_repo,
@@ -359,7 +371,7 @@ where
         disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
         amount: UsdCents,
         terms: TermValues,
-        // custody_config_id: Option<CustodyConfigId>,
+        custodian_id: Option<CustodianId>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
             .subject_can_create(sub, true)
@@ -376,25 +388,24 @@ where
             return Err(CoreCreditError::CustomerNotActive);
         }
 
-        // if let Some(custody_config_id) = custody_config_id {
-        //   let custody_config = self
-        //       .custody
-        //       .find_by_id(sub, custody_config_id)
-        //       .await?
-        //       .ok_or(CoreCreditError::CustomerNotFound)?;
-
-        //   validate custody_config
-        //   let facility_wallet_id = self.custody.create_new_wallet(external_id: collateral_id).await?
-        //   let btc_address = self.custody.new_address_for_wallet(facility_wallet_id).await?;
-        // }
-
         let id = CreditFacilityId::new();
-        let collateral_id = CollateralId::new();
         let account_ids = CreditFacilityAccountIds::new();
+        let collateral_id = CollateralId::new();
+
+        let wallet_id = if let Some(custodian_id) = custodian_id {
+            let wallet = self.custody.create_new_wallet(sub, custodian_id).await?;
+            self.custody
+                .generate_wallet_address(sub, wallet.id, &format!("Credit Facility {id}"))
+                .await?;
+
+            Some(wallet.id)
+        } else {
+            None
+        };
+
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .ledger_tx_id(LedgerTxId::new())
-            //.cusstody_config_id(custody_config_id)
             .approval_process_id(id)
             .collateral_id(collateral_id)
             .customer_id(customer_id)
@@ -413,6 +424,7 @@ where
                 &mut db,
                 collateral_id,
                 id,
+                wallet_id,
                 account_ids.collateral_account_id,
             )
             .await?;

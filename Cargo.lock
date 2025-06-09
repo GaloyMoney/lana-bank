@@ -587,6 +587,20 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitgo"
+version = "0.3.568-dev"
+dependencies = [
+ "chrono",
+ "reqwest",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "bitvec"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1063,12 +1077,18 @@ dependencies = [
 name = "core-custody"
 version = "0.3.618-dev"
 dependencies = [
+ "async-trait",
  "audit",
  "authz",
+ "bitgo",
  "chrono",
  "derive_builder",
  "es-entity",
+ "futures",
+ "job",
+ "outbox",
  "serde",
+ "serde_json",
  "sqlx",
  "strum",
  "thiserror 2.0.12",
@@ -2623,6 +2643,7 @@ version = "0.3.618-dev"
 dependencies = [
  "core-access",
  "core-credit",
+ "core-custody",
  "core-customer",
  "core-deposit",
  "governance",

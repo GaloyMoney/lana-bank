@@ -38,6 +38,7 @@ impl Custodian {
     async fn custodian_config(&self) -> CustodianConfig {
         match &self.entity.custodian {
             DomainCustodianConfig::Komainu(_) => CustodianConfig::Komainu,
+            DomainCustodianConfig::Bitgo(_) => CustodianConfig::BitGo,
         }
     }
 }
@@ -45,6 +46,7 @@ impl Custodian {
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
 pub enum CustodianConfig {
     Komainu,
+    BitGo,
 }
 
 #[derive(InputObject)]

@@ -1,3 +1,4 @@
+pub(crate) mod client;
 mod entity;
 pub mod error;
 mod repo;
