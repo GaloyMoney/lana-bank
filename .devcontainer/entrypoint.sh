@@ -14,7 +14,8 @@ cd /workspaces/lana-bank 2>/dev/null || true
 # Load nix development environment if available
 if [ -f flake.nix ] && [ -z "$NIX_SHELL" ]; then
     echo "🔧 Loading Nix development environment..."
-    eval "$(nix print-dev-env 2>/dev/null || echo 'echo "Failed to load nix environment"')"
+    echo "   This may take a few minutes on first run..."
+    eval "$(nix print-dev-env --verbose --log-format bar-with-logs || echo 'echo "Failed to load nix environment"')"
 fi
 
 # If no arguments provided, start an interactive shell
