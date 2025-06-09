@@ -43,9 +43,25 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Fast advisory scan (pip-audit)
-        uses: pypa/gh-action-pip-audit@v1.1.0
-        with:
-          inputs: |
-            meltano/extract/tap-sumsubapi
-            meltano/extract/tap-bitfinexapi
+      - name: Install pip-audit
+        run: pip install --no-cache-dir pip-audit
+      - name: Find every Poetry project and audit
+        run: |
+          set -euo pipefail
+
+          # 1. Collect unique directories that contain a poetry.lock
+          mapfile -t PROJECT_DIRS < <(
+            find . -type f -name 'poetry.lock' -exec dirname {} \; | sort -u
+          )
+
+          if [ "${#PROJECT_DIRS[@]}" -eq 0 ]; then
+            echo "⚠️  No Poetry projects found – skipping pip-audit."
+            exit 0
+          fi
+
+          # 2. Run pip-audit on each project in turn
+          for dir in "${PROJECT_DIRS[@]}"; do
+            echo ""
+            echo "🔍 pip-audit → $dir"
+            pip-audit --summary "$dir"
+          done
