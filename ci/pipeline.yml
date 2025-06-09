@@ -112,7 +112,8 @@ jobs:
               nix build . --print-out-paths --no-link | cachix push lana-ci
               
               # Cache the development environment  
-              nix develop --command true | cachix push lana-ci
+              nix develop --profile dev-profile --command true
+              cachix push lana-ci dev-profile
               
               nix develop --command sh -exc "make check-code"
 
