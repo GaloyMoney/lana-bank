@@ -78,7 +78,8 @@ jobs:
 
                 nix build . --print-out-paths --no-link | cachix push lana-ci
 
-                nix develop --command true | cachix push lana-ci
+                nix develop --profile dev-profile --command true
+                cachix push lana-ci dev-profile
 
                 nix -L develop --command make test-integration-podman
                 nix -L develop --command make test-bats-podman
