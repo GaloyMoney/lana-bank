@@ -23,7 +23,7 @@ services:
       # Other environment variables
       - MELTANO_PROJECT_ROOT=/workspaces/lana-bank/meltano
       - SQLX_OFFLINE=true
-      - NIX_CONFIG="experimental-features = nix-command flakes"
+      - NIX_CONFIG=experimental-features = nix-command flakes
       # Add Nix to PATH
       - PATH=/home/vscode/.nix-profile/bin:/usr/local/sbin:/usr/local/bin:/usr/sbin:/usr/bin:/sbin:/bin
     cap_add:
