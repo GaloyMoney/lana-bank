@@ -22,9 +22,8 @@
                 "redhat.vscode-yaml"
             ],
             "settings": {
-                "rust-analyzer.checkOnSave": {
-                    "command": "clippy"
-                },
+                "rust-analyzer.checkOnSave": true,
+                "rust-analyzer.check.command": "clippy",
                 "nix.enableLanguageServer": true,
                 "editor.formatOnSave": true,
                 "terminal.integrated.shellIntegration.timeout": 300
