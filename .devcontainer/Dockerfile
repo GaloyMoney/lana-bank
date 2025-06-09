@@ -20,14 +20,10 @@ RUN bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon" && \
     mkdir -p ~/.config/nix && \
     echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
 
-# Set up shell environment with automatic nix develop
+# Set up basic shell environment (nix loading handled by direnv)
 RUN echo 'export USER=vscode' >> ~/.bashrc && \
     echo 'source ~/.nix-profile/etc/profile.d/nix.sh 2>/dev/null || true' >> ~/.bashrc && \
     echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
-    echo 'if [ -f flake.nix ] && [ -z "$NIX_SHELL" ]; then' >> ~/.bashrc && \
-    echo '  echo "🔧 Loading Nix development environment..."' >> ~/.bashrc && \
-    echo '  eval "$(nix print-dev-env 2>/dev/null || true)"' >> ~/.bashrc && \
-    echo 'fi' >> ~/.bashrc && \
     cp ~/.bashrc ~/.profile
 
 # Install essential tools
@@ -41,11 +37,5 @@ RUN mkdir -p /workspaces && chown vscode:vscode /workspaces
 USER vscode
 WORKDIR /workspaces
 
-# Copy and set up entrypoint
-COPY .devcontainer/entrypoint.sh /usr/local/bin/entrypoint.sh
-USER root
-RUN chmod +x /usr/local/bin/entrypoint.sh
-USER vscode
-
-ENTRYPOINT ["/usr/local/bin/entrypoint.sh"]
-CMD [] 
+# Default command - direnv will handle nix environment loading automatically
+CMD ["/bin/bash"] 
