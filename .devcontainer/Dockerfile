@@ -30,11 +30,13 @@ WORKDIR /home/vscode
 
 # Set up shell environment and install nix-direnv
 ENV USER=vscode
-RUN echo 'source /nix/var/nix/profiles/default/etc/profile.d/nix.sh' >> ~/.bashrc && \
-    echo 'export USER=vscode' >> ~/.bashrc && \
+ENV PATH="/nix/var/nix/profiles/default/bin:$HOME/.nix-profile/bin:$PATH"
+RUN echo 'export USER=vscode' >> ~/.bashrc && \
+    echo 'export PATH="/nix/var/nix/profiles/default/bin:$HOME/.nix-profile/bin:$PATH"' >> ~/.bashrc && \
+    echo 'source /nix/var/nix/profiles/default/etc/profile.d/nix.sh' >> ~/.bashrc && \
     /nix/var/nix/profiles/default/bin/nix profile install nixpkgs#nix-direnv && \
-    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && \
     echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' >> ~/.bashrc && \
+    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && \
     echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
     cp ~/.bashrc ~/.profile
 
