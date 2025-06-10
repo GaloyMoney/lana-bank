@@ -43,35 +43,40 @@ jobs:
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
-      - name: Install Poetry + pip-audit
-        run: |
-          # 1 ▸ install for the current user
-          python -m pip install --user --no-cache-dir "poetry>=1.8,<2.0" pip-audit
-          # 2 ▸ ensure the user-level bin directory is on PATH
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
 
-      - name: Find every poetry.lock and audit it
+      - name: Install pip-audit + TOML parser
+        run: |
+          python -m pip install --no-cache-dir pip-audit tomli
+
+      - name: Convert every poetry.lock and audit
         run: |
           set -euo pipefail
 
-          # 1 — collect all folders that have a poetry.lock
-          mapfile -t PROJECT_DIRS < <(
-            find . -type f -name 'poetry.lock' -exec dirname {} \; | sort -u
-          )
-
-          if [ "${#PROJECT_DIRS[@]}" -eq 0 ]; then
-            echo "⚠️  No Poetry projects found – skipping pip-audit."
+          # 1) find all lockfiles
+          mapfile -t LOCKFILES < <(find . -type f -name 'poetry.lock' | sort)
+          if [ "${#LOCKFILES[@]}" -eq 0 ]; then
+            echo "⚠️  No poetry.lock files found – skipping pip-audit."
             exit 0
           fi
 
-          # 2 — for each project, export the lock and audit it
-          for dir in "${PROJECT_DIRS[@]}"; do
+          # 2) turn each lock into a requirements.txt and audit it
+          for lock in "${LOCKFILES[@]}"; do
+            dir=$(dirname "$lock")
             echo ""
-            echo "🔍 Exporting $dir/poetry.lock → requirements.txt"
-            tmp_req="$(mktemp)"
-            python -m poetry --directory "$dir" export -f requirements.txt \
-                              --without-hashes --output "$tmp_req"
-
             echo "🔍 pip-audit → $dir"
+
+            tmp_req=$(mktemp)
+
+            python - <<'PY' "$lock" "$tmp_req"
+import sys, tomli, pathlib, textwrap
+lock_path, out_path = map(pathlib.Path, sys.argv[1:3])
+data = tomli.loads(lock_path.read_text())
+pkgs = data.get("package", [])
+with out_path.open("w") as f:
+    for p in pkgs:
+        if p.get("category", "main") == "main":
+            f.write(f"{p['name']}=={p['version']}\n")
+PY
+
             pip-audit -r "$tmp_req"
           done
