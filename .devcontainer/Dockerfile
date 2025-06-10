@@ -1,57 +1,54 @@
+# ────────────────────────────────────────────────────────────────────
+# Base system
+# ────────────────────────────────────────────────────────────────────
 FROM ubuntu:22.04
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl git bash ca-certificates xz-utils build-essential direnv \
+RUN apt-get update && \
+    apt-get install -y \
+      curl git bash ca-certificates xz-utils \
+      build-essential direnv \
     && rm -rf /var/lib/apt/lists/*
 
-# Create vscode user
+# ────────────────────────────────────────────────────────────────────
+# Non-root user and Nix store
+# ────────────────────────────────────────────────────────────────────
 RUN useradd -m -s /bin/bash -u 1000 vscode
-
-# Create /nix directory with proper ownership
 RUN mkdir -m 0755 /nix && chown vscode:vscode /nix
 
-# Switch to vscode user to install Nix
 USER vscode
 WORKDIR /home/vscode
 
-# Install Nix as vscode user in single-user mode
-RUN curl -L https://nixos.org/nix/install > /tmp/install-nix && \
-    bash /tmp/install-nix --no-daemon && \
-    rm /tmp/install-nix && \
-    find /nix -type f -exec chmod u+w {} \; && \
-    find /nix -type d -exec chmod u+w {} \;
+# ────────────────────────────────────────────────────────────────────
+# Nix (single-user, no daemon)
+# ────────────────────────────────────────────────────────────────────
+RUN curl -L https://nixos.org/nix/install | bash -s -- --no-daemon
 
-# Configure Nix (back to root temporarily)
-USER root
-RUN mkdir -p /etc/nix && \
-    echo 'experimental-features = nix-command flakes' > /etc/nix/nix.conf && \
-    echo 'sandbox = false' >> /etc/nix/nix.conf && \
-    echo 'filter-syscalls = false' >> /etc/nix/nix.conf && \
-    echo 'restrict-eval = false' >> /etc/nix/nix.conf && \
-    echo 'allowed-users = *' >> /etc/nix/nix.conf && \
-    echo 'trusted-users = vscode' >> /etc/nix/nix.conf
+# Ensure future outputs are 755/644 instead of 775/664
+RUN echo 'umask 022' >> ~/.profile
 
-# Switch back to vscode user
-USER vscode
-WORKDIR /home/vscode
+# ────────────────────────────────────────────────────────────────────
+# Nix configuration (user-scoped)
+# ────────────────────────────────────────────────────────────────────
+RUN mkdir -p ~/.config/nix && \
+    echo 'experimental-features = nix-command flakes' >> ~/.config/nix/nix.conf
 
-# Set up shell environment and install nix-direnv
-ENV USER=vscode
-RUN echo 'export USER=vscode' >> ~/.bashrc && \
-    echo 'source ~/.nix-profile/etc/profile.d/nix.sh' >> ~/.bashrc && \
-    bash -c 'source ~/.nix-profile/etc/profile.d/nix.sh && nix profile install nixpkgs#nix-direnv' && \
+# ────────────────────────────────────────────────────────────────────
+# Shell helpers and nix-direnv
+# ────────────────────────────────────────────────────────────────────
+RUN echo 'source $HOME/.nix-profile/etc/profile.d/nix.sh' >> ~/.bashrc && \
+    bash -c 'source $HOME/.nix-profile/etc/profile.d/nix.sh && \
+             nix profile install nixpkgs#nix-direnv' && \
     mkdir -p ~/.config/direnv && \
     echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' > ~/.config/direnv/direnvrc && \
     echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && \
-    echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
-    cp ~/.bashrc ~/.profile
+    echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc
 
-# Set up workspace
+# ────────────────────────────────────────────────────────────────────
+# Workspace
+# ────────────────────────────────────────────────────────────────────
 USER root
 RUN mkdir -p /workspaces && chown vscode:vscode /workspaces
 USER vscode
 WORKDIR /workspaces
 
-# Default command
 CMD ["/bin/bash"]
