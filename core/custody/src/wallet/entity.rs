@@ -37,7 +37,7 @@ impl Wallet {
         &mut self,
         address: String,
         label: String,
-        extra_data: serde_json::Value,
+        custodian_response: serde_json::Value,
         audit_info: &AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
@@ -48,7 +48,7 @@ impl Wallet {
         self.events.push(WalletEvent::AddressAllocated {
             label,
             address,
-            custodian_response: extra_data,
+            custodian_response,
             audit_info: audit_info.clone(),
         });
 
@@ -60,13 +60,11 @@ impl TryFromEvents<WalletEvent> for Wallet {
     fn try_from_events(events: EntityEvents<WalletEvent>) -> Result<Self, EsEntityError> {
         let mut builder = WalletBuilder::default();
         for event in events.iter_all() {
-            match event {
-                WalletEvent::Initialized {
-                    id, custodian_id, ..
-                } => {
-                    builder = builder.id(*id).custodian_id(*custodian_id);
-                }
-                _ => {}
+            if let WalletEvent::Initialized {
+                id, custodian_id, ..
+            } = event
+            {
+                builder = builder.id(*id).custodian_id(*custodian_id);
             }
         }
         builder.events(events).build()
