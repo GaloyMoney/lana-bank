@@ -4,61 +4,26 @@
   fetchPypi,
 }:
 let
-  # Override python packages to disable tests for problematic dependencies
+  # Override python packages to disable tests for all packages
   python3WithOverrides = python311.override {
-    packageOverrides = self: super: {
-      # Disable tests for mocket since they fail with network timeouts
-      mocket = super.mocket.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      # Disable tests for other potentially problematic packages
-      django = super.django.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      aws-xray-sdk = super.aws-xray-sdk.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      debugpy = super.debugpy.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      pytest-django = super.pytest-django.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      diskcache = super.diskcache.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      moto = super.moto.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      celery = super.celery.overridePythonAttrs (old: {
-        doCheck = false;
-        # Fix potential permission issues during build
-        preBuild = ''
-          # Ensure proper permissions on source files
-          find . -type f -exec chmod 644 {} \;
-          find . -type d -exec chmod 755 {} \;
-        '';
-      });
-      
-      geoip2 = super.geoip2.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      fasteners = super.fasteners.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-      
-      smart-open = super.smart-open.overridePythonAttrs (old: {
-        doCheck = false;
-      });
-    };
+    packageOverrides = self: super: 
+      # Apply doCheck = false to all Python packages
+      lib.mapAttrs (name: pkg: 
+        if lib.isDerivation pkg && pkg ? overridePythonAttrs then
+          pkg.overridePythonAttrs (old: { doCheck = false; })
+        else pkg
+      ) super // {
+        # Special handling for celery to fix permission issues
+        celery = super.celery.overridePythonAttrs (old: {
+          doCheck = false;
+          # Fix potential permission issues during build
+          preBuild = ''
+            # Ensure proper permissions on source files
+            find . -type f -exec chmod 644 {} \;
+            find . -type d -exec chmod 755 {} \;
+          '';
+        });
+      };
   };
 in
 python3WithOverrides.pkgs.buildPythonApplication rec {
