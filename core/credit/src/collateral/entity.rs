@@ -22,9 +22,7 @@ pub enum CollateralEvent {
         id: CollateralId,
         account_id: CalaAccountId,
         credit_facility_id: CreditFacilityId,
-    },
-    WalletAttached {
-        wallet_id: WalletId,
+        wallet_id: Option<WalletId>,
     },
     Updated {
         ledger_tx_id: LedgerTxId,
@@ -40,7 +38,6 @@ pub enum CollateralEvent {
 pub struct Collateral {
     pub id: CollateralId,
     pub credit_facility_id: CreditFacilityId,
-    #[builder(setter(strip_option), default)]
     pub wallet_id: Option<WalletId>,
     pub amount: Satoshis,
 
@@ -115,15 +112,14 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 CollateralEvent::Initialized {
                     id,
                     credit_facility_id,
+                    wallet_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .amount(Satoshis::ZERO)
+                        .wallet_id(*wallet_id)
                         .credit_facility_id(*credit_facility_id)
-                }
-                CollateralEvent::WalletAttached { wallet_id } => {
-                    builder = builder.wallet_id(*wallet_id);
                 }
                 CollateralEvent::Updated { new_value, .. } => {
                     builder = builder.amount(*new_value);
@@ -136,16 +132,14 @@ impl TryFromEvents<CollateralEvent> for Collateral {
 
 impl IntoEvents<CollateralEvent> for NewCollateral {
     fn into_events(self) -> EntityEvents<CollateralEvent> {
-        let mut events = vec![CollateralEvent::Initialized {
-            id: self.id,
-            account_id: self.account_id,
-            credit_facility_id: self.credit_facility_id,
-        }];
-
-        if let Some(wallet_id) = self.wallet_id {
-            events.push(CollateralEvent::WalletAttached { wallet_id });
-        };
-
-        EntityEvents::init(self.id, events)
+        EntityEvents::init(
+            self.id,
+            [CollateralEvent::Initialized {
+                id: self.id,
+                account_id: self.account_id,
+                credit_facility_id: self.credit_facility_id,
+                wallet_id: self.wallet_id,
+            }],
+        )
     }
 }
