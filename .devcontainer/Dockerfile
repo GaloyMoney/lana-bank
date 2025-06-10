@@ -11,23 +11,36 @@ RUN useradd -m -s /bin/bash -u 1000 vscode && \
     echo "vscode ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/vscode && \
     chmod 0440 /etc/sudoers.d/vscode
 
-# Switch to vscode user and install Nix
+# Switch to vscode user and install Nix with proper permissions
 USER vscode
 WORKDIR /home/vscode
 
-# Install Nix and configure
+# Set USER environment variable before Nix installation
+ENV USER=vscode
+
+# Install Nix in single-user mode with explicit ownership
 RUN bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon" && \
     mkdir -p ~/.config/nix && \
-    echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf
+    echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf && \
+    echo "sandbox = false" >> ~/.config/nix/nix.conf
 
-# Set up basic shell environment (nix loading handled by direnv)
+# Ensure proper ownership of Nix directories
+USER root
+RUN if [ -d /nix ]; then \
+        chown -R vscode:vscode /nix && \
+        chmod -R u+w /nix; \
+    fi
+
+USER vscode
+
+# Set up shell environment
 RUN echo 'export USER=vscode' >> ~/.bashrc && \
-    echo 'source ~/.nix-profile/etc/profile.d/nix.sh 2>/dev/null || true' >> ~/.bashrc && \
+    echo 'if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then source ~/.nix-profile/etc/profile.d/nix.sh; fi' >> ~/.bashrc && \
     echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
     cp ~/.bashrc ~/.profile
 
-# Install essential tools
-RUN bash -c "export USER=vscode && source ~/.nix-profile/etc/profile.d/nix.sh && \
+# Install essential tools with proper user context
+RUN bash -c "source ~/.nix-profile/etc/profile.d/nix.sh && \
     nix profile install nixpkgs#direnv nixpkgs#git nixpkgs#vim && \
     echo 'eval \"\$(direnv hook bash)\"' >> ~/.bashrc"
 
@@ -37,5 +50,5 @@ RUN mkdir -p /workspaces && chown vscode:vscode /workspaces
 USER vscode
 WORKDIR /workspaces
 
-# Default command - direnv will handle nix environment loading automatically
+# Default command
 CMD ["/bin/bash"] 
