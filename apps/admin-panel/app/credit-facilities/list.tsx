@@ -50,10 +50,7 @@ gql`
             accrualInterval
             oneTimeFeeRate
           }
-          currentCvl {
-            disbursed
-            total
-          }
+          currentCvl
           balance {
             collateral {
               btcBalance
