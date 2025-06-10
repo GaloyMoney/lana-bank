@@ -14,7 +14,7 @@ use crate::{
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{seed, AppAction, AppObject, AuditAction, Authorization},
     credit::Credit,
-    custody::{Custody, CustodyPublisher},
+    custody::Custody,
     customer::Customers,
     customer_sync::CustomerSync,
     dashboard::Dashboard,
@@ -116,7 +116,7 @@ impl LanaApp {
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
-        let custody = Custody::new(&pool, &authz, &CustodyPublisher::new(&outbox));
+        let custody = Custody::new(&pool, &authz, &outbox);
 
         let credit = Credit::init(
             &pool,

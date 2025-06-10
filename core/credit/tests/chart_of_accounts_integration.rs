@@ -19,7 +19,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let governance = governance::Governance::new(&pool, &authz, &outbox);
     let customers = core_customer::Customers::new(&pool, &authz, &outbox);
-    let custody = core_custody::CoreCustody::new(&pool, &authz);
+    let custody = core_custody::CoreCustody::new(&pool, &authz, &outbox);
     let price = core_price::Price::new();
 
     let cala_config = CalaLedgerConfig::builder()

@@ -10,7 +10,7 @@ pub mod wallet;
 
 use es_entity::DbOp;
 pub use event::CoreCustodyEvent;
-use outbox::OutboxEventMarker;
+use outbox::{Outbox, OutboxEventMarker};
 pub use publisher::CustodyPublisher;
 use tracing::instrument;
 
@@ -42,11 +42,11 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCustodyObject>,
     E: OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, publisher: &CustodyPublisher<E>) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
         Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
-            wallets: WalletRepo::new(pool, publisher),
+            wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
             custodian_state: CustodianStateRepo::new(pool),
         }
     }
