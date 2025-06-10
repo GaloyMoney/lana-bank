@@ -1,27 +1,27 @@
 use async_trait::async_trait;
+use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use serde::{Deserialize, Serialize};
 
 use crate::email::{executor::EmailExecutor, templates::EmailTemplate};
-use ::job::*;
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct EmailSenderJobConfig {
+pub struct EmailSenderConfig {
     pub recipient: String,
     pub subject: String,
     pub template_data: String,
 }
 
-impl JobConfig for EmailSenderJobConfig {
-    type Initializer = EmailSenderJobInitializer;
+impl JobConfig for EmailSenderConfig {
+    type Initializer = EmailSenderInitializer;
 }
 
 #[derive(Clone)]
-pub struct EmailSenderJobInitializer {
+pub struct EmailSenderInitializer {
     executor: EmailExecutor,
     template: EmailTemplate,
 }
 
-impl EmailSenderJobInitializer {
+impl EmailSenderInitializer {
     pub fn new(executor: EmailExecutor, template: EmailTemplate) -> Self {
         Self { executor, template }
     }
@@ -29,13 +29,13 @@ impl EmailSenderJobInitializer {
 
 const EMAIL_SENDER_JOB: JobType = JobType::new("email-sender");
 
-impl JobInitializer for EmailSenderJobInitializer {
+impl JobInitializer for EmailSenderInitializer {
     fn job_type() -> JobType {
         EMAIL_SENDER_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(EmailSenderJobRunner {
+        Ok(Box::new(EmailSenderRunner {
             config: job.config()?,
             executor: self.executor.clone(),
             template: self.template.clone(),
@@ -43,14 +43,14 @@ impl JobInitializer for EmailSenderJobInitializer {
     }
 }
 
-pub struct EmailSenderJobRunner {
-    config: EmailSenderJobConfig,
+pub struct EmailSenderRunner {
+    config: EmailSenderConfig,
     executor: EmailExecutor,
     template: EmailTemplate,
 }
 
 #[async_trait]
-impl JobRunner for EmailSenderJobRunner {
+impl JobRunner for EmailSenderRunner {
     async fn run(
         &self,
         _current_job: CurrentJob,

@@ -116,8 +116,6 @@ impl LanaApp {
         let customer_sync =
             CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
 
-        let notification = Notification::init(&jobs, &outbox, config.email, access.users()).await?;
-
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
@@ -134,6 +132,16 @@ impl LanaApp {
             &outbox,
             &cala,
             journal_init.journal_id,
+        )
+        .await?;
+
+        let notification = Notification::init(
+            &jobs,
+            &outbox,
+            config.email,
+            access.users(),
+            &credit,
+            &customers,
         )
         .await?;
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)

@@ -1,31 +1,59 @@
 pub mod email;
 pub mod error;
 
-use ::job::Jobs;
-use core_access::user::Users;
-use email::job::{EmailListenerJobConfig, EmailListenerJobInitializer};
-use email::{EmailConfig, EmailNotification};
-use lana_events::LanaEvent;
-
 use audit::AuditSvc;
-use core_access::event::CoreAccessEvent;
+use authz::PermissionCheck;
+use core_access::user::Users;
 use core_access::{CoreAccessAction, CoreAccessObject, UserId};
+use core_credit::{CoreCredit, CoreCreditAction, CoreCreditObject};
+use core_customer::{CoreCustomerAction, CustomerObject, Customers};
+use email::job::{EmailEventListenerConfig, EmailEventListenerInitializer};
+use email::{EmailConfig, EmailNotification};
+use governance::{GovernanceAction, GovernanceObject};
+use job::Jobs;
+use lana_events::{
+    CoreAccessEvent, CoreCreditEvent, CoreCustomerEvent, GovernanceEvent, LanaEvent,
+};
 use outbox::OutboxEventMarker;
 
 pub type NotificationOutbox = outbox::Outbox<LanaEvent>;
 
-pub struct Notification<Audit, E>
+pub struct Notification<Perms, E>
 where
-    Audit: AuditSvc,
-    E: OutboxEventMarker<CoreAccessEvent>,
+    Perms: PermissionCheck,
+    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
+    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
+        + From<CoreCreditAction>
+        + From<GovernanceAction>
+        + From<CoreCustomerAction>,
+    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
+        + From<CoreCreditObject>
+        + From<GovernanceObject>
+        + From<CustomerObject>,
+    E: OutboxEventMarker<CoreAccessEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
-    email: EmailNotification<Audit, E>,
+    email: EmailNotification<Perms, E>,
 }
 
-impl<Audit, E> Clone for Notification<Audit, E>
+impl<Perms, E> Clone for Notification<Perms, E>
 where
-    Audit: AuditSvc,
-    E: OutboxEventMarker<CoreAccessEvent>,
+    Perms: PermissionCheck,
+    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
+    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
+        + From<CoreCreditAction>
+        + From<GovernanceAction>
+        + From<CoreCustomerAction>,
+    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
+        + From<CoreCreditObject>
+        + From<GovernanceObject>
+        + From<CustomerObject>,
+    E: OutboxEventMarker<CoreAccessEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -34,24 +62,35 @@ where
     }
 }
 
-impl<Audit, E> Notification<Audit, E>
+impl<Perms, E> Notification<Perms, E>
 where
-    Audit: AuditSvc,
-    <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
-    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
-    E: OutboxEventMarker<CoreAccessEvent>,
+    Perms: PermissionCheck,
+    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
+    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
+        + From<CoreCreditAction>
+        + From<GovernanceAction>
+        + From<CoreCustomerAction>,
+    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
+        + From<CoreCreditObject>
+        + From<GovernanceObject>
+        + From<CustomerObject>,
+    E: OutboxEventMarker<CoreAccessEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<GovernanceEvent>,
 {
     pub async fn init(
         jobs: &Jobs,
         outbox: &NotificationOutbox,
         email_config: EmailConfig,
-        users: &Users<Audit, E>,
+        users: &Users<Perms::Audit, E>,
+        credit: &CoreCredit<Perms, E>,
+        customers: &Customers<Perms, E>,
     ) -> Result<Self, error::NotificationError> {
-        let email = EmailNotification::init(jobs, email_config, users).await?;
+        let email = EmailNotification::init(jobs, email_config, users, credit, customers).await?;
         jobs.add_initializer_and_spawn_unique(
-            EmailListenerJobInitializer::new(outbox, &email),
-            EmailListenerJobConfig::new(),
+            EmailEventListenerInitializer::new(outbox, &email),
+            EmailEventListenerConfig::new(),
         )
         .await?;
 

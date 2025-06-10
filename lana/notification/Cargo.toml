@@ -12,10 +12,14 @@ outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 lana-events = { path = "../events" }
 core-access = { path = "../../core/access" }
+core-credit = { path = "../../core/credit" }
+core-customer = { path = "../../core/customer" }
+governance = { path = "../../core/governance" }
 audit = { path = "../../lib/audit" }
-es-entity = { workspace = true }
+authz = { path = "../../lib/authz" }
+core-money = { path = "../../core/money" }
 
-uuid = { workspace = true }
+es-entity = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 async-trait = { workspace = true }

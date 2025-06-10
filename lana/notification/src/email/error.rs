@@ -1,6 +1,5 @@
-use thiserror::Error;
-
 use super::smtp::error::SmtpError;
+use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum EmailError {
@@ -12,4 +11,10 @@ pub enum EmailError {
     Job(#[from] ::job::error::JobError),
     #[error("EmailError - Outbox: {0}")]
     Outbox(String),
+    #[error("EmailError – User: {0}")]
+    User(#[from] core_access::user::error::UserError),
+    #[error("EmailError – CoreCredit: {0}")]
+    CoreCredit(#[from] core_credit::error::CoreCreditError),
+    #[error("EmailError – Customer: {0}")]
+    Customer(#[from] core_customer::error::CustomerError),
 }

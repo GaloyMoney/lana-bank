@@ -2933,9 +2933,14 @@ dependencies = [
  "anyhow",
  "async-trait",
  "audit",
+ "authz",
  "core-access",
+ "core-credit",
+ "core-customer",
+ "core-money",
  "es-entity",
  "futures",
+ "governance",
  "handlebars",
  "job",
  "lana-events",
@@ -2944,7 +2949,6 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.12",
- "uuid",
 ]
 
 [[package]]
