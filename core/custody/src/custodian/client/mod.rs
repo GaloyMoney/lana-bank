@@ -31,16 +31,20 @@ impl CustodianClient for komainu::KomainuClient {
     ) -> Result<AddressResponse, CustodianClientError> {
         let mut komainu_state: KomainuState = state.load().await?;
 
-        todo!("call komainu");
+        // let address = self.get_wallet_address_by_index(komainu_state.index).await?;
 
-        komainu_state.latest_used_address_index += 1;
+        komainu_state.first_unused_address_index += 1;
         state.persist(&komainu_state).await?;
 
-        todo!("return address")
+        Ok(AddressResponse {
+            address: "bt1qaddress".to_string(),
+            label: label.to_string(),
+            full_response: serde_json::Value::Null,
+        })
     }
 }
 
 #[derive(Serialize, Deserialize, Default)]
 struct KomainuState {
-    latest_used_address_index: u64,
+    first_unused_address_index: u64,
 }

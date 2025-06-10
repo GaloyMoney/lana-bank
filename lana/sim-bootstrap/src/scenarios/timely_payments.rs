@@ -24,7 +24,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
             deposit_account_id,
             cf_amount,
             cf_terms,
-            None,
+            None::<CustodianId>,
         )
         .await?;
 

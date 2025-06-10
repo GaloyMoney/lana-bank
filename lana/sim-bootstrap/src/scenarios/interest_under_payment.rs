@@ -30,7 +30,7 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
             deposit_account_id,
             cf_amount,
             cf_terms,
-            None,
+            None::<CustodianId>,
         )
         .await?;
 

@@ -371,7 +371,7 @@ where
         disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
         amount: UsdCents,
         terms: TermValues,
-        custodian_id: Option<CustodianId>,
+        custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
             .subject_can_create(sub, true)
@@ -397,7 +397,7 @@ where
         let wallet_id = if let Some(custodian_id) = custodian_id {
             let wallet = self
                 .custody
-                .create_new_wallet_in_op(&mut db, sub, custodian_id)
+                .create_new_wallet_in_op(&mut db, sub, custodian_id.into())
                 .await?;
             self.custody
                 .generate_wallet_address_in_op(

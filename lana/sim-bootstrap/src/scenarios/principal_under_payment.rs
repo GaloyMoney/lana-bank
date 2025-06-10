@@ -31,7 +31,7 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
             deposit_account_id,
             cf_amount,
             cf_terms,
-            None,
+            None::<CustodianId>,
         )
         .await?;
 

@@ -24,7 +24,7 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
             deposit_account_id,
             cf_amount,
             cf_terms,
-            None,
+            None::<CustodianId>,
         )
         .await?;
 
