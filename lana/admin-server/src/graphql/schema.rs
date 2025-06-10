@@ -1323,6 +1323,7 @@ impl Mutation {
             customer_id,
             disbursal_credit_account_id,
             terms,
+            custodian_id,
         } = input;
 
         let credit_facility_term_values = lana_app::terms::TermValues::builder()
@@ -1347,7 +1348,8 @@ impl Mutation {
                 customer_id,
                 disbursal_credit_account_id,
                 facility,
-                credit_facility_term_values
+                credit_facility_term_values,
+                custodian_id
             )
         )
     }

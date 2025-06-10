@@ -24,6 +24,9 @@ mod time;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_custody::{
+    CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
+};
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -64,6 +67,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
@@ -82,6 +86,7 @@ where
     approve_credit_facility: ApproveCreditFacility<Perms, E>,
     obligations: Obligations<Perms, E>,
     collaterals: Collaterals<Perms, E>,
+    custody: CoreCustody<Perms, E>,
     chart_of_accounts_integrations: ChartOfAccountsIntegrations<Perms>,
     terms_templates: TermsTemplates<Perms>,
 }
@@ -91,6 +96,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
@@ -99,6 +105,7 @@ where
             facilities: self.facilities.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
+            custody: self.custody.clone(),
             disbursals: self.disbursals.clone(),
             payments: self.payments.clone(),
             history_repo: self.history_repo.clone(),
@@ -120,12 +127,17 @@ where
 impl<Perms, E> CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject> + From<CustomerObject>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>
+        + From<GovernanceAction>
+        + From<CoreCustomerAction>
+        + From<CoreCustodyAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>
+        + From<GovernanceObject>
+        + From<CustomerObject>
+        + From<CoreCustodyObject>,
     E: OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     #[allow(clippy::too_many_arguments)]
@@ -136,6 +148,7 @@ where
         jobs: &Jobs,
         authz: &Perms,
         customer: &Customers<Perms, E>,
+        custody: &CoreCustody<Perms, E>,
         price: &Price,
         outbox: &Outbox<E>,
         cala: &CalaLedger,
@@ -267,6 +280,7 @@ where
             facilities: credit_facilities,
             obligations,
             collaterals,
+            custody: custody.clone(),
             disbursals,
             payments,
             history_repo,
@@ -357,6 +371,7 @@ where
         disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
         amount: UsdCents,
         terms: TermValues,
+        custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
             .subject_can_create(sub, true)
@@ -374,8 +389,30 @@ where
         }
 
         let id = CreditFacilityId::new();
-        let collateral_id = CollateralId::new();
         let account_ids = CreditFacilityAccountIds::new();
+        let collateral_id = CollateralId::new();
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let wallet_id = if let Some(custodian_id) = custodian_id {
+            let wallet = self
+                .custody
+                .create_new_wallet_in_op(&mut db, sub, custodian_id.into())
+                .await?;
+            self.custody
+                .generate_wallet_address_in_op(
+                    &mut db,
+                    sub,
+                    wallet.id,
+                    &format!("Credit Facility {id}"),
+                )
+                .await?;
+
+            Some(wallet.id)
+        } else {
+            None
+        };
+
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .ledger_tx_id(LedgerTxId::new())
@@ -390,13 +427,12 @@ where
             .build()
             .expect("could not build new credit facility");
 
-        let mut db = self.facilities.begin_op().await?;
-
         self.collaterals
             .create_in_op(
                 &mut db,
                 collateral_id,
                 id,
+                wallet_id,
                 account_ids.collateral_account_id,
             )
             .await?;
@@ -600,6 +636,9 @@ where
             .facilities
             .find_by_id_without_audit(credit_facility_id)
             .await?;
+
+        // check if facility has custody_config???
+        // if it does this should error
 
         let mut db = self.facilities.begin_op().await?;
 

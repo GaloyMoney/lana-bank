@@ -6,6 +6,8 @@ use es_entity::*;
 
 use crate::primitives::CustodianId;
 
+use super::client::{CustodianClient, error::CustodianClientError};
+
 #[derive(Clone, Serialize, Deserialize)]
 pub struct KomainuConfig {
     pub api_key: String,
@@ -22,6 +24,20 @@ impl core::fmt::Debug for KomainuConfig {
             .field("testing_instance", &self.testing_instance)
             .field("secret_key", &"<redacted>")
             .finish()
+    }
+}
+
+impl From<KomainuConfig> for komainu::KomainuConfig {
+    fn from(config: KomainuConfig) -> Self {
+        komainu::KomainuConfig {
+            api_user: config.api_key,
+            api_secret: config.api_secret,
+            secret_key: komainu::KomainuSecretKey::Plain {
+                dem: config.secret_key,
+            },
+            proxy: None,
+            komainu_test: config.testing_instance,
+        }
     }
 }
 
@@ -56,6 +72,14 @@ impl Custodian {
         self.events
             .entity_first_persisted_at()
             .expect("No events for Custodian")
+    }
+
+    pub async fn custodian_client(self) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
+        match self.custodian {
+            CustodianConfig::Komainu(config) => {
+                Ok(Box::new(komainu::KomainuClient::new(config.into())))
+            }
+        }
     }
 }
 

@@ -78,6 +78,7 @@ async fn create_and_process_facility(
             deposit_account_id,
             UsdCents::try_from_usd(dec!(10_000_000))?,
             terms,
+            None::<CustodianId>,
         )
         .await?;
 

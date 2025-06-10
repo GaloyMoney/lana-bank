@@ -23,6 +23,7 @@ pub async fn init_journal(cala: &CalaLedger) -> anyhow::Result<cala_ledger::Jour
 pub mod action {
     use core_accounting::CoreAccountingAction;
     use core_credit::CoreCreditAction;
+    use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
     use governance::GovernanceAction;
 
@@ -43,6 +44,12 @@ pub mod action {
 
     impl From<CoreCustomerAction> for DummyAction {
         fn from(_: CoreCustomerAction) -> Self {
+            Self
+        }
+    }
+
+    impl From<CoreCustodyAction> for DummyAction {
+        fn from(_: CoreCustodyAction) -> Self {
             Self
         }
     }
@@ -72,6 +79,7 @@ pub mod action {
 pub mod object {
     use core_accounting::CoreAccountingObject;
     use core_credit::CoreCreditObject;
+    use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
     use governance::GovernanceObject;
 
@@ -101,6 +109,12 @@ pub mod object {
         }
     }
 
+    impl From<CoreCustodyObject> for DummyObject {
+        fn from(_: CoreCustodyObject) -> Self {
+            Self
+        }
+    }
+
     impl std::fmt::Display for DummyObject {
         fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
             write!(f, "Dummy")?;
@@ -121,6 +135,7 @@ pub mod event {
     use serde::{Deserialize, Serialize};
 
     use core_credit::CoreCreditEvent;
+    use core_custody::CoreCustodyEvent;
     use core_customer::CoreCustomerEvent;
     use governance::GovernanceEvent;
 
@@ -128,6 +143,7 @@ pub mod event {
     #[serde(tag = "module")]
     pub enum DummyEvent {
         CoreCredit(CoreCreditEvent),
+        CoreCustody(CoreCustodyEvent),
         CoreCustomer(CoreCustomerEvent),
         Governance(GovernanceEvent),
     }
@@ -152,5 +168,6 @@ pub mod event {
 
     impl_event_marker!(GovernanceEvent, Governance);
     impl_event_marker!(CoreCreditEvent, CoreCredit);
+    impl_event_marker!(CoreCustodyEvent, CoreCustody);
     impl_event_marker!(CoreCustomerEvent, CoreCustomer);
 }

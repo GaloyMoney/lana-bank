@@ -120,8 +120,9 @@ pub mod trial_balance {
 }
 
 pub mod custody {
-    pub use core_custody::{custodian, error};
-    pub type Custody = core_custody::CoreCustody<crate::authorization::Authorization>;
+    pub use core_custody::{custodian, error, CustodyPublisher};
+    pub type Custody =
+        core_custody::CoreCustody<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod credit {

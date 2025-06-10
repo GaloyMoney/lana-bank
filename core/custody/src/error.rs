@@ -7,4 +7,10 @@ pub enum CoreCustodyError {
 
     #[error("CoreCustodyError - CustodianError: {0}")]
     Custodian(#[from] crate::custodian::error::CustodianError),
+    #[error("CoreCustodyError - CustodianClientError: {0}")]
+    CustodianClient(#[from] crate::custodian::client::error::CustodianClientError),
+    #[error("CoreCustodyError - CustodianStateError: {0}")]
+    CustodianState(#[from] crate::custodian::state::error::CustodianStateError),
+    #[error("CoreCustodyError - WalletError: {0}")]
+    Wallet(#[from] crate::wallet::error::WalletError),
 }
