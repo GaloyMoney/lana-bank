@@ -76,7 +76,7 @@ teardown_file() {
   )
   
   exec_admin_graphql 'custodian-config-update' "$variables"
-  custodian_config=$(graphql_output .data.custodianConfigUpdate.custodian.custodianConfig)
-  [[ "$custodian_config" != "null" ]] || exit 1
+  custodian_id=$(graphql_output .data.custodianConfigUpdate.custodian.custodianId)
+  [[ "$custodian_id" != "null" ]] || exit 1
   
 }

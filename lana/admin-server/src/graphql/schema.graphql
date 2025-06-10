@@ -710,11 +710,6 @@ type Custodian {
 	custodianId: UUID!
 	createdAt: Timestamp!
 	name: String!
-	custodianConfig: CustodianConfig
-}
-
-enum CustodianConfig {
-	KOMAINU
 }
 
 input CustodianConfigInput @oneOf {

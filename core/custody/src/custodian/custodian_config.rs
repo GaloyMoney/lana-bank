@@ -36,50 +36,55 @@ pub enum CustodianConfig {
 }
 
 impl CustodianConfig {
-    pub(super) fn encrypt(
-        &self,
-        key: &EncryptionKey,
-    ) -> Result<(ConfigCypher, Nonce), CustodianError> {
+    pub(super) fn encrypt(&self, key: &EncryptionKey) -> EncryptedCustodianConfig {
         let cipher = ChaCha20Poly1305::new(key);
         let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);
         let encrypted_config = cipher
-            .encrypt(&nonce, serde_json::to_vec(self)?.as_slice())
+            .encrypt(
+                &nonce,
+                serde_json::to_vec(self)
+                    .expect("should always convert self to json")
+                    .as_slice(),
+            )
             .expect("should always encrypt");
 
-        Ok((ConfigCypher(encrypted_config), Nonce(nonce.to_vec())))
+        (ConfigCypher(encrypted_config), Nonce(nonce.to_vec()))
     }
 
     pub(super) fn decrypt(
         key: &EncryptionKey,
         encrypted_config: &ConfigCypher,
         nonce: &Nonce,
-    ) -> Result<Self, CustodianError> {
+    ) -> Self {
         let cipher = ChaCha20Poly1305::new(key);
         let decrypted_config = cipher
             .decrypt(
                 chacha20poly1305::Nonce::from_slice(nonce.0.as_slice()),
                 encrypted_config.0.as_slice(),
             )
-            .map_err(CustodianError::CouldNotDecryptCustodianConfig)?;
-        let config: CustodianConfig = serde_json::from_slice(decrypted_config.as_slice())?;
-        Ok(config)
+            .expect("should always decrypt");
+        let config: CustodianConfig = serde_json::from_slice(decrypted_config.as_slice())
+            .expect("should be able to deserialize config");
+        config
     }
 
     pub(super) fn rotate_encryption_key(
         encryption_key: &EncryptionKey,
         encrypted_config: &EncryptedCustodianConfig,
         deprecated_encryption_key: &DeprecatedEncryptionKey,
-    ) -> Result<EncryptedCustodianConfig, CustodianError> {
+    ) -> EncryptedCustodianConfig {
         let cipher = ChaCha20Poly1305::new(encryption_key);
-        let nonce_bytes = hex::decode(&deprecated_encryption_key.nonce)?;
+        let nonce_bytes =
+            hex::decode(&deprecated_encryption_key.nonce).expect("should be able to decode nonce");
         let nonce = chacha20poly1305::Nonce::from_slice(nonce_bytes.as_slice());
-        let deprecated_encrypted_key_bytes = hex::decode(&deprecated_encryption_key.key)?;
+        let deprecated_encrypted_key_bytes =
+            hex::decode(&deprecated_encryption_key.key).expect("should be able to decode key");
         let deprecated_key_bytes = cipher
             .decrypt(nonce, deprecated_encrypted_key_bytes.as_slice())
-            .map_err(CustodianError::CouldNotDecryptDeprecatedEncryptionKey)?;
+            .expect("should be able to decrypt deprecated key");
         let deprecated_key = EncryptionKey::clone_from_slice(deprecated_key_bytes.as_ref());
 
-        let new_config = Self::decrypt(&deprecated_key, &encrypted_config.0, &encrypted_config.1)?;
+        let new_config = Self::decrypt(&deprecated_key, &encrypted_config.0, &encrypted_config.1);
 
         new_config.encrypt(encryption_key)
     }
@@ -135,10 +140,8 @@ mod tests {
             testing_instance: false,
         });
         let key = gen_encryption_key();
-        let (encrypted, nonce) = custodian_config.encrypt(&key).expect("Failed to encrypt");
-        let decrypted =
-            CustodianConfig::decrypt(&key, &encrypted, &nonce).expect("Failed to decrypt");
-
+        let (encrypted, nonce) = custodian_config.encrypt(&key);
+        let decrypted = CustodianConfig::decrypt(&key, &encrypted, &nonce);
         assert_eq!(custodian_config, decrypted);
     }
 

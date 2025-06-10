@@ -46,8 +46,7 @@ pub enum CustodianEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Custodian {
     pub id: CustodianId,
-    #[builder(default)]
-    pub encrypted_custodian_config: Option<EncryptedCustodianConfig>,
+    encrypted_custodian_config: EncryptedCustodianConfig,
     pub name: String,
     events: EntityEvents<CustodianEvent>,
 }
@@ -64,22 +63,20 @@ impl Custodian {
         config: CustodianConfig,
         secret: &EncryptionKey,
         audit_info: AuditInfo,
-    ) -> Result<(), CustodianError> {
-        let encrypted_config = config.encrypt(secret)?;
-        self.encrypted_custodian_config = Some(encrypted_config.clone());
+    ) {
+        let encrypted_config = config.encrypt(secret);
+        self.encrypted_custodian_config = encrypted_config.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
             encrypted_custodian_config: Some(encrypted_config),
             audit_info,
         });
-
-        Ok(())
     }
 
-    pub fn custodian_config(&self, key: EncryptionKey) -> Option<CustodianConfig> {
-        self.encrypted_custodian_config
-            .as_ref()
-            .and_then(|(cfg, nonce)| CustodianConfig::decrypt(&key, cfg, nonce).ok())
+    #[allow(dead_code)]
+    fn custodian_config(&self, key: EncryptionKey) -> CustodianConfig {
+        let (encrypted_config, nonce) = &self.encrypted_custodian_config;
+        CustodianConfig::decrypt(&key, encrypted_config, nonce)
     }
 
     pub fn rotate_encryption_key(
@@ -88,19 +85,17 @@ impl Custodian {
         deprecated_encryption_key: &DeprecatedEncryptionKey,
         audit_info: &AuditInfo,
     ) -> Result<(), CustodianError> {
-        if let Some(old_encrypted_config) = &self.encrypted_custodian_config {
-            let encrypted_config = CustodianConfig::rotate_encryption_key(
-                encryption_key,
-                old_encrypted_config,
-                deprecated_encryption_key,
-            )?;
+        let encrypted_config = CustodianConfig::rotate_encryption_key(
+            encryption_key,
+            &self.encrypted_custodian_config,
+            deprecated_encryption_key,
+        );
 
-            self.encrypted_custodian_config = Some(encrypted_config.clone());
-            self.events.push(CustodianEvent::ConfigUpdated {
-                encrypted_custodian_config: Some(encrypted_config),
-                audit_info: audit_info.clone(),
-            });
-        }
+        self.encrypted_custodian_config = encrypted_config.clone();
+        self.events.push(CustodianEvent::ConfigUpdated {
+            encrypted_custodian_config: Some(encrypted_config),
+            audit_info: audit_info.clone(),
+        });
 
         Ok(())
     }
@@ -119,7 +114,9 @@ impl TryFromEvents<CustodianEvent> for Custodian {
                     encrypted_custodian_config,
                     ..
                 } => {
-                    builder = builder.encrypted_custodian_config(encrypted_custodian_config.clone())
+                    if let Some(config) = encrypted_custodian_config {
+                        builder = builder.encrypted_custodian_config(config.clone())
+                    }
                 }
             }
         }
@@ -128,11 +125,13 @@ impl TryFromEvents<CustodianEvent> for Custodian {
     }
 }
 
-#[derive(Debug, Builder)]
+#[derive(Builder)]
 pub struct NewCustodian {
     #[builder(setter(into))]
     pub(super) id: CustodianId,
     pub(super) name: String,
+    #[builder(setter(custom))]
+    pub(super) encrypted_custodian_config: EncryptedCustodianConfig,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -142,15 +141,32 @@ impl NewCustodian {
     }
 }
 
+impl NewCustodianBuilder {
+    pub fn encrypted_custodian_config(
+        &mut self,
+        custodian_config: CustodianConfig,
+        encryption_key: &EncryptionKey,
+    ) -> &mut Self {
+        self.encrypted_custodian_config = Some(custodian_config.encrypt(encryption_key));
+        self
+    }
+}
+
 impl IntoEvents<CustodianEvent> for NewCustodian {
     fn into_events(self) -> EntityEvents<CustodianEvent> {
         EntityEvents::init(
             self.id,
-            [CustodianEvent::Initialized {
-                id: self.id,
-                name: self.name,
-                audit_info: self.audit_info,
-            }],
+            [
+                CustodianEvent::Initialized {
+                    id: self.id,
+                    name: self.name,
+                    audit_info: self.audit_info.clone(),
+                },
+                CustodianEvent::ConfigUpdated {
+                    encrypted_custodian_config: Some(self.encrypted_custodian_config),
+                    audit_info: self.audit_info,
+                },
+            ],
         )
     }
 }

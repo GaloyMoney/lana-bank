@@ -8,7 +8,6 @@ pub enum CoreCustodyError {
     AuditError(#[from] audit::error::AuditError),
     #[error("CoreCustodyError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-
     #[error("CoreCustodyError - CustodianError: {0}")]
     Custodian(#[from] crate::custodian::error::CustodianError),
 }

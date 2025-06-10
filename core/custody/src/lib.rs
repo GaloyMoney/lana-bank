@@ -77,20 +77,14 @@ where
             .id(CustodianId::new())
             .name(name.as_ref().to_owned())
             .audit_info(audit_info.clone())
+            .encrypted_custodian_config(custodian_config, &self.config.custodian_encryption.key)
             .build()
-            .expect("all fields provided");
+            .expect("should always build a new custodian");
+
         let mut op = self.custodians.begin_op().await?;
 
-        let mut custodian = self.custodians.create_in_op(&mut op, new_custodian).await?;
+        let custodian = self.custodians.create_in_op(&mut op, new_custodian).await?;
 
-        custodian.update_custodian_config(
-            custodian_config,
-            &self.config.custodian_encryption.key,
-            audit_info,
-        )?;
-        self.custodians
-            .update_in_op(&mut op, &mut custodian)
-            .await?;
         op.commit().await?;
 
         Ok(custodian)
@@ -117,7 +111,7 @@ where
             config,
             &self.config.custodian_encryption.key,
             audit_info,
-        )?;
+        );
 
         let mut op = self.custodians.begin_op().await?;
         self.custodians
@@ -188,9 +182,5 @@ where
             .custodians
             .list_by_name(query, es_entity::ListDirection::Ascending)
             .await?)
-    }
-
-    pub fn custodian_config(&self, custodian: &Custodian) -> Option<CustodianConfig> {
-        custodian.custodian_config(self.config.custodian_encryption.key)
     }
 }
