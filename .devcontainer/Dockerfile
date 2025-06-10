@@ -18,31 +18,24 @@ WORKDIR /home/vscode
 # Set USER environment variable before Nix installation
 ENV USER=vscode
 
-# Install Nix in single-user mode with explicit ownership
-RUN bash -c "sh <(curl -L https://nixos.org/nix/install) --no-daemon" && \
-    mkdir -p ~/.config/nix && \
-    echo "experimental-features = nix-command flakes" > ~/.config/nix/nix.conf && \
-    echo "sandbox = false" >> ~/.config/nix/nix.conf
+# Install Nix in multi-user (daemon) mode as root
+RUN bash -c "sh <(curl -L https://nixos.org/nix/install) --daemon" && \
+    mkdir -p /etc/nix && \
+    echo 'experimental-features = nix-command flakes' > /etc/nix/nix.conf && \
+    echo 'sandbox = false' >> /etc/nix/nix.conf
 
-# Ensure proper ownership of Nix directories
-USER root
-RUN if [ -d /nix ]; then \
-        chown -R vscode:vscode /nix && \
-        chmod -R u+w /nix; \
-    fi
+# Ensure proper ownership and permissions of Nix directories
+RUN chown -R root:root /nix && \
+    chmod -R a-w /nix && \
+    chmod 0555 /nix
 
+# Set up shell environment for vscode user
 USER vscode
-
-# Set up shell environment
-RUN echo 'export USER=vscode' >> ~/.bashrc && \
-    echo 'if [ -e ~/.nix-profile/etc/profile.d/nix.sh ]; then source ~/.nix-profile/etc/profile.d/nix.sh; fi' >> ~/.bashrc && \
+RUN echo 'if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; fi' >> ~/.bashrc && \
+    echo 'export USER=vscode' >> ~/.bashrc && \
     echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
-    cp ~/.bashrc ~/.profile
-
-# Install essential tools with proper user context
-RUN bash -c "source ~/.nix-profile/etc/profile.d/nix.sh && \
-    nix profile install nixpkgs#direnv nixpkgs#git nixpkgs#vim && \
-    echo 'eval \"\$(direnv hook bash)\"' >> ~/.bashrc"
+    cp ~/.bashrc ~/.profile && \
+    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
 
 # Set up workspace
 USER root
@@ -51,4 +44,4 @@ USER vscode
 WORKDIR /workspaces
 
 # Default command
-CMD ["/bin/bash"] 
+CMD ["/bin/bash"]
