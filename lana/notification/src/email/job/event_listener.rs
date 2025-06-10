@@ -47,6 +47,12 @@ where
     type Initializer = EmailEventListenerInitializer<Perms, E>;
 }
 
+impl<Perms, E> Default for EmailEventListenerConfig<Perms, E> {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 pub struct EmailEventListenerInitializer<Perms, E>
 where
     Perms: PermissionCheck,

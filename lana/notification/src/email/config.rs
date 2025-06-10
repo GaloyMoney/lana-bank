@@ -2,15 +2,8 @@ use serde::{Deserialize, Serialize};
 
 use super::smtp::config::SmtpConfig;
 
-#[derive(Clone, Debug, Deserialize, Serialize)]
+#[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct EmailConfig {
+    #[serde(default)]
     pub smtp: SmtpConfig,
-}
-
-impl Default for EmailConfig {
-    fn default() -> Self {
-        Self {
-            smtp: SmtpConfig::default(),
-        }
-    }
 }

@@ -154,7 +154,6 @@ where
         let email_subject = format!(
             "Lana Bank: {obligation_type} Overdue Payment - {amount} (Facility {credit_facility_id})",
             amount = amount.formatted_usd(),
-            credit_facility_id = credit_facility_id,
         );
         let body_text = format!(
             "<p>The following payment is now overdue</p>

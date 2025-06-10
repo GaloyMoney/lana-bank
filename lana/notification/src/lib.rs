@@ -1,5 +1,8 @@
+pub mod config;
 pub mod email;
 pub mod error;
+
+pub use config::NotificationConfig;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -8,7 +11,7 @@ use core_access::{CoreAccessAction, CoreAccessObject, UserId};
 use core_credit::{CoreCredit, CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject, Customers};
 use email::job::{EmailEventListenerConfig, EmailEventListenerInitializer};
-use email::{EmailConfig, EmailNotification};
+use email::EmailNotification;
 use governance::{GovernanceAction, GovernanceObject};
 use job::Jobs;
 use lana_events::{
@@ -82,12 +85,12 @@ where
     pub async fn init(
         jobs: &Jobs,
         outbox: &NotificationOutbox,
-        email_config: EmailConfig,
+        config: NotificationConfig,
         users: &Users<Perms::Audit, E>,
         credit: &CoreCredit<Perms, E>,
         customers: &Customers<Perms, E>,
     ) -> Result<Self, error::NotificationError> {
-        let email = EmailNotification::init(jobs, email_config, users, credit, customers).await?;
+        let email = EmailNotification::init(jobs, config.email, users, credit, customers).await?;
         jobs.add_initializer_and_spawn_unique(
             EmailEventListenerInitializer::new(outbox, &email),
             EmailEventListenerConfig::new(),

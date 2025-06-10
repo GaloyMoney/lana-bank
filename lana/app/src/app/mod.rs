@@ -138,7 +138,7 @@ impl LanaApp {
         let notification = Notification::init(
             &jobs,
             &outbox,
-            config.email,
+            config.notification,
             access.users(),
             &credit,
             &customers,
