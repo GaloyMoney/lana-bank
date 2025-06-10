@@ -130,7 +130,8 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
-      meltano = pkgs.callPackage ./meltano.nix {};
+      isDevcontainer = builtins.getEnv "DEVCONTAINER_LANA" == "1";
+      meltano = if isDevcontainer then null else pkgs.callPackage ./meltano.nix {};
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
@@ -182,16 +183,14 @@
           curl
           tilt
           procps
-          meltano
         ]
+        ++ (if isDevcontainer then [] else [ meltano ])
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
           wkhtmltopdf
-
           slirp4netns
           fuse-overlayfs
-
           util-linux
           psmisc
         ]
@@ -210,12 +209,11 @@
     in
       with pkgs; {
         packages = {
-          default = lana-cli-debug; # Debug as default
+          default = lana-cli-debug;
           debug = lana-cli-debug;
           release = lana-cli-release;
           static = lana-cli-static;
-          inherit meltano;
-        };
+        } // (if isDevcontainer then {} else { inherit meltano; });
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 

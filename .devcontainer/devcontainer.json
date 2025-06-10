@@ -19,7 +19,7 @@
                 "esbenp.prettier-vscode",
                 "ms-vscode.vscode-typescript-next",
                 "GraphQL.vscode-graphql",
-                "redhat.vscode-yaml"
+                "ms-azuretools.vscode-docker"
             ],
             "settings": {
                 "rust-analyzer.checkOnSave": true,
