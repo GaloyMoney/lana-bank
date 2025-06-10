@@ -5,7 +5,7 @@
 }:
 let
   # Override python packages to disable tests for problematic dependencies
-  python3WithOverrides = python3.override {
+  python3WithOverrides = python311.override {
     packageOverrides = self: super: {
       # Disable tests for mocket since they fail with network timeouts
       mocket = super.mocket.overridePythonAttrs (old: {
