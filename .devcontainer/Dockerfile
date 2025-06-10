@@ -1,41 +1,37 @@
-# Dev container with Nix support
 FROM ubuntu:22.04
 
-# Install system dependencies and Nix
+# Install system dependencies
 RUN apt-get update && apt-get install -y \
-    curl sudo git bash ca-certificates xz-utils build-essential \
+    curl git bash ca-certificates xz-utils build-essential \
     && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user
-RUN useradd -m -s /bin/bash -u 1000 vscode && \
-    echo "vscode ALL=(root) NOPASSWD:ALL" > /etc/sudoers.d/vscode && \
-    chmod 0440 /etc/sudoers.d/vscode
+RUN useradd -m -s /bin/bash -u 1000 vscode
 
-# Switch to vscode user and install Nix with proper permissions
-USER vscode
-WORKDIR /home/vscode
+# Install Nix as root in single-user mode for the vscode user
+RUN curl -L https://nixos.org/nix/install > /tmp/install-nix && \
+    bash /tmp/install-nix --no-daemon && \
+    rm /tmp/install-nix
 
-# Set USER environment variable before Nix installation
-ENV USER=vscode
-
-# Install Nix in multi-user (daemon) mode as root
-RUN bash -c "sh <(curl -L https://nixos.org/nix/install) --daemon" && \
-    mkdir -p /etc/nix && \
+# Configure Nix
+RUN mkdir -p /etc/nix && \
     echo 'experimental-features = nix-command flakes' > /etc/nix/nix.conf && \
     echo 'sandbox = false' >> /etc/nix/nix.conf
 
-# Ensure proper ownership and permissions of Nix directories
-RUN chown -R root:root /nix && \
-    chmod -R a-w /nix && \
-    chmod 0555 /nix
+# Set ownership of Nix to vscode user since we're using single-user mode
+RUN chown -R vscode:vscode /nix
 
-# Set up shell environment for vscode user
+# Switch to vscode user and set up environment
 USER vscode
-RUN echo 'if [ -e /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh ]; then source /nix/var/nix/profiles/default/etc/profile.d/nix-daemon.sh; fi' >> ~/.bashrc && \
+WORKDIR /home/vscode
+
+# Set up shell environment
+ENV USER=vscode
+RUN echo 'source /nix/var/nix/profiles/default/etc/profile.d/nix.sh' >> ~/.bashrc && \
     echo 'export USER=vscode' >> ~/.bashrc && \
     echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
-    cp ~/.bashrc ~/.profile && \
-    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
+    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && \
+    cp ~/.bashrc ~/.profile
 
 # Set up workspace
 USER root
