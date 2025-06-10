@@ -9,27 +9,6 @@ use crate::primitives::CustodianId;
 use super::client::{CustodianClient, error::CustodianClientError};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct BitgoConfig {
-    pub access_token: String,
-    pub ip_restrict: String,
-    pub label: String,
-    pub enterprise_id: String,
-    pub wallet_id: String,
-}
-
-impl core::fmt::Debug for BitgoConfig {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("BitgoConfig")
-            .field("access_token", &"<redacted>")
-            .field("ip_restrict", &self.ip_restrict)
-            .field("label", &self.label)
-            .field("enterprise_id", &self.enterprise_id)
-            .field("wallet_id", &self.wallet_id)
-            .finish()
-    }
-}
-
-#[derive(Clone, Serialize, Deserialize)]
 pub struct KomainuConfig {
     pub api_key: String,
     pub api_secret: String,
@@ -48,10 +27,23 @@ impl core::fmt::Debug for KomainuConfig {
     }
 }
 
+impl From<KomainuConfig> for komainu::KomainuConfig {
+    fn from(config: KomainuConfig) -> Self {
+        komainu::KomainuConfig {
+            api_user: config.api_key,
+            api_secret: config.api_secret,
+            secret_key: komainu::KomainuSecretKey::Plain {
+                dem: config.secret_key,
+            },
+            proxy: None,
+            komainu_test: config.testing_instance,
+        }
+    }
+}
+
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
-    Bitgo(BitgoConfig),
 }
 
 #[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
@@ -84,17 +76,8 @@ impl Custodian {
 
     pub async fn custodian_client(self) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
         match self.custodian {
-            CustodianConfig::Komainu(config) => todo!(),
-            CustodianConfig::Bitgo(config) => {
-                let client = bitgo::BitgoClient::init(
-                    config.access_token,
-                    config.ip_restrict,
-                    config.label,
-                    config.enterprise_id,
-                    config.wallet_id,
-                )
-                .await;
-                Ok(Box::new(client))
+            CustodianConfig::Komainu(config) => {
+                Ok(Box::new(komainu::KomainuClient::new(config.into())))
             }
         }
     }

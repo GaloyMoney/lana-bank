@@ -14,7 +14,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 job = { path = "../../lib/job" }
 outbox = { path = "../../lib/outbox" }
-bitgo = { path = "../../lib/bitgo" }
+komainu = { path = "../../lib/komainu" }
 
 async-trait = { workspace = true }
 chrono = { workspace = true }

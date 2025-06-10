@@ -31,7 +31,6 @@ members = [
   "lib/kratos-admin",
   "lib/komainu",
   "lib/cloud-storage",
-  "lib/bitgo",
 ]
 
 [workspace.dependencies]

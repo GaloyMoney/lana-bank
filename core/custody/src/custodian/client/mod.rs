@@ -16,22 +16,8 @@ pub trait CustodianClient: Send {
 }
 
 #[async_trait]
-impl CustodianClient for bitgo::BitgoClient {
+impl CustodianClient for komainu::KomainuClient {
     async fn create_address(&self, label: &str) -> Result<AddressResponse, CustodianClientError> {
-        let (address, response) = self
-            .create_address()
-            .await
-            .map_err(|e| CustodianClientError::ClientError(Box::new(e)))?;
-        Ok(AddressResponse {
-            address: address.address,
-            label: label.to_owned(),
-            full_response: response,
-        })
+        todo!()
     }
 }
-
-// #[async_trait]
-// impl CustodianClient for komainu::KomainuClient {
-//     async fn create_address(&self, label: &str) -> Result<AddressResponse, CustodianClientError> {
-//     }
-// }
