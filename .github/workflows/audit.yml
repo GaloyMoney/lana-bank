@@ -36,24 +36,26 @@ jobs:
       - run: pnpm install
       - run: pnpm audit --audit-level=high
 
-  # ---------- Python / Poetry (lockfile → requirements → pip-audit) ----------
-  pip_audit:
+  safety_gate:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-
       - uses: actions/setup-python@v5
-        with:
-          python-version: "3.12"
+        with: { python-version: "3.12" }
 
-      # ─── Meltano extractor: tap-sumsubapi ─────────────────────
-      - name: pip-audit (tap-sumsubapi)
-        uses: pypa/gh-action-pip-audit@v1.1.0
-        with:
-          inputs: meltano/extract/tap-sumsubapi
+      - name: Install Safety CLI (with Poetry lock support)
+        run: python -m pip install --no-cache-dir "safety>=3.0.0" "tomli>=2"
 
-      # ─── Meltano extractor: tap-bitfinexapi ───────────────────
-      - name: pip-audit (tap-bitfinexapi)
-        uses: pypa/gh-action-pip-audit@v1.1.0
-        with:
-          inputs: meltano/extract/tap-bitfinexapi
+      - name: Scan all poetry.lock files — fail on HIGH/CRITICAL
+        shell: bash
+        run: |
+          set -euo pipefail
+          mapfile -t LOCKS < <(find . -type f -name 'poetry.lock' | sort)
+          if [[ ${#LOCKS[@]} -eq 0 ]]; then
+            echo "⚠️  No poetry.lock files found — skipping Safety."
+            exit 0
+          fi
+          for lock in "${LOCKS[@]}"; do
+            echo "🔒 safety scan → $lock"
+            safety scan --file "$lock" --fail-on=high
+          done
