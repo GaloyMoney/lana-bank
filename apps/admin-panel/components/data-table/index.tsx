@@ -64,9 +64,20 @@ const DataTable = <T,>({
   const tableRef = useRef<HTMLDivElement>(null)
   const router = useRouter()
 
+  const sanitizeUrl = (url: string | null): string | null => {
+    if (!url) return null;
+    try {
+      const sanitizedUrl = new URL(url, window.location.origin);
+      return sanitizedUrl.toString();
+    } catch {
+      return null;
+    }
+  };
+
   const getNavigationUrl = (item: T): string | null => {
-    return navigateTo ? navigateTo(item) : null
-  }
+    const url = navigateTo ? navigateTo(item) : null;
+    return sanitizeUrl(url);
+  };
 
   const shouldShowNavigation = (item: T): boolean => {
     if (!navigateTo) return false
