@@ -27,7 +27,7 @@ dynamic = ["dependencies"]
 
 [tool.poetry.dependencies]
 singer-sdk = { version="~=0.43.1", extras = [] }
-requests = "~=2.32.3"
+requests = "~=2.32.4"
 
 [tool.poetry.group.dev.dependencies]
 pytest = ">=8"
