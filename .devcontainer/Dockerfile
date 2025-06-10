@@ -8,8 +8,9 @@ RUN apt-get update && apt-get install -y \
 # Create vscode user
 RUN useradd -m -s /bin/bash -u 1000 vscode
 
-# Install Nix as root in single-user mode for the vscode user
-RUN curl -L https://nixos.org/nix/install > /tmp/install-nix && \
+# Create /nix directory and install Nix in single-user mode
+RUN mkdir -m 0755 /nix && \
+    curl -L https://nixos.org/nix/install > /tmp/install-nix && \
     bash /tmp/install-nix --no-daemon && \
     rm /tmp/install-nix
 
