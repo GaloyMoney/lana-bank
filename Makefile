@@ -187,6 +187,16 @@ sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test in
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
+start-cypress-stack:
+	CI_MODE="${CI_MODE:-false}" ./bin/start-cypress-stack.sh
+
+stop-cypress-stack:
+	@echo "--- Stopping Cypress Stack ---"
+	@pkill -f "lana-cli" || true
+	@pkill -f "admin-panel.*pnpm.*dev" || true
+	@rm -f .core.pid .admin-panel.pid cypress-stack.log admin-panel.log || true
+	@$(MAKE) clean-deps
+
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh
 

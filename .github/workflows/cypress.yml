@@ -25,8 +25,10 @@ jobs:
           free_disk_space: false
       - uses: ./.github/actions/cache-pnpm 
       - run: nix develop -c make build-for-tests
-      - run: nix develop -c make tilt-in-ci
+      - name: Start services for Cypress tests
+        run: nix develop -c make start-cypress-stack
         env:
+          CI_MODE: "true"
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -43,6 +45,10 @@ jobs:
         with:
           name: videos
           path: apps/admin-panel/cypress/videos/*
+
+      - name: Stop services
+        if: always()
+        run: nix develop -c make stop-cypress-stack
 
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
