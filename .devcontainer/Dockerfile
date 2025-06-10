@@ -5,8 +5,9 @@ RUN apt-get update && apt-get install -y \
     curl git bash ca-certificates xz-utils build-essential \
     && rm -rf /var/lib/apt/lists/*
 
-# Create vscode user
-RUN useradd -m -s /bin/bash -u 1000 vscode
+# Create vscode user and nixbld group
+RUN useradd -m -s /bin/bash -u 1000 vscode && \
+    groupadd -g 30000 nixbld
 
 # Create /nix directory and install Nix in single-user mode
 RUN mkdir -m 0755 /nix && \
