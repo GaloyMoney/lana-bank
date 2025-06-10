@@ -1,46 +1,31 @@
-FROM ubuntu:22.04
+FROM nixos/nix:latest
 
-# Install system dependencies
-RUN apt-get update && apt-get install -y \
-    curl git bash ca-certificates xz-utils build-essential direnv \
-    && rm -rf /var/lib/apt/lists/*
+# Install basic tools and create vscode user
+RUN nix-env -iA \
+    nixpkgs.shadow \
+    nixpkgs.git \
+    nixpkgs.direnv \
+    nixpkgs.cacert && \
+    useradd -m -s /bin/bash vscode && \
+    mkdir -p /nix/var/nix/profiles/per-user/vscode && \
+    chown -R vscode:vscode /nix/var/nix/profiles/per-user/vscode
 
-# Create vscode user, nixbld group, and nixbld user
-RUN useradd -m -s /bin/bash -u 1000 vscode && \
-    groupadd -g 30000 nixbld && \
-    useradd -g nixbld -G nixbld -s /bin/false -c "Nix build user" -d /var/empty nixbld1
-
-# Create /nix directory and install Nix in single-user mode
-RUN mkdir -m 0755 /nix && \
-    curl -L https://nixos.org/nix/install > /tmp/install-nix && \
-    bash /tmp/install-nix --no-daemon && \
-    rm /tmp/install-nix
-
-# Configure Nix
-RUN mkdir -p /etc/nix && \
-    echo 'experimental-features = nix-command flakes' > /etc/nix/nix.conf && \
-    echo 'sandbox = false' >> /etc/nix/nix.conf
-
-# Set ownership of Nix to vscode user since we're using single-user mode
-RUN chown -R vscode:vscode /nix
-
-# Switch to vscode user and set up environment
+# Switch to vscode user
 USER vscode
 WORKDIR /home/vscode
 
-# Set up shell environment
+# Install nix-direnv for the vscode user
+RUN nix-env -iA nixpkgs.nix-direnv
+
+# Configure direnv to use nix-direnv
+RUN mkdir -p ~/.config/direnv && \
+    echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' > ~/.config/direnv/direnvrc
+
+# Add direnv hook to bash
+RUN echo 'eval "$(direnv hook bash)"' >> ~/.bashrc
+
+# Set environment variables
 ENV USER=vscode
-RUN echo 'source /nix/var/nix/profiles/default/etc/profile.d/nix.sh' >> ~/.bashrc && \
-    echo 'export USER=vscode' >> ~/.bashrc && \
-    echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
-    echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && \
-    cp ~/.bashrc ~/.profile
+ENV NIX_PATH=nixpkgs=channel:nixos-unstable
 
-# Set up workspace
-USER root
-RUN mkdir -p /workspaces && chown vscode:vscode /workspaces
-USER vscode
-WORKDIR /workspaces
-
-# Default command
-CMD ["/bin/bash"]
+WORKDIR /workspaces/lana-bank
