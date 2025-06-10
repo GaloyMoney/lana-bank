@@ -160,7 +160,7 @@ where
             .enforce_permission(
                 sub,
                 CoreCustodyObject::wallet(wallet_id),
-                CoreCustodyAction::CUSTODIAN_CREATE_WALLET,
+                CoreCustodyAction::WALLET_GENERATE_ADDRESS,
             )
             .await?;
 
