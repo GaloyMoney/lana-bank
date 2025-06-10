@@ -33,8 +33,8 @@ cleanup() {
     make clean-deps-podman || true
 }
 
-# Set up trap for cleanup
-trap cleanup EXIT INT TERM
+# Set up trap for cleanup only on interruption, not normal exit
+trap cleanup INT TERM
 
 # Check if required commands are available
 command -v podman >/dev/null 2>&1 || { echo "Error: podman not found"; exit 1; }
