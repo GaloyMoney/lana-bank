@@ -23,7 +23,7 @@ FILES=(-f "$BASE")
 
 # ── Pull images first (prevents concurrent map writes) ─────────────────────────
 echo "Pulling Docker images..."
-"$ENGINE" compose "${FILES[@]}" pull --no-parallel
+"$ENGINE" compose "${FILES[@]}" pull
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
