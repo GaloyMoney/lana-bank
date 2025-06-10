@@ -392,10 +392,20 @@ where
         let account_ids = CreditFacilityAccountIds::new();
         let collateral_id = CollateralId::new();
 
+        let mut db = self.facilities.begin_op().await?;
+
         let wallet_id = if let Some(custodian_id) = custodian_id {
-            let wallet = self.custody.create_new_wallet(sub, custodian_id).await?;
+            let wallet = self
+                .custody
+                .create_new_wallet_in_op(&mut db, sub, custodian_id)
+                .await?;
             self.custody
-                .generate_wallet_address(sub, wallet.id, &format!("Credit Facility {id}"))
+                .generate_wallet_address_in_op(
+                    &mut db,
+                    sub,
+                    wallet.id,
+                    &format!("Credit Facility {id}"),
+                )
                 .await?;
 
             Some(wallet.id)
@@ -416,8 +426,6 @@ where
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new credit facility");
-
-        let mut db = self.facilities.begin_op().await?;
 
         self.collaterals
             .create_in_op(

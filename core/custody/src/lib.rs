@@ -8,6 +8,7 @@ mod primitives;
 mod publisher;
 pub mod wallet;
 
+use es_entity::DbOp;
 pub use event::CoreCustodyEvent;
 use outbox::OutboxEventMarker;
 pub use publisher::CustodyPublisher;
@@ -122,8 +123,9 @@ where
             .await?)
     }
 
-    pub async fn create_new_wallet(
+    pub async fn create_new_wallet_in_op(
         &self,
+        db: &mut DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         custodian_id: CustodianId,
     ) -> Result<Wallet, CoreCustodyError> {
@@ -143,11 +145,12 @@ where
             .build()
             .expect("all fields for new wallet provided");
 
-        Ok(self.wallets.create(new_wallet).await?)
+        Ok(self.wallets.create_in_op(db, new_wallet).await?)
     }
 
-    pub async fn generate_wallet_address(
+    pub async fn generate_wallet_address_in_op(
         &self,
+        db: &mut DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         wallet_id: WalletId,
         label: &str,
@@ -161,8 +164,11 @@ where
             )
             .await?;
 
-        let mut wallet = self.wallets.find_by_id(&wallet_id).await?;
-        let custodian = self.custodians.find_by_id(&wallet.custodian_id).await?;
+        let mut wallet = self.wallets.find_by_id_in_tx(db.tx(), &wallet_id).await?;
+        let custodian = self
+            .custodians
+            .find_by_id_in_tx(db.tx(), &wallet.custodian_id)
+            .await?;
 
         let client = custodian.custodian_client().await?;
         let address = client.create_address(label).await?;
@@ -176,7 +182,7 @@ where
             )
             .did_execute()
         {
-            self.wallets.update(&mut wallet).await?;
+            self.wallets.update_in_op(db, &mut wallet).await?;
         }
 
         Ok(())
