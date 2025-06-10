@@ -723,15 +723,10 @@ export type CreditModuleConfigurePayload = {
 export type Custodian = {
   __typename?: 'Custodian';
   createdAt: Scalars['Timestamp']['output'];
-  custodianConfig?: Maybe<CustodianConfig>;
   custodianId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
-
-export enum CustodianConfig {
-  Komainu = 'KOMAINU'
-}
 
 export type CustodianConfigInput =
   { komainu: KomainuConfig; };
