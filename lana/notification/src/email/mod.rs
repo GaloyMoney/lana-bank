@@ -1,6 +1,5 @@
 pub mod config;
 pub mod error;
-pub mod executor;
 pub mod job;
 
 mod smtp;
@@ -20,7 +19,6 @@ use core_credit::{
     ObligationId, ObligationType,
 };
 use core_customer::{CoreCustomerAction, CustomerObject, Customers};
-use executor::EmailExecutor;
 use governance::{GovernanceAction, GovernanceObject};
 use job::{EmailSenderConfig, EmailSenderInitializer};
 use lana_events::{CoreCreditEvent, CoreCustomerEvent, GovernanceEvent};
@@ -103,10 +101,9 @@ where
         customers: &Customers<Perms, E>,
     ) -> Result<Self, EmailError> {
         let smtp_client = SmtpClient::init(config.smtp)?;
-        let executor = EmailExecutor::new(smtp_client);
         let template = EmailTemplate::new()?;
 
-        jobs.add_initializer(EmailSenderInitializer::new(executor, template));
+        jobs.add_initializer(EmailSenderInitializer::new(smtp_client, template));
 
         Ok(Self {
             jobs: jobs.clone(),
@@ -139,13 +136,13 @@ where
             .find_by_id(&subject, *credit_facility_id)
             .await
             .map_err(CoreCreditError::from)?
-            .unwrap();
+            .ok_or(EmailError::CreditFacilityNotFound)?;
 
         let customer = self
             .customers
             .find_by_id(&subject, credit_facility.customer_id)
             .await?
-            .unwrap();
+            .ok_or(EmailError::CustomerNotFound)?;
 
         let obligation_type = match obligation.obligation_type {
             ObligationType::Disbursal => "Principal Repayment",

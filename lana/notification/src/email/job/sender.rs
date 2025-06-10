@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use serde::{Deserialize, Serialize};
 
-use crate::email::{executor::EmailExecutor, templates::EmailTemplate};
+use crate::email::{smtp::SmtpClient, templates::EmailTemplate};
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct EmailSenderConfig {
@@ -17,13 +17,16 @@ impl JobConfig for EmailSenderConfig {
 
 #[derive(Clone)]
 pub struct EmailSenderInitializer {
-    executor: EmailExecutor,
+    smtp_client: SmtpClient,
     template: EmailTemplate,
 }
 
 impl EmailSenderInitializer {
-    pub fn new(executor: EmailExecutor, template: EmailTemplate) -> Self {
-        Self { executor, template }
+    pub fn new(smtp_client: SmtpClient, template: EmailTemplate) -> Self {
+        Self {
+            smtp_client,
+            template,
+        }
     }
 }
 
@@ -37,7 +40,7 @@ impl JobInitializer for EmailSenderInitializer {
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(EmailSenderRunner {
             config: job.config()?,
-            executor: self.executor.clone(),
+            smtp_client: self.smtp_client.clone(),
             template: self.template.clone(),
         }))
     }
@@ -45,7 +48,7 @@ impl JobInitializer for EmailSenderInitializer {
 
 pub struct EmailSenderRunner {
     config: EmailSenderConfig,
-    executor: EmailExecutor,
+    smtp_client: SmtpClient,
     template: EmailTemplate,
 }
 
@@ -55,13 +58,11 @@ impl JobRunner for EmailSenderRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        self.executor
-            .execute_email(
-                &self.config.recipient,
-                &self.config.subject,
-                &self.config.template_data,
-                &self.template,
-            )
+        let body = self
+            .template
+            .generic_email_template(&self.config.subject, &self.config.template_data)?;
+        self.smtp_client
+            .send_email(&self.config.recipient, &self.config.subject, body)
             .await?;
         Ok(JobCompletion::Complete)
     }
