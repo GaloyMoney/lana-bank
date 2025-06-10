@@ -68,20 +68,20 @@ echo $! > "$CORE_PID_FILE"
 
 # Step 4: Wait for core server to be ready
 echo "Waiting for core server to be ready..."
-for i in {1..120}; do
+for i in {1..300}; do
     # Try both the GraphQL endpoint and health endpoint
     if curl -s -f "http://localhost:5253/health" >/dev/null 2>&1 || \
        curl -s -f "http://localhost:5253/graphql" >/dev/null 2>&1; then
         echo "Core server is ready!"
         break
     fi
-    if [[ $i -eq 120 ]]; then
-        echo "Core server failed to start within 120 seconds"
+    if [[ $i -eq 300 ]]; then
+        echo "Core server failed to start within 300 seconds"
         echo "Server logs:"
         cat "$LOG_FILE"
         exit 1
     fi
-    echo "Waiting for core server... ($i/120)"
+    echo "Waiting for core server... ($i/300)"
     sleep 1
 done
 
