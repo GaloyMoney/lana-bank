@@ -195,7 +195,7 @@ stop-cypress-stack:
 	@pkill -f "lana-cli" || true
 	@pkill -f "admin-panel.*pnpm.*dev" || true
 	@rm -f .core.pid .admin-panel.pid cypress-stack.log admin-panel.log || true
-	@$(MAKE) clean-deps
+	@$(MAKE) clean-deps-podman
 
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh

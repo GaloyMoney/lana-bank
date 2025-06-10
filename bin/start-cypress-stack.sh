@@ -30,9 +30,9 @@ cleanup() {
     pkill -f "lana-cli" || true
     pkill -f "admin-panel.*pnpm.*dev" || true
     
-    # Stop docker services only if not in CI mode (CI will handle cleanup separately)
+    # Stop podman services only if not in CI mode (CI will handle cleanup separately)
     if [[ "$CI_MODE" != "true" ]]; then
-        make clean-deps || true
+        make clean-deps-podman || true
     fi
 }
 
@@ -42,15 +42,15 @@ if [[ "$CI_MODE" != "true" ]]; then
 fi
 
 # Check if required commands are available
-command -v docker >/dev/null 2>&1 || { echo "Error: docker not found"; exit 1; }
-command -v cargo >/dev/null 2>&1 || { echo "Error: cargo not found"; exit 1; }
+command -v podman >/dev/null 2>&1 || { echo "Error: podman not found"; exit 1; }
+command -v nix >/dev/null 2>&1 || { echo "Error: nix not found"; exit 1; }
 command -v pnpm >/dev/null 2>&1 || { echo "Error: pnpm not found"; exit 1; }
 
 echo "Starting Cypress test stack..."
 
 # Step 1: Start dependencies (databases, auth services, etc.)
-echo "Starting dependencies..."
-make start-deps
+echo "Starting dependencies with podman..."
+make start-deps-podman
 
 # Step 2: Setup database
 echo "Setting up database..."
@@ -62,26 +62,26 @@ export PG_CON="postgres://user:password@localhost:5433/pg"
 export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
 export BFX_LOCAL_PRICE="${BFX_LOCAL_PRICE:-1}"
 
-# Start server in background and capture PID
-nohup cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml > "$LOG_FILE" 2>&1 &
+# Start server in background and capture PID using nix
+nohup nix develop -c cargo run --bin lana-cli --features sim-time -- --config ./bats/lana-sim-time.yml > "$LOG_FILE" 2>&1 &
 echo $! > "$CORE_PID_FILE"
 
 # Step 4: Wait for core server to be ready
 echo "Waiting for core server to be ready..."
-for i in {1..60}; do
+for i in {1..120}; do
     # Try both the GraphQL endpoint and health endpoint
     if curl -s -f "http://localhost:5253/health" >/dev/null 2>&1 || \
        curl -s -f "http://localhost:5253/graphql" >/dev/null 2>&1; then
         echo "Core server is ready!"
         break
     fi
-    if [[ $i -eq 60 ]]; then
-        echo "Core server failed to start within 60 seconds"
+    if [[ $i -eq 120 ]]; then
+        echo "Core server failed to start within 120 seconds"
         echo "Server logs:"
         cat "$LOG_FILE"
         exit 1
     fi
-    echo "Waiting for core server... ($i/60)"
+    echo "Waiting for core server... ($i/120)"
     sleep 1
 done
 
@@ -91,26 +91,26 @@ export NEXT_PUBLIC_BASE_PATH="/admin"
 export NEXT_PUBLIC_CORE_ADMIN_URL="/admin/graphql"
 
 cd apps/admin-panel
-nohup pnpm install --frozen-lockfile && pnpm dev > "../../admin-panel.log" 2>&1 &
+nohup nix develop -c bash -c "pnpm install --frozen-lockfile && pnpm dev" > "../../admin-panel.log" 2>&1 &
 echo $! > "../../$ADMIN_PANEL_PID_FILE"
 cd ../..
 
 # Step 6: Wait for admin panel to be ready
 echo "Waiting for admin panel to be ready..."
-for i in {1..120}; do
+for i in {1..180}; do
     # Try both the admin page and health endpoint through oathkeeper proxy
     if curl -s -f "http://localhost:4455/admin/api/health" >/dev/null 2>&1 || \
        curl -s -f "http://localhost:4455/admin" >/dev/null 2>&1; then
         echo "Admin panel is ready!"
         break
     fi
-    if [[ $i -eq 120 ]]; then
-        echo "Admin panel failed to start within 120 seconds"
+    if [[ $i -eq 180 ]]; then
+        echo "Admin panel failed to start within 180 seconds"
         echo "Admin panel logs:"
         cat admin-panel.log
         exit 1
     fi
-    echo "Waiting for admin panel... ($i/120)"
+    echo "Waiting for admin panel... ($i/180)"
     sleep 1
 done
 
