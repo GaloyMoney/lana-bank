@@ -41,43 +41,19 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
+
       - uses: actions/setup-python@v5
         with:
           python-version: "3.12"
 
-      - name: Install pip-audit + TOML parser
-        run: |
-          python -m pip install --no-cache-dir pip-audit tomli
+      # ─── Meltano extractor: tap-sumsubapi ─────────────────────
+      - name: pip-audit (tap-sumsubapi)
+        uses: pypa/gh-action-pip-audit@v1.1.0
+        with:
+          inputs: meltano/extract/tap-sumsubapi
 
-      - name: Convert every poetry.lock and audit
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          # 1) find all lockfiles
-          mapfile -t LOCKFILES < <(find . -type f -name 'poetry.lock' | sort)
-          if [ "${#LOCKFILES[@]}" -eq 0 ]; then
-            echo "⚠️  No poetry.lock files found – skipping pip-audit."
-            exit 0
-          fi
-
-          # 2) turn each lock into a requirements.txt and audit it
-          for lock in "${LOCKFILES[@]}"; do
-            dir="$(dirname "$lock")"
-            echo ""
-            echo "🔍 pip-audit → $dir"
-
-            tmp_req="$(mktemp)"
-
-            python - "$lock" "$tmp_req" << 'PY'
-import sys, tomli, pathlib
-lock_path, out_path = map(pathlib.Path, sys.argv[1:3])
-data = tomli.loads(lock_path.read_text())
-with out_path.open("w") as f:
-    for pkg in data.get("package", []):
-        if pkg.get("category", "main") == "main":
-            f.write(f"{pkg['name']}=={pkg['version']}\n")
-PY
-
-            pip-audit -r "$tmp_req"
-          done
+      # ─── Meltano extractor: tap-bitfinexapi ───────────────────
+      - name: pip-audit (tap-bitfinexapi)
+        uses: pypa/gh-action-pip-audit@v1.1.0
+        with:
+          inputs: meltano/extract/tap-bitfinexapi
