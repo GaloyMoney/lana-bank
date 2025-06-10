@@ -1,9 +1,9 @@
 {
   lib,
-  python3,
+  python311,
   fetchPypi,
 }:
-python3.pkgs.buildPythonApplication rec {
+python311.pkgs.buildPythonApplication rec {
   pname = "meltano";
   version = "3.7.8";
   pyproject = true;
@@ -13,11 +13,11 @@ python3.pkgs.buildPythonApplication rec {
     hash = "sha256-dwYJzgqa4pYuXR2oadf6jRJV0ZX5r+mpSE8Km9lzDLI=";
   };
 
-  nativeBuildInputs = with python3.pkgs; [
+  nativeBuildInputs = with python311.pkgs; [
     hatchling
   ];
 
-  propagatedBuildInputs = with python3.pkgs; [
+  propagatedBuildInputs = with python311.pkgs; [
     click
     pyyaml
     requests
@@ -34,7 +34,7 @@ python3.pkgs.buildPythonApplication rec {
     structlog
     watchdog
     click-default-group
-    fasteners
+    (fasteners.overridePythonAttrs (old: {doCheck = false;}))
     croniter
     pathvalidate
     click-didyoumean
