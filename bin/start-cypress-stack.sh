@@ -7,7 +7,6 @@ set -euo pipefail
 LOG_FILE="cypress-stack.log"
 CORE_PID_FILE=".core.pid"
 ADMIN_PANEL_PID_FILE=".admin-panel.pid"
-CI_MODE="${CI_MODE:-false}"
 
 # Cleanup function
 cleanup() {
@@ -30,16 +29,12 @@ cleanup() {
     pkill -f "lana-cli" || true
     pkill -f "admin-panel.*pnpm.*dev" || true
     
-    # Stop podman services only if not in CI mode (CI will handle cleanup separately)
-    if [[ "$CI_MODE" != "true" ]]; then
-        make clean-deps-podman || true
-    fi
+    # Stop podman services
+    make clean-deps-podman || true
 }
 
-# Set up trap for cleanup only if not in CI mode
-if [[ "$CI_MODE" != "true" ]]; then
-    trap cleanup EXIT INT TERM
-fi
+# Set up trap for cleanup
+trap cleanup EXIT INT TERM
 
 # Check if required commands are available
 command -v podman >/dev/null 2>&1 || { echo "Error: podman not found"; exit 1; }
@@ -134,12 +129,6 @@ echo "📋 Logs:"
 echo "  Core server: $LOG_FILE"
 echo "  Admin panel: admin-panel.log"
 
-# In CI mode, just exit after starting services
-# In dev mode, keep the script running until interrupted
-if [[ "$CI_MODE" == "true" ]]; then
-    echo "CI mode: Services started, script exiting"
-    exit 0
-else
-    echo "Dev mode: Keeping services running. Press Ctrl+C to stop."
-    wait
-fi
+# Services started successfully, exiting
+echo "Services started successfully!"
+exit 0

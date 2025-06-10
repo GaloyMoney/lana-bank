@@ -188,7 +188,7 @@ tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
 start-cypress-stack:
-	CI_MODE="${CI_MODE:-false}" ./bin/start-cypress-stack.sh
+	./bin/start-cypress-stack.sh
 
 stop-cypress-stack:
 	@echo "--- Stopping Cypress Stack ---"
