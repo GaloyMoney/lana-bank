@@ -2,7 +2,7 @@ FROM ubuntu:22.04
 
 # Install system dependencies
 RUN apt-get update && apt-get install -y \
-    curl git bash ca-certificates xz-utils build-essential \
+    curl git bash ca-certificates xz-utils build-essential direnv \
     && rm -rf /var/lib/apt/lists/*
 
 # Create vscode user, nixbld group, and nixbld user
