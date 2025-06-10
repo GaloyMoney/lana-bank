@@ -129,15 +129,53 @@ echo "Environment variables:"
 echo "  CI: ${CI:-not set}"
 echo "  COOKIES: ${COOKIES:0:50}..." # Show first 50 chars of cookies
 
+echo "--- Cypress environment check ---"
+echo "Cypress config file exists: $(test -f cypress.config.ts && echo 'YES' || echo 'NO')"
+echo "Cypress binary location: $(which cypress 2>/dev/null || echo 'NOT FOUND')"
+echo "Cypress version: $(pnpm exec cypress --version 2>/dev/null || echo 'NOT AVAILABLE')"
+echo "Node.js version: $(node --version 2>/dev/null || echo 'NOT AVAILABLE')"
+echo "Pnpm version: $(pnpm --version 2>/dev/null || echo 'NOT AVAILABLE')"
+echo "--- Environment variables ---"
+echo "  CI: ${CI:-not set}"
+echo "  DISPLAY: ${DISPLAY:-not set}"
+echo "  HOME: ${HOME:-not set}"
+echo "  PATH: ${PATH:0:100}..." # Show first 100 chars of PATH
+
+# Ensure cypress directories exist
+mkdir -p cypress/results cypress/videos cypress/screenshots cypress/manuals/screenshots
+echo "Created cypress output directories"
+
 if [[ $EXECUTION_MODE == "ui" ]]; then
   echo "Running cypress in UI mode..."
-  nix develop -c pnpm run cypress:run-local
+  if ! nix develop -c pnpm run cypress:run-local; then
+    echo "ERROR: Cypress UI mode failed with exit code $?"
+    exit 1
+  fi
 elif [[ $EXECUTION_MODE == "headless" ]]; then
   echo "Running cypress in headless mode..."
-  nix develop -c pnpm run cypress:run-headless
+  echo "About to execute: nix develop -c pnpm run cypress:run-headless"
+  if ! timeout 600 nix develop -c pnpm run cypress:run-headless; then
+    local exit_code=$?
+    echo "ERROR: Cypress headless mode failed with exit code $exit_code"
+    echo "--- Debugging information ---"
+    echo "Process list:"
+    ps aux | grep -E "(cypress|chrome|electron)" || echo "No cypress/chrome/electron processes found"
+    echo "Network connections:"
+    netstat -tulpn | grep -E "(3001|4455|5253)" || echo "No relevant network connections found"
+    echo "Disk space:"
+    df -h
+    echo "Memory usage:"
+    free -h 2>/dev/null || echo "free command not available"
+    exit $exit_code
+  fi
 elif [[ $EXECUTION_MODE == "browserstack" ]]; then
   echo "Running cypress in browserstack mode..."
-  nix develop -c pnpm run cypress:run-browserstack
+  if ! nix develop -c pnpm run cypress:run-browserstack; then
+    echo "ERROR: Cypress browserstack mode failed with exit code $?"
+    exit 1
+  fi
   mv $(find build_artifacts -type d -name "screenshots") cypress/manuals
   rm -rf build_artifacts
 fi
+
+echo "--- Cypress execution completed successfully ---"

@@ -18,7 +18,7 @@
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
     "cypress:run": "./cypress/run.sh",
     "cypress:run-local": "COOKIES=$COOKIES cypress open --env COOKIES=$COOKIES",
-    "cypress:run-headless": "COOKIES=$COOKIES cypress run  --env COOKIES=$COOKIES",
+    "cypress:run-headless": "COOKIES=$COOKIES cypress run --env COOKIES=$COOKIES --reporter spec",
     "cypress:run-browserstack": "COOKIES=$COOKIES browserstack-cypress run  --env COOKIES=$COOKIES",
     "local:pdf": "cd cypress/manuals && ./local-pdf.sh"
   },

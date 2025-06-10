@@ -161,7 +161,7 @@ test-cypress-in-ci-locally:
 	@curl -s http://localhost:5253/health || echo "Core server health check failed"
 	@curl -s http://localhost:3001 || echo "Admin panel health check failed" 
 	@echo "--- Running Cypress Tests ---"
-	cd apps/admin-panel && DEBUG=cypress:* pnpm cypress:run headless
+	cd apps/admin-panel && CI=true DEBUG=cypress:* pnpm cypress:run headless
 
 # Meltano
 bitfinex-run:
