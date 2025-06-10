@@ -10,7 +10,14 @@ let
       # Apply doCheck = false to all Python packages
       lib.mapAttrs (name: pkg: 
         if lib.isDerivation pkg && pkg ? overridePythonAttrs then
-          pkg.overridePythonAttrs (old: { doCheck = false; })
+          pkg.overridePythonAttrs (old: {
+            doCheck = false;
+            preBuild = (old.preBuild or "") + ''
+              # Ensure proper permissions on source files
+              find . -type f -exec chmod 644 {} \;
+              find . -type d -exec chmod 755 {} \;
+            '';
+          })
         else pkg
       ) super // {
         # Special handling for celery to fix permission issues
