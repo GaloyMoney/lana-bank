@@ -153,7 +153,15 @@ build-storybook-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm run build-storybook
 
 test-cypress-in-ci-locally:
-	cd apps/admin-panel && pnpm cypress:run headless
+	@echo "--- Starting Cypress Tests ---"
+	@echo "Working directory: $(shell pwd)"
+	@echo "Node version: $(shell node --version 2>/dev/null || echo 'Node not found')"
+	@echo "Pnpm version: $(shell pnpm --version 2>/dev/null || echo 'Pnpm not found')"
+	@echo "Checking if services are running..."
+	@curl -s http://localhost:5253/health || echo "Core server health check failed"
+	@curl -s http://localhost:3001 || echo "Admin panel health check failed" 
+	@echo "--- Running Cypress Tests ---"
+	cd apps/admin-panel && DEBUG=cypress:* pnpm cypress:run headless
 
 # Meltano
 bitfinex-run:
