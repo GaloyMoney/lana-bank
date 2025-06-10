@@ -5,37 +5,38 @@ RUN apt-get update && apt-get install -y \
     curl git bash ca-certificates xz-utils build-essential direnv \
     && rm -rf /var/lib/apt/lists/*
 
-# Create vscode user, nixbld group, and nixbld user
-RUN useradd -m -s /bin/bash -u 1000 vscode && \
-    groupadd -g 30000 nixbld && \
-    useradd -g nixbld -G nixbld -s /bin/false -c "Nix build user" -d /var/empty nixbld1
+# Create vscode user
+RUN useradd -m -s /bin/bash -u 1000 vscode
 
-# Create /nix directory and install Nix in single-user mode
-RUN mkdir -m 0755 /nix && \
-    curl -L https://nixos.org/nix/install > /tmp/install-nix && \
+# Create /nix directory with proper ownership
+RUN mkdir -m 0755 /nix && chown vscode:vscode /nix
+
+# Switch to vscode user to install Nix
+USER vscode
+WORKDIR /home/vscode
+
+# Install Nix as vscode user in single-user mode
+RUN curl -L https://nixos.org/nix/install > /tmp/install-nix && \
     bash /tmp/install-nix --no-daemon && \
     rm /tmp/install-nix
 
-# Configure Nix
+# Configure Nix (back to root temporarily)
+USER root
 RUN mkdir -p /etc/nix && \
     echo 'experimental-features = nix-command flakes' > /etc/nix/nix.conf && \
     echo 'sandbox = false' >> /etc/nix/nix.conf
 
-# Set ownership of Nix to vscode user since we're using single-user mode
-RUN chown -R vscode:vscode /nix
-
-# Switch to vscode user and set up environment
+# Switch back to vscode user
 USER vscode
 WORKDIR /home/vscode
 
 # Set up shell environment and install nix-direnv
 ENV USER=vscode
-ENV PATH="/nix/var/nix/profiles/default/bin:$HOME/.nix-profile/bin:$PATH"
 RUN echo 'export USER=vscode' >> ~/.bashrc && \
-    echo 'export PATH="/nix/var/nix/profiles/default/bin:$HOME/.nix-profile/bin:$PATH"' >> ~/.bashrc && \
-    echo 'source /nix/var/nix/profiles/default/etc/profile.d/nix.sh' >> ~/.bashrc && \
-    /nix/var/nix/profiles/default/bin/nix profile install nixpkgs#nix-direnv && \
-    echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' >> ~/.bashrc && \
+    echo 'source ~/.nix-profile/etc/profile.d/nix.sh' >> ~/.bashrc && \
+    bash -c 'source ~/.nix-profile/etc/profile.d/nix.sh && nix profile install nixpkgs#nix-direnv' && \
+    mkdir -p ~/.config/direnv && \
+    echo 'source $HOME/.nix-profile/share/nix-direnv/direnvrc' > ~/.config/direnv/direnvrc && \
     echo 'eval "$(direnv hook bash)"' >> ~/.bashrc && \
     echo 'cd /workspaces/lana-bank 2>/dev/null || true' >> ~/.bashrc && \
     cp ~/.bashrc ~/.profile
