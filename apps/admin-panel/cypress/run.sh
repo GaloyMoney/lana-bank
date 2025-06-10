@@ -53,18 +53,16 @@ login_superadmin() {
 
   sleep 2
 
-  KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
-  
   echo "--- Fetching verification code from database ---"
   local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
   echo "Query: $query"
-  local result=$(psql $KRATOS_PG_CON -t -c "${query}")
+  local result=$(podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "${query}")
   echo "DB result: $result"
 
   if [[ -z "$result" ]]; then
     echo "No message for email ${email}" >&2
     echo "--- Checking all messages in database ---"
-    psql $KRATOS_PG_CON -c "SELECT recipient, created_at, body FROM courier_messages ORDER BY created_at DESC LIMIT 10;"
+    podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -c "SELECT recipient, created_at, body FROM courier_messages ORDER BY created_at DESC LIMIT 10;"
     exit 1
   fi
 

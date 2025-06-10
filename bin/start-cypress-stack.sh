@@ -43,13 +43,47 @@ command -v pnpm >/dev/null 2>&1 || { echo "Error: pnpm not found"; exit 1; }
 
 echo "Starting Cypress test stack..."
 
+# Ensure proper podman setup for CI environment
+echo "Setting up podman environment..."
+export ENGINE_DEFAULT=podman
+
+# Setup podman if not already configured
+if [ "$(uname)" = "Linux" ] && [ "${CI:-}${CI_MODE:-}" = "true" ]; then
+    echo "CI environment detected, setting up podman..."
+    make podman-setup
+else
+    echo "Development environment, skipping podman setup"
+fi
+
 # Step 1: Start dependencies (databases, auth services, etc.)
 echo "Starting dependencies with podman..."
 make start-deps-podman
 
+# Add diagnostic info after starting dependencies
+echo "Checking dependency startup status..."
+sleep 5
+podman ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || true
+
 # Step 2: Setup database
 echo "Setting up database..."
 make setup-db
+
+# Add database connectivity check
+echo "Checking database connectivity..."
+for i in {1..30}; do
+    if podman exec lana-bank-core-pg-1 pg_isready -U user >/dev/null 2>&1; then
+        echo "Core database is ready!"
+        break
+    fi
+    if [[ $i -eq 30 ]]; then
+        echo "Core database failed to start within 30 seconds"
+        echo "Container logs:"
+        podman logs lana-bank-core-pg-1 --tail 50 || true
+        exit 1
+    fi
+    echo "Waiting for core database... ($i/30)"
+    sleep 1
+done
 
 # Step 3: Start core backend server in background
 echo "Starting core server..."
