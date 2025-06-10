@@ -36,6 +36,7 @@ jobs:
       - run: pnpm install
       - run: pnpm audit --audit-level=high
 
+  # ---------- Python / Poetry (lockfile → requirements → pip-audit) ----------
   pip_audit:
     runs-on: ubuntu-latest
     steps:
@@ -49,6 +50,7 @@ jobs:
           python -m pip install --no-cache-dir pip-audit tomli
 
       - name: Convert every poetry.lock and audit
+        shell: bash
         run: |
           set -euo pipefail
 
@@ -61,21 +63,20 @@ jobs:
 
           # 2) turn each lock into a requirements.txt and audit it
           for lock in "${LOCKFILES[@]}"; do
-            dir=$(dirname "$lock")
+            dir="$(dirname "$lock")"
             echo ""
             echo "🔍 pip-audit → $dir"
 
-            tmp_req=$(mktemp)
+            tmp_req="$(mktemp)"
 
-            python - <<'PY' "$lock" "$tmp_req"
-import sys, tomli, pathlib, textwrap
+            python - "$lock" "$tmp_req" << 'PY'
+import sys, tomli, pathlib
 lock_path, out_path = map(pathlib.Path, sys.argv[1:3])
 data = tomli.loads(lock_path.read_text())
-pkgs = data.get("package", [])
 with out_path.open("w") as f:
-    for p in pkgs:
-        if p.get("category", "main") == "main":
-            f.write(f"{p['name']}=={p['version']}\n")
+    for pkg in data.get("package", []):
+        if pkg.get("category", "main") == "main":
+            f.write(f"{pkg['name']}=={pkg['version']}\n")
 PY
 
             pip-audit -r "$tmp_req"
