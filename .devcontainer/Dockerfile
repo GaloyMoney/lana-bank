@@ -18,13 +18,19 @@ WORKDIR /home/vscode
 # Install Nix as vscode user in single-user mode
 RUN curl -L https://nixos.org/nix/install > /tmp/install-nix && \
     bash /tmp/install-nix --no-daemon && \
-    rm /tmp/install-nix
+    rm /tmp/install-nix && \
+    find /nix -type f -exec chmod u+w {} \; && \
+    find /nix -type d -exec chmod u+w {} \;
 
 # Configure Nix (back to root temporarily)
 USER root
 RUN mkdir -p /etc/nix && \
     echo 'experimental-features = nix-command flakes' > /etc/nix/nix.conf && \
-    echo 'sandbox = false' >> /etc/nix/nix.conf
+    echo 'sandbox = false' >> /etc/nix/nix.conf && \
+    echo 'filter-syscalls = false' >> /etc/nix/nix.conf && \
+    echo 'restrict-eval = false' >> /etc/nix/nix.conf && \
+    echo 'allowed-users = *' >> /etc/nix/nix.conf && \
+    echo 'trusted-users = vscode' >> /etc/nix/nix.conf
 
 # Switch back to vscode user
 USER vscode
