@@ -44,7 +44,7 @@ local_resource(
         "NEXT_PUBLIC_BASE_PATH": "/admin",
         "NEXT_PUBLIC_CORE_ADMIN_URL": "/admin/graphql"
     },
-    serve_cmd = "cd .. && make start-admin",
+    serve_cmd = "cd .. && make start-admin-prod",
     readiness_probe = probe(
         initial_delay_secs = 3,
         period_secs = 1,

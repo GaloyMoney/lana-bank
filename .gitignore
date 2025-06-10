@@ -43,3 +43,4 @@ meltano/transform_duckdb/models
 meltano/.build
 meltano/**/dbt.log
 .claude/settings.local.json
+.venv

@@ -140,6 +140,9 @@ check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-por
 start-admin:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm dev
 
+start-admin-prod:
+	cd apps/admin-panel && pnpm start
+
 start-customer-portal:
 	cd apps/customer-portal && pnpm install --frozen-lockfile && pnpm dev
 
