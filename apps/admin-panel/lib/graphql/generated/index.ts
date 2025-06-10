@@ -723,8 +723,8 @@ export type CreditModuleConfigurePayload = {
 export type Custodian = {
   __typename?: 'Custodian';
   createdAt: Scalars['Timestamp']['output'];
-  custodianConfig: CustodianConfig;
-  custodianConfigId: Scalars['UUID']['output'];
+  custodianConfig?: Maybe<CustodianConfig>;
+  custodianId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
@@ -732,6 +732,19 @@ export type Custodian = {
 export enum CustodianConfig {
   Komainu = 'KOMAINU'
 }
+
+export type CustodianConfigInput =
+  { komainu: KomainuConfig; };
+
+export type CustodianConfigUpdateInput = {
+  config: CustodianConfigInput;
+  custodianId: Scalars['UUID']['input'];
+};
+
+export type CustodianConfigUpdatePayload = {
+  __typename?: 'CustodianConfigUpdatePayload';
+  custodian: Custodian;
+};
 
 export type CustodianConnection = {
   __typename?: 'CustodianConnection';
@@ -748,7 +761,7 @@ export type CustodianCreateInput =
 
 export type CustodianCreatePayload = {
   __typename?: 'CustodianCreatePayload';
-  custodianConfig: Custodian;
+  custodian: Custodian;
 };
 
 /** An edge in a connection. */
@@ -1278,6 +1291,7 @@ export type Mutation = {
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPayment: CreditFacilityPartialPaymentPayload;
   creditModuleConfigure: CreditModuleConfigurePayload;
+  custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
   customerCreate: CustomerCreatePayload;
   customerDocumentAttach: DocumentCreatePayload;
@@ -1377,6 +1391,11 @@ export type MutationCreditFacilityPartialPaymentArgs = {
 
 export type MutationCreditModuleConfigureArgs = {
   input: CreditModuleConfigureInput;
+};
+
+
+export type MutationCustodianConfigUpdateArgs = {
+  input: CustodianConfigUpdateInput;
 };
 
 
