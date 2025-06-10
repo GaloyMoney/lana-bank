@@ -63,8 +63,8 @@ export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
 export BFX_LOCAL_PRICE="${BFX_LOCAL_PRICE:-1}"
 
 # Start server in background and capture PID using nix
-nix build .#lana-cli
-nohup ./result/bin/lana-cli --features sim-time --config ./bats/lana-sim-time.yml > "$LOG_FILE" 2>&1 &
+nix build .
+nohup nix run . -- --config ./bats/lana-sim-time.yml > "$LOG_FILE" 2>&1 &
 echo $! > "$CORE_PID_FILE"
 
 # Step 4: Wait for core server to be ready
