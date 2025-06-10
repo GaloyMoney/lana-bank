@@ -175,11 +175,12 @@ where
 
         let custodian_id = custodian.id;
 
-        let state = self.custodian_state.load(custodian_id).await?;
         let client = custodian.custodian_client().await?;
-        let (address, new_state) = client.create_address(label, state).await?;
-        self.custodian_state
-            .persist_in_tx(db.tx(), custodian_id, new_state)
+        let address = client
+            .create_address(
+                label,
+                self.custodian_state.persisted_state_for(custodian_id),
+            )
             .await?;
 
         if wallet

@@ -1,4 +1,5 @@
-use sqlx::{PgPool, Postgres, Transaction, query};
+use serde::{Serialize, de::DeserializeOwned};
+use sqlx::{PgPool, query};
 use uuid::Uuid;
 
 use crate::primitives::CustodianId;
@@ -15,13 +16,38 @@ impl CustodianStateRepo {
         Self { pool: pool.clone() }
     }
 
-    pub async fn persist_in_tx(
-        &self,
-        tx: &mut Transaction<'_, Postgres>,
-        custodian_id: CustodianId,
-        state: serde_json::Value,
-    ) -> Result<(), CustodianStateError> {
-        let custodian_id: Uuid = custodian_id.into();
+    pub fn persisted_state_for(&self, custodian_id: CustodianId) -> PersistedCustodianState<'_> {
+        PersistedCustodianState {
+            custodian_id,
+            pool: &self.pool,
+        }
+    }
+}
+
+pub struct PersistedCustodianState<'a> {
+    custodian_id: CustodianId,
+    pool: &'a PgPool,
+}
+
+impl PersistedCustodianState<'_> {
+    pub async fn load<T: DeserializeOwned + Default>(&self) -> Result<T, CustodianStateError> {
+        let custodian_id: Uuid = self.custodian_id.into();
+
+        let row = query!(
+            "SELECT state FROM core_custodian_states WHERE id = $1 ",
+            custodian_id
+        )
+        .fetch_optional(self.pool)
+        .await?;
+
+        Ok(row
+            .map(|r| serde_json::from_value(r.state))
+            .transpose()?
+            .unwrap_or_default())
+    }
+
+    pub async fn persist<T: Serialize>(&self, state: &T) -> Result<(), CustodianStateError> {
+        let custodian_id: Uuid = self.custodian_id.into();
 
         query!(
             r#"
@@ -30,27 +56,11 @@ impl CustodianStateRepo {
             ON CONFLICT (id) DO UPDATE SET state = $2
             "#,
             custodian_id,
-            state
+            serde_json::to_value(state).expect("successful encoding")
         )
-        .execute(&mut **tx)
+        .execute(self.pool)
         .await?;
 
         Ok(())
-    }
-
-    pub async fn load(
-        &self,
-        custodian_id: CustodianId,
-    ) -> Result<serde_json::Value, CustodianStateError> {
-        let custodian_id: Uuid = custodian_id.into();
-
-        let row = query!(
-            "SELECT state FROM core_custodian_states WHERE id = $1 ",
-            custodian_id
-        )
-        .fetch_optional(&self.pool)
-        .await?;
-
-        Ok(row.map(|r| r.state).unwrap_or(serde_json::Value::Null))
     }
 }
