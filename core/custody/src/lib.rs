@@ -17,6 +17,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
+use custodian::state::repo::CustodianStateRepo;
 pub use custodian::*;
 pub use wallet::*;
 
@@ -31,6 +32,7 @@ where
     authz: Perms,
     custodians: CustodianRepo,
     wallets: WalletRepo<E>,
+    custodian_state: CustodianStateRepo,
 }
 
 impl<Perms, E> CoreCustody<Perms, E>
@@ -45,6 +47,7 @@ where
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
             wallets: WalletRepo::new(pool, publisher),
+            custodian_state: CustodianStateRepo::new(pool),
         }
     }
 
@@ -170,8 +173,14 @@ where
             .find_by_id_in_tx(db.tx(), &wallet.custodian_id)
             .await?;
 
+        let custodian_id = custodian.id;
+
+        let state = self.custodian_state.load(custodian_id).await?;
         let client = custodian.custodian_client().await?;
-        let address = client.create_address(label).await?;
+        let (address, new_state) = client.create_address(label, state).await?;
+        self.custodian_state
+            .persist_in_tx(db.tx(), custodian_id, new_state)
+            .await?;
 
         if wallet
             .allocate_address(
@@ -199,6 +208,7 @@ where
             authz: self.authz.clone(),
             custodians: self.custodians.clone(),
             wallets: self.wallets.clone(),
+            custodian_state: self.custodian_state.clone(),
         }
     }
 }

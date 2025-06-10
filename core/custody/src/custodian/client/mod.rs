@@ -12,12 +12,20 @@ pub struct AddressResponse {
 
 #[async_trait]
 pub trait CustodianClient: Send {
-    async fn create_address(&self, label: &str) -> Result<AddressResponse, CustodianClientError>;
+    async fn create_address(
+        &self,
+        label: &str,
+        state: serde_json::Value,
+    ) -> Result<(AddressResponse, serde_json::Value), CustodianClientError>;
 }
 
 #[async_trait]
 impl CustodianClient for komainu::KomainuClient {
-    async fn create_address(&self, label: &str) -> Result<AddressResponse, CustodianClientError> {
+    async fn create_address(
+        &self,
+        label: &str,
+        state: serde_json::Value,
+    ) -> Result<(AddressResponse, serde_json::Value), CustodianClientError> {
         todo!()
     }
 }
