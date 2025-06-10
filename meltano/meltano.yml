@@ -117,6 +117,6 @@ plugins:
       value: lana-dev-440721
   - name: airflow
     variant: apache
-    pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow==2.10.4
+    pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow[postgres]==2.10.4
       --constraint
       https://raw.githubusercontent.com/apache/airflow/constraints-2.10.4/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
