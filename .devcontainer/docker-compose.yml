@@ -1,0 +1,42 @@
+version: '3.8'
+
+services:
+  devcontainer:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    volumes:
+      - ../:/workspaces/lana-bank:cached
+      - nix-store:/nix
+    environment:
+      - USER=vscode
+    depends_on:
+      - pg
+      - pg-migration
+      - kratos
+      - oathkeeper
+    command: sleep infinity
+
+  # Extend services from main docker-compose.yml
+  pg:
+    extends:
+      file: ../docker-compose.yml
+      service: pg
+
+  pg-migration:
+    extends:
+      file: ../docker-compose.yml
+      service: pg-migration
+
+  kratos:
+    extends:
+      file: ../docker-compose.yml
+      service: kratos
+
+  oathkeeper:
+    extends:
+      file: ../docker-compose.yml
+      service: oathkeeper
+
+volumes:
+  nix-store: 

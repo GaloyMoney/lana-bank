@@ -1,0 +1,30 @@
+{
+    "name": "Lana Bank Dev Container",
+    "dockerComposeFile": [
+        "docker-compose.yml"
+    ],
+    "service": "devcontainer",
+    "workspaceFolder": "/workspaces/lana-bank",
+    "shutdownAction": "stopCompose",
+    "postCreateCommand": "direnv allow",
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "rust-lang.rust-analyzer",
+                "bradlc.vscode-tailwindcss",
+                "ms-vscode.vscode-typescript-next",
+                "mkhl.direnv"
+            ]
+        }
+    },
+    "forwardPorts": [
+        3000,
+        5432,
+        5433,
+        4433,
+        4455,
+        4456
+    ],
+    "features": {},
+    "remoteUser": "vscode"
+}
