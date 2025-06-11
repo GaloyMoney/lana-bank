@@ -69,12 +69,12 @@ echo "Setting up database..."
 make setup-db
 
 # Add database connectivity check
+export PG_CON="postgres://user:password@localhost:5433/pg?sslmode=disable"
 echo "Checking database connectivity..."
-wait4x postgresql localhost:5433 --timeout 60s
+wait4x postgresql $PG_CON
 
 # Step 3: Start core backend server in background
 echo "Starting core server..."
-export PG_CON="postgres://user:password@localhost:5433/pg"
 export OTEL_EXPORTER_OTLP_ENDPOINT="http://localhost:4317"
 export BFX_LOCAL_PRICE="${BFX_LOCAL_PRICE:-1}"
 
@@ -85,7 +85,7 @@ echo $! > "$CORE_PID_FILE"
 
 # Step 4: Wait for core server to be ready
 echo "Waiting for core server to be ready..."
-wait4x http localhost:5253/health --timeout 60s
+wait4x http http://localhost:5253/health --timeout 60s
 
 # Step 5: Start admin panel in background
 echo "Starting admin panel..."
@@ -99,7 +99,7 @@ cd ../..
 
 # Step 6: Wait for admin panel to be ready
 echo "Waiting for admin panel to be ready..."
-wait4x http localhost:4455/admin/api/health --timeout 60s
+wait4x http http://localhost:4455/admin/api/health --timeout 60s
 
 echo "All services are ready!"
 
