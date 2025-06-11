@@ -130,13 +130,16 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
-      # Detect if we're in a devcontainer by checking if current path contains "workspaces"
-      # This works for GitHub Codespaces and other devcontainer setups that use /workspaces
+      # Detect if we're in a devcontainer by checking environment variables
+      # This requires --impure flag but works reliably in all contexts
       isDevcontainer = let
-        currentPath = builtins.toString ./.;
-        result = builtins.match ".*workspaces.*" currentPath != null;
+        codespaces = builtins.getEnv "CODESPACES";
+        devContainers = builtins.getEnv "DEV_CONTAINERS";
+        devContainer = builtins.getEnv "DEVCONTAINER";
+        remoteContainers = builtins.getEnv "REMOTE_CONTAINERS";
+        result = codespaces == "true" || devContainers != "" || devContainer != "" || remoteContainers != "";
       in
-        builtins.trace "DEBUG: currentPath = ${currentPath}"
+        builtins.trace "DEBUG: CODESPACES = ${codespaces}"
         (builtins.trace "DEBUG: isDevcontainer = ${builtins.toString result}" result);
 
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
@@ -239,6 +242,8 @@
           // {
             inherit nativeBuildInputs;
             shellHook = ''
+              # Note: This flake requires --impure evaluation for devcontainer detection
+              # direnv and nix-direnv handle this automatically
               export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
             '';
           });
