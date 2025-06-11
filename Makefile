@@ -49,11 +49,11 @@ podman-debug:
 
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./dev/bin/docker-compose-up.sh
 	wait4x postgresql $${PG_CON}
 
 clean-deps-podman: 
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./dev/bin/clean-deps.sh
 	ENGINE_DEFAULT=podman ./dev/bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
