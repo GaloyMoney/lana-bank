@@ -28,7 +28,6 @@ python311.pkgs.buildPythonApplication rec {
     packaging
     cryptography
     pydantic
-    annotated-types
     python-dotenv
     importlib-metadata
     typing-extensions
