@@ -54,7 +54,6 @@ start-deps-podman: podman-setup
 
 clean-deps-podman: 
 	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./dev/bin/clean-deps.sh
-	ENGINE_DEFAULT=podman ./dev/bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
