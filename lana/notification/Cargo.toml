@@ -14,10 +14,10 @@ lana-events = { path = "../events" }
 core-access = { path = "../../core/access" }
 core-credit = { path = "../../core/credit" }
 core-customer = { path = "../../core/customer" }
-governance = { path = "../../core/governance" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 core-money = { path = "../../core/money" }
+rbac-types = { path = "../rbac-types" }
 
 es-entity = { workspace = true }
 serde = { workspace = true }

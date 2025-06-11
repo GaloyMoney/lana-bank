@@ -9,102 +9,41 @@ pub use config::EmailConfig;
 pub use error::EmailError;
 
 use ::job::{JobId, Jobs};
-use audit::{AuditSvc, SystemSubject};
-use authz::PermissionCheck;
-use core_access::{
-    event::CoreAccessEvent, user::Users, CoreAccessAction, CoreAccessObject, UserId,
-};
+use audit::SystemSubject;
+use authz::Authorization as AuthzAuthorization;
+use core_access::user::Users;
 use core_credit::{
-    error::CoreCreditError, CoreCredit, CoreCreditAction, CoreCreditObject, CreditFacilityId,
-    ObligationId, ObligationType,
+    error::CoreCreditError, CoreCredit, CreditFacilityId, ObligationId, ObligationType,
 };
-use core_customer::{CoreCustomerAction, CustomerObject, Customers};
-use governance::{GovernanceAction, GovernanceObject};
+use core_customer::Customers;
 use job::{EmailSenderConfig, EmailSenderInitializer};
-use lana_events::{CoreCreditEvent, CoreCustomerEvent, GovernanceEvent};
-use outbox::OutboxEventMarker;
+use lana_events::LanaEvent;
+use rbac_types::{LanaAction, LanaObject, Subject};
 use smtp::SmtpClient;
 use templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
 
-pub struct EmailNotification<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
+type LanaAudit = audit::Audit<Subject, LanaObject, LanaAction>;
+type Authorization = AuthzAuthorization<LanaAudit, core_access::AuthRoleToken>;
+
+#[derive(Clone)]
+pub struct EmailNotification {
     jobs: Jobs,
-    users: Users<Perms::Audit, E>,
-    credit: CoreCredit<Perms, E>,
-    customers: Customers<Perms, E>,
+    users: Users<LanaAudit, LanaEvent>,
+    credit: CoreCredit<Authorization, LanaEvent>,
+    customers: Customers<Authorization, LanaEvent>,
 }
 
-impl<Perms, E> Clone for EmailNotification<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    fn clone(&self) -> Self {
-        Self {
-            jobs: self.jobs.clone(),
-            users: self.users.clone(),
-            credit: self.credit.clone(),
-            customers: self.customers.clone(),
-        }
-    }
-}
-
-impl<Perms, E> EmailNotification<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
+impl EmailNotification {
     pub async fn init(
         jobs: &Jobs,
         config: EmailConfig,
-        users: &Users<Perms::Audit, E>,
-        credit: &CoreCredit<Perms, E>,
-        customers: &Customers<Perms, E>,
+        users: &Users<LanaAudit, LanaEvent>,
+        credit: &CoreCredit<Authorization, LanaEvent>,
+        customers: &Customers<Authorization, LanaEvent>,
     ) -> Result<Self, EmailError> {
         let smtp_client = SmtpClient::init(config.smtp)?;
         let template = EmailTemplate::new()?;
-
         jobs.add_initializer(EmailSenderInitializer::new(smtp_client, template));
-
         Ok(Self {
             jobs: jobs.clone(),
             users: users.clone(),
@@ -120,7 +59,7 @@ where
         credit_facility_id: &CreditFacilityId,
         amount: &core_money::UsdCents,
     ) -> Result<(), EmailError> {
-        let subject = <Perms::Audit as AuditSvc>::Subject::system();
+        let subject = Subject::system();
         let users = self.users.list_users(&subject).await?;
 
         let obligation = self

@@ -2,135 +2,45 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_access::{event::CoreAccessEvent, CoreAccessAction, CoreAccessObject, UserId};
-use core_credit::{CoreCreditAction, CoreCreditObject};
-use core_customer::{CoreCustomerAction, CustomerObject};
-use governance::{GovernanceAction, GovernanceObject};
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
-use lana_events::{CoreCreditEvent, CoreCustomerEvent, GovernanceEvent, LanaEvent};
-use outbox::{Outbox, OutboxEventMarker};
+use lana_events::{CoreCreditEvent, LanaEvent};
+use outbox::Outbox;
 
 use crate::email::EmailNotification;
 
 #[derive(Serialize, Deserialize)]
-pub struct EmailEventListenerConfig<Perms, E> {
-    _phantom: std::marker::PhantomData<(Perms, E)>,
-}
-impl<Perms, E> EmailEventListenerConfig<Perms, E> {
-    pub fn new() -> Self {
-        Self {
-            _phantom: std::marker::PhantomData,
-        }
-    }
-}
-impl<Perms, E> JobConfig for EmailEventListenerConfig<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    type Initializer = EmailEventListenerInitializer<Perms, E>;
+pub struct EmailEventListenerConfig;
+
+impl JobConfig for EmailEventListenerConfig {
+    type Initializer = EmailEventListenerInitializer;
 }
 
-impl<Perms, E> Default for EmailEventListenerConfig<Perms, E> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-pub struct EmailEventListenerInitializer<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
+pub struct EmailEventListenerInitializer {
     outbox: Outbox<LanaEvent>,
-    email_notification: EmailNotification<Perms, E>,
-    _phantom: std::marker::PhantomData<(Perms, E)>,
+    email_notification: EmailNotification,
 }
 
-impl<Perms, E> EmailEventListenerInitializer<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    pub fn new(
-        outbox: &Outbox<LanaEvent>,
-        email_notification: &EmailNotification<Perms, E>,
-    ) -> Self {
+impl EmailEventListenerInitializer {
+    pub fn new(outbox: &Outbox<LanaEvent>, email_notification: &EmailNotification) -> Self {
         Self {
             outbox: outbox.clone(),
             email_notification: email_notification.clone(),
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 const EMAIL_LISTENER_JOB: JobType = JobType::new("email-listener");
-impl<Perms, E> JobInitializer for EmailEventListenerInitializer<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
+impl JobInitializer for EmailEventListenerInitializer {
     fn job_type() -> JobType {
         EMAIL_LISTENER_JOB
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(EmailEventListenerRunner::<Perms, E> {
+        Ok(Box::new(EmailEventListenerRunner {
             outbox: self.outbox.clone(),
             email_notification: self.email_notification.clone(),
-            _phantom: self._phantom,
         }))
     }
 
@@ -144,46 +54,13 @@ struct EmailEventListenerData {
     sequence: outbox::EventSequence,
 }
 
-pub struct EmailEventListenerRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
+pub struct EmailEventListenerRunner {
     outbox: Outbox<LanaEvent>,
-    email_notification: EmailNotification<Perms, E>,
-    _phantom: std::marker::PhantomData<(Perms, E)>,
+    email_notification: EmailNotification,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for EmailEventListenerRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
+impl JobRunner for EmailEventListenerRunner {
     async fn run(
         &self,
         mut current_job: CurrentJob,
@@ -208,23 +85,7 @@ where
     }
 }
 
-impl<Perms, E> EmailEventListenerRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <Perms::Audit as AuditSvc>::Subject: From<UserId>,
-    <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
-        + From<CoreCreditAction>
-        + From<GovernanceAction>
-        + From<CoreCustomerAction>,
-    <Perms::Audit as AuditSvc>::Object: From<CoreAccessObject>
-        + From<CoreCreditObject>
-        + From<GovernanceObject>
-        + From<CustomerObject>,
-    E: OutboxEventMarker<CoreAccessEvent>
-        + OutboxEventMarker<CoreCreditEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
+impl EmailEventListenerRunner {
     async fn handle_event(
         &self,
         db: &mut es_entity::DbOp<'_>,
