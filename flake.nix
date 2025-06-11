@@ -137,11 +137,10 @@
       in
         builtins.match ".*workspaces.*" currentPath != null;
 
-      # Only include meltano when not in devcontainer
-      meltano =
-        if isDevcontainer
-        then null
-        else pkgs.callPackage ./meltano.nix {};
+      # Only include meltano when not in devcontainer - avoid evaluation entirely
+      meltanoPackage = lib.optionalAttrs (!isDevcontainer) {
+        meltano = pkgs.callPackage ./meltano.nix {};
+      };
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
@@ -194,7 +193,7 @@
           tilt
           procps
         ]
-        ++ lib.optionals (!isDevcontainer && meltano != null) [meltano]
+        ++ lib.optionals (!isDevcontainer) (lib.attrValues meltanoPackage)
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
@@ -225,9 +224,7 @@
             release = lana-cli-release;
             static = lana-cli-static;
           }
-          // lib.optionalAttrs (!isDevcontainer && meltano != null) {
-            inherit meltano;
-          };
+          // meltanoPackage;
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
