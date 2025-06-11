@@ -43,10 +43,6 @@ jobs:
           name: videos
           path: apps/admin-panel/cypress/videos/*
 
-      - name: Stop services
-        if: always()
-        run: nix develop -c make stop-cypress-stack
-
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
         with:

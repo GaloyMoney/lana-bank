@@ -210,19 +210,6 @@ tilt-in-ci:
 start-cypress-stack:
 	./bin/start-cypress-stack.sh
 
-stop-cypress-stack:
-	@echo "--- Stopping Cypress Stack ---"
-	@# Kill processes using PID files if they exist
-	@if [ -f .core.pid ]; then kill $$(cat .core.pid) 2>/dev/null || true; rm -f .core.pid; fi
-	@if [ -f .admin-panel.pid ]; then kill $$(cat .admin-panel.pid) 2>/dev/null || true; rm -f .admin-panel.pid; fi
-	@# Fallback to process name matching
-	@pkill -f "lana-cli" || true
-	@pkill -f "admin-panel.*pnpm.*dev" || true
-	@# Clean up log files
-	@rm -f cypress-stack.log admin-panel.log || true
-	@# Stop podman containers
-	@$(MAKE) clean-deps-podman
-
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh
 
