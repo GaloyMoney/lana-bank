@@ -22,7 +22,10 @@ jobs:
           nohup nix develop -c make reset-deps setup-db run-server-with-bootstrap \
             2>&1 | tee server.log &
           echo "PID=$!" > .server.pid
-          nix develop -c wait4x http http://localhost:5253/health
+
+      - name: Wait for healthy server
+        run: |
+          nix develop -c wait4x http http://localhost:5253/health --timeout 300s
           
       - name: Check no panics
         run: |
