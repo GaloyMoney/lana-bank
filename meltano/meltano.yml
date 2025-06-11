@@ -35,10 +35,10 @@ jobs:
   - tap-sumsubapi target-bigquery
 - name: drop-old-relations
   tasks:
-    - dbt-bigquery:drop-old-relations
+  - dbt-bigquery:drop-old-relations
 - name: drop-all-relations
   tasks:
-    - dbt-bigquery:drop-all-relations
+  - dbt-bigquery:drop-all-relations
 schedules:
 - name: postgres-to-bigquery-dbt
   interval: '*/10 * * * *'
@@ -92,14 +92,12 @@ plugins:
   - name: dbt-bigquery
     variant: dbt-labs
     pip_url: dbt-core~=1.8.0 dbt-bigquery~=1.8.0
+    commands:
+      drop-old-relations: run-operation drop_old_relations
+      drop-all-relations: run-operation drop_all_relations
     config:
       auth_method: service-account
       project: lana-dev-440721
-    commands:
-      drop-old-relations:
-        args: run-operation drop_old_relations
-      drop-all-relations:
-        args: run-operation drop_all_relations
   utilities:
   - name: sqlfluff
     variant: sqlfluff
