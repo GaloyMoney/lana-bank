@@ -323,7 +323,7 @@ where
         Ok((obligation, new_cycle_data))
     }
 
-    pub(super) async fn find_by_id_without_audit(
+    pub async fn find_by_id_without_audit(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {

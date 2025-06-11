@@ -18,8 +18,8 @@ pub enum EmailError {
     CoreCredit(#[from] core_credit::error::CoreCreditError),
     #[error("EmailError – Customer: {0}")]
     Customer(#[from] core_customer::error::CustomerError),
-    #[error("EmailError - CreditFacilityNotFound")]
-    CreditFacilityNotFound,
-    #[error("EmailError - CustomerNotFound")]
-    CustomerNotFound,
+    #[error("EmailError – Obligation: {0}")]
+    Obligation(#[from] core_credit::ObligationError),
+    #[error("EmailError – CreditFacility: {0}")]
+    CreditFacility(#[from] core_credit::CreditFacilityError),
 }

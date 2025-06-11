@@ -9,12 +9,9 @@ pub use config::EmailConfig;
 pub use error::EmailError;
 
 use ::job::{JobId, Jobs};
-use audit::SystemSubject;
 use authz::Authorization as AuthzAuthorization;
 use core_access::user::Users;
-use core_credit::{
-    error::CoreCreditError, CoreCredit, CreditFacilityId, ObligationId, ObligationType,
-};
+use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
 use core_customer::Customers;
 use job::{EmailSenderConfig, EmailSenderInitializer};
 use lana_events::LanaEvent;
@@ -59,29 +56,23 @@ impl EmailNotification {
         credit_facility_id: &CreditFacilityId,
         amount: &core_money::UsdCents,
     ) -> Result<(), EmailError> {
-        let subject = Subject::system();
-        let users = self.users.list_users(&subject).await?;
-
+        let users = self.users.list_users_without_audit().await?;
         let obligation = self
             .credit
             .obligations()
-            .find_by_id(*obligation_id)
-            .await
-            .map_err(CoreCreditError::from)?;
+            .find_by_id_without_audit(*obligation_id)
+            .await?;
 
         let credit_facility = self
             .credit
             .facilities()
-            .find_by_id(&subject, *credit_facility_id)
-            .await
-            .map_err(CoreCreditError::from)?
-            .ok_or(EmailError::CreditFacilityNotFound)?;
+            .find_by_id_without_audit(*credit_facility_id)
+            .await?;
 
         let customer = self
             .customers
-            .find_by_id(&subject, credit_facility.customer_id)
-            .await?
-            .ok_or(EmailError::CustomerNotFound)?;
+            .find_by_id_without_audit(credit_facility.customer_id)
+            .await?;
 
         let email_data = OverduePaymentEmailData {
             facility_id: credit_facility_id.to_string(),

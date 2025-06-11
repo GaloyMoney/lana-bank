@@ -136,9 +136,9 @@ impl LanaApp {
         .await?;
 
         let notification = Notification::init(
+            config.notification,
             &jobs,
             &outbox,
-            config.notification,
             access.users(),
             &credit,
             &customers,

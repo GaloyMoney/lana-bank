@@ -219,6 +219,14 @@ where
             .entities)
     }
 
+    pub async fn list_users_without_audit(&self) -> Result<Vec<User>, UserError> {
+        Ok(self
+            .repo
+            .list_by_email(Default::default(), es_entity::ListDirection::Ascending)
+            .await?
+            .entities)
+    }
+
     pub async fn subject_can_update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,

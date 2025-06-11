@@ -148,6 +148,13 @@ where
         }
     }
 
+    pub async fn find_by_id_without_audit(
+        &self,
+        id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Customer, CustomerError> {
+        self.repo.find_by_id(id.into()).await
+    }
+
     #[instrument(name = "customer.find_by_email", skip(self), err)]
     pub async fn find_by_email(
         &self,

@@ -25,9 +25,9 @@ pub struct Notification {
 
 impl Notification {
     pub async fn init(
+        config: NotificationConfig,
         jobs: &Jobs,
         outbox: &NotificationOutbox,
-        config: NotificationConfig,
         users: &Users<LanaAudit, LanaEvent>,
         credit: &CoreCredit<Authorization, LanaEvent>,
         customers: &Customers<Authorization, LanaEvent>,
