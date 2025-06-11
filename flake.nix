@@ -130,9 +130,17 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
-      meltano = pkgs.callPackage ./meltano.nix {};
-
-      mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
+      # Detect if we're in a devcontainer by checking environment variables
+      # This requires --impure flag but works reliably in all contexts
+      isDevcontainer = let
+        codespaces = builtins.getEnv "CODESPACES";
+        devContainers = builtins.getEnv "DEV_CONTAINERS";
+        devContainer = builtins.getEnv "DEVCONTAINER";
+        remoteContainers = builtins.getEnv "REMOTE_CONTAINERS";
+        result = codespaces == "true" || devContainers != "" || devContainer != "" || remoteContainers != "";
+      in
+        builtins.trace "DEBUG: CODESPACES = ${codespaces}"
+        (builtins.trace "DEBUG: isDevcontainer = ${builtins.toString result}" result);
 
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
       rustToolchain = rustVersion.override {
@@ -149,54 +157,60 @@
       # Create a separate Crane lib for musl builds
       craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
-      nativeBuildInputs = with pkgs;
-        [
-          rustToolchain
-          opentofu
-          alejandra
-          ytt
-          sqlx-cli
-          cargo-nextest
-          cargo-audit
-          cargo-watch
-          cargo-deny
-          cargo-machete
-          bacon
-          typos
-          postgresql
-          docker-compose
-          bats
-          jq
-          nodejs
-          typescript
-          google-cloud-sdk
-          pnpm
-          vendir
-          netlify-cli
-          pandoc
-          nano
-          podman
-          podman-compose
-          cachix
-          ps
-          curl
-          tilt
-          procps
-          meltano
-        ]
-        ++ lib.optionals pkgs.stdenv.isLinux [
-          xvfb-run
-          cypress
-          wkhtmltopdf
+      # Define base packages without meltano
+      baseNativeBuildInputs = with pkgs; [
+        rustToolchain
+        opentofu
+        alejandra
+        ytt
+        sqlx-cli
+        cargo-nextest
+        cargo-audit
+        cargo-watch
+        cargo-deny
+        cargo-machete
+        bacon
+        typos
+        postgresql
+        docker-compose
+        bats
+        jq
+        nodejs
+        typescript
+        google-cloud-sdk
+        pnpm
+        vendir
+        netlify-cli
+        pandoc
+        nano
+        podman
+        podman-compose
+        cachix
+        ps
+        curl
+        tilt
+        procps
+      ];
 
-          slirp4netns
-          fuse-overlayfs
-
-          util-linux
-          psmisc
+      # Conditionally add meltano - completely avoid evaluation when in devcontainer
+      nativeBuildInputs =
+        baseNativeBuildInputs
+        ++ (
+          if isDevcontainer
+          then builtins.trace "DEBUG: Skipping meltano (devcontainer detected)" []
+          else builtins.trace "DEBUG: Including meltano (not in devcontainer)" [(pkgs.callPackage ./meltano.nix {})]
+        )
+        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+          pkgs.xvfb-run
+          pkgs.cypress
+          pkgs.wkhtmltopdf
+          pkgs.slirp4netns
+          pkgs.fuse-overlayfs
+          pkgs.util-linux
+          pkgs.psmisc
         ]
-        ++ lib.optionals pkgs.stdenv.isDarwin [
-          darwin.apple_sdk.frameworks.SystemConfiguration
+        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
+          pkgs.darwin.apple_sdk.frameworks.SystemConfiguration
         ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
@@ -209,13 +223,18 @@
       };
     in
       with pkgs; {
-        packages = {
-          default = lana-cli-debug; # Debug as default
-          debug = lana-cli-debug;
-          release = lana-cli-release;
-          static = lana-cli-static;
-          inherit meltano;
-        };
+        packages =
+          {
+            default = lana-cli-debug;
+            debug = lana-cli-debug;
+            release = lana-cli-release;
+            static = lana-cli-static;
+          }
+          // (
+            if isDevcontainer
+            then builtins.trace "DEBUG: Not adding meltano package (devcontainer)" {}
+            else builtins.trace "DEBUG: Adding meltano package (not devcontainer)" {meltano = pkgs.callPackage ./meltano.nix {};}
+          );
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
@@ -223,6 +242,8 @@
           // {
             inherit nativeBuildInputs;
             shellHook = ''
+              # Note: This flake requires --impure evaluation for devcontainer detection
+              # direnv and nix-direnv handle this automatically
               export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
             '';
           });
