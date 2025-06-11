@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_liquidation_processes (id, parent_obligation_id, credit_facility_id, created_at) VALUES ($1, $2, $3, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "eed360a496d576efd07b5f188c98d8399ad2d8216ba7b7a59902f8197f7b76a8"
+}
