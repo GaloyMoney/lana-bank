@@ -151,6 +151,7 @@
 
       nativeBuildInputs = with pkgs;
         [
+          wait4x
           rustToolchain
           opentofu
           alejandra

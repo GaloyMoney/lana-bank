@@ -70,20 +70,7 @@ make setup-db
 
 # Add database connectivity check
 echo "Checking database connectivity..."
-for i in {1..30}; do
-    if podman exec lana-bank-core-pg-1 pg_isready -U user >/dev/null 2>&1; then
-        echo "Core database is ready!"
-        break
-    fi
-    if [[ $i -eq 30 ]]; then
-        echo "Core database failed to start within 30 seconds"
-        echo "Container logs:"
-        podman logs lana-bank-core-pg-1 --tail 50 || true
-        exit 1
-    fi
-    echo "Waiting for core database... ($i/30)"
-    sleep 1
-done
+wait4x postgresql localhost:5433 --timeout 60s
 
 # Step 3: Start core backend server in background
 echo "Starting core server..."
@@ -98,22 +85,7 @@ echo $! > "$CORE_PID_FILE"
 
 # Step 4: Wait for core server to be ready
 echo "Waiting for core server to be ready..."
-for i in {1..300}; do
-    # Try both the GraphQL endpoint and health endpoint
-    if curl -s -f "http://localhost:5253/health" >/dev/null 2>&1 || \
-       curl -s -f "http://localhost:5253/graphql" >/dev/null 2>&1; then
-        echo "Core server is ready!"
-        break
-    fi
-    if [[ $i -eq 300 ]]; then
-        echo "Core server failed to start within 300 seconds"
-        echo "Server logs:"
-        cat "$LOG_FILE"
-        exit 1
-    fi
-    echo "Waiting for core server... ($i/300)"
-    sleep 1
-done
+wait4x http localhost:5253/health --timeout 60s
 
 # Step 5: Start admin panel in background
 echo "Starting admin panel..."
@@ -127,34 +99,10 @@ cd ../..
 
 # Step 6: Wait for admin panel to be ready
 echo "Waiting for admin panel to be ready..."
-for i in {1..180}; do
-    # Try both the admin page and health endpoint through oathkeeper proxy
-    if curl -s -f "http://localhost:4455/admin/api/health" >/dev/null 2>&1 || \
-       curl -s -f "http://localhost:4455/admin" >/dev/null 2>&1; then
-        echo "Admin panel is ready!"
-        break
-    fi
-    if [[ $i -eq 180 ]]; then
-        echo "Admin panel failed to start within 180 seconds"
-        echo "Admin panel logs:"
-        cat admin-panel.log
-        exit 1
-    fi
-    echo "Waiting for admin panel... ($i/180)"
-    sleep 1
-done
+wait4x http localhost:4455/admin/api/health --timeout 60s
 
 echo "All services are ready!"
 
-# Final health validation
-echo "Performing final health checks..."
-if ! curl -s -f "http://localhost:5253/health" >/dev/null 2>&1; then
-    echo "WARNING: Core server health check failed"
-fi
-
-if ! curl -s -f "http://localhost:4455/admin/api/health" >/dev/null 2>&1; then
-    echo "WARNING: Admin panel health check failed"
-fi
 
 echo "✅ Services URLs:"
 echo "  Core server: http://localhost:5253/graphql"
