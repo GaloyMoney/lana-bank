@@ -49,7 +49,6 @@ login_superadmin_browser() {
 
   sleep 2
 
-  # Use the getEmailCode function from helpers.bash instead of duplicating the logic
   local code=$(getEmailCode "$email")
 
   local loginFlow=$(curl -s -X GET "$ADMIN_URL/self-service/login?flow=$flowId" "${common_headers[@]}")
