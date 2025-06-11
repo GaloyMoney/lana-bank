@@ -130,9 +130,12 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
-      # Detect if we're in a devcontainer by checking environment variables
-      # CODESPACES is set in GitHub Codespaces, DEV_CONTAINERS is set by devcontainer environments
-      isDevcontainer = (builtins.getEnv "CODESPACES") != "" || (builtins.getEnv "DEV_CONTAINERS") != "";
+      # Detect if we're in a devcontainer by checking if current path contains "workspaces"
+      # This works for GitHub Codespaces and other devcontainer setups that use /workspaces
+      isDevcontainer = let
+        currentPath = builtins.toString ./.;
+      in
+        builtins.match ".*workspaces.*" currentPath != null;
 
       # Only include meltano when not in devcontainer
       meltano =
