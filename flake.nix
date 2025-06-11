@@ -137,6 +137,21 @@
       in
         builtins.match ".*workspaces.*" currentPath != null;
 
+      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      rustToolchain = rustVersion.override {
+        extensions = ["rust-analyzer" "rust-src"];
+        targets = ["x86_64-unknown-linux-musl"];
+      };
+
+      # Separate toolchain for musl cross-compilation
+      rustToolchainMusl = rustVersion.override {
+        extensions = ["rust-src"];
+        targets = ["x86_64-unknown-linux-musl"];
+      };
+
+      # Create a separate Crane lib for musl builds
+      craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
+
       # Define base packages without meltano
       baseNativeBuildInputs = with pkgs; [
         rustToolchain
