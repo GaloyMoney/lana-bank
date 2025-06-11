@@ -138,7 +138,7 @@
         builtins.match ".*workspaces.*" currentPath != null;
 
       # Only include meltano when not in devcontainer - avoid evaluation entirely
-      meltanoPackage = lib.optionalAttrs (!isDevcontainer) {
+      meltanoPackage = pkgs.lib.optionalAttrs (!isDevcontainer) {
         meltano = pkgs.callPackage ./meltano.nix {};
       };
 
