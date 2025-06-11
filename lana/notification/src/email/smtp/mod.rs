@@ -1,4 +1,3 @@
-pub mod config;
 pub mod error;
 
 use lettre::{
@@ -7,7 +6,7 @@ use lettre::{
     AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
 };
 
-pub use config::SmtpConfig;
+use crate::email::EmailConfig;
 use error::SmtpError;
 
 #[derive(Clone)]
@@ -18,7 +17,7 @@ pub struct SmtpClient {
 }
 
 impl SmtpClient {
-    pub fn init(config: SmtpConfig) -> Result<Self, SmtpError> {
+    pub fn init(config: EmailConfig) -> Result<Self, SmtpError> {
         let creds = Credentials::new(config.username, config.password);
         let client = match AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config.relay) {
             Ok(builder) => builder.credentials(creds).port(config.port).build(),

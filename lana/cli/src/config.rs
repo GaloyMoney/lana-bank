@@ -45,10 +45,6 @@ pub struct EnvSecrets {
     pub sa_creds_base64: Option<String>,
     pub smtp_username: String,
     pub smtp_password: String,
-    pub smtp_from_email: String,
-    pub smtp_from_name: String,
-    pub smtp_relay: String,
-    pub smtp_port: u16,
 }
 
 impl Config {
@@ -61,10 +57,6 @@ impl Config {
             sa_creds_base64,
             smtp_username,
             smtp_password,
-            smtp_from_email,
-            smtp_from_name,
-            smtp_relay,
-            smtp_port,
         }: EnvSecrets,
         dev_env_name_prefix: Option<String>,
     ) -> anyhow::Result<Self> {
@@ -81,12 +73,8 @@ impl Config {
             .app
             .service_account
             .set_sa_creds_base64(sa_creds_base64)?;
-        config.app.notification.email.smtp.username = smtp_username;
-        config.app.notification.email.smtp.password = smtp_password;
-        config.app.notification.email.smtp.from_email = smtp_from_email;
-        config.app.notification.email.smtp.from_name = smtp_from_name;
-        config.app.notification.email.smtp.relay = smtp_relay;
-        config.app.notification.email.smtp.port = smtp_port;
+        config.app.notification.email.username = smtp_username;
+        config.app.notification.email.password = smtp_password;
         if let Some(dev_env_name_prefix) = dev_env_name_prefix {
             eprintln!(
                 "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={}",

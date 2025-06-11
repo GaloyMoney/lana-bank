@@ -38,7 +38,7 @@ impl EmailNotification {
         credit: &CoreCredit<Authorization, LanaEvent>,
         customers: &Customers<Authorization, LanaEvent>,
     ) -> Result<Self, EmailError> {
-        let smtp_client = SmtpClient::init(config.smtp)?;
+        let smtp_client = SmtpClient::init(config)?;
         let template = EmailTemplate::new()?;
         jobs.add_initializer(EmailSenderInitializer::new(smtp_client, template));
         Ok(Self {

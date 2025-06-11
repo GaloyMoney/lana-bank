@@ -12,6 +12,12 @@ app:
     dbt_output_dataset: "dbt_gha"
   credit:
     customer_active_check_enabled: false
+  notification:
+    email:
+      from_email: "noreply@example.com"
+      from_name: "Lana"
+      relay: "localhost"
+      port: 1025
   customer_sync:
     customer_status_sync_active: false
     create_deposit_account_on_customer_create: true

@@ -40,14 +40,6 @@ struct Cli {
     smtp_username: String,
     #[clap(env = "SMTP_PASSWORD", default_value = "")]
     smtp_password: String,
-    #[clap(env = "SMTP_FROM_EMAIL", default_value = "")]
-    smtp_from_email: String,
-    #[clap(env = "SMTP_FROM_NAME", default_value = "")]
-    smtp_from_name: String,
-    #[clap(env = "SMTP_RELAY", default_value = "")]
-    smtp_relay: String,
-    #[clap(env = "SMTP_PORT", default_value = "1025")]
-    smtp_port: u16,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
 }
@@ -70,10 +62,6 @@ pub async fn run() -> anyhow::Result<()> {
             sa_creds_base64,
             smtp_username: cli.smtp_username,
             smtp_password: cli.smtp_password,
-            smtp_relay: cli.smtp_relay,
-            smtp_from_email: cli.smtp_from_email,
-            smtp_from_name: cli.smtp_from_name,
-            smtp_port: cli.smtp_port,
         },
         cli.dev_env_name_prefix,
     )?;
