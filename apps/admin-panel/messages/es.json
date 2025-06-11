@@ -531,7 +531,7 @@
           "customerEmail": "Correo Electrónico del Cliente",
           "collateralizationState": "Estado de Colateralización",
           "status": "Estado",
-          "expiresAt": "Vence El",
+          "expiresAt": "Fecha de vencimiento",
           "monthlyPayment": "Pago Mensual"
         },
         "buttons": {

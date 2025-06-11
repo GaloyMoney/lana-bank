@@ -21,6 +21,8 @@ checksums:
     Common/close: 2c2e22f8424a1031de89063bd0022e16
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
+    Common/customerType: 84318756282cff0923bb4f1a81748506
+    Common/dateOfIssuance: b813f3bd9092c493e51b49aca81e9219
     PermissionsDisplay/permissionsLabel: bb2e860b9063f62f4bc1a2ea9c744c7f
     PermissionsDisplay/noRoleSelected: bb1bba152afe692413e833b64f2cb9d9
     PermissionsDisplay/noPermissions: 53beaa15a0f44fff1d0fb8285071dce0
@@ -245,6 +247,7 @@ checksums:
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
     CreditFacilities/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CreditFacilities/table/headers/state: 118de561d4525b14f9bb29ac9e86161d
     CreditFacilities/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     CreditFacilities/table/headers/outstanding: 1c88761a69affad9b482d2a76b09e8aa
     CreditFacilities/table/headers/collateralizationState: 118de561d4525b14f9bb29ac9e86161d
@@ -328,7 +331,8 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
-    CreditFacilities/CreditFacilityDetails/DetailsCard/details/expiresAt: de9955ebfaf87be5dbf05ed5b6941a09
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/expiresAt: 682c7847ef7947ed9d2812f6f1a402cd
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/monthlyPayment: 5d0ad4eae4d1d2cfa2b3b097c2139844
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanTerms: 1ebf872e0d722fc8651f5f7108208fc3
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
