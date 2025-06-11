@@ -54,7 +54,4 @@ RUN mkdir -p /workspaces && chown vscode:vscode /workspaces
 USER vscode
 WORKDIR /workspaces
 
-# Set environment variable to detect devcontainer
-ENV DEVCONTAINER_LANA=1
-
 CMD ["/bin/bash"]
