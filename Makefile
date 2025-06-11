@@ -49,11 +49,11 @@ podman-debug:
 
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
-	ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
-	wait4x postgresql $$PG_CON
+	ENGINE_DEFAULT=podman ./dev/bin/docker-compose-up.sh
+	wait4x postgresql $${PG_CON}
 
 clean-deps-podman: 
-	ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+	ENGINE_DEFAULT=podman ./dev/bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
@@ -75,11 +75,11 @@ next-watch:
 	cargo watch -s 'cargo nextest run'
 
 clean-deps:
-	./bin/clean-deps.sh
+	./dev/bin/clean-deps.sh
 
 start-deps:
-	./bin/docker-compose-up.sh
-	wait4x postgresql $$PG_CON
+	./dev/bin/docker-compose-up.sh
+	wait4x postgresql $${PG_CON}
 
 # Rust backend
 setup-db:
@@ -210,10 +210,8 @@ tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
 start-cypress-stack:
-	./bin/start-cypress-stack.sh
+	./dev/bin/start-cypress-stack.sh
 
-build-x86_64-apple-darwin-release:
-	bin/osxcross-compile.sh
 
 test-in-ci: start-deps setup-db
 	cargo nextest run --verbose --locked
