@@ -11,7 +11,7 @@ for service, deps in docker_groups.items():
 
 bfx_local_price = os.getenv("BFX_LOCAL_PRICE", "1")
 serve_env_core = {
-    "PG_CON": "postgres://user:password@localhost:5433/pg",
+    "PG_CON": "postgres://user:password@localhost:5433/pg?sslmode=disable",
     "OTEL_EXPORTER_OTLP_ENDPOINT": "http://localhost:4317",
     "BFX_LOCAL_PRICE": bfx_local_price
 }

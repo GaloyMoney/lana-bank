@@ -50,6 +50,7 @@ podman-debug:
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
 	ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+	wait4x postgresql $$PG_CON
 
 clean-deps-podman: 
 	ENGINE_DEFAULT=podman ./bin/clean-deps.sh
@@ -78,6 +79,7 @@ clean-deps:
 
 start-deps:
 	./bin/docker-compose-up.sh
+	wait4x postgresql $$PG_CON
 
 # Rust backend
 setup-db:
