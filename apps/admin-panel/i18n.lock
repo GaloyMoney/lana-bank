@@ -252,6 +252,9 @@ checksums:
     CreditFacilities/table/headers/outstanding: 1c88761a69affad9b482d2a76b09e8aa
     CreditFacilities/table/headers/collateralizationState: 118de561d4525b14f9bb29ac9e86161d
     CreditFacilities/table/headers/cvl: 12e0a6186d39f26162179c48207c2507
+    CreditFacilities/table/headers/nominalRate: 8da492a71cdb3ef98d9b4b32fffd09d8
+    CreditFacilities/table/headers/effectiveRate: 7dd8de3c81e63d553bf906f47f584518
+    CreditFacilities/table/headers/interestDays: d9be3fbcf876a6a93fc1807fdaaa8ee0
     CreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     CreditFacilities/CreditFacilityStatus/active: 3e1ec025c4a50830bbb9ad57a176630a
     CreditFacilities/CreditFacilityStatus/pendingApproval: b25ca494ba78b23ced54002ba14c0bac

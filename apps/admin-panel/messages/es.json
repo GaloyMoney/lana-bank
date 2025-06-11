@@ -403,6 +403,9 @@
         "outstanding": "Pendiente",
         "collateralizationState": "Estado",
         "cvl": "CVL",
+        "nominalRate": "Tasa nominal",
+        "effectiveRate": "Tasa efectiva",
+        "interestDays": "Días de interés",
         "createdAt": "Creado El"
       }
     },
