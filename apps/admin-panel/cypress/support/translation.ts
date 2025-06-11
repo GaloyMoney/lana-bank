@@ -1,6 +1,7 @@
 import { get } from "lodash"
 
 import enTranslations from "../../messages/en.json"
+import esTranslations from "../../messages/es.json"
 
 type TranslationsType = typeof enTranslations
 
@@ -10,6 +11,7 @@ interface Translator {
 
 const translations: Record<string, TranslationsType> = {
   en: enTranslations,
+  es: esTranslations,
 }
 
 function createTranslator(): Translator {
