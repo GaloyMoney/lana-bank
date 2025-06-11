@@ -14,4 +14,6 @@ pub struct EmailConfig {
     pub relay: String,
     #[serde(default)]
     pub port: u16,
+    #[serde(default)]
+    pub insecure: bool,
 }

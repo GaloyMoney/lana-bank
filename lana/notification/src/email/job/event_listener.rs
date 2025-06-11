@@ -2,9 +2,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 
-use job::{
-    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
-};
+use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings};
 use lana_events::{CoreCreditEvent, LanaEvent};
 use outbox::Outbox;
 
@@ -71,7 +69,7 @@ impl JobRunner for EmailEventListenerRunner {
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
         while let Some(message) = stream.next().await {
-            let mut db = self.email_notification.jobs.begin_op().await?;
+            let mut db = es_entity::DbOp::init(current_job.pool()).await?;
             if let Some(event) = &message.payload {
                 self.handle_event(&mut db, event).await?;
             }

@@ -135,7 +135,4 @@ impl Jobs {
         self.executor.start_poll().await
     }
 
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, JobError> {
-        Ok(self.repo.begin_op().await?)
-    }
 }

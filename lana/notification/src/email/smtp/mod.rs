@@ -18,10 +18,16 @@ pub struct SmtpClient {
 
 impl SmtpClient {
     pub fn init(config: EmailConfig) -> Result<Self, SmtpError> {
-        let creds = Credentials::new(config.username, config.password);
-        let client = match AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config.relay) {
-            Ok(builder) => builder.credentials(creds).port(config.port).build(),
-            Err(e) => return Err(SmtpError::Transport(e.to_string())),
+        let client = if config.insecure {
+            AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&config.relay)
+                .port(config.port)
+                .build()
+        } else {
+            let creds = Credentials::new(config.username, config.password);
+            AsyncSmtpTransport::<Tokio1Executor>::starttls_relay(&config.relay)?
+                .credentials(creds)
+                .port(config.port)
+                .build()
         };
 
         Ok(Self {
@@ -47,9 +53,7 @@ impl SmtpClient {
             .header(ContentType::TEXT_HTML)
             .body(body)?;
 
-        match self.client.send(email).await {
-            Ok(_) => Ok(()),
-            Err(e) => Err(SmtpError::Transport(e.to_string())),
-        }
+        self.client.send(email).await?;
+        Ok(())
     }
 }
