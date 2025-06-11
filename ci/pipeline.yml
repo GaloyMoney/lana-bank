@@ -5,7 +5,6 @@
 #@   "public_gar_registry",
 #@   "nodejs_task_image_config",
 #@   "docker_host_pool",
-#@   "test_on_docker_host",
 #@   "edge_image_resource",
 #@   "version_resource",
 #@   "gh_release_resource",
@@ -203,11 +202,9 @@ jobs:
           - get: #@ app_src_resource_name("admin-panel")
             passed:
               -  #@ build_app_edge_image_name("admin-panel")
-            trigger: true
           - get: #@ app_src_resource_name("customer-portal")
             passed:
               -  #@ build_app_edge_image_name("customer-portal")
-            trigger: true
           - get: meltano-edge-image
             passed:
               - build-meltano-edge-image
