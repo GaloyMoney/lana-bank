@@ -15,6 +15,8 @@ cookie_jar() {
 login_superadmin() {
   ADMIN_URL="http://localhost:4455/admin"
   email="admin@galoy.io"
+  
+  echo "--- Starting superadmin login process ---"
 
   common_headers=(
     -b "$(cookie_jar 'admin')"
@@ -38,17 +40,17 @@ login_superadmin() {
     --arg csrfToken "$csrfToken" \
     '{ identifier: $email, method: "code", csrf_token: $csrfToken }' \
   )
-  curl -s -X POST -H "content-type: application/json" -d "$variables" "$ADMIN_URL/self-service/login?flow=$flowId" "${common_headers[@]}" >> /dev/null
+  local loginResponse=$(curl -s -X POST -H "content-type: application/json" -d "$variables" "$ADMIN_URL/self-service/login?flow=$flowId" "${common_headers[@]}")
 
   sleep 2
 
-  KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
-
   local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
-  local result=$(psql $KRATOS_PG_CON -t -c "${query}")
+  local result=$(podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "${query}")
 
   if [[ -z "$result" ]]; then
     echo "No message for email ${email}" >&2
+    echo "--- Checking all messages in database ---"
+    podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -c "SELECT recipient, created_at, body FROM courier_messages ORDER BY created_at DESC LIMIT 10;"
     exit 1
   fi
 
@@ -63,10 +65,11 @@ login_superadmin() {
     --arg csrfToken "$csrfToken" \
     '{ identifier: $email, method: "code", csrf_token: $csrfToken, code: $code }' \
   )
-  curl -s -X POST -H "content-type: application/json" -d "$variables" "$ADMIN_URL/self-service/login?flow=$flowId" "${common_headers[@]}" >> /dev/null
+  local finalResponse=$(curl -s -X POST -H "content-type: application/json" -d "$variables" "$ADMIN_URL/self-service/login?flow=$flowId" "${common_headers[@]}")
 
   cookies=$(cat $(cookie_jar 'admin') | tail -n 2)
   echo -n $cookies > $(cookie_jar 'admin')
+  echo "--- Login process completed ---"
 }
 
 login_superadmin
@@ -94,6 +97,9 @@ if [[ ${CI:-} == "true" ]]; then
 fi
 
 echo "==================== Running cypress ===================="
+mkdir -p cypress/results cypress/videos cypress/screenshots cypress/manuals/screenshots
+echo "Created cypress output directories"
+
 if [[ $EXECUTION_MODE == "ui" ]]; then
   nix develop -c pnpm run cypress:run-local
 elif [[ $EXECUTION_MODE == "headless" ]]; then

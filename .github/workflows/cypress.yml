@@ -6,18 +6,15 @@ on:
   push:
     branches: [main]
 
-concurrency:
-  group: ${{ github.workflow }}-${{ github.event.pull_request.number || github.ref }}
-  cancel-in-progress: true
-
 jobs:
   run-cypress-tests:
     name: Run Tests
-    runs-on: Lana-Big-Runner
+    runs-on: ubuntu-latest
     env:
       NETLIFY_TOKEN_PRESENT: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-podman
       - uses: ./.github/actions/setup-nix
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
@@ -25,7 +22,8 @@ jobs:
           free_disk_space: false
       - uses: ./.github/actions/cache-pnpm 
       - run: nix develop -c make build-for-tests
-      - run: nix develop -c make tilt-in-ci
+      - name: Start services for Cypress tests
+        run: nix develop -c make start-cypress-stack
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -33,7 +31,7 @@ jobs:
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
-      - run: nix develop -c make test-cypress-in-ci-locally
+      - run: nix develop -c make test-cypress-in-ci
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots

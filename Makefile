@@ -49,10 +49,10 @@ podman-debug:
 
 # ── Container Management ──────────────────────────────────────────────────────────
 start-deps-podman: podman-setup
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
+	ENGINE_DEFAULT=podman ./bin/docker-compose-up.sh
 
 clean-deps-podman: 
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./bin/clean-deps.sh
+	ENGINE_DEFAULT=podman ./bin/clean-deps.sh
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
@@ -152,8 +152,28 @@ check-code-apps-customer-portal:
 build-storybook-admin-panel:
 	cd apps/admin-panel && pnpm install --frozen-lockfile && pnpm run build-storybook
 
-test-cypress-in-ci-locally:
-	cd apps/admin-panel && pnpm cypress:run headless
+test-cypress-in-ci:
+	@echo "--- Starting Cypress Tests ---"
+	@echo "Working directory: $(shell pwd)"
+	@echo "Node version: $(shell node --version 2>/dev/null || echo 'Node not found')"
+	@echo "Pnpm version: $(shell pnpm --version 2>/dev/null || echo 'Pnpm not found')"
+	@echo "Checking if services are running..."
+	@echo "--- Service Health Checks ---"
+	@echo "Core server status:"
+	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:5253/health || echo "Core server health check failed"
+	@echo "GraphQL endpoint status:" 
+	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:5253/graphql || echo "GraphQL endpoint check failed"
+	@echo "Admin panel status:"
+	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:3001 || echo "Admin panel direct check failed"
+	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:4455/admin || echo "Admin panel via proxy failed"
+	@echo "Database connectivity check:"
+	@podman exec lana-bank-kratos-admin-pg-1 pg_isready -U dbuser || echo "Kratos admin DB not ready"
+	@podman exec lana-bank-core-pg-1 pg_isready -U user || echo "Core DB not ready"
+	@echo "Container status:"
+	@podman ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "Failed to check container status"
+	@echo "--- End Health Checks ---"
+	@echo "--- Running Cypress Tests ---"
+	cd apps/admin-panel && CI=true pnpm cypress:run headless
 
 # Meltano
 bitfinex-run:
@@ -187,6 +207,9 @@ sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test in
 tilt-in-ci:
 	./dev/bin/tilt-ci.sh
 
+start-cypress-stack:
+	./bin/start-cypress-stack.sh
+
 build-x86_64-apple-darwin-release:
 	bin/osxcross-compile.sh
 
@@ -198,10 +221,10 @@ build-x86_64-unknown-linux-musl-release:
 
 # Login code retrieval
 get-admin-login-code:
-	@docker exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+	@podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
 
 get-customer-login-code:
-	@docker exec lana-bank-kratos-customer-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+	@podman exec lana-bank-kratos-customer-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
 
 get-superadmin-login-code:
-	@docker exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='admin@galoy.io' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+	@podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='admin@galoy.io' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
