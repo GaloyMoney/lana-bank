@@ -187,7 +187,7 @@
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
-          wkhtmltopdf
+          python313Packages.weasyprint
 
           slirp4netns
           fuse-overlayfs

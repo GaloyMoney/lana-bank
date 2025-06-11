@@ -1,11 +1,17 @@
 #!/usr/bin/env bash
 
+# Converts all Markdown manuals into PDFs via wkhtmltopdf with Pandoc
+# Usage: cd cypress/manuals && ./local-pdf.sh
+
+set -euo pipefail
+
 REPO_ROOT=$(git rev-parse --show-toplevel)
-MANUALS_DIR="${REPO_ROOT}/apps/admin-panel/cypress/manuals/results"
+MANUALS_SRC="${REPO_ROOT}/apps/admin-panel/cypress/manuals"
+MANUALS_DIR="${MANUALS_SRC}/results"
 mkdir -p "$MANUALS_DIR"
 
-for file in *.md; do
-    cat > temp.css << 'EOL'
+# Generate temporary CSS
+cat > temp.css << 'EOL'
 body {
     width: 100%;
     margin: 0;
@@ -82,36 +88,45 @@ img {
     margin: 0 !important;
     padding: 0 !important;
 }
+
 a {
     color: #0066cc;
     text-decoration: underline;
 }
 EOL
 
+# Process each Markdown file
+for file in *.md; do
+    # Determine output filename
     CUSTOM_FILENAME=$(grep -m 1 "^pdf_filename:" "$file" | sed 's/pdf_filename: *//' | tr -d '[:space:]')
-    
     if [ -z "$CUSTOM_FILENAME" ]; then
         OUTPUT_FILENAME="${file%.md}"
     else
         OUTPUT_FILENAME="$CUSTOM_FILENAME"
     fi
 
-    sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > "temp.md"
-    sed -i '/^pdf_filename:/d' "temp.md"
+    # Preprocess page breaks and strip pdf_filename
+    sed 's/<!-- new-page -->/<div class="pb"><\/div>/g' "$file" > temp.md
+    sed -i '/^pdf_filename:/d' temp.md
 
-    pandoc --metadata title="${OUTPUT_FILENAME}" -V title="" "temp.md" \
-        -o "${MANUALS_DIR}/${OUTPUT_FILENAME}.pdf" \
-        --pdf-engine=wkhtmltopdf \
-        --pdf-engine-opt=--enable-local-file-access \
-        --pdf-engine-opt=--enable-internal-links \
-        --pdf-engine-opt=--print-media-type \
-        --pdf-engine-opt=--no-stop-slow-scripts \
-        -V papersize=a4 \
-        --css temp.css \
-        -V margin-top=10mm -V margin-right=5mm -V margin-bottom=5mm -V margin-left=5mm
-    echo "Converted $file to results/${OUTPUT_FILENAME}.pdf"
+    # Convert to PDF
+    pandoc temp.md \
+      --standalone --embed-resources \
+      --metadata title="${OUTPUT_FILENAME}" -V title="" \
+      -o "${MANUALS_DIR}/${OUTPUT_FILENAME}.pdf" \
+      --pdf-engine=weasyprint \
+      --css temp.css \
+      -V papersize=a4 \
+      -V margin-top=10mm \
+      -V margin-right=5mm \
+      -V margin-bottom=5mm \
+      -V margin-left=5mm
+
+    echo "Converted $file → results/${OUTPUT_FILENAME}.pdf"
     rm temp.md
 done
+
+# Clean up
 rm temp.css
 
 echo "Manuals generated in ${MANUALS_DIR}"
