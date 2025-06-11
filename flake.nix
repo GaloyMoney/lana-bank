@@ -195,7 +195,7 @@
           then []
           else [(pkgs.callPackage ./meltano.nix {})]
         )
-        ++ lib.optionals pkgs.stdenv.isLinux [
+        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
           wkhtmltopdf
@@ -204,7 +204,7 @@
           util-linux
           psmisc
         ]
-        ++ lib.optionals pkgs.stdenv.isDarwin [
+        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
           darwin.apple_sdk.frameworks.SystemConfiguration
         ];
       devEnvVars = rec {
