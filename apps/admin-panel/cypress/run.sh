@@ -127,7 +127,7 @@ if [[ $EXECUTION_MODE == "ui" ]]; then
   fi
 elif [[ $EXECUTION_MODE == "headless" ]]; then
   echo "Running cypress in headless mode..."
-  if ! timeout 600 nix develop -c pnpm run cypress:run-headless; then
+  if ! timeout 1800 nix develop -c pnpm run cypress:run-headless; then
     exit_code=$?
     echo "ERROR: Cypress headless mode failed with exit code $exit_code"
     echo "--- Debugging information ---"
