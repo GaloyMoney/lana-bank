@@ -137,63 +137,49 @@
       in
         builtins.match ".*workspaces.*" currentPath != null;
 
-      # Only include meltano when not in devcontainer - avoid evaluation entirely
-      meltanoPackage = pkgs.lib.optionalAttrs (!isDevcontainer) {
-        meltano = pkgs.callPackage ./meltano.nix {};
-      };
+      # Define base packages without meltano
+      baseNativeBuildInputs = with pkgs; [
+        rustToolchain
+        opentofu
+        alejandra
+        ytt
+        sqlx-cli
+        cargo-nextest
+        cargo-audit
+        cargo-watch
+        cargo-deny
+        cargo-machete
+        bacon
+        typos
+        postgresql
+        docker-compose
+        bats
+        jq
+        nodejs
+        typescript
+        google-cloud-sdk
+        pnpm
+        vendir
+        netlify-cli
+        pandoc
+        nano
+        podman
+        podman-compose
+        cachix
+        ps
+        curl
+        tilt
+        procps
+      ];
 
-      mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
-
-      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-      rustToolchain = rustVersion.override {
-        extensions = ["rust-analyzer" "rust-src"];
-        targets = ["x86_64-unknown-linux-musl"];
-      };
-
-      # Separate toolchain for musl cross-compilation
-      rustToolchainMusl = rustVersion.override {
-        extensions = ["rust-src"];
-        targets = ["x86_64-unknown-linux-musl"];
-      };
-
-      # Create a separate Crane lib for musl builds
-      craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
-
-      nativeBuildInputs = with pkgs;
-        [
-          rustToolchain
-          opentofu
-          alejandra
-          ytt
-          sqlx-cli
-          cargo-nextest
-          cargo-audit
-          cargo-watch
-          cargo-deny
-          cargo-machete
-          bacon
-          typos
-          postgresql
-          docker-compose
-          bats
-          jq
-          nodejs
-          typescript
-          google-cloud-sdk
-          pnpm
-          vendir
-          netlify-cli
-          pandoc
-          nano
-          podman
-          podman-compose
-          cachix
-          ps
-          curl
-          tilt
-          procps
-        ]
-        ++ lib.optionals (!isDevcontainer) (lib.attrValues meltanoPackage)
+      # Conditionally add meltano - completely avoid evaluation when in devcontainer
+      nativeBuildInputs =
+        baseNativeBuildInputs
+        ++ (
+          if isDevcontainer
+          then []
+          else [(pkgs.callPackage ./meltano.nix {})]
+        )
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
@@ -224,14 +210,18 @@
             release = lana-cli-release;
             static = lana-cli-static;
           }
-          // meltanoPackage;
+          // (
+            if isDevcontainer
+            then {}
+            else {meltano = pkgs.callPackage ./meltano.nix {};}
+          );
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
         devShells.default = mkShell (devEnvVars
           // {
             inherit nativeBuildInputs;
-            shellHook = lib.optionalString (!isDevcontainer) ''
+            shellHook = ''
               export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
             '';
           });
