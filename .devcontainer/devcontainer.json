@@ -14,7 +14,6 @@
         "vscode": {
             "extensions": [
                 "rust-lang.rust-analyzer",
-                "jnoortheen.nix-ide",
                 "bradlc.vscode-tailwindcss",
                 "esbenp.prettier-vscode",
                 "ms-vscode.vscode-typescript-next",
