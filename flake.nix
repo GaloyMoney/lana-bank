@@ -134,8 +134,10 @@
       # This works for GitHub Codespaces and other devcontainer setups that use /workspaces
       isDevcontainer = let
         currentPath = builtins.toString ./.;
+        result = builtins.match ".*workspaces.*" currentPath != null;
       in
-        builtins.match ".*workspaces.*" currentPath != null;
+        builtins.trace "DEBUG: currentPath = ${currentPath}"
+        (builtins.trace "DEBUG: isDevcontainer = ${builtins.toString result}" result);
 
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
       rustToolchain = rustVersion.override {
@@ -192,8 +194,8 @@
         baseNativeBuildInputs
         ++ (
           if isDevcontainer
-          then []
-          else [(pkgs.callPackage ./meltano.nix {})]
+          then builtins.trace "DEBUG: Skipping meltano (devcontainer detected)" []
+          else builtins.trace "DEBUG: Including meltano (not in devcontainer)" [(pkgs.callPackage ./meltano.nix {})]
         )
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
           pkgs.xvfb-run
@@ -227,8 +229,8 @@
           }
           // (
             if isDevcontainer
-            then {}
-            else {meltano = pkgs.callPackage ./meltano.nix {};}
+            then builtins.trace "DEBUG: Not adding meltano package (devcontainer)" {}
+            else builtins.trace "DEBUG: Adding meltano package (not devcontainer)" {meltano = pkgs.callPackage ./meltano.nix {};}
           );
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
