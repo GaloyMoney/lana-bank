@@ -403,6 +403,9 @@
         "outstanding": "Outstanding",
         "collateralizationState": "State",
         "cvl": "CVL",
+        "nominalRate": "Nominal Rate",
+        "effectiveRate": "Effective Rate",
+        "interestDays": "Interest Days",
         "createdAt": "Created At"
       }
     },

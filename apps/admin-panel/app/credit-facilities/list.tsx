@@ -161,7 +161,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     label: t("table.headers.nominalRate"),
     render: (terms) => {
       if (!terms) return "-"
-      return `${terms.annualRate}% ${terms.accrualInterval.toLowerCase()}`
+      return `${terms.annualRate}% ${terms.accrualInterval.toLowerCase().split("_").join(" ")}`
     },
   },
   {
@@ -170,7 +170,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     render: (terms) => {
       if (!terms) return "-"
       const effectiveRate = terms.annualRate + (terms.oneTimeFeeRate || 0)
-      return `${effectiveRate.toFixed(2)}%`
+      return `${Number(effectiveRate).toFixed(2)}%`
     },
   },
   {
