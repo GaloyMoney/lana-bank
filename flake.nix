@@ -196,16 +196,16 @@
           else [(pkgs.callPackage ./meltano.nix {})]
         )
         ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
-          xvfb-run
-          cypress
-          wkhtmltopdf
-          slirp4netns
-          fuse-overlayfs
-          util-linux
-          psmisc
+          pkgs.xvfb-run
+          pkgs.cypress
+          pkgs.wkhtmltopdf
+          pkgs.slirp4netns
+          pkgs.fuse-overlayfs
+          pkgs.util-linux
+          pkgs.psmisc
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [
-          darwin.apple_sdk.frameworks.SystemConfiguration
+          pkgs.darwin.apple_sdk.frameworks.SystemConfiguration
         ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
