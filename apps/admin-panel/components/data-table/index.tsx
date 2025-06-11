@@ -65,19 +65,19 @@ const DataTable = <T,>({
   const router = useRouter()
 
   const sanitizeUrl = (url: string | null): string | null => {
-    if (!url) return null;
+    if (!url) return null
     try {
-      const sanitizedUrl = new URL(url, window.location.origin);
-      return sanitizedUrl.toString();
+      const sanitizedUrl = new URL(url, window.location.origin)
+      return sanitizedUrl.toString()
     } catch {
-      return null;
+      return null
     }
-  };
+  }
 
   const getNavigationUrl = (item: T): string | null => {
-    const url = navigateTo ? navigateTo(item) : null;
-    return sanitizeUrl(url);
-  };
+    const url = navigateTo ? navigateTo(item) : null
+    return sanitizeUrl(url)
+  }
 
   const shouldShowNavigation = (item: T): boolean => {
     if (!navigateTo) return false
