@@ -130,8 +130,15 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
-      isDevcontainer = builtins.getEnv "DEVCONTAINER_LANA" == "1";
-      meltano = if isDevcontainer then null else pkgs.callPackage ./meltano.nix {};
+      # Detect if we're in a devcontainer by checking environment variables
+      # CODESPACES is set in GitHub Codespaces, DEV_CONTAINERS is set by devcontainer environments
+      isDevcontainer = (builtins.getEnv "CODESPACES") != "" || (builtins.getEnv "DEV_CONTAINERS") != "";
+
+      # Only include meltano when not in devcontainer
+      meltano =
+        if isDevcontainer
+        then null
+        else pkgs.callPackage ./meltano.nix {};
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
@@ -184,7 +191,7 @@
           tilt
           procps
         ]
-        ++ (if isDevcontainer then [] else [ meltano ])
+        ++ lib.optionals (!isDevcontainer && meltano != null) [meltano]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
@@ -208,19 +215,23 @@
       };
     in
       with pkgs; {
-        packages = {
-          default = lana-cli-debug;
-          debug = lana-cli-debug;
-          release = lana-cli-release;
-          static = lana-cli-static;
-        } // (if isDevcontainer then {} else { inherit meltano; });
+        packages =
+          {
+            default = lana-cli-debug;
+            debug = lana-cli-debug;
+            release = lana-cli-release;
+            static = lana-cli-static;
+          }
+          // lib.optionalAttrs (!isDevcontainer && meltano != null) {
+            inherit meltano;
+          };
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
         devShells.default = mkShell (devEnvVars
           // {
             inherit nativeBuildInputs;
-            shellHook = ''
+            shellHook = lib.optionalString (!isDevcontainer) ''
               export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
             '';
           });
