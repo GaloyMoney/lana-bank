@@ -408,7 +408,7 @@
       "pendingApproval": "Aprobación Pendiente",
       "pendingCollateralization": "Colateralización Pendiente",
       "closed": "Cerrado",
-      "matured": "Vencido"
+      "matured": "Finalizado"
     },
     "collateralizationState": {
       "fullyCollateralized": "Totalmente garantizado",
