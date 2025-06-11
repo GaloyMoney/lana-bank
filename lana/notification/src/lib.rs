@@ -2,26 +2,23 @@ pub mod config;
 pub mod email;
 pub mod error;
 
-pub use config::NotificationConfig;
-
-use authz::Authorization as AuthzAuthorization;
 use core_access::user::Users;
 use core_credit::CoreCredit;
 use core_customer::Customers;
-use email::job::{EmailEventListenerConfig, EmailEventListenerInitializer};
-use email::EmailNotification;
 use job::Jobs;
 use lana_events::LanaEvent;
 use rbac_types::{LanaAction, LanaObject, Subject};
 
-type LanaAudit = audit::Audit<Subject, LanaObject, LanaAction>;
-type Authorization = AuthzAuthorization<LanaAudit, core_access::AuthRoleToken>;
-type NotificationOutbox = outbox::Outbox<LanaEvent>;
+use email::job::{EmailEventListenerConfig, EmailEventListenerInitializer};
+use email::EmailNotification;
 
-#[derive(Clone)]
-pub struct Notification {
-    _email: EmailNotification,
-}
+pub use config::NotificationConfig;
+
+pub(crate) type LanaAudit = audit::Audit<Subject, LanaObject, LanaAction>;
+pub(crate) type Authorization = authz::Authorization<LanaAudit, core_access::AuthRoleToken>;
+pub(crate) type NotificationOutbox = outbox::Outbox<LanaEvent>;
+
+pub struct Notification;
 
 impl Notification {
     pub async fn init(
@@ -39,6 +36,6 @@ impl Notification {
         )
         .await?;
 
-        Ok(Self { _email: email })
+        Ok(Self)
     }
 }

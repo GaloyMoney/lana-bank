@@ -17,7 +17,6 @@ impl JobConfig for EmailSenderConfig {
     type Initializer = EmailSenderInitializer;
 }
 
-#[derive(Clone)]
 pub struct EmailSenderInitializer {
     smtp_client: SmtpClient,
     template: EmailTemplate,

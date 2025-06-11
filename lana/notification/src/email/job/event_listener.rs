@@ -2,7 +2,9 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 
-use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings};
+use job::{
+    CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
+};
 use lana_events::{CoreCreditEvent, LanaEvent};
 use outbox::Outbox;
 

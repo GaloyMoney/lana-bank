@@ -55,7 +55,6 @@ pub struct LanaApp {
     dashboard: Dashboard,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
-    _notification: Notification,
 }
 
 impl LanaApp {
@@ -135,7 +134,7 @@ impl LanaApp {
         )
         .await?;
 
-        let notification = Notification::init(
+        Notification::init(
             config.notification,
             &jobs,
             &outbox,
@@ -169,7 +168,6 @@ impl LanaApp {
             dashboard,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
-            _notification: notification,
         })
     }
 

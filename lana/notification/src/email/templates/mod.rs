@@ -6,7 +6,7 @@ use serde_json::json;
 
 use crate::email::error::EmailError;
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub enum EmailType {
     OverduePayment(OverduePaymentEmailData),
     General { subject: String, body: String },

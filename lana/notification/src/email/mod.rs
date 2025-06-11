@@ -5,22 +5,19 @@ pub mod job;
 mod smtp;
 pub mod templates;
 
-pub use config::EmailConfig;
-pub use error::EmailError;
-
 use ::job::{JobId, Jobs};
-use authz::Authorization as AuthzAuthorization;
 use core_access::user::Users;
 use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
 use core_customer::Customers;
 use job::{EmailSenderConfig, EmailSenderInitializer};
 use lana_events::LanaEvent;
-use rbac_types::{LanaAction, LanaObject, Subject};
+
+use crate::{Authorization, LanaAudit};
 use smtp::SmtpClient;
 use templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
 
-type LanaAudit = audit::Audit<Subject, LanaObject, LanaAction>;
-type Authorization = AuthzAuthorization<LanaAudit, core_access::AuthRoleToken>;
+pub use config::EmailConfig;
+pub use error::EmailError;
 
 #[derive(Clone)]
 pub struct EmailNotification {
