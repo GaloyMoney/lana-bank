@@ -2,13 +2,15 @@ use async_trait::async_trait;
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use serde::{Deserialize, Serialize};
 
-use crate::email::{smtp::SmtpClient, templates::EmailTemplate};
+use crate::email::{
+    smtp::SmtpClient,
+    templates::{EmailTemplate, EmailType},
+};
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
+#[derive(Serialize, Deserialize)]
 pub struct EmailSenderConfig {
     pub recipient: String,
-    pub subject: String,
-    pub template_data: String,
+    pub email_type: EmailType,
 }
 
 impl JobConfig for EmailSenderConfig {
@@ -58,11 +60,9 @@ impl JobRunner for EmailSenderRunner {
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let body = self
-            .template
-            .generic_email_template(&self.config.subject, &self.config.template_data)?;
+        let (subject, body) = self.template.render_email(&self.config.email_type)?;
         self.smtp_client
-            .send_email(&self.config.recipient, &self.config.subject, body)
+            .send_email(&self.config.recipient, &subject, body)
             .await?;
         Ok(JobCompletion::Complete)
     }

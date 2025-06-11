@@ -139,7 +139,7 @@ where
     }
 }
 
-#[derive(Default, Clone, Serialize, Deserialize)]
+#[derive(Default, Serialize, Deserialize)]
 struct EmailEventListenerData {
     sequence: outbox::EventSequence,
 }
@@ -169,7 +169,7 @@ where
 #[async_trait]
 impl<Perms, E> JobRunner for EmailEventListenerRunner<Perms, E>
 where
-    Perms: PermissionCheck + Send + Sync,
+    Perms: PermissionCheck,
     <Perms::Audit as AuditSvc>::Subject: From<UserId>,
     <Perms::Audit as AuditSvc>::Action: From<CoreAccessAction>
         + From<CoreCreditAction>
@@ -182,9 +182,7 @@ where
     E: OutboxEventMarker<CoreAccessEvent>
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + Send
-        + Sync,
+        + OutboxEventMarker<GovernanceEvent>,
 {
     async fn run(
         &self,

@@ -1,4 +1,5 @@
 use super::smtp::error::SmtpError;
+use handlebars::{RenderError, TemplateError};
 use thiserror::Error;
 
 #[derive(Error, Debug)]
@@ -6,7 +7,9 @@ pub enum EmailError {
     #[error("EmailError - SmtpError: {0}")]
     Smtp(#[from] SmtpError),
     #[error("EmailError - Template: {0}")]
-    Template(String),
+    Template(#[from] TemplateError),
+    #[error("EmailError - Render: {0}")]
+    Render(#[from] RenderError),
     #[error("EmailError - Job: {0}")]
     Job(#[from] ::job::error::JobError),
     #[error("EmailError – User: {0}")]

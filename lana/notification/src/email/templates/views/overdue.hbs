@@ -1,0 +1,20 @@
+{{#> base}}
+<tr>
+    <td align="left" style="background-color: #fff; padding: 20px">
+    <h2 style="margin-top: 0; margin-bottom: 20px; font-size: 20px">
+        {{subject}}
+    </h2>
+    <p style="margin-top: 0; margin-bottom: 20px; font-size: 16px; line-height: 1.5; text-align: left;">
+        The following payment is now overdue:
+    </p>
+    <ul style="margin-top: 0; margin-bottom: 20px; font-size: 16px; line-height: 1.5; text-align: left;">
+        <li>Facility ID: {{facility_id}}</li>
+        <li>Payment Type: {{payment_type}}</li>
+        <li>Original Scheduled Amount: {{original_amount}}</li>
+        <li>Outstanding Amount: {{outstanding_amount}}</li>
+        <li>Due Date: {{due_date}}</li>
+        <li>Customer Email: {{customer_email}}</li>
+    </ul>
+    </td>
+</tr>
+{{/base}} 

@@ -24,7 +24,7 @@ use job::{EmailSenderConfig, EmailSenderInitializer};
 use lana_events::{CoreCreditEvent, CoreCustomerEvent, GovernanceEvent};
 use outbox::OutboxEventMarker;
 use smtp::SmtpClient;
-use templates::EmailTemplate;
+use templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
 
 pub struct EmailNotification<Perms, E>
 where
@@ -144,37 +144,22 @@ where
             .await?
             .ok_or(EmailError::CustomerNotFound)?;
 
-        let obligation_type = match obligation.obligation_type {
-            ObligationType::Disbursal => "Principal Repayment",
-            ObligationType::Interest => "Interest Payment",
+        let email_data = OverduePaymentEmailData {
+            facility_id: credit_facility_id.to_string(),
+            payment_type: match obligation.obligation_type {
+                ObligationType::Disbursal => "Principal Repayment".to_string(),
+                ObligationType::Interest => "Interest Payment".to_string(),
+            },
+            original_amount: obligation.initial_amount,
+            outstanding_amount: *amount,
+            due_date: obligation.due_at(),
+            customer_email: customer.email,
         };
-        let email_subject = format!(
-            "Lana Bank: {obligation_type} Overdue Payment - {amount} (Facility {credit_facility_id})",
-            amount = amount.formatted_usd(),
-        );
-        let body_text = format!(
-            "<p>The following payment is now overdue</p>
-            <ul>
-                <li>Facility ID {facility_id}</li>
-                <li>Payment Type {obligation_type}</li>
-                <li>Original Scheduled Amount ${original_amount}</li>
-                <li>Outstanding Amount ${outstanding_amount}</li>
-                <li>Due Date {due_date}</li>
-                <li>Customer Email {customer_email}</li>
-            </ul>
-            ",
-            facility_id = credit_facility_id,
-            obligation_type = obligation_type,
-            original_amount = obligation.initial_amount.formatted_usd(),
-            outstanding_amount = amount.formatted_usd(),
-            due_date = obligation.due_at(),
-            customer_email = customer.email,
-        );
+
         for user in users {
             let email_config = EmailSenderConfig {
                 recipient: user.email,
-                subject: email_subject.to_string(),
-                template_data: body_text.clone(),
+                email_type: EmailType::OverduePayment(email_data.clone()),
             };
             self.jobs
                 .create_and_spawn_in_op(db, JobId::new(), email_config)

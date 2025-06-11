@@ -27,6 +27,7 @@ futures = { workspace = true }
 thiserror = { workspace = true }
 lettre = { workspace = true }
 handlebars = { workspace = true }
+chrono = { workspace = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }
