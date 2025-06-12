@@ -2,6 +2,10 @@
 
 set -eu
 
+# Source helpers.bash for shared functionality
+REPO_ROOT=$(git rev-parse --show-toplevel)
+source "${REPO_ROOT}/bats/helpers.bash"
+
 EXECUTION_MODE="${1:-ui}"
 
 CACHE_DIR=/tmp/lana-cache
@@ -12,11 +16,12 @@ cookie_jar() {
   echo "$CACHE_DIR/$1.jar"
 }
 
-login_superadmin() {
+# Browser-based login for Cypress (different from API-based login in helpers.bash)
+login_superadmin_browser() {
   ADMIN_URL="http://localhost:4455/admin"
   email="admin@galoy.io"
   
-  echo "--- Starting superadmin login process ---"
+  echo "--- Starting superadmin browser login process ---"
 
   common_headers=(
     -b "$(cookie_jar 'admin')"
@@ -44,17 +49,7 @@ login_superadmin() {
 
   sleep 2
 
-  local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
-  local result=$(podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "${query}")
-
-  if [[ -z "$result" ]]; then
-    echo "No message for email ${email}" >&2
-    echo "--- Checking all messages in database ---"
-    podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -c "SELECT recipient, created_at, body FROM courier_messages ORDER BY created_at DESC LIMIT 10;"
-    exit 1
-  fi
-
-  local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
+  local code=$(getEmailCode "$email")
 
   local loginFlow=$(curl -s -X GET "$ADMIN_URL/self-service/login?flow=$flowId" "${common_headers[@]}")
   local csrfToken=$(echo $loginFlow | jq -r '.ui.nodes[] | select(.attributes.name == "csrf_token") | .attributes.value')
@@ -69,10 +64,10 @@ login_superadmin() {
 
   cookies=$(cat $(cookie_jar 'admin') | tail -n 2)
   echo -n $cookies > $(cookie_jar 'admin')
-  echo "--- Login process completed ---"
+  echo "--- Browser login process completed ---"
 }
 
-login_superadmin
+login_superadmin_browser
 
 COOKIE1_NAME=$(cat $(cookie_jar 'admin') | cut -d" " -f6)
 COOKIE1_VALUE=$(cat $(cookie_jar 'admin') | cut -d" " -f7)

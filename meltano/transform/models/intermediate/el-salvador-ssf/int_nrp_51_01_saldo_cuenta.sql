@@ -1,42 +1,17 @@
-with set_hierarchy_strings as (
+with
 
-    select
-        expanded.account_set_id,
-        expanded.member_id,
-        expanded.member_type,
-        string_agg(
-            set_name, ":"
-            order by o
-        ) as set_hierarchy_string
-
-    from {{ ref('int_account_sets_expanded') }} as expanded,
-        unnest(set_hierarchy) as parent_set_id with offset as o
-
-    inner join
-        {{ ref('int_account_sets') }} as account_sets
-        on parent_set_id = account_sets.account_set_id
-
-    group by account_set_id, member_id, member_type
-
+chart as (
+    select *
+    from {{ ref('int_core_chart_of_account_with_balances') }}
 )
 
-select
-    member_id as id_codigo_cuenta,
-    set_hierarchy_string || ":" || account_name as nom_cuenta,
-    coalesce(case
-        when normal_balance_type = "credit" then settled_cr - settled_dr
-        when normal_balance_type = "debit" then settled_dr - settled_cr
-    end, 0) as valor
+, final as (
+    select
+        code as id_codigo_cuenta,
+        name as nom_cuenta,
+        balance as valor
 
-from set_hierarchy_strings
+    from chart
+)
 
-left join {{ ref('int_account_sets') }} using (account_set_id)
-
-left join {{ ref('int_accounts') }} as accounts
-    on accounts.account_id = member_id
-
-left join {{ ref('int_account_balances') }} as balances
-    on balances.account_id = member_id
-
-where
-    member_type = "Account"
+select * from final

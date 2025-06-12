@@ -2,84 +2,114 @@
   lib,
   python311,
   fetchPypi,
-}:
-python311.pkgs.buildPythonApplication rec {
-  pname = "meltano";
-  version = "3.7.8";
-  pyproject = true;
+  writeShellScriptBin,
+  stdenv,
+  zlib,
+  gcc,
+}: let
+  meltano-unwrapped = python311.pkgs.buildPythonApplication rec {
+    pname = "meltano";
+    version = "3.7.8";
+    pyproject = true;
 
-  src = fetchPypi {
-    inherit pname version;
-    hash = "sha256-dwYJzgqa4pYuXR2oadf6jRJV0ZX5r+mpSE8Km9lzDLI=";
+    src = fetchPypi {
+      inherit pname version;
+      hash = "sha256-dwYJzgqa4pYuXR2oadf6jRJV0ZX5r+mpSE8Km9lzDLI=";
+    };
+
+    nativeBuildInputs = with python311.pkgs; [
+      hatchling
+    ];
+
+    propagatedBuildInputs = with python311.pkgs; [
+      click
+      pyyaml
+      requests
+      sqlalchemy
+      psycopg2
+      jinja2
+      jsonschema
+      packaging
+      cryptography
+      pydantic
+      python-dotenv
+      importlib-metadata
+      typing-extensions
+      structlog
+      watchdog
+      click-default-group
+      (fasteners.overridePythonAttrs (old: {doCheck = false;}))
+      croniter
+      pathvalidate
+      click-didyoumean
+      flatten-dict
+      snowplow-tracker
+      pyhumps
+      rich
+      ruamel-yaml
+      simplejson
+      configobj
+      gitdb
+      smmap
+      gitpython
+      tzlocal
+      psutil
+      alembic
+      sqlalchemy-utils
+      flask
+      flask-cors
+      gunicorn
+      uvicorn
+      celery
+      redis
+      boto3
+      google-cloud-storage
+      azure-storage-blob
+      atomicwrites
+      smart-open
+      dateparser
+      anyio
+      virtualenv
+    ];
+
+    # Skip tests as they require network access and additional setup
+    doCheck = false;
+    # Skip python imports check due to complex dependency tree
+    pythonImportsCheck = [];
+    # Skip runtime deps check due to optional dependencies
+    dontCheckRuntimeDeps = true;
+
+    meta = with lib; {
+      description = "Your DataOps infrastructure, as code";
+      homepage = "https://meltano.com/";
+      license = licenses.mit;
+      maintainers = [];
+      platforms = platforms.unix;
+    };
   };
+in
+  writeShellScriptBin "meltano" ''
+    # Set LD_LIBRARY_PATH to include necessary C++ libraries for Airflow and other tools
+    export LD_LIBRARY_PATH="${lib.makeLibraryPath [
+      stdenv.cc.cc.lib
+      gcc.cc.lib
+      zlib
+    ]}:''${LD_LIBRARY_PATH:-}"
 
-  nativeBuildInputs = with python311.pkgs; [
-    hatchling
-  ];
+    if [[ "$1" == "install" ]] || [[ "$1" == "invoke" ]]; then
+      # Set minimal PYTHONPATH with virtualenv and required dependencies
+      MINIMAL_PYTHONPATH="${python311.pkgs.virtualenv}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.platformdirs}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.distlib}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.filelock}/lib/python3.11/site-packages"
 
-  propagatedBuildInputs = with python311.pkgs; [
-    click
-    pyyaml
-    requests
-    sqlalchemy
-    psycopg2
-    jinja2
-    jsonschema
-    packaging
-    cryptography
-    pydantic
-    python-dotenv
-    importlib-metadata
-    typing-extensions
-    structlog
-    watchdog
-    click-default-group
-    (fasteners.overridePythonAttrs (old: {doCheck = false;}))
-    croniter
-    pathvalidate
-    click-didyoumean
-    flatten-dict
-    snowplow-tracker
-    pyhumps
-    rich
-    ruamel-yaml
-    simplejson
-    configobj
-    gitdb
-    smmap
-    gitpython
-    tzlocal
-    psutil
-    alembic
-    sqlalchemy-utils
-    flask
-    flask-cors
-    gunicorn
-    uvicorn
-    celery
-    redis
-    boto3
-    google-cloud-storage
-    azure-storage-blob
-    atomicwrites
-    smart-open
-    dateparser
-    anyio
-    virtualenv
-  ];
-
-  # Skip tests as they require network access and additional setup
-  doCheck = false;
-  # Skip python imports check due to complex dependency tree
-  pythonImportsCheck = [];
-  # Skip runtime deps check due to optional dependencies
-  dontCheckRuntimeDeps = true;
-
-  meta = with lib; {
-    description = "Your DataOps infrastructure, as code";
-    homepage = "https://meltano.com/";
-    license = licenses.mit;
-    maintainers = [];
-    platforms = platforms.unix;
-  };
-}
+      exec env -u PYTHONHOME -u NIX_PYTHONPATH \
+        PATH="${python311}/bin:$PATH" \
+        PYTHONPATH="$MINIMAL_PYTHONPATH" \
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
+        ${meltano-unwrapped}/bin/meltano "$@"
+    else
+      # For other commands, use meltano normally with library path
+      exec env LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ${meltano-unwrapped}/bin/meltano "$@"
+    fi
+  ''

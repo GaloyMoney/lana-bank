@@ -37,7 +37,7 @@ pub use chart_of_accounts_integration::{
 };
 pub use collateral::*;
 pub use config::*;
-use credit_facility::error::CreditFacilityError;
+pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
@@ -47,7 +47,7 @@ pub use history::*;
 pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
-pub use obligation::{obligation_cursor::*, *};
+pub use obligation::{error::*, obligation_cursor::*, *};
 pub use payment::*;
 pub use payment_allocation::*;
 pub use primitives::*;

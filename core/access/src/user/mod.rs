@@ -15,6 +15,7 @@ use crate::{Role, event::*, primitives::*, publisher::UserPublisher};
 use entity::*;
 pub use entity::{User, UserEvent};
 pub use error::*;
+pub use repo::user_cursor::UsersByCreatedAtCursor;
 use repo::*;
 
 pub struct Users<Audit, E>
@@ -217,6 +218,14 @@ where
             .list_by_email(Default::default(), es_entity::ListDirection::Ascending)
             .await?
             .entities)
+    }
+
+    pub async fn list_users_without_audit(
+        &self,
+        query: es_entity::PaginatedQueryArgs<UsersByCreatedAtCursor>,
+        direction: es_entity::ListDirection,
+    ) -> Result<es_entity::PaginatedQueryRet<User, UsersByCreatedAtCursor>, UserError> {
+        self.repo.list_by_created_at(query, direction).await
     }
 
     pub async fn subject_can_update_role_of_user(

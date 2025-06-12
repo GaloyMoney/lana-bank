@@ -255,7 +255,7 @@ impl UsdCents {
     }
 
     pub fn formatted_usd(self) -> String {
-        format!("{:.2}", self.to_usd())
+        format!("${:.2}", self.to_usd())
     }
 }
 

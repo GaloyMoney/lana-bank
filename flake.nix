@@ -41,7 +41,8 @@
           craneLib.filterCargoSources path type
           || pkgs.lib.hasInfix "/lib/authz/src/rbac.conf" path
           || pkgs.lib.hasInfix "/.sqlx/" path
-          || pkgs.lib.hasInfix "/lana/app/migrations/" path;
+          || pkgs.lib.hasInfix "/lana/app/migrations/" path
+          || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path;
       };
 
       # Function to build cargo artifacts for a specific profile

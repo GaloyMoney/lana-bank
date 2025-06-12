@@ -1,6 +1,6 @@
 [package]
 name = "governance"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 

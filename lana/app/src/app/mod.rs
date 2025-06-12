@@ -22,6 +22,7 @@ use crate::{
     document::Documents,
     governance::Governance,
     job::Jobs,
+    notification::Notification,
     outbox::Outbox,
     price::Price,
     primitives::Subject,
@@ -113,6 +114,7 @@ impl LanaApp {
         .await?;
         let customer_sync =
             CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
+
         let applicants =
             Applicants::init(&pool, &config.sumsub, &customers, &deposits, &jobs, &outbox).await?;
 
@@ -129,6 +131,16 @@ impl LanaApp {
             &outbox,
             &cala,
             journal_init.journal_id,
+        )
+        .await?;
+
+        Notification::init(
+            config.notification,
+            &jobs,
+            &outbox,
+            access.users(),
+            &credit,
+            &customers,
         )
         .await?;
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)

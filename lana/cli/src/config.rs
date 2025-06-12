@@ -43,6 +43,8 @@ pub struct EnvSecrets {
     pub sumsub_key: String,
     pub sumsub_secret: String,
     pub sa_creds_base64: Option<String>,
+    pub smtp_username: String,
+    pub smtp_password: String,
     pub custodian_encryption_key: String,
 }
 
@@ -54,6 +56,8 @@ impl Config {
             sumsub_key,
             sumsub_secret,
             sa_creds_base64,
+            smtp_username,
+            smtp_password,
             custodian_encryption_key,
         }: EnvSecrets,
         dev_env_name_prefix: Option<String>,
@@ -71,6 +75,8 @@ impl Config {
             .app
             .service_account
             .set_sa_creds_base64(sa_creds_base64)?;
+        config.app.notification.email.username = smtp_username;
+        config.app.notification.email.password = smtp_password;
         if let Some(dev_env_name_prefix) = dev_env_name_prefix {
             eprintln!(
                 "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={}",

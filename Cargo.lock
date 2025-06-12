@@ -29,7 +29,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "admin-server"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -337,7 +337,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "audit"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "async-trait",
  "chrono",
@@ -349,7 +349,7 @@ dependencies = [
 
 [[package]]
 name = "authz"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "async-trait",
  "audit",
@@ -905,6 +905,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "chumsky"
+version = "0.9.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "8eebd66744a15ded14960ab4ccdbfb51ad3b81f51f3f04a80adac98c985396c9"
+dependencies = [
+ "hashbrown 0.14.5",
+ "stacker",
+]
+
+[[package]]
 name = "cipher"
 version = "0.4.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -957,7 +967,7 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "cloud-storage"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "google-cloud-storage",
@@ -1019,7 +1029,7 @@ dependencies = [
 
 [[package]]
 name = "core-access"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "audit",
  "authz",
@@ -1037,7 +1047,7 @@ dependencies = [
 
 [[package]]
 name = "core-accounting"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1068,7 +1078,7 @@ dependencies = [
 
 [[package]]
 name = "core-credit"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1105,7 +1115,7 @@ dependencies = [
 
 [[package]]
 name = "core-custody"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "audit",
  "authz",
@@ -1124,7 +1134,7 @@ dependencies = [
 
 [[package]]
 name = "core-customer"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "async-graphql",
  "audit",
@@ -1143,7 +1153,7 @@ dependencies = [
 
 [[package]]
 name = "core-deposit"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1195,7 +1205,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core-money"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "async-graphql",
  "rust_decimal",
@@ -1206,7 +1216,7 @@ dependencies = [
 
 [[package]]
 name = "core-price"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "cached",
@@ -1308,7 +1318,7 @@ dependencies = [
 
 [[package]]
 name = "customer-server"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1332,7 +1342,7 @@ dependencies = [
 
 [[package]]
 name = "customer-sync"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "async-trait",
  "audit",
@@ -1389,7 +1399,7 @@ dependencies = [
 
 [[package]]
 name = "dashboard"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "async-trait",
  "audit",
@@ -1532,6 +1542,22 @@ checksum = "48c757948c5ede0e46177b7add2e67155f70e33c07fea8284df6576da70b3719"
 dependencies = [
  "serde",
 ]
+
+[[package]]
+name = "email-encoding"
+version = "0.4.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "9298e6504d9b9e780ed3f7dfd43a61be8cd0e09eb07f7706a945b0072b6670b6"
+dependencies = [
+ "base64 0.22.1",
+ "memchr",
+]
+
+[[package]]
+name = "email_address"
+version = "0.2.9"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e079f19b08ca6239f47f8ba8509c11cf3ea30095831f7fed61441475edd8c449"
 
 [[package]]
 name = "ena"
@@ -1996,7 +2022,7 @@ dependencies = [
 
 [[package]]
 name = "governance"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2032,6 +2058,22 @@ dependencies = [
  "tokio",
  "tokio-util",
  "tracing",
+]
+
+[[package]]
+name = "handlebars"
+version = "6.3.2"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "759e2d5aea3287cb1190c8ec394f42866cb5bf74fcbf213f354e3c856ea26098"
+dependencies = [
+ "derive_builder",
+ "log",
+ "num-order",
+ "pest",
+ "pest_derive",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
 ]
 
 [[package]]
@@ -2502,7 +2544,7 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "job"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -2548,7 +2590,7 @@ dependencies = [
 
 [[package]]
 name = "jwks-utils"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "axum 0.8.4",
  "axum-extra 0.10.1",
@@ -2561,7 +2603,7 @@ dependencies = [
 
 [[package]]
 name = "kratos-admin"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "reqwest",
  "serde",
@@ -2604,7 +2646,7 @@ dependencies = [
 
 [[package]]
 name = "lana-app"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -2636,6 +2678,7 @@ dependencies = [
  "job",
  "lana-events",
  "lana-ids",
+ "notification",
  "outbox",
  "rand 0.9.1",
  "rbac-types",
@@ -2658,7 +2701,7 @@ dependencies = [
 
 [[package]]
 name = "lana-cli"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "admin-server",
  "anyhow",
@@ -2678,7 +2721,7 @@ dependencies = [
 
 [[package]]
 name = "lana-events"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "core-access",
  "core-credit",
@@ -2691,7 +2734,7 @@ dependencies = [
 
 [[package]]
 name = "lana-ids"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "cala-ledger",
  "es-entity",
@@ -2708,6 +2751,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "bbd2bcb4c963f2ddae06a2efc7e9f3591312473c50c6685e1f298068316e66fe"
 dependencies = [
  "spin 0.9.8",
+]
+
+[[package]]
+name = "lettre"
+version = "0.11.16"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "87ffd14fa289730e3ad68edefdc31f603d56fe716ec38f2076bb7410e09147c2"
+dependencies = [
+ "async-trait",
+ "base64 0.22.1",
+ "chumsky",
+ "email-encoding",
+ "email_address",
+ "fastrand",
+ "futures-io",
+ "futures-util",
+ "httpdate",
+ "idna",
+ "mime",
+ "nom",
+ "percent-encoding",
+ "quoted_printable",
+ "rustls",
+ "socket2",
+ "tokio",
+ "tokio-rustls",
+ "url",
+ "webpki-roots 1.0.0",
 ]
 
 [[package]]
@@ -2907,6 +2978,41 @@ dependencies = [
 ]
 
 [[package]]
+name = "nom"
+version = "8.0.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "df9761775871bdef83bee530e60050f7e54b1105350d6884eb0fb4f46c2f9405"
+dependencies = [
+ "memchr",
+]
+
+[[package]]
+name = "notification"
+version = "0.3.649-dev"
+dependencies = [
+ "anyhow",
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "core-access",
+ "core-credit",
+ "core-customer",
+ "core-money",
+ "es-entity",
+ "futures",
+ "handlebars",
+ "job",
+ "lana-events",
+ "lettre",
+ "outbox",
+ "rbac-types",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "nu-ansi-term"
 version = "0.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2967,6 +3073,21 @@ dependencies = [
  "autocfg",
  "num-integer",
  "num-traits",
+]
+
+[[package]]
+name = "num-modular"
+version = "0.6.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "17bb261bf36fa7d83f4c294f834e91256769097b3cb505d44831e0a179ac647f"
+
+[[package]]
+name = "num-order"
+version = "1.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "537b596b97c40fcf8056d153049eb22f481c17ebce72a513ec9286e4986d1bb6"
+dependencies = [
+ "num-modular",
 ]
 
 [[package]]
@@ -3106,7 +3227,7 @@ dependencies = [
 
 [[package]]
 name = "outbox"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "chrono",
  "es-entity",
@@ -3188,6 +3309,40 @@ dependencies = [
  "memchr",
  "thiserror 2.0.12",
  "ucd-trie",
+]
+
+[[package]]
+name = "pest_derive"
+version = "2.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "d725d9cfd79e87dccc9341a2ef39d1b6f6353d68c4b33c177febbe1a402c97c5"
+dependencies = [
+ "pest",
+ "pest_generator",
+]
+
+[[package]]
+name = "pest_generator"
+version = "2.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "db7d01726be8ab66ab32f9df467ae8b1148906685bbe75c82d1e65d7f5b3f841"
+dependencies = [
+ "pest",
+ "pest_meta",
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
+]
+
+[[package]]
+name = "pest_meta"
+version = "2.8.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "7f9f832470494906d1fca5329f8ab5791cc60beb230c74815dff541cbd2b5ca0"
+dependencies = [
+ "once_cell",
+ "pest",
+ "sha2",
 ]
 
 [[package]]
@@ -3480,6 +3635,15 @@ dependencies = [
 ]
 
 [[package]]
+name = "psm"
+version = "0.1.26"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "6e944464ec8536cd1beb0bbfd96987eb5e3b72f2ecdafdc5c769a37f1fa2ae1f"
+dependencies = [
+ "cc",
+]
+
+[[package]]
 name = "ptr_meta"
 version = "0.1.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3584,6 +3748,12 @@ dependencies = [
 ]
 
 [[package]]
+name = "quoted_printable"
+version = "0.5.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "640c9bd8497b02465aeef5375144c26062e0dcd5939dfcbb0f5db76cb8c17c73"
+
+[[package]]
 name = "r-efi"
 version = "5.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3656,7 +3826,7 @@ dependencies = [
 
 [[package]]
 name = "rbac-types"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -4232,7 +4402,7 @@ dependencies = [
 
 [[package]]
 name = "sim-bootstrap"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "es-entity",
@@ -4565,6 +4735,19 @@ name = "stable_deref_trait"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "a8f112729512f8e442d81f95a8a7ddf2b7c6b8a1a6f509a95864142b30cab2d3"
+
+[[package]]
+name = "stacker"
+version = "0.1.21"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "cddb07e32ddb770749da91081d8d0ac3a16f1a569a18b20348cd371f5dead06b"
+dependencies = [
+ "cc",
+ "cfg-if",
+ "libc",
+ "psm",
+ "windows-sys 0.59.0",
+]
 
 [[package]]
 name = "static_assertions"
@@ -5180,7 +5363,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "anyhow",
  "axum-extra 0.10.1",
@@ -5346,7 +5529,7 @@ checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "user-onboarding"
-version = "0.3.648-dev"
+version = "0.3.649-dev"
 dependencies = [
  "async-trait",
  "audit",

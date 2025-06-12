@@ -1,9 +1,15 @@
+{{ config(
+    materialized = 'incremental',
+    unique_key = ['journal_id', 'account_id', 'currency', 'version'],
+) }}
+
 with ordered as (
 
     select
         journal_id,
         account_id,
         currency,
+        version,
         recorded_at,
         values,
         _sdc_batched_at,
@@ -16,11 +22,10 @@ with ordered as (
 
     from {{ source("lana", "public_cala_balance_history_view") }}
 
-    where _sdc_batched_at >= (
-        select coalesce(max(_sdc_batched_at), '1900-01-01')
-        from {{ ref('stg_core_chart_events') }}
-        where event_type = 'initialized'
-    )
+    {% if is_incremental() %}
+        where
+            _sdc_batched_at >= (select coalesce(max(_sdc_batched_at), '1900-01-01') from {{ this }})
+    {% endif %}
 
 )
 

@@ -193,7 +193,10 @@ where
         Ok(data)
     }
 
-    pub async fn find_by_id(&self, id: ObligationId) -> Result<Obligation, ObligationError> {
+    pub async fn find_by_id_without_audit(
+        &self,
+        id: ObligationId,
+    ) -> Result<Obligation, ObligationError> {
         self.repo.find_by_id(id).await
     }
 

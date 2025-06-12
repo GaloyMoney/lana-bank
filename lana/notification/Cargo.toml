@@ -1,0 +1,33 @@
+[package]
+name = "notification"
+version = "0.3.649-dev"
+edition = "2021"
+
+[features]
+
+fail-on-warnings = []
+
+[dependencies]
+outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
+lana-events = { path = "../events" }
+core-access = { path = "../../core/access" }
+core-credit = { path = "../../core/credit" }
+core-customer = { path = "../../core/customer" }
+audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+core-money = { path = "../../core/money" }
+rbac-types = { path = "../rbac-types" }
+
+es-entity = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+async-trait = { workspace = true }
+futures = { workspace = true }
+thiserror = { workspace = true }
+lettre = { workspace = true }
+handlebars = { workspace = true }
+chrono = { workspace = true }
+
+[dev-dependencies]
+anyhow = { workspace = true }
