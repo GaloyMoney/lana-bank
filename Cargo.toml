@@ -32,6 +32,7 @@ members = [
   "lib/tracing-utils",
   "lib/outbox",
   "lib/jwks-utils",
+  "lib/rendering",
   "lib/kratos-admin",
   "lib/cloud-storage"
 ]
@@ -132,6 +133,7 @@ chacha20poly1305 = "0.10.1"
 handlebars = "6.3.2"
 schemars = { version = "0.9", features = ["derive", "chrono04", "rust_decimal1"] }
 tempfile = "3.10.0"
+markdown2pdf = { git = "https://github.com/nicolasburtey/markdown2pdf", branch = "chore--always-embed-the-font", features = ["rustls-tls"], default-features = false }
 
 # Note: The workspace uses resolver = "2" which should unify features across all dependencies.
 # The reqwest dependency is configured with rustls-tls to prevent OpenSSL dependencies in CI builds.

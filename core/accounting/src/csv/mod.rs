@@ -139,6 +139,7 @@ where
     ) -> Result<Vec<Document>, AccountingCsvExportError> {
         let ledger_account_id = ledger_account_id.into();
 
+        // FIXME permission should be passed to document storage
         let _audit_info = self
             .authz
             .enforce_permission(

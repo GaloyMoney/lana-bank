@@ -1278,6 +1278,26 @@ type LedgerTransactionEdge {
 	cursor: String!
 }
 
+type LoanAgreement {
+	id: ID!
+	status: LoanAgreementStatus!
+	createdAt: Timestamp!
+}
+
+input LoanAgreementGenerateInput {
+	customerId: UUID!
+}
+
+type LoanAgreementGeneratePayload {
+	loanAgreement: LoanAgreement!
+}
+
+enum LoanAgreementStatus {
+	PENDING
+	COMPLETED
+	FAILED
+}
+
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
@@ -1341,6 +1361,7 @@ type Mutation {
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 }
 
 scalar OneTimeFeeRatePct

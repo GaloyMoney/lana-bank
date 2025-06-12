@@ -236,3 +236,40 @@ wait_for_approval() {
 
   # assert_accounts_balanced
 }
+
+@test "customer: can generate loan agreement" {
+  customer_id=$(read_value 'customer_id')
+  [[ "$customer_id" != "null" ]] || {
+    echo "No customer_id found in cache, creating new customer"
+    customer_id=$(create_customer)
+  }
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId
+      }
+    }'
+  )
+  
+  exec_admin_graphql 'loan-agreement-generate' "$variables"  
+  echo "loan agreement | $(graphql_output)" >> $RUN_LOG_FILE
+  
+  # Check that the mutation was successful and returned a loan agreement with async job
+  loan_agreement_id=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.id')
+  [[ "$loan_agreement_id" != "null" ]] || exit 1
+  [[ "$loan_agreement_id" != "" ]] || exit 1
+  
+  # Check that status is PENDING (since it's now async)
+  status=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.status')
+  [[ "$status" == "PENDING" ]] || exit 1
+  
+  # Check that creation timestamp exists
+  created_at=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.createdAt')
+  [[ "$created_at" != "null" ]] || exit 1
+  [[ "$created_at" != "" ]] || exit 1
+  
+  echo "Successfully initiated async loan agreement generation: $loan_agreement_id"
+}
