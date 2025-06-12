@@ -60,6 +60,11 @@ make dev-up   # Start the development stack
 make dev-down # Stop the development stack
 ```
 
+### MailCrab - Email Testing
+
+- **SMTP Server**: Available at `localhost:1025`
+- **Web Interface**: Available at [http://localhost:1080](http://localhost:1080)
+
 ### Access the Frontends
 
 After bringing the development stack up, you can access the following services:
