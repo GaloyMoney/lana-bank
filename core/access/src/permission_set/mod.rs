@@ -15,5 +15,5 @@ pub(crate) use entity::NewPermissionSet;
 pub(super) use error::PermissionSetError;
 pub(super) use repo::PermissionSetRepo;
 
-pub use entity::PermissionSet;
+pub use entity::{PermissionSet, PermissionSetEvent};
 pub use repo::permission_set_cursor::*;

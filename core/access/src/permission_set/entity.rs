@@ -8,12 +8,14 @@ use es_entity::*;
 use crate::primitives::{Permission, PermissionSetId};
 
 #[derive(Eq, PartialEq, Hash, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct PermissionValues {
     object: String,
     action: String,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "PermissionSetId")]
 pub enum PermissionSetEvent {

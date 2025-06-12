@@ -9,6 +9,7 @@ use es_entity::*;
 use crate::{PermissionSetId, primitives::RoleId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "RoleId")]
 pub enum RoleEvent {
