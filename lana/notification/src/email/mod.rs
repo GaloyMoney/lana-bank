@@ -53,7 +53,6 @@ impl EmailNotification {
         credit_facility_id: &CreditFacilityId,
         amount: &core_money::UsdCents,
     ) -> Result<(), EmailError> {
-        let users = self.users.list_users_without_audit().await?;
         let obligation = self
             .credit
             .obligations()
@@ -83,14 +82,34 @@ impl EmailNotification {
             customer_email: customer.email,
         };
 
-        for user in users {
-            let email_config = EmailSenderConfig {
-                recipient: user.email,
-                email_type: EmailType::OverduePayment(email_data.clone()),
-            };
-            self.jobs
-                .create_and_spawn_in_op(db, JobId::new(), email_config)
+        let mut query = es_entity::PaginatedQueryArgs::default();
+        loop {
+            let first = query.first;
+            let es_entity::PaginatedQueryRet {
+                entities,
+                has_next_page,
+                end_cursor,
+            } = self
+                .users
+                .list_users_without_audit(query, es_entity::ListDirection::Descending)
                 .await?;
+            for user in entities {
+                let email_config = EmailSenderConfig {
+                    recipient: user.email,
+                    email_type: EmailType::OverduePayment(email_data.clone()),
+                };
+                self.jobs
+                    .create_and_spawn_in_op(db, JobId::new(), email_config)
+                    .await?;
+            }
+            if has_next_page {
+                query = es_entity::PaginatedQueryArgs {
+                    first,
+                    after: end_cursor,
+                };
+            } else {
+                break;
+            }
         }
         Ok(())
     }
