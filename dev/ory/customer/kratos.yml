@@ -10,7 +10,7 @@ serve:
       allow_credentials: true
       allowed_origins:
         - http://localhost:4455
-      allowed_methods: [ POST, GET, PUT, PATCH, DELETE ]
+      allowed_methods: [POST, GET, PUT, PATCH, DELETE]
       allowed_headers:
         - Authorization
         - Cookie
@@ -83,7 +83,7 @@ courier:
   smtp:
     # SMTP kept otherwise no row is been created in the courier_messages table
     # and this is what we're using to fetch the code for the email verification
-    connection_uri: smtp://mailhog:1025?skip_ssl_verify=true&disable_starttls=true
+    connection_uri: smtp://mailcrab:1025?skip_ssl_verify=true&disable_starttls=true
 
 session:
   lifespan: "10h"

@@ -52,3 +52,7 @@ services:
     image: ghcr.io/cloudnative-pg/postgresql:17.5
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
+
+  mailcrab:
+    image: marlonb/mailcrab:latest
+    ports: [ 1025:1025, 1080:1080 ]

@@ -5,7 +5,6 @@ CACHE_DIR=${BATS_TMPDIR:-tmp/bats}/galoy-bats-cache
 mkdir -p "$CACHE_DIR"
 
 OATHKEEPER_PROXY="http://localhost:4455"
-MAILHOG_ENDPOINT="http://localhost:8025"
 
 GQL_APP_ENDPOINT="${OATHKEEPER_PROXY}/app/graphql"
 GQL_ADMIN_ENDPOINT="${OATHKEEPER_PROXY}/admin/graphql"
