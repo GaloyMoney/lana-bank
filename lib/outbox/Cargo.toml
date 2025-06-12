@@ -7,6 +7,7 @@ edition = "2021"
 [features]
 
 fail-on-warnings = []
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 es-entity = { workspace = true }
@@ -19,3 +20,4 @@ chrono = { workspace = true }
 tokio = { workspace = true }
 tokio-stream = { workspace = true }
 futures = { workspace = true }
+schemars = { workspace = true, optional = true }

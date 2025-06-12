@@ -71,6 +71,7 @@ hmac = { workspace = true }
 sha2 = { workspace = true }
 gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }
+schemars = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }

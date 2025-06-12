@@ -342,6 +342,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "es-entity",
+ "schemars",
  "serde",
  "sqlx",
  "thiserror 2.0.12",
@@ -354,6 +355,7 @@ dependencies = [
  "async-trait",
  "audit",
  "es-entity",
+ "schemars",
  "sqlx",
  "sqlx-adapter",
  "thiserror 2.0.12",
@@ -721,9 +723,8 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ca81424b6c685c3be54600dc24998843a7d76b74e144bbf85dc9f0505a6269b0"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -737,9 +738,8 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9ede4a4d6990e6515d9ce048359e91c54eece6fb9fe82e4a5bdeb97c661f0d96"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -747,9 +747,8 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1b8f3659bfee33ee3a36153d793003a6d8629cbc78182fb5b9971b53d78adf4f"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -783,9 +782,8 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "efffd37776f3d097093668453b3a5d243827ded0a2f3882d51e22309996f5426"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -804,9 +802,8 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "02cf13a2d92c6a241dc90ad345dd0e5c72c9c29acbb1af5bb8cbeca57e8a4dbd"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "anyhow",
  "axum-extra 0.9.6",
@@ -1038,7 +1035,9 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
+ "schemars",
  "serde",
+ "serde_json",
  "sqlx",
  "strum",
  "thiserror 2.0.12",
@@ -1605,9 +1604,8 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9fa460c587b2590ef9c83ac4a55e476b95fc69e789b51d3ccd49aede257d2e0c"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1615,6 +1613,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "es-entity-macros",
+ "schemars",
  "serde",
  "serde_json",
  "sim-time",
@@ -1625,9 +1624,8 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ff67de491e01cf0ed9ad39e2aa0162feb4321e0f783b79729cd10f196a2bc93f"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "convert_case",
  "darling",
@@ -2032,6 +2030,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "outbox",
+ "schemars",
  "serde",
  "sqlx",
  "strum",
@@ -2685,6 +2684,7 @@ dependencies = [
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
+ "schemars",
  "serde",
  "serde_json",
  "serial_test",
@@ -3232,6 +3232,7 @@ dependencies = [
  "chrono",
  "es-entity",
  "futures",
+ "schemars",
  "serde",
  "serde_json",
  "sqlx",
@@ -4213,6 +4214,31 @@ dependencies = [
 ]
 
 [[package]]
+name = "schemars"
+version = "0.8.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "3fbf2ae1b8bc8e02df939598064d22402220cd5bbcca1c76f7d6a310974d5615"
+dependencies = [
+ "dyn-clone",
+ "schemars_derive",
+ "serde",
+ "serde_json",
+ "uuid",
+]
+
+[[package]]
+name = "schemars_derive"
+version = "0.8.22"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "32e265784ad618884abaea0600a9adf15393368d840e0222d101a072f3f7534d"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "serde_derive_internals",
+ "syn 2.0.101",
+]
+
+[[package]]
 name = "scopeguard"
 version = "1.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4244,6 +4270,17 @@ name = "serde_derive"
 version = "1.0.219"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "5b0276cf7f2c73365f7157c8123c21cd9a50fbbd844757af28ca1f5925fc2a00"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.101",
+]
+
+[[package]]
+name = "serde_derive_internals"
+version = "0.29.1"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "18d26a20a969b9e3fdf2fc2d9f21eda6c40e2de84c9408bb5d3b05d499aae711"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4418,9 +4455,8 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ae4615ee4a18d86e6efe67b3517fb604bc6d600b95d6d080e2e14b23c94768ee"
+version = "0.5.4-dev"
+source = "git+https://github.com/galoymoney/cala.git?branch=json-schema-entity-id#c81e0b7811e8a6b67f2ee804e9fd2f65668746f5"
 dependencies = [
  "chrono",
  "serde",

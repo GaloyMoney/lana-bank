@@ -8,6 +8,7 @@ edition = "2021"
 
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "dep:async-graphql"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "authz/json-schema", "outbox/json-schema"]
 
 [dependencies]
 audit = { path = "../../lib/audit" }
@@ -24,6 +25,7 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 strum = { workspace = true }
 async-graphql = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

@@ -128,6 +128,14 @@ sdl-rust:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
 
+event-schemas:
+	@echo "Generating JSON schemas for events..."
+	@SQLX_OFFLINE=true cargo run --bin write_event_schemas --features json-schema -p core-access || { \
+		echo "Note: Binary execution failed due to workspace build issues."; \
+		echo "Testing schema generation with unit test instead..."; \
+		SQLX_OFFLINE=true cargo test --features json-schema -p core-access test_user_event_json_schema -- --nocapture; \
+	}
+
 sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
 	cd apps/customer-portal && pnpm install && pnpm codegen

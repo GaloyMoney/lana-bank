@@ -1,7 +1,10 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 
 #[derive(sqlx::Type, Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[sqlx(transparent)]
 pub struct AuditEntryId(i64);
 
@@ -33,6 +36,7 @@ pub struct AuditEntry<S, O, A> {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct AuditInfo {
     pub sub: String,
     pub audit_entry_id: AuditEntryId,
