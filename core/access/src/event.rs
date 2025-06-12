@@ -15,7 +15,6 @@ pub enum CoreAccessEvent {
     UserGrantedRole {
         id: UserId,
         role_id: RoleId,
-        role_name: String,
     },
     UserRevokedRole {
         id: UserId,

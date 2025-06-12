@@ -19,7 +19,6 @@ pub enum UserEvent {
     },
     RoleGranted {
         id: RoleId,
-        name: String,
         audit_info: AuditInfo,
     },
     RoleRevoked {
@@ -64,7 +63,6 @@ impl User {
 
                 self.events.push(UserEvent::RoleGranted {
                     id: role.id,
-                    name: role.name.clone(),
                     audit_info,
                 });
 

@@ -47,9 +47,8 @@ where
                     id: *id,
                     email: email.clone(),
                 }),
-                RoleGranted { id, name, .. } => Some(CoreAccessEvent::UserGrantedRole {
+                RoleGranted { id, .. } => Some(CoreAccessEvent::UserGrantedRole {
                     id: entity.id,
-                    role_name: name.clone(),
                     role_id: *id,
                 }),
                 RoleRevoked { id, .. } => Some(CoreAccessEvent::UserRevokedRole {
