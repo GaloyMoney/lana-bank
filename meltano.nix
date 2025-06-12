@@ -3,6 +3,9 @@
   python311,
   fetchPypi,
   writeShellScriptBin,
+  stdenv,
+  zlib,
+  gcc,
 }:
 let
   meltano-unwrapped = python311.pkgs.buildPythonApplication rec {
@@ -87,7 +90,12 @@ let
   };
 in
 writeShellScriptBin "meltano" ''
-  # Provide minimal Python environment with virtualenv and its dependencies
+  # Set LD_LIBRARY_PATH to include necessary C++ libraries for Airflow and other tools
+  export LD_LIBRARY_PATH="${lib.makeLibraryPath [
+    stdenv.cc.cc.lib
+    gcc.cc.lib
+    zlib
+  ]}:''${LD_LIBRARY_PATH:-}"
 
   if [[ "$1" == "install" ]] || [[ "$1" == "invoke" ]]; then
     # Set minimal PYTHONPATH with virtualenv and required dependencies
@@ -99,9 +107,10 @@ writeShellScriptBin "meltano" ''
     exec env -u PYTHONHOME -u NIX_PYTHONPATH \
       PATH="${python311}/bin:$PATH" \
       PYTHONPATH="$MINIMAL_PYTHONPATH" \
+      LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
       ${meltano-unwrapped}/bin/meltano "$@"
   else
-    # For other commands, use meltano normally
-    exec ${meltano-unwrapped}/bin/meltano "$@"
+    # For other commands, use meltano normally with library path
+    exec env LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ${meltano-unwrapped}/bin/meltano "$@"
   fi
 ''
