@@ -1,0 +1,21 @@
+[package]
+name = "entity-rollups"
+version = "0.3.649-dev"
+license = "FSL-1.1-ALv2"
+edition = "2024"
+
+[[bin]]
+name = "entity-rollups"
+path = "src/main.rs"
+
+[dependencies]
+core-access = { path = "../../core/access", features = ["json-schema"] }
+
+clap = { workspace = true }
+schemars = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
+colored = "2.0"
+
+[dev-dependencies]
+tempfile = "3.13.0"

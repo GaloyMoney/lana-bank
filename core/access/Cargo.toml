@@ -4,10 +4,6 @@ version = "0.3.655-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
-[[bin]]
-name = "write_event_schemas"
-required-features = ["json-schema"]
-
 [features]
 
 default = ["governance"]

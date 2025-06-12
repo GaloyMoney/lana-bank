@@ -13,6 +13,8 @@ members = [
   "lana/customer-sync",
   "lana/notification",
 
+  "lana/entity-rollups",
+
   "core/accounting",
   "core/access",
   "core/customer",

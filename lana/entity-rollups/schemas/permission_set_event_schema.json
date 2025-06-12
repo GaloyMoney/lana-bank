@@ -1,0 +1,54 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "PermissionValues": {
+      "properties": {
+        "action": {
+          "type": "string"
+        },
+        "object": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "action",
+        "object"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "initial_permissions": {
+          "items": {
+            "$ref": "#/definitions/PermissionValues"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "initial_permissions",
+        "name",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "PermissionSetEvent"
+}

@@ -1,0 +1,23 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "TestEvent",
+  "type": "object",
+  "required": [
+    "id",
+    "timestamp"
+  ],
+  "properties": {
+    "id": {
+      "type": "string"
+    },
+    "timestamp": {
+      "type": "string"
+    },
+    "optional_field": {
+      "type": "string"
+    },
+    "new_field": {
+      "type": "boolean"
+    }
+  }
+}
