@@ -235,3 +235,41 @@ wait_for_approval() {
 
   # assert_accounts_balanced
 }
+
+@test "customer: can generate loan agreement" {
+  customer_id=$(read_value 'customer_id')
+  [[ "$customer_id" != "null" ]] || {
+    echo "No customer_id found in cache, creating new customer"
+    customer_id=$(create_customer)
+  }
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId
+      }
+    }'
+  )
+  
+  exec_admin_graphql 'loan-agreement-generate' "$variables"
+  echo "loan agreement | $(graphql_output)" >> $RUN_LOG_FILE
+  
+  # Check that the mutation was successful
+  generated_customer_id=$(graphql_output '.data.loanAgreementGenerate.customerId')
+  [[ "$generated_customer_id" == "$customer_id" ]] || exit 1
+  
+  # Check that PDF bytes were returned
+  pdf_bytes=$(graphql_output '.data.loanAgreementGenerate.pdfBytes')
+  [[ "$pdf_bytes" != "null" ]] || exit 1
+  [[ "$pdf_bytes" != "[]" ]] || exit 1
+  
+  # Check that a filename was generated
+  filename=$(graphql_output '.data.loanAgreementGenerate.filename')
+  [[ "$filename" != "null" ]] || exit 1
+  [[ "$filename" == *"loan_agreement_"* ]] || exit 1
+  [[ "$filename" == *".pdf" ]] || exit 1
+  
+  echo "Successfully generated loan agreement: $filename"
+}
