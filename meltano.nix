@@ -6,8 +6,7 @@
   stdenv,
   zlib,
   gcc,
-}:
-let
+}: let
   meltano-unwrapped = python311.pkgs.buildPythonApplication rec {
     pname = "meltano";
     version = "3.7.8";
@@ -89,28 +88,28 @@ let
     };
   };
 in
-writeShellScriptBin "meltano" ''
-  # Set LD_LIBRARY_PATH to include necessary C++ libraries for Airflow and other tools
-  export LD_LIBRARY_PATH="${lib.makeLibraryPath [
-    stdenv.cc.cc.lib
-    gcc.cc.lib
-    zlib
-  ]}:''${LD_LIBRARY_PATH:-}"
+  writeShellScriptBin "meltano" ''
+    # Set LD_LIBRARY_PATH to include necessary C++ libraries for Airflow and other tools
+    export LD_LIBRARY_PATH="${lib.makeLibraryPath [
+      stdenv.cc.cc.lib
+      gcc.cc.lib
+      zlib
+    ]}:''${LD_LIBRARY_PATH:-}"
 
-  if [[ "$1" == "install" ]] || [[ "$1" == "invoke" ]]; then
-    # Set minimal PYTHONPATH with virtualenv and required dependencies
-    MINIMAL_PYTHONPATH="${python311.pkgs.virtualenv}/lib/python3.11/site-packages"
-    MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.platformdirs}/lib/python3.11/site-packages"
-    MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.distlib}/lib/python3.11/site-packages"
-    MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.filelock}/lib/python3.11/site-packages"
+    if [[ "$1" == "install" ]] || [[ "$1" == "invoke" ]]; then
+      # Set minimal PYTHONPATH with virtualenv and required dependencies
+      MINIMAL_PYTHONPATH="${python311.pkgs.virtualenv}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.platformdirs}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.distlib}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311.pkgs.filelock}/lib/python3.11/site-packages"
 
-    exec env -u PYTHONHOME -u NIX_PYTHONPATH \
-      PATH="${python311}/bin:$PATH" \
-      PYTHONPATH="$MINIMAL_PYTHONPATH" \
-      LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
-      ${meltano-unwrapped}/bin/meltano "$@"
-  else
-    # For other commands, use meltano normally with library path
-    exec env LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ${meltano-unwrapped}/bin/meltano "$@"
-  fi
-''
+      exec env -u PYTHONHOME -u NIX_PYTHONPATH \
+        PATH="${python311}/bin:$PATH" \
+        PYTHONPATH="$MINIMAL_PYTHONPATH" \
+        LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
+        ${meltano-unwrapped}/bin/meltano "$@"
+    else
+      # For other commands, use meltano normally with library path
+      exec env LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ${meltano-unwrapped}/bin/meltano "$@"
+    fi
+  ''
