@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{primitives::*, Role};
+use crate::{Role, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

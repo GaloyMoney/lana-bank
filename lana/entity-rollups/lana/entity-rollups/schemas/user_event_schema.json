@@ -1,0 +1,119 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "email",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "authentication_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "authentication_id_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "authentication_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "role_granted"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "role_revoked"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "UserEvent"
+}

@@ -1,7 +1,7 @@
 use chrono::{DateTime, Utc};
-use serde::{Deserialize, Serialize};
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
 
 #[derive(sqlx::Type, Debug, Copy, Clone, Eq, PartialEq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

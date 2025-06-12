@@ -25,7 +25,6 @@ struct UpdateSchemasArgs {
     schemas_out_dir: String,
 }
 
-
 pub fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 

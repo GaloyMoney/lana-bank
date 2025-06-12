@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "permission_sets": {
+          "items": {
+            "format": "uuid",
+            "type": "string"
+          },
+          "type": "array",
+          "uniqueItems": true
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "id",
+        "name",
+        "permission_sets",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "permission_set_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "permission_set_added"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "permission_set_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "permission_set_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "permission_set_removed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "permission_set_id",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "RoleEvent"
+}
