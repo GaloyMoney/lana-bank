@@ -11,7 +11,7 @@ struct SchemaInfo {
     generate_schema: fn() -> serde_json::Value,
 }
 
-pub fn update_schemas() -> anyhow::Result<()> {
+pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
     let schemas = vec![
         SchemaInfo {
             name: "UserEvent",
@@ -30,7 +30,7 @@ pub fn update_schemas() -> anyhow::Result<()> {
         },
     ];
 
-    let schemas_dir = Path::new("schemas");
+    let schemas_dir = Path::new(schemas_out_dir);
     if !schemas_dir.exists() {
         fs::create_dir_all(schemas_dir)?;
     }

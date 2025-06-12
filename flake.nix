@@ -209,6 +209,7 @@
         DATABASE_URL = "postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5433/pg?sslmode=disable";
         PG_CON = "${DATABASE_URL}";
         CUSTODIAN_ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
+        EVENT_SCHEMAS_OUT_DIR = "lana/entity-rollups/schemas";
       };
     in
       with pkgs; {

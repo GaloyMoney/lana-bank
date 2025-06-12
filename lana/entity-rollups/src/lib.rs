@@ -20,7 +20,9 @@ enum Commands {
 
 #[derive(Args)]
 struct UpdateSchemasArgs {
-    // No additional arguments needed for now
+    /// Output directory for schema files
+    #[arg(long, env = "EVENT_SCHEMAS_OUT_DIR", default_value = "./schemas")]
+    schemas_out_dir: String,
 }
 
 
@@ -28,6 +30,6 @@ pub fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::UpdateSchemas(_) => update_schemas::update_schemas(),
+        Commands::UpdateSchemas(args) => update_schemas::update_schemas(&args.schemas_out_dir),
     }
 }
