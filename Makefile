@@ -130,8 +130,7 @@ sdl-rust:
 
 event-schemas:
 	@echo "Generating JSON schemas for events..."
-	@mkdir -p ./tmp/event_schemas
-	@SQLX_OFFLINE=true cargo run --bin write_event_schemas --features json-schema -p core-access -- ./tmp/event_schemas || { \
+	@SQLX_OFFLINE=true cargo run --bin write_event_schemas --features json-schema -p core-access -- ./core/access/event_schemas || { \
 		echo "Note: Binary execution failed due to workspace build issues."; \
 		echo "Testing schema generation with unit test instead..."; \
 		SQLX_OFFLINE=true cargo test --features json-schema -p core-access test_user_event_json_schema -- --nocapture; \

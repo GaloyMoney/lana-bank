@@ -81,6 +81,7 @@ opentelemetry = { version = "0.24.0" }
 opentelemetry_sdk = { version = "0.24.1", features = ["rt-tokio"] }
 opentelemetry-otlp = { version = "0.17.0", default-features = false, features = [
   "http-proto",
+  "grpc-tonic",
   "reqwest-client",
 ] }
 opentelemetry-http = "0.13"

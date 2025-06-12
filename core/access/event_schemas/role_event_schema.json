@@ -1,0 +1,109 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "title": "RoleEvent",
+  "oneOf": [
+    {
+      "type": "object",
+      "required": [
+        "audit_info",
+        "id",
+        "name",
+        "permission_sets",
+        "type"
+      ],
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "name": {
+          "type": "string"
+        },
+        "permission_sets": {
+          "type": "array",
+          "items": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "uniqueItems": true
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "initialized"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "audit_info",
+        "permission_set_id",
+        "type"
+      ],
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "permission_set_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "permission_set_added"
+          ]
+        }
+      }
+    },
+    {
+      "type": "object",
+      "required": [
+        "audit_info",
+        "permission_set_id",
+        "type"
+      ],
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "permission_set_id": {
+          "type": "string",
+          "format": "uuid"
+        },
+        "type": {
+          "type": "string",
+          "enum": [
+            "permission_set_removed"
+          ]
+        }
+      }
+    }
+  ],
+  "definitions": {
+    "AuditEntryId": {
+      "type": "integer",
+      "format": "int64"
+    },
+    "AuditInfo": {
+      "type": "object",
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      }
+    }
+  }
+}
