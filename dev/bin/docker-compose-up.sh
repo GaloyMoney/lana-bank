@@ -1,6 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Export custodian encryption key for backend
+export CUSTODIAN_ENCRYPTION_KEY="${CUSTODIAN_ENCRYPTION_KEY:-0000000000000000000000000000000000000000000000000000000000000000}"
+
 BASE=docker-compose.yml
 OVERRIDE=docker-compose.docker.yml   # contains the extra_hosts entry
 
