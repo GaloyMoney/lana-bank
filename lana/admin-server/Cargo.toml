@@ -16,7 +16,7 @@ core-access = { path = "../../core/access" }
 core-custody = { path = "../../core/custody" }
 
 audit = { path = "../../lib/audit" }
-tracing-utils = { path = "../../lib/tracing-utils" }
+tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 jwks-utils = { path = "../../lib/jwks-utils" }
 
 es-entity = { workspace = true, features = ["graphql"] }

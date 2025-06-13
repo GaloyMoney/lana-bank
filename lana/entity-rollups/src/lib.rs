@@ -1,7 +1,16 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+#[cfg(feature = "json-schema")]
 mod update_schemas;
+
+#[cfg(not(feature = "json-schema"))]
+mod update_schemas {
+    pub fn update_schemas(_schemas_out_dir: &str) -> anyhow::Result<()> {
+        println!("json-schema feature is disabled. No schemas to update.");
+        Ok(())
+    }
+}
 
 use clap::{Args, Parser, Subcommand};
 

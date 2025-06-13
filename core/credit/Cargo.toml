@@ -8,7 +8,7 @@ edition = "2024"
 
 fail-on-warnings = []
 graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
-json-schema = ["dep:schemars", "cala-ledger/json-schema", "es-entity/json-schema", "core-money/json-schema", "job/json-schema", "core-price/json-schema"]
+json-schema = ["dep:schemars", "cala-ledger/json-schema", "es-entity/json-schema", "core-money/json-schema", "job/json-schema", "core-price/json-schema", "outbox/json-schema"]
 sim-time = ["dep:sim-time", "es-entity/sim-time"]
 
 [dependencies]

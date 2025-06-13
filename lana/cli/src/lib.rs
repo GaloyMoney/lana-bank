@@ -5,7 +5,7 @@ pub mod config;
 mod db;
 
 use anyhow::Context;
-use chacha20poly1305::{aead::OsRng, ChaCha20Poly1305, KeyInit};
+use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
 use clap::{Parser, Subcommand};
 use std::{fs, path::PathBuf};
 

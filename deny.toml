@@ -206,6 +206,11 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
+crate = "entity-rollups"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
 crate = "core-deposit"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []

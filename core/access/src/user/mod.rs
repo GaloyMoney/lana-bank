@@ -12,10 +12,13 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{Role, event::*, primitives::*, publisher::UserPublisher};
 
-use entity::*;
 pub use entity::User;
+use entity::*;
+// UserEvent is available internally and conditionally publicly
 #[cfg(feature = "json-schema")]
 pub use entity::UserEvent;
+#[cfg(not(feature = "json-schema"))]
+pub(crate) use entity::UserEvent;
 pub use error::*;
 pub use repo::user_cursor::UsersByCreatedAtCursor;
 use repo::*;

@@ -1,23 +1,24 @@
 use anyhow::anyhow;
 use colored::*;
+use serde_json::Value;
+use similar::{ChangeTag, TextDiff};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    path::Path,
+};
+
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    ObligationEvent, PaymentEvent, PaymentAllocationEvent, TermsTemplateEvent,
+    ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
-use serde_json::Value;
-use similar::{ChangeTag, TextDiff};
-use std::path::Path;
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-};
 
 struct SchemaInfo {
     name: &'static str,
@@ -100,7 +101,9 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
         SchemaInfo {
             name: "InterestAccrualCycleEvent",
             filename: "interest_accrual_cycle_event_schema.json",
-            generate_schema: || serde_json::to_value(schema_for!(InterestAccrualCycleEvent)).unwrap(),
+            generate_schema: || {
+                serde_json::to_value(schema_for!(InterestAccrualCycleEvent)).unwrap()
+            },
         },
         SchemaInfo {
             name: "ObligationEvent",

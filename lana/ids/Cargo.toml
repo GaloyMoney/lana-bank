@@ -5,12 +5,12 @@ license = "FSL-1.1-ALv2"
 edition = "2021"
 
 [package.metadata.cargo-machete]
-ignored = ["serde", "sqlx"]
+ignored = ["serde", "sqlx", "schemars"]
 
 [features]
 
 default = ["graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "job/json-schema", "governance/json-schema"]
 graphql = []
 
 [dependencies]

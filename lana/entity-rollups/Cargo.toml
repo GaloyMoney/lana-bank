@@ -6,19 +6,28 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
+json-schema = [
+  "core-access/json-schema",
+  "governance/json-schema", 
+  "core-custody/json-schema",
+  "core-customer/json-schema",
+  "core-deposit/json-schema",
+  "core-credit/json-schema",
+  "core-accounting/json-schema"
+]
 
 [[bin]]
 name = "entity-rollups"
 path = "src/main.rs"
 
 [dependencies]
-core-access = { path = "../../core/access", features = ["json-schema"] }
-governance = { path = "../../core/governance", features = ["json-schema"] }
-core-custody = { path = "../../core/custody", features = ["json-schema"] }
-core-customer = { path = "../../core/customer", default-features = false, features = ["json-schema"] }
-core-deposit = { path = "../../core/deposit", features = ["json-schema"] }
-core-credit = { path = "../../core/credit", features = ["json-schema"] }
-core-accounting = { path = "../../core/accounting", features = ["json-schema"] }
+core-access = { path = "../../core/access" }
+governance = { path = "../../core/governance" }
+core-custody = { path = "../../core/custody" }
+core-customer = { path = "../../core/customer", default-features = false }
+core-deposit = { path = "../../core/deposit" }
+core-credit = { path = "../../core/credit" }
+core-accounting = { path = "../../core/accounting" }
 
 clap = { workspace = true }
 schemars = { workspace = true }
