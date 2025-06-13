@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
-use super::rules::ApprovalRules;
+use super::{error::PolicyError, rules::ApprovalRules};
 use crate::{approval_process::NewApprovalProcess, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -63,17 +63,33 @@ impl Policy {
     pub fn assign_committee(
         &mut self,
         committee_id: CommitteeId,
+        n_committee_members: usize,
         threshold: usize,
         audit_info: AuditInfo,
-    ) {
+    ) -> Result<Idempotent<()>, PolicyError> {
+        let rules = ApprovalRules::CommitteeThreshold {
+            committee_id,
+            threshold,
+        };
+
+        if self.rules == rules {
+            return Ok(Idempotent::Ignored);
+        }
+
+        if threshold > n_committee_members {
+            return Err(PolicyError::PolicyThresholdTooHigh(committee_id, threshold));
+        }
+
         self.rules = ApprovalRules::CommitteeThreshold {
             threshold,
             committee_id,
         };
+
         self.events.push(PolicyEvent::ApprovalRulesUpdated {
             rules: self.rules,
             audit_info,
         });
+        Ok(Idempotent::Executed(()))
     }
 }
 
@@ -163,9 +179,17 @@ mod test {
     fn update_policy() {
         let mut policy = Policy::try_from_events(init_events()).unwrap();
         let committee_id = CommitteeId::new();
+        let n_committee_members = 1;
         let threshold = 1;
         let audit_info = dummy_audit_info();
-        policy.assign_committee(committee_id, threshold, audit_info.clone());
+        let _ = policy
+            .assign_committee(
+                committee_id,
+                n_committee_members,
+                threshold,
+                audit_info.clone(),
+            )
+            .unwrap();
         assert_eq!(policy.committee_id(), Some(committee_id));
         assert_eq!(
             policy.rules,
