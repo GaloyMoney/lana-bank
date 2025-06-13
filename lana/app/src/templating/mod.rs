@@ -4,6 +4,9 @@ use serde::Serialize;
 use std::fs;
 use uuid::Uuid;
 
+use crate::customer::{CustomerId, Customers};
+
+/// Converts markdown content to PDF bytes
 pub fn from_markdown(markdown: &str) -> Result<Vec<u8>> {
     let temp_dir = std::env::temp_dir();
     let temp_file_name = temp_dir.join(format!("{}.pdf", Uuid::new_v4()));
@@ -13,6 +16,7 @@ pub fn from_markdown(markdown: &str) -> Result<Vec<u8>> {
     Ok(pdf_bytes)
 }
 
+/// Creates a PDF from a template file and data structure
 pub fn create_pdf_from_template<T: Serialize>(template_path: &str, data: &T) -> Result<Vec<u8>> {
     let markdown_template = fs::read_to_string(template_path)?;
     let mut handlebars = Handlebars::new();
@@ -21,21 +25,70 @@ pub fn create_pdf_from_template<T: Serialize>(template_path: &str, data: &T) -> 
     from_markdown(&rendered_markdown)
 }
 
+/// Data structure for loan agreement template
+#[derive(Serialize)]
+pub struct LoanAgreementData {
+    pub name: String,
+    pub email: String,
+    pub amount: String,
+}
+
+impl LoanAgreementData {
+    pub fn new(name: String, email: String, amount: String) -> Self {
+        Self {
+            name,
+            email,
+            amount,
+        }
+    }
+}
+
+/// Creates a loan agreement PDF by fetching customer data from the database
+///
+/// # Example
+/// ```ignore
+/// // In your service layer or use case:
+/// let customers = app.customer(); // Get customer repository
+/// let customer_id = CustomerId::new(); // Your customer ID
+/// let pdf_bytes = create_loan_agreement_pdf_for_customer(
+///     &customers,
+///     customer_id,
+///     "John Doe".to_string(),
+///     "$10,000".to_string(),
+/// ).await?;
+/// ```
+pub async fn create_loan_agreement_pdf_for_customer(
+    customers: &Customers,
+    customer_id: CustomerId,
+    name: String,
+    amount: String,
+) -> Result<Vec<u8>> {
+    // Fetch customer data from database
+    let customer = customers.find_by_id_without_audit(customer_id).await?;
+
+    // Create loan agreement data with customer email
+    let loan_data = LoanAgreementData::new(name, customer.email.clone(), amount);
+
+    // Generate PDF from template
+    create_pdf_from_template("src/templating/templates/loan_agreement.md", &loan_data)
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::collections::BTreeMap;
     use std::fs;
     use std::path::Path;
 
     #[test]
     fn test_create_pdf_from_template() -> Result<()> {
-        let mut data = BTreeMap::new();
-        data.insert("name", "Test User");
-        data.insert("amount", "$1000");
+        let loan_data = LoanAgreementData::new(
+            "Test User".to_string(),
+            "test@example.com".to_string(),
+            "$1000".to_string(),
+        );
 
         let pdf_bytes =
-            create_pdf_from_template("src/templating/templates/loan_agreement.md", &data)?;
+            create_pdf_from_template("src/templating/templates/loan_agreement.md", &loan_data)?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));
@@ -50,4 +103,8 @@ mod tests {
 
         Ok(())
     }
+
+    // Note: Testing create_loan_agreement_pdf_for_customer would require
+    // setting up database connections and customer repository, which is
+    // better suited for integration tests
 }
