@@ -16,7 +16,7 @@ use crate::primitives::{
 };
 
 pub(super) use csv::{CsvParseError, CsvParser};
-pub use entity::Chart;
+pub use entity::{Chart, ChartEvent};
 pub(super) use entity::*;
 use error::*;
 pub(super) use repo::*;

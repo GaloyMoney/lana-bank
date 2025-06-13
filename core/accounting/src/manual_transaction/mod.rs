@@ -19,7 +19,7 @@ use crate::{
 };
 use error::*;
 
-pub use entity::ManualTransaction;
+pub use entity::{ManualTransaction, ManualTransactionEvent};
 pub(super) use entity::*;
 pub use primitives::*;
 pub use repo::manual_transaction_cursor::ManualTransactionsByCreatedAtCursor;

@@ -25,13 +25,13 @@ use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
-pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
-pub use csv::AccountingCsvs;
+pub use chart_of_accounts::{Chart, ChartEvent, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use csv::{AccountingCsvEvent, AccountingCsvs};
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
-pub use manual_transaction::ManualEntryInput;
+pub use manual_transaction::{ManualEntryInput, ManualTransactionEvent};
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 pub use transaction_templates::TransactionTemplates;

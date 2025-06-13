@@ -1,4 +1,6 @@
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
@@ -12,6 +14,7 @@ use crate::primitives::*;
 use super::{error::*, tree};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ChartId")]
 pub enum ChartEvent {

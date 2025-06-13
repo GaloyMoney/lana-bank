@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use audit::AuditInfo;
@@ -13,6 +15,7 @@ use crate::primitives::{AccountingCsvId, LedgerAccountId};
 use super::error::AccountingCsvError;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "AccountingCsvId")]
 pub enum AccountingCsvEvent {

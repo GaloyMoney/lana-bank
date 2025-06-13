@@ -1,6 +1,7 @@
 use anyhow::anyhow;
 use colored::*;
 use core_access::{permission_set::PermissionSetEvent, role::RoleEvent, user::UserEvent};
+use core_accounting::{ChartEvent, AccountingCsvEvent, ManualTransactionEvent};
 use core_credit::CoreCreditEvent;
 use core_custody::custodian::CustodianEvent;
 use core_customer::CustomerEvent;
@@ -82,6 +83,21 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
             name: "CoreCreditEvent",
             filename: "core_credit_event_schema.json",
             generate_schema: || serde_json::to_value(schema_for!(CoreCreditEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "ChartEvent",
+            filename: "chart_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "AccountingCsvEvent",
+            filename: "accounting_csv_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(AccountingCsvEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "ManualTransactionEvent",
+            filename: "manual_transaction_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
         },
     ];
 

@@ -1,0 +1,158 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AccountingCsvType": {
+      "enum": [
+        "ledger_account",
+        "profit_and_loss",
+        "balance_sheet"
+      ],
+      "type": "string"
+    },
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "csv_type": {
+          "$ref": "#/definitions/AccountingCsvType"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_account_id": {
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "csv_type",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "bucket": {
+          "type": "string"
+        },
+        "path_in_bucket": {
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "file_uploaded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "bucket",
+        "path_in_bucket",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "error": {
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "upload_failed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "error",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "bucket": {
+          "type": "string"
+        },
+        "path_in_bucket": {
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "download_link_generated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "bucket",
+        "path_in_bucket",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "AccountingCsvEvent"
+}

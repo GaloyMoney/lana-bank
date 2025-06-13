@@ -1,0 +1,157 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AccountCode": {
+      "properties": {
+        "sections": {
+          "items": {
+            "$ref": "#/definitions/AccountCodeSection"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "sections"
+      ],
+      "type": "object"
+    },
+    "AccountCodeSection": {
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "type": "object"
+    },
+    "AccountName": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "AccountSpec": {
+      "properties": {
+        "code": {
+          "$ref": "#/definitions/AccountCode"
+        },
+        "name": {
+          "$ref": "#/definitions/AccountName"
+        },
+        "normal_balance_type": {
+          "$ref": "#/definitions/DebitOrCredit"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/AccountCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "name",
+        "normal_balance_type"
+      ],
+      "type": "object"
+    },
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    },
+    "DebitOrCredit": {
+      "enum": [
+        "debit",
+        "credit"
+      ],
+      "type": "string"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "id",
+        "name",
+        "reference",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "ledger_account_set_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "spec": {
+          "$ref": "#/definitions/AccountSpec"
+        },
+        "type": {
+          "enum": [
+            "node_added"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "ledger_account_set_id",
+        "spec",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ChartEvent"
+}

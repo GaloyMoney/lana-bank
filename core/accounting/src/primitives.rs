@@ -51,6 +51,7 @@ pub enum AccountNameParseError {
 }
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountName {
     name: String,
 }
@@ -95,6 +96,7 @@ pub enum AccountCodeParseError {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountCodeSection {
     code: String,
 }
@@ -123,6 +125,7 @@ impl std::fmt::Display for AccountCodeSection {
 }
 
 #[derive(Debug, Clone, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountCode {
     sections: Vec<AccountCodeSection>,
 }
@@ -238,6 +241,7 @@ impl std::fmt::Display for AccountCode {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountSpec {
     pub parent: Option<AccountCode>,
     pub code: AccountCode,
