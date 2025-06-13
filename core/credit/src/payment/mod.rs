@@ -14,6 +14,9 @@ use crate::{
 };
 
 pub use entity::Payment;
+
+#[cfg(feature = "json-schema")]
+pub use entity::PaymentEvent;
 pub(super) use entity::*;
 use error::PaymentError;
 pub(super) use repo::*;

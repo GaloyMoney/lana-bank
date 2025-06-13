@@ -16,6 +16,9 @@ use crate::{
 
 pub use entity::CreditFacility;
 pub(crate) use entity::*;
+
+#[cfg(feature = "json-schema")]
+pub use entity::CreditFacilityEvent;
 use error::CreditFacilityError;
 pub use repo::{
     CreditFacilitiesSortBy, CreditFacilityRepo, FindManyCreditFacilities, ListDirection, Sort,

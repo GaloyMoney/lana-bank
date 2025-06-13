@@ -22,6 +22,9 @@ use crate::{
 };
 
 pub use entity::Obligation;
+
+#[cfg(feature = "json-schema")]
+pub use entity::ObligationEvent;
 pub(crate) use entity::*;
 use error::ObligationError;
 pub use primitives::*;

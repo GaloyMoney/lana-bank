@@ -1,0 +1,279 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    },
+    "ObligationAccounts": {
+      "properties": {
+        "account_to_be_credited_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "receivable_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "account_to_be_credited_id",
+        "receivable_account_id"
+      ],
+      "type": "object"
+    },
+    "ObligationType": {
+      "enum": [
+        "Disbursal",
+        "Interest"
+      ],
+      "type": "string"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0.0,
+      "type": "integer"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "defaulted_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "defaulted_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "due_accounts": {
+          "$ref": "#/definitions/ObligationAccounts"
+        },
+        "due_date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "not_yet_due_accounts": {
+          "$ref": "#/definitions/ObligationAccounts"
+        },
+        "obligation_type": {
+          "$ref": "#/definitions/ObligationType"
+        },
+        "overdue_accounts": {
+          "$ref": "#/definitions/ObligationAccounts"
+        },
+        "overdue_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "reference": {
+          "type": "string"
+        },
+        "tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "audit_info",
+        "credit_facility_id",
+        "defaulted_account_id",
+        "due_accounts",
+        "due_date",
+        "effective",
+        "id",
+        "not_yet_due_accounts",
+        "obligation_type",
+        "overdue_accounts",
+        "reference",
+        "tx_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "due_recorded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "audit_info",
+        "tx_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "overdue_recorded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "audit_info",
+        "tx_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "defaulted_recorded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "audit_info",
+        "tx_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "payment_allocation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "payment_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "payment_allocated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "payment_allocation_id",
+        "payment_id",
+        "tx_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "completed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "effective",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ObligationEvent"
+}

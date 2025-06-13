@@ -61,8 +61,18 @@ pub use terms_template::{error as terms_template_error, *};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
-    pub use crate::event::CoreCreditEvent;
+    pub use crate::{
+        collateral::CollateralEvent,
+        credit_facility::CreditFacilityEvent,
+        disbursal::DisbursalEvent,
+        interest_accrual_cycle::InterestAccrualCycleEvent,
+        obligation::ObligationEvent,
+        payment::PaymentEvent,
+        payment_allocation::PaymentAllocationEvent,
+        TermsTemplateEvent,
+    };
 }
+
 
 pub struct CoreCredit<Perms, E>
 where

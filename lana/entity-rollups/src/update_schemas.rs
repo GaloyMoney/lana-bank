@@ -2,7 +2,10 @@ use anyhow::anyhow;
 use colored::*;
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
-use core_credit::event_schema::CoreCreditEvent;
+use core_credit::event_schema::{
+    CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
+    ObligationEvent, PaymentEvent, PaymentAllocationEvent, TermsTemplateEvent,
+};
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
@@ -80,9 +83,44 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
             generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
         },
         SchemaInfo {
-            name: "CoreCreditEvent",
-            filename: "core_credit_event_schema.json",
-            generate_schema: || serde_json::to_value(schema_for!(CoreCreditEvent)).unwrap(),
+            name: "CollateralEvent",
+            filename: "collateral_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(CollateralEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "CreditFacilityEvent",
+            filename: "credit_facility_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(CreditFacilityEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "DisbursalEvent",
+            filename: "disbursal_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(DisbursalEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "InterestAccrualCycleEvent",
+            filename: "interest_accrual_cycle_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(InterestAccrualCycleEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "ObligationEvent",
+            filename: "obligation_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(ObligationEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "PaymentEvent",
+            filename: "payment_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(PaymentEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "PaymentAllocationEvent",
+            filename: "payment_allocation_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "TermsTemplateEvent",
+            filename: "terms_template_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(TermsTemplateEvent)).unwrap(),
         },
         SchemaInfo {
             name: "ChartEvent",

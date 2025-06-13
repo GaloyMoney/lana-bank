@@ -18,6 +18,9 @@ pub use repo::{DisbursalsSortBy, FindManyDisbursals};
 
 pub use entity::Disbursal;
 
+#[cfg(feature = "json-schema")]
+pub use entity::DisbursalEvent;
+
 pub struct Disbursals<Perms, E>
 where
     Perms: PermissionCheck,

@@ -1,0 +1,111 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    },
+    "ObligationType": {
+      "enum": [
+        "Disbursal",
+        "Interest"
+      ],
+      "type": "string"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0.0,
+      "type": "integer"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "account_to_be_debited_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_allocation_idx": {
+          "format": "uint",
+          "minimum": 0.0,
+          "type": "integer"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_type": {
+          "$ref": "#/definitions/ObligationType"
+        },
+        "payment_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "receivable_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "account_to_be_debited_id",
+        "amount",
+        "audit_info",
+        "credit_facility_id",
+        "effective",
+        "id",
+        "ledger_tx_id",
+        "obligation_allocation_idx",
+        "obligation_id",
+        "obligation_type",
+        "payment_id",
+        "receivable_account_id",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "PaymentAllocationEvent"
+}

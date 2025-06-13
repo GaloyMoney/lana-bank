@@ -9,6 +9,9 @@ use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
 
 pub use entity::Collateral;
 pub(super) use entity::*;
+
+#[cfg(feature = "json-schema")]
+pub use entity::CollateralEvent;
 use error::CollateralError;
 use repo::CollateralRepo;
 

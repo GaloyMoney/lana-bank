@@ -11,6 +11,9 @@ use tracing::instrument;
 use crate::{CoreCreditAction, CoreCreditObject, TermValues, primitives::TermsTemplateId};
 
 pub use entity::*;
+
+#[cfg(feature = "json-schema")]
+pub use entity::TermsTemplateEvent;
 use error::TermsTemplateError;
 use repo::TermsTemplateRepo;
 
