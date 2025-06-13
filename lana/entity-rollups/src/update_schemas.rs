@@ -824,31 +824,11 @@ mod tests {
     }
 }
 
-const ROLLUP_TABLE_TEMPLATE: &str = r#"-- Auto-generated rollup table for {{entity_name}}
-CREATE TABLE IF NOT EXISTS {{table_name}} (
-    -- Common fields
-    id UUID NOT NULL,
-    event_type TEXT NOT NULL,
-    event_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-    {{#each fields}}
-    {{this.name}} {{this.sql_type}}{{#if this.nullable}}{{else}} NOT NULL{{/if}},
-    {{/each}}
-    
-    -- Constraints
-    PRIMARY KEY (id, event_type)
-);
-
--- Index for querying by event type
-CREATE INDEX IF NOT EXISTS idx_{{table_name}}_event_type ON {{table_name}}(event_type);
-
--- Index for querying by timestamp
-CREATE INDEX IF NOT EXISTS idx_{{table_name}}_timestamp ON {{table_name}}(event_timestamp);
-"#;
 
 #[derive(serde::Serialize)]
 struct RollupTableContext {
     entity_name: String,
-    table_name: String,
+    rollup_table_name: String,
     fields: Vec<FieldDefinition>,
 }
 
@@ -869,23 +849,33 @@ fn generate_rollup_migrations(
         fs::create_dir_all(migrations_dir)?;
     }
 
+    // Read template from file
+    let template_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("templates")
+        .join("rollup_table.sql.hbs");
+    let template_content = fs::read_to_string(&template_path)?;
+
     let mut handlebars = Handlebars::new();
-    handlebars.register_template_string("rollup_table", ROLLUP_TABLE_TEMPLATE)?;
+    handlebars.register_template_string("rollup_table", &template_content)?;
 
     for schema_info in schemas {
+        // Read the schema to extract fields
         let schema_path = schemas_dir.join(schema_info.filename);
         let schema_content = fs::read_to_string(&schema_path)?;
         let schema: Value = serde_json::from_str(&schema_content)?;
-
+        
         // Extract fields from the schema
         let fields = extract_fields_from_schema(&schema)?;
         
-        // Generate table name from entity name (e.g., UserEvent -> user_events)
-        let table_name = to_snake_case(&schema_info.name.replace("Event", "")) + "_events";
+        // Generate table names from entity name
+        // e.g., UserEvent -> core_user_events_rollup
+        let entity_base = schema_info.name.replace("Event", "");
+        let rollup_table_name = format!("core_{}_events_rollup", to_snake_case(&entity_base));
         
         let context = RollupTableContext {
             entity_name: schema_info.name.to_string(),
-            table_name: table_name.clone(),
+            rollup_table_name: rollup_table_name.clone(),
             fields,
         };
 
@@ -893,7 +883,7 @@ fn generate_rollup_migrations(
         
         // Generate timestamp for migration filename
         let timestamp = chrono::Utc::now().format("%Y%m%d%H%M%S").to_string();
-        let migration_filename = format!("{}_{}_rollup.sql", timestamp, table_name);
+        let migration_filename = format!("{}_{}.sql", timestamp, rollup_table_name);
         let migration_path = migrations_dir.join(migration_filename);
         
         fs::write(&migration_path, migration_content)?;
@@ -906,6 +896,7 @@ fn generate_rollup_migrations(
 
     Ok(())
 }
+
 
 fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinition>> {
     let mut fields = Vec::new();

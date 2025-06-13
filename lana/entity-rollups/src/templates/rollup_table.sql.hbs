@@ -1,0 +1,12 @@
+-- Auto-generated rollup table for {{entity_name}}
+CREATE TABLE {{rollup_table_name}} (
+  id UUID PRIMARY KEY,
+  last_sequence INT NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL,
+  modified_at TIMESTAMPTZ NOT NULL,
+  
+  -- Flattened fields from the event JSON
+  {{#each fields}}
+  {{this.name}} {{this.sql_type}}{{#unless @last}},{{/unless}}
+  {{/each}}
+);

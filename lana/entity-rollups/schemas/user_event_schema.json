@@ -73,7 +73,7 @@
         "audit_info": {
           "$ref": "#/definitions/AuditInfo"
         },
-        "id": {
+        "role_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -86,7 +86,7 @@
       },
       "required": [
         "audit_info",
-        "id",
+        "role_id",
         "type"
       ],
       "type": "object"
@@ -96,7 +96,7 @@
         "audit_info": {
           "$ref": "#/definitions/AuditInfo"
         },
-        "id": {
+        "role_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -109,7 +109,7 @@
       },
       "required": [
         "audit_info",
-        "id",
+        "role_id",
         "type"
       ],
       "type": "object"

@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::{Role, primitives::*};
+use crate::{primitives::*, Role};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -21,11 +21,11 @@ pub enum UserEvent {
         authentication_id: AuthenticationId,
     },
     RoleGranted {
-        id: RoleId,
+        role_id: RoleId,
         audit_info: AuditInfo,
     },
     RoleRevoked {
-        id: RoleId,
+        role_id: RoleId,
         audit_info: AuditInfo,
     },
 }
@@ -59,13 +59,13 @@ impl User {
             previous => {
                 if let Some(previous) = previous {
                     self.events.push(UserEvent::RoleRevoked {
-                        id: previous,
+                        role_id: previous,
                         audit_info: audit_info.clone(),
                     });
                 }
 
                 self.events.push(UserEvent::RoleGranted {
-                    id: role.id,
+                    role_id: role.id,
                     audit_info,
                 });
 
@@ -80,7 +80,7 @@ impl User {
             None => Idempotent::Ignored,
             Some(previous) => {
                 self.events.push(UserEvent::RoleRevoked {
-                    id: previous,
+                    role_id: previous,
                     audit_info,
                 });
 
@@ -96,7 +96,7 @@ impl User {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                UserEvent::RoleGranted { id: role_id, .. } => Some(Some(*role_id)),
+                UserEvent::RoleGranted { role_id, .. } => Some(Some(*role_id)),
                 UserEvent::RoleRevoked { .. } => Some(None),
                 _ => None,
             })
