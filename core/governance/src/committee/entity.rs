@@ -72,6 +72,10 @@ impl Committee {
         });
     }
 
+    pub fn n_members(&self) -> usize {
+        self.members().len()
+    }
+
     pub fn members(&self) -> HashSet<CommitteeMemberId> {
         let mut members = HashSet::new();
 

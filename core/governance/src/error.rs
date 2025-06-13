@@ -16,4 +16,6 @@ pub enum GovernanceError {
     AuditError(#[from] audit::error::AuditError),
     #[error("GovernanceError - SubjectIsNotCommitteeMember")]
     SubjectIsNotCommitteeMember,
+    #[error("GovernanceError - Threshold {1} too high for committee {0}")]
+    CommitteeThresholdTooHigh(crate::primitives::CommitteeId, usize),
 }

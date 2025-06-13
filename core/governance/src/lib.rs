@@ -167,6 +167,14 @@ where
 
         let committee_id = committee_id.into();
         let committee = self.committee_repo.find_by_id(committee_id).await?;
+
+        if threshold > committee.n_members() {
+            return Err(GovernanceError::CommitteeThresholdTooHigh(
+                committee_id,
+                threshold,
+            ));
+        }
+
         let mut policy = self.policy_repo.find_by_id(policy_id).await?;
         policy.assign_committee(committee.id, threshold, audit_info);
 
