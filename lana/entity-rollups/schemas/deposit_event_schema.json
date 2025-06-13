@@ -1,0 +1,73 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0.0,
+      "type": "integer"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "deposit_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_transaction_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "audit_info",
+        "deposit_account_id",
+        "id",
+        "ledger_transaction_id",
+        "reference",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "DepositEvent"
+}

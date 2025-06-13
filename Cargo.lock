@@ -1225,6 +1225,7 @@ dependencies = [
  "async-graphql",
  "rust_decimal",
  "rust_decimal_macros",
+ "schemars",
  "serde",
  "thiserror 2.0.12",
 ]
@@ -1601,6 +1602,10 @@ dependencies = [
  "clap",
  "colored",
  "core-access",
+ "core-accounting",
+ "core-custody",
+ "core-customer",
+ "core-deposit",
  "governance",
  "schemars",
  "serde_json",

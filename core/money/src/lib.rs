@@ -3,12 +3,16 @@ use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 use thiserror::Error;
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use std::fmt;
 
 pub const SATS_PER_BTC: Decimal = dec!(100_000_000);
 pub const CENTS_PER_USD: Decimal = dec!(100);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct SignedSatoshis(i64);
 async_graphql::scalar!(SignedSatoshis);
 
@@ -77,6 +81,7 @@ pub enum ConversionError {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct Satoshis(u64);
 async_graphql::scalar!(Satoshis);
 
@@ -161,6 +166,7 @@ impl TryFrom<SignedSatoshis> for Satoshis {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct SignedUsdCents(i64);
 async_graphql::scalar!(SignedUsdCents);
 
@@ -214,6 +220,7 @@ impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct UsdCents(u64);
 async_graphql::scalar!(UsdCents);
 

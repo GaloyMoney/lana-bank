@@ -27,8 +27,8 @@ use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
-pub use account::{DepositAccount, DepositAccountEvent};
 use account::*;
+pub use account::{DepositAccount, DepositAccountEvent};
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
 };

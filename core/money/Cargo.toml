@@ -4,6 +4,9 @@ version = "0.3.655-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
+[features]
+json-schema = ["schemars"]
+
 [dependencies]
 
 serde = { workspace = true }
@@ -11,3 +14,4 @@ thiserror = { workspace = true }
 rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 async-graphql = { workspace = true }
+schemars = { workspace = true, optional = true }
