@@ -2,7 +2,7 @@
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
-import DateWithTooltip from "@lana/web/components/date-with-tooltip"
+import { formatDate } from "@lana/web/utils"
 
 import { AuditEntry, useAuditLogsQuery } from "@/lib/graphql/generated"
 import PaginatedTable, {
@@ -72,7 +72,7 @@ const AuditLogsList = () => {
     {
       key: "recordedAt",
       label: t("headers.recordedAt"),
-      render: (date) => <DateWithTooltip value={date} />,
+      render: (date) => formatDate(date),
     },
   ]
 
