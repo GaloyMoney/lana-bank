@@ -28,6 +28,7 @@ use crate::{
     primitives::Subject,
     report::Reports,
     storage::Storage,
+    templating::Templating,
     user_onboarding::UserOnboarding,
 };
 
@@ -53,6 +54,7 @@ pub struct LanaApp {
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
+    templating: Templating,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
 }
@@ -134,6 +136,8 @@ impl LanaApp {
         )
         .await?;
 
+        let templating = Templating::init(config.templating, &customers).await?;
+
         Notification::init(
             config.notification,
             &jobs,
@@ -166,6 +170,7 @@ impl LanaApp {
             outbox,
             governance,
             dashboard,
+            templating,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
         })
@@ -244,6 +249,10 @@ impl LanaApp {
 
     pub fn documents(&self) -> &Documents {
         &self.documents
+    }
+
+    pub fn templating(&self) -> &Templating {
+        &self.templating
     }
 
     pub async fn get_visible_nav_items(

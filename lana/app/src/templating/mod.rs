@@ -1,8 +1,8 @@
 // Re-export the main templating library
 pub use lib::*;
 
-mod config;
-mod error;
+pub mod config;
+pub mod error;
 mod lib;
 mod pdf;
 mod template;
@@ -14,7 +14,7 @@ mod tests {
     use std::path::Path;
 
     #[tokio::test]
-    async fn test_templating_library() -> Result<(), error::TemplatingError> {
+    async fn test_basic_templating_functionality() -> Result<(), error::TemplatingError> {
         // Create a custom config with absolute paths
         let config_file =
             Path::new(env!("CARGO_MANIFEST_DIR")).join("src/templating/config/pdf_config.toml");
@@ -24,7 +24,9 @@ mod tests {
         config.pdf.config_file = config_file;
         config.template_dir = template_dir;
 
-        let templating = lib::Templating::init(config).await?;
+        // Note: This test focuses on testing the core templating functionality
+        // without requiring customer dependencies. For full integration testing
+        // with customers, use the actual application context.
 
         let loan_data = template::LoanAgreementData::new(
             "Test User".to_string(),
@@ -32,9 +34,17 @@ mod tests {
             "$1000".to_string(),
         );
 
-        let pdf_bytes = templating
-            .generate_pdf_from_template("loan_agreement", &loan_data)
-            .await?;
+        // Test template engine independently
+        let template_engine = template::TemplateEngine::init(config.template_dir.clone()).await?;
+        let rendered = template_engine.render("loan_agreement", &loan_data).await?;
+
+        assert!(rendered.contains("Test User"));
+        assert!(rendered.contains("test@example.com"));
+        assert!(rendered.contains("$1000"));
+
+        // Test PDF generator independently
+        let pdf_generator = pdf::PdfGenerator::init(config.pdf).await?;
+        let pdf_bytes = pdf_generator.generate_pdf_from_markdown(&rendered).await?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));
@@ -56,7 +66,7 @@ mod tests {
         let pdf_generator = pdf::PdfGenerator::init(config).await?;
 
         let markdown = "# Test Document\n\nThis is a test.";
-        let pdf_bytes = pdf_generator.from_markdown(markdown).await?;
+        let pdf_bytes = pdf_generator.generate_pdf_from_markdown(markdown).await?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));
