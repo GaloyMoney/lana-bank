@@ -1,0 +1,5 @@
+-- Auto-generated trigger for {{entity_name}}
+CREATE TRIGGER {{events_table_name}}_rollup_trigger
+  AFTER INSERT ON {{events_table_name}}
+  FOR EACH ROW
+  EXECUTE FUNCTION {{rollup_table_name}}_trigger();

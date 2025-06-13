@@ -1,0 +1,63 @@
+-- Auto-generated trigger function for {{entity_name}}
+CREATE OR REPLACE FUNCTION {{rollup_table_name}}_trigger() 
+RETURNS TRIGGER AS $$
+DECLARE
+  event_type TEXT;
+BEGIN
+  event_type := NEW.event ->> 'type';
+  
+  INSERT INTO {{rollup_table_name}} (
+    id,
+    last_sequence,
+    created_at,
+    modified_at{{#each fields}},
+    {{this.name}}{{/each}}
+  )
+  VALUES (
+    NEW.id,
+    NEW.sequence,
+    NEW.recorded_at,
+    NEW.recorded_at{{#each fields}},
+    {{#if this.is_json_extract}}
+    {{#if this.revoke_events}}
+    CASE 
+      WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
+      ELSE (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
+    END
+    {{else}}
+    (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
+    {{/if}}
+    {{else}}
+    NEW.event ->> '{{this.name}}'
+    {{/if}}{{/each}}
+  )
+  ON CONFLICT (id) DO UPDATE SET
+    last_sequence = GREATEST({{rollup_table_name}}.last_sequence, NEW.sequence),
+    modified_at = CASE 
+      WHEN NEW.sequence > {{rollup_table_name}}.last_sequence THEN NEW.recorded_at
+      ELSE {{rollup_table_name}}.modified_at
+    END{{#each fields}},
+    {{this.name}} = CASE 
+      WHEN NEW.sequence > {{../rollup_table_name}}.last_sequence THEN 
+        {{#if this.is_json_extract}}
+        {{#if this.revoke_events}}
+        CASE 
+          WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
+          WHEN NEW.event ? '{{this.json_path}}' THEN (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
+          ELSE {{../rollup_table_name}}.{{this.name}}
+        END
+        {{else}}
+        CASE 
+          WHEN NEW.event ? '{{this.json_path}}' THEN (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
+          ELSE {{../rollup_table_name}}.{{this.name}}
+        END
+        {{/if}}
+        {{else}}
+        NEW.event ->> '{{this.name}}'
+        {{/if}}
+      ELSE {{../rollup_table_name}}.{{this.name}}
+    END{{/each}};
+  
+  RETURN NEW;
+END;
+$$ LANGUAGE plpgsql;
