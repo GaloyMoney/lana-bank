@@ -831,7 +831,7 @@
       },
       "rules": {
         "committeeThreshold": "{committeeName} Committee",
-        "systemApproval": "System"
+        "autoApprove": "Auto Approve"
       }
     },
     "PolicyDetails": {

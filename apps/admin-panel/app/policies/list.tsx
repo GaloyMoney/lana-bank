@@ -86,9 +86,7 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Policy>[] => [
         return t("rules.committeeThreshold", { committeeName: rules.committee.name })
       }
       if (rules.__typename === "SystemApproval") {
-        return (
-          <span className="text-textColor-secondary">{t("rules.systemApproval")}</span>
-        )
+        return <span className="text-textColor-secondary">{t("rules.autoApprove")}</span>
       }
       return ""
     },
