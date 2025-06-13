@@ -20,44 +20,21 @@
       ],
       "type": "object"
     },
-    "CustodianConfig": {
-      "oneOf": [
-        {
-          "additionalProperties": false,
-          "properties": {
-            "Komainu": {
-              "$ref": "#/definitions/KomainuConfig"
-            }
-          },
-          "required": [
-            "Komainu"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "KomainuConfig": {
-      "properties": {
-        "api_key": {
-          "type": "string"
-        },
-        "api_secret": {
-          "type": "string"
-        },
-        "secret_key": {
-          "type": "string"
-        },
-        "testing_instance": {
-          "type": "boolean"
-        }
+    "ConfigCypher": {
+      "items": {
+        "format": "uint8",
+        "minimum": 0.0,
+        "type": "integer"
       },
-      "required": [
-        "api_key",
-        "api_secret",
-        "secret_key",
-        "testing_instance"
-      ],
-      "type": "object"
+      "type": "array"
+    },
+    "Nonce": {
+      "items": {
+        "format": "uint8",
+        "minimum": 0.0,
+        "type": "integer"
+      },
+      "type": "array"
     }
   },
   "oneOf": [
@@ -65,9 +42,6 @@
       "properties": {
         "audit_info": {
           "$ref": "#/definitions/AuditInfo"
-        },
-        "custodian": {
-          "$ref": "#/definitions/CustodianConfig"
         },
         "id": {
           "format": "uuid",
@@ -85,9 +59,42 @@
       },
       "required": [
         "audit_info",
-        "custodian",
         "id",
         "name",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "encrypted_custodian_config": {
+          "items": [
+            {
+              "$ref": "#/definitions/ConfigCypher"
+            },
+            {
+              "$ref": "#/definitions/Nonce"
+            }
+          ],
+          "maxItems": 2,
+          "minItems": 2,
+          "type": [
+            "array",
+            "null"
+          ]
+        },
+        "type": {
+          "enum": [
+            "config_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
         "type"
       ],
       "type": "object"

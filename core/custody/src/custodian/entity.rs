@@ -30,12 +30,6 @@ impl core::fmt::Debug for KomainuConfig {
     }
 }
 
-#[derive(Clone, Debug, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum CustodianConfig {
-    Komainu(KomainuConfig),
-}
-
 #[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
