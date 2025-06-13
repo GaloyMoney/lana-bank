@@ -102,15 +102,20 @@ check-code-tf:
 	tofu fmt -recursive .
 	git diff --exit-code *.tf
 
-check-code-rust: sdl-rust
+check-code-rust: sdl-rust update-schemas
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
+	git diff --exit-code lana/entity-rollups/schemas
+	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
 	SQLX_OFFLINE=true cargo audit
 	cargo deny check
 	cargo machete
+
+update-schemas:
+	SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas
 
 clippy:
 	SQLX_OFFLINE=true cargo clippy --all-features
