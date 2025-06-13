@@ -12,6 +12,7 @@ es_entity::entity_id! { AuthenticationId }
 
 #[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub enum KycLevel {
     NotKyced,
     Basic,
@@ -31,6 +32,7 @@ pub enum KycLevel {
     Deserialize,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
 pub enum AccountStatus {
     #[default]
@@ -40,6 +42,7 @@ pub enum AccountStatus {
 
 #[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub enum CustomerType {
     Individual,
     GovernmentEntity,

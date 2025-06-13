@@ -1,6 +1,9 @@
 use anyhow::anyhow;
 use colored::*;
 use core_access::{permission_set::PermissionSetEvent, role::RoleEvent, user::UserEvent};
+use core_custody::custodian::CustodianEvent;
+use core_customer::CustomerEvent;
+// use core_deposit::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
 use governance::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 use serde_json::Value;
@@ -49,6 +52,33 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
             filename: "policy_event_schema.json",
             generate_schema: || serde_json::to_value(schema_for!(PolicyEvent)).unwrap(),
         },
+        SchemaInfo {
+            name: "CustodianEvent",
+            filename: "custodian_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "CustomerEvent",
+            filename: "customer_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(CustomerEvent)).unwrap(),
+        },
+        /*
+        SchemaInfo {
+            name: "DepositAccountEvent",
+            filename: "deposit_account_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(DepositAccountEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "DepositEvent",
+            filename: "deposit_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(DepositEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "WithdrawalEvent",
+            filename: "withdrawal_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
+        },
+        */
     ];
 
     let schemas_dir = Path::new(schemas_out_dir);

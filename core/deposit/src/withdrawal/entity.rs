@@ -1,4 +1,6 @@
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use es_entity::*;
@@ -12,6 +14,7 @@ use super::error::WithdrawalError;
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum WithdrawalStatus {
     PendingApproval,
     PendingConfirmation,
@@ -21,6 +24,7 @@ pub enum WithdrawalStatus {
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "WithdrawalId")]
 pub enum WithdrawalEvent {

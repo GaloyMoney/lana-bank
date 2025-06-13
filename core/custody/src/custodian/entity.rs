@@ -1,4 +1,6 @@
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use audit::AuditInfo;
@@ -9,6 +11,7 @@ use crate::primitives::CustodianId;
 use super::{custodian_config::*, error::*};
 
 #[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct KomainuConfig {
     pub api_key: String,
     pub api_secret: String,
@@ -27,7 +30,14 @@ impl core::fmt::Debug for KomainuConfig {
     }
 }
 
-#[derive(EsEvent, Clone, Serialize, Deserialize)]
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum CustodianConfig {
+    Komainu(KomainuConfig),
+}
+
+#[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CustodianId")]
 pub enum CustodianEvent {

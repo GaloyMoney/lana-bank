@@ -27,13 +27,13 @@ use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
-pub use account::DepositAccount;
+pub use account::{DepositAccount, DepositAccountEvent};
 use account::*;
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
 };
 use deposit::*;
-pub use deposit::{Deposit, DepositsByCreatedAtCursor};
+pub use deposit::{Deposit, DepositEvent, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
 use error::*;
 pub use event::*;
@@ -47,7 +47,7 @@ use processes::approval::{
 };
 use publisher::DepositPublisher;
 use withdrawal::*;
-pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
+pub use withdrawal::{Withdrawal, WithdrawalEvent, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
 
 pub struct CoreDeposit<Perms, E>
 where

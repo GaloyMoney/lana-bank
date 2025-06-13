@@ -15,7 +15,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
-pub use entity::Customer;
+pub use entity::{Customer, CustomerEvent};
 use entity::*;
 use error::*;
 pub use event::*;

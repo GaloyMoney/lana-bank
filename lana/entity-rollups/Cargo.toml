@@ -14,6 +14,10 @@ path = "src/main.rs"
 [dependencies]
 core-access = { path = "../../core/access", features = ["json-schema"] }
 governance = { path = "../../core/governance", features = ["json-schema"] }
+core-custody = { path = "../../core/custody", features = ["json-schema"] }
+core-customer = { path = "../../core/customer", default-features = false, features = ["json-schema"] }
+# core-deposit = { path = "../../core/deposit", features = ["json-schema"] }
+# core-accounting = { path = "../../core/accounting", features = ["json-schema"] }
 
 clap = { workspace = true }
 schemars = { workspace = true }

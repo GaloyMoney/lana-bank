@@ -1,0 +1,97 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    },
+    "CustodianConfig": {
+      "oneOf": [
+        {
+          "additionalProperties": false,
+          "properties": {
+            "Komainu": {
+              "$ref": "#/definitions/KomainuConfig"
+            }
+          },
+          "required": [
+            "Komainu"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "KomainuConfig": {
+      "properties": {
+        "api_key": {
+          "type": "string"
+        },
+        "api_secret": {
+          "type": "string"
+        },
+        "secret_key": {
+          "type": "string"
+        },
+        "testing_instance": {
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "api_key",
+        "api_secret",
+        "secret_key",
+        "testing_instance"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "custodian": {
+          "$ref": "#/definitions/CustodianConfig"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "custodian",
+        "id",
+        "name",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "CustodianEvent"
+}

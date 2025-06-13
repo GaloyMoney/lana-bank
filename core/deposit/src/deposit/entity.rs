@@ -1,4 +1,6 @@
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use audit::AuditInfo;
@@ -8,6 +10,7 @@ use es_entity::*;
 use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "DepositId")]
 pub enum DepositEvent {
