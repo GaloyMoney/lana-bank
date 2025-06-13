@@ -16,7 +16,8 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, custody::*,
     customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*,
-    price::*, profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
+    price::*, profit_and_loss_config::*, report::*, sumsub::*, templating::*, terms_template::*,
+    withdrawal::*,
 };
 
 pub struct Query;
@@ -1739,5 +1740,27 @@ impl Mutation {
         let link = AccountingCsvDownloadLink::from(result);
 
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
+    }
+
+    pub async fn loan_agreement_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanAgreementGenerateInput,
+    ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+
+        // TODO: Check if user has permission to generate loan agreements for this customer
+        let customer_id = lana_app::customer::CustomerId::from(input.customer_id);
+
+        // Generate the PDF
+        let pdf_bytes = app
+            .templating()
+            .generate_loan_agreement_pdf(customer_id)
+            .await?;
+
+        Ok(LoanAgreementGeneratePayload::new(
+            input.customer_id,
+            pdf_bytes,
+        ))
     }
 }
