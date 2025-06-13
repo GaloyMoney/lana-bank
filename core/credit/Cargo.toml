@@ -8,6 +8,7 @@ edition = "2024"
 
 fail-on-warnings = []
 graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
+json-schema = ["dep:schemars", "cala-ledger/json-schema", "es-entity/json-schema"]
 sim-time = ["dep:sim-time", "es-entity/sim-time"]
 
 [dependencies]
@@ -42,6 +43,7 @@ async-trait = { workspace = true }
 futures = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 sim-time = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }

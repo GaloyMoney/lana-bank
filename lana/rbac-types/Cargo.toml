@@ -10,6 +10,7 @@ ignored = ["sqlx"]
 [features]
 
 fail-on-warnings = []
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 dashboard = { path = "../dashboard" }
@@ -33,6 +34,7 @@ strum = { workspace = true }
 uuid = { workspace = true }
 serde = { workspace = true }
 thiserror = { workspace = true }
+schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

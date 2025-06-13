@@ -11,6 +11,7 @@ ignored = ["es-entity"]
 sim-time =  [ "dep:sim-time", "es-entity/sim-time" ]
 
 fail-on-warnings = []
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 lana-events = { path = "../events" }
@@ -23,6 +24,7 @@ job = { path = "../../lib/job" }
 
 es-entity = { workspace = true, features = ["graphql"] }
 sim-time = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
 
 uuid = { workspace = true }
 strum = { workspace = true }

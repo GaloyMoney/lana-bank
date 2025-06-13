@@ -10,6 +10,7 @@ ignored = ["serde", "sqlx"]
 [features]
 
 default = ["graphql"]
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 graphql = []
 
 [dependencies]
@@ -23,3 +24,4 @@ cala-ledger = { workspace = true }
 # Required by es_entity::entity_id macro
 sqlx = { workspace = true }
 serde = { workspace = true }
+schemars = { workspace = true, optional = true }
