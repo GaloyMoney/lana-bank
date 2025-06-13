@@ -21,6 +21,7 @@ mod primitives;
 mod profit_and_loss_config;
 mod report;
 mod sumsub;
+mod templating;
 mod terms;
 mod terms_template;
 mod withdrawal;
