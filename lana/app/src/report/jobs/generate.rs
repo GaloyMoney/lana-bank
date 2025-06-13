@@ -9,6 +9,7 @@ use crate::{
     primitives::*,
     storage::Storage,
 };
+use job::error::JobRunError;
 
 use crate::report::{repo::ReportRepo, upload, ReportConfig};
 
@@ -79,10 +80,7 @@ impl JobRunner for GenerateReportJobRunner {
         fields(insert_id),
         err
     )]
-    async fn run(
-        &self,
-        _current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, _current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut report = self.repo.find_by_id(self.config.report_id).await?;
 
         let mut db = self.repo.begin_op().await?;

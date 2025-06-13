@@ -11,6 +11,7 @@ use crate::{
     primitives::*,
     report::{repo::ReportRepo, NewReport},
 };
+use job::error::JobRunError;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct CreateReportJobConfig {
@@ -84,10 +85,7 @@ pub struct CreateReportJobRunner {
 #[async_trait]
 impl JobRunner for CreateReportJobRunner {
     #[tracing::instrument(name = "lana.report.jobs.create.run", skip_all, fields(insert_id), err)]
-    async fn run(
-        &self,
-        _current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, _current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut db = self.repo.begin_op().await?;
 
         let audit_info = self

@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use job::error::JobRunError;
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
@@ -113,10 +114,7 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, mut current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut state = current_job
             .execution_state::<CreditFacilityCollateralizationFromEventsData>()?
             .unwrap_or_default();
