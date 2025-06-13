@@ -1,148 +1,12 @@
 use anyhow::anyhow;
 use colored::*;
-use handlebars::Handlebars;
 use serde_json::Value;
 use similar::{ChangeTag, TextDiff};
-use std::{
-    collections::{HashMap, HashSet},
-    fs,
-    path::Path,
-};
+use std::{collections::{HashMap, HashSet}, fs, path::Path};
 
-use core_access::event_schema::{/*PermissionSetEvent, RoleEvent,*/ UserEvent};
-// use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
-// use core_credit::event_schema::{
-//     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-//     ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
-// };
-// use core_custody::event_schema::CustodianEvent;
-// use core_customer::event_schema::CustomerEvent;
-// use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
-// use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
-use schemars::schema_for;
+use super::SchemaInfo;
 
-struct SchemaInfo {
-    name: &'static str,
-    filename: &'static str,
-    generate_schema: fn() -> serde_json::Value,
-}
-
-pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow::Result<()> {
-    let schemas = vec![
-        SchemaInfo {
-            name: "UserEvent",
-            filename: "user_event_schema.json",
-            generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
-        },
-        // SchemaInfo {
-        //     name: "RoleEvent",
-        //     filename: "role_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "PermissionSetEvent",
-        //     filename: "permission_set_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(PermissionSetEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "ApprovalProcessEvent",
-        //     filename: "approval_process_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CommitteeEvent",
-        //     filename: "committee_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CommitteeEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "PolicyEvent",
-        //     filename: "policy_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(PolicyEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CustodianEvent",
-        //     filename: "custodian_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CustomerEvent",
-        //     filename: "customer_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CustomerEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "DepositAccountEvent",
-        //     filename: "deposit_account_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(DepositAccountEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "DepositEvent",
-        //     filename: "deposit_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(DepositEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "WithdrawalEvent",
-        //     filename: "withdrawal_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CollateralEvent",
-        //     filename: "collateral_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CollateralEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CreditFacilityEvent",
-        //     filename: "credit_facility_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CreditFacilityEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "DisbursalEvent",
-        //     filename: "disbursal_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(DisbursalEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "InterestAccrualCycleEvent",
-        //     filename: "interest_accrual_cycle_event_schema.json",
-        //     generate_schema: || {
-        //         serde_json::to_value(schema_for!(InterestAccrualCycleEvent)).unwrap()
-        //     },
-        // },
-        // SchemaInfo {
-        //     name: "ObligationEvent",
-        //     filename: "obligation_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ObligationEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "PaymentEvent",
-        //     filename: "payment_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(PaymentEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "PaymentAllocationEvent",
-        //     filename: "payment_allocation_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "TermsTemplateEvent",
-        //     filename: "terms_template_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(TermsTemplateEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "ChartEvent",
-        //     filename: "chart_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "AccountingCsvEvent",
-        //     filename: "accounting_csv_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(AccountingCsvEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "ManualTransactionEvent",
-        //     filename: "manual_transaction_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
-        // },
-    ];
-
+pub fn process_schemas(schemas: &[SchemaInfo], schemas_out_dir: &str) -> anyhow::Result<bool> {
     let schemas_dir = Path::new(schemas_out_dir);
     if !schemas_dir.exists() {
         fs::create_dir_all(schemas_dir)?;
@@ -150,14 +14,14 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
 
     let mut has_breaking_changes = false;
 
-    for schema_info in &schemas {
+    for schema_info in schemas {
         let filepath = schemas_dir.join(schema_info.filename);
         let new_schema = (schema_info.generate_schema)();
         let new_schema_pretty = serde_json::to_string_pretty(&new_schema)?;
 
         if filepath.exists() {
             let existing_content = fs::read_to_string(&filepath)?;
-            let existing_schema: Value = serde_json::from_str(&existing_content)?;
+            let existing_schema: serde_json::Value = serde_json::from_str(&existing_content)?;
 
             if existing_schema != new_schema {
                 println!("{} {}", "Schema changed:".yellow().bold(), schema_info.name);
@@ -201,14 +65,10 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
         );
     }
 
-    // Generate migrations for rollup tables
-    println!("\n{} Generating rollup table migrations...", "🔨".blue().bold());
-    generate_rollup_migrations(&schemas, schemas_dir, migrations_out_dir)?;
-
-    Ok(())
+    Ok(has_breaking_changes)
 }
 
-fn show_diff(old_content: &str, new_content: &str) {
+pub fn show_diff(old_content: &str, new_content: &str) {
     let diff = TextDiff::from_lines(old_content, new_content);
 
     for change in diff.iter_all_changes() {
@@ -270,7 +130,7 @@ impl<'a> SchemaContext<'a> {
     }
 }
 
-fn is_breaking_change(old_schema: &Value, new_schema: &Value) -> anyhow::Result<bool> {
+pub fn is_breaking_change(old_schema: &Value, new_schema: &Value) -> anyhow::Result<bool> {
     let old_ctx = SchemaContext::new(old_schema)?;
     let new_ctx = SchemaContext::new(new_schema)?;
 
@@ -822,177 +682,4 @@ mod tests {
         assert!(!is_breaking_change(&schema, &schema)?);
         Ok(())
     }
-}
-
-
-#[derive(serde::Serialize)]
-struct RollupTableContext {
-    entity_name: String,
-    rollup_table_name: String,
-    fields: Vec<FieldDefinition>,
-}
-
-#[derive(serde::Serialize)]
-struct FieldDefinition {
-    name: String,
-    sql_type: String,
-    nullable: bool,
-}
-
-fn generate_rollup_migrations(
-    schemas: &[SchemaInfo],
-    schemas_dir: &Path,
-    migrations_out_dir: &str,
-) -> anyhow::Result<()> {
-    let migrations_dir = Path::new(migrations_out_dir);
-    if !migrations_dir.exists() {
-        fs::create_dir_all(migrations_dir)?;
-    }
-
-    // Read template from file
-    let template_path = Path::new(env!("CARGO_MANIFEST_DIR"))
-        .join("src")
-        .join("templates")
-        .join("rollup_table.sql.hbs");
-    let template_content = fs::read_to_string(&template_path)?;
-
-    let mut handlebars = Handlebars::new();
-    handlebars.register_template_string("rollup_table", &template_content)?;
-
-    for schema_info in schemas {
-        // Read the schema to extract fields
-        let schema_path = schemas_dir.join(schema_info.filename);
-        let schema_content = fs::read_to_string(&schema_path)?;
-        let schema: Value = serde_json::from_str(&schema_content)?;
-        
-        // Extract fields from the schema
-        let fields = extract_fields_from_schema(&schema)?;
-        
-        // Generate table names from entity name
-        // e.g., UserEvent -> core_user_events_rollup
-        let entity_base = schema_info.name.replace("Event", "");
-        let rollup_table_name = format!("core_{}_events_rollup", to_snake_case(&entity_base));
-        
-        let context = RollupTableContext {
-            entity_name: schema_info.name.to_string(),
-            rollup_table_name: rollup_table_name.clone(),
-            fields,
-        };
-
-        let migration_content = handlebars.render("rollup_table", &context)?;
-        
-        // Generate timestamp for migration filename
-        let timestamp = chrono::Utc::now().format("%Y%m%d%H%M%S").to_string();
-        let migration_filename = format!("{}_{}.sql", timestamp, rollup_table_name);
-        let migration_path = migrations_dir.join(migration_filename);
-        
-        fs::write(&migration_path, migration_content)?;
-        println!(
-            "{} Generated migration: {}",
-            "✅".green(),
-            migration_path.display()
-        );
-    }
-
-    Ok(())
-}
-
-
-fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinition>> {
-    let mut fields = Vec::new();
-    let mut all_properties = HashMap::new();
-    
-    // Get oneOf variants
-    if let Some(Value::Array(one_of)) = schema.get("oneOf") {
-        for variant in one_of {
-            if let Some(Value::Object(properties)) = variant.get("properties") {
-                for (prop_name, prop_schema) in properties {
-                    if prop_name == "type" || prop_name == "id" {
-                        continue; // Skip the discriminator field and id (handled as common field)
-                    }
-                    all_properties.insert(prop_name.clone(), prop_schema.clone());
-                }
-            }
-        }
-    }
-    
-    // Convert properties to field definitions
-    for (name, prop_schema) in all_properties {
-        let sql_type = json_schema_to_sql_type(&prop_schema)?;
-        let nullable = true; // Since fields come from different oneOf variants, they should be nullable
-        
-        fields.push(FieldDefinition {
-            name: to_snake_case(&name),
-            sql_type,
-            nullable,
-        });
-    }
-    
-    // Sort fields for consistent ordering
-    fields.sort_by(|a, b| a.name.cmp(&b.name));
-    
-    Ok(fields)
-}
-
-fn json_schema_to_sql_type(schema: &Value) -> anyhow::Result<String> {
-    // Handle $ref
-    if let Some(Value::String(ref_path)) = schema.get("$ref") {
-        // For now, handle common refs
-        if ref_path.contains("AuditInfo") {
-            return Ok("JSONB".to_string());
-        } else if ref_path.contains("AuditEntryId") {
-            return Ok("BIGINT".to_string());
-        }
-    }
-    
-    // Handle direct types
-    if let Some(Value::String(type_str)) = schema.get("type") {
-        let sql_type = match type_str.as_str() {
-            "string" => {
-                if let Some(Value::String(format)) = schema.get("format") {
-                    match format.as_str() {
-                        "uuid" => "UUID",
-                        "date-time" => "TIMESTAMPTZ",
-                        _ => "TEXT",
-                    }
-                } else {
-                    "TEXT"
-                }
-            }
-            "integer" => {
-                if let Some(Value::String(format)) = schema.get("format") {
-                    match format.as_str() {
-                        "int64" => "BIGINT",
-                        _ => "INTEGER",
-                    }
-                } else {
-                    "INTEGER"
-                }
-            }
-            "number" => "NUMERIC",
-            "boolean" => "BOOLEAN",
-            "object" => "JSONB",
-            "array" => "JSONB",
-            _ => return Err(anyhow!("Unknown JSON schema type: {}", type_str)),
-        };
-        Ok(sql_type.to_string())
-    } else {
-        // Default to JSONB for complex types
-        Ok("JSONB".to_string())
-    }
-}
-
-fn to_snake_case(s: &str) -> String {
-    let mut result = String::new();
-    let mut prev_was_upper = false;
-    
-    for (i, ch) in s.chars().enumerate() {
-        if ch.is_uppercase() && i > 0 && !prev_was_upper {
-            result.push('_');
-        }
-        result.push(ch.to_lowercase().next().unwrap());
-        prev_was_upper = ch.is_uppercase();
-    }
-    
-    result
 }
