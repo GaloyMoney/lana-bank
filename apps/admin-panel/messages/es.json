@@ -831,7 +831,7 @@
       },
       "rules": {
         "committeeThreshold": "Comité {committeeName}",
-        "systemApproval": "Sistema"
+        "autoApprove": "Aprobación automática"
       }
     },
     "PolicyDetails": {

@@ -488,7 +488,7 @@ checksums:
     Policies/table/headers/rules: 5b3477fee7a10f7883c68819c4e24fc4
     Policies/table/errors/general: b1cb4325de8e5a212d2b810b8ab5af27
     Policies/table/rules/committeeThreshold: 5dad8e40aa692364747105ccddd5098f
-    Policies/table/rules/systemApproval: 803281c327a02a2feba182f4a2b38311
+    Policies/table/rules/autoApprove: 124de4b4f5d2ab6e48dc2f3770f3ed99
     Policies/PolicyDetails/DetailsCard/title: bcc1b7f6b941378e63b0107ecd5844ae
     Policies/PolicyDetails/DetailsCard/fields/processType: 010f7d654190a93f0f175a9ec31fc4ad
     Policies/PolicyDetails/DetailsCard/fields/rule: 5b3477fee7a10f7883c68819c4e24fc4
