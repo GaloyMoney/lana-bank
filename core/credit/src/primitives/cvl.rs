@@ -2,6 +2,9 @@ use rust_decimal::{Decimal, prelude::*};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use core_money::UsdCents;
 
 use std::fmt;
@@ -13,6 +16,7 @@ pub struct FacilityCVL {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(transparent)]
 pub struct CVLPct(Decimal);
 #[cfg(feature = "graphql")]

@@ -1,0 +1,727 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "CollateralAction": {
+      "enum": [
+        "Add",
+        "Remove"
+      ],
+      "type": "string"
+    },
+    "CollateralizationState": {
+      "enum": [
+        "FullyCollateralized",
+        "UnderMarginCallThreshold",
+        "UnderLiquidationThreshold",
+        "NoCollateral"
+      ],
+      "type": "string"
+    },
+    "CreditFacilityReceivable": {
+      "properties": {
+        "disbursed": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "interest": {
+          "$ref": "#/definitions/UsdCents"
+        }
+      },
+      "required": [
+        "disbursed",
+        "interest"
+      ],
+      "type": "object"
+    },
+    "FacilityDuration": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "months"
+              ],
+              "type": "string"
+            },
+            "value": {
+              "format": "uint32",
+              "minimum": 0.0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "InterestInterval": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "end_of_month"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "end_of_day"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "InterestPeriod": {
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/definitions/InterestInterval"
+        },
+        "start": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "end",
+        "interval",
+        "start"
+      ],
+      "type": "object"
+    },
+    "ObligationDuration": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "days"
+              ],
+              "type": "string"
+            },
+            "value": {
+              "format": "uint64",
+              "minimum": 0.0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ObligationType": {
+      "enum": [
+        "Disbursal",
+        "Interest"
+      ],
+      "type": "string"
+    },
+    "PriceOfOneBTC": {
+      "$ref": "#/definitions/UsdCents"
+    },
+    "Satoshis": {
+      "format": "uint64",
+      "minimum": 0.0,
+      "type": "integer"
+    },
+    "TermValues": {
+      "properties": {
+        "accrual_cycle_interval": {
+          "$ref": "#/definitions/InterestInterval"
+        },
+        "accrual_interval": {
+          "$ref": "#/definitions/InterestInterval"
+        },
+        "annual_rate": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "duration": {
+          "$ref": "#/definitions/FacilityDuration"
+        },
+        "initial_cvl": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "interest_due_duration_from_accrual": {
+          "$ref": "#/definitions/ObligationDuration"
+        },
+        "liquidation_cvl": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "margin_call_cvl": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "obligation_liquidation_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "obligation_overdue_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "one_time_fee_rate": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "accrual_cycle_interval",
+        "accrual_interval",
+        "annual_rate",
+        "duration",
+        "initial_cvl",
+        "interest_due_duration_from_accrual",
+        "liquidation_cvl",
+        "margin_call_cvl",
+        "one_time_fee_rate"
+      ],
+      "type": "object"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0.0,
+      "type": "integer"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "created_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "terms": {
+          "$ref": "#/definitions/TermValues"
+        },
+        "type": {
+          "enum": [
+            "FacilityCreated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "created_at",
+        "id",
+        "terms",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "FacilityApproved"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "activated_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "activation_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "FacilityActivated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "activated_at",
+        "activation_tx_id",
+        "amount",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "completed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "FacilityCompleted"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "completed_at",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_type": {
+          "$ref": "#/definitions/ObligationType"
+        },
+        "payment_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "FacilityRepaymentRecorded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "credit_facility_id",
+        "effective",
+        "obligation_id",
+        "obligation_type",
+        "payment_id",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "abs_diff": {
+          "$ref": "#/definitions/Satoshis"
+        },
+        "action": {
+          "$ref": "#/definitions/CollateralAction"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "new_amount": {
+          "$ref": "#/definitions/Satoshis"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "FacilityCollateralUpdated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "abs_diff",
+        "action",
+        "credit_facility_id",
+        "effective",
+        "ledger_tx_id",
+        "new_amount",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "collateral": {
+          "$ref": "#/definitions/Satoshis"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "outstanding": {
+          "$ref": "#/definitions/CreditFacilityReceivable"
+        },
+        "price": {
+          "$ref": "#/definitions/PriceOfOneBTC"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "state": {
+          "$ref": "#/definitions/CollateralizationState"
+        },
+        "type": {
+          "enum": [
+            "FacilityCollateralizationChanged"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "collateral",
+        "effective",
+        "id",
+        "outstanding",
+        "price",
+        "recorded_at",
+        "state",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "DisbursalSettled"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "credit_facility_id",
+        "effective",
+        "ledger_tx_id",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "period": {
+          "$ref": "#/definitions/InterestPeriod"
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "AccrualPosted"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "credit_facility_id",
+        "effective",
+        "ledger_tx_id",
+        "period",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "defaulted_at": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "due_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_type": {
+          "$ref": "#/definitions/ObligationType"
+        },
+        "overdue_at": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "ObligationCreated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "credit_facility_id",
+        "due_at",
+        "effective",
+        "id",
+        "obligation_type",
+        "recorded_at",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_type": {
+          "$ref": "#/definitions/ObligationType"
+        },
+        "type": {
+          "enum": [
+            "ObligationDue"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "credit_facility_id",
+        "id",
+        "obligation_type",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "ObligationOverdue"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "credit_facility_id",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "ObligationDefaulted"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "amount",
+        "credit_facility_id",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "ObligationCompleted"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "credit_facility_id",
+        "id",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "CoreCreditEvent"
+}

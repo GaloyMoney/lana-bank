@@ -1,6 +1,9 @@
 use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use core_money::{Satoshis, UsdCents};
 
 use crate::{CollateralizationState, CreditFacilityReceivable, TermValues, terms::InterestPeriod};
@@ -8,6 +11,7 @@ use crate::{CollateralizationState, CreditFacilityReceivable, TermValues, terms:
 use super::primitives::*;
 
 #[derive(Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCreditEvent {
     FacilityCreated {

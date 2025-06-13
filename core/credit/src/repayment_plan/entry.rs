@@ -1,9 +1,12 @@
 use chrono::{DateTime, Utc};
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct ObligationDataForEntry {
     pub id: Option<ObligationId>,
     pub status: RepaymentStatus,
@@ -20,6 +23,7 @@ pub struct ObligationDataForEntry {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
 pub enum CreditFacilityRepaymentPlanEntry {
     Disbursal(ObligationDataForEntry),
@@ -59,6 +63,7 @@ impl Ord for CreditFacilityRepaymentPlanEntry {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum RepaymentStatus {
     Upcoming,
     NotYetDue,

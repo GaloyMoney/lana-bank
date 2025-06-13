@@ -4,6 +4,9 @@ use rust_decimal::{Decimal, prelude::*};
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use crate::{
     ledger::CreditFacilityBalanceSummary,
     primitives::{
@@ -18,6 +21,7 @@ const NUMBER_OF_DAYS_IN_YEAR: u64 = 365;
 const SHORT_TERM_DURATION_MONTHS_THRESHOLD: u32 = 12;
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(transparent)]
 pub struct AnnualRatePct(Decimal);
 #[cfg(feature = "graphql")]
@@ -44,6 +48,7 @@ impl From<Decimal> for AnnualRatePct {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(transparent)]
 pub struct OneTimeFeeRatePct(Decimal);
 #[cfg(feature = "graphql")]
@@ -70,6 +75,7 @@ impl From<Decimal> for OneTimeFeeRatePct {
     }
 }
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum FacilityDuration {
     Months(u32),
@@ -113,6 +119,7 @@ impl FacilityDuration {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", content = "value", rename_all = "snake_case")]
 pub enum ObligationDuration {
     Days(u64),
@@ -133,6 +140,7 @@ impl ObligationDuration {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct InterestPeriod {
     pub interval: InterestInterval,
     pub start: DateTime<Utc>,
@@ -172,6 +180,7 @@ impl InterestPeriod {
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum InterestInterval {
     EndOfMonth,
@@ -216,6 +225,7 @@ impl InterestInterval {
 }
 
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
 pub struct TermValues {
     #[builder(setter(into))]

@@ -3,6 +3,9 @@ mod cvl;
 use chrono::{DateTime, TimeZone, Utc};
 use serde::{Deserialize, Serialize};
 
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
 use std::str::FromStr;
 
 use authz::{AllOrOne, action_description::*};
@@ -51,12 +54,14 @@ pub enum ObligationStatus {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum ObligationType {
     Disbursal,
     Interest,
 }
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum BalanceUpdatedType {
     Disbursal,
     InterestAccrual,
@@ -72,6 +77,7 @@ impl From<ObligationType> for BalanceUpdatedType {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum BalanceUpdatedSource {
     Obligation(ObligationId),
     PaymentAllocation(PaymentAllocationId),
@@ -90,6 +96,7 @@ impl From<PaymentAllocationId> for BalanceUpdatedSource {
 }
 
 #[derive(Debug, Copy, Clone, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct BalanceUpdateData {
     pub source_id: BalanceUpdatedSource,
     pub ledger_tx_id: LedgerTxId,
@@ -547,6 +554,7 @@ impl From<TermsTemplateAction> for CoreCreditAction {
     strum::EnumString,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CreditFacilityStatus {
     #[default]
     PendingCollateralization,
@@ -558,6 +566,7 @@ pub enum CreditFacilityStatus {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum DisbursalStatus {
     New,
     Approved,
@@ -566,6 +575,7 @@ pub enum DisbursalStatus {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Hash, Deserialize, sqlx::Type)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(transparent)]
 #[sqlx(transparent)]
 pub struct InterestAccrualCycleIdx(i32);
@@ -583,6 +593,7 @@ impl InterestAccrualCycleIdx {
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CollateralAction {
     Add,
     Remove,
@@ -601,6 +612,7 @@ pub enum CollateralAction {
     strum::EnumString,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CollateralizationState {
     FullyCollateralized,
     UnderMarginCallThreshold,
@@ -617,6 +629,7 @@ pub struct CollateralUpdate {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum DisbursedReceivableAccountType {
     Individual,
     GovernmentEntity,

@@ -1,6 +1,8 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use rust_decimal::Decimal;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use audit::AuditInfo;
@@ -18,6 +20,7 @@ use super::error::CreditFacilityError;
 
 #[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CreditFacilityId")]
 pub enum CreditFacilityEvent {
@@ -72,6 +75,7 @@ pub enum CreditFacilityEvent {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityReceivable {
     pub disbursed: UsdCents,
     pub interest: UsdCents,

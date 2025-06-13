@@ -1,5 +1,7 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
@@ -12,6 +14,7 @@ use super::{error::ObligationError, primitives::*};
 
 #[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "ObligationId")]
 pub enum ObligationEvent {

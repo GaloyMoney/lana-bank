@@ -1,5 +1,7 @@
 use core_price::PriceOfOneBTC;
 use rust_decimal::Decimal;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
@@ -8,6 +10,7 @@ use crate::CVLPct;
 
 #[cfg(not(test))]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityBalanceSummary {
     pub(super) facility: UsdCents,
     pub(super) facility_remaining: UsdCents,
@@ -27,6 +30,7 @@ pub struct CreditFacilityBalanceSummary {
 // For testing we want to be able to construct the struct
 #[cfg(test)]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityBalanceSummary {
     pub facility: UsdCents,
     pub facility_remaining: UsdCents,

@@ -1,3 +1,5 @@
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
@@ -8,6 +10,7 @@ use crate::{
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityAccountIds {
     pub facility_account_id: CalaAccountId,
     pub disbursed_receivable_not_yet_due_account_id: CalaAccountId,

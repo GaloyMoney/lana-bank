@@ -1,7 +1,10 @@
 use crate::primitives::*;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct ObligationAccounts {
     pub receivable_account_id: CalaAccountId,
     pub account_to_be_credited_id: CalaAccountId,

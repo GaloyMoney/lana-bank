@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 use core_money::{Satoshis, UsdCents};
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct PriceOfOneBTC(UsdCents);
 
 impl PriceOfOneBTC {

@@ -1,6 +1,7 @@
 use anyhow::anyhow;
 use colored::*;
 use core_access::{permission_set::PermissionSetEvent, role::RoleEvent, user::UserEvent};
+use core_credit::CoreCreditEvent;
 use core_custody::custodian::CustodianEvent;
 use core_customer::CustomerEvent;
 use core_deposit::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
@@ -76,6 +77,11 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
             name: "WithdrawalEvent",
             filename: "withdrawal_event_schema.json",
             generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "CoreCreditEvent",
+            filename: "core_credit_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(CoreCreditEvent)).unwrap(),
         },
     ];
 

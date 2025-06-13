@@ -1,8 +1,11 @@
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::CVLPct;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditConfig {
     #[serde(default = "default_upgrade_buffer_cvl_pct")]
     pub upgrade_buffer_cvl_pct: CVLPct,

@@ -1,7 +1,8 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
-
 use std::cmp::Ordering;
 
 use audit::AuditInfo;
@@ -14,6 +15,7 @@ use crate::primitives::{CollateralAction, CollateralId, CreditFacilityId, Ledger
 use super::CollateralUpdate;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CollateralId")]
 pub enum CollateralEvent {
