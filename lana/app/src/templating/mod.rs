@@ -15,7 +15,15 @@ mod tests {
 
     #[tokio::test]
     async fn test_templating_library() -> Result<(), error::TemplatingError> {
-        let config = config::TemplatingConfig::default();
+        // Create a custom config with absolute paths
+        let config_file =
+            Path::new(env!("CARGO_MANIFEST_DIR")).join("src/templating/config/pdf_config.toml");
+        let template_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/templating/templates");
+
+        let mut config = config::TemplatingConfig::default();
+        config.pdf.config_file = config_file;
+        config.template_dir = template_dir;
+
         let templating = lib::Templating::init(config).await?;
 
         let loan_data = template::LoanAgreementData::new(
@@ -58,9 +66,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_template_engine() -> Result<(), error::TemplatingError> {
-        use std::path::PathBuf;
-
-        let template_dir = PathBuf::from("src/templating/templates");
+        let template_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/templating/templates");
         let template_engine = template::TemplateEngine::init(template_dir).await?;
 
         let loan_data = template::LoanAgreementData::new(

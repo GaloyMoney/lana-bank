@@ -9,8 +9,8 @@ pub struct TemplatingConfig {
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct PdfConfig {
-    pub temp_dir: Option<PathBuf>,
-    pub cleanup_temp_files: bool,
+    /// Path to the TOML configuration file for PDF rendering
+    pub config_file: PathBuf,
 }
 
 impl Default for TemplatingConfig {
@@ -25,8 +25,7 @@ impl Default for TemplatingConfig {
 impl Default for PdfConfig {
     fn default() -> Self {
         Self {
-            temp_dir: None,
-            cleanup_temp_files: true,
+            config_file: PathBuf::from("app/src/templating/config/pdf_config.toml"),
         }
     }
 }
