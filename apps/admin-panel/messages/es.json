@@ -597,7 +597,8 @@
         },
         "form": {
           "labels": {
-            "amount": "Monto"
+            "amount": "Monto",
+            "effectiveDate": "Fecha efectiva"
           },
           "placeholders": {
             "amount": "Ingrese el monto principal deseado"
