@@ -88,17 +88,11 @@ impl TemplateEngine {
 /// Data structure for loan agreement template
 #[derive(Serialize)]
 pub struct LoanAgreementData {
-    pub name: String,
     pub email: String,
-    pub amount: String,
 }
 
 impl LoanAgreementData {
-    pub fn new(name: String, email: String, amount: String) -> Self {
-        Self {
-            name,
-            email,
-            amount,
-        }
+    pub fn new(email: String) -> Self {
+        Self { email }
     }
 }

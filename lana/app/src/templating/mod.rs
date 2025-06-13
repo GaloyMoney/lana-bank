@@ -28,19 +28,13 @@ mod tests {
         // without requiring customer dependencies. For full integration testing
         // with customers, use the actual application context.
 
-        let loan_data = template::LoanAgreementData::new(
-            "Test User".to_string(),
-            "test@example.com".to_string(),
-            "$1000".to_string(),
-        );
+        let loan_data = template::LoanAgreementData::new("test@example.com".to_string());
 
         // Test template engine independently
         let template_engine = template::TemplateEngine::init(config.template_dir.clone()).await?;
         let rendered = template_engine.render("loan_agreement", &loan_data).await?;
 
-        assert!(rendered.contains("Test User"));
         assert!(rendered.contains("test@example.com"));
-        assert!(rendered.contains("$1000"));
 
         // Test PDF generator independently
         let pdf_generator = pdf::PdfGenerator::init(config.pdf).await?;
@@ -79,17 +73,11 @@ mod tests {
         let template_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("src/templating/templates");
         let template_engine = template::TemplateEngine::init(template_dir).await?;
 
-        let loan_data = template::LoanAgreementData::new(
-            "Test User".to_string(),
-            "test@example.com".to_string(),
-            "$1000".to_string(),
-        );
+        let loan_data = template::LoanAgreementData::new("test@example.com".to_string());
 
         let rendered = template_engine.render("loan_agreement", &loan_data).await?;
 
-        assert!(rendered.contains("Test User"));
         assert!(rendered.contains("test@example.com"));
-        assert!(rendered.contains("$1000"));
 
         Ok(())
     }
