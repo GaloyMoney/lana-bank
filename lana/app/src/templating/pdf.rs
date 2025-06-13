@@ -5,6 +5,7 @@ use uuid::Uuid;
 use crate::templating::config::PdfConfig;
 use crate::templating::error::TemplatingError;
 
+#[derive(Clone)]
 pub struct PdfGenerator {
     config: PdfConfig,
 }
@@ -55,7 +56,10 @@ impl PdfGenerator {
         Ok(Self { config })
     }
 
-    pub async fn from_markdown(&self, markdown: &str) -> Result<Vec<u8>, TemplatingError> {
+    pub async fn generate_pdf_from_markdown(
+        &self,
+        markdown: &str,
+    ) -> Result<Vec<u8>, TemplatingError> {
         let temp_dir = std::env::temp_dir();
         let temp_file_name = temp_dir.join(format!("{}.pdf", Uuid::new_v4()));
 

@@ -4,19 +4,25 @@ use crate::templating::error::TemplatingError;
 use crate::templating::pdf::PdfGenerator;
 use crate::templating::template::TemplateEngine;
 
+#[derive(Clone)]
 pub struct Templating {
     pub pdf_generator: PdfGenerator,
     pub template_engine: TemplateEngine,
+    customers: Customers,
 }
 
 impl Templating {
-    pub async fn init(config: TemplatingConfig) -> Result<Self, TemplatingError> {
+    pub async fn init(
+        config: TemplatingConfig,
+        customers: &Customers,
+    ) -> Result<Self, TemplatingError> {
         let template_engine = TemplateEngine::init(config.template_dir.clone()).await?;
         let pdf_generator = PdfGenerator::init(config.pdf).await?;
 
         Ok(Self {
             pdf_generator,
             template_engine,
+            customers: customers.clone(),
         })
     }
 
@@ -26,17 +32,18 @@ impl Templating {
         data: &T,
     ) -> Result<Vec<u8>, TemplatingError> {
         let rendered_content = self.template_engine.render(template_name, data).await?;
-        self.pdf_generator.from_markdown(&rendered_content).await
+        self.pdf_generator
+            .generate_pdf_from_markdown(&rendered_content)
+            .await
     }
 
     pub async fn generate_loan_agreement_pdf(
         &self,
-        customers: &Customers,
         customer_id: crate::customer::CustomerId,
         name: String,
         amount: String,
     ) -> Result<Vec<u8>, TemplatingError> {
-        let customer = customers.find_by_id_without_audit(customer_id).await?;
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
 
         let loan_data = crate::templating::template::LoanAgreementData::new(
             name,

@@ -52,4 +52,6 @@ pub enum ApplicationError {
     ApplicantError(#[from] crate::applicant::error::ApplicantError),
     #[error("ApplicationError - CustodyError: {0}")]
     CustodyError(#[from] crate::custody::error::CoreCustodyError),
+    #[error("ApplicationError - TemplatingError: {0}")]
+    TemplatingError(#[from] crate::templating::error::TemplatingError),
 }

@@ -5,6 +5,7 @@ use std::path::PathBuf;
 
 use crate::templating::error::TemplatingError;
 
+#[derive(Clone)]
 pub struct TemplateEngine {
     handlebars: Handlebars<'static>,
     template_dir: PathBuf,
@@ -48,11 +49,12 @@ impl TemplateEngine {
                             })?;
 
                         // Handle double extensions like .md.hbs - get just the base name
-                        let template_name = if template_name.ends_with(".md") {
-                            &template_name[..template_name.len() - 3]
-                        } else {
-                            template_name
-                        };
+                        let template_name =
+                            if let Some(stripped) = template_name.strip_suffix(".md") {
+                                stripped
+                            } else {
+                                template_name
+                            };
 
                         let template_content = fs::read_to_string(&path)?;
                         self.handlebars
