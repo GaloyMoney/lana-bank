@@ -26,7 +26,7 @@ impl Templating {
         })
     }
 
-    pub async fn generate_pdf_from_template<T: serde::Serialize>(
+    async fn generate_pdf_from_template<T: serde::Serialize>(
         &self,
         template_name: &str,
         data: &T,
@@ -40,16 +40,10 @@ impl Templating {
     pub async fn generate_loan_agreement_pdf(
         &self,
         customer_id: crate::customer::CustomerId,
-        name: String,
-        amount: String,
     ) -> Result<Vec<u8>, TemplatingError> {
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
 
-        let loan_data = crate::templating::template::LoanAgreementData::new(
-            name,
-            customer.email.clone(),
-            amount,
-        );
+        let loan_data = crate::templating::template::LoanAgreementData::new(customer.email.clone());
 
         self.generate_pdf_from_template("loan_agreement", &loan_data)
             .await
