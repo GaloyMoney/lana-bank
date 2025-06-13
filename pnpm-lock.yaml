@@ -9,8 +9,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^1.0.21
-        version: 1.0.21
+        specifier: ^1.0.22
+        version: 1.0.22
       '@mermaid-js/mermaid-cli':
         specifier: ^11.4.3
         version: 11.4.3(@types/react@19.1.8)(puppeteer@24.10.0(typescript@5.8.3))
@@ -37,7 +37,7 @@ importers:
         version: 1.20.11
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.8.3)(zod@3.25.63)
+        version: 0.13.8(typescript@5.8.3)(zod@3.25.64)
       apollo-upload-client:
         specifier: ^18.0.1
         version: 18.0.1(@apollo/client@3.13.8(@types/react@19.1.8)(graphql-ws@6.0.5(graphql@16.11.0)(ws@8.18.2))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(graphql@16.11.0)
@@ -60,8 +60,8 @@ importers:
         specifier: ^8.6.0
         version: 8.6.0(react@19.1.0)
       lucide-react:
-        specifier: ^0.514.0
-        version: 0.514.0(react@19.1.0)
+        specifier: ^0.515.0
+        version: 0.515.0(react@19.1.0)
       next:
         specifier: 15.3.3
         version: 15.3.3(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -99,8 +99,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
       zod:
-        specifier: ^3.25.63
-        version: 3.25.63
+        specifier: ^3.25.64
+        version: 3.25.64
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.0-next.16
@@ -239,7 +239,7 @@ importers:
         version: 2.3.17(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.8.3)(zod@3.25.63)
+        version: 0.13.8(typescript@5.8.3)(zod@3.25.64)
       axios:
         specifier: ^1.9.0
         version: 1.9.0
@@ -256,8 +256,8 @@ importers:
         specifier: ^6.0.11
         version: 6.0.11
       lucide-react:
-        specifier: ^0.514.0
-        version: 0.514.0(react@19.1.0)
+        specifier: ^0.515.0
+        version: 0.515.0(react@19.1.0)
       next:
         specifier: 15.3.3
         version: 15.3.3(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -292,8 +292,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       zod:
-        specifier: ^3.25.63
-        version: 3.25.63
+        specifier: ^3.25.64
+        version: 3.25.64
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.0
@@ -443,8 +443,8 @@ importers:
         specifier: ^1.2.4
         version: 1.4.2(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       lucide-react:
-        specifier: ^0.514.0
-        version: 0.514.0(react@19.1.0)
+        specifier: ^0.515.0
+        version: 0.515.0(react@19.1.0)
       next:
         specifier: ^15.3.1
         version: 15.3.3(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
@@ -529,8 +529,8 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anthropic-ai/claude-code@1.0.21':
-    resolution: {integrity: sha512-Ig+OPSl7e77SJrE2jB8p4qnnyS/+iGItttIxh0oxkZI3qSKu/K3Z7zx8r4YTDCo7XJsoYnV0MNsDBcXWa/YKUg==}
+  '@anthropic-ai/claude-code@1.0.22':
+    resolution: {integrity: sha512-vqfDHq4KNtUzUiwdsls8+2aTrC1Rn96iH+yOyCrBjHjJwojzU6pt3MOAMkJHMeErKeGqve+I7HM6mFw0OgZgqw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -6569,8 +6569,8 @@ packages:
     resolution: {integrity: sha512-jumlc0BIUrS3qJGgIkWZsyfAM7NCWiBcCDhnd+3NNM5KbBmLTgHVfWBcg6W+rLUsIpzpERPsvwUP7CckAQSOoA==}
     engines: {node: '>=12'}
 
-  lucide-react@0.514.0:
-    resolution: {integrity: sha512-HXD0OAMd+JM2xCjlwG1EGW9Nuab64dhjO3+MvdyD+pSUeOTBaVAPhQblKIYmmX4RyBYbdzW0VWnJpjJmxWGr6w==}
+  lucide-react@0.515.0:
+    resolution: {integrity: sha512-Sy7bY0MeicRm2pzrnoHm2h6C1iVoeHyBU2fjdQDsXGP51fhkhau1/ZV/dzrcxEmAKsxYb6bGaIsMnGHuQ5s0dw==}
     peerDependencies:
       react: ^16.5.1 || ^17.0.0 || ^18.0.0 || ^19.0.0
 
@@ -8878,8 +8878,8 @@ packages:
     resolution: {integrity: sha512-9qv4rlDiopXg4E69k+vMHjNN63YFMe9sZMrdlvKnCjlCRWeCBswPPMPUfx+ipsAWq1LXHe70RcbaHdJJpS6hyQ==}
     engines: {node: '>= 10'}
 
-  zod@3.25.63:
-    resolution: {integrity: sha512-3ttCkqhtpncYXfP0f6dsyabbYV/nEUW+Xlu89jiXbTBifUfjaSqXOG6JnQPLtqt87n7KAmnMqcjay6c0Wq0Vbw==}
+  zod@3.25.64:
+    resolution: {integrity: sha512-hbP9FpSZf7pkS7hRVUrOjhwKJNyampPgtXKc3AN6DsWtoHsg2Sb4SQaS4Tcay380zSwd2VPo9G9180emBACp5g==}
 
 snapshots:
 
@@ -8899,7 +8899,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anthropic-ai/claude-code@1.0.21':
+  '@anthropic-ai/claude-code@1.0.22':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -11998,17 +11998,17 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@t3-oss/env-core@0.13.8(typescript@5.8.3)(zod@3.25.63)':
+  '@t3-oss/env-core@0.13.8(typescript@5.8.3)(zod@3.25.64)':
     optionalDependencies:
       typescript: 5.8.3
-      zod: 3.25.63
+      zod: 3.25.64
 
-  '@t3-oss/env-nextjs@0.13.8(typescript@5.8.3)(zod@3.25.63)':
+  '@t3-oss/env-nextjs@0.13.8(typescript@5.8.3)(zod@3.25.64)':
     dependencies:
-      '@t3-oss/env-core': 0.13.8(typescript@5.8.3)(zod@3.25.63)
+      '@t3-oss/env-core': 0.13.8(typescript@5.8.3)(zod@3.25.64)
     optionalDependencies:
       typescript: 5.8.3
-      zod: 3.25.63
+      zod: 3.25.64
 
   '@tanstack/react-virtual@3.13.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -13535,7 +13535,7 @@ snapshots:
     dependencies:
       devtools-protocol: 0.0.1452169
       mitt: 3.0.1
-      zod: 3.25.63
+      zod: 3.25.64
 
   ci-info@4.2.0: {}
 
@@ -16212,7 +16212,7 @@ snapshots:
 
   lru-cache@7.18.3: {}
 
-  lucide-react@0.514.0(react@19.1.0):
+  lucide-react@0.515.0(react@19.1.0):
     dependencies:
       react: 19.1.0
 
@@ -18910,4 +18910,4 @@ snapshots:
       compress-commons: 4.1.2
       readable-stream: 3.6.2
 
-  zod@3.25.63: {}
+  zod@3.25.64: {}

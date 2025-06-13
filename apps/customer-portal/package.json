@@ -30,7 +30,7 @@
     "clsx": "^2.1.1",
     "input-otp": "^1.2.4",
     "jose": "^6.0.11",
-    "lucide-react": "^0.514.0",
+    "lucide-react": "^0.515.0",
     "next": "15.3.3",
     "next-runtime-env": "^3.3.0",
     "next-themes": "^0.4.6",
@@ -42,7 +42,7 @@
     "sonner": "^2.0.5",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^3.25.63"
+    "zod": "^3.25.64"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.0",
