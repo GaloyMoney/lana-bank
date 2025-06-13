@@ -25,7 +25,9 @@ use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
-pub use chart_of_accounts::{Chart, ChartEvent, ChartOfAccounts, error as chart_of_accounts_error, tree};
+pub use chart_of_accounts::{
+    Chart, ChartEvent, ChartOfAccounts, error as chart_of_accounts_error, tree,
+};
 pub use csv::{AccountingCsvEvent, AccountingCsvs};
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};

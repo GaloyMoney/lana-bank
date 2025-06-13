@@ -1,7 +1,7 @@
 use anyhow::anyhow;
 use colored::*;
 use core_access::{permission_set::PermissionSetEvent, role::RoleEvent, user::UserEvent};
-use core_accounting::{ChartEvent, AccountingCsvEvent, ManualTransactionEvent};
+use core_accounting::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
 use core_credit::CoreCreditEvent;
 use core_custody::custodian::CustodianEvent;
 use core_customer::CustomerEvent;
