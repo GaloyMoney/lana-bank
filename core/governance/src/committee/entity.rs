@@ -75,6 +75,14 @@ impl Committee {
         });
     }
 
+    pub fn n_members(&self) -> usize {
+        self.events.iter_all().fold(0, |count, event| match event {
+            CommitteeEvent::MemberAdded { .. } => count + 1,
+            CommitteeEvent::MemberRemoved { .. } => count - 1,
+            _ => count,
+        })
+    }
+
     pub fn members(&self) -> HashSet<CommitteeMemberId> {
         let mut members = HashSet::new();
 

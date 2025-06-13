@@ -10,6 +10,8 @@ pub enum PolicyError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("PolicyError - DuplicateApprovalProcessType")]
     DuplicateApprovalProcessType,
+    #[error("PolicyError - Threshold {1} too high for committee {0}")]
+    PolicyThresholdTooHigh(crate::primitives::CommitteeId, usize),
 }
 
 es_entity::from_es_entity_error!(PolicyError);

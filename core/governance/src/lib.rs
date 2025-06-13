@@ -174,14 +174,18 @@ where
 
         let committee_id = committee_id.into();
         let committee = self.committee_repo.find_by_id(committee_id).await?;
-        let mut policy = self.policy_repo.find_by_id(policy_id).await?;
-        policy.assign_committee(committee.id, threshold, audit_info);
 
-        let mut db_tx = self.policy_repo.begin_op().await?;
-        self.policy_repo
-            .update_in_op(&mut db_tx, &mut policy)
-            .await?;
-        db_tx.commit().await?;
+        let mut policy = self.policy_repo.find_by_id(policy_id).await?;
+        if policy
+            .assign_committee(committee.id, committee.n_members(), threshold, audit_info)?
+            .did_execute()
+        {
+            let mut db_tx = self.policy_repo.begin_op().await?;
+            self.policy_repo
+                .update_in_op(&mut db_tx, &mut policy)
+                .await?;
+            db_tx.commit().await?;
+        }
 
         Ok(policy)
     }
