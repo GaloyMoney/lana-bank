@@ -1,5 +1,6 @@
 use anyhow::anyhow;
 use colored::*;
+use handlebars::Handlebars;
 use serde_json::Value;
 use similar::{ChangeTag, TextDiff};
 use std::{
@@ -8,18 +9,16 @@ use std::{
     path::Path,
 };
 
-use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
-use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
-use core_credit::event_schema::{
-    CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent, PaymentEvent,
-    TermsTemplateEvent,
-};
-use core_custody::event_schema::CustodianEvent;
-use core_customer::event_schema::CustomerEvent;
-use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
-use document_storage::event_schema::DocumentEvent;
-use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
+use core_access::event_schema::{/*PermissionSetEvent, RoleEvent,*/ UserEvent};
+// use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
+// use core_credit::event_schema::{
+//     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
+//     ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
+// };
+// use core_custody::event_schema::CustodianEvent;
+// use core_customer::event_schema::CustomerEvent;
+// use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
+// use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
 struct SchemaInfo {
@@ -28,7 +27,7 @@ struct SchemaInfo {
     generate_schema: fn() -> serde_json::Value,
 }
 
-pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
+pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow::Result<()> {
     let schemas = vec![
         SchemaInfo {
             name: "UserEvent",
@@ -151,7 +150,7 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
 
     let mut has_breaking_changes = false;
 
-    for schema_info in schemas {
+    for schema_info in &schemas {
         let filepath = schemas_dir.join(schema_info.filename);
         let new_schema = (schema_info.generate_schema)();
         let new_schema_pretty = serde_json::to_string_pretty(&new_schema)?;
@@ -201,6 +200,10 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
             "✅".green().bold()
         );
     }
+
+    // Generate migrations for rollup tables
+    println!("\n{} Generating rollup table migrations...", "🔨".blue().bold());
+    generate_rollup_migrations(&schemas, schemas_dir, migrations_out_dir)?;
 
     Ok(())
 }
@@ -819,4 +822,186 @@ mod tests {
         assert!(!is_breaking_change(&schema, &schema)?);
         Ok(())
     }
+}
+
+const ROLLUP_TABLE_TEMPLATE: &str = r#"-- Auto-generated rollup table for {{entity_name}}
+CREATE TABLE IF NOT EXISTS {{table_name}} (
+    -- Common fields
+    id UUID NOT NULL,
+    event_type TEXT NOT NULL,
+    event_timestamp TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+    {{#each fields}}
+    {{this.name}} {{this.sql_type}}{{#if this.nullable}}{{else}} NOT NULL{{/if}},
+    {{/each}}
+    
+    -- Constraints
+    PRIMARY KEY (id, event_type)
+);
+
+-- Index for querying by event type
+CREATE INDEX IF NOT EXISTS idx_{{table_name}}_event_type ON {{table_name}}(event_type);
+
+-- Index for querying by timestamp
+CREATE INDEX IF NOT EXISTS idx_{{table_name}}_timestamp ON {{table_name}}(event_timestamp);
+"#;
+
+#[derive(serde::Serialize)]
+struct RollupTableContext {
+    entity_name: String,
+    table_name: String,
+    fields: Vec<FieldDefinition>,
+}
+
+#[derive(serde::Serialize)]
+struct FieldDefinition {
+    name: String,
+    sql_type: String,
+    nullable: bool,
+}
+
+fn generate_rollup_migrations(
+    schemas: &[SchemaInfo],
+    schemas_dir: &Path,
+    migrations_out_dir: &str,
+) -> anyhow::Result<()> {
+    let migrations_dir = Path::new(migrations_out_dir);
+    if !migrations_dir.exists() {
+        fs::create_dir_all(migrations_dir)?;
+    }
+
+    let mut handlebars = Handlebars::new();
+    handlebars.register_template_string("rollup_table", ROLLUP_TABLE_TEMPLATE)?;
+
+    for schema_info in schemas {
+        let schema_path = schemas_dir.join(schema_info.filename);
+        let schema_content = fs::read_to_string(&schema_path)?;
+        let schema: Value = serde_json::from_str(&schema_content)?;
+
+        // Extract fields from the schema
+        let fields = extract_fields_from_schema(&schema)?;
+        
+        // Generate table name from entity name (e.g., UserEvent -> user_events)
+        let table_name = to_snake_case(&schema_info.name.replace("Event", "")) + "_events";
+        
+        let context = RollupTableContext {
+            entity_name: schema_info.name.to_string(),
+            table_name: table_name.clone(),
+            fields,
+        };
+
+        let migration_content = handlebars.render("rollup_table", &context)?;
+        
+        // Generate timestamp for migration filename
+        let timestamp = chrono::Utc::now().format("%Y%m%d%H%M%S").to_string();
+        let migration_filename = format!("{}_{}_rollup.sql", timestamp, table_name);
+        let migration_path = migrations_dir.join(migration_filename);
+        
+        fs::write(&migration_path, migration_content)?;
+        println!(
+            "{} Generated migration: {}",
+            "✅".green(),
+            migration_path.display()
+        );
+    }
+
+    Ok(())
+}
+
+fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinition>> {
+    let mut fields = Vec::new();
+    let mut all_properties = HashMap::new();
+    
+    // Get oneOf variants
+    if let Some(Value::Array(one_of)) = schema.get("oneOf") {
+        for variant in one_of {
+            if let Some(Value::Object(properties)) = variant.get("properties") {
+                for (prop_name, prop_schema) in properties {
+                    if prop_name == "type" || prop_name == "id" {
+                        continue; // Skip the discriminator field and id (handled as common field)
+                    }
+                    all_properties.insert(prop_name.clone(), prop_schema.clone());
+                }
+            }
+        }
+    }
+    
+    // Convert properties to field definitions
+    for (name, prop_schema) in all_properties {
+        let sql_type = json_schema_to_sql_type(&prop_schema)?;
+        let nullable = true; // Since fields come from different oneOf variants, they should be nullable
+        
+        fields.push(FieldDefinition {
+            name: to_snake_case(&name),
+            sql_type,
+            nullable,
+        });
+    }
+    
+    // Sort fields for consistent ordering
+    fields.sort_by(|a, b| a.name.cmp(&b.name));
+    
+    Ok(fields)
+}
+
+fn json_schema_to_sql_type(schema: &Value) -> anyhow::Result<String> {
+    // Handle $ref
+    if let Some(Value::String(ref_path)) = schema.get("$ref") {
+        // For now, handle common refs
+        if ref_path.contains("AuditInfo") {
+            return Ok("JSONB".to_string());
+        } else if ref_path.contains("AuditEntryId") {
+            return Ok("BIGINT".to_string());
+        }
+    }
+    
+    // Handle direct types
+    if let Some(Value::String(type_str)) = schema.get("type") {
+        let sql_type = match type_str.as_str() {
+            "string" => {
+                if let Some(Value::String(format)) = schema.get("format") {
+                    match format.as_str() {
+                        "uuid" => "UUID",
+                        "date-time" => "TIMESTAMPTZ",
+                        _ => "TEXT",
+                    }
+                } else {
+                    "TEXT"
+                }
+            }
+            "integer" => {
+                if let Some(Value::String(format)) = schema.get("format") {
+                    match format.as_str() {
+                        "int64" => "BIGINT",
+                        _ => "INTEGER",
+                    }
+                } else {
+                    "INTEGER"
+                }
+            }
+            "number" => "NUMERIC",
+            "boolean" => "BOOLEAN",
+            "object" => "JSONB",
+            "array" => "JSONB",
+            _ => return Err(anyhow!("Unknown JSON schema type: {}", type_str)),
+        };
+        Ok(sql_type.to_string())
+    } else {
+        // Default to JSONB for complex types
+        Ok("JSONB".to_string())
+    }
+}
+
+fn to_snake_case(s: &str) -> String {
+    let mut result = String::new();
+    let mut prev_was_upper = false;
+    
+    for (i, ch) in s.chars().enumerate() {
+        if ch.is_uppercase() && i > 0 && !prev_was_upper {
+            result.push('_');
+        }
+        result.push(ch.to_lowercase().next().unwrap());
+        prev_was_upper = ch.is_uppercase();
+    }
+    
+    result
 }

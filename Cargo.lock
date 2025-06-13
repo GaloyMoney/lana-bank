@@ -1623,6 +1623,7 @@ name = "entity-rollups"
 version = "0.3.672-dev"
 dependencies = [
  "anyhow",
+ "chrono",
  "clap",
  "colored",
  "core-access",
@@ -1633,7 +1634,9 @@ dependencies = [
  "core-deposit",
  "document-storage",
  "governance",
+ "handlebars",
  "schemars",
+ "serde",
  "serde_json",
  "similar",
  "tempfile",
