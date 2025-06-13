@@ -17,6 +17,11 @@ pub use config::*;
 use error::CoreCustodyError;
 pub use primitives::*;
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::custodian::CustodianEvent;
+}
+
 #[derive(Clone)]
 pub struct CoreCustody<Perms>
 where

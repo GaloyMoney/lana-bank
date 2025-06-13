@@ -21,6 +21,13 @@ use permission_set::{PermissionSet, PermissionSetRepo, PermissionSetsByIdCursor}
 pub use event::*;
 pub use primitives::*;
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::permission_set::PermissionSetEvent;
+    pub use crate::role::RoleEvent;
+    pub use crate::user::UserEvent;
+}
+
 use config::AccessConfig;
 pub use publisher::UserPublisher;
 pub use role::*;

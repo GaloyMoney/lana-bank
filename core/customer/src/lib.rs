@@ -15,12 +15,17 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
+pub use entity::Customer;
 use entity::*;
-pub use entity::{Customer, CustomerEvent};
 use error::*;
 pub use event::*;
 pub use primitives::*;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
+
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::entity::CustomerEvent;
+}
 
 use publisher::*;
 

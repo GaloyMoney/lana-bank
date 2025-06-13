@@ -13,7 +13,9 @@ use outbox::{Outbox, OutboxEventMarker};
 use crate::{Role, event::*, primitives::*, publisher::UserPublisher};
 
 use entity::*;
-pub use entity::{User, UserEvent};
+pub use entity::User;
+#[cfg(feature = "json-schema")]
+pub use entity::UserEvent;
 pub use error::*;
 pub use repo::user_cursor::UsersByCreatedAtCursor;
 use repo::*;

@@ -16,8 +16,10 @@ use crate::primitives::{
 };
 
 pub(super) use csv::{CsvParseError, CsvParser};
+pub use entity::Chart;
+#[cfg(feature = "json-schema")]
+pub use entity::ChartEvent;
 pub(super) use entity::*;
-pub use entity::{Chart, ChartEvent};
 use error::*;
 pub(super) use repo::*;
 

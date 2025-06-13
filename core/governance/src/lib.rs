@@ -24,6 +24,13 @@ pub use event::*;
 pub use policy::{error as policy_error, *};
 pub use primitives::*;
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::approval_process::ApprovalProcessEvent;
+    pub use crate::committee::CommitteeEvent;
+    pub use crate::policy::PolicyEvent;
+}
+
 pub struct Governance<Perms, E>
 where
     Perms: PermissionCheck,

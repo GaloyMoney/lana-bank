@@ -27,13 +27,13 @@ use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
+pub use account::DepositAccount;
 use account::*;
-pub use account::{DepositAccount, DepositAccountEvent};
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
 };
 use deposit::*;
-pub use deposit::{Deposit, DepositEvent, DepositsByCreatedAtCursor};
+pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
 use error::*;
 pub use event::*;
@@ -47,7 +47,14 @@ use processes::approval::{
 };
 use publisher::DepositPublisher;
 use withdrawal::*;
-pub use withdrawal::{Withdrawal, WithdrawalEvent, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
+pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
+
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::account::DepositAccountEvent;
+    pub use crate::deposit::DepositEvent;
+    pub use crate::withdrawal::WithdrawalEvent;
+}
 
 pub struct CoreDeposit<Perms, E>
 where

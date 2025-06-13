@@ -59,6 +59,11 @@ pub use repayment_plan::*;
 pub use terms::*;
 pub use terms_template::{error as terms_template_error, *};
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::event::CoreCreditEvent;
+}
+
 pub struct CoreCredit<Perms, E>
 where
     Perms: PermissionCheck,

@@ -15,5 +15,8 @@ pub(crate) use entity::NewPermissionSet;
 pub(super) use error::PermissionSetError;
 pub(super) use repo::PermissionSetRepo;
 
-pub use entity::{PermissionSet, PermissionSetEvent};
+pub use entity::PermissionSet;
 pub use repo::permission_set_cursor::*;
+
+#[cfg(feature = "json-schema")]
+pub use entity::PermissionSetEvent;
