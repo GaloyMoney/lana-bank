@@ -1,6 +1,7 @@
 use anyhow::anyhow;
 use colored::*;
 use core_access::{permission_set::PermissionSetEvent, role::RoleEvent, user::UserEvent};
+use governance::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 use serde_json::Value;
 use similar::{ChangeTag, TextDiff};
@@ -32,6 +33,21 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
             name: "PermissionSetEvent",
             filename: "permission_set_event_schema.json",
             generate_schema: || serde_json::to_value(schema_for!(PermissionSetEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "ApprovalProcessEvent",
+            filename: "approval_process_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "CommitteeEvent",
+            filename: "committee_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(CommitteeEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "PolicyEvent",
+            filename: "policy_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(PolicyEvent)).unwrap(),
         },
     ];
 
@@ -123,7 +139,7 @@ fn show_diff(old_content: &str, new_content: &str) {
 #[derive(Clone)]
 struct SchemaContext<'a> {
     definitions: HashMap<String, &'a Value>,
-    root: &'a Value,
+    _root: &'a Value,
 }
 
 impl<'a> SchemaContext<'a> {
@@ -146,7 +162,7 @@ impl<'a> SchemaContext<'a> {
 
         Ok(SchemaContext {
             definitions,
-            root: schema,
+            _root: schema,
         })
     }
 

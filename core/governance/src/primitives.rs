@@ -22,6 +22,7 @@ impl ApprovalProcessStatus {
 }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[sqlx(transparent)]
 #[serde(transparent)]
 pub struct ApprovalProcessType(Cow<'static, str>);

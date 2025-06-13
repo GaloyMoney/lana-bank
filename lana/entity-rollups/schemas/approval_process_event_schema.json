@@ -1,0 +1,182 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ApprovalRules": {
+      "oneOf": [
+        {
+          "properties": {
+            "committee_id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "threshold": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": {
+              "enum": [
+                "committee_threshold"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "committee_id",
+            "threshold",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "system_auto_approve"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "policy_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "process_type": {
+          "type": "string"
+        },
+        "rules": {
+          "$ref": "#/definitions/ApprovalRules"
+        },
+        "target_ref": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "id",
+        "policy_id",
+        "process_type",
+        "rules",
+        "target_ref",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "approver_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "approved"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "approver_id",
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "denier_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "reason": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "denied"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "denier_id",
+        "reason",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "approved": {
+          "type": "boolean"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "concluded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "approved",
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ApprovalProcessEvent"
+}

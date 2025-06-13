@@ -13,6 +13,7 @@ path = "src/main.rs"
 
 [dependencies]
 core-access = { path = "../../core/access", features = ["json-schema"] }
+governance = { path = "../../core/governance", features = ["json-schema"] }
 
 clap = { workspace = true }
 schemars = { workspace = true }
