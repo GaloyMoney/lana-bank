@@ -2,7 +2,7 @@
 name = "audit"
 version = "0.3.655-dev"
 license = "FSL-1.1-ALv2"
-edition = "2021"
+edition = "2024"
 
 [features]
 
