@@ -1,0 +1,6 @@
+-- Migration to update {{rollup_table_name}} table schema
+
+-- Add new columns
+{{#each new_fields}}
+ALTER TABLE {{../rollup_table_name}} ADD COLUMN IF NOT EXISTS {{this.name}} {{this.sql_type}};
+{{/each}}

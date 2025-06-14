@@ -2,7 +2,7 @@ use anyhow::anyhow;
 use colored::*;
 use handlebars::Handlebars;
 use serde_json::Value;
-use std::{collections::HashMap, fs, path::Path};
+use std::{collections::{HashMap, HashSet}, fs, path::Path};
 
 use super::SchemaInfo;
 
@@ -15,6 +15,18 @@ struct RollupTableContext {
 }
 
 #[derive(serde::Serialize)]
+struct RollupUpdateContext {
+    entity_name: String,
+    table_name: String,
+    rollup_table_name: String,
+    events_table_name: String,
+    fields: Vec<FieldDefinition>,
+    all_fields: Vec<FieldDefinition>,
+    new_fields: Vec<FieldDefinition>,
+    removed_fields: Vec<FieldDefinition>,
+}
+
+#[derive(serde::Serialize, Clone, Debug, PartialEq)]
 struct FieldDefinition {
     name: String,
     sql_type: String,
@@ -54,10 +66,35 @@ pub fn generate_rollup_migrations(
         .join("rollup_trigger_creation.sql.hbs");
     let trigger_creation_template_content = fs::read_to_string(&trigger_creation_template_path)?;
 
+    let alter_template_path = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("templates")
+        .join("rollup_table_alter.sql.hbs");
+    let alter_template_content = fs::read_to_string(&alter_template_path)?;
+
     let mut handlebars = Handlebars::new();
+    handlebars.register_helper(
+        "eq",
+        Box::new(|h: &handlebars::Helper,
+                  _: &Handlebars,
+                  _: &handlebars::Context,
+                  _: &mut handlebars::RenderContext,
+                  out: &mut dyn handlebars::Output|
+                  -> handlebars::HelperResult {
+            let param1 = h.param(0).ok_or(handlebars::RenderErrorReason::MissingVariable(Some("eq: Missing first parameter".to_string())))?;
+            let param2 = h.param(1).ok_or(handlebars::RenderErrorReason::MissingVariable(Some("eq: Missing second parameter".to_string())))?;
+            
+            let equals = param1.value() == param2.value();
+            if equals {
+                out.write("true")?;
+            }
+            Ok(())
+        }),
+    );
     handlebars.register_template_string("rollup_table_only", &table_template_content)?;
     handlebars.register_template_string("rollup_trigger_function", &trigger_function_template_content)?;
     handlebars.register_template_string("rollup_trigger_creation", &trigger_creation_template_content)?;
+    handlebars.register_template_string("rollup_table_alter", &alter_template_content)?;
 
     for schema_info in schemas {
         // Read the schema to extract fields
@@ -65,8 +102,8 @@ pub fn generate_rollup_migrations(
         let schema_content = fs::read_to_string(&schema_path)?;
         let schema: Value = serde_json::from_str(&schema_content)?;
 
-        // Extract fields from the schema
-        let fields = extract_fields_from_schema(&schema)?;
+        // Extract fields from the current schema
+        let current_fields = extract_fields_from_schema(&schema)?;
 
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
@@ -75,34 +112,103 @@ pub fn generate_rollup_migrations(
         let rollup_table_name = format!("{}_events_rollup", table_base);
         let events_table_name = format!("{}_events", table_base);
 
-        let context = RollupTableContext {
-            entity_name: schema_info.name.to_string(),
-            rollup_table_name: rollup_table_name.clone(),
-            events_table_name,
-            fields,
-        };
+        // Check if we have a previous schema to compare with
+        let previous_schema_path = schema_path.with_extension("previous.json");
+        let is_update = previous_schema_path.exists();
 
-        // Render all template parts
-        let table_content = handlebars.render("rollup_table_only", &context)?;
-        let trigger_function_content = handlebars.render("rollup_trigger_function", &context)?;
-        let trigger_creation_content = handlebars.render("rollup_trigger_creation", &context)?;
-        // Combine all parts into one migration
-        let migration_content = format!(
-            "{}\n\n{}\n\n{}\n",
-            table_content, trigger_function_content, trigger_creation_content
-        );
+        if is_update {
+            // Read previous schema
+            let previous_content = fs::read_to_string(&previous_schema_path)?;
+            let previous_schema: Value = serde_json::from_str(&previous_content)?;
+            let previous_fields = extract_fields_from_schema(&previous_schema)?;
 
-        // Generate timestamp for migration filename
-        let timestamp = chrono::Utc::now().format("%Y%m%d%H%M%S").to_string();
-        let migration_filename = format!("{}_{}.sql", timestamp, rollup_table_name);
-        let migration_path = migrations_dir.join(migration_filename);
+            // Compare fields
+            let (new_fields, removed_fields) = compare_fields(&previous_fields, &current_fields);
 
-        fs::write(&migration_path, migration_content)?;
-        println!(
-            "{} Generated migration: {}",
-            "✅".green(),
-            migration_path.display()
-        );
+            if new_fields.is_empty() && removed_fields.is_empty() {
+                println!(
+                    "{} No changes in {}, skipping migration",
+                    "ℹ️".blue(),
+                    schema_info.name
+                );
+                continue;
+            }
+
+            let alter_context = RollupUpdateContext {
+                entity_name: schema_info.name.to_string(),
+                table_name: table_base.clone(),
+                rollup_table_name: rollup_table_name.clone(),
+                events_table_name: events_table_name.clone(),
+                fields: current_fields.clone(),
+                all_fields: current_fields.clone(),
+                new_fields,
+                removed_fields,
+            };
+
+            let trigger_context = RollupTableContext {
+                entity_name: schema_info.name.to_string(),
+                rollup_table_name: rollup_table_name.clone(),
+                events_table_name,
+                fields: current_fields,
+            };
+
+            // Render templates
+            let table_structure_content = handlebars.render("rollup_table_only", &trigger_context)?;
+            let alter_content = handlebars.render("rollup_table_alter", &alter_context)?;
+            let trigger_function_content = handlebars.render("rollup_trigger_function", &trigger_context)?;
+            
+            // Create current table structure comment
+            let table_structure_comment = format!("-- Current table structure after migration:\n/*\n{}\n*/\n", table_structure_content);
+            
+            // Combine templates
+            let migration_content = format!("{}\n{}\n\n{}\n", table_structure_comment, alter_content, trigger_function_content);
+
+            // Generate timestamp for migration filename
+            let timestamp = chrono::Utc::now().format("%Y%m%d%H%M%S").to_string();
+            let migration_filename = format!("{}_update_{}.sql", timestamp, rollup_table_name);
+            let migration_path = migrations_dir.join(migration_filename);
+
+            fs::write(&migration_path, migration_content)?;
+            println!(
+                "{} Generated update migration: {}",
+                "✅".green(),
+                migration_path.display()
+            );
+        } else {
+            // Initial table creation
+            let context = RollupTableContext {
+                entity_name: schema_info.name.to_string(),
+                rollup_table_name: rollup_table_name.clone(),
+                events_table_name,
+                fields: current_fields,
+            };
+
+            // Render all template parts
+            let table_content = handlebars.render("rollup_table_only", &context)?;
+            let trigger_function_content = handlebars.render("rollup_trigger_function", &context)?;
+            let trigger_creation_content = handlebars.render("rollup_trigger_creation", &context)?;
+            
+            // Combine all parts into one migration
+            let migration_content = format!(
+                "{}\n\n{}\n\n{}\n",
+                table_content, trigger_function_content, trigger_creation_content
+            );
+
+            // Generate timestamp for migration filename
+            let timestamp = chrono::Utc::now().format("%Y%m%d%H%M%S").to_string();
+            let migration_filename = format!("{}_create_{}.sql", timestamp, rollup_table_name);
+            let migration_path = migrations_dir.join(migration_filename);
+
+            fs::write(&migration_path, migration_content)?;
+            println!(
+                "{} Generated create migration: {}",
+                "✅".green(),
+                migration_path.display()
+            );
+        }
+
+        // Save current schema as previous for next time
+        fs::copy(&schema_path, &previous_schema_path)?;
     }
 
     Ok(())
@@ -255,6 +361,28 @@ fn get_cast_type(sql_type: &str) -> Option<String> {
         "TIMESTAMPTZ" => Some("TIMESTAMPTZ".to_string()),
         _ => None, // TEXT and JSONB don't need casting from JSON strings
     }
+}
+
+fn compare_fields(
+    previous: &[FieldDefinition],
+    current: &[FieldDefinition],
+) -> (Vec<FieldDefinition>, Vec<FieldDefinition>) {
+    let previous_names: HashSet<String> = previous.iter().map(|f| f.name.clone()).collect();
+    let current_names: HashSet<String> = current.iter().map(|f| f.name.clone()).collect();
+
+    let new_fields: Vec<FieldDefinition> = current
+        .iter()
+        .filter(|f| !previous_names.contains(&f.name))
+        .cloned()
+        .collect();
+
+    let removed_fields: Vec<FieldDefinition> = previous
+        .iter()
+        .filter(|f| !current_names.contains(&f.name))
+        .cloned()
+        .collect();
+
+    (new_fields, removed_fields)
 }
 
 fn to_snake_case(s: &str) -> String {
