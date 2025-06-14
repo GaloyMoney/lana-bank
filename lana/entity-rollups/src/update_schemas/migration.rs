@@ -71,8 +71,9 @@ pub fn generate_rollup_migrations(
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
         let entity_base = schema_info.name.replace("Event", "");
-        let rollup_table_name = format!("core_{}_events_rollup", to_snake_case(&entity_base));
-        let events_table_name = format!("core_{}_events", to_snake_case(&entity_base));
+        let table_base = format!("{}_{}", schema_info.table_prefix, to_snake_case(&entity_base));
+        let rollup_table_name = format!("{}_events_rollup", table_base);
+        let events_table_name = format!("{}_events", table_base);
 
         let context = RollupTableContext {
             entity_name: schema_info.name.to_string(),
@@ -85,7 +86,6 @@ pub fn generate_rollup_migrations(
         let table_content = handlebars.render("rollup_table_only", &context)?;
         let trigger_function_content = handlebars.render("rollup_trigger_function", &context)?;
         let trigger_creation_content = handlebars.render("rollup_trigger_creation", &context)?;
-        
         // Combine all parts into one migration
         let migration_content = format!(
             "{}\n\n{}\n\n{}",

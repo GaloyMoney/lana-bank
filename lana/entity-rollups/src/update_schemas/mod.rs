@@ -22,6 +22,7 @@ pub use migration::*;
 pub struct SchemaInfo {
     pub name: &'static str,
     pub filename: &'static str,
+    pub table_prefix: &'static str,
     pub generate_schema: fn() -> serde_json::Value,
 }
 
@@ -30,6 +31,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
         SchemaInfo {
             name: "UserEvent",
             filename: "user_event_schema.json",
+            table_prefix: "core",
             generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
         },
         // SchemaInfo {

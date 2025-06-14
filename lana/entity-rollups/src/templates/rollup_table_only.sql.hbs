@@ -4,7 +4,6 @@ CREATE TABLE {{rollup_table_name}} (
   last_sequence INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
-  
   -- Flattened fields from the event JSON
   {{#each fields}}
   {{this.name}} {{this.sql_type}}{{#unless @last}},{{/unless}}
