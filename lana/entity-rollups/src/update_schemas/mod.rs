@@ -2,7 +2,6 @@ mod json_schema;
 mod migration;
 
 use colored::*;
-use std::path::Path;
 
 use core_access::event_schema::{/*PermissionSetEvent, RoleEvent,*/ UserEvent};
 // use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
@@ -19,6 +18,7 @@ use schemars::schema_for;
 pub use json_schema::*;
 pub use migration::*;
 
+#[derive(Clone)]
 pub struct SchemaInfo {
     pub name: &'static str,
     pub filename: &'static str,
@@ -143,15 +143,14 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
         // },
     ];
 
-    process_schemas(&schemas, schemas_out_dir)?;
+    let schema_changes = process_schemas(&schemas, schemas_out_dir)?;
 
     // Generate migrations for rollup tables
     println!(
         "\n{} Generating rollup table migrations...",
         "🔨".blue().bold()
     );
-    let schemas_dir = Path::new(schemas_out_dir);
-    generate_rollup_migrations(&schemas, &schemas_dir, migrations_out_dir)?;
+    generate_rollup_migrations(&schema_changes, migrations_out_dir)?;
 
     Ok(())
 }

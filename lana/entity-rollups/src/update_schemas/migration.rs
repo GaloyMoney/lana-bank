@@ -4,7 +4,7 @@ use handlebars::Handlebars;
 use serde_json::Value;
 use std::{collections::{HashMap, HashSet}, fs, path::Path};
 
-use super::SchemaInfo;
+use super::SchemaChangeInfo;
 
 #[derive(serde::Serialize)]
 struct RollupTableContext {
@@ -38,8 +38,7 @@ struct FieldDefinition {
 }
 
 pub fn generate_rollup_migrations(
-    schemas: &[SchemaInfo],
-    schemas_dir: &Path,
+    schema_changes: &[SchemaChangeInfo],
     migrations_out_dir: &str,
 ) -> anyhow::Result<()> {
     let migrations_dir = Path::new(migrations_out_dir);
@@ -96,14 +95,11 @@ pub fn generate_rollup_migrations(
     handlebars.register_template_string("rollup_trigger_creation", &trigger_creation_template_content)?;
     handlebars.register_template_string("rollup_table_alter", &alter_template_content)?;
 
-    for schema_info in schemas {
-        // Read the schema to extract fields
-        let schema_path = schemas_dir.join(schema_info.filename);
-        let schema_content = fs::read_to_string(&schema_path)?;
-        let schema: Value = serde_json::from_str(&schema_content)?;
-
+    for schema_change in schema_changes {
+        let schema_info = &schema_change.schema_info;
+        
         // Extract fields from the current schema
-        let current_fields = extract_fields_from_schema(&schema)?;
+        let current_fields = extract_fields_from_schema(&schema_change.current_schema)?;
 
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
@@ -113,14 +109,8 @@ pub fn generate_rollup_migrations(
         let events_table_name = format!("{}_events", table_base);
 
         // Check if we have a previous schema to compare with
-        let previous_schema_path = schema_path.with_extension("previous.json");
-        let is_update = previous_schema_path.exists();
-
-        if is_update {
-            // Read previous schema
-            let previous_content = fs::read_to_string(&previous_schema_path)?;
-            let previous_schema: Value = serde_json::from_str(&previous_content)?;
-            let previous_fields = extract_fields_from_schema(&previous_schema)?;
+        if let Some(ref previous_schema) = schema_change.previous_schema {
+            let previous_fields = extract_fields_from_schema(previous_schema)?;
 
             // Compare fields
             let (new_fields, removed_fields) = compare_fields(&previous_fields, &current_fields);
@@ -206,9 +196,6 @@ pub fn generate_rollup_migrations(
                 migration_path.display()
             );
         }
-
-        // Save current schema as previous for next time
-        fs::copy(&schema_path, &previous_schema_path)?;
     }
 
     Ok(())

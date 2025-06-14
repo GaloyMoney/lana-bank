@@ -6,20 +6,27 @@ use std::{collections::{HashMap, HashSet}, fs, path::Path};
 
 use super::SchemaInfo;
 
-pub fn process_schemas(schemas: &[SchemaInfo], schemas_out_dir: &str) -> anyhow::Result<bool> {
+pub struct SchemaChangeInfo {
+    pub schema_info: SchemaInfo,
+    pub previous_schema: Option<Value>,
+    pub current_schema: Value,
+}
+
+pub fn process_schemas(schemas: &[SchemaInfo], schemas_out_dir: &str) -> anyhow::Result<Vec<SchemaChangeInfo>> {
     let schemas_dir = Path::new(schemas_out_dir);
     if !schemas_dir.exists() {
         fs::create_dir_all(schemas_dir)?;
     }
 
     let mut has_breaking_changes = false;
+    let mut schema_changes = Vec::new();
 
     for schema_info in schemas {
         let filepath = schemas_dir.join(schema_info.filename);
         let new_schema = (schema_info.generate_schema)();
         let new_schema_pretty = serde_json::to_string_pretty(&new_schema)?;
 
-        if filepath.exists() {
+        let previous_schema = if filepath.exists() {
             let existing_content = fs::read_to_string(&filepath)?;
             let existing_schema: serde_json::Value = serde_json::from_str(&existing_content)?;
 
@@ -44,12 +51,21 @@ pub fn process_schemas(schemas: &[SchemaInfo], schemas_out_dir: &str) -> anyhow:
                         schema_info.name.green()
                     );
                 }
+                Some(existing_schema)
             } else {
                 println!("{} {} (no changes)", "✅".green(), schema_info.name);
+                Some(existing_schema)
             }
         } else {
             println!("{} Creating new schema: {}", "📝".blue(), schema_info.name);
-        }
+            None
+        };
+
+        schema_changes.push(SchemaChangeInfo {
+            schema_info: schema_info.clone(),
+            previous_schema,
+            current_schema: new_schema,
+        });
 
         // Write the new schema
         fs::write(&filepath, format!("{}\n", new_schema_pretty))?;
@@ -65,7 +81,7 @@ pub fn process_schemas(schemas: &[SchemaInfo], schemas_out_dir: &str) -> anyhow:
         );
     }
 
-    Ok(has_breaking_changes)
+    Ok(schema_changes)
 }
 
 pub fn show_diff(old_content: &str, new_content: &str) {
