@@ -29,7 +29,11 @@ BEGIN
     NEW.sequence,
     NEW.recorded_at,
     NEW.recorded_at{{#each fields}},
-    {{#if this.is_json_extract}}{{#if this.revoke_events}}CASE
+    {{#if this.is_set_field}}CASE
+      WHEN NEW.event ? '{{this.json_path}}' THEN 
+        ARRAY(SELECT DISTINCT unnest((NEW.event -> '{{this.json_path}}')::jsonb) ORDER BY 1)::UUID[]
+      ELSE ARRAY[]::UUID[]
+    END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
       WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
       ELSE (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
     END{{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}{{/each}}
@@ -37,7 +41,23 @@ BEGIN
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = NEW.sequence,
     modified_at = NEW.recorded_at{{#each fields}},
-    {{this.name}} = {{#if this.is_json_extract}}{{#if this.revoke_events}}CASE
+    {{this.name}} = {{#if this.is_set_field}}CASE
+      {{#if this.set_add_events}}WHEN event_type = ANY(ARRAY[{{#each this.set_add_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN
+        CASE
+          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}')::UUID IS NOT NULL THEN
+            array_append(COALESCE(current_row.{{this.name}}, ARRAY[]::UUID[]), (NEW.event ->> '{{this.set_item_field}}')::UUID)
+          ELSE current_row.{{this.name}}
+        END{{/if}}
+      {{#if this.set_remove_events}}WHEN event_type = ANY(ARRAY[{{#each this.set_remove_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN
+        CASE
+          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}')::UUID IS NOT NULL THEN
+            array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::UUID[]), (NEW.event ->> '{{this.set_item_field}}')::UUID)
+          ELSE current_row.{{this.name}}
+        END{{/if}}
+      WHEN NEW.event ? '{{this.json_path}}' THEN 
+        ARRAY(SELECT DISTINCT unnest((NEW.event -> '{{this.json_path}}')::jsonb) ORDER BY 1)::UUID[]
+      ELSE current_row.{{this.name}}
+    END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
       WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
       WHEN NEW.event ? '{{this.json_path}}' THEN (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
       ELSE current_row.{{this.name}}

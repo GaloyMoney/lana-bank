@@ -3,7 +3,7 @@ mod migration;
 
 use colored::*;
 
-use core_access::event_schema::{PermissionSetEvent, /*RoleEvent,*/ UserEvent};
+use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 // use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
 // use core_credit::event_schema::{
 //     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
@@ -34,11 +34,12 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             table_prefix: "core",
             generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
         },
-        // SchemaInfo {
-        //     name: "RoleEvent",
-        //     filename: "role_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
-        // },
+        SchemaInfo {
+            name: "RoleEvent",
+            filename: "role_event_schema.json",
+            table_prefix: "core",
+            generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
+        },
         SchemaInfo {
             name: "PermissionSetEvent",
             filename: "permission_set_event_schema.json",
