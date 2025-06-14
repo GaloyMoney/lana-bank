@@ -5,7 +5,7 @@ mod action;
 mod object;
 
 use serde::{Deserialize, Serialize};
-use uuid::{uuid, Uuid};
+use uuid::{Uuid, uuid};
 
 use core_access::UserId;
 use core_customer::CustomerId;

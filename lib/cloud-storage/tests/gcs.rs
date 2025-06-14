@@ -1,4 +1,4 @@
-use cloud_storage::{config::StorageConfig, LocationInCloud, Storage};
+use cloud_storage::{LocationInCloud, Storage, config::StorageConfig};
 
 #[tokio::test]
 async fn upload_doc() -> anyhow::Result<()> {

@@ -1,6 +1,6 @@
 use async_graphql::{Context, Object};
 
-use crate::{primitives::*, LanaApp};
+use crate::{LanaApp, primitives::*};
 
 use super::{authenticated_subject::*, credit_facility::*, price::*};
 

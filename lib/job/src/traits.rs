@@ -63,7 +63,7 @@ impl RetrySettings {
     }
 
     pub(super) fn next_attempt_at(&self, attempt: u32) -> DateTime<Utc> {
-        use rand::{rng, Rng};
+        use rand::{Rng, rng};
         let base_backoff_ms = self.min_backoff.as_millis() * 2u128.pow(attempt - 1);
         let jitter_range =
             (base_backoff_ms as f64 * self.backoff_jitter_pct as f64 / 100.0) as i128;

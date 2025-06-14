@@ -7,11 +7,11 @@ pub mod error;
 
 use async_trait::async_trait;
 use sqlx_adapter::{
-    casbin::{
-        prelude::{DefaultModel, Enforcer},
-        CoreApi, MgmtApi,
-    },
     SqlxAdapter,
+    casbin::{
+        CoreApi, MgmtApi,
+        prelude::{DefaultModel, Enforcer},
+    },
 };
 use std::{fmt, marker::PhantomData, sync::Arc};
 use tokio::sync::RwLock;

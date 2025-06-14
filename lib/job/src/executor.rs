@@ -1,12 +1,12 @@
 use chrono::{DateTime, Utc};
 use sqlx::postgres::types::PgInterval;
 use tokio::sync::RwLock;
-use tracing::{instrument, Span};
+use tracing::{Span, instrument};
 
 use std::{collections::HashMap, sync::Arc};
 
 use super::{
-    config::*, current::*, entity::*, error::JobError, registry::*, repo::*, traits::*, JobId,
+    JobId, config::*, current::*, entity::*, error::JobError, registry::*, repo::*, traits::*,
 };
 
 #[derive(Clone)]

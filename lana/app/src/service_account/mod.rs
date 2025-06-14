@@ -67,7 +67,7 @@ impl ServiceAccountConfig {
             .ok_or(ServiceAccountError::CredentialsNotProvided)?
             .as_bytes();
 
-        use base64::{engine::general_purpose, Engine as _};
+        use base64::{Engine as _, engine::general_purpose};
 
         Ok(std::str::from_utf8(&general_purpose::STANDARD.decode(creds)?)?.to_string())
     }

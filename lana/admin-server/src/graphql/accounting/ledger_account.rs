@@ -4,8 +4,8 @@ use serde::{Deserialize, Serialize};
 use std::sync::Arc;
 
 use lana_app::accounting::{
-    journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
-    AccountCode as DomainAccountCode,
+    AccountCode as DomainAccountCode, journal::JournalEntryCursor,
+    ledger_account::LedgerAccount as DomainLedgerAccount,
 };
 use lana_app::primitives::Currency;
 

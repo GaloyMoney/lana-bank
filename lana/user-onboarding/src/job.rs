@@ -5,7 +5,7 @@ use futures::StreamExt;
 use job::*;
 
 use audit::AuditSvc;
-use core_access::{user::Users, CoreAccessAction, CoreAccessObject, UserId};
+use core_access::{CoreAccessAction, CoreAccessObject, UserId, user::Users};
 use outbox::{Outbox, OutboxEventMarker};
 
 use kratos_admin::KratosAdmin;

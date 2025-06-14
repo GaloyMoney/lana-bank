@@ -3,7 +3,7 @@ use futures::StreamExt;
 
 use job::*;
 
-use crate::{repo::DashboardRepo, values::*, Outbox};
+use crate::{Outbox, repo::DashboardRepo, values::*};
 
 #[derive(serde::Serialize)]
 pub struct DashboardProjectionJobConfig;

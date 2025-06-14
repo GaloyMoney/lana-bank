@@ -1,4 +1,4 @@
-use async_graphql::{connection::CursorType, ComplexObject, Context, SimpleObject, Union, ID};
+use async_graphql::{ComplexObject, Context, ID, SimpleObject, Union, connection::CursorType};
 use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
@@ -89,13 +89,13 @@ impl CursorType for AuditCursor {
     type Error = String;
 
     fn encode_cursor(&self) -> String {
-        use base64::{engine::general_purpose, Engine as _};
+        use base64::{Engine as _, engine::general_purpose};
         let json = serde_json::to_string(&self).expect("could not serialize token");
         general_purpose::STANDARD_NO_PAD.encode(json.as_bytes())
     }
 
     fn decode_cursor(s: &str) -> Result<Self, Self::Error> {
-        use base64::{engine::general_purpose, Engine as _};
+        use base64::{Engine as _, engine::general_purpose};
         let bytes = general_purpose::STANDARD_NO_PAD
             .decode(s.as_bytes())
             .map_err(|e| e.to_string())?;

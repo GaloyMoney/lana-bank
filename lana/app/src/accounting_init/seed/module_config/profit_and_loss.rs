@@ -4,10 +4,10 @@ use serde::Deserialize;
 
 use crate::{
     accounting::Chart,
-    accounting_init::{constants::PROFIT_AND_LOSS_STATEMENT_NAME, AccountingInitError},
+    accounting_init::{AccountingInitError, constants::PROFIT_AND_LOSS_STATEMENT_NAME},
     profit_and_loss::{
-        error::ProfitAndLossStatementError, ChartOfAccountsIntegrationConfig,
-        ProfitAndLossStatements,
+        ChartOfAccountsIntegrationConfig, ProfitAndLossStatements,
+        error::ProfitAndLossStatementError,
     },
 };
 

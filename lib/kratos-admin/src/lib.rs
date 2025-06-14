@@ -5,7 +5,7 @@ pub use config::KratosAdminConfig;
 pub use error::KratosAdminError;
 
 use reqwest::Client;
-use serde_json::{json, Value};
+use serde_json::{Value, json};
 use uuid::Uuid;
 
 #[derive(Clone)]

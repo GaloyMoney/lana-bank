@@ -9,7 +9,7 @@ use crate::{
     authorization::{Object, ReportAction},
     job::*,
     primitives::*,
-    report::{repo::ReportRepo, NewReport},
+    report::{NewReport, repo::ReportRepo},
 };
 
 #[derive(Clone, Serialize, Deserialize)]

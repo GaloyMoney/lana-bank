@@ -1,12 +1,12 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-use opentelemetry::{global, trace::TracerProvider, KeyValue};
+use opentelemetry::{KeyValue, global, trace::TracerProvider};
 use opentelemetry_sdk::{
+    Resource,
     propagation::TraceContextPropagator,
     resource::{EnvResourceDetector, SdkProvidedResourceDetector},
     trace::{Config, Sampler},
-    Resource,
 };
 use opentelemetry_semantic_conventions::resource::{SERVICE_NAME, SERVICE_NAMESPACE};
 use serde::{Deserialize, Serialize};

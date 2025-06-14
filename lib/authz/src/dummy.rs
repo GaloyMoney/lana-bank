@@ -2,9 +2,9 @@ use async_trait::async_trait;
 
 use std::fmt;
 
-use audit::{error::AuditError, AuditCursor, AuditEntry, AuditInfo, AuditSvc};
+use audit::{AuditCursor, AuditEntry, AuditInfo, AuditSvc, error::AuditError};
 
-use crate::{error::AuthorizationError, PermissionCheck};
+use crate::{PermissionCheck, error::AuthorizationError};
 
 #[derive(Clone)]
 pub struct DummyAudit<A, O> {

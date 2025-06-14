@@ -5,7 +5,7 @@ use std::borrow::Cow;
 
 use es_entity::*;
 
-use crate::{error::JobError, JobId};
+use crate::{JobId, error::JobError};
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]
 #[sqlx(transparent)]

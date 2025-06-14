@@ -1,5 +1,5 @@
 use axum::{
-    extract::Json, http::StatusCode, response::IntoResponse, routing::post, Extension, Router,
+    Extension, Router, extract::Json, http::StatusCode, response::IntoResponse, routing::post,
 };
 use serde::{Deserialize, Serialize};
 

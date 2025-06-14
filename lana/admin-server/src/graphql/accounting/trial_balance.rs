@@ -3,7 +3,7 @@ use async_graphql::{connection::*, *};
 use lana_app::accounting::ledger_account::LedgerAccountChildrenCursor;
 
 use crate::{
-    graphql::loader::{LanaDataLoader, CHART_REF},
+    graphql::loader::{CHART_REF, LanaDataLoader},
     primitives::*,
 };
 

@@ -9,8 +9,8 @@ use job::Jobs;
 use lana_events::LanaEvent;
 use rbac_types::{LanaAction, LanaObject, Subject};
 
-use email::job::{EmailEventListenerConfig, EmailEventListenerInitializer};
 use email::EmailNotification;
+use email::job::{EmailEventListenerConfig, EmailEventListenerInitializer};
 
 pub use config::NotificationConfig;
 

@@ -5,14 +5,14 @@ mod event;
 mod listener;
 mod repo;
 
-use futures::{stream::BoxStream, StreamExt};
-use serde::{de::DeserializeOwned, Serialize};
-use sqlx::{postgres::PgListener, PgPool, Postgres, Transaction};
+use futures::{StreamExt, stream::BoxStream};
+use serde::{Serialize, de::DeserializeOwned};
+use sqlx::{PgPool, Postgres, Transaction, postgres::PgListener};
 use tokio::sync::broadcast;
 
 use std::sync::{
-    atomic::{AtomicU64, Ordering},
     Arc,
+    atomic::{AtomicU64, Ordering},
 };
 
 pub use event::*;

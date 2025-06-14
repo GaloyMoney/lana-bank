@@ -8,7 +8,7 @@ mod primitives;
 
 use async_graphql::*;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
-use axum::{routing::get, Extension, Router};
+use axum::{Extension, Router, routing::get};
 use axum_extra::headers::HeaderMap;
 use serde::{Deserialize, Serialize};
 use tower_http::cors::CorsLayer;

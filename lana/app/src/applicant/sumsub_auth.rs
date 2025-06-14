@@ -1,7 +1,7 @@
 use hmac::{Hmac, Mac};
 use reqwest::{
-    header::{HeaderMap, HeaderValue},
     Client as ReqwestClient,
+    header::{HeaderMap, HeaderValue},
 };
 use serde::Deserialize;
 use serde_json::json;
@@ -10,8 +10,8 @@ use std::time::{SystemTime, UNIX_EPOCH};
 
 use crate::primitives::CustomerId;
 
-use super::error::ApplicantError;
 use super::SumsubConfig;
+use super::error::ApplicantError;
 
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 
@@ -66,8 +66,9 @@ impl SumsubClient {
         level_name: &str,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let method = "POST";
-        let url =
-            format!("/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}");
+        let url = format!(
+            "/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}"
+        );
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
         let body = json!({}).to_string();

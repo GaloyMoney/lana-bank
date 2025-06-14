@@ -8,8 +8,8 @@ use super::{
 };
 
 pub use governance::{
-    approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
     ApprovalProcess as DomainApprovalProcess, ApprovalProcessStatus,
+    approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
 };
 
 #[derive(SimpleObject, Clone)]

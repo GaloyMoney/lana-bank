@@ -6,13 +6,13 @@
 
 mod error;
 
-use axum::{extract::FromRef, http::request::Parts, RequestPartsExt};
+use axum::{RequestPartsExt, extract::FromRef, http::request::Parts};
 use axum_extra::{
-    headers::authorization::{Authorization, Bearer},
     TypedHeader,
+    headers::authorization::{Authorization, Bearer},
 };
-use jsonwebtoken::{jwk::JwkSet, Algorithm, DecodingKey, TokenData, Validation};
-use serde::{de::DeserializeOwned, Deserialize};
+use jsonwebtoken::{Algorithm, DecodingKey, TokenData, Validation, jwk::JwkSet};
+use serde::{Deserialize, de::DeserializeOwned};
 
 use std::sync::{Arc, RwLock};
 

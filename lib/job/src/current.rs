@@ -1,7 +1,7 @@
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use sqlx::{PgPool, Postgres, Transaction};
 
-use super::{error::JobError, JobId};
+use super::{JobId, error::JobError};
 
 pub struct CurrentJob {
     id: JobId,

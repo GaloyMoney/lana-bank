@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::{action_description::*, AllOrOne};
+use authz::{AllOrOne, action_description::*};
 
 pub const PERMISSION_SET_DASHBOARD_VIEWER: &str = "dashboard_viewer";
 

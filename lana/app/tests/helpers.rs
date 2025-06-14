@@ -3,8 +3,8 @@
 use rand::Rng;
 
 use lana_app::{
-    access::{config::AccessConfig, Access},
-    authorization::{seed, Authorization},
+    access::{Access, config::AccessConfig},
+    authorization::{Authorization, seed},
     outbox::Outbox,
     primitives::Subject,
 };

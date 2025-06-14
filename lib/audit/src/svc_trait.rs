@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use std::{collections::HashMap, fmt, str::FromStr};
 
-use crate::{error::AuditError, primitives::*, AuditEntry};
+use crate::{AuditEntry, error::AuditError, primitives::*};
 
 pub trait SystemSubject {
     fn system() -> Self;

@@ -10,7 +10,7 @@ use crate::{
     storage::Storage,
 };
 
-use crate::report::{repo::ReportRepo, upload, ReportConfig};
+use crate::report::{ReportConfig, repo::ReportRepo, upload};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct GenerateReportConfig {

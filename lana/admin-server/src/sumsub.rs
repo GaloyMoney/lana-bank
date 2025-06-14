@@ -1,4 +1,4 @@
-use axum::{extract::Json, response::IntoResponse, routing::post, Extension, Router};
+use axum::{Extension, Router, extract::Json, response::IntoResponse, routing::post};
 
 use jwks_utils::JwtDecoderState;
 use lana_app::app::LanaApp;

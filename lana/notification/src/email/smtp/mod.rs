@@ -1,9 +1,9 @@
 pub mod error;
 
 use lettre::{
-    message::{header::ContentType, Mailbox, Message},
-    transport::smtp::authentication::Credentials,
     AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
+    message::{Mailbox, Message, header::ContentType},
+    transport::smtp::authentication::Credentials,
 };
 
 use crate::email::EmailConfig;

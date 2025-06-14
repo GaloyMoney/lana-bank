@@ -40,34 +40,40 @@ async fn superuser_permissions() -> anyhow::Result<()> {
     let (_, superuser_subject) = helpers::init_access(&pool, &authz).await?;
 
     // Superuser can create users
-    assert!(authz
-        .enforce_permission(
-            &superuser_subject,
-            CoreAccessObject::all_users(),
-            CoreAccessAction::USER_CREATE,
-        )
-        .await
-        .is_ok());
+    assert!(
+        authz
+            .enforce_permission(
+                &superuser_subject,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_CREATE,
+            )
+            .await
+            .is_ok()
+    );
 
     // Superuser can assign Admin role
-    assert!(authz
-        .enforce_permission(
-            &superuser_subject,
-            CoreAccessObject::all_users(),
-            CoreAccessAction::USER_UPDATE_ROLE,
-        )
-        .await
-        .is_ok());
+    assert!(
+        authz
+            .enforce_permission(
+                &superuser_subject,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_UPDATE_ROLE,
+            )
+            .await
+            .is_ok()
+    );
 
     // Superuser can assign Bank Manager role
-    assert!(authz
-        .enforce_permission(
-            &superuser_subject,
-            CoreAccessObject::user(UserId::new()),
-            CoreAccessAction::USER_UPDATE_ROLE,
-        )
-        .await
-        .is_ok());
+    assert!(
+        authz
+            .enforce_permission(
+                &superuser_subject,
+                CoreAccessObject::user(UserId::new()),
+                CoreAccessAction::USER_UPDATE_ROLE,
+            )
+            .await
+            .is_ok()
+    );
 
     Ok(())
 }
@@ -87,32 +93,38 @@ async fn admin_permissions() -> anyhow::Result<()> {
     let admin_subject = create_user_with_role(&access, &superuser_subject, admin_role.id).await?;
 
     // Admin can create users
-    assert!(authz
-        .enforce_permission(
-            &admin_subject,
-            CoreAccessObject::all_users(),
-            CoreAccessAction::USER_CREATE,
-        )
-        .await
-        .is_ok());
+    assert!(
+        authz
+            .enforce_permission(
+                &admin_subject,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_CREATE,
+            )
+            .await
+            .is_ok()
+    );
 
     // Admin can assign roles
-    assert!(authz
-        .enforce_permission(
-            &admin_subject,
-            CoreAccessObject::all_users(),
-            CoreAccessAction::USER_UPDATE_ROLE,
-        )
-        .await
-        .is_ok());
-    assert!(authz
-        .enforce_permission(
-            &admin_subject,
-            CoreAccessObject::user(UserId::new()),
-            CoreAccessAction::USER_UPDATE_ROLE,
-        )
-        .await
-        .is_ok());
+    assert!(
+        authz
+            .enforce_permission(
+                &admin_subject,
+                CoreAccessObject::all_users(),
+                CoreAccessAction::USER_UPDATE_ROLE,
+            )
+            .await
+            .is_ok()
+    );
+    assert!(
+        authz
+            .enforce_permission(
+                &admin_subject,
+                CoreAccessObject::user(UserId::new()),
+                CoreAccessAction::USER_UPDATE_ROLE,
+            )
+            .await
+            .is_ok()
+    );
 
     Ok(())
 }

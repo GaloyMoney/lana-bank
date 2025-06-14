@@ -11,7 +11,7 @@ pub use lana_app::credit::{
     ListDirection, Sort,
 };
 
-use crate::{primitives::*, LanaApp};
+use crate::{LanaApp, primitives::*};
 
 use super::terms::*;
 

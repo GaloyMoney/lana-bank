@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 use super::{approval_process::*, approval_rules::*};
 
-pub use governance::{policy_cursor::PoliciesByCreatedAtCursor, Policy as DomainPolicy};
+pub use governance::{Policy as DomainPolicy, policy_cursor::PoliciesByCreatedAtCursor};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

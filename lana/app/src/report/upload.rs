@@ -4,7 +4,7 @@ use std::collections::HashMap;
 
 use crate::storage::Storage;
 
-use super::{config::ReportConfig, ReportError};
+use super::{ReportError, config::ReportConfig};
 
 #[derive(Debug, Serialize, Deserialize, Clone)]
 #[serde(rename_all = "camelCase")]
@@ -95,7 +95,7 @@ pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
 pub(super) mod bq {
     use super::*;
 
-    use gcp_bigquery_client::{model::query_request::QueryRequest, table::ListOptions, Client};
+    use gcp_bigquery_client::{Client, model::query_request::QueryRequest, table::ListOptions};
 
     pub(super) async fn find_report_outputs(
         config: &ReportConfig,
