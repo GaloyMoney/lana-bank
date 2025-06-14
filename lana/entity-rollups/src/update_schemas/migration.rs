@@ -88,7 +88,7 @@ pub fn generate_rollup_migrations(
         let trigger_creation_content = handlebars.render("rollup_trigger_creation", &context)?;
         // Combine all parts into one migration
         let migration_content = format!(
-            "{}\n\n{}\n\n{}",
+            "{}\n\n{}\n\n{}\n",
             table_content, trigger_function_content, trigger_creation_content
         );
 

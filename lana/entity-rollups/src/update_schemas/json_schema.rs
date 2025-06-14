@@ -52,7 +52,7 @@ pub fn process_schemas(schemas: &[SchemaInfo], schemas_out_dir: &str) -> anyhow:
         }
 
         // Write the new schema
-        fs::write(&filepath, new_schema_pretty)?;
+        fs::write(&filepath, format!("{}\n", new_schema_pretty))?;
     }
 
     if has_breaking_changes {
