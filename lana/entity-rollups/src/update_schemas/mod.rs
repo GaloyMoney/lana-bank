@@ -37,7 +37,7 @@ pub struct SchemaInfo {
     pub generate_schema: fn() -> serde_json::Value,
 }
 
-pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow::Result<()> {
+pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str, force_recreate: bool) -> anyhow::Result<()> {
     let schemas = vec![
         SchemaInfo {
             name: "UserEvent",
@@ -221,6 +221,22 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
         //     generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
         // },
     ];
+
+    // Delete existing schema files if force_recreate is requested
+    if force_recreate {
+        println!(
+            "{} Force recreate enabled - deleting existing schema files...",
+            "🗑️".yellow().bold()
+        );
+        
+        for schema in &schemas {
+            let schema_path = std::path::Path::new(schemas_out_dir).join(schema.filename);
+            if schema_path.exists() {
+                std::fs::remove_file(&schema_path)?;
+                println!("  Deleted: {}", schema_path.display());
+            }
+        }
+    }
 
     let schema_changes = process_schemas(&schemas, schemas_out_dir)?;
 

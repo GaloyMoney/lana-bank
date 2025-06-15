@@ -6,7 +6,7 @@ mod update_schemas;
 
 #[cfg(not(feature = "json-schema"))]
 mod update_schemas {
-    pub fn update_schemas(_schemas_out_dir: &str, _migrations_out_dir: &str) -> anyhow::Result<()> {
+    pub fn update_schemas(_schemas_out_dir: &str, _migrations_out_dir: &str, _force_recreate: bool) -> anyhow::Result<()> {
         println!("json-schema feature is disabled. No schemas to update.");
         Ok(())
     }
@@ -40,6 +40,10 @@ struct UpdateSchemasArgs {
     /// Output directory for migration files
     #[arg(long, env = "MIGRATIONS_OUT_DIR", default_value = "./migrations")]
     migrations_out_dir: String,
+
+    /// Force recreate by deleting existing schema files first
+    #[arg(long)]
+    force_recreate: bool,
 }
 
 pub fn run() -> anyhow::Result<()> {
@@ -47,7 +51,7 @@ pub fn run() -> anyhow::Result<()> {
 
     match &cli.command {
         Commands::UpdateSchemas(args) => {
-            update_schemas::update_schemas(&args.schemas_out_dir, &args.migrations_out_dir)
+            update_schemas::update_schemas(&args.schemas_out_dir, &args.migrations_out_dir, args.force_recreate)
         }
     }
 }
