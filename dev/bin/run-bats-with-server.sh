@@ -13,7 +13,7 @@ else
 fi
 
 # Start server with cleanup trap
-start_server_nix
+start_server
 trap 'echo "--- Stopping Lana server ---"; stop_server' EXIT
 
 echo "--- Running BATS tests ---"
