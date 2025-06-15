@@ -43,8 +43,8 @@ BEGIN
     CASE event_type{{#each event_updates}}
       WHEN '{{this.name}}' THEN
         (
-          {{#each this.field_updates}}{{>field-update}}{{#unless @last}},{{/unless}}
-          {{/each}}
+          {{#each this.field_updates}}{{>field-update}}{{#unless @last}},
+          {{/unless}}{{/each}}
         ){{/each}}
     END;
 

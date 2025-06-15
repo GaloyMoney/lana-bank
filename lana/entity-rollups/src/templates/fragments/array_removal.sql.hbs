@@ -1,1 +1,1 @@
-          array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}})
+array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}})

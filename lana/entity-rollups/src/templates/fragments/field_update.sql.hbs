@@ -1,1 +1,1 @@
-          {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
+{{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
