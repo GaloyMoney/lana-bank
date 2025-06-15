@@ -12,7 +12,7 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 // use core_custody::event_schema::CustodianEvent;
 // use core_customer::event_schema::CustomerEvent;
 // use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
-// use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
+use governance::event_schema::ApprovalProcessEvent; //, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
 pub use json_schema::*;
@@ -67,11 +67,33 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             delete_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PermissionSetEvent)).unwrap(),
         },
-        // SchemaInfo {
-        //     name: "ApprovalProcessEvent",
-        //     filename: "approval_process_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
-        // },
+        SchemaInfo {
+            name: "ApprovalProcessEvent",
+            table_prefix: "core",
+            filename: "approval_process_event_schema.json",
+            collections: vec![
+                CollectionRollup {
+                    column_name: "approver_ids",
+                    values: "approver_id",
+                    add_events: vec!["Approved"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "denier_ids",
+                    values: "denier_id",
+                    add_events: vec!["Denied"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "deny_reasons",
+                    values: "reason",
+                    add_events: vec!["Denied"],
+                    remove_events: vec![],
+                },
+            ],
+            delete_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
+        },
         // SchemaInfo {
         //     name: "CommitteeEvent",
         //     filename: "committee_event_schema.json",

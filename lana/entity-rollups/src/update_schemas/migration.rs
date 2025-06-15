@@ -352,24 +352,29 @@ fn extract_fields_from_schema(
     }
 
     // Convert properties to field definitions
-    for (name, prop_schema) in all_properties {
+    for (name, prop_schema) in &all_properties {
         let mut sql_type = json_schema_to_sql_type(&prop_schema)?;
         let nullable = true; // Since fields come from different oneOf variants, they should be nullable
 
         // Skip the individual ID fields if they're part of a set
         if set_field_info
             .values()
-            .any(|info| info.item_field_name == name)
+            .any(|info| info.item_field_name == *name)
         {
             continue;
         }
 
         // Check if this is a set field
-        let is_set_field = set_field_info.contains_key(&name);
+        let is_set_field = set_field_info.contains_key(name);
         let (set_add_events, set_remove_events, set_item_field) =
-            if let Some(info) = set_field_info.get(&name) {
-                // Override SQL type for set fields to use UUID array
-                sql_type = "UUID[]".to_string();
+            if let Some(info) = set_field_info.get(name) {
+                // Determine array type based on the individual field type
+                let item_type = if let Some(item_schema) = all_properties.get(&info.item_field_name) {
+                    json_schema_to_sql_type(item_schema).unwrap_or_else(|_| "VARCHAR".to_string())
+                } else {
+                    "VARCHAR".to_string()
+                };
+                sql_type = format!("{}[]", item_type);
                 (
                     Some(info.add_events.clone()),
                     Some(info.remove_events.clone()),
@@ -383,7 +388,7 @@ fn extract_fields_from_schema(
         let cast_type = get_cast_type(&sql_type);
 
         // Get revoke events for this field
-        let revoke_events = field_revoke_events.get(&name).cloned();
+        let revoke_events = field_revoke_events.get(name).cloned();
 
         // Determine if this field should use JSONB extraction (-> operator vs ->> operator)
         let is_jsonb_field = sql_type == "JSONB";
