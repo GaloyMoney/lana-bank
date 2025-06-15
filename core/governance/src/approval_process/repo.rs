@@ -19,7 +19,8 @@ use super::{entity::*, error::*};
             update(accessor = "committee_id()")
         ),
         policy_id(ty = "PolicyId")
-    )
+    ),
+    tbl_prefix = "core"
 )]
 pub(crate) struct ApprovalProcessRepo {
     #[allow(dead_code)]

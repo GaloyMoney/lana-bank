@@ -17,7 +17,8 @@ use super::{entity::*, error::*};
             create(accessor = "committee_id()"),
             update(accessor = "committee_id()")
         ),
-    )
+    ),
+    tbl_prefix = "core"
 )]
 pub(crate) struct PolicyRepo {
     #[allow(dead_code)]
