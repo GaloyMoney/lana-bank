@@ -1,0 +1,1 @@
+{{#if this.is_set_field}}{{>array_init}}{{else if this.is_json_extract}}{{>field_init}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}

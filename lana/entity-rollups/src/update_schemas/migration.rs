@@ -18,6 +18,39 @@ struct RollupTableContext {
     fields: Vec<FieldDefinition>,
     regular_fields: Vec<FieldDefinition>,
     collection_fields: Vec<FieldDefinition>,
+    event_types: Vec<EventTypeInfo>,
+    event_updates: Vec<EventUpdateInfo>,
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
+struct EventTypeInfo {
+    name: String,
+    fields: Vec<String>, // Field names that this event can modify
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
+struct EventUpdateInfo {
+    name: String,
+    field_updates: Vec<ComputedFieldAction>,
+}
+
+#[derive(serde::Serialize, Clone, Debug)]
+struct ComputedFieldAction {
+    name: String,
+    sql_type: String,
+    nullable: bool,
+    is_json_extract: bool,
+    json_path: String,
+    cast_type: Option<String>,
+    is_set_field: bool,
+    set_item_field: Option<String>,
+    is_jsonb_field: bool,
+    element_cast_type: Option<String>,
+    // Computed action flags
+    is_field_update: bool,
+    is_field_removal: bool,
+    is_set_add: bool,
+    is_set_remove: bool,
 }
 
 #[derive(serde::Serialize)]
@@ -32,6 +65,8 @@ struct RollupUpdateContext {
     removed_fields: Vec<FieldDefinition>,
     regular_fields: Vec<FieldDefinition>,
     collection_fields: Vec<FieldDefinition>,
+    event_types: Vec<EventTypeInfo>,
+    event_updates: Vec<EventUpdateInfo>,
 }
 
 #[derive(serde::Serialize, Clone, Debug, PartialEq)]
@@ -49,6 +84,71 @@ struct FieldDefinition {
     set_item_field: Option<String>,
     is_jsonb_field: bool,
     element_cast_type: Option<String>,
+}
+
+fn compute_event_updates(
+    fields: &[FieldDefinition],
+    event_types: &[EventTypeInfo],
+) -> Vec<EventUpdateInfo> {
+    let mut event_updates = Vec::new();
+    
+    for event_type in event_types {
+        let mut field_updates = Vec::new();
+        
+        for field in fields {
+            let mut computed_field = ComputedFieldAction {
+                name: field.name.clone(),
+                sql_type: field.sql_type.clone(),
+                nullable: field.nullable,
+                is_json_extract: field.is_json_extract,
+                json_path: field.json_path.clone(),
+                cast_type: field.cast_type.clone(),
+                is_set_field: field.is_set_field,
+                set_item_field: field.set_item_field.clone(),
+                is_jsonb_field: field.is_jsonb_field,
+                element_cast_type: field.element_cast_type.clone(),
+                is_field_update: false,
+                is_field_removal: false,
+                is_set_add: false,
+                is_set_remove: false,
+            };
+            
+            if field.is_set_field {
+                // Handle array fields
+                if let Some(ref add_events) = field.set_add_events {
+                    // Convert PascalCase event names to snake_case for comparison
+                    let snake_case_add_events: Vec<String> = add_events.iter().map(|s| to_snake_case(s)).collect();
+                    computed_field.is_set_add = snake_case_add_events.contains(&event_type.name);
+                }
+                if let Some(ref remove_events) = field.set_remove_events {
+                    // Convert PascalCase event names to snake_case for comparison
+                    let snake_case_remove_events: Vec<String> = remove_events.iter().map(|s| to_snake_case(s)).collect();
+                    computed_field.is_set_remove = snake_case_remove_events.contains(&event_type.name);
+                }
+            } else {
+                // Handle regular fields
+                if event_type.fields.contains(&field.json_path) {
+                    // This event has this field
+                    if let Some(ref revoke_events) = field.revoke_events {
+                        computed_field.is_field_removal = revoke_events.contains(&event_type.name);
+                        computed_field.is_field_update = !computed_field.is_field_removal;
+                    } else {
+                        computed_field.is_field_update = true;
+                    }
+                }
+                // If the event doesn't have this field, all flags stay false (preserve current value)
+            }
+            
+            field_updates.push(computed_field);
+        }
+        
+        event_updates.push(EventUpdateInfo {
+            name: event_type.name.clone(),
+            field_updates,
+        });
+    }
+    
+    event_updates
 }
 
 pub fn generate_rollup_migrations(
@@ -88,6 +188,22 @@ pub fn generate_rollup_migrations(
         .join("rollup_table_alter.sql.hbs");
     let alter_template_content = fs::read_to_string(&alter_template_path)?;
 
+    // Read fragment templates
+    let fragments_dir = Path::new(env!("CARGO_MANIFEST_DIR"))
+        .join("src")
+        .join("templates")
+        .join("fragments");
+    let field_update_fragment = fs::read_to_string(fragments_dir.join("field-update.sql.hbs"))?;
+    let field_init_fragment = fs::read_to_string(fragments_dir.join("field-init.sql.hbs"))?;
+    let field_init_only_fragment = fs::read_to_string(fragments_dir.join("field_init.sql.hbs"))?;
+    let array_init_fragment = fs::read_to_string(fragments_dir.join("array_init.sql.hbs"))?;
+    let array_append_fragment = fs::read_to_string(fragments_dir.join("array_append.sql.hbs"))?;
+    let array_removal_fragment = fs::read_to_string(fragments_dir.join("array_removal.sql.hbs"))?;
+    let field_update_only_fragment = fs::read_to_string(fragments_dir.join("field_update.sql.hbs"))?;
+    let field_update_basic_fragment = fs::read_to_string(fragments_dir.join("field_update_basic.sql.hbs"))?;
+    let field_removal_fragment = fs::read_to_string(fragments_dir.join("field_removal.sql.hbs"))?;
+    let field_preserve_fragment = fs::read_to_string(fragments_dir.join("field_preserve.sql.hbs"))?;
+
     let mut handlebars = Handlebars::new();
     handlebars.register_helper(
         "eq",
@@ -117,6 +233,36 @@ pub fn generate_rollup_migrations(
             },
         ),
     );
+    handlebars.register_helper(
+        "contains",
+        Box::new(
+            |h: &handlebars::Helper,
+             _: &Handlebars,
+             _: &handlebars::Context,
+             _: &mut handlebars::RenderContext,
+             out: &mut dyn handlebars::Output|
+             -> handlebars::HelperResult {
+                let needle = h
+                    .param(0)
+                    .ok_or(handlebars::RenderErrorReason::MissingVariable(Some(
+                        "contains: Missing first parameter".to_string(),
+                    )))?;
+                let haystack = h
+                    .param(1)
+                    .ok_or(handlebars::RenderErrorReason::MissingVariable(Some(
+                        "contains: Missing second parameter".to_string(),
+                    )))?;
+
+                if let Some(array) = haystack.value().as_array() {
+                    let contains = array.iter().any(|item| item == needle.value());
+                    if contains {
+                        out.write("true")?;
+                    }
+                }
+                Ok(())
+            },
+        ),
+    );
     handlebars.register_template_string("rollup_table_only", &table_template_content)?;
     handlebars.register_template_string(
         "rollup_trigger_function",
@@ -127,12 +273,24 @@ pub fn generate_rollup_migrations(
         &trigger_creation_template_content,
     )?;
     handlebars.register_template_string("rollup_table_alter", &alter_template_content)?;
+    
+    // Register fragment templates
+    handlebars.register_template_string("field-update", &field_update_fragment)?;
+    handlebars.register_template_string("field-init", &field_init_fragment)?;
+    handlebars.register_template_string("field_init", &field_init_only_fragment)?;
+    handlebars.register_template_string("array_init", &array_init_fragment)?;
+    handlebars.register_template_string("array_append", &array_append_fragment)?;
+    handlebars.register_template_string("array_removal", &array_removal_fragment)?;
+    handlebars.register_template_string("field_update", &field_update_only_fragment)?;
+    handlebars.register_template_string("field_update_basic", &field_update_basic_fragment)?;
+    handlebars.register_template_string("field_removal", &field_removal_fragment)?;
+    handlebars.register_template_string("field_preserve", &field_preserve_fragment)?;
 
     for schema_change in schema_changes {
         let schema_info = &schema_change.schema_info;
 
-        // Extract fields from the current schema
-        let current_fields = extract_fields_from_schema(
+        // Extract fields and event types from the current schema
+        let (current_fields, event_types) = extract_fields_and_events_from_schema(
             &schema_change.current_schema,
             &schema_info.collections,
             &schema_info.delete_events,
@@ -154,7 +312,7 @@ pub fn generate_rollup_migrations(
 
         // Check if we have a previous schema to compare with
         if let Some(ref previous_schema) = schema_change.previous_schema {
-            let previous_fields = extract_fields_from_schema(
+            let (previous_fields, _) = extract_fields_and_events_from_schema(
                 previous_schema,
                 &schema_info.collections,
                 &schema_info.delete_events,
@@ -172,6 +330,7 @@ pub fn generate_rollup_migrations(
                 continue;
             }
 
+            let event_updates = compute_event_updates(&current_fields, &event_types);
             let alter_context = RollupUpdateContext {
                 entity_name: schema_info.name.to_string(),
                 table_name: table_base.clone(),
@@ -183,8 +342,9 @@ pub fn generate_rollup_migrations(
                 removed_fields,
                 regular_fields: regular_fields.clone(),
                 collection_fields: collection_fields.clone(),
+                event_types: event_types.clone(),
+                event_updates: event_updates.clone(),
             };
-
             let trigger_context = RollupTableContext {
                 entity_name: schema_info.name.to_string(),
                 rollup_table_name: rollup_table_name.clone(),
@@ -192,6 +352,8 @@ pub fn generate_rollup_migrations(
                 fields: current_fields,
                 regular_fields: regular_fields.clone(),
                 collection_fields: collection_fields.clone(),
+                event_types: event_types.clone(),
+                event_updates,
             };
 
             // Render templates
@@ -229,6 +391,7 @@ pub fn generate_rollup_migrations(
             );
         } else {
             // Initial table creation
+            let event_updates = compute_event_updates(&current_fields, &event_types);
             let context = RollupTableContext {
                 entity_name: schema_info.name.to_string(),
                 rollup_table_name: rollup_table_name.clone(),
@@ -236,6 +399,8 @@ pub fn generate_rollup_migrations(
                 fields: current_fields,
                 regular_fields,
                 collection_fields,
+                event_types,
+                event_updates,
             };
 
             // Render all template parts
@@ -271,14 +436,15 @@ pub fn generate_rollup_migrations(
     Ok(())
 }
 
-fn extract_fields_from_schema(
+fn extract_fields_and_events_from_schema(
     schema: &Value,
     collection_rollups: &[super::CollectionRollup],
     delete_events: &[&str],
-) -> anyhow::Result<Vec<FieldDefinition>> {
+) -> anyhow::Result<(Vec<FieldDefinition>, Vec<EventTypeInfo>)> {
     let mut fields = Vec::new();
     let mut all_properties = HashMap::new();
     let mut field_revoke_events: HashMap<String, Vec<String>> = HashMap::new();
+    let mut event_types = Vec::new();
 
     // Track set field relationships
     struct SetFieldInfo {
@@ -319,6 +485,7 @@ fn extract_fields_from_schema(
                     None
                 };
 
+                let mut event_field_names = Vec::new();
                 for (prop_name, prop_schema) in properties {
                     if prop_name == "type" || prop_name == "id" || prop_name == "audit_info" {
                         continue; // Skip the discriminator field, id (handled as common field), and audit_info
@@ -326,6 +493,7 @@ fn extract_fields_from_schema(
 
                     // Track which fields this event type can modify
                     all_properties.insert(prop_name.clone(), prop_schema.clone());
+                    event_field_names.push(to_snake_case(prop_name));
 
                     if let Some(ref event_type_name) = event_type {
                         // Check if this event type is in the delete_events list
@@ -345,6 +513,14 @@ fn extract_fields_from_schema(
                             }
                         }
                     }
+                }
+
+                // Add event type info
+                if let Some(event_type_name) = event_type {
+                    event_types.push(EventTypeInfo {
+                        name: event_type_name,
+                        fields: event_field_names,
+                    });
                 }
             }
         }
@@ -427,10 +603,33 @@ fn extract_fields_from_schema(
         });
     }
 
+    // Add collection events to event types
+    for rollup in collection_rollups {
+        for add_event in &rollup.add_events {
+            let event_name = to_snake_case(add_event);
+            if !event_types.iter().any(|et| et.name == event_name) {
+                event_types.push(EventTypeInfo {
+                    name: event_name,
+                    fields: vec![rollup.column_name.to_string()],
+                });
+            }
+        }
+        for remove_event in &rollup.remove_events {
+            let event_name = to_snake_case(remove_event);
+            if !event_types.iter().any(|et| et.name == event_name) {
+                event_types.push(EventTypeInfo {
+                    name: event_name,
+                    fields: vec![rollup.column_name.to_string()],
+                });
+            }
+        }
+    }
+
     // Sort fields for consistent ordering
     fields.sort_by(|a, b| a.name.cmp(&b.name));
+    // Keep event_types in schema order (don't sort)
 
-    Ok(fields)
+    Ok((fields, event_types))
 }
 
 fn json_schema_to_sql_type(schema: &Value) -> anyhow::Result<String> {

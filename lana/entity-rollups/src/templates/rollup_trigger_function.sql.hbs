@@ -6,15 +6,20 @@ DECLARE
   current_row {{rollup_table_name}}%ROWTYPE;
 BEGIN
   event_type := NEW.event_type;
-  
+
   -- Load the current rollup state
-  SELECT * INTO current_row 
-  FROM {{rollup_table_name}} 
+  SELECT * INTO current_row
+  FROM {{rollup_table_name}}
   WHERE id = NEW.id;
-  
+
   -- Early return if event is older than current state
   IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
     RETURN NEW;
+  END IF;
+
+  -- Validate event type is known
+  IF event_type NOT IN ({{#each event_types}}'{{this.name}}'{{#unless @last}}, {{/unless}}{{/each}}) THEN
+    RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
   INSERT INTO {{rollup_table_name}} (
@@ -29,42 +34,19 @@ BEGIN
     NEW.sequence,
     NEW.recorded_at,
     NEW.recorded_at{{#each fields}},
-    {{#if this.is_set_field}}CASE
-      WHEN NEW.event ? '{{this.json_path}}' THEN 
-        ARRAY(SELECT DISTINCT value::text{{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
-      ELSE ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]
-    END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
-      WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
-      ELSE {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
-    END{{else}}{{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}{{/if}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}{{/each}}
+    {{>field-init}}{{/each}}
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = NEW.sequence,
-    modified_at = NEW.recorded_at{{#each fields}},
-    {{this.name}} = {{#if this.is_set_field}}CASE
-      {{#if this.set_add_events}}WHEN event_type = ANY(ARRAY[{{#each this.set_add_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN
-        CASE
-          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} IS NOT NULL THEN
-            array_append(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}})
-          ELSE current_row.{{this.name}}
-        END{{/if}}
-      {{#if this.set_remove_events}}WHEN event_type = ANY(ARRAY[{{#each this.set_remove_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN
-        CASE
-          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} IS NOT NULL THEN
-            array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}})
-          ELSE current_row.{{this.name}}
-        END{{/if}}
-      WHEN NEW.event ? '{{this.json_path}}' THEN 
-        ARRAY(SELECT DISTINCT value::text{{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
-      ELSE current_row.{{this.name}}
-    END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
-      WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
-      WHEN NEW.event ? '{{this.json_path}}' THEN {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
-      ELSE current_row.{{this.name}}
-    END{{else}}CASE
-      WHEN NEW.event ? '{{this.json_path}}' THEN {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
-      ELSE current_row.{{this.name}}
-    END{{/if}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}{{/each}};
+    modified_at = NEW.recorded_at,
+    ({{#each fields}}{{this.name}}{{#unless @last}}, {{/unless}}{{/each}}) =
+    CASE event_type{{#each event_updates}}
+      WHEN '{{this.name}}' THEN
+        (
+          {{#each this.field_updates}}{{>field-update}}{{#unless @last}},{{/unless}}
+          {{/each}}
+        ){{/each}}
+    END;
 
   RETURN NEW;
 END;
