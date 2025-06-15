@@ -48,6 +48,7 @@ struct FieldDefinition {
     set_remove_events: Option<Vec<String>>,
     set_item_field: Option<String>,
     is_jsonb_field: bool,
+    element_cast_type: Option<String>,
 }
 
 pub fn generate_rollup_migrations(
@@ -379,7 +380,7 @@ fn extract_fields_from_schema(
 
         // Check if this is a set field
         let is_set_field = set_field_info.contains_key(name);
-        let (set_add_events, set_remove_events, set_item_field) =
+        let (set_add_events, set_remove_events, set_item_field, element_cast_type) =
             if let Some(info) = set_field_info.get(name) {
                 // Determine array type based on the individual field type
                 let item_type = if let Some(item_schema) = all_properties.get(&info.item_field_name) {
@@ -388,13 +389,16 @@ fn extract_fields_from_schema(
                     "VARCHAR".to_string()
                 };
                 sql_type = format!("{}[]", item_type);
+                // Calculate element cast type for arrays
+                let element_cast_type = get_cast_type(&item_type);
                 (
                     Some(info.add_events.clone()),
                     Some(info.remove_events.clone()),
                     Some(info.item_field_name.clone()),
+                    element_cast_type,
                 )
             } else {
-                (None, None, None)
+                (None, None, None, None)
             };
 
         // Determine cast type for trigger function
@@ -419,6 +423,7 @@ fn extract_fields_from_schema(
             set_remove_events,
             set_item_field,
             is_jsonb_field,
+            element_cast_type,
         });
     }
 

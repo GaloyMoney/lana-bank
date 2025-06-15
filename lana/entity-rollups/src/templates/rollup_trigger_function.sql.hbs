@@ -31,8 +31,8 @@ BEGIN
     NEW.recorded_at{{#each fields}},
     {{#if this.is_set_field}}CASE
       WHEN NEW.event ? '{{this.json_path}}' THEN 
-        ARRAY(SELECT DISTINCT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
-      ELSE ARRAY[]::UUID[]
+        ARRAY(SELECT DISTINCT value::text{{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
+      ELSE ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]
     END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
       WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
       ELSE {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
@@ -44,18 +44,18 @@ BEGIN
     {{this.name}} = {{#if this.is_set_field}}CASE
       {{#if this.set_add_events}}WHEN event_type = ANY(ARRAY[{{#each this.set_add_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN
         CASE
-          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}')::UUID IS NOT NULL THEN
-            array_append(COALESCE(current_row.{{this.name}}, ARRAY[]::UUID[]), (NEW.event ->> '{{this.set_item_field}}')::UUID)
+          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} IS NOT NULL THEN
+            array_append(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}})
           ELSE current_row.{{this.name}}
         END{{/if}}
       {{#if this.set_remove_events}}WHEN event_type = ANY(ARRAY[{{#each this.set_remove_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN
         CASE
-          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}')::UUID IS NOT NULL THEN
-            array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::UUID[]), (NEW.event ->> '{{this.set_item_field}}')::UUID)
+          WHEN NEW.event ? '{{this.set_item_field}}' AND (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} IS NOT NULL THEN
+            array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}})
           ELSE current_row.{{this.name}}
         END{{/if}}
       WHEN NEW.event ? '{{this.json_path}}' THEN 
-        ARRAY(SELECT DISTINCT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
+        ARRAY(SELECT DISTINCT value::text{{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
       ELSE current_row.{{this.name}}
     END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
       WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
