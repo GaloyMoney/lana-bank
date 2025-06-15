@@ -3,9 +3,13 @@ CREATE TABLE {{rollup_table_name}} (
   id UUID PRIMARY KEY,
   last_sequence INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
-  modified_at TIMESTAMPTZ NOT NULL,
+  modified_at TIMESTAMPTZ NOT NULL{{#if regular_fields}},
   -- Flattened fields from the event JSON
-  {{#each fields}}
+{{#each regular_fields}}
+  {{this.name}} {{this.sql_type}}{{#if ../collection_fields}},{{else}}{{#unless @last}},{{/unless}}{{/if}}
+{{/each}}{{/if}}{{#if collection_fields}}{{#unless regular_fields}},{{/unless}}
+  -- Collection rollups
+{{#each collection_fields}}
   {{this.name}} {{this.sql_type}}{{#unless @last}},{{/unless}}
-  {{/each}}
+{{/each}}{{/if}}
 );

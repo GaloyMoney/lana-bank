@@ -16,6 +16,8 @@ struct RollupTableContext {
     rollup_table_name: String,
     events_table_name: String,
     fields: Vec<FieldDefinition>,
+    regular_fields: Vec<FieldDefinition>,
+    collection_fields: Vec<FieldDefinition>,
 }
 
 #[derive(serde::Serialize)]
@@ -28,6 +30,8 @@ struct RollupUpdateContext {
     all_fields: Vec<FieldDefinition>,
     new_fields: Vec<FieldDefinition>,
     removed_fields: Vec<FieldDefinition>,
+    regular_fields: Vec<FieldDefinition>,
+    collection_fields: Vec<FieldDefinition>,
 }
 
 #[derive(serde::Serialize, Clone, Debug, PartialEq)]
@@ -132,6 +136,9 @@ pub fn generate_rollup_migrations(
             &schema_info.collections,
             &schema_info.delete_events,
         )?;
+        
+        // Separate fields into regular and collection fields
+        let (regular_fields, collection_fields) = separate_fields(&current_fields);
 
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
@@ -173,6 +180,8 @@ pub fn generate_rollup_migrations(
                 all_fields: current_fields.clone(),
                 new_fields,
                 removed_fields,
+                regular_fields: regular_fields.clone(),
+                collection_fields: collection_fields.clone(),
             };
 
             let trigger_context = RollupTableContext {
@@ -180,6 +189,8 @@ pub fn generate_rollup_migrations(
                 rollup_table_name: rollup_table_name.clone(),
                 events_table_name,
                 fields: current_fields,
+                regular_fields: regular_fields.clone(),
+                collection_fields: collection_fields.clone(),
             };
 
             // Render templates
@@ -222,6 +233,8 @@ pub fn generate_rollup_migrations(
                 rollup_table_name: rollup_table_name.clone(),
                 events_table_name,
                 fields: current_fields,
+                regular_fields,
+                collection_fields,
             };
 
             // Render all template parts
@@ -496,6 +509,21 @@ fn compare_fields(
         .collect();
 
     (new_fields, removed_fields)
+}
+
+fn separate_fields(fields: &[FieldDefinition]) -> (Vec<FieldDefinition>, Vec<FieldDefinition>) {
+    let mut regular_fields = Vec::new();
+    let mut collection_fields = Vec::new();
+    
+    for field in fields {
+        if field.is_set_field {
+            collection_fields.push(field.clone());
+        } else {
+            regular_fields.push(field.clone());
+        }
+    }
+    
+    (regular_fields, collection_fields)
 }
 
 fn to_snake_case(s: &str) -> String {
