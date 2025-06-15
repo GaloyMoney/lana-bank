@@ -10,9 +10,9 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 //     ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
 // };
 // use core_custody::event_schema::CustodianEvent;
-// use core_customer::event_schema::CustomerEvent;
+use core_customer::event_schema::CustomerEvent;
 // use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
-use governance::event_schema::ApprovalProcessEvent; //, CommitteeEvent, PolicyEvent};
+use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
 pub use json_schema::*;
@@ -94,26 +94,35 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             delete_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
         },
-        // SchemaInfo {
-        //     name: "CommitteeEvent",
-        //     filename: "committee_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CommitteeEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "PolicyEvent",
-        //     filename: "policy_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(PolicyEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CustodianEvent",
-        //     filename: "custodian_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CustomerEvent",
-        //     filename: "customer_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CustomerEvent)).unwrap(),
-        // },
+        SchemaInfo {
+            name: "CommitteeEvent",
+            table_prefix: "core",
+            filename: "committee_event_schema.json",
+            collections: vec![CollectionRollup {
+                column_name: "member_ids",
+                values: "member_id",
+                add_events: vec!["MemberAdded"],
+                remove_events: vec!["MemberRemoved"],
+            }],
+            delete_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(CommitteeEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "PolicyEvent",
+            filename: "policy_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(PolicyEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "CustomerEvent",
+            filename: "customer_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(CustomerEvent)).unwrap(),
+        },
         // SchemaInfo {
         //     name: "DepositAccountEvent",
         //     filename: "deposit_account_event_schema.json",
@@ -128,6 +137,11 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
         //     name: "WithdrawalEvent",
         //     filename: "withdrawal_event_schema.json",
         //     generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
+        // },
+        // SchemaInfo {
+        //     name: "CustodianEvent",
+        //     filename: "custodian_event_schema.json",
+        //     generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
         // },
         // SchemaInfo {
         //     name: "CollateralEvent",

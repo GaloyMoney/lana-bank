@@ -1,0 +1,244 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AccountStatus": {
+      "enum": [
+        "inactive",
+        "active"
+      ],
+      "type": "string"
+    },
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    },
+    "CustomerType": {
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ],
+      "type": "string"
+    },
+    "KycLevel": {
+      "enum": [
+        "NotKyced",
+        "Basic",
+        "Advanced"
+      ],
+      "type": "string"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "customer_type": {
+          "$ref": "#/definitions/CustomerType"
+        },
+        "email": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "telegram_id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "customer_type",
+        "email",
+        "id",
+        "telegram_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "authentication_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "authentication_id_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "authentication_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "kyc_started"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "applicant_id",
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "level": {
+          "$ref": "#/definitions/KycLevel"
+        },
+        "type": {
+          "enum": [
+            "kyc_approved"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "applicant_id",
+        "audit_info",
+        "level",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "applicant_id": {
+          "type": "string"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "kyc_declined"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "applicant_id",
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "status": {
+          "$ref": "#/definitions/AccountStatus"
+        },
+        "type": {
+          "enum": [
+            "account_status_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "status",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "telegram_id": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "telegram_id_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "telegram_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "email": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "email_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "email",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "CustomerEvent"
+}

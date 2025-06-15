@@ -1,0 +1,123 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "ApprovalRules": {
+      "oneOf": [
+        {
+          "properties": {
+            "committee_id": {
+              "format": "uuid",
+              "type": "string"
+            },
+            "threshold": {
+              "format": "uint",
+              "minimum": 0.0,
+              "type": "integer"
+            },
+            "type": {
+              "enum": [
+                "committee_threshold"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "committee_id",
+            "threshold",
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "system_auto_approve"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "process_type": {
+          "type": "string"
+        },
+        "rules": {
+          "$ref": "#/definitions/ApprovalRules"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "id",
+        "process_type",
+        "rules",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "rules": {
+          "$ref": "#/definitions/ApprovalRules"
+        },
+        "type": {
+          "enum": [
+            "approval_rules_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "rules",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "PolicyEvent"
+}
