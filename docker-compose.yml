@@ -20,7 +20,7 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin-pg ]
     extra_hosts:
-      - "host.containers.internal:host-gateway"
+      host.containers.internal: ${HOST_GATEWAY:-host-gateway}
 
   kratos-customer:
     image: oryd/kratos:v1.3.1
@@ -32,7 +32,7 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-customer-pg ]
     extra_hosts:
-      - "host.containers.internal:host-gateway"
+      host.containers.internal: ${HOST_GATEWAY:-host-gateway}
   
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
@@ -41,7 +41,7 @@ services:
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin, kratos-customer, otel-agent ]
     extra_hosts:
-      - "host.containers.internal:host-gateway"
+      host.containers.internal: ${HOST_GATEWAY:-host-gateway}
 
   #! Databases
   core-pg:
