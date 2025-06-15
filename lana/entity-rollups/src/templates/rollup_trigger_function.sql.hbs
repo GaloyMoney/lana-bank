@@ -40,13 +40,12 @@ BEGIN
     last_sequence = NEW.sequence,
     modified_at = NEW.recorded_at,
     ({{#each fields}}{{this.name}}{{#unless @last}}, {{/unless}}{{/each}}) =
-    CASE event_type{{#each event_updates}}
-      WHEN '{{this.name}}' THEN
-        (
-          {{#each this.field_updates}}{{>field-update}}{{#unless @last}},
-          {{/unless}}{{/each}}
-        ){{/each}}
-    END;
+    (SELECT {{#each fields}}
+      CASE event_type{{#each ../event_updates}}
+        WHEN '{{this.name}}' THEN {{#each this.field_updates}}{{#if (eq this.name ../../this.name)}}{{>field-update}}{{/if}}{{/each}}{{/each}}
+        ELSE current_row.{{this.name}}
+      END{{#unless @last}},{{/unless}}{{/each}}
+    );
 
   RETURN NEW;
 END;
