@@ -72,6 +72,8 @@ sha2 = { workspace = true }
 gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }
 schemars = { workspace = true }
+markdown2pdf = { workspace = true, default-features = false }
+handlebars = { workspace = true }
 
 [dev-dependencies]
 rand = { workspace = true }
