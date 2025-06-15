@@ -18,6 +18,7 @@ struct RollupTableContext {
     fields: Vec<FieldDefinition>,
     regular_fields: Vec<FieldDefinition>,
     collection_fields: Vec<FieldDefinition>,
+    toggle_fields: Vec<FieldDefinition>,
     event_types: Vec<EventTypeInfo>,
     event_updates: Vec<EventUpdateInfo>,
 }
@@ -46,11 +47,13 @@ struct ComputedFieldAction {
     set_item_field: Option<String>,
     is_jsonb_field: bool,
     element_cast_type: Option<String>,
+    is_toggle_field: bool,
     // Computed action flags
     is_field_update: bool,
     is_field_removal: bool,
     is_set_add: bool,
     is_set_remove: bool,
+    is_toggle_set: bool,
 }
 
 #[derive(serde::Serialize)]
@@ -65,6 +68,7 @@ struct RollupUpdateContext {
     removed_fields: Vec<FieldDefinition>,
     regular_fields: Vec<FieldDefinition>,
     collection_fields: Vec<FieldDefinition>,
+    toggle_fields: Vec<FieldDefinition>,
     event_types: Vec<EventTypeInfo>,
     event_updates: Vec<EventUpdateInfo>,
 }
@@ -84,6 +88,8 @@ struct FieldDefinition {
     set_item_field: Option<String>,
     is_jsonb_field: bool,
     element_cast_type: Option<String>,
+    is_toggle_field: bool,
+    toggle_events: Option<Vec<String>>,
 }
 
 fn compute_event_updates(
@@ -107,10 +113,12 @@ fn compute_event_updates(
                 set_item_field: field.set_item_field.clone(),
                 is_jsonb_field: field.is_jsonb_field,
                 element_cast_type: field.element_cast_type.clone(),
+                is_toggle_field: field.is_toggle_field,
                 is_field_update: false,
                 is_field_removal: false,
                 is_set_add: false,
                 is_set_remove: false,
+                is_toggle_set: false,
             };
             
             if field.is_set_field {
@@ -124,6 +132,13 @@ fn compute_event_updates(
                     // Convert PascalCase event names to snake_case for comparison
                     let snake_case_remove_events: Vec<String> = remove_events.iter().map(|s| to_snake_case(s)).collect();
                     computed_field.is_set_remove = snake_case_remove_events.contains(&event_type.name);
+                }
+            } else if field.is_toggle_field {
+                // Handle toggle fields
+                if let Some(ref toggle_events) = field.toggle_events {
+                    // Convert PascalCase event names to snake_case for comparison
+                    let snake_case_toggle_events: Vec<String> = toggle_events.iter().map(|s| to_snake_case(s)).collect();
+                    computed_field.is_toggle_set = snake_case_toggle_events.contains(&event_type.name);
                 }
             } else {
                 // Handle regular fields
@@ -203,6 +218,7 @@ pub fn generate_rollup_migrations(
     let field_update_basic_fragment = fs::read_to_string(fragments_dir.join("field_update_basic.sql.hbs"))?;
     let field_removal_fragment = fs::read_to_string(fragments_dir.join("field_removal.sql.hbs"))?;
     let field_preserve_fragment = fs::read_to_string(fragments_dir.join("field_preserve.sql.hbs"))?;
+    let toggle_set_fragment = fs::read_to_string(fragments_dir.join("toggle_set.sql.hbs"))?;
 
     let mut handlebars = Handlebars::new();
     handlebars.register_helper(
@@ -285,6 +301,7 @@ pub fn generate_rollup_migrations(
     handlebars.register_template_string("field_update_basic", &field_update_basic_fragment)?;
     handlebars.register_template_string("field_removal", &field_removal_fragment)?;
     handlebars.register_template_string("field_preserve", &field_preserve_fragment)?;
+    handlebars.register_template_string("toggle_set", &toggle_set_fragment)?;
 
     for schema_change in schema_changes {
         let schema_info = &schema_change.schema_info;
@@ -294,10 +311,11 @@ pub fn generate_rollup_migrations(
             &schema_change.current_schema,
             &schema_info.collections,
             &schema_info.delete_events,
+            &schema_info.toggle_events,
         )?;
         
-        // Separate fields into regular and collection fields
-        let (regular_fields, collection_fields) = separate_fields(&current_fields);
+        // Separate fields into regular, collection, and toggle fields
+        let (regular_fields, collection_fields, toggle_fields) = separate_fields(&current_fields);
 
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
@@ -316,6 +334,7 @@ pub fn generate_rollup_migrations(
                 previous_schema,
                 &schema_info.collections,
                 &schema_info.delete_events,
+                &schema_info.toggle_events,
             )?;
 
             // Compare fields
@@ -342,6 +361,7 @@ pub fn generate_rollup_migrations(
                 removed_fields,
                 regular_fields: regular_fields.clone(),
                 collection_fields: collection_fields.clone(),
+                toggle_fields: toggle_fields.clone(),
                 event_types: event_types.clone(),
                 event_updates: event_updates.clone(),
             };
@@ -352,6 +372,7 @@ pub fn generate_rollup_migrations(
                 fields: current_fields,
                 regular_fields: regular_fields.clone(),
                 collection_fields: collection_fields.clone(),
+                toggle_fields: toggle_fields.clone(),
                 event_types: event_types.clone(),
                 event_updates,
             };
@@ -399,6 +420,7 @@ pub fn generate_rollup_migrations(
                 fields: current_fields,
                 regular_fields,
                 collection_fields,
+                toggle_fields,
                 event_types,
                 event_updates,
             };
@@ -440,6 +462,7 @@ fn extract_fields_and_events_from_schema(
     schema: &Value,
     collection_rollups: &[super::CollectionRollup],
     delete_events: &[&str],
+    toggle_events: &[&str],
 ) -> anyhow::Result<(Vec<FieldDefinition>, Vec<EventTypeInfo>)> {
     let mut fields = Vec::new();
     let mut all_properties: Vec<(String, Value)> = Vec::new();
@@ -546,7 +569,7 @@ fn extract_fields_and_events_from_schema(
 
     // Convert properties to field definitions
     for (name, prop_schema) in &all_properties {
-        let mut sql_type = json_schema_to_sql_type(&prop_schema)?;
+        let mut sql_type = json_schema_to_sql_type_with_definitions(&prop_schema, Some(schema))?;
         let nullable = true; // Since fields come from different oneOf variants, they should be nullable
 
         // Skip the individual ID fields if they're part of a set
@@ -563,7 +586,7 @@ fn extract_fields_and_events_from_schema(
             if let Some(info) = set_field_info.get(name) {
                 // Determine array type based on the individual field type
                 let item_type = if let Some((_, item_schema)) = all_properties.iter().find(|(name, _)| name == &info.item_field_name) {
-                    json_schema_to_sql_type(item_schema).unwrap_or_else(|_| "VARCHAR".to_string())
+                    json_schema_to_sql_type_with_definitions(item_schema, Some(schema)).unwrap_or_else(|_| "VARCHAR".to_string())
                 } else {
                     "VARCHAR".to_string()
                 };
@@ -603,7 +626,35 @@ fn extract_fields_and_events_from_schema(
             set_item_field,
             is_jsonb_field,
             element_cast_type,
+            is_toggle_field: false,
+            toggle_events: None,
         });
+    }
+
+    // Add toggle fields for toggle events
+    for toggle_event in toggle_events {
+        let toggle_field_name = format!("is_{}", to_snake_case(toggle_event));
+        
+        // Check if field already exists
+        if !fields.iter().any(|f| f.name == toggle_field_name) {
+            fields.push(FieldDefinition {
+                name: toggle_field_name.clone(),
+                sql_type: "BOOLEAN".to_string(),
+                nullable: false, // toggle fields default to false, not null
+                is_json_extract: true, // toggle fields can extract from JSON with COALESCE
+                json_path: toggle_field_name.clone(),
+                cast_type: None,
+                revoke_events: None,
+                is_set_field: false,
+                set_add_events: None,
+                set_remove_events: None,
+                set_item_field: None,
+                is_jsonb_field: false,
+                element_cast_type: None,
+                is_toggle_field: true,
+                toggle_events: Some(vec![toggle_event.to_string()]),
+            });
+        }
     }
 
     // Add collection events to event types
@@ -634,7 +685,7 @@ fn extract_fields_and_events_from_schema(
     Ok((fields, event_types))
 }
 
-fn json_schema_to_sql_type(schema: &Value) -> anyhow::Result<String> {
+fn json_schema_to_sql_type_with_definitions(schema: &Value, definitions: Option<&Value>) -> anyhow::Result<String> {
     // Handle $ref
     if let Some(Value::String(ref_path)) = schema.get("$ref") {
         // For now, handle common refs
@@ -643,13 +694,25 @@ fn json_schema_to_sql_type(schema: &Value) -> anyhow::Result<String> {
         } else if ref_path.contains("AuditEntryId") {
             return Ok("BIGINT".to_string());
         }
+        
+        // Try to resolve other $refs if definitions are available
+        if let Some(defs) = definitions {
+            if let Some(def_name) = ref_path.strip_prefix("#/definitions/") {
+                if let Some(definition) = defs.get("definitions").and_then(|d| d.get(def_name)) {
+                    return json_schema_to_sql_type_with_definitions(definition, definitions);
+                }
+            }
+        }
     }
 
     // Handle direct types
     if let Some(Value::String(type_str)) = schema.get("type") {
         let sql_type = match type_str.as_str() {
             "string" => {
-                if let Some(Value::String(format)) = schema.get("format") {
+                // Check if this is an enum first
+                if schema.get("enum").is_some() {
+                    "VARCHAR"
+                } else if let Some(Value::String(format)) = schema.get("format") {
                     match format.as_str() {
                         "uuid" => "UUID",
                         "date-time" => "TIMESTAMPTZ",
@@ -717,19 +780,22 @@ fn compare_fields(
     (new_fields, removed_fields)
 }
 
-fn separate_fields(fields: &[FieldDefinition]) -> (Vec<FieldDefinition>, Vec<FieldDefinition>) {
+fn separate_fields(fields: &[FieldDefinition]) -> (Vec<FieldDefinition>, Vec<FieldDefinition>, Vec<FieldDefinition>) {
     let mut regular_fields = Vec::new();
     let mut collection_fields = Vec::new();
+    let mut toggle_fields = Vec::new();
     
     for field in fields {
         if field.is_set_field {
             collection_fields.push(field.clone());
+        } else if field.is_toggle_field {
+            toggle_fields.push(field.clone());
         } else {
             regular_fields.push(field.clone());
         }
     }
     
-    (regular_fields, collection_fields)
+    (regular_fields, collection_fields, toggle_fields)
 }
 
 fn to_snake_case(s: &str) -> String {

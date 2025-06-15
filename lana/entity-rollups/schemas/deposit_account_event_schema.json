@@ -1,0 +1,105 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AccountStatus": {
+      "enum": [
+        "inactive",
+        "active"
+      ],
+      "type": "string"
+    },
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "account_holder_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "description": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "name": {
+          "type": "string"
+        },
+        "reference": {
+          "type": "string"
+        },
+        "status": {
+          "$ref": "#/definitions/AccountStatus"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "account_holder_id",
+        "audit_info",
+        "description",
+        "id",
+        "ledger_account_id",
+        "name",
+        "reference",
+        "status",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "status": {
+          "$ref": "#/definitions/AccountStatus"
+        },
+        "type": {
+          "enum": [
+            "account_status_updated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "status",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "DepositAccountEvent"
+}

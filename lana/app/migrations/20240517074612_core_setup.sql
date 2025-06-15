@@ -110,7 +110,7 @@ CREATE TABLE core_withdrawal_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE customers (
+CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
   authentication_id UUID UNIQUE DEFAULT NULL,
   email VARCHAR NOT NULL UNIQUE,
@@ -119,8 +119,8 @@ CREATE TABLE customers (
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE customer_events (
-  id UUID NOT NULL REFERENCES customers(id),
+CREATE TABLE core_customer_events (
+  id UUID NOT NULL REFERENCES core_customers(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -205,7 +205,7 @@ CREATE TABLE core_collateral_events (
 
 CREATE TABLE core_credit_facilities (
   id UUID PRIMARY KEY,
-  customer_id UUID NOT NULL REFERENCES customers(id),
+  customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
@@ -358,7 +358,7 @@ CREATE TABLE core_document_events (
 CREATE TABLE documents (
   id UUID PRIMARY KEY,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,
-  customer_id UUID NOT NULL REFERENCES customers(id),
+  customer_id UUID NOT NULL REFERENCES core_customers(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 CREATE INDEX idx_documents_customer_id_deleted_id ON documents (customer_id, deleted, id);

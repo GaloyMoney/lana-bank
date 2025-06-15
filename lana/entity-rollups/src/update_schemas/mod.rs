@@ -11,7 +11,7 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 // };
 // use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
-// use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
+use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
@@ -33,6 +33,7 @@ pub struct SchemaInfo {
     pub table_prefix: &'static str,
     pub collections: Vec<CollectionRollup>,
     pub delete_events: Vec<&'static str>,
+    pub toggle_events: Vec<&'static str>,
     pub generate_schema: fn() -> serde_json::Value,
 }
 
@@ -44,6 +45,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             table_prefix: "core",
             collections: vec![],
             delete_events: vec!["RoleRevoked"],
+            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
         },
         SchemaInfo {
@@ -57,6 +59,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
                 remove_events: vec!["PermissionSetRemoved"],
             }],
             delete_events: vec![],
+            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
         },
         SchemaInfo {
@@ -65,6 +68,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             table_prefix: "core",
             collections: vec![],
             delete_events: vec![],
+            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PermissionSetEvent)).unwrap(),
         },
         SchemaInfo {
@@ -92,6 +96,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
                 },
             ],
             delete_events: vec![],
+            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
         },
         SchemaInfo {
@@ -105,6 +110,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
                 remove_events: vec!["MemberRemoved"],
             }],
             delete_events: vec![],
+            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(CommitteeEvent)).unwrap(),
         },
         SchemaInfo {
@@ -113,6 +119,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             table_prefix: "core",
             collections: vec![],
             delete_events: vec![],
+            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PolicyEvent)).unwrap(),
         },
         SchemaInfo {
@@ -121,23 +128,36 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             table_prefix: "core",
             collections: vec![],
             delete_events: vec![],
+            toggle_events: vec!["KycApproved"],
             generate_schema: || serde_json::to_value(schema_for!(CustomerEvent)).unwrap(),
         },
-        // SchemaInfo {
-        //     name: "DepositAccountEvent",
-        //     filename: "deposit_account_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(DepositAccountEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "DepositEvent",
-        //     filename: "deposit_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(DepositEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "WithdrawalEvent",
-        //     filename: "withdrawal_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
-        // },
+        SchemaInfo {
+            name: "DepositAccountEvent",
+            filename: "deposit_account_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(DepositAccountEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "DepositEvent",
+            filename: "deposit_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(DepositEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "WithdrawalEvent",
+            filename: "withdrawal_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec!["Confirmed", "Cancelled"],
+            generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
+        },
         // SchemaInfo {
         //     name: "CustodianEvent",
         //     filename: "custodian_event_schema.json",
