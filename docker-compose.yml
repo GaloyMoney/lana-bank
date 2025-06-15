@@ -19,6 +19,8 @@ services:
       DSN: postgres://dbuser:secret@kratos-admin-pg:5432/default?sslmode=disable
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin-pg ]
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
 
   kratos-customer:
     image: oryd/kratos:v1.3.1
@@ -29,6 +31,8 @@ services:
       DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-customer-pg ]
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
   
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
@@ -36,6 +40,8 @@ services:
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin, kratos-customer, otel-agent ]
+    extra_hosts:
+      - "host.containers.internal:host-gateway"
 
   #! Databases
   core-pg:
