@@ -31,12 +31,12 @@ BEGIN
     NEW.recorded_at{{#each fields}},
     {{#if this.is_set_field}}CASE
       WHEN NEW.event ? '{{this.json_path}}' THEN 
-        ARRAY(SELECT DISTINCT unnest((NEW.event -> '{{this.json_path}}')::jsonb) ORDER BY 1)::UUID[]
+        ARRAY(SELECT DISTINCT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
       ELSE ARRAY[]::UUID[]
     END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
       WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
-      ELSE (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
-    END{{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}{{/each}}
+      ELSE {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
+    END{{else}}{{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}{{/if}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}{{/each}}
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = NEW.sequence,
@@ -55,14 +55,14 @@ BEGIN
           ELSE current_row.{{this.name}}
         END{{/if}}
       WHEN NEW.event ? '{{this.json_path}}' THEN 
-        ARRAY(SELECT DISTINCT unnest((NEW.event -> '{{this.json_path}}')::jsonb) ORDER BY 1)::UUID[]
+        ARRAY(SELECT DISTINCT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
       ELSE current_row.{{this.name}}
     END{{else if this.is_json_extract}}{{#if this.revoke_events}}CASE
       WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
-      WHEN NEW.event ? '{{this.json_path}}' THEN (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
+      WHEN NEW.event ? '{{this.json_path}}' THEN {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
       ELSE current_row.{{this.name}}
     END{{else}}CASE
-      WHEN NEW.event ? '{{this.json_path}}' THEN (NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}
+      WHEN NEW.event ? '{{this.json_path}}' THEN {{#if this.is_jsonb_field}}(NEW.event -> '{{this.json_path}}'){{else}}(NEW.event ->> '{{this.json_path}}'){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}
       ELSE current_row.{{this.name}}
     END{{/if}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}{{/each}};
 

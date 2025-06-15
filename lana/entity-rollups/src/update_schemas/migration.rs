@@ -39,6 +39,7 @@ struct FieldDefinition {
     set_add_events: Option<Vec<String>>,
     set_remove_events: Option<Vec<String>>,
     set_item_field: Option<String>,
+    is_jsonb_field: bool,
 }
 
 pub fn generate_rollup_migrations(
@@ -350,6 +351,9 @@ fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinit
         // Get revoke events for this field
         let revoke_events = field_revoke_events.get(&name).cloned();
 
+        // Determine if this field should use JSONB extraction (-> operator vs ->> operator)
+        let is_jsonb_field = sql_type == "JSONB";
+
         fields.push(FieldDefinition {
             name: to_snake_case(&name),
             sql_type,
@@ -362,6 +366,7 @@ fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinit
             set_add_events,
             set_remove_events,
             set_item_field,
+            is_jsonb_field,
         });
     }
 
