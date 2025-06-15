@@ -41,6 +41,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             name: "UserEvent",
             filename: "user_event_schema.json",
             table_prefix: "core",
+            collections: vec![],
             generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
         },
         SchemaInfo {
@@ -48,7 +49,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             filename: "role_event_schema.json",
             table_prefix: "core",
             collections: vec![CollectionRollup {
-                column_name: "permission_sets",
+                column_name: "permission_set_ids",
                 values: "permission_set_id",
                 add_events: vec!["PermissionSetAdded"],
                 remove_events: vec!["PermissionSetRemoved"],

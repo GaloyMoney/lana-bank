@@ -2,7 +2,11 @@ use anyhow::anyhow;
 use colored::*;
 use handlebars::Handlebars;
 use serde_json::Value;
-use std::{collections::{HashMap, HashSet}, fs, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    path::Path,
+};
 
 use super::SchemaChangeInfo;
 
@@ -82,43 +86,65 @@ pub fn generate_rollup_migrations(
     let mut handlebars = Handlebars::new();
     handlebars.register_helper(
         "eq",
-        Box::new(|h: &handlebars::Helper,
-                  _: &Handlebars,
-                  _: &handlebars::Context,
-                  _: &mut handlebars::RenderContext,
-                  out: &mut dyn handlebars::Output|
-                  -> handlebars::HelperResult {
-            let param1 = h.param(0).ok_or(handlebars::RenderErrorReason::MissingVariable(Some("eq: Missing first parameter".to_string())))?;
-            let param2 = h.param(1).ok_or(handlebars::RenderErrorReason::MissingVariable(Some("eq: Missing second parameter".to_string())))?;
-            
-            let equals = param1.value() == param2.value();
-            if equals {
-                out.write("true")?;
-            }
-            Ok(())
-        }),
+        Box::new(
+            |h: &handlebars::Helper,
+             _: &Handlebars,
+             _: &handlebars::Context,
+             _: &mut handlebars::RenderContext,
+             out: &mut dyn handlebars::Output|
+             -> handlebars::HelperResult {
+                let param1 = h
+                    .param(0)
+                    .ok_or(handlebars::RenderErrorReason::MissingVariable(Some(
+                        "eq: Missing first parameter".to_string(),
+                    )))?;
+                let param2 = h
+                    .param(1)
+                    .ok_or(handlebars::RenderErrorReason::MissingVariable(Some(
+                        "eq: Missing second parameter".to_string(),
+                    )))?;
+
+                let equals = param1.value() == param2.value();
+                if equals {
+                    out.write("true")?;
+                }
+                Ok(())
+            },
+        ),
     );
     handlebars.register_template_string("rollup_table_only", &table_template_content)?;
-    handlebars.register_template_string("rollup_trigger_function", &trigger_function_template_content)?;
-    handlebars.register_template_string("rollup_trigger_creation", &trigger_creation_template_content)?;
+    handlebars.register_template_string(
+        "rollup_trigger_function",
+        &trigger_function_template_content,
+    )?;
+    handlebars.register_template_string(
+        "rollup_trigger_creation",
+        &trigger_creation_template_content,
+    )?;
     handlebars.register_template_string("rollup_table_alter", &alter_template_content)?;
 
     for schema_change in schema_changes {
         let schema_info = &schema_change.schema_info;
-        
+
         // Extract fields from the current schema
-        let current_fields = extract_fields_from_schema(&schema_change.current_schema, &schema_info.collections)?;
+        let current_fields =
+            extract_fields_from_schema(&schema_change.current_schema, &schema_info.collections)?;
 
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
         let entity_base = schema_info.name.replace("Event", "");
-        let table_base = format!("{}_{}", schema_info.table_prefix, to_snake_case(&entity_base));
+        let table_base = format!(
+            "{}_{}",
+            schema_info.table_prefix,
+            to_snake_case(&entity_base)
+        );
         let rollup_table_name = format!("{}_events_rollup", table_base);
         let events_table_name = format!("{}_events", table_base);
 
         // Check if we have a previous schema to compare with
         if let Some(ref previous_schema) = schema_change.previous_schema {
-            let previous_fields = extract_fields_from_schema(previous_schema, &schema_info.collections)?;
+            let previous_fields =
+                extract_fields_from_schema(previous_schema, &schema_info.collections)?;
 
             // Compare fields
             let (new_fields, removed_fields) = compare_fields(&previous_fields, &current_fields);
@@ -151,18 +177,28 @@ pub fn generate_rollup_migrations(
             };
 
             // Render templates
-            let table_structure_content = handlebars.render("rollup_table_only", &trigger_context)?;
+            let table_structure_content =
+                handlebars.render("rollup_table_only", &trigger_context)?;
             let alter_content = handlebars.render("rollup_table_alter", &alter_context)?;
-            let trigger_function_content = handlebars.render("rollup_trigger_function", &trigger_context)?;
-            
+            let trigger_function_content =
+                handlebars.render("rollup_trigger_function", &trigger_context)?;
+
             // Create current table structure comment
-            let table_structure_comment = format!("-- Current table structure after migration:\n/*\n{}\n*/\n", table_structure_content);
-            
+            let table_structure_comment = format!(
+                "-- Current table structure after migration:\n/*\n{}\n*/\n",
+                table_structure_content
+            );
+
             // Combine templates
-            let migration_content = format!("{}\n{}\n\n{}\n", table_structure_comment, alter_content, trigger_function_content);
+            let migration_content = format!(
+                "{}\n{}\n\n{}\n",
+                table_structure_comment, alter_content, trigger_function_content
+            );
 
             // Generate timestamp for migration filename
-            let timestamp = (base_timestamp + chrono::Duration::seconds(migration_counter)).format("%Y%m%d%H%M%S").to_string();
+            let timestamp = (base_timestamp + chrono::Duration::seconds(migration_counter))
+                .format("%Y%m%d%H%M%S")
+                .to_string();
             migration_counter += 1;
             let migration_filename = format!("{}_update_{}.sql", timestamp, rollup_table_name);
             let migration_path = migrations_dir.join(migration_filename);
@@ -184,9 +220,11 @@ pub fn generate_rollup_migrations(
 
             // Render all template parts
             let table_content = handlebars.render("rollup_table_only", &context)?;
-            let trigger_function_content = handlebars.render("rollup_trigger_function", &context)?;
-            let trigger_creation_content = handlebars.render("rollup_trigger_creation", &context)?;
-            
+            let trigger_function_content =
+                handlebars.render("rollup_trigger_function", &context)?;
+            let trigger_creation_content =
+                handlebars.render("rollup_trigger_creation", &context)?;
+
             // Combine all parts into one migration
             let migration_content = format!(
                 "{}\n\n{}\n\n{}\n",
@@ -194,7 +232,9 @@ pub fn generate_rollup_migrations(
             );
 
             // Generate timestamp for migration filename
-            let timestamp = (base_timestamp + chrono::Duration::seconds(migration_counter)).format("%Y%m%d%H%M%S").to_string();
+            let timestamp = (base_timestamp + chrono::Duration::seconds(migration_counter))
+                .format("%Y%m%d%H%M%S")
+                .to_string();
             migration_counter += 1;
             let migration_filename = format!("{}_create_{}.sql", timestamp, rollup_table_name);
             let migration_path = migrations_dir.join(migration_filename);
@@ -211,7 +251,10 @@ pub fn generate_rollup_migrations(
     Ok(())
 }
 
-fn extract_fields_from_schema(schema: &Value, collection_rollups: &[super::CollectionRollup]) -> anyhow::Result<Vec<FieldDefinition>> {
+fn extract_fields_from_schema(
+    schema: &Value,
+    collection_rollups: &[super::CollectionRollup],
+) -> anyhow::Result<Vec<FieldDefinition>> {
     let mut fields = Vec::new();
     let mut all_properties = HashMap::new();
     let mut field_revoke_events: HashMap<String, Vec<String>> = HashMap::new();
@@ -222,7 +265,7 @@ fn extract_fields_from_schema(schema: &Value, collection_rollups: &[super::Colle
         add_events: Vec<String>,
         remove_events: Vec<String>,
     }
-    
+
     // Build set field info from collection rollups
     let mut set_field_info: HashMap<String, SetFieldInfo> = HashMap::new();
     for rollup in collection_rollups {
@@ -255,7 +298,6 @@ fn extract_fields_from_schema(schema: &Value, collection_rollups: &[super::Colle
                     None
                 };
 
-
                 for (prop_name, prop_schema) in properties {
                     if prop_name == "type" || prop_name == "id" || prop_name == "audit_info" {
                         continue; // Skip the discriminator field, id (handled as common field), and audit_info
@@ -265,7 +307,6 @@ fn extract_fields_from_schema(schema: &Value, collection_rollups: &[super::Colle
                     all_properties.insert(prop_name.clone(), prop_schema.clone());
 
                     if let Some(ref event_type_name) = event_type {
-
                         // Special handling for revoke events
                         if event_type_name.ends_with("_revoked")
                             || event_type_name.contains("revoke")
@@ -283,7 +324,7 @@ fn extract_fields_from_schema(schema: &Value, collection_rollups: &[super::Colle
             }
         }
     }
-    
+
     // Add array fields from collection rollups that aren't already tracked
     for (set_field_name, _) in &set_field_info {
         if !all_properties.contains_key(set_field_name) {
@@ -305,19 +346,27 @@ fn extract_fields_from_schema(schema: &Value, collection_rollups: &[super::Colle
         let nullable = true; // Since fields come from different oneOf variants, they should be nullable
 
         // Skip the individual ID fields if they're part of a set
-        if set_field_info.values().any(|info| info.item_field_name == name) {
+        if set_field_info
+            .values()
+            .any(|info| info.item_field_name == name)
+        {
             continue;
         }
 
         // Check if this is a set field
         let is_set_field = set_field_info.contains_key(&name);
-        let (set_add_events, set_remove_events, set_item_field) = if let Some(info) = set_field_info.get(&name) {
-            // Override SQL type for set fields to use UUID array
-            sql_type = "UUID[]".to_string();
-            (Some(info.add_events.clone()), Some(info.remove_events.clone()), Some(info.item_field_name.clone()))
-        } else {
-            (None, None, None)
-        };
+        let (set_add_events, set_remove_events, set_item_field) =
+            if let Some(info) = set_field_info.get(&name) {
+                // Override SQL type for set fields to use UUID array
+                sql_type = "UUID[]".to_string();
+                (
+                    Some(info.add_events.clone()),
+                    Some(info.remove_events.clone()),
+                    Some(info.item_field_name.clone()),
+                )
+            } else {
+                (None, None, None)
+            };
 
         // Determine cast type for trigger function
         let cast_type = get_cast_type(&sql_type);
@@ -456,4 +505,3 @@ fn to_snake_case(s: &str) -> String {
 
     result
 }
-

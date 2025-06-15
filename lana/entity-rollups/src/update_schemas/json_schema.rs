@@ -2,7 +2,11 @@ use anyhow::anyhow;
 use colored::*;
 use serde_json::Value;
 use similar::{ChangeTag, TextDiff};
-use std::{collections::{HashMap, HashSet}, fs, path::Path};
+use std::{
+    collections::{HashMap, HashSet},
+    fs,
+    path::Path,
+};
 
 use super::SchemaInfo;
 
@@ -12,7 +16,10 @@ pub struct SchemaChangeInfo {
     pub current_schema: Value,
 }
 
-pub fn process_schemas(schemas: &[SchemaInfo], schemas_out_dir: &str) -> anyhow::Result<Vec<SchemaChangeInfo>> {
+pub fn process_schemas(
+    schemas: &[SchemaInfo],
+    schemas_out_dir: &str,
+) -> anyhow::Result<Vec<SchemaChangeInfo>> {
     let schemas_dir = Path::new(schemas_out_dir);
     if !schemas_dir.exists() {
         fs::create_dir_all(schemas_dir)?;

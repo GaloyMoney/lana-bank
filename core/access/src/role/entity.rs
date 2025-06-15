@@ -16,7 +16,7 @@ pub enum RoleEvent {
     Initialized {
         id: RoleId,
         name: String,
-        permission_sets: HashSet<PermissionSetId>,
+        permission_set_ids: HashSet<PermissionSetId>,
         audit_info: AuditInfo,
     },
     PermissionSetAdded {
@@ -101,7 +101,7 @@ impl TryFromEvents<RoleEvent> for Role {
                 RoleEvent::Initialized {
                     id,
                     name,
-                    permission_sets,
+                    permission_set_ids: permission_sets,
                     ..
                 } => {
                     new_permission_sets.extend(permission_sets);
@@ -150,7 +150,7 @@ impl IntoEvents<RoleEvent> for NewRole {
             [RoleEvent::Initialized {
                 id: self.id,
                 name: self.name,
-                permission_sets: self.initial_permission_sets,
+                permission_set_ids: self.initial_permission_sets,
                 audit_info: self.audit_info,
             }],
         )
