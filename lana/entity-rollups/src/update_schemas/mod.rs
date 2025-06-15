@@ -32,6 +32,7 @@ pub struct SchemaInfo {
     pub filename: &'static str,
     pub table_prefix: &'static str,
     pub collections: Vec<CollectionRollup>,
+    pub delete_events: Vec<&'static str>,
     pub generate_schema: fn() -> serde_json::Value,
 }
 
@@ -42,6 +43,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             filename: "user_event_schema.json",
             table_prefix: "core",
             collections: vec![],
+            delete_events: vec!["RoleRevoked"],
             generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
         },
         SchemaInfo {
@@ -54,6 +56,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
                 add_events: vec!["PermissionSetAdded"],
                 remove_events: vec!["PermissionSetRemoved"],
             }],
+            delete_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
         },
         SchemaInfo {
@@ -61,6 +64,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             filename: "permission_set_event_schema.json",
             table_prefix: "core",
             collections: vec![],
+            delete_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PermissionSetEvent)).unwrap(),
         },
         // SchemaInfo {

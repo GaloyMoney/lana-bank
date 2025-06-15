@@ -127,8 +127,11 @@ pub fn generate_rollup_migrations(
         let schema_info = &schema_change.schema_info;
 
         // Extract fields from the current schema
-        let current_fields =
-            extract_fields_from_schema(&schema_change.current_schema, &schema_info.collections)?;
+        let current_fields = extract_fields_from_schema(
+            &schema_change.current_schema,
+            &schema_info.collections,
+            &schema_info.delete_events,
+        )?;
 
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
@@ -143,8 +146,11 @@ pub fn generate_rollup_migrations(
 
         // Check if we have a previous schema to compare with
         if let Some(ref previous_schema) = schema_change.previous_schema {
-            let previous_fields =
-                extract_fields_from_schema(previous_schema, &schema_info.collections)?;
+            let previous_fields = extract_fields_from_schema(
+                previous_schema,
+                &schema_info.collections,
+                &schema_info.delete_events,
+            )?;
 
             // Compare fields
             let (new_fields, removed_fields) = compare_fields(&previous_fields, &current_fields);
@@ -254,6 +260,7 @@ pub fn generate_rollup_migrations(
 fn extract_fields_from_schema(
     schema: &Value,
     collection_rollups: &[super::CollectionRollup],
+    delete_events: &[&str],
 ) -> anyhow::Result<Vec<FieldDefinition>> {
     let mut fields = Vec::new();
     let mut all_properties = HashMap::new();
@@ -307,12 +314,16 @@ fn extract_fields_from_schema(
                     all_properties.insert(prop_name.clone(), prop_schema.clone());
 
                     if let Some(ref event_type_name) = event_type {
-                        // Special handling for revoke events
-                        if event_type_name.ends_with("_revoked")
-                            || event_type_name.contains("revoke")
-                        {
-                            // Only the core field being revoked should be NULL'd, not auxiliary fields like audit_info
-                            if should_field_be_revoked(prop_name, event_type_name) {
+                        // Check if this event type is in the delete_events list
+                        // Convert delete_events from PascalCase to snake_case for comparison
+                        let snake_case_delete_events: Vec<String> = delete_events
+                            .iter()
+                            .map(|&s| to_snake_case(s))
+                            .collect();
+                        
+                        if snake_case_delete_events.contains(&event_type_name) {
+                            // Only add fields that aren't audit_info to the revoke list
+                            if prop_name != "audit_info" {
                                 field_revoke_events
                                     .entry(prop_name.clone())
                                     .or_insert_with(Vec::new)
@@ -447,15 +458,6 @@ fn json_schema_to_sql_type(schema: &Value) -> anyhow::Result<String> {
     }
 }
 
-fn should_field_be_revoked(field_name: &str, event_type: &str) -> bool {
-    // Ignore audit_info completely
-    if field_name == "audit_info" {
-        return false;
-    }
-
-    // If event type contains "revoked", all fields (except audit_info) are being revoked
-    event_type.contains("revoked")
-}
 
 fn get_cast_type(sql_type: &str) -> Option<String> {
     match sql_type {
