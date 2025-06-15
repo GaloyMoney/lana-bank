@@ -442,7 +442,7 @@ fn extract_fields_and_events_from_schema(
     delete_events: &[&str],
 ) -> anyhow::Result<(Vec<FieldDefinition>, Vec<EventTypeInfo>)> {
     let mut fields = Vec::new();
-    let mut all_properties = HashMap::new();
+    let mut all_properties: Vec<(String, Value)> = Vec::new();
     let mut field_revoke_events: HashMap<String, Vec<String>> = HashMap::new();
     let mut event_types = Vec::new();
 
@@ -492,7 +492,10 @@ fn extract_fields_and_events_from_schema(
                     }
 
                     // Track which fields this event type can modify
-                    all_properties.insert(prop_name.clone(), prop_schema.clone());
+                    // Only add if not already present to preserve first occurrence order
+                    if !all_properties.iter().any(|(name, _)| name == prop_name) {
+                        all_properties.push((prop_name.clone(), prop_schema.clone()));
+                    }
                     event_field_names.push(to_snake_case(prop_name));
 
                     if let Some(ref event_type_name) = event_type {
@@ -528,7 +531,7 @@ fn extract_fields_and_events_from_schema(
 
     // Add array fields from collection rollups that aren't already tracked
     for (set_field_name, _) in &set_field_info {
-        if !all_properties.contains_key(set_field_name) {
+        if !all_properties.iter().any(|(name, _)| name == set_field_name) {
             // Create a synthetic UUID array schema for the set field
             let array_schema = serde_json::json!({
                 "type": "array",
@@ -537,7 +540,7 @@ fn extract_fields_and_events_from_schema(
                     "format": "uuid"
                 }
             });
-            all_properties.insert(set_field_name.clone(), array_schema);
+            all_properties.push((set_field_name.clone(), array_schema));
         }
     }
 
@@ -559,7 +562,7 @@ fn extract_fields_and_events_from_schema(
         let (set_add_events, set_remove_events, set_item_field, element_cast_type) =
             if let Some(info) = set_field_info.get(name) {
                 // Determine array type based on the individual field type
-                let item_type = if let Some(item_schema) = all_properties.get(&info.item_field_name) {
+                let item_type = if let Some((_, item_schema)) = all_properties.iter().find(|(name, _)| name == &info.item_field_name) {
                     json_schema_to_sql_type(item_schema).unwrap_or_else(|_| "VARCHAR".to_string())
                 } else {
                     "VARCHAR".to_string()
@@ -625,8 +628,7 @@ fn extract_fields_and_events_from_schema(
         }
     }
 
-    // Sort fields for consistent ordering
-    fields.sort_by(|a, b| a.name.cmp(&b.name));
+    // Keep fields in schema order (same as event types)
     // Keep event_types in schema order (don't sort)
 
     Ok((fields, event_types))
