@@ -19,10 +19,19 @@ pub use json_schema::*;
 pub use migration::*;
 
 #[derive(Clone)]
+pub struct CollectionRollup {
+    pub column_name: &'static str,
+    pub values: &'static str,
+    pub add_events: Vec<&'static str>,
+    pub remove_events: Vec<&'static str>,
+}
+
+#[derive(Clone)]
 pub struct SchemaInfo {
     pub name: &'static str,
     pub filename: &'static str,
     pub table_prefix: &'static str,
+    pub collections: Vec<CollectionRollup>,
     pub generate_schema: fn() -> serde_json::Value,
 }
 
@@ -38,12 +47,19 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str) -> anyhow
             name: "RoleEvent",
             filename: "role_event_schema.json",
             table_prefix: "core",
+            collections: vec![CollectionRollup {
+                column_name: "permission_sets",
+                values: "permission_set_id",
+                add_events: vec!["PermissionSetAdded"],
+                remove_events: vec!["PermissionSetRemoved"],
+            }],
             generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
         },
         SchemaInfo {
             name: "PermissionSetEvent",
             filename: "permission_set_event_schema.json",
             table_prefix: "core",
+            collections: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PermissionSetEvent)).unwrap(),
         },
         // SchemaInfo {

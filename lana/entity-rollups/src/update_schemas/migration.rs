@@ -107,7 +107,7 @@ pub fn generate_rollup_migrations(
         let schema_info = &schema_change.schema_info;
         
         // Extract fields from the current schema
-        let current_fields = extract_fields_from_schema(&schema_change.current_schema)?;
+        let current_fields = extract_fields_from_schema(&schema_change.current_schema, &schema_info.collections)?;
 
         // Generate table names from entity name
         // e.g., UserEvent -> core_user_events_rollup, core_user_events
@@ -118,7 +118,7 @@ pub fn generate_rollup_migrations(
 
         // Check if we have a previous schema to compare with
         if let Some(ref previous_schema) = schema_change.previous_schema {
-            let previous_fields = extract_fields_from_schema(previous_schema)?;
+            let previous_fields = extract_fields_from_schema(previous_schema, &schema_info.collections)?;
 
             // Compare fields
             let (new_fields, removed_fields) = compare_fields(&previous_fields, &current_fields);
@@ -211,17 +211,29 @@ pub fn generate_rollup_migrations(
     Ok(())
 }
 
-fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinition>> {
+fn extract_fields_from_schema(schema: &Value, collection_rollups: &[super::CollectionRollup]) -> anyhow::Result<Vec<FieldDefinition>> {
     let mut fields = Vec::new();
     let mut all_properties = HashMap::new();
     let mut field_revoke_events: HashMap<String, Vec<String>> = HashMap::new();
-    let mut set_field_info: HashMap<String, SetFieldInfo> = HashMap::new();
 
     // Track set field relationships
     struct SetFieldInfo {
         item_field_name: String,
         add_events: Vec<String>,
         remove_events: Vec<String>,
+    }
+    
+    // Build set field info from collection rollups
+    let mut set_field_info: HashMap<String, SetFieldInfo> = HashMap::new();
+    for rollup in collection_rollups {
+        set_field_info.insert(
+            rollup.column_name.to_string(),
+            SetFieldInfo {
+                item_field_name: rollup.values.to_string(),
+                add_events: rollup.add_events.iter().map(|s| s.to_string()).collect(),
+                remove_events: rollup.remove_events.iter().map(|s| s.to_string()).collect(),
+            },
+        );
     }
 
     // Get oneOf variants and analyze event types
@@ -243,16 +255,6 @@ fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinit
                     None
                 };
 
-                // Check for set field patterns - we're looking across all event types
-                let has_any_sets_field = one_of.iter().any(|v| {
-                    if let Some(Value::Object(props)) = v.get("properties") {
-                        props.iter().any(|(name, schema)| {
-                            name.ends_with("_sets") || (name.ends_with("s") && is_array_of_uuids(schema))
-                        })
-                    } else {
-                        false
-                    }
-                });
 
                 for (prop_name, prop_schema) in properties {
                     if prop_name == "type" || prop_name == "id" || prop_name == "audit_info" {
@@ -262,48 +264,7 @@ fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinit
                     // Track which fields this event type can modify
                     all_properties.insert(prop_name.clone(), prop_schema.clone());
 
-                    // Handle set field patterns for events like permission_set_added/removed
                     if let Some(ref event_type_name) = event_type {
-                        // Pattern: permission_set_id field with permission_set_added/removed events
-                        if prop_name.ends_with("_id") && has_any_sets_field {
-                            let base_name = prop_name.trim_end_matches("_id");
-                            
-                            // Look for the actual sets field name across all events
-                            let mut actual_set_field_name = None;
-                            for v in one_of.iter() {
-                                if let Some(Value::Object(props)) = v.get("properties") {
-                                    // Look for fields that match the pattern and are arrays of UUIDs
-                                    for (field_name, field_schema) in props {
-                                        if (field_name == &format!("{}_sets", base_name) || 
-                                            field_name == &format!("{}s", base_name)) && 
-                                           is_array_of_uuids(field_schema) {
-                                            actual_set_field_name = Some(field_name.clone());
-                                            break;
-                                        }
-                                    }
-                                }
-                                if actual_set_field_name.is_some() {
-                                    break;
-                                }
-                            }
-                            
-                            if let Some(set_field_name) = actual_set_field_name {
-                                // Only register set operations if there are add/remove events
-                                if event_type_name.contains("_added") || event_type_name.contains("_removed") {
-                                    let info = set_field_info.entry(set_field_name.clone()).or_insert(SetFieldInfo {
-                                        item_field_name: prop_name.clone(),
-                                        add_events: Vec::new(),
-                                        remove_events: Vec::new(),
-                                    });
-
-                                    if event_type_name.contains("_added") {
-                                        info.add_events.push(event_type_name.clone());
-                                    } else if event_type_name.contains("_removed") {
-                                        info.remove_events.push(event_type_name.clone());
-                                    }
-                                }
-                            }
-                        }
 
                         // Special handling for revoke events
                         if event_type_name.ends_with("_revoked")
@@ -322,28 +283,41 @@ fn extract_fields_from_schema(schema: &Value) -> anyhow::Result<Vec<FieldDefinit
             }
         }
     }
+    
+    // Add array fields from collection rollups that aren't already tracked
+    for (set_field_name, _) in &set_field_info {
+        if !all_properties.contains_key(set_field_name) {
+            // Create a synthetic UUID array schema for the set field
+            let array_schema = serde_json::json!({
+                "type": "array",
+                "items": {
+                    "type": "string",
+                    "format": "uuid"
+                }
+            });
+            all_properties.insert(set_field_name.clone(), array_schema);
+        }
+    }
 
     // Convert properties to field definitions
     for (name, prop_schema) in all_properties {
         let mut sql_type = json_schema_to_sql_type(&prop_schema)?;
         let nullable = true; // Since fields come from different oneOf variants, they should be nullable
 
+        // Skip the individual ID fields if they're part of a set
+        if set_field_info.values().any(|info| info.item_field_name == name) {
+            continue;
+        }
+
         // Check if this is a set field
         let is_set_field = set_field_info.contains_key(&name);
         let (set_add_events, set_remove_events, set_item_field) = if let Some(info) = set_field_info.get(&name) {
             // Override SQL type for set fields to use UUID array
-            if is_array_of_uuids(&prop_schema) {
-                sql_type = "UUID[]".to_string();
-            }
+            sql_type = "UUID[]".to_string();
             (Some(info.add_events.clone()), Some(info.remove_events.clone()), Some(info.item_field_name.clone()))
         } else {
             (None, None, None)
         };
-
-        // Skip the individual ID fields if they're part of a set
-        if name.ends_with("_id") && set_field_info.values().any(|info| info.item_field_name == name) {
-            continue;
-        }
 
         // Determine cast type for trigger function
         let cast_type = get_cast_type(&sql_type);
@@ -483,15 +457,3 @@ fn to_snake_case(s: &str) -> String {
     result
 }
 
-fn is_array_of_uuids(schema: &Value) -> bool {
-    if let Some(Value::String(type_str)) = schema.get("type") {
-        if type_str == "array" {
-            if let Some(items) = schema.get("items") {
-                if let Some(Value::String(format)) = items.get("format") {
-                    return format == "uuid";
-                }
-            }
-        }
-    }
-    false
-}
