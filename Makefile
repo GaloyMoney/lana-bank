@@ -48,21 +48,43 @@ podman-debug:
 	@echo "--- End Debug Information ---"
 
 # ── Container Management ──────────────────────────────────────────────────────────
-start-deps-podman: podman-setup
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./dev/bin/docker-compose-up.sh
+# Unified targets that work with both docker and podman via ENGINE_DEFAULT
+start-deps:
+	./dev/bin/docker-compose-up.sh
 	wait4x postgresql $${PG_CON}
 
+clean-deps:
+	./dev/bin/clean-deps.sh
+
+reset-deps: clean-deps start-deps setup-db
+
+# Podman convenience targets (set ENGINE_DEFAULT=podman and run unified target)
+start-deps-podman: podman-setup
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman $(MAKE) start-deps
+
 clean-deps-podman: 
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./dev/bin/clean-deps.sh
+	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman $(MAKE) clean-deps
 
 reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
 # ── Test Targets ───────────────────────────────────────────────────────────────────
+test-integration: start-deps
+	@echo "--- Running Integration Tests ---"
+	@$(MAKE) setup-db
+	@cargo nextest run --verbose --locked
+	@$(MAKE) clean-deps
+
 test-integration-podman: start-deps-podman
 	@echo "--- Running Integration Tests with Podman ---"
 	@$(MAKE) setup-db
 	@cargo nextest run --verbose --locked
 	@$(MAKE) clean-deps-podman
+
+test-bats: start-deps build-for-tests
+	@echo "--- Running BATS Tests ---"
+	@$(MAKE) setup-db
+	@./dev/bin/run-bats-with-server.sh
+	@$(MAKE) clean-deps
 
 test-bats-podman: start-deps-podman
 	@echo "--- Running BATS Tests with Podman ---"
@@ -74,21 +96,12 @@ test-bats-podman: start-deps-podman
 next-watch:
 	cargo watch -s 'cargo nextest run'
 
-clean-deps:
-	./dev/bin/clean-deps.sh
-
-start-deps:
-	./dev/bin/docker-compose-up.sh
-	wait4x postgresql $${PG_CON}
-
 # Rust backend
 setup-db:
 	cd lana/app && cargo sqlx migrate run
 
 sqlx-prepare:
 	cargo sqlx prepare --workspace
-
-reset-deps: clean-deps start-deps setup-db
 
 run-server:
 	cargo run --features sim-time --bin lana-cli -- --config ./bats/lana-sim-time.yml | tee .e2e-logs
