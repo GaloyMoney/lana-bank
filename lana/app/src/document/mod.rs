@@ -51,7 +51,7 @@ impl Documents {
         let new_document = NewDocument::builder()
             .id(DocumentId::new())
             .customer_id(customer_id.into())
-            .bucket(self.storage.bucket_name())
+            .bucket(self.storage.bucket_name().unwrap_or_default())
             .filename(filename)
             .audit_info(audit_info)
             .build()?;

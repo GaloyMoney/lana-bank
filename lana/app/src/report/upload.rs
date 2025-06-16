@@ -53,7 +53,7 @@ pub async fn execute(
                 res.push(ReportFileUpload::Success {
                     path_in_bucket,
                     report_name,
-                    bucket: storage.bucket_name().to_string(),
+                    bucket: storage.bucket_name().unwrap_or_default().to_string(),
                 });
             }
             Err(e) => res.push(ReportFileUpload::Failure {
