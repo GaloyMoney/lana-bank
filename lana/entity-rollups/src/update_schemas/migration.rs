@@ -139,6 +139,10 @@ fn compute_event_updates(
                     computed_field.is_set_remove =
                         snake_case_remove_events.contains(&event_type.name);
                 }
+                // Also check if this collection field appears in the event (e.g., for initialization)
+                if event_type.fields.contains(&field.json_path) && !computed_field.is_set_add && !computed_field.is_set_remove {
+                    computed_field.is_field_update = true;
+                }
             } else if field.is_toggle_field {
                 // Handle toggle fields
                 if let Some(ref toggle_events) = field.toggle_events {
