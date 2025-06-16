@@ -6,6 +6,7 @@ pub mod app;
 pub mod applicant;
 pub mod authorization;
 pub mod document;
+pub mod file_event;
 pub mod primitives;
 pub mod report;
 pub mod service_account;
