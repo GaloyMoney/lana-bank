@@ -1,9 +1,9 @@
 {{#if this.is_jsonb_array}}CASE
       WHEN {{path_exists_check this.json_path}} THEN
         ({{nested_json_extract this.json_path true}})
-      ELSE '[]'::JSONB
+      ELSE new_row.{{this.name}}
     END{{else}}CASE
       WHEN {{path_exists_check this.json_path}} THEN
         ARRAY(SELECT value::text{{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} FROM jsonb_array_elements_text({{nested_json_extract this.json_path true}}))
-      ELSE ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]
+      ELSE new_row.{{this.name}}
     END{{/if}}

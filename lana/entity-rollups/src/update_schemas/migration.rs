@@ -140,7 +140,10 @@ fn compute_event_updates(
                         snake_case_remove_events.contains(&event_type.name);
                 }
                 // Also check if this collection field appears in the event (e.g., for initialization)
-                if event_type.fields.contains(&field.json_path) && !computed_field.is_set_add && !computed_field.is_set_remove {
+                if event_type.fields.contains(&field.json_path)
+                    && !computed_field.is_set_add
+                    && !computed_field.is_set_remove
+                {
                     computed_field.is_field_update = true;
                 }
             } else if field.is_toggle_field {
@@ -232,6 +235,7 @@ pub fn generate_rollup_migrations(
     let field_init_fragment = fs::read_to_string(fragments_dir.join("field_init.sql.hbs"))?;
     let field_init_only_fragment = fs::read_to_string(fragments_dir.join("field_init.sql.hbs"))?;
     let array_init_fragment = fs::read_to_string(fragments_dir.join("array_init.sql.hbs"))?;
+    let array_update_fragment = fs::read_to_string(fragments_dir.join("array_update.sql.hbs"))?;
     let array_append_fragment = fs::read_to_string(fragments_dir.join("array_append.sql.hbs"))?;
     let array_removal_fragment = fs::read_to_string(fragments_dir.join("array_removal.sql.hbs"))?;
     let field_update_only_fragment =
@@ -417,6 +421,7 @@ pub fn generate_rollup_migrations(
     handlebars.register_template_string("field_init", &field_init_fragment)?;
     handlebars.register_template_string("field_init", &field_init_only_fragment)?;
     handlebars.register_template_string("array_init", &array_init_fragment)?;
+    handlebars.register_template_string("array_update", &array_update_fragment)?;
     handlebars.register_template_string("array_append", &array_append_fragment)?;
     handlebars.register_template_string("array_removal", &array_removal_fragment)?;
     handlebars.register_template_string("field_update", &field_update_only_fragment)?;
