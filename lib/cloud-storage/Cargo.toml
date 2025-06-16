@@ -14,3 +14,7 @@ serde = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
 reqwest = { workspace = true }
+
+[dev-dependencies]
+# Used in tests for creating temporary directories
+tempfile = "3.13.0"

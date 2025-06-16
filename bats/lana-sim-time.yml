@@ -8,7 +8,7 @@ app:
   service_account:
     gcp_location: europe-west6
   storage:
-    bucket_name: "gha-lana-documents"
+    provider: local
     root_folder: "gha"
   report:
     dbt_output_dataset: "dbt_gha"

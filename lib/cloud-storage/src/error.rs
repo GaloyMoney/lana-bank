@@ -8,4 +8,8 @@ pub enum StorageError {
     Gcs(#[from] google_cloud_storage::http::Error),
     #[error("Failed to sign URL: {0}")]
     GcsSignUrl(#[from] google_cloud_storage::sign::SignedURLError),
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+    #[error("bucket name not configured")]
+    MissingBucket,
 }

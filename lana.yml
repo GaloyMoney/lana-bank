@@ -1,0 +1,4 @@
+app:
+  storage:
+    provider: local
+    root_folder: "local_docs"

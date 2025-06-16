@@ -1,4 +1,7 @@
-use cloud_storage::{LocationInCloud, Storage, config::StorageConfig};
+use cloud_storage::{
+    LocationInCloud, Storage,
+    config::{StorageConfig, StorageProvider},
+};
 
 #[tokio::test]
 async fn upload_doc() -> anyhow::Result<()> {
@@ -18,8 +21,9 @@ async fn upload_doc() -> anyhow::Result<()> {
         StorageConfig::new_dev_mode(name_prefix)
     } else {
         StorageConfig {
+            provider: StorageProvider::Gcp,
             root_folder: "gha".to_string(),
-            bucket_name: "gha-lana-documents".to_string(),
+            bucket_name: Some("gha-lana-documents".to_string()),
         }
     };
 
@@ -33,7 +37,7 @@ async fn upload_doc() -> anyhow::Result<()> {
 
     // generate link
     let location = LocationInCloud {
-        bucket: storage.bucket_name(),
+        bucket: storage.bucket_name().unwrap(),
         path_in_bucket: filename,
     };
     let link = storage.generate_download_link(location.clone()).await?;
