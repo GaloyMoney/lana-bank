@@ -1,16 +1,16 @@
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
-    collateral::{error::CollateralError, Collateral, CollateralEvent},
-    credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
-    disbursal::{error::DisbursalError, Disbursal, DisbursalEvent},
+    collateral::{Collateral, CollateralEvent, error::CollateralError},
+    credit_facility::{CreditFacility, CreditFacilityEvent, error::CreditFacilityError},
+    disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
     interest_accrual_cycle::{
-        error::InterestAccrualCycleError, InterestAccrualCycle, InterestAccrualCycleEvent,
+        InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
     },
-    obligation::{error::ObligationError, Obligation, ObligationEvent},
+    obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
-        error::PaymentAllocationError, PaymentAllocation, PaymentAllocationEvent,
+        PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
     },
 };
 

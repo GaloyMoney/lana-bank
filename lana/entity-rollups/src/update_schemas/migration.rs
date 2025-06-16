@@ -162,7 +162,15 @@ fn compute_event_updates(
                 // If the event doesn't have this field, all flags stay false (preserve current value)
             }
 
-            field_updates.push(computed_field);
+            // Only include fields that are actually being modified by this event
+            if computed_field.is_field_update
+                || computed_field.is_field_removal
+                || computed_field.is_set_add
+                || computed_field.is_set_remove
+                || computed_field.is_toggle_set
+            {
+                field_updates.push(computed_field);
+            }
         }
 
         event_updates.push(EventUpdateInfo {

@@ -32,13 +32,15 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN{{#each fields}}
     new_row.{{this.name}} := {{>field-init}};{{/each}}
+  ELSE
+    -- Default all fields to current values{{#each fields}}
+    new_row.{{this.name}} := current_row.{{this.name}};{{/each}}
   END IF;
 
+  -- Update only the fields that are modified by the specific event
   CASE event_type{{#each event_updates}}
     WHEN '{{this.name}}' THEN{{#each this.field_updates}}
       new_row.{{this.name}} := {{>field-update}};{{/each}}{{/each}}
-    ELSE{{#each fields}}
-      new_row.{{this.name}} := COALESCE(current_row.{{this.name}}, new_row.{{this.name}});{{/each}}
   END CASE;
 
   INSERT INTO {{rollup_table_name}} (
