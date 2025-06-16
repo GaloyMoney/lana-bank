@@ -124,7 +124,7 @@ where
                     .create_and_spawn_at_in_op(
                         &mut db,
                         accrual_id,
-                        interest_accruals::CreditFacilityJobConfig::<Perms, E> {
+                        interest_accruals::InterestAccrualJobConfig::<Perms, E> {
                             credit_facility_id: id,
                             _phantom: std::marker::PhantomData,
                         },

@@ -91,7 +91,7 @@ where
             .create_and_spawn_at_in_op(
                 db,
                 JobId::new(),
-                obligation_due::CreditFacilityJobConfig::<Perms, E> {
+                obligation_due::ObligationDueJobConfig::<Perms, E> {
                     obligation_id: obligation.id,
                     effective: obligation.due_at().date_naive(),
                     _phantom: std::marker::PhantomData,

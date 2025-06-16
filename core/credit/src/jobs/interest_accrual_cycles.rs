@@ -14,11 +14,11 @@ use crate::{
 };
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms, E> {
+pub struct InterestAccrualCycleJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for InterestAccrualCycleJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -103,7 +103,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    config: CreditFacilityJobConfig<Perms, E>,
+    config: InterestAccrualCycleJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
@@ -167,7 +167,7 @@ where
                 .create_and_spawn_at_in_op(
                     &mut db,
                     new_accrual_cycle_id,
-                    interest_accruals::CreditFacilityJobConfig::<Perms, E> {
+                    interest_accruals::InterestAccrualJobConfig::<Perms, E> {
                         credit_facility_id: self.config.credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },

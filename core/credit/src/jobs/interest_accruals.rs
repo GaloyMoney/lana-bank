@@ -11,12 +11,12 @@ use outbox::OutboxEventMarker;
 use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, ledger::*, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms, E> {
+pub struct InterestAccrualJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for InterestAccrualJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -93,7 +93,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    config: CreditFacilityJobConfig<Perms, E>,
+    config: InterestAccrualJobConfig<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
     ledger: CreditLedger,
     jobs: Jobs,
@@ -143,7 +143,7 @@ where
                 .create_and_spawn_in_op(
                     &mut db,
                     uuid::Uuid::new_v4(),
-                    super::interest_accrual_cycles::CreditFacilityJobConfig::<Perms, E> {
+                    super::interest_accrual_cycles::InterestAccrualCycleJobConfig::<Perms, E> {
                         credit_facility_id: self.config.credit_facility_id,
                         _phantom: std::marker::PhantomData,
                     },

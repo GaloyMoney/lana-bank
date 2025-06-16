@@ -9,12 +9,12 @@ use outbox::OutboxEventMarker;
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityJobConfig<Perms, E> {
+pub struct ObligationDefaultedJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for ObligationDefaultedJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -77,7 +77,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: CreditFacilityJobConfig<Perms, E>,
+    config: ObligationDefaultedJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
     ledger: CreditLedger,
 }
