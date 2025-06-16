@@ -253,6 +253,12 @@ where
             Perms,
             E,
         >::new(&ledger, &obligations, jobs));
+        jobs.add_initializer(
+            obligation_liquidation::ObligationLiquidationJobInitializer::<Perms, E>::new(
+                &obligations,
+                jobs,
+            ),
+        );
         jobs.add_initializer(obligation_defaulted::ObligationDefaultedJobInitializer::<
             Perms,
             E,

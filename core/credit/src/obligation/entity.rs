@@ -111,6 +111,15 @@ impl Obligation {
         })
     }
 
+    pub fn liquidation_at(&self) -> Option<DateTime<Utc>> {
+        self.events.iter_all().find_map(|e| match e {
+            ObligationEvent::Initialized {
+                liquidation_date, ..
+            } => *liquidation_date,
+            _ => None,
+        })
+    }
+
     pub fn defaulted_at(&self) -> Option<DateTime<Utc>> {
         self.events.iter_all().find_map(|e| match e {
             ObligationEvent::Initialized { defaulted_date, .. } => *defaulted_date,
