@@ -50,12 +50,6 @@ pub enum ReportEvent {
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
-    FileUploadFailed {
-        report_name: String,
-        reason: String,
-        audit_info: AuditInfo,
-        recorded_at: DateTime<Utc>,
-    },
     UploadFailed {
         error: String,
         audit_info: AuditInfo,
@@ -89,8 +83,8 @@ impl Report {
             if let ReportEvent::UploadFailed { error, .. } = e {
                 return Some(format!("UploadFailed: {}", error));
             }
-            if let ReportEvent::FileUploadFailed { reason, .. } = e {
-                return Some(format!("FiledUploadFailed: {}", reason));
+            if let ReportEvent::UploadFailed { error, .. } = e {
+                return Some(format!("FiledUploadFailed: {}", error));
             }
         }
         None
@@ -123,15 +117,13 @@ impl Report {
                     audit_info: audit_info.clone(),
                     recorded_at: Utc::now(),
                 }),
-                ReportFileUpload::Failure {
-                    report_name,
-                    reason,
-                } => self.events.push(ReportEvent::FileUploadFailed {
-                    report_name,
-                    reason,
-                    audit_info: audit_info.clone(),
-                    recorded_at: Utc::now(),
-                }),
+                ReportFileUpload::Failure { reason, .. } => {
+                    self.events.push(ReportEvent::UploadFailed {
+                        error: reason.to_string(),
+                        audit_info: audit_info.clone(),
+                        recorded_at: Utc::now(),
+                    })
+                }
             }
         }
     }
