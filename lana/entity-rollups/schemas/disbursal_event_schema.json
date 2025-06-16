@@ -113,23 +113,9 @@
           "format": "uuid",
           "type": "string"
         },
-        "disbursal_due_date": {
+        "due_date": {
           "format": "date-time",
           "type": "string"
-        },
-        "disbursal_liquidation_date": {
-          "format": "date-time",
-          "type": [
-            "string",
-            "null"
-          ]
-        },
-        "disbursal_overdue_date": {
-          "format": "date-time",
-          "type": [
-            "string",
-            "null"
-          ]
         },
         "facility_id": {
           "format": "uuid",
@@ -138,6 +124,20 @@
         "id": {
           "format": "uuid",
           "type": "string"
+        },
+        "liquidation_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "overdue_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "type": {
           "enum": [
@@ -152,7 +152,7 @@
         "approval_process_id",
         "audit_info",
         "disbursal_credit_account_id",
-        "disbursal_due_date",
+        "due_date",
         "facility_id",
         "id",
         "type"

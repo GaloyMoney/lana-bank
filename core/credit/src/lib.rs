@@ -543,9 +543,9 @@ where
             .amount(amount)
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
-            .disbursal_due_date(due_date)
-            .disbursal_overdue_date(overdue_date)
-            .disbursal_liquidation_date(liquidation_date)
+            .due_date(due_date)
+            .overdue_date(overdue_date)
+            .liquidation_date(liquidation_date)
             .audit_info(audit_info)
             .build()?;
 

@@ -111,9 +111,9 @@ where
                     .amount(credit_facility.structuring_fee())
                     .account_ids(credit_facility.account_ids)
                     .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
-                    .disbursal_due_date(due_date)
-                    .disbursal_overdue_date(overdue_date)
-                    .disbursal_liquidation_date(liquidation_date)
+                    .due_date(due_date)
+                    .overdue_date(overdue_date)
+                    .liquidation_date(liquidation_date)
                     .audit_info(audit_info.clone())
                     .build()
                     .expect("could not build new disbursal");
