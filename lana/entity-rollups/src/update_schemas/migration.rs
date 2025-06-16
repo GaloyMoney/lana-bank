@@ -297,6 +297,106 @@ pub fn generate_rollup_migrations(
             },
         ),
     );
+    handlebars.register_helper(
+        "is_nested_path",
+        Box::new(
+            |h: &handlebars::Helper,
+             _: &Handlebars,
+             _: &handlebars::Context,
+             _: &mut handlebars::RenderContext,
+             out: &mut dyn handlebars::Output|
+             -> handlebars::HelperResult {
+                let path = h
+                    .param(0)
+                    .ok_or(handlebars::RenderErrorReason::MissingVariable(Some(
+                        "is_nested_path: Missing path parameter".to_string(),
+                    )))?;
+
+                if let Some(path_str) = path.value().as_str() {
+                    let is_nested = path_str.contains('.');
+                    if is_nested {
+                        out.write("true")?;
+                    }
+                }
+                Ok(())
+            },
+        ),
+    );
+    handlebars.register_helper(
+        "nested_json_extract",
+        Box::new(
+            |h: &handlebars::Helper,
+             _: &Handlebars,
+             _: &handlebars::Context,
+             _: &mut handlebars::RenderContext,
+             out: &mut dyn handlebars::Output|
+             -> handlebars::HelperResult {
+                let path = h
+                    .param(0)
+                    .ok_or(handlebars::RenderErrorReason::MissingVariable(Some(
+                        "nested_json_extract: Missing path parameter".to_string(),
+                    )))?;
+                let is_json_op = h
+                    .param(1)
+                    .and_then(|p| p.value().as_bool())
+                    .unwrap_or(false);
+
+                if let Some(path_str) = path.value().as_str() {
+                    let parts: Vec<&str> = path_str.split('.').collect();
+                    if parts.len() > 1 {
+                        let mut result = String::from("NEW.event");
+                        for (i, part) in parts.iter().enumerate() {
+                            if i == parts.len() - 1 && !is_json_op {
+                                // Last part with ->> for text extraction
+                                result.push_str(&format!(" ->> '{}'", part));
+                            } else {
+                                // Non-last parts or JSON extraction with ->
+                                result.push_str(&format!(" -> '{}'", part));
+                            }
+                        }
+                        out.write(&result)?;
+                    } else {
+                        // Single field
+                        if is_json_op {
+                            out.write(&format!("NEW.event -> '{}'", path_str))?;
+                        } else {
+                            out.write(&format!("NEW.event ->> '{}'", path_str))?;
+                        }
+                    }
+                }
+                Ok(())
+            },
+        ),
+    );
+    handlebars.register_helper(
+        "path_exists_check",
+        Box::new(
+            |h: &handlebars::Helper,
+             _: &Handlebars,
+             _: &handlebars::Context,
+             _: &mut handlebars::RenderContext,
+             out: &mut dyn handlebars::Output|
+             -> handlebars::HelperResult {
+                let path = h
+                    .param(0)
+                    .ok_or(handlebars::RenderErrorReason::MissingVariable(Some(
+                        "path_exists_check: Missing path parameter".to_string(),
+                    )))?;
+
+                if let Some(path_str) = path.value().as_str() {
+                    let parts: Vec<&str> = path_str.split('.').collect();
+                    if parts.len() > 1 {
+                        let result = format!("NEW.event -> '{}' ? '{}'", parts[0], parts[1]);
+                        out.write(&result)?;
+                    } else {
+                        let result = format!("NEW.event ? '{}'", path_str);
+                        out.write(&result)?;
+                    }
+                }
+                Ok(())
+            },
+        ),
+    );
     handlebars.register_template_string("rollup_table_only", &table_template_content)?;
     handlebars.register_template_string(
         "rollup_trigger_function",
@@ -324,12 +424,39 @@ pub fn generate_rollup_migrations(
     for schema_change in schema_changes {
         let schema_info = &schema_change.schema_info;
 
-        // Extract fields and event types from the current schema
+        // Auto-generate audit_entry_ids collection rollup for every schema
+        let mut enhanced_collections = schema_info.collections.clone();
+
+        // Check if audit_entry_ids collection already exists
+        if !enhanced_collections
+            .iter()
+            .any(|c| c.column_name == "audit_entry_ids")
+        {
+            // Find all events that have audit_info in their properties
+            let audit_events = find_events_with_audit_info(&schema_change.current_schema);
+
+            if !audit_events.is_empty() {
+                enhanced_collections.push(super::CollectionRollup {
+                    column_name: "audit_entry_ids",
+                    values: "audit_info.audit_entry_id",
+                    add_events: audit_events,
+                    remove_events: vec![],
+                });
+            }
+        }
+
+        // Create a modified schema_info with the enhanced collections
+        let enhanced_schema_info = super::SchemaInfo {
+            collections: enhanced_collections,
+            ..schema_info.clone()
+        };
+
+        // Extract fields and event types from the current schema using enhanced collections
         let (current_fields, event_types) = extract_fields_and_events_from_schema(
             &schema_change.current_schema,
-            &schema_info.collections,
-            &schema_info.delete_events,
-            &schema_info.toggle_events,
+            &enhanced_schema_info.collections,
+            &enhanced_schema_info.delete_events,
+            &enhanced_schema_info.toggle_events,
         )?;
 
         // Separate fields into regular, collection, and toggle fields
@@ -348,9 +475,26 @@ pub fn generate_rollup_migrations(
 
         // Check if we have a previous schema to compare with
         if let Some(ref previous_schema) = schema_change.previous_schema {
+            // For previous schema, we also need to enhance with audit_entry_ids if it had audit_info events
+            let mut previous_enhanced_collections = schema_info.collections.clone();
+            if !previous_enhanced_collections
+                .iter()
+                .any(|c| c.column_name == "audit_entry_ids")
+            {
+                let previous_audit_events = find_events_with_audit_info(previous_schema);
+                if !previous_audit_events.is_empty() {
+                    previous_enhanced_collections.push(super::CollectionRollup {
+                        column_name: "audit_entry_ids",
+                        values: "audit_info.audit_entry_id",
+                        add_events: previous_audit_events,
+                        remove_events: vec![],
+                    });
+                }
+            }
+
             let (previous_fields, _) = extract_fields_and_events_from_schema(
                 previous_schema,
-                &schema_info.collections,
+                &previous_enhanced_collections,
                 &schema_info.delete_events,
                 &schema_info.toggle_events,
             )?;
@@ -489,7 +633,7 @@ fn extract_fields_and_events_from_schema(
 
     // Track set field relationships
     struct SetFieldInfo {
-        item_field_name: String,
+        item_field_path: String,
         add_events: Vec<String>,
         remove_events: Vec<String>,
     }
@@ -500,9 +644,9 @@ fn extract_fields_and_events_from_schema(
         set_field_info.insert(
             rollup.column_name.to_string(),
             SetFieldInfo {
-                item_field_name: rollup.values.to_string(),
-                add_events: rollup.add_events.iter().map(|s| s.to_string()).collect(),
-                remove_events: rollup.remove_events.iter().map(|s| s.to_string()).collect(),
+                item_field_path: rollup.values.to_string(),
+                add_events: rollup.add_events.clone(),
+                remove_events: rollup.remove_events.clone(),
             },
         );
     }
@@ -514,7 +658,7 @@ fn extract_fields_and_events_from_schema(
                 // Get event type
                 let event_type = if let Some(Value::Object(type_obj)) = properties.get("type") {
                     if let Some(Value::Array(enum_vals)) = type_obj.get("enum") {
-                        if let Some(Value::String(type_name)) = enum_vals.get(0) {
+                        if let Some(Value::String(type_name)) = enum_vals.first() {
                             Some(type_name.clone())
                         } else {
                             None
@@ -545,12 +689,12 @@ fn extract_fields_and_events_from_schema(
                         let snake_case_delete_events: Vec<String> =
                             delete_events.iter().map(|&s| to_snake_case(s)).collect();
 
-                        if snake_case_delete_events.contains(&event_type_name) {
+                        if snake_case_delete_events.contains(event_type_name) {
                             // Only add fields that aren't audit_info to the revoke list
                             if prop_name != "audit_info" {
                                 field_revoke_events
                                     .entry(prop_name.clone())
-                                    .or_insert_with(Vec::new)
+                                    .or_default()
                                     .push(event_type_name.clone());
                             }
                         }
@@ -569,7 +713,7 @@ fn extract_fields_and_events_from_schema(
     }
 
     // Add array fields from collection rollups that aren't already tracked
-    for (set_field_name, _) in &set_field_info {
+    for set_field_name in set_field_info.keys() {
         if !all_properties
             .iter()
             .any(|(name, _)| name == set_field_name)
@@ -588,13 +732,13 @@ fn extract_fields_and_events_from_schema(
 
     // Convert properties to field definitions
     for (name, prop_schema) in &all_properties {
-        let mut sql_type = json_schema_to_sql_type_with_definitions(&prop_schema, Some(schema))?;
+        let mut sql_type = json_schema_to_sql_type_with_definitions(prop_schema, Some(schema))?;
         let nullable = true; // Since fields come from different oneOf variants, they should be nullable
 
         // Skip the individual ID fields if they're part of a set
         if set_field_info
             .values()
-            .any(|info| info.item_field_name == *name)
+            .any(|info| !info.item_field_path.contains('.') && info.item_field_path == *name)
         {
             continue;
         }
@@ -603,15 +747,22 @@ fn extract_fields_and_events_from_schema(
         let is_set_field = set_field_info.contains_key(name);
         let (set_add_events, set_remove_events, set_item_field, element_cast_type, is_jsonb_array) =
             if let Some(info) = set_field_info.get(name) {
-                // Determine array type based on the individual field type
-                let item_type = if let Some((_, item_schema)) = all_properties
-                    .iter()
-                    .find(|(name, _)| name == &info.item_field_name)
-                {
-                    json_schema_to_sql_type_with_definitions(item_schema, Some(schema))
-                        .unwrap_or_else(|_| "VARCHAR".to_string())
+                // Determine array type based on the field path
+                let item_type = if !info.item_field_path.contains('.') {
+                    // Simple field path - look for it in all_properties
+                    if let Some((_, item_schema)) = all_properties
+                        .iter()
+                        .find(|(name, _)| name == &info.item_field_path)
+                    {
+                        json_schema_to_sql_type_with_definitions(item_schema, Some(schema))
+                            .unwrap_or_else(|_| "VARCHAR".to_string())
+                    } else {
+                        "VARCHAR".to_string()
+                    }
                 } else {
-                    "VARCHAR".to_string()
+                    // Nested field path - lookup the definition and find the correct type
+                    lookup_nested_field_type(schema, &info.item_field_path)
+                        .unwrap_or_else(|_| "VARCHAR".to_string())
                 };
                 // If the item type is JSONB, store the entire array as JSONB
                 let is_jsonb_array = item_type == "JSONB";
@@ -625,7 +776,7 @@ fn extract_fields_and_events_from_schema(
                 (
                     Some(info.add_events.clone()),
                     Some(info.remove_events.clone()),
-                    Some(info.item_field_name.clone()),
+                    Some(info.item_field_path.clone()),
                     element_cast_type,
                     is_jsonb_array,
                 )
@@ -643,7 +794,7 @@ fn extract_fields_and_events_from_schema(
         let is_jsonb_field = sql_type == "JSONB";
 
         fields.push(FieldDefinition {
-            name: to_snake_case(&name),
+            name: to_snake_case(name),
             sql_type,
             nullable,
             is_json_extract: true,
@@ -777,6 +928,96 @@ fn json_schema_to_sql_type_with_definitions(
     } else {
         // Default to JSONB for complex types
         Ok("JSONB".to_string())
+    }
+}
+
+fn find_events_with_audit_info(schema: &Value) -> Vec<String> {
+    let mut events_with_audit_info = Vec::new();
+
+    // Search through oneOf variants to find events with audit_info
+    if let Some(Value::Array(one_of)) = schema.get("oneOf") {
+        for variant in one_of {
+            if let Some(Value::Object(properties)) = variant.get("properties") {
+                // Check if this variant has audit_info property
+                if properties.contains_key("audit_info") {
+                    // Get the event type name
+                    if let Some(Value::Object(type_obj)) = properties.get("type") {
+                        if let Some(Value::Array(enum_vals)) = type_obj.get("enum") {
+                            if let Some(Value::String(type_name)) = enum_vals.first() {
+                                // Convert snake_case to UpperCamelCase (PascalCase)
+                                let upper_camel = to_upper_camel_case(type_name);
+                                events_with_audit_info.push(upper_camel);
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    events_with_audit_info
+}
+
+fn to_upper_camel_case(s: &str) -> String {
+    s.split('_')
+        .map(|word| {
+            let mut chars = word.chars();
+            match chars.next() {
+                None => String::new(),
+                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
+            }
+        })
+        .collect()
+}
+
+fn lookup_nested_field_type(schema: &Value, field_path: &str) -> anyhow::Result<String> {
+    let path_parts: Vec<&str> = field_path.split('.').collect();
+
+    if path_parts.len() == 1 {
+        // Simple field - should be handled elsewhere
+        return Ok("VARCHAR".to_string());
+    }
+
+    // Look for the parent field in oneOf entries to find its type
+    let parent_field = &path_parts[0];
+    let nested_field = &path_parts[1];
+
+    // Search through oneOf variants to find the parent field
+    if let Some(Value::Array(one_of)) = schema.get("oneOf") {
+        for variant in one_of {
+            if let Some(Value::Object(properties)) = variant.get("properties") {
+                if let Some(parent_field_schema) = properties.get(*parent_field) {
+                    // Found the parent field, now look up its type in definitions
+                    if let Some(Value::String(ref_path)) = parent_field_schema.get("$ref") {
+                        if let Some(type_name) = ref_path.strip_prefix("#/definitions/") {
+                            if let Some(Value::Object(definitions)) = schema.get("definitions") {
+                                if let Some(type_def) = definitions.get(type_name) {
+                                    if let Some(Value::Object(type_properties)) =
+                                        type_def.get("properties")
+                                    {
+                                        if let Some(nested_field_schema) =
+                                            type_properties.get(*nested_field)
+                                        {
+                                            return json_schema_to_sql_type_with_definitions(
+                                                nested_field_schema,
+                                                Some(schema),
+                                            );
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    // Fallback: if we can't find it, try to infer from common field names
+    match path_parts.last() {
+        Some(&"audit_entry_id") => Ok("BIGINT".to_string()),
+        Some(field) if field.ends_with("_id") => Ok("UUID".to_string()),
+        _ => Ok("VARCHAR".to_string()),
     }
 }
 

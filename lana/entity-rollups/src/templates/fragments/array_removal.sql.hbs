@@ -1,5 +1,5 @@
 {{#if this.is_jsonb_array}}(
   SELECT jsonb_agg(elem)
   FROM jsonb_array_elements(COALESCE(current_row.{{this.name}}, '[]'::JSONB)) elem
-  WHERE elem != (NEW.event -> '{{this.set_item_field}}')
-){{else}}array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), (NEW.event ->> '{{this.set_item_field}}'){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}}){{/if}}
+  WHERE elem != ({{nested_json_extract this.set_item_field true}})
+){{else}}array_remove(COALESCE(current_row.{{this.name}}, ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]), ({{nested_json_extract this.set_item_field false}}){{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}}){{/if}}

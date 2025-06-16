@@ -22,8 +22,8 @@ pub use migration::*;
 pub struct CollectionRollup {
     pub column_name: &'static str,
     pub values: &'static str,
-    pub add_events: Vec<&'static str>,
-    pub remove_events: Vec<&'static str>,
+    pub add_events: Vec<String>,
+    pub remove_events: Vec<String>,
 }
 
 #[derive(Clone)]
@@ -70,8 +70,8 @@ pub fn update_schemas(
             collections: vec![CollectionRollup {
                 column_name: "permission_set_ids",
                 values: "permission_set_id",
-                add_events: vec!["PermissionSetAdded"],
-                remove_events: vec!["PermissionSetRemoved"],
+                add_events: vec!["PermissionSetAdded".to_string()],
+                remove_events: vec!["PermissionSetRemoved".to_string()],
             }],
             generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
             ..Default::default()
@@ -89,19 +89,19 @@ pub fn update_schemas(
                 CollectionRollup {
                     column_name: "approver_ids",
                     values: "approver_id",
-                    add_events: vec!["Approved"],
+                    add_events: vec!["Approved".to_string()],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "denier_ids",
                     values: "denier_id",
-                    add_events: vec!["Denied"],
+                    add_events: vec!["Denied".to_string()],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "deny_reasons",
                     values: "reason",
-                    add_events: vec!["Denied"],
+                    add_events: vec!["Denied".to_string()],
                     remove_events: vec![],
                 },
             ],
@@ -114,8 +114,8 @@ pub fn update_schemas(
             collections: vec![CollectionRollup {
                 column_name: "member_ids",
                 values: "member_id",
-                add_events: vec!["MemberAdded"],
-                remove_events: vec!["MemberRemoved"],
+                add_events: vec!["MemberAdded".to_string()],
+                remove_events: vec!["MemberRemoved".to_string()],
             }],
             generate_schema: || serde_json::to_value(schema_for!(CommitteeEvent)).unwrap(),
             ..Default::default()
@@ -164,7 +164,7 @@ pub fn update_schemas(
             collections: vec![CollectionRollup {
                 column_name: "ledger_tx_ids",
                 values: "ledger_tx_id",
-                add_events: vec!["Updated"],
+                add_events: vec!["Updated".to_string()],
                 remove_events: vec![],
             }],
             generate_schema: || serde_json::to_value(schema_for!(CollateralEvent)).unwrap(),
@@ -177,19 +177,23 @@ pub fn update_schemas(
                 CollectionRollup {
                     column_name: "ledger_tx_ids",
                     values: "ledger_tx_id",
-                    add_events: vec!["Initialized", "Activated", "InterestAccrualCycleConcluded"],
+                    add_events: vec![
+                        "Initialized".to_string(),
+                        "Activated".to_string(),
+                        "InterestAccrualCycleConcluded".to_string(),
+                    ],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "interest_accrual_ids",
                     values: "interest_accrual_id",
-                    add_events: vec!["InterestAccrualCycleStarted"],
+                    add_events: vec!["InterestAccrualCycleStarted".to_string()],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "obligation_ids",
                     values: "obligation_id",
-                    add_events: vec!["InterestAccrualCycleConcluded"],
+                    add_events: vec!["InterestAccrualCycleConcluded".to_string()],
                     remove_events: vec![],
                 },
             ],
@@ -210,7 +214,10 @@ pub fn update_schemas(
             collections: vec![CollectionRollup {
                 column_name: "ledger_tx_ids",
                 values: "ledger_tx_id",
-                add_events: vec!["InterestAccrued", "InterestAccrualsPosted"],
+                add_events: vec![
+                    "InterestAccrued".to_string(),
+                    "InterestAccrualsPosted".to_string(),
+                ],
                 remove_events: vec![],
             }],
             toggle_events: vec!["InterestAccrualsPosted"],
@@ -227,24 +234,24 @@ pub fn update_schemas(
                     column_name: "ledger_tx_ids",
                     values: "ledger_tx_id",
                     add_events: vec![
-                        "Initialized",
-                        "DueRecorded",
-                        "OverdueRecorded",
-                        "DefaultedRecorded",
-                        "PaymentAllocated",
+                        "Initialized".to_string(),
+                        "DueRecorded".to_string(),
+                        "OverdueRecorded".to_string(),
+                        "DefaultedRecorded".to_string(),
+                        "PaymentAllocated".to_string(),
                     ],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "payment_ids",
                     values: "payment_id",
-                    add_events: vec!["PaymentAllocated"],
+                    add_events: vec!["PaymentAllocated".to_string()],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "payment_allocation_ids",
                     values: "payment_allocation_id",
-                    add_events: vec!["PaymentAllocated"],
+                    add_events: vec!["PaymentAllocated".to_string()],
                     remove_events: vec![],
                 },
             ],
@@ -283,13 +290,13 @@ pub fn update_schemas(
                 CollectionRollup {
                     column_name: "node_specs",
                     values: "spec",
-                    add_events: vec!["NodeAdded"],
+                    add_events: vec!["NodeAdded".to_string()],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "ledger_account_set_ids",
                     values: "ledger_account_set_id",
-                    add_events: vec!["NodeAdded"],
+                    add_events: vec!["NodeAdded".to_string()],
                     remove_events: vec![],
                 },
             ],
