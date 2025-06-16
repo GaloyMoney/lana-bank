@@ -225,12 +225,15 @@ where
             },
         )
         .await?;
-        jobs.add_initializer(interest_accruals::CreditFacilityProcessingJobInitializer::<
-            Perms,
-            E,
-        >::new(&ledger, &credit_facilities, jobs));
         jobs.add_initializer(
-            interest_accrual_cycles::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+            interest_accruals::InterestAccrualJobInitializer::<Perms, E>::new(
+                &ledger,
+                &credit_facilities,
+                jobs,
+            ),
+        );
+        jobs.add_initializer(
+            interest_accrual_cycles::InterestAccrualCycleJobInitializer::<Perms, E>::new(
                 &ledger,
                 &obligations,
                 &credit_facilities,
@@ -238,23 +241,21 @@ where
                 authz.audit(),
             ),
         );
-        jobs.add_initializer(obligation_due::CreditFacilityProcessingJobInitializer::<
-            Perms,
-            E,
-        >::new(&ledger, &obligations, jobs));
         jobs.add_initializer(
-            obligation_overdue::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
+            obligation_due::ObligationDueJobInitializer::<Perms, E>::new(
                 &ledger,
                 &obligations,
                 jobs,
             ),
         );
-        jobs.add_initializer(
-            obligation_defaulted::CreditFacilityProcessingJobInitializer::<Perms, E>::new(
-                &ledger,
-                &obligations,
-            ),
-        );
+        jobs.add_initializer(obligation_overdue::ObligationOverdueJobInitializer::<
+            Perms,
+            E,
+        >::new(&ledger, &obligations, jobs));
+        jobs.add_initializer(obligation_defaulted::ObligationDefaultedJobInitializer::<
+            Perms,
+            E,
+        >::new(&ledger, &obligations));
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig::<Perms, E>::new(),
