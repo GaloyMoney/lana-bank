@@ -10,7 +10,8 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "TermsTemplate",
     err = "TermsTemplateError",
-    columns(name(ty = "String", list_by))
+    columns(name(ty = "String", list_by)),
+    tbl_prefix = "core"
 )]
 pub struct TermsTemplateRepo {
     pool: PgPool,

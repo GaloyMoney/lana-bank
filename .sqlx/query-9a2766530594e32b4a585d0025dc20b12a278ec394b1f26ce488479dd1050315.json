@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM terms_templates WHERE (COALESCE((created_at, id) < ($3, $2), $2 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $1) SELECT i.id AS \"entity_id: TermsTemplateId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN terms_template_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_terms_templates WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: TermsTemplateId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_terms_template_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "27719c1b4ca41727bd64d297b937cca5db285aec4b52444cd35bd39c8ed8a50f"
+  "hash": "9a2766530594e32b4a585d0025dc20b12a278ec394b1f26ce488479dd1050315"
 }

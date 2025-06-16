@@ -128,14 +128,14 @@ CREATE TABLE core_customer_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE terms_templates (
+CREATE TABLE core_terms_templates (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE terms_template_events (
-  id UUID NOT NULL REFERENCES terms_templates(id),
+CREATE TABLE core_terms_template_events (
+  id UUID NOT NULL REFERENCES core_terms_templates(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
