@@ -16,6 +16,9 @@ pub enum LiquidationProcessEvent {
         credit_facility_id: CreditFacilityId,
         audit_info: AuditInfo,
     },
+    Completed {
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -33,6 +36,7 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
         for event in events.iter_all() {
             match event {
                 LiquidationProcessEvent::Initialized { id, .. } => builder = builder.id(*id),
+                LiquidationProcessEvent::Completed { .. } => (),
             }
         }
         builder.events(events).build()
