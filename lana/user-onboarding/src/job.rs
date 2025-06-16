@@ -2,6 +2,7 @@ use async_trait::async_trait;
 use core_access::{AuthenticationId, CoreAccessEvent};
 use futures::StreamExt;
 
+use job::error::JobRunError;
 use job::*;
 
 use audit::AuditSvc;
@@ -114,10 +115,7 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    async fn run(
-        &self,
-        current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let state = current_job
             .execution_state::<UserOnboardingJobData>()?
             .unwrap_or_default();

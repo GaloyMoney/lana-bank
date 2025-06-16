@@ -278,26 +278,50 @@ impl JobExecutor {
         let current_job_pool = repo.pool().clone();
         let current_job = CurrentJob::new(id, attempt, current_job_pool, payload);
 
-        match runner.run(current_job).await.map_err(|e| {
-            let error = e.to_string();
-            Span::current().record("error", tracing::field::display("true"));
-            Span::current().record("error.message", tracing::field::display(&error));
-            let n_warn_attempts = registry
-                .try_read()
-                .expect("Cannot read registry")
-                .retry_settings(&job.job_type)
-                .n_warn_attempts;
-            if attempt <= n_warn_attempts.unwrap_or(u32::MAX) {
-                Span::current()
-                    .record("error.level", tracing::field::display(tracing::Level::WARN));
-            } else {
-                Span::current().record(
-                    "error.level",
-                    tracing::field::display(tracing::Level::ERROR),
-                );
+        let job_completion = match runner.run(current_job).await {
+            Ok(job_completion) => job_completion,
+            Err(e) => {
+                let error = e.to_string();
+                Span::current().record("error", tracing::field::display("true"));
+                Span::current().record("error.message", tracing::field::display(&error));
+                let n_warn_attempts = registry
+                    .try_read()
+                    .expect("Cannot read registry")
+                    .retry_settings(&job.job_type)
+                    .n_warn_attempts;
+                if attempt <= n_warn_attempts.unwrap_or(u32::MAX) {
+                    Span::current()
+                        .record("error.level", tracing::field::display(tracing::Level::WARN));
+                } else {
+                    Span::current().record(
+                        "error.level",
+                        tracing::field::display(tracing::Level::ERROR),
+                    );
+                }
+                match e {
+                    crate::error::JobRunError::Permanent(_) => {
+                        let mut zero_retry = RetrySettings::default();
+                        zero_retry.n_attempts = Some(0);
+                        zero_retry.n_warn_attempts = Some(0);
+                        let op = repo.begin_op().await?;
+                        Self::fail_job(
+                            op,
+                            id,
+                            attempt,
+                            JobError::JobExecutionError(error),
+                            repo,
+                            &zero_retry,
+                        )
+                        .await?;
+                        return Ok(());
+                    }
+                    crate::error::JobRunError::Transient(_) => {
+                        return Err(JobError::JobExecutionError(error));
+                    }
+                }
             }
-            JobError::JobExecutionError(error)
-        })? {
+        };
+        match job_completion {
             JobCompletion::Complete => {
                 span.record("conclusion", "Complete");
                 let op = repo.begin_op().await?;

@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use job::error::JobRunError;
 use job::*;
 use outbox::OutboxEventMarker;
 
@@ -96,10 +97,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    async fn run(
-        &self,
-        _current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+    async fn run(&self, _current_job: CurrentJob) -> Result<JobCompletion, JobRunError> {
         let mut db = self.obligations.begin_op().await?;
         let (obligation, overdue_data) = self
             .obligations
