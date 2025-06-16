@@ -68,8 +68,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_INTEREST_ACCRUAL_CYCLE_PROCESSING_JOB: JobType =
-    JobType::new("credit-facility-interest-accrual-cycle-processing");
+const INTEREST_ACCRUAL_CYCLE_JOB: JobType = JobType::new("interest-accrual-cycle");
 impl<Perms, E> JobInitializer for InterestAccrualCycleJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
@@ -83,7 +82,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_INTEREST_ACCRUAL_CYCLE_PROCESSING_JOB
+        INTEREST_ACCRUAL_CYCLE_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {

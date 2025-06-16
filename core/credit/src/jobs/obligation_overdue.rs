@@ -51,8 +51,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_OVERDUE_PROCESSING_JOB: JobType =
-    JobType::new("credit-facility-overdue-processing");
+const OBLIGATION_OVERDUE_JOB: JobType = JobType::new("obligation-overdue");
 impl<Perms, E> JobInitializer for ObligationOverdueJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
@@ -64,7 +63,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_OVERDUE_PROCESSING_JOB
+        OBLIGATION_OVERDUE_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {

@@ -60,8 +60,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_INTEREST_ACCRUAL_PROCESSING_JOB: JobType =
-    JobType::new("credit-facility-interest-accrual-processing");
+const INTEREST_ACCRUAL_JOB: JobType = JobType::new("interest-accrual");
 impl<Perms, E> JobInitializer for InterestAccrualJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
@@ -75,11 +74,11 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_INTEREST_ACCRUAL_PROCESSING_JOB
+        INTEREST_ACCRUAL_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
+        Ok(Box::new(ProcessingJobRunner::<Perms, E> {
             config: job.config()?,
             credit_facilities: self.credit_facilities.clone(),
             ledger: self.ledger.clone(),
@@ -88,7 +87,7 @@ where
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner<Perms, E>
+pub struct ProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -100,7 +99,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ProcessingJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
