@@ -224,8 +224,8 @@ pub fn generate_rollup_migrations(
         .join("src")
         .join("templates")
         .join("fragments");
-    let field_update_fragment = fs::read_to_string(fragments_dir.join("field-update.sql.hbs"))?;
-    let field_init_fragment = fs::read_to_string(fragments_dir.join("field-init.sql.hbs"))?;
+    let field_update_fragment = fs::read_to_string(fragments_dir.join("field_update.sql.hbs"))?;
+    let field_init_fragment = fs::read_to_string(fragments_dir.join("field_init.sql.hbs"))?;
     let field_init_only_fragment = fs::read_to_string(fragments_dir.join("field_init.sql.hbs"))?;
     let array_init_fragment = fs::read_to_string(fragments_dir.join("array_init.sql.hbs"))?;
     let array_append_fragment = fs::read_to_string(fragments_dir.join("array_append.sql.hbs"))?;
@@ -409,8 +409,8 @@ pub fn generate_rollup_migrations(
     handlebars.register_template_string("rollup_table_alter", &alter_template_content)?;
 
     // Register fragment templates
-    handlebars.register_template_string("field-update", &field_update_fragment)?;
-    handlebars.register_template_string("field-init", &field_init_fragment)?;
+    handlebars.register_template_string("field_update", &field_update_fragment)?;
+    handlebars.register_template_string("field_init", &field_init_fragment)?;
     handlebars.register_template_string("field_init", &field_init_only_fragment)?;
     handlebars.register_template_string("array_init", &array_init_fragment)?;
     handlebars.register_template_string("array_append", &array_append_fragment)?;

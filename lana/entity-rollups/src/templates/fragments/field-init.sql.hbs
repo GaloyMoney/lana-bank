@@ -1,1 +1,0 @@
-{{#if this.is_set_field}}{{>array_init}}{{else if this.is_toggle_field}}COALESCE(({{nested_json_extract this.json_path false}})::BOOLEAN, false){{else if this.is_json_extract}}{{>field_init}}{{else}}NEW.event ->> '{{this.name}}'{{/if}}
