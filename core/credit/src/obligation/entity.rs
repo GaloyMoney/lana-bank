@@ -8,10 +8,7 @@ use std::cmp::Ordering;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{
-    liquidation_process::NewLiquidationProcess, payment_allocation::NewPaymentAllocation,
-    primitives::*,
-};
+use crate::{payment_allocation::NewPaymentAllocation, primitives::*, CreditFacilityId};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -27,7 +24,7 @@ pub enum ObligationEvent {
         obligation_type: ObligationType,
         amount: UsdCents,
         reference: String,
-        tx_id: LedgerTxId,
+        ledger_tx_id: LedgerTxId,
         not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
@@ -40,25 +37,25 @@ pub enum ObligationEvent {
         audit_info: AuditInfo,
     },
     DueRecorded {
-        tx_id: LedgerTxId,
-        amount: UsdCents,
+        ledger_tx_id: LedgerTxId,
+        due_amount: UsdCents,
         audit_info: AuditInfo,
     },
     OverdueRecorded {
-        tx_id: LedgerTxId,
-        amount: UsdCents,
+        ledger_tx_id: LedgerTxId,
+        overdue_amount: UsdCents,
         audit_info: AuditInfo,
     },
     DefaultedRecorded {
-        tx_id: LedgerTxId,
-        amount: UsdCents,
+        ledger_tx_id: LedgerTxId,
+        defaulted_amount: UsdCents,
         audit_info: AuditInfo,
     },
     PaymentAllocated {
-        tx_id: LedgerTxId,
+        ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
         payment_allocation_id: PaymentAllocationId,
-        amount: UsdCents,
+        payment_allocation_amount: UsdCents,
     },
     LiquidationProcessStarted {
         liquidation_process_id: LiquidationProcessId,
@@ -296,7 +293,10 @@ impl Obligation {
                     ObligationEvent::Initialized { amount, .. } => {
                         total_sum += *amount;
                     }
-                    ObligationEvent::PaymentAllocated { amount, .. } => {
+                    ObligationEvent::PaymentAllocated {
+                        payment_allocation_amount: amount,
+                        ..
+                    } => {
                         total_sum -= *amount;
                     }
                     _ => (),
@@ -345,8 +345,8 @@ impl Obligation {
         };
 
         self.events.push(ObligationEvent::DueRecorded {
-            tx_id: res.tx_id,
-            amount: res.amount,
+            ledger_tx_id: res.tx_id,
+            due_amount: res.amount,
             audit_info,
         });
 
@@ -380,8 +380,8 @@ impl Obligation {
         };
 
         self.events.push(ObligationEvent::OverdueRecorded {
-            tx_id: res.tx_id,
-            amount: res.amount,
+            ledger_tx_id: res.tx_id,
+            overdue_amount: res.amount,
             audit_info,
         });
 
@@ -415,8 +415,8 @@ impl Obligation {
         };
 
         self.events.push(ObligationEvent::DefaultedRecorded {
-            tx_id: res.tx_id,
-            amount: res.amount,
+            ledger_tx_id: res.tx_id,
+            defaulted_amount: res.amount,
             audit_info,
         });
 
@@ -482,10 +482,10 @@ impl Obligation {
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
         let allocation_id = PaymentAllocationId::new();
         self.events.push(ObligationEvent::PaymentAllocated {
-            tx_id: allocation_id.into(),
+            ledger_tx_id: allocation_id.into(),
             payment_id,
             payment_allocation_id: allocation_id,
-            amount: payment_amount,
+            payment_allocation_amount: payment_amount,
         });
 
         let payment_allocation_idx = self
@@ -532,7 +532,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
             match event {
                 ObligationEvent::Initialized {
                     id,
-                    tx_id,
+                    ledger_tx_id: tx_id,
                     credit_facility_id,
                     reference,
                     amount,
@@ -615,7 +615,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 obligation_type: self.obligation_type,
                 reference: self.reference(),
                 amount: self.amount,
-                tx_id: self.tx_id,
+                ledger_tx_id: self.tx_id,
                 not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
@@ -679,7 +679,7 @@ mod test {
             obligation_type: ObligationType::Disbursal,
             amount: UsdCents::from(10),
             reference: "ref-01".to_string(),
-            tx_id: LedgerTxId::new(),
+            ledger_tx_id: LedgerTxId::new(),
             not_yet_due_accounts: ObligationAccounts {
                 receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
@@ -716,21 +716,17 @@ mod test {
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
 
-        assert!(
-            obligation
-                .record_overdue(Utc::now().date_naive(), dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(obligation
+            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap()
+            .did_execute());
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
-        assert!(
-            obligation
-                .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(obligation
+            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap()
+            .did_execute());
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
@@ -895,7 +891,7 @@ mod test {
                 obligation_type: ObligationType::Disbursal,
                 amount: UsdCents::from(10),
                 reference: "ref-01".to_string(),
-                tx_id: LedgerTxId::new(),
+                ledger_tx_id: LedgerTxId::new(),
                 not_yet_due_accounts: ObligationAccounts {
                     receivable_account_id: CalaAccountId::new(),
                     account_to_be_credited_id: CalaAccountId::new(),
@@ -943,8 +939,8 @@ mod test {
             let now = Utc::now();
             let mut events = initial_events(now);
             events.push(ObligationEvent::DueRecorded {
-                tx_id: LedgerTxId::new(),
-                amount: UsdCents::from(10),
+                ledger_tx_id: LedgerTxId::new(),
+                due_amount: UsdCents::from(10),
                 audit_info: dummy_audit_info(),
             });
             let obligation = obligation_from(events);
@@ -960,8 +956,8 @@ mod test {
             let now = Utc::now();
             let mut events = initial_events(now);
             events.push(ObligationEvent::DueRecorded {
-                tx_id: LedgerTxId::new(),
-                amount: UsdCents::from(10),
+                ledger_tx_id: LedgerTxId::new(),
+                due_amount: UsdCents::from(10),
                 audit_info: dummy_audit_info(),
             });
             let obligation = obligation_from(events);
@@ -978,13 +974,13 @@ mod test {
             let mut events = initial_events(now);
             events.extend([
                 ObligationEvent::DueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    due_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
                 ObligationEvent::OverdueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    overdue_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
             ]);
@@ -1002,13 +998,13 @@ mod test {
             let mut events = initial_events(now);
             events.extend([
                 ObligationEvent::DueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    due_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
                 ObligationEvent::OverdueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    overdue_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
             ]);
@@ -1031,13 +1027,13 @@ mod test {
             let mut events = initial_events(now);
             events.extend([
                 ObligationEvent::DueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    due_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
                 ObligationEvent::OverdueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    overdue_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
             ]);
@@ -1055,18 +1051,18 @@ mod test {
             let mut events = initial_events(now);
             events.extend([
                 ObligationEvent::DueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    due_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
                 ObligationEvent::OverdueRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    overdue_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
                 ObligationEvent::DefaultedRecorded {
-                    tx_id: LedgerTxId::new(),
-                    amount: UsdCents::from(10),
+                    ledger_tx_id: LedgerTxId::new(),
+                    defaulted_amount: UsdCents::from(10),
                     audit_info: dummy_audit_info(),
                 },
             ]);

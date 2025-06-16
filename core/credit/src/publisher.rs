@@ -1,19 +1,16 @@
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
-    collateral::{Collateral, CollateralEvent, error::CollateralError},
-    credit_facility::{CreditFacility, CreditFacilityEvent, error::CreditFacilityError},
-    disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
+    collateral::{error::CollateralError, Collateral, CollateralEvent},
+    credit_facility::{error::CreditFacilityError, CreditFacility, CreditFacilityEvent},
+    disbursal::{error::DisbursalError, Disbursal, DisbursalEvent},
     event::*,
     interest_accrual_cycle::{
-        InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
+        error::InterestAccrualCycleError, InterestAccrualCycle, InterestAccrualCycleEvent,
     },
-    liquidation_process::{
-        LiquidationProcess, LiquidationProcessEvent, error::LiquidationProcessError,
-    },
-    obligation::{Obligation, ObligationEvent, error::ObligationError},
+    obligation::{error::ObligationError, Obligation, ObligationEvent},
     payment_allocation::{
-        PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
+        error::PaymentAllocationError, PaymentAllocation, PaymentAllocationEvent,
     },
 };
 
@@ -78,7 +75,7 @@ where
                     completed_at: event.recorded_at,
                 }),
                 CollateralizationStateChanged {
-                    state,
+                    collateralization_state: state,
                     collateral,
                     outstanding,
                     price,
@@ -176,7 +173,7 @@ where
             .filter_map(|event| match &event.event {
                 InterestAccrualsPosted {
                     total,
-                    tx_id,
+                    ledger_tx_id: tx_id,
                     effective,
                     ..
                 } => Some(CoreCreditEvent::AccrualPosted {
@@ -251,18 +248,26 @@ where
                     recorded_at: event.recorded_at,
                     effective: *effective,
                 }),
-                DueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDue {
+                DueRecorded {
+                    due_amount: amount, ..
+                } => Some(CoreCreditEvent::ObligationDue {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     obligation_type: entity.obligation_type,
                     amount: *amount,
                 }),
-                OverdueRecorded { amount, .. } => Some(CoreCreditEvent::ObligationOverdue {
+                OverdueRecorded {
+                    overdue_amount: amount,
+                    ..
+                } => Some(CoreCreditEvent::ObligationOverdue {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,
                 }),
-                DefaultedRecorded { amount, .. } => Some(CoreCreditEvent::ObligationDefaulted {
+                DefaultedRecorded {
+                    defaulted_amount: amount,
+                    ..
+                } => Some(CoreCreditEvent::ObligationDefaulted {
                     id: entity.id,
                     credit_facility_id: entity.credit_facility_id,
                     amount: *amount,

@@ -26,7 +26,7 @@ pub enum CollateralEvent {
     },
     Updated {
         ledger_tx_id: LedgerTxId,
-        new_value: Satoshis,
+        collateral_amount: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
         audit_info: AuditInfo,
@@ -69,7 +69,7 @@ impl Collateral {
         self.events.push(CollateralEvent::Updated {
             ledger_tx_id: tx_id,
             abs_diff,
-            new_value: new_amount,
+            collateral_amount: new_amount,
             action,
             audit_info: audit_info.clone(),
         });
@@ -116,7 +116,10 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         .amount(Satoshis::ZERO)
                         .credit_facility_id(*credit_facility_id);
                 }
-                CollateralEvent::Updated { new_value, .. } => {
+                CollateralEvent::Updated {
+                    collateral_amount: new_value,
+                    ..
+                } => {
                     builder = builder.amount(*new_value);
                 }
             }

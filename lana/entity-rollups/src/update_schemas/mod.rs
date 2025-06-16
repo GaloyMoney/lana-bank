@@ -4,11 +4,11 @@ mod migration;
 use colored::*;
 
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
-// use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
-// use core_credit::event_schema::{
-//     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-//     ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
-// };
+use core_accounting::event_schema::{ChartEvent, ManualTransactionEvent};
+use core_credit::event_schema::{
+    CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
+    ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
+};
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
@@ -171,63 +171,190 @@ pub fn update_schemas(
             toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
         },
-        // SchemaInfo {
-        //     name: "CollateralEvent",
-        //     filename: "collateral_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CollateralEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "CreditFacilityEvent",
-        //     filename: "credit_facility_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CreditFacilityEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "DisbursalEvent",
-        //     filename: "disbursal_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(DisbursalEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "InterestAccrualCycleEvent",
-        //     filename: "interest_accrual_cycle_event_schema.json",
-        //     generate_schema: || {
-        //         serde_json::to_value(schema_for!(InterestAccrualCycleEvent)).unwrap()
-        //     },
-        // },
-        // SchemaInfo {
-        //     name: "ObligationEvent",
-        //     filename: "obligation_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ObligationEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "PaymentEvent",
-        //     filename: "payment_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(PaymentEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "PaymentAllocationEvent",
-        //     filename: "payment_allocation_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "TermsTemplateEvent",
-        //     filename: "terms_template_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(TermsTemplateEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "ChartEvent",
-        //     filename: "chart_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "AccountingCsvEvent",
-        //     filename: "accounting_csv_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(AccountingCsvEvent)).unwrap(),
-        // },
-        // SchemaInfo {
-        //     name: "ManualTransactionEvent",
-        //     filename: "manual_transaction_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
-        // },
+        SchemaInfo {
+            name: "CollateralEvent",
+            filename: "collateral_event_schema.json",
+            table_prefix: "core",
+            collections: vec![
+                CollectionRollup {
+                    column_name: "ledger_tx_ids",
+                    values: "ledger_tx_id",
+                    add_events: vec!["Updated"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "diffs",
+                    values: "abs_diff",
+                    add_events: vec!["Updated"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "actions",
+                    values: "action",
+                    add_events: vec!["Updated"],
+                    remove_events: vec![],
+                },
+            ],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(CollateralEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "CreditFacilityEvent",
+            filename: "credit_facility_event_schema.json",
+            table_prefix: "core",
+            collections: vec![
+                CollectionRollup {
+                    column_name: "interest_accrual_ids",
+                    values: "interest_accrual_id",
+                    add_events: vec!["InterestAccrualCycleStarted"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "ledger_tx_ids",
+                    values: "ledger_tx_id",
+                    add_events: vec!["Initialized", "Activated", "InterestAccrualCycleConcluded"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "obligation_ids",
+                    values: "obligation_id",
+                    add_events: vec!["InterestAccrualCycleConcluded"],
+                    remove_events: vec![],
+                },
+            ],
+            delete_events: vec![],
+            toggle_events: vec!["ApprovalProcessConcluded", "Activated", "Completed"],
+            generate_schema: || serde_json::to_value(schema_for!(CreditFacilityEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "DisbursalEvent",
+            filename: "disbursal_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec!["ApprovalProcessConcluded", "Settled", "Cancelled"],
+            generate_schema: || serde_json::to_value(schema_for!(DisbursalEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "InterestAccrualCycleEvent",
+            filename: "interest_accrual_cycle_event_schema.json",
+            table_prefix: "core",
+            collections: vec![CollectionRollup {
+                column_name: "ledger_tx_ids",
+                values: "ledger_tx_id",
+                add_events: vec!["InterestAccrued", "InterestAccrualsPosted"],
+                remove_events: vec![],
+            }],
+            delete_events: vec![],
+            toggle_events: vec!["InterestAccrualsPosted"],
+            generate_schema: || {
+                serde_json::to_value(schema_for!(InterestAccrualCycleEvent)).unwrap()
+            },
+        },
+        SchemaInfo {
+            name: "ObligationEvent",
+            filename: "obligation_event_schema.json",
+            table_prefix: "core",
+            collections: vec![
+                CollectionRollup {
+                    column_name: "ledger_tx_ids",
+                    values: "ledger_tx_id",
+                    add_events: vec![
+                        "Initialized",
+                        "DueRecorded",
+                        "OverdueRecorded",
+                        "DefaultedRecorded",
+                        "PaymentAllocated",
+                    ],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "payment_ids",
+                    values: "payment_id",
+                    add_events: vec!["PaymentAllocated"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "payment_allocation_ids",
+                    values: "payment_allocation_id",
+                    add_events: vec!["PaymentAllocated"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "payment_allocation_amounts",
+                    values: "payment_allocation_amount",
+                    add_events: vec!["PaymentAllocated"],
+                    remove_events: vec![],
+                },
+            ],
+            delete_events: vec![],
+            toggle_events: vec![
+                "DueRecorded",
+                "OverdueRecorded",
+                "DefaultedRecorded",
+                "Completed",
+            ],
+            generate_schema: || serde_json::to_value(schema_for!(ObligationEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "PaymentEvent",
+            filename: "payment_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec!["PaymentAllocated"],
+            generate_schema: || serde_json::to_value(schema_for!(PaymentEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "PaymentAllocationEvent",
+            filename: "payment_allocation_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec!["PaymentAllocated"],
+            generate_schema: || serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "TermsTemplateEvent",
+            filename: "terms_template_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(TermsTemplateEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "ChartEvent",
+            filename: "chart_event_schema.json",
+            table_prefix: "core",
+            collections: vec![
+                CollectionRollup {
+                    column_name: "node_specs",
+                    values: "spec",
+                    add_events: vec!["NodeAdded"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "ledger_account_set_ids",
+                    values: "ledger_account_set_id",
+                    add_events: vec!["NodeAdded"],
+                    remove_events: vec![],
+                },
+            ],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "ManualTransactionEvent",
+            filename: "manual_transaction_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
+        },
     ];
 
     // Delete existing schema files if force_recreate is requested

@@ -48,25 +48,25 @@ pub enum CreditFacilityEvent {
     },
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
-        idx: InterestAccrualCycleIdx,
-        period: InterestPeriod,
+        interest_accrual_cycle_idx: InterestAccrualCycleIdx,
+        interest_period: InterestPeriod,
         audit_info: AuditInfo,
     },
     InterestAccrualCycleConcluded {
-        idx: InterestAccrualCycleIdx,
-        tx_id: LedgerTxId,
+        interest_accrual_cycle_idx: InterestAccrualCycleIdx,
+        ledger_tx_id: LedgerTxId,
         obligation_id: ObligationId,
         audit_info: AuditInfo,
     },
     CollateralizationStateChanged {
-        state: CollateralizationState,
+        collateralization_state: CollateralizationState,
         collateral: Satoshis,
         outstanding: CreditFacilityReceivable,
         price: PriceOfOneBTC,
         audit_info: AuditInfo,
     },
     CollateralizationRatioChanged {
-        ratio: Option<Decimal>,
+        collateralization_ratio: Option<Decimal>,
         audit_info: AuditInfo,
     },
     Completed {
@@ -314,7 +314,10 @@ impl CreditFacility {
         &self,
     ) -> Result<Option<InterestPeriod>, CreditFacilityError> {
         let last_accrual_start_date = self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::InterestAccrualCycleStarted { period, .. } => Some(period.start),
+            CreditFacilityEvent::InterestAccrualCycleStarted {
+                interest_period: period,
+                ..
+            } => Some(period.start),
             _ => None,
         });
 
@@ -348,7 +351,10 @@ impl CreditFacility {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleStarted { idx, .. } => Some(idx.next()),
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_cycle_idx: idx,
+                    ..
+                } => Some(idx.next()),
                 _ => None,
             })
             .unwrap_or(InterestAccrualCycleIdx::FIRST);
@@ -356,8 +362,8 @@ impl CreditFacility {
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleStarted {
                 interest_accrual_id: id,
-                idx,
-                period: accrual_cycle_period,
+                interest_accrual_cycle_idx: idx,
+                interest_period: accrual_cycle_period,
                 audit_info: audit_info.clone(),
             });
 
@@ -408,9 +414,9 @@ impl CreditFacility {
         };
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleConcluded {
-                idx,
+                interest_accrual_cycle_idx: idx,
                 obligation_id: new_obligation.id,
-                tx_id: accrual_cycle_data.tx_id,
+                ledger_tx_id: accrual_cycle_data.tx_id,
                 audit_info: audit_info.clone(),
             });
 
@@ -476,7 +482,10 @@ impl CreditFacility {
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                CreditFacilityEvent::CollateralizationStateChanged { state, .. } => Some(*state),
+                CreditFacilityEvent::CollateralizationStateChanged {
+                    collateralization_state: state,
+                    ..
+                } => Some(*state),
                 _ => None,
             })
             .unwrap_or(CollateralizationState::NoCollateral)
@@ -484,7 +493,10 @@ impl CreditFacility {
 
     pub fn last_collateralization_ratio(&self) -> Option<Decimal> {
         self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::CollateralizationRatioChanged { ratio, .. } => *ratio,
+            CreditFacilityEvent::CollateralizationRatioChanged {
+                collateralization_ratio: ratio,
+                ..
+            } => *ratio,
             _ => None,
         })
     }
@@ -528,7 +540,7 @@ impl CreditFacility {
         if let Some(calculated_collateralization) = collateralization_update {
             self.events
                 .push(CreditFacilityEvent::CollateralizationStateChanged {
-                    state: calculated_collateralization,
+                    collateralization_state: calculated_collateralization,
                     collateral: balances.collateral(),
                     outstanding: balances.into(),
                     price,
@@ -586,7 +598,10 @@ impl CreditFacility {
 
         if self.last_collateralization_ratio() != ratio {
             self.events
-                .push(CreditFacilityEvent::CollateralizationRatioChanged { ratio, audit_info });
+                .push(CreditFacilityEvent::CollateralizationRatioChanged {
+                    collateralization_ratio: ratio,
+                    audit_info,
+                });
         } else {
             return Idempotent::Ignored;
         }
@@ -864,8 +879,8 @@ mod test {
                 .events
                 .push(CreditFacilityEvent::InterestAccrualCycleStarted {
                     interest_accrual_id: id,
-                    idx: new_idx,
-                    period: next_accrual_period.unwrap(),
+                    interest_accrual_cycle_idx: new_idx,
+                    interest_period: next_accrual_period.unwrap(),
                     audit_info: dummy_audit_info(),
                 });
             let new_accrual = NewInterestAccrualCycle::builder()
@@ -915,12 +930,10 @@ mod test {
         let mut balances = default_balances(credit_facility.amount);
         balances.collateral = default_full_collateral();
 
-        assert!(
-            credit_facility
-                .activate(approval_time, default_price(), balances, dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(credit_facility
+            .activate(approval_time, default_price(), balances, dummy_audit_info())
+            .unwrap()
+            .did_execute());
         assert_eq!(credit_facility.activated_at, Some(approval_time));
         assert!(credit_facility.matures_at.is_some())
     }
@@ -951,12 +964,10 @@ mod test {
             .unwrap();
         let mut balances = default_balances(credit_facility.amount);
         balances.collateral = default_full_collateral();
-        assert!(
-            credit_facility
-                .activate(Utc::now(), default_price(), balances, dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(credit_facility
+            .activate(Utc::now(), default_price(), balances, dummy_audit_info())
+            .unwrap()
+            .did_execute());
         assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
     }
 
@@ -1088,11 +1099,9 @@ mod test {
             let mut balances = default_balances(credit_facility.amount);
             balances.collateral = collateral_amount;
 
-            assert!(
-                credit_facility
-                    .activate(Utc::now(), default_price(), balances, dummy_audit_info())
-                    .is_ok()
-            );
+            assert!(credit_facility
+                .activate(Utc::now(), default_price(), balances, dummy_audit_info())
+                .is_ok());
         }
     }
 

@@ -1,0 +1,360 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    },
+    "FacilityDuration": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "months"
+              ],
+              "type": "string"
+            },
+            "value": {
+              "format": "uint32",
+              "minimum": 0.0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "InterestAccrualCycleAccountIds": {
+      "properties": {
+        "interest_defaulted_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_income_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_receivable_due_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_receivable_not_yet_due_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_receivable_overdue_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "interest_defaulted_account_id",
+        "interest_income_account_id",
+        "interest_receivable_due_account_id",
+        "interest_receivable_not_yet_due_account_id",
+        "interest_receivable_overdue_account_id"
+      ],
+      "type": "object"
+    },
+    "InterestInterval": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "end_of_month"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "end_of_day"
+              ],
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "InterestPeriod": {
+      "properties": {
+        "end": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "interval": {
+          "$ref": "#/definitions/InterestInterval"
+        },
+        "start": {
+          "format": "date-time",
+          "type": "string"
+        }
+      },
+      "required": [
+        "end",
+        "interval",
+        "start"
+      ],
+      "type": "object"
+    },
+    "ObligationDuration": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "enum": [
+                "days"
+              ],
+              "type": "string"
+            },
+            "value": {
+              "format": "uint64",
+              "minimum": 0.0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "TermValues": {
+      "properties": {
+        "accrual_cycle_interval": {
+          "$ref": "#/definitions/InterestInterval"
+        },
+        "accrual_interval": {
+          "$ref": "#/definitions/InterestInterval"
+        },
+        "annual_rate": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "duration": {
+          "$ref": "#/definitions/FacilityDuration"
+        },
+        "initial_cvl": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "interest_due_duration_from_accrual": {
+          "$ref": "#/definitions/ObligationDuration"
+        },
+        "liquidation_cvl": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "margin_call_cvl": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        },
+        "obligation_liquidation_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "obligation_overdue_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/definitions/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "one_time_fee_rate": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+          "type": "string"
+        }
+      },
+      "required": [
+        "accrual_cycle_interval",
+        "accrual_interval",
+        "annual_rate",
+        "duration",
+        "initial_cvl",
+        "interest_due_duration_from_accrual",
+        "liquidation_cvl",
+        "margin_call_cvl",
+        "one_time_fee_rate"
+      ],
+      "type": "object"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0.0,
+      "type": "integer"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "account_ids": {
+          "$ref": "#/definitions/InterestAccrualCycleAccountIds"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_matures_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "idx": {
+          "format": "int32",
+          "type": "integer"
+        },
+        "period": {
+          "$ref": "#/definitions/InterestPeriod"
+        },
+        "terms": {
+          "$ref": "#/definitions/TermValues"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "account_ids",
+        "audit_info",
+        "facility_id",
+        "facility_matures_at",
+        "id",
+        "idx",
+        "period",
+        "terms",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "accrued_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "amount": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "tx_ref": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "interest_accrued"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "accrued_at",
+        "amount",
+        "audit_info",
+        "ledger_tx_id",
+        "tx_ref",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "total": {
+          "$ref": "#/definitions/UsdCents"
+        },
+        "tx_ref": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "interest_accruals_posted"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "effective",
+        "ledger_tx_id",
+        "obligation_id",
+        "total",
+        "tx_ref",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "InterestAccrualCycleEvent"
+}
