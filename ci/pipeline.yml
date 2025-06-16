@@ -65,6 +65,7 @@ jobs:
             - name: repo
           params:
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
           run:
             path: sh
             args:
@@ -73,12 +74,12 @@ jobs:
                 set -euo pipefail
                 pushd repo
 
-                cachix use lana-bank-ci
+                cachix use $CACHIX_CACHE_NAME
 
-                nix build . --print-out-paths --no-link | cachix push lana-bank-ci
+                nix build . --print-out-paths --no-link | cachix push $CACHIX_CACHE_NAME
 
                 nix develop --profile dev-profile --command true
-                cachix push lana-bank-ci dev-profile
+                cachix push $CACHIX_CACHE_NAME dev-profile
 
                 nix -L develop --command make test-integration-podman
                 nix -L develop --command make test-bats-podman
@@ -98,6 +99,7 @@ jobs:
         - name: repo
         params:
           CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          CACHIX_CACHE_NAME: lana-bank-ci
         run:
           path: sh
           args:
@@ -105,14 +107,14 @@ jobs:
             - |
               set -euo pipefail
               cd repo
-              cachix use lana-bank-ci
+              cachix use $CACHIX_CACHE_NAME
               
               # Cache the build outputs from the project
-              nix build . --print-out-paths --no-link | cachix push lana-bank-ci
+              nix build . --print-out-paths --no-link | cachix push $CACHIX_CACHE_NAME
               
               # Cache the development environment  
               nix develop --profile dev-profile --command true
-              cachix push lana-bank-ci dev-profile
+              cachix push $CACHIX_CACHE_NAME dev-profile
               
               nix develop --command sh -exc "make check-code"
 
@@ -134,6 +136,7 @@ jobs:
         outputs: [{name: bin}]
         params:
           CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          CACHIX_CACHE_NAME: lana-bank-ci
         run:
           path: sh
           args:
@@ -143,13 +146,13 @@ jobs:
             cd repo
             
             # Setup Cachix cache
-            cachix use lana-bank-ci
+            cachix use $CACHIX_CACHE_NAME
             
             # Build the static binary using Nix (equivalent to musl target)
             nix build .#static --print-build-logs
             
             # Push build results to cache
-            nix build .#static --print-out-paths --no-link | cachix push lana-bank-ci
+            nix build .#static --print-out-paths --no-link | cachix push $CACHIX_CACHE_NAME
             
             # Copy the binary to output
             mkdir -p ../bin
