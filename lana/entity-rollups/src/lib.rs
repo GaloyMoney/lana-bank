@@ -30,7 +30,11 @@ enum Commands {
 #[derive(Args)]
 struct UpdateSchemasArgs {
     /// Output directory for schema files
-    #[arg(long, env = "EVENT_SCHEMAS_OUT_DIR", default_value = "./schemas")]
+    #[arg(
+        long,
+        env = "EVENT_SCHEMAS_OUT_DIR",
+        default_value = "lana/entity-rollups/schemas"
+    )]
     schemas_out_dir: String,
 }
 
