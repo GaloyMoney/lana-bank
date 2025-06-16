@@ -531,6 +531,10 @@ where
             .terms
             .obligation_overdue_duration_from_due
             .map(|d| d.end_date(due_date));
+        let liquidation_date = facility
+            .terms
+            .obligation_liquidation_duration_from_due
+            .map(|d| d.end_date(due_date));
 
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
@@ -541,6 +545,7 @@ where
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
             .disbursal_due_date(due_date)
             .disbursal_overdue_date(overdue_date)
+            .disbursal_liquidation_date(liquidation_date)
             .audit_info(audit_info)
             .build()?;
 

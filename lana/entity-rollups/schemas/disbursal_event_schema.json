@@ -117,6 +117,13 @@
           "format": "date-time",
           "type": "string"
         },
+        "disbursal_liquidation_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "disbursal_overdue_date": {
           "format": "date-time",
           "type": [

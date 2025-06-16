@@ -28,6 +28,7 @@ pub enum DisbursalEvent {
         disbursal_credit_account_id: CalaAccountId,
         disbursal_due_date: DateTime<Utc>,
         disbursal_overdue_date: Option<DateTime<Utc>>,
+        disbursal_liquidation_date: Option<DateTime<Utc>>,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -59,6 +60,7 @@ pub struct Disbursal {
     pub disbursal_credit_account_id: CalaAccountId,
     pub disbursal_due_date: DateTime<Utc>,
     pub disbursal_overdue_date: Option<DateTime<Utc>>,
+    pub disbursal_liquidation_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
     events: EntityEvents<DisbursalEvent>,
@@ -78,6 +80,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     disbursal_credit_account_id,
                     disbursal_due_date,
                     disbursal_overdue_date,
+                    disbursal_liquidation_date,
                     ..
                 } => {
                     builder = builder
@@ -89,6 +92,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .disbursal_due_date(*disbursal_due_date)
                         .disbursal_overdue_date(*disbursal_overdue_date)
+                        .disbursal_liquidation_date(*disbursal_liquidation_date)
                 }
                 DisbursalEvent::Settled { ledger_tx_id, .. } => {
                     builder = builder.concluded_tx_id(*ledger_tx_id)
@@ -254,6 +258,7 @@ pub struct NewDisbursal {
     pub(super) disbursal_credit_account_id: CalaAccountId,
     pub(super) disbursal_due_date: DateTime<Utc>,
     pub(super) disbursal_overdue_date: Option<DateTime<Utc>>,
+    pub(super) disbursal_liquidation_date: Option<DateTime<Utc>>,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -286,6 +291,7 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 disbursal_due_date: self.disbursal_due_date,
                 disbursal_overdue_date: self.disbursal_overdue_date,
+                disbursal_liquidation_date: self.disbursal_liquidation_date,
                 audit_info: self.audit_info,
             }],
         )
