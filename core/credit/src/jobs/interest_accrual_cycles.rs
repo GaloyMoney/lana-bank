@@ -86,7 +86,7 @@ where
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityProcessingJobRunner::<Perms, E> {
+        Ok(Box::new(InterestAccrualCycleJobRunner::<Perms, E> {
             config: job.config()?,
             obligations: self.obligations.clone(),
             credit_facilities: self.credit_facilities.clone(),
@@ -97,7 +97,7 @@ where
     }
 }
 
-pub struct CreditFacilityProcessingJobRunner<Perms, E>
+pub struct InterestAccrualCycleJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -111,7 +111,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProcessingJobRunner<Perms, E>
+impl<Perms, E> JobRunner for InterestAccrualCycleJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
