@@ -37,6 +37,20 @@ pub struct SchemaInfo {
     pub generate_schema: fn() -> serde_json::Value,
 }
 
+impl Default for SchemaInfo {
+    fn default() -> Self {
+        Self {
+            name: "",
+            filename: "",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::Value::Null,
+        }
+    }
+}
+
 pub fn update_schemas(
     schemas_out_dir: &str,
     migrations_out_dir: &str,
@@ -46,38 +60,30 @@ pub fn update_schemas(
         SchemaInfo {
             name: "UserEvent",
             filename: "user_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
             delete_events: vec!["RoleRevoked"],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "RoleEvent",
             filename: "role_event_schema.json",
-            table_prefix: "core",
             collections: vec![CollectionRollup {
                 column_name: "permission_set_ids",
                 values: "permission_set_id",
                 add_events: vec!["PermissionSetAdded"],
                 remove_events: vec!["PermissionSetRemoved"],
             }],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(RoleEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "PermissionSetEvent",
             filename: "permission_set_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PermissionSetEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "ApprovalProcessEvent",
-            table_prefix: "core",
             filename: "approval_process_event_schema.json",
             collections: vec![
                 CollectionRollup {
@@ -99,13 +105,11 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
             ],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "CommitteeEvent",
-            table_prefix: "core",
             filename: "committee_event_schema.json",
             collections: vec![CollectionRollup {
                 column_name: "member_ids",
@@ -113,68 +117,50 @@ pub fn update_schemas(
                 add_events: vec!["MemberAdded"],
                 remove_events: vec!["MemberRemoved"],
             }],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(CommitteeEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "PolicyEvent",
             filename: "policy_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PolicyEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "CustomerEvent",
             filename: "customer_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
             toggle_events: vec!["KycApproved"],
             generate_schema: || serde_json::to_value(schema_for!(CustomerEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "DepositAccountEvent",
             filename: "deposit_account_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(DepositAccountEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "DepositEvent",
             filename: "deposit_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(DepositEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "WithdrawalEvent",
             filename: "withdrawal_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
             toggle_events: vec!["Confirmed", "Cancelled"],
             generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "CustodianEvent",
             filename: "custodian_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "CollateralEvent",
             filename: "collateral_event_schema.json",
-            table_prefix: "core",
             collections: vec![
                 CollectionRollup {
                     column_name: "ledger_tx_ids",
@@ -195,14 +181,12 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
             ],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(CollateralEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "CreditFacilityEvent",
             filename: "credit_facility_event_schema.json",
-            table_prefix: "core",
             collections: vec![
                 CollectionRollup {
                     column_name: "interest_accrual_ids",
@@ -223,39 +207,35 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
             ],
-            delete_events: vec![],
             toggle_events: vec!["ApprovalProcessConcluded", "Activated", "Completed"],
             generate_schema: || serde_json::to_value(schema_for!(CreditFacilityEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "DisbursalEvent",
             filename: "disbursal_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
             toggle_events: vec!["ApprovalProcessConcluded", "Settled", "Cancelled"],
             generate_schema: || serde_json::to_value(schema_for!(DisbursalEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "InterestAccrualCycleEvent",
             filename: "interest_accrual_cycle_event_schema.json",
-            table_prefix: "core",
             collections: vec![CollectionRollup {
                 column_name: "ledger_tx_ids",
                 values: "ledger_tx_id",
                 add_events: vec!["InterestAccrued", "InterestAccrualsPosted"],
                 remove_events: vec![],
             }],
-            delete_events: vec![],
             toggle_events: vec!["InterestAccrualsPosted"],
             generate_schema: || {
                 serde_json::to_value(schema_for!(InterestAccrualCycleEvent)).unwrap()
             },
+            ..Default::default()
         },
         SchemaInfo {
             name: "ObligationEvent",
             filename: "obligation_event_schema.json",
-            table_prefix: "core",
             collections: vec![
                 CollectionRollup {
                     column_name: "ledger_tx_ids",
@@ -288,7 +268,6 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
             ],
-            delete_events: vec![],
             toggle_events: vec![
                 "DueRecorded",
                 "OverdueRecorded",
@@ -296,38 +275,31 @@ pub fn update_schemas(
                 "Completed",
             ],
             generate_schema: || serde_json::to_value(schema_for!(ObligationEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "PaymentEvent",
             filename: "payment_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
             toggle_events: vec!["PaymentAllocated"],
             generate_schema: || serde_json::to_value(schema_for!(PaymentEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "PaymentAllocationEvent",
             filename: "payment_allocation_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
             toggle_events: vec!["PaymentAllocated"],
             generate_schema: || serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "TermsTemplateEvent",
             filename: "terms_template_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(TermsTemplateEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "ChartEvent",
             filename: "chart_event_schema.json",
-            table_prefix: "core",
             collections: vec![
                 CollectionRollup {
                     column_name: "node_specs",
@@ -342,18 +314,14 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
             ],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
+            ..Default::default()
         },
         SchemaInfo {
             name: "ManualTransactionEvent",
             filename: "manual_transaction_event_schema.json",
-            table_prefix: "core",
-            collections: vec![],
-            delete_events: vec![],
-            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(ManualTransactionEvent)).unwrap(),
+            ..Default::default()
         },
     ];
 
