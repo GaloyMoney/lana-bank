@@ -40,7 +40,7 @@ where
 {
     authz: Perms,
     repo: ObligationRepo<E>,
-    liquidation_process_repo: LiquidationProcessRepo,
+    liquidation_process_repo: LiquidationProcessRepo<E>,
     jobs: Jobs,
 }
 
@@ -74,7 +74,7 @@ where
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
-        let liquidation_process_repo = LiquidationProcessRepo::new(pool);
+        let liquidation_process_repo = LiquidationProcessRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
             repo: obligation_repo,
