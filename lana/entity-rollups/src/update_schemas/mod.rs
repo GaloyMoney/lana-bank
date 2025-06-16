@@ -9,7 +9,7 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 //     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
 //     ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
 // };
-// use core_custody::event_schema::CustodianEvent;
+use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
@@ -37,7 +37,11 @@ pub struct SchemaInfo {
     pub generate_schema: fn() -> serde_json::Value,
 }
 
-pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str, force_recreate: bool) -> anyhow::Result<()> {
+pub fn update_schemas(
+    schemas_out_dir: &str,
+    migrations_out_dir: &str,
+    force_recreate: bool,
+) -> anyhow::Result<()> {
     let schemas = vec![
         SchemaInfo {
             name: "UserEvent",
@@ -158,11 +162,15 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str, force_rec
             toggle_events: vec!["Confirmed", "Cancelled"],
             generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
         },
-        // SchemaInfo {
-        //     name: "CustodianEvent",
-        //     filename: "custodian_event_schema.json",
-        //     generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
-        // },
+        SchemaInfo {
+            name: "CustodianEvent",
+            filename: "custodian_event_schema.json",
+            table_prefix: "core",
+            collections: vec![],
+            delete_events: vec![],
+            toggle_events: vec![],
+            generate_schema: || serde_json::to_value(schema_for!(CustodianEvent)).unwrap(),
+        },
         // SchemaInfo {
         //     name: "CollateralEvent",
         //     filename: "collateral_event_schema.json",
@@ -228,7 +236,7 @@ pub fn update_schemas(schemas_out_dir: &str, migrations_out_dir: &str, force_rec
             "{} Force recreate enabled - deleting existing schema files...",
             "🗑️".yellow().bold()
         );
-        
+
         for schema in &schemas {
             let schema_path = std::path::Path::new(schemas_out_dir).join(schema.filename);
             if schema_path.exists() {

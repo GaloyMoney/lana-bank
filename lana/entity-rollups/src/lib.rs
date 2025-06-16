@@ -6,7 +6,11 @@ mod update_schemas;
 
 #[cfg(not(feature = "json-schema"))]
 mod update_schemas {
-    pub fn update_schemas(_schemas_out_dir: &str, _migrations_out_dir: &str, _force_recreate: bool) -> anyhow::Result<()> {
+    pub fn update_schemas(
+        _schemas_out_dir: &str,
+        _migrations_out_dir: &str,
+        _force_recreate: bool,
+    ) -> anyhow::Result<()> {
         println!("json-schema feature is disabled. No schemas to update.");
         Ok(())
     }
@@ -50,8 +54,10 @@ pub fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
     match &cli.command {
-        Commands::UpdateSchemas(args) => {
-            update_schemas::update_schemas(&args.schemas_out_dir, &args.migrations_out_dir, args.force_recreate)
-        }
+        Commands::UpdateSchemas(args) => update_schemas::update_schemas(
+            &args.schemas_out_dir,
+            &args.migrations_out_dir,
+            args.force_recreate,
+        ),
     }
 }
