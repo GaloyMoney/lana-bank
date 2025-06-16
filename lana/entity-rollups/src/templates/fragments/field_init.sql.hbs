@@ -1,4 +1,4 @@
-{{#if this.revoke_events}}CASE
+{{#if this.is_toggle_field}}false{{else}}{{#if this.revoke_events}}CASE
       WHEN event_type = ANY(ARRAY[{{#each this.revoke_events}}'{{this}}'{{#unless @last}}, {{/unless}}{{/each}}]) THEN NULL
       ELSE {{>field_update_basic}}
-    END{{else}}{{>field_update_basic}}{{/if}}
+    END{{else}}{{>field_update_basic}}{{/if}}{{/if}}
