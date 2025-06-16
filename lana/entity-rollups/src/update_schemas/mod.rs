@@ -105,6 +105,7 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
             ],
+            toggle_events: vec!["Concluded"],
             generate_schema: || serde_json::to_value(schema_for!(ApprovalProcessEvent)).unwrap(),
             ..Default::default()
         },

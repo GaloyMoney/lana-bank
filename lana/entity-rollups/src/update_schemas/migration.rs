@@ -901,43 +901,86 @@ fn json_schema_to_sql_type_with_definitions(
     }
 
     // Handle direct types
-    if let Some(Value::String(type_str)) = schema.get("type") {
-        let sql_type = match type_str.as_str() {
-            "string" => {
-                // Check if this is an enum first
-                if schema.get("enum").is_some() {
-                    "VARCHAR"
-                } else if let Some(Value::String(format)) = schema.get("format") {
-                    match format.as_str() {
-                        "uuid" => "UUID",
-                        "date-time" => "TIMESTAMPTZ",
-                        _ => "VARCHAR",
+    if let Some(type_value) = schema.get("type") {
+        // Handle array types (nullable fields)
+        if let Value::Array(type_array) = type_value {
+            // For nullable types, find the non-null type
+            for type_item in type_array {
+                if let Value::String(type_str) = type_item {
+                    if type_str != "null" {
+                        let sql_type = match type_str.as_str() {
+                            "string" => {
+                                // Check if this is an enum first
+                                if schema.get("enum").is_some() {
+                                    "VARCHAR"
+                                } else if let Some(Value::String(format)) = schema.get("format") {
+                                    match format.as_str() {
+                                        "uuid" => "UUID",
+                                        "date-time" => "TIMESTAMPTZ",
+                                        _ => "VARCHAR",
+                                    }
+                                } else {
+                                    "VARCHAR"
+                                }
+                            }
+                            "integer" => {
+                                if let Some(Value::String(format)) = schema.get("format") {
+                                    match format.as_str() {
+                                        "int64" => "BIGINT",
+                                        _ => "INTEGER",
+                                    }
+                                } else {
+                                    "INTEGER"
+                                }
+                            }
+                            "number" => "NUMERIC",
+                            "boolean" => "BOOLEAN",
+                            "object" => "JSONB",
+                            "array" => "JSONB",
+                            _ => return Err(anyhow!("Unknown JSON schema type: {}", type_str)),
+                        };
+                        return Ok(sql_type.to_string());
                     }
-                } else {
-                    "VARCHAR"
                 }
             }
-            "integer" => {
-                if let Some(Value::String(format)) = schema.get("format") {
-                    match format.as_str() {
-                        "int64" => "BIGINT",
-                        _ => "INTEGER",
+        } else if let Value::String(type_str) = type_value {
+            let sql_type = match type_str.as_str() {
+                "string" => {
+                    // Check if this is an enum first
+                    if schema.get("enum").is_some() {
+                        "VARCHAR"
+                    } else if let Some(Value::String(format)) = schema.get("format") {
+                        match format.as_str() {
+                            "uuid" => "UUID",
+                            "date-time" => "TIMESTAMPTZ",
+                            _ => "VARCHAR",
+                        }
+                    } else {
+                        "VARCHAR"
                     }
-                } else {
-                    "INTEGER"
                 }
-            }
-            "number" => "NUMERIC",
-            "boolean" => "BOOLEAN",
-            "object" => "JSONB",
-            "array" => "JSONB",
-            _ => return Err(anyhow!("Unknown JSON schema type: {}", type_str)),
-        };
-        Ok(sql_type.to_string())
-    } else {
-        // Default to JSONB for complex types
-        Ok("JSONB".to_string())
+                "integer" => {
+                    if let Some(Value::String(format)) = schema.get("format") {
+                        match format.as_str() {
+                            "int64" => "BIGINT",
+                            _ => "INTEGER",
+                        }
+                    } else {
+                        "INTEGER"
+                    }
+                }
+                "number" => "NUMERIC",
+                "boolean" => "BOOLEAN",
+                "object" => "JSONB",
+                "array" => "JSONB",
+                _ => return Err(anyhow!("Unknown JSON schema type: {}", type_str)),
+            };
+            return Ok(sql_type.to_string());
+        }
     }
+
+    // Default to JSONB for complex types
+    Ok("JSONB".to_string())
 }
 
 fn find_events_with_audit_info(schema: &Value) -> Vec<String> {
