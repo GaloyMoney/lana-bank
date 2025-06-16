@@ -1,5 +1,9 @@
-CASE
+{{#if this.is_jsonb_array}}CASE
+      WHEN NEW.event ? '{{this.json_path}}' THEN
+        (NEW.event -> '{{this.json_path}}')
+      ELSE '[]'::JSONB
+    END{{else}}CASE
       WHEN NEW.event ? '{{this.json_path}}' THEN
         ARRAY(SELECT DISTINCT value::text{{#if this.element_cast_type}}::{{this.element_cast_type}}{{/if}} FROM jsonb_array_elements_text(NEW.event -> '{{this.json_path}}') ORDER BY 1)
       ELSE ARRAY[]::{{#if this.element_cast_type}}{{this.element_cast_type}}{{else}}VARCHAR{{/if}}[]
-    END
+    END{{/if}}

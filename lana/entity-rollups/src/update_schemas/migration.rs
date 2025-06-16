@@ -47,6 +47,7 @@ struct ComputedFieldAction {
     set_item_field: Option<String>,
     is_jsonb_field: bool,
     element_cast_type: Option<String>,
+    is_jsonb_array: bool,
     is_toggle_field: bool,
     // Computed action flags
     is_field_update: bool,
@@ -88,6 +89,7 @@ struct FieldDefinition {
     set_item_field: Option<String>,
     is_jsonb_field: bool,
     element_cast_type: Option<String>,
+    is_jsonb_array: bool,
     is_toggle_field: bool,
     toggle_events: Option<Vec<String>>,
 }
@@ -113,6 +115,7 @@ fn compute_event_updates(
                 set_item_field: field.set_item_field.clone(),
                 is_jsonb_field: field.is_jsonb_field,
                 element_cast_type: field.element_cast_type.clone(),
+                is_jsonb_array: field.is_jsonb_array,
                 is_toggle_field: field.is_toggle_field,
                 is_field_update: false,
                 is_field_removal: false,
@@ -590,7 +593,7 @@ fn extract_fields_and_events_from_schema(
 
         // Check if this is a set field
         let is_set_field = set_field_info.contains_key(name);
-        let (set_add_events, set_remove_events, set_item_field, element_cast_type) =
+        let (set_add_events, set_remove_events, set_item_field, element_cast_type, is_jsonb_array) =
             if let Some(info) = set_field_info.get(name) {
                 // Determine array type based on the individual field type
                 let item_type = if let Some((_, item_schema)) = all_properties
@@ -602,7 +605,13 @@ fn extract_fields_and_events_from_schema(
                 } else {
                     "VARCHAR".to_string()
                 };
-                sql_type = format!("{}[]", item_type);
+                // If the item type is JSONB, store the entire array as JSONB
+                let is_jsonb_array = item_type == "JSONB";
+                sql_type = if is_jsonb_array {
+                    "JSONB".to_string()
+                } else {
+                    format!("{}[]", item_type)
+                };
                 // Calculate element cast type for arrays
                 let element_cast_type = get_cast_type(&item_type);
                 (
@@ -610,9 +619,10 @@ fn extract_fields_and_events_from_schema(
                     Some(info.remove_events.clone()),
                     Some(info.item_field_name.clone()),
                     element_cast_type,
+                    is_jsonb_array,
                 )
             } else {
-                (None, None, None, None)
+                (None, None, None, None, false)
             };
 
         // Determine cast type for trigger function
@@ -638,6 +648,7 @@ fn extract_fields_and_events_from_schema(
             set_item_field,
             is_jsonb_field,
             element_cast_type,
+            is_jsonb_array,
             is_toggle_field: false,
             toggle_events: None,
         });
@@ -663,6 +674,7 @@ fn extract_fields_and_events_from_schema(
                 set_item_field: None,
                 is_jsonb_field: false,
                 element_cast_type: None,
+                is_jsonb_array: false,
                 is_toggle_field: true,
                 toggle_events: Some(vec![toggle_event.to_string()]),
             });
