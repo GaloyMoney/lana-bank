@@ -73,12 +73,12 @@ jobs:
                 set -euo pipefail
                 pushd repo
 
-                cachix use lana-ci
+                cachix use lana-bank-ci
 
-                nix build . --print-out-paths --no-link | cachix push lana-ci
+                nix build . --print-out-paths --no-link | cachix push lana-bank-ci
 
                 nix develop --profile dev-profile --command true
-                cachix push lana-ci dev-profile
+                cachix push lana-bank-ci dev-profile
 
                 nix -L develop --command make test-integration-podman
                 nix -L develop --command make test-bats-podman
@@ -105,14 +105,14 @@ jobs:
             - |
               set -euo pipefail
               cd repo
-              cachix use lana-ci
+              cachix use lana-bank-ci
               
               # Cache the build outputs from the project
-              nix build . --print-out-paths --no-link | cachix push lana-ci
+              nix build . --print-out-paths --no-link | cachix push lana-bank-ci
               
               # Cache the development environment  
               nix develop --profile dev-profile --command true
-              cachix push lana-ci dev-profile
+              cachix push lana-bank-ci dev-profile
               
               nix develop --command sh -exc "make check-code"
 
@@ -143,13 +143,13 @@ jobs:
             cd repo
             
             # Setup Cachix cache
-            cachix use lana-ci
+            cachix use lana-bank-ci
             
             # Build the static binary using Nix (equivalent to musl target)
             nix build .#static --print-build-logs
             
             # Push build results to cache
-            nix build .#static --print-out-paths --no-link | cachix push lana-ci
+            nix build .#static --print-out-paths --no-link | cachix push lana-bank-ci
             
             # Copy the binary to output
             mkdir -p ../bin
