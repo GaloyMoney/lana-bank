@@ -70,6 +70,9 @@ impl Policy {
         threshold: usize,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<()>, PolicyError> {
+        if threshold < 1 {
+            return Err(PolicyError::PolicyThresholdTooLow(committee_id, threshold));
+        }
         let rules = ApprovalRules::CommitteeThreshold {
             committee_id,
             threshold,
@@ -201,5 +204,42 @@ mod test {
                 committee_id
             }
         );
+    }
+
+    #[test]
+    fn error_when_threshold_greater_than_n_committee_members() {
+        let mut policy = Policy::try_from_events(init_events()).unwrap();
+        let committee_id = CommitteeId::new();
+        let n_committee_members = 1;
+        let threshold = 2;
+        let audit_info = dummy_audit_info();
+        let res = policy.assign_committee(
+            committee_id,
+            n_committee_members,
+            threshold,
+            audit_info.clone(),
+        );
+
+        assert!(matches!(
+            res,
+            Err(PolicyError::PolicyThresholdTooHigh(_, _))
+        ));
+    }
+
+    #[test]
+    fn error_when_threshold_less_than_one() {
+        let mut policy = Policy::try_from_events(init_events()).unwrap();
+        let committee_id = CommitteeId::new();
+        let n_committee_members = 1;
+        let threshold = 0;
+        let audit_info = dummy_audit_info();
+        let res = policy.assign_committee(
+            committee_id,
+            n_committee_members,
+            threshold,
+            audit_info.clone(),
+        );
+
+        assert!(matches!(res, Err(PolicyError::PolicyThresholdTooLow(_, _))));
     }
 }

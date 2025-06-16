@@ -12,6 +12,8 @@ pub enum PolicyError {
     DuplicateApprovalProcessType,
     #[error("PolicyError - Threshold {1} too high for committee {0}")]
     PolicyThresholdTooHigh(crate::primitives::CommitteeId, usize),
+    #[error("PolicyError - Threshold {1} too low for committee {0}")]
+    PolicyThresholdTooLow(crate::primitives::CommitteeId, usize),
 }
 
 es_entity::from_es_entity_error!(PolicyError);
