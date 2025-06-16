@@ -43,7 +43,7 @@
           "format": "uuid",
           "type": "string"
         },
-        "ledger_transaction_id": {
+        "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -62,7 +62,7 @@
         "audit_info",
         "deposit_account_id",
         "id",
-        "ledger_transaction_id",
+        "ledger_tx_id",
         "reference",
         "type"
       ],

@@ -60,8 +60,8 @@ pub fn update_schemas(
         SchemaInfo {
             name: "UserEvent",
             filename: "user_event_schema.json",
-            delete_events: vec!["RoleRevoked"],
             generate_schema: || serde_json::to_value(schema_for!(UserEvent)).unwrap(),
+            delete_events: vec!["RoleRevoked"],
             ..Default::default()
         },
         SchemaInfo {
@@ -148,7 +148,7 @@ pub fn update_schemas(
         SchemaInfo {
             name: "WithdrawalEvent",
             filename: "withdrawal_event_schema.json",
-            toggle_events: vec!["Confirmed", "Cancelled"],
+            toggle_events: vec!["ApprovalProcessConcluded", "Confirmed", "Cancelled"],
             generate_schema: || serde_json::to_value(schema_for!(WithdrawalEvent)).unwrap(),
             ..Default::default()
         },
@@ -161,26 +161,12 @@ pub fn update_schemas(
         SchemaInfo {
             name: "CollateralEvent",
             filename: "collateral_event_schema.json",
-            collections: vec![
-                CollectionRollup {
-                    column_name: "ledger_tx_ids",
-                    values: "ledger_tx_id",
-                    add_events: vec!["Updated"],
-                    remove_events: vec![],
-                },
-                CollectionRollup {
-                    column_name: "diffs",
-                    values: "abs_diff",
-                    add_events: vec!["Updated"],
-                    remove_events: vec![],
-                },
-                CollectionRollup {
-                    column_name: "actions",
-                    values: "action",
-                    add_events: vec!["Updated"],
-                    remove_events: vec![],
-                },
-            ],
+            collections: vec![CollectionRollup {
+                column_name: "ledger_tx_ids",
+                values: "ledger_tx_id",
+                add_events: vec!["Updated"],
+                remove_events: vec![],
+            }],
             generate_schema: || serde_json::to_value(schema_for!(CollateralEvent)).unwrap(),
             ..Default::default()
         },
@@ -189,15 +175,15 @@ pub fn update_schemas(
             filename: "credit_facility_event_schema.json",
             collections: vec![
                 CollectionRollup {
-                    column_name: "interest_accrual_ids",
-                    values: "interest_accrual_id",
-                    add_events: vec!["InterestAccrualCycleStarted"],
-                    remove_events: vec![],
-                },
-                CollectionRollup {
                     column_name: "ledger_tx_ids",
                     values: "ledger_tx_id",
                     add_events: vec!["Initialized", "Activated", "InterestAccrualCycleConcluded"],
+                    remove_events: vec![],
+                },
+                CollectionRollup {
+                    column_name: "interest_accrual_ids",
+                    values: "interest_accrual_id",
+                    add_events: vec!["InterestAccrualCycleStarted"],
                     remove_events: vec![],
                 },
                 CollectionRollup {
@@ -261,12 +247,6 @@ pub fn update_schemas(
                     add_events: vec!["PaymentAllocated"],
                     remove_events: vec![],
                 },
-                CollectionRollup {
-                    column_name: "payment_allocation_amounts",
-                    values: "payment_allocation_amount",
-                    add_events: vec!["PaymentAllocated"],
-                    remove_events: vec![],
-                },
             ],
             toggle_events: vec![
                 "DueRecorded",
@@ -287,7 +267,6 @@ pub fn update_schemas(
         SchemaInfo {
             name: "PaymentAllocationEvent",
             filename: "payment_allocation_event_schema.json",
-            toggle_events: vec!["PaymentAllocated"],
             generate_schema: || serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap(),
             ..Default::default()
         },
