@@ -4,6 +4,7 @@ RETURNS TRIGGER AS $$
 DECLARE
   event_type TEXT;
   current_row {{rollup_table_name}}%ROWTYPE;
+  new_row {{rollup_table_name}}%ROWTYPE;
 BEGIN
   event_type := NEW.event_type;
 
@@ -22,6 +23,24 @@ BEGIN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
+  -- Construct the new row based on event type
+  new_row.id := NEW.id;
+  new_row.last_sequence := NEW.sequence;
+  new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
+  new_row.modified_at := NEW.recorded_at;
+
+  -- Initialize fields with default values if this is a new record
+  IF current_row.id IS NULL THEN{{#each fields}}
+    new_row.{{this.name}} := {{>field-init}};{{/each}}
+  END IF;
+
+  CASE event_type{{#each event_updates}}
+    WHEN '{{this.name}}' THEN{{#each this.field_updates}}
+      new_row.{{this.name}} := {{>field-update}};{{/each}}{{/each}}
+    ELSE{{#each fields}}
+      new_row.{{this.name}} := COALESCE(current_row.{{this.name}}, new_row.{{this.name}});{{/each}}
+  END CASE;
+
   INSERT INTO {{rollup_table_name}} (
     id,
     last_sequence,
@@ -30,22 +49,16 @@ BEGIN
     {{this.name}}{{/each}}
   )
   VALUES (
-    NEW.id,
-    NEW.sequence,
-    NEW.recorded_at,
-    NEW.recorded_at{{#each fields}},
-    {{>field-init}}{{/each}}
+    new_row.id,
+    new_row.last_sequence,
+    new_row.created_at,
+    new_row.modified_at{{#each fields}},
+    new_row.{{this.name}}{{/each}}
   )
   ON CONFLICT (id) DO UPDATE SET
-    last_sequence = NEW.sequence,
-    modified_at = NEW.recorded_at,
-    ({{#each fields}}{{this.name}}{{#unless @last}}, {{/unless}}{{/each}}) =
-    (SELECT {{#each fields}}
-      CASE event_type{{#each ../event_updates}}
-        WHEN '{{this.name}}' THEN {{#each this.field_updates}}{{#if (eq this.name ../../this.name)}}{{>field-update}}{{/if}}{{/each}}{{/each}}
-        ELSE current_row.{{this.name}}
-      END{{#unless @last}},{{/unless}}{{/each}}
-    );
+    last_sequence = EXCLUDED.last_sequence,
+    modified_at = EXCLUDED.modified_at{{#each fields}},
+    {{this.name}} = EXCLUDED.{{this.name}}{{/each}};
 
   RETURN NEW;
 END;
