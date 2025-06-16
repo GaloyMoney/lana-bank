@@ -256,6 +256,52 @@
         "audit_info": {
           "$ref": "#/definitions/AuditInfo"
         },
+        "liquidation_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "liquidation_process_started"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "liquidation_process_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "liquidation_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "liquidation_process_concluded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "liquidation_process_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
         "effective": {
           "format": "date",
           "type": "string"

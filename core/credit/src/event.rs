@@ -107,4 +107,14 @@ pub enum CoreCreditEvent {
         id: ObligationId,
         credit_facility_id: CreditFacilityId,
     },
+    LiquidationProcessStarted {
+        id: LiquidationProcessId,
+        parent_obligation_id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+    },
+    LiquidationProcessConcluded {
+        id: LiquidationProcessId,
+        parent_obligation_id: ObligationId,
+        credit_facility_id: CreditFacilityId,
+    },
 }
