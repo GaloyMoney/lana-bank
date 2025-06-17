@@ -24,6 +24,7 @@ members = [
   "core/price",
   "core/credit",
   "core/custody",
+  "core/document-storage",
 
   "lib/authz",
   "lib/audit",
@@ -32,7 +33,7 @@ members = [
   "lib/outbox",
   "lib/jwks-utils",
   "lib/kratos-admin",
-  "lib/cloud-storage",
+  "lib/cloud-storage"
 ]
 
 [workspace.dependencies]

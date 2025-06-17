@@ -1546,6 +1546,25 @@ dependencies = [
 ]
 
 [[package]]
+name = "document-storage"
+version = "0.1.0"
+dependencies = [
+ "audit",
+ "authz",
+ "chrono",
+ "derive_builder",
+ "es-entity",
+ "outbox",
+ "schemars",
+ "serde",
+ "sqlx",
+ "strum",
+ "thiserror 2.0.12",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
