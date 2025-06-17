@@ -3,7 +3,7 @@ use derive_builder::Builder;
 use es_entity::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{audit::AuditInfo, primitives::*, storage::LocationInCloud};
+use crate::{audit::AuditInfo, primitives::*, storage::LocationInStorage};
 
 use super::upload::ReportFileUpload;
 
@@ -14,10 +14,9 @@ pub struct ReportLocationInCloud {
     pub path_in_bucket: String,
 }
 
-impl<'a> From<&'a ReportLocationInCloud> for LocationInCloud<'a> {
+impl<'a> From<&'a ReportLocationInCloud> for LocationInStorage<'a> {
     fn from(meta: &'a ReportLocationInCloud) -> Self {
-        LocationInCloud {
-            bucket: &meta.bucket,
+        LocationInStorage {
             path_in_bucket: &meta.path_in_bucket,
         }
     }

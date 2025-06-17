@@ -10,8 +10,8 @@ use serde::{Deserialize, Serialize};
 use crate::{ledger_account::LedgerAccounts, primitives::AccountingCsvId};
 
 use super::{
-    CoreAccountingAction, CoreAccountingObject, error::AccountingCsvError, generate::GenerateCsv,
-    primitives::AccountingCsvType, repo::AccountingCsvRepo,
+    error::AccountingCsvError, generate::GenerateCsv, primitives::AccountingCsvType,
+    repo::AccountingCsvRepo, CoreAccountingAction, CoreAccountingObject,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -147,11 +147,8 @@ where
                     .await
                 {
                     Ok(_) => {
-                        let _ = export.file_uploaded(
-                            path_in_bucket,
-                            self.storage.bucket_name().to_string(),
-                            audit_info,
-                        );
+                        let _ = export
+                            .file_uploaded(self.storage.bucket_name().to_string(), audit_info);
                     }
                     Err(e) => {
                         let _ = export.upload_failed(e.to_string(), audit_info);

@@ -6,7 +6,7 @@ use es_entity::*;
 use crate::{
     audit::AuditInfo,
     primitives::{CustomerId, DocumentId},
-    storage::LocationInCloud,
+    storage::LocationInStorage,
 };
 
 #[derive(Debug, Clone)]
@@ -53,7 +53,6 @@ pub struct Document {
     pub filename: String,
     pub status: DocumentStatus,
     pub(super) path_in_bucket: String,
-    pub(super) bucket: String,
     events: EntityEvents<DocumentEvent>,
 }
 
@@ -68,21 +67,20 @@ fn path_in_bucket_util(id: DocumentId) -> String {
 }
 
 impl Document {
-    fn location_in_cloud(&self) -> LocationInCloud {
-        LocationInCloud {
-            bucket: &self.bucket,
+    fn location_in_cloud(&self) -> LocationInStorage {
+        LocationInStorage {
             path_in_bucket: &self.path_in_bucket,
         }
     }
 
-    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInCloud {
+    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> LocationInStorage {
         self.events
             .push(DocumentEvent::DownloadLinkGenerated { audit_info });
 
         self.location_in_cloud()
     }
 
-    pub fn path_for_removal(&self) -> LocationInCloud {
+    pub fn path_for_removal(&self) -> LocationInStorage {
         self.location_in_cloud()
     }
 
@@ -113,7 +111,6 @@ impl TryFromEvents<DocumentEvent> for Document {
                     customer_id,
                     sanitized_filename,
                     path_in_bucket,
-                    bucket,
                     ..
                 } => {
                     builder = builder
@@ -121,7 +118,6 @@ impl TryFromEvents<DocumentEvent> for Document {
                         .customer_id(*customer_id)
                         .filename(sanitized_filename.clone())
                         .path_in_bucket(path_in_bucket.clone())
-                        .bucket(bucket.clone())
                         .status(DocumentStatus::Active);
                 }
                 DocumentEvent::Archived { .. } => {

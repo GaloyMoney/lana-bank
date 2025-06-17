@@ -1,4 +1,4 @@
-use cloud_storage::{LocationInCloud, Storage, config::StorageConfig};
+use cloud_storage::{config::StorageConfig, LocationInStorage, Storage};
 
 #[tokio::test]
 async fn upload_doc() -> anyhow::Result<()> {
@@ -32,8 +32,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     let _ = storage.upload(content, filename, "application/txt").await;
 
     // generate link
-    let location = LocationInCloud {
-        bucket: storage.bucket_name(),
+    let location = LocationInStorage {
         path_in_bucket: filename,
     };
     let link = storage.generate_download_link(location.clone()).await?;

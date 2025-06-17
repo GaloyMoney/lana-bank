@@ -192,8 +192,7 @@ where
 
         let link = self
             .storage
-            .generate_download_link(cloud_storage::LocationInCloud {
-                bucket: "",
+            .generate_download_link(cloud_storage::LocationInStorage {
                 path_in_bucket: document_location,
             })
             .await?;
@@ -223,8 +222,7 @@ where
 
         let document_location = document.path_for_removal();
         self.storage
-            .remove(cloud_storage::LocationInCloud {
-                bucket: "",
+            .remove(cloud_storage::LocationInStorage {
                 path_in_bucket: document_location,
             })
             .await?;
