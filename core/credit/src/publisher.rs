@@ -291,17 +291,17 @@ where
             .filter_map(|event| match &event.event {
                 Initialized {
                     id,
-                    parent_obligation_id,
+                    obligation_id,
                     credit_facility_id,
                     ..
                 } => Some(CoreCreditEvent::LiquidationProcessStarted {
                     id: *id,
-                    parent_obligation_id: *parent_obligation_id,
+                    obligation_id: *obligation_id,
                     credit_facility_id: *credit_facility_id,
                 }),
                 Completed { .. } => Some(CoreCreditEvent::LiquidationProcessConcluded {
                     id: entity.id,
-                    parent_obligation_id: entity.parent_obligation_id,
+                    obligation_id: entity.obligation_id,
                     credit_facility_id: entity.credit_facility_id,
                 }),
             })

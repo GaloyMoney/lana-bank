@@ -12,7 +12,7 @@ use super::{entity::*, error::*};
     entity = "LiquidationProcess",
     err = "LiquidationProcessError",
     columns(
-        parent_obligation_id(ty = "ObligationId", list_for, update(persist = false)),
+        obligation_id(ty = "ObligationId", list_for, update(persist = false)),
         credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
     ),
     tbl_prefix = "core",

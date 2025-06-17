@@ -436,7 +436,7 @@ impl Obligation {
         let new_liquidation_process = NewLiquidationProcess::builder()
             .id(liquidation_process_id)
             .credit_facility_id(self.credit_facility_id)
-            .parent_obligation_id(self.id)
+            .obligation_id(self.id)
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment allocation");

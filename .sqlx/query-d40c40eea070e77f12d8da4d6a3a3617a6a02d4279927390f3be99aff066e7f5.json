@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT parent_obligation_id, id FROM core_liquidation_processes WHERE ((parent_obligation_id = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: LiquidationProcessId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_liquidation_process_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT obligation_id, created_at, id FROM core_liquidation_processes WHERE ((obligation_id = $1) AND (COALESCE((created_at, id) > ($4, $3), $3 IS NULL))) ORDER BY created_at ASC, id ASC LIMIT $2) SELECT i.id AS \"entity_id: LiquidationProcessId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_liquidation_process_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -28,7 +28,8 @@
       "Left": [
         "Uuid",
         "Int8",
-        "Uuid"
+        "Uuid",
+        "Timestamptz"
       ]
     },
     "nullable": [
@@ -38,5 +39,5 @@
       false
     ]
   },
-  "hash": "71746d97f9e7cf5d56f636ed20bb966ec341874125864d5103afce6d983ae852"
+  "hash": "d40c40eea070e77f12d8da4d6a3a3617a6a02d4279927390f3be99aff066e7f5"
 }

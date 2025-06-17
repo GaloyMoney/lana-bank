@@ -12,7 +12,7 @@ use crate::primitives::*;
 pub enum LiquidationProcessEvent {
     Initialized {
         id: LiquidationProcessId,
-        parent_obligation_id: ObligationId,
+        obligation_id: ObligationId,
         credit_facility_id: CreditFacilityId,
         audit_info: AuditInfo,
     },
@@ -25,7 +25,7 @@ pub enum LiquidationProcessEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct LiquidationProcess {
     pub id: LiquidationProcessId,
-    pub parent_obligation_id: ObligationId,
+    pub obligation_id: ObligationId,
     pub credit_facility_id: CreditFacilityId,
     events: EntityEvents<LiquidationProcessEvent>,
 }
@@ -39,13 +39,13 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
             match event {
                 LiquidationProcessEvent::Initialized {
                     id,
-                    parent_obligation_id,
+                    obligation_id,
                     credit_facility_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
-                        .parent_obligation_id(*parent_obligation_id)
+                        .obligation_id(*obligation_id)
                         .credit_facility_id(*credit_facility_id)
                 }
                 LiquidationProcessEvent::Completed { .. } => (),
@@ -60,7 +60,7 @@ pub struct NewLiquidationProcess {
     #[builder(setter(into))]
     pub(crate) id: LiquidationProcessId,
     #[builder(setter(into))]
-    pub(crate) parent_obligation_id: ObligationId,
+    pub(crate) obligation_id: ObligationId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     #[builder(setter(into))]
@@ -79,7 +79,7 @@ impl IntoEvents<LiquidationProcessEvent> for NewLiquidationProcess {
             self.id,
             [LiquidationProcessEvent::Initialized {
                 id: self.id,
-                parent_obligation_id: self.parent_obligation_id,
+                obligation_id: self.obligation_id,
                 credit_facility_id: self.credit_facility_id,
                 audit_info: self.audit_info,
             }],

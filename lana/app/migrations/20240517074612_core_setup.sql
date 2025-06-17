@@ -255,7 +255,7 @@ CREATE TABLE core_obligation_events (
 
 CREATE TABLE core_liquidation_processes (
   id UUID PRIMARY KEY,
-  parent_obligation_id UUID NOT NULL REFERENCES core_obligations(id),
+  obligation_id UUID NOT NULL REFERENCES core_obligations(id),
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
   created_at TIMESTAMPTZ NOT NULL
 );
