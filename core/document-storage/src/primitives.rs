@@ -4,7 +4,8 @@ pub use audit::AuditInfo;
 pub use authz::{action_description::*, AllOrOne};
 
 es_entity::entity_id! {
-    DocumentId;
+    DocumentId,
+    DocumentOwnerId,
 }
 
 pub type DocumentAllOrOne = AllOrOne<DocumentId>;

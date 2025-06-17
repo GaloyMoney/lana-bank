@@ -22,6 +22,7 @@ pub enum DocumentEvent {
         content_type: String,
         path_in_storage: String,
         storage_identifier: String,
+        owner_id: Option<DocumentOwnerId>,
     },
     FileUploaded {
         audit_info: AuditInfo,
@@ -33,8 +34,9 @@ pub enum DocumentEvent {
 pub struct Document {
     pub id: DocumentId,
     pub filename: String,
-    pub(super) content_type: String,
+    pub content_type: String,
     pub(super) path_in_storage: String,
+    pub owner_id: Option<DocumentOwnerId>,
     events: EntityEvents<DocumentEvent>,
 }
 
@@ -67,13 +69,15 @@ impl TryFromEvents<DocumentEvent> for Document {
                     sanitized_filename,
                     content_type,
                     path_in_storage,
+                    owner_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .filename(sanitized_filename.clone())
                         .content_type(content_type.clone())
-                        .path_in_storage(path_in_storage.clone());
+                        .path_in_storage(path_in_storage.clone())
+                        .owner_id(*owner_id);
                 }
                 DocumentEvent::FileUploaded { .. } => {
                     // FileUploaded event doesn't modify any fields now
@@ -100,6 +104,7 @@ pub struct NewDocument {
     pub(super) path_in_storage: String,
     #[builder(setter(into))]
     pub(super) storage_identifier: String,
+    pub(super) owner_id: Option<DocumentOwnerId>,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -133,6 +138,7 @@ impl IntoEvents<DocumentEvent> for NewDocument {
                 content_type: self.content_type,
                 path_in_storage: self.path_in_storage,
                 storage_identifier: self.storage_identifier,
+                owner_id: self.owner_id,
             }],
         )
     }

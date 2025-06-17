@@ -11,6 +11,8 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Document",
     err = "DocumentStorageError",
+    columns(owner_id(ty = "Option<DocumentOwnerId>", list_for, update(persist = false))),
+    tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
 pub struct DocumentRepo<E>

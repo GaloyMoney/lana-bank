@@ -78,6 +78,7 @@ where
         content: Vec<u8>,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
+        owner_id: impl Into<Option<DocumentOwnerId>> + std::fmt::Debug,
     ) -> Result<Document, DocumentStorageError> {
         let audit_info = self
             .authz
@@ -90,6 +91,7 @@ where
 
         let filename_str = filename.into();
         let content_type_str = content_type.into();
+        let owner_id_opt = owner_id.into();
         let document_id = DocumentId::new();
         let path_in_storage = format!("documents/{}", document_id);
         let storage_identifier = self.storage.storage_identifier();
@@ -97,9 +99,10 @@ where
         let new_document = NewDocument::builder()
             .id(document_id)
             .filename(filename_str)
-            .content_type(content_type_str)
+            .content_type(content_type_str.clone())
             .path_in_storage(path_in_storage)
             .storage_identifier(storage_identifier)
+            .owner_id(owner_id_opt)
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build document");
