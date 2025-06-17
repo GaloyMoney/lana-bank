@@ -1,20 +1,10 @@
+mod client;
 pub mod config;
 pub mod error;
 
+use client::{GcpClient, StorageClient};
 use config::StorageConfig;
-use google_cloud_storage::{
-    client::{Client, ClientConfig},
-    http::objects::{
-        delete::DeleteObjectRequest,
-        list::ListObjectsRequest,
-        upload::{Media, UploadObjectRequest, UploadType},
-    },
-    sign::SignedURLOptions,
-};
-
 use error::*;
-
-const LINK_DURATION_IN_SECS: u64 = 60 * 5;
 
 #[derive(Debug, Clone)]
 pub struct LocationInCloud<'a> {
@@ -34,17 +24,19 @@ impl Storage {
         }
     }
 
-    pub fn bucket_name(&self) -> &str {
-        &self.config.bucket_name
+    async fn client(&self) -> Result<Box<dyn StorageClient>, StorageError> {
+        match &self.config {
+            StorageConfig::Gcp(gcp_config) => {
+                let client = GcpClient::init(gcp_config).await?;
+                Ok(Box::new(client))
+            }
+        }
     }
 
-    fn path_with_prefix(&self, path: &str) -> String {
-        format!("{}/{}", self.config.root_folder, path)
-    }
-
-    async fn client(&self) -> Result<Client, StorageError> {
-        let client_config = ClientConfig::default().with_auth().await?;
-        Ok(Client::new(client_config))
+    pub fn bucket_name(&self) -> String {
+        match &self.config {
+            StorageConfig::Gcp(gcp_config) => gcp_config.bucket_name.clone(),
+        }
     }
 
     pub async fn upload(
@@ -53,36 +45,18 @@ impl Storage {
         path_in_bucket: &str,
         mime_type: &str,
     ) -> Result<(), StorageError> {
-        let bucket = self.bucket_name();
-        let object_name = self.path_with_prefix(path_in_bucket);
-
-        let mut media = Media::new(object_name);
-        media.content_type = mime_type.to_owned().into();
-        let upload_type = UploadType::Simple(media);
-
-        let req = UploadObjectRequest {
-            bucket: bucket.to_string(),
-            ..Default::default()
-        };
         self.client()
             .await?
-            .upload_object(&req, file, &upload_type)
+            .upload(file, path_in_bucket, mime_type)
             .await?;
-
         Ok(())
     }
 
     pub async fn remove(&self, location: LocationInCloud<'_>) -> Result<(), StorageError> {
-        let bucket = location.bucket;
-        let object_name = self.path_with_prefix(location.path_in_bucket);
-
-        let req = DeleteObjectRequest {
-            bucket: bucket.to_owned(),
-            object: object_name,
-            ..Default::default()
-        };
-
-        self.client().await?.delete_object(&req).await?;
+        self.client()
+            .await?
+            .remove(location.bucket, location.path_in_bucket)
+            .await?;
         Ok(())
     }
 
@@ -92,46 +66,12 @@ impl Storage {
     ) -> Result<String, StorageError> {
         let location = location.into();
 
-        let bucket = location.bucket;
-        let object_name = self.path_with_prefix(location.path_in_bucket);
-
-        let opts = SignedURLOptions {
-            expires: std::time::Duration::new(LINK_DURATION_IN_SECS, 0),
-            ..Default::default()
-        };
-
-        let signed_url = self
+        let link = self
             .client()
             .await?
-            .signed_url(bucket, &object_name, None, None, opts)
+            .generate_download_link(location.bucket, location.path_in_bucket)
             .await?;
 
-        Ok(signed_url)
-    }
-
-    pub async fn _list(&self, filter_prefix: String) -> anyhow::Result<Vec<String>> {
-        let full_prefix = self.path_with_prefix(&filter_prefix);
-        let bucket = self.bucket_name();
-
-        let req = ListObjectsRequest {
-            bucket: bucket.to_owned(),
-            prefix: Some(full_prefix),
-            ..Default::default()
-        };
-
-        let result =
-            self.client().await?.list_objects(&req).await.map_err(|e| {
-                anyhow::anyhow!("Error listing objects from bucket {}: {e}", bucket)
-            })?;
-
-        let mut filenames = Vec::new();
-        if let Some(items) = result.items {
-            for item in items {
-                // `item.name` is the full path/key in the bucket
-                filenames.push(item.name);
-            }
-        }
-
-        Ok(filenames)
+        Ok(link)
     }
 }

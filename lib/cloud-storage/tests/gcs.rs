@@ -15,12 +15,9 @@ async fn upload_doc() -> anyhow::Result<()> {
     }
 
     let config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
-        StorageConfig::new_dev_mode(name_prefix)
+        StorageConfig::new_gcp_dev_mode(name_prefix)
     } else {
-        StorageConfig {
-            root_folder: "gha".to_string(),
-            bucket_name: "gha-lana-documents".to_string(),
-        }
+        StorageConfig::new_gcp("gha".to_string(), "gha-lana-documents".to_string())
     };
 
     let storage = Storage::new(&config);
@@ -33,7 +30,7 @@ async fn upload_doc() -> anyhow::Result<()> {
 
     // generate link
     let location = LocationInCloud {
-        bucket: storage.bucket_name(),
+        bucket: &storage.bucket_name(),
         path_in_bucket: filename,
     };
     let link = storage.generate_download_link(location.clone()).await?;

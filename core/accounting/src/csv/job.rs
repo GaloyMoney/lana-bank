@@ -149,7 +149,7 @@ where
                     Ok(_) => {
                         let _ = export.file_uploaded(
                             path_in_bucket,
-                            self.storage.bucket_name().to_string(),
+                            self.storage.bucket_name(),
                             audit_info,
                         );
                     }

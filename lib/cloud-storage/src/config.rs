@@ -1,18 +1,27 @@
 use serde::{Deserialize, Serialize};
 
-#[derive(Clone, Debug, Deserialize, Serialize, Default)]
-pub struct StorageConfig {
-    #[serde(default)]
-    pub root_folder: String,
-    #[serde(default)]
-    pub bucket_name: String,
+use super::client::GcpConfig;
+
+#[derive(Clone, Debug, Deserialize, Serialize)]
+pub enum StorageConfig {
+    Gcp(GcpConfig),
+}
+
+impl Default for StorageConfig {
+    fn default() -> Self {
+        StorageConfig::Gcp(GcpConfig::default())
+    }
 }
 
 impl StorageConfig {
-    pub fn new_dev_mode(name_prefix: String) -> StorageConfig {
-        Self {
-            bucket_name: format!("{}-lana-documents", name_prefix),
-            root_folder: name_prefix,
-        }
+    pub fn new_gcp_dev_mode(name_prefix: String) -> Self {
+        StorageConfig::Gcp(GcpConfig::new_dev_mode(name_prefix))
+    }
+
+    pub fn new_gcp(bucket_name: String, root_folder: String) -> Self {
+        StorageConfig::Gcp(GcpConfig {
+            bucket_name,
+            root_folder,
+        })
     }
 }
