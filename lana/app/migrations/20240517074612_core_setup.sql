@@ -324,6 +324,7 @@ CREATE TABLE core_payment_allocation_events (
 CREATE TABLE core_documents (
   id UUID PRIMARY KEY,
   owner_id UUID,
+  deleted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

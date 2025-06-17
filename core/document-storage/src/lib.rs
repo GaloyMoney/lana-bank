@@ -11,10 +11,12 @@ mod repo;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cloud_storage::Storage;
+use es_entity::ListDirection;
 use outbox::{Outbox, OutboxEventMarker};
+use std::collections::HashMap;
 use tracing::instrument;
 
-pub use entity::{Document, NewDocument};
+pub use entity::{Document, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
 pub use event::*;
 pub use primitives::*;
@@ -121,5 +123,147 @@ where
         db.commit().await?;
 
         Ok(document)
+    }
+
+    #[instrument(name = "document_storage.find_by_id", skip(self), err)]
+    pub async fn find_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<DocumentId> + std::fmt::Debug + Copy,
+    ) -> Result<Option<Document>, DocumentStorageError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                DocumentStorageObject::document(id.into()),
+                CoreDocumentStorageAction::DOCUMENT_READ,
+            )
+            .await?;
+
+        match self.repo.find_by_id(id.into()).await {
+            Ok(document) => Ok(Some(document)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    #[instrument(name = "document_storage.list_for_owner_id", skip(self), err)]
+    pub async fn list_for_owner_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        owner_id: DocumentOwnerId,
+    ) -> Result<Vec<Document>, DocumentStorageError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                DocumentStorageObject::all_documents(),
+                CoreDocumentStorageAction::DOCUMENT_LIST,
+            )
+            .await?;
+
+        Ok(self
+            .repo
+            .list_for_owner_id_by_created_at(
+                Some(owner_id),
+                Default::default(),
+                ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
+
+    #[instrument(name = "document_storage.generate_download_link", skip(self), err)]
+    pub async fn generate_download_link(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        document_id: DocumentId,
+    ) -> Result<GeneratedDocumentDownloadLink, DocumentStorageError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                DocumentStorageObject::document(document_id),
+                CoreDocumentStorageAction::DOCUMENT_READ,
+            )
+            .await?;
+
+        let mut document = self.repo.find_by_id(document_id).await?;
+
+        let document_location = document.download_link_generated(audit_info);
+
+        let link = self
+            .storage
+            .generate_download_link(cloud_storage::LocationInCloud {
+                bucket: "",
+                path_in_bucket: document_location,
+            })
+            .await?;
+
+        self.repo.update(&mut document).await?;
+
+        Ok(GeneratedDocumentDownloadLink { document_id, link })
+    }
+
+    #[instrument(name = "document_storage.delete", skip(self), err)]
+    pub async fn delete(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
+    ) -> Result<(), DocumentStorageError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                DocumentStorageObject::document(document_id.into()),
+                CoreDocumentStorageAction::DOCUMENT_READ,
+            )
+            .await?;
+
+        let mut db = self.repo.begin_op().await?;
+        let mut document = self.repo.find_by_id(document_id.into()).await?;
+
+        let document_location = document.path_for_removal();
+        self.storage
+            .remove(cloud_storage::LocationInCloud {
+                bucket: "",
+                path_in_bucket: document_location,
+            })
+            .await?;
+
+        document.delete(audit_info);
+        self.repo.delete_in_op(&mut db, document).await?;
+        db.commit().await?;
+
+        Ok(())
+    }
+
+    #[instrument(name = "document_storage.archive", skip(self), err)]
+    pub async fn archive(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
+    ) -> Result<Document, DocumentStorageError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                DocumentStorageObject::document(document_id.into()),
+                CoreDocumentStorageAction::DOCUMENT_READ,
+            )
+            .await?;
+
+        let mut document = self.repo.find_by_id(document_id.into()).await?;
+
+        document.archive(audit_info);
+        self.repo.update(&mut document).await?;
+
+        Ok(document)
+    }
+
+    #[instrument(name = "document_storage.find_all", skip(self), err)]
+    pub async fn find_all<T: From<Document>>(
+        &self,
+        ids: &[DocumentId],
+    ) -> Result<HashMap<DocumentId, T>, DocumentStorageError> {
+        self.repo.find_all(ids).await
     }
 }

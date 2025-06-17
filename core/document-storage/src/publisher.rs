@@ -43,6 +43,9 @@ where
                     Some(CoreDocumentStorageEvent::DocumentCreated { id: *id })
                 }
                 FileUploaded { .. } => None, // Don't publish file upload events for now
+                DownloadLinkGenerated { .. } => None, // Don't publish download link events
+                Deleted { .. } => None,      // Don't publish delete events for now
+                Archived { .. } => None,     // Don't publish archive events for now
             })
             .collect::<Vec<_>>();
         self.outbox

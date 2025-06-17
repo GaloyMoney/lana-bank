@@ -9,6 +9,18 @@ use es_entity::*;
 
 use crate::primitives::*;
 
+#[derive(Debug, Clone)]
+pub struct GeneratedDocumentDownloadLink {
+    pub document_id: DocumentId,
+    pub link: String,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum DocumentStatus {
+    Active,
+    Archived,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -27,6 +39,15 @@ pub enum DocumentEvent {
     FileUploaded {
         audit_info: AuditInfo,
     },
+    DownloadLinkGenerated {
+        audit_info: AuditInfo,
+    },
+    Deleted {
+        audit_info: AuditInfo,
+    },
+    Archived {
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -37,6 +58,7 @@ pub struct Document {
     pub content_type: String,
     pub(super) path_in_storage: String,
     pub owner_id: Option<DocumentOwnerId>,
+    pub status: DocumentStatus,
     events: EntityEvents<DocumentEvent>,
 }
 
@@ -55,6 +77,29 @@ impl Document {
 
     pub fn upload_file(&mut self, audit_info: AuditInfo) {
         self.events.push(DocumentEvent::FileUploaded { audit_info });
+    }
+
+    pub fn storage_path(&self) -> &str {
+        &self.path_in_storage
+    }
+
+    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> &str {
+        self.events
+            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
+        &self.path_in_storage
+    }
+
+    pub fn path_for_removal(&self) -> &str {
+        &self.path_in_storage
+    }
+
+    pub fn delete(&mut self, audit_info: AuditInfo) {
+        self.events.push(DocumentEvent::Deleted { audit_info });
+    }
+
+    pub fn archive(&mut self, audit_info: AuditInfo) {
+        self.events.push(DocumentEvent::Archived { audit_info });
+        self.status = DocumentStatus::Archived;
     }
 }
 
@@ -77,10 +122,20 @@ impl TryFromEvents<DocumentEvent> for Document {
                         .filename(sanitized_filename.clone())
                         .content_type(content_type.clone())
                         .path_in_storage(path_in_storage.clone())
-                        .owner_id(*owner_id);
+                        .owner_id(*owner_id)
+                        .status(DocumentStatus::Active);
                 }
                 DocumentEvent::FileUploaded { .. } => {
                     // FileUploaded event doesn't modify any fields now
+                }
+                DocumentEvent::DownloadLinkGenerated { .. } => {
+                    // DownloadLinkGenerated event doesn't modify any fields
+                }
+                DocumentEvent::Deleted { .. } => {
+                    // Deleted event doesn't modify any fields (soft delete)
+                }
+                DocumentEvent::Archived { .. } => {
+                    builder = builder.status(DocumentStatus::Archived);
                 }
             }
         }
