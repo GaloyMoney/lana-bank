@@ -107,15 +107,10 @@ check-code-rust: sdl-rust update-schemas
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	git diff --exit-code lana/entity-rollups/schemas
 	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
-	SQLX_OFFLINE=true cargo fmt --check --all
-	SQLX_OFFLINE=true cargo check
-	SQLX_OFFLINE=true cargo clippy --all-features
-	SQLX_OFFLINE=true cargo audit
-	cargo deny check
-	cargo machete
+	nix build .#check-code -L --option sandbox false
 
 update-schemas:
-	SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas
+	SQLX_OFFLINE=true nix run .#entity-rollups -- update-schemas
 
 clippy:
 	SQLX_OFFLINE=true cargo clippy --all-features
@@ -130,8 +125,8 @@ e2e: clean-deps start-deps build-for-tests
 	bats -t bats
 
 sdl-rust:
-	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
-	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
+	SQLX_OFFLINE=true nix run .#write_sdl -- > lana/admin-server/src/graphql/schema.graphql
+	SQLX_OFFLINE=true nix run .#write_customer_sdl -- > lana/customer-server/src/graphql/schema.graphql
 
 sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
@@ -219,7 +214,7 @@ start-cypress-stack:
 
 
 test-in-ci: start-deps setup-db
-	cargo nextest run --verbose --locked
+	nix build .#test-in-ci -L --option sandbox false
 
 build-x86_64-unknown-linux-musl-release:
 	SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
