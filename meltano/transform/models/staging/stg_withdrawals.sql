@@ -1,7 +1,6 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['id'],
-    full_refresh = true,
 ) }}
 
 with ordered as (
