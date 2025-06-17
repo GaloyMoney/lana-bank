@@ -10,6 +10,7 @@ mod repo;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use cloud_storage::Storage;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;
 
@@ -34,6 +35,7 @@ where
     authz: Perms,
     outbox: Outbox<E>,
     repo: DocumentRepo<E>,
+    storage: Storage,
 }
 
 impl<Perms, E> Clone for DocumentStorage<Perms, E>
@@ -46,6 +48,7 @@ where
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            storage: self.storage.clone(),
         }
     }
 }
@@ -57,13 +60,14 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DocumentStorageObject>,
     E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>, storage: &Storage) -> Self {
         let publisher = DocumentStoragePublisher::new(outbox);
         let repo = DocumentRepo::new(pool, &publisher);
         Self {
             repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            storage: storage.clone(),
         }
     }
 
@@ -93,19 +97,23 @@ where
         let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
-        // Now upload the file (using the same audit_info since upload is implicit in create)
+        // Upload the file to storage
+        let filename_str = filename.into();
+        let content_type_str = content_type.into();
+        let storage_path = document.storage_path();
+        
+        self.storage
+            .upload(content, &storage_path, &content_type_str)
+            .await?;
+
+        // Now record the upload in the entity
         document.upload_file(
-            filename.into(),
-            content_type.into(),
+            filename_str,
+            content_type_str,
             audit_info,
         );
 
         self.repo.update_in_op(&mut db, &mut document).await?;
-
-        // TODO: Actually upload the content to storage
-        // For now we just simulate the upload process
-        let _ = content; // Suppress unused warning
-
         db.commit().await?;
 
         Ok(document)

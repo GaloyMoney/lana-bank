@@ -12,6 +12,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "a
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
+cloud-storage = { path = "../../lib/cloud-storage" }
 
 es-entity = { workspace = true }
 sqlx = { workspace = true }

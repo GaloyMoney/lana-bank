@@ -58,6 +58,10 @@ impl Document {
         self.filename = Some(filename);
         self.content_type = Some(content_type);
     }
+
+    pub fn storage_path(&self) -> String {
+        format!("documents/{}", self.id)
+    }
 }
 
 impl TryFromEvents<DocumentEvent> for Document {

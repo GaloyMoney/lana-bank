@@ -12,6 +12,8 @@ pub enum DocumentStorageError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("DocumentStorageError - AuditError: ${0}")]
     AuditError(#[from] audit::error::AuditError),
+    #[error("DocumentStorageError - StorageError: {0}")]
+    StorageError(#[from] cloud_storage::error::StorageError),
 }
 
 es_entity::from_es_entity_error!(DocumentStorageError);

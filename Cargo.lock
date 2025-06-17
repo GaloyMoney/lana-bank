@@ -1552,6 +1552,7 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
+ "cloud-storage",
  "derive_builder",
  "es-entity",
  "outbox",
