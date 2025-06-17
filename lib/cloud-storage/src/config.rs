@@ -1,11 +1,12 @@
 use serde::{Deserialize, Serialize};
 
-use super::client::GcpConfig;
+use super::client::{GcpConfig, LocalConfig};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "provider", rename_all = "lowercase")]
 pub enum StorageConfig {
     Gcp(GcpConfig),
+    Local(LocalConfig),
 }
 
 impl Default for StorageConfig {
@@ -23,6 +24,12 @@ impl StorageConfig {
         StorageConfig::Gcp(GcpConfig {
             bucket_name,
             root_folder,
+        })
+    }
+
+    pub fn new_local(root_folder: String) -> Self {
+        StorageConfig::Local(LocalConfig {
+            root_folder: root_folder.into(),
         })
     }
 }
