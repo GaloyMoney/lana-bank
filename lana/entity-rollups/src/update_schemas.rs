@@ -12,7 +12,8 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{AccountingCsvEvent, ChartEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
+    LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent, PaymentEvent,
+    TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
@@ -109,6 +110,11 @@ pub fn update_schemas(schemas_out_dir: &str) -> anyhow::Result<()> {
             name: "ObligationEvent",
             filename: "obligation_event_schema.json",
             generate_schema: || serde_json::to_value(schema_for!(ObligationEvent)).unwrap(),
+        },
+        SchemaInfo {
+            name: "LiquidationProcessEvent",
+            filename: "liquidation_process_event_schema.json",
+            generate_schema: || serde_json::to_value(schema_for!(LiquidationProcessEvent)).unwrap(),
         },
         SchemaInfo {
             name: "PaymentEvent",
