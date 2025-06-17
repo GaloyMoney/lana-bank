@@ -167,6 +167,7 @@ pub struct CreditLedger {
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+    in_liquidation_omnibus_account_ids: LedgerOmnibusAccountIds,
     internal_account_sets: CreditFacilityInternalAccountSets,
     credit_facility_control_id: VelocityControlId,
     usd: Currency,
@@ -208,6 +209,17 @@ impl CreditLedger {
             format!("{journal_id}:{CREDIT_FACILITY_OMNIBUS_ACCOUNT_REF}"),
             CREDIT_FACILITY_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
             facility_omnibus_normal_balance_type,
+        )
+        .await?;
+
+        let in_liquidation_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let in_liquidation_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            in_liquidation_omnibus_normal_balance_type,
         )
         .await?;
 
@@ -787,6 +799,7 @@ impl CreditLedger {
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
+            in_liquidation_omnibus_account_ids,
             internal_account_sets,
             credit_facility_control_id,
             usd: Currency::USD,
