@@ -39,9 +39,9 @@ where
         use DocumentEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { id, .. } => Some(CoreDocumentStorageEvent::DocumentCreated {
-                    id: *id,
-                }),
+                Initialized { id, .. } => {
+                    Some(CoreDocumentStorageEvent::DocumentCreated { id: *id })
+                }
                 FileUploaded { .. } => None, // Don't publish file upload events for now
             })
             .collect::<Vec<_>>();

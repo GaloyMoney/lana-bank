@@ -17,10 +17,11 @@ pub enum DocumentEvent {
     Initialized {
         id: DocumentId,
         audit_info: AuditInfo,
+        sanitized_filename: String,
+        original_filename: String,
+        content_type: String,
     },
     FileUploaded {
-        filename: String,
-        content_type: String,
         audit_info: AuditInfo,
     },
 }
@@ -29,10 +30,8 @@ pub enum DocumentEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Document {
     pub id: DocumentId,
-    #[builder(setter(strip_option), default)]
-    pub filename: Option<String>,
-    #[builder(setter(strip_option), default)]
-    pub content_type: Option<String>,
+    pub filename: String,
+    pub content_type: String,
     events: EntityEvents<DocumentEvent>,
 }
 
@@ -49,14 +48,8 @@ impl Document {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn upload_file(&mut self, filename: String, content_type: String, audit_info: AuditInfo) {
-        self.events.push(DocumentEvent::FileUploaded {
-            filename: filename.clone(),
-            content_type: content_type.clone(),
-            audit_info,
-        });
-        self.filename = Some(filename);
-        self.content_type = Some(content_type);
+    pub fn upload_file(&mut self, audit_info: AuditInfo) {
+        self.events.push(DocumentEvent::FileUploaded { audit_info });
     }
 
     pub fn storage_path(&self) -> String {
@@ -70,17 +63,19 @@ impl TryFromEvents<DocumentEvent> for Document {
 
         for event in events.iter_all() {
             match event {
-                DocumentEvent::Initialized { id, .. } => {
-                    builder = builder.id(*id);
-                }
-                DocumentEvent::FileUploaded {
-                    filename,
+                DocumentEvent::Initialized {
+                    id,
+                    sanitized_filename,
                     content_type,
                     ..
                 } => {
                     builder = builder
-                        .filename(filename.clone())
+                        .id(*id)
+                        .filename(sanitized_filename.clone())
                         .content_type(content_type.clone());
+                }
+                DocumentEvent::FileUploaded { .. } => {
+                    // FileUploaded event doesn't modify any fields now
                 }
             }
         }
@@ -90,10 +85,29 @@ impl TryFromEvents<DocumentEvent> for Document {
 }
 
 #[derive(Debug, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct NewDocument {
     #[builder(setter(into))]
     pub(super) id: DocumentId,
+    #[builder(setter(custom))]
+    filename: String,
+    #[builder(private)]
+    sanitized_filename: String,
+    #[builder(setter(into))]
+    pub(super) content_type: String,
     pub(super) audit_info: AuditInfo,
+}
+
+impl NewDocumentBuilder {
+    pub fn filename<T: Into<String>>(mut self, filename: T) -> Self {
+        let filename = filename.into();
+        let sanitized = filename
+            .trim()
+            .replace(|c: char| !c.is_alphanumeric() && c != '-', "-");
+        self.filename = Some(filename);
+        self.sanitized_filename = Some(sanitized);
+        self
+    }
 }
 
 impl NewDocument {
@@ -109,6 +123,9 @@ impl IntoEvents<DocumentEvent> for NewDocument {
             [DocumentEvent::Initialized {
                 id: self.id,
                 audit_info: self.audit_info,
+                sanitized_filename: self.sanitized_filename,
+                original_filename: self.filename,
+                content_type: self.content_type,
             }],
         )
     }

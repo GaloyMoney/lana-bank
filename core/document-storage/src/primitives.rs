@@ -49,7 +49,9 @@ impl FromStr for DocumentStorageObject {
         use DocumentStorageObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             Document => {
-                let obj_ref = id.parse().map_err(|_| "could not parse DocumentStorageObject")?;
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse DocumentStorageObject")?;
                 DocumentStorageObject::Document(obj_ref)
             }
         };
@@ -65,7 +67,8 @@ pub enum CoreDocumentStorageAction {
 }
 
 impl CoreDocumentStorageAction {
-    pub const DOCUMENT_CREATE: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::Create);
+    pub const DOCUMENT_CREATE: Self =
+        CoreDocumentStorageAction::Document(DocumentEntityAction::Create);
     pub const DOCUMENT_READ: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::Read);
     pub const DOCUMENT_LIST: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::List);
 
@@ -89,7 +92,9 @@ impl CoreDocumentStorageAction {
     }
 }
 
-#[derive(PartialEq, Eq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[derive(
+    PartialEq, Eq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray,
+)]
 #[strum(serialize_all = "kebab-case")]
 pub enum DocumentEntityAction {
     Read,
@@ -103,7 +108,9 @@ impl DocumentEntityAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_DOCUMENT_STORAGE_WRITER]),
+                Self::Create => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_DOCUMENT_STORAGE_WRITER])
+                }
 
                 Self::Read => ActionDescription::new(
                     variant,
