@@ -36,7 +36,9 @@ async fn upload_doc() -> anyhow::Result<()> {
     let link = storage.generate_download_link(location.clone()).await?;
 
     // download and verify the link
-    let res = reqwest::get(link).await?;
+    let res = reqwest::get(link).await;
+    dbg!(&res);
+    let res = res?;
     assert!(res.status().is_success());
 
     let return_content = res.text().await?;
