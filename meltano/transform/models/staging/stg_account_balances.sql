@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['journal_id', 'account_id', 'currency', 'version'],
+    full_refresh = true,
 ) }}
 
 with ordered as (
