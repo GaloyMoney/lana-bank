@@ -192,6 +192,7 @@ impl CreditLedger {
         templates::InitiateDisbursal::init(cala).await?;
         templates::CancelDisbursal::init(cala).await?;
         templates::ConfirmDisbursal::init(cala).await?;
+        templates::ReserveForLiquidation::init(cala).await?;
 
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
@@ -1294,6 +1295,42 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
                     defaulted_account_id,
+                    effective,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn reserve_for_liquidation(
+        &self,
+        op: es_entity::DbOp<'_>,
+        ObligationReserveForLiquidation {
+            tx_id,
+            outstanding,
+            credit_facility_account_ids:
+                CreditFacilityAccountIds {
+                    in_liquidation_account_id,
+                    ..
+                },
+            effective,
+            ..
+        }: ObligationReserveForLiquidation,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::RESERVE_FOR_LIQUIDATION_CODE,
+                templates::ReserveForLiquidationParams {
+                    journal_id: self.journal_id,
+                    amount: outstanding.to_usd(),
+                    liquidation_omnibus_account_id: self
+                        .in_liquidation_omnibus_account_ids
+                        .account_id,
+                    facility_liquidation_account_id: in_liquidation_account_id,
                     effective,
                 },
             )
