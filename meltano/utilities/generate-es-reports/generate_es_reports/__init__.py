@@ -4,9 +4,7 @@ from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 
-
 def main():
-    # Read configuration from environment
     required_envs = [
         "DBT_BIGQUERY_PROJECT",
         "DBT_BIGQUERY_DATASET",
@@ -28,7 +26,6 @@ def main():
         )
     credentials = service_account.Credentials.from_service_account_file(keyfile)
 
-    # Initialize BigQuery client with credentials
     bq_client = bigquery.Client(project=project_id, credentials=credentials)
 
     # List all tables in the dataset and process those starting with "report_"
@@ -53,7 +50,5 @@ def main():
         blob.upload_from_string(xml_content, content_type="text/xml")
         print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
 
-
-# If this script is run as __main__, execute main()
 if __name__ == "__main__":
     main()
