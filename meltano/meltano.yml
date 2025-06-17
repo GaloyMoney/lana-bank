@@ -128,17 +128,3 @@ plugins:
     - name: DBT_BIGQUERY_PROJECT
       env: DBT_BIGQUERY_PROJECT
       value: lana-dev-440721
-    - name: GOOGLE_APPLICATION_CREDENTIALS
-      env: GOOGLE_APPLICATION_CREDENTIALS
-      value: ${MELTANO_PROJECT_ROOT}/keyfile.json
-    - name: BQ_PROJECT
-      env: BQ_PROJECT
-    - name: BQ_DATASET
-      env: BQ_DATASET
-    - name: BQ_TABLE
-      env: BQ_TABLE
-    - name: GCS_BUCKET
-      env: GCS_BUCKET
-    - name: REPORT_NAME
-      env: REPORT_NAME
-      value: report
