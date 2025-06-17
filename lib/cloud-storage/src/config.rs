@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::client::GcpConfig;
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
-#[serde(untagged)]
+#[serde(tag = "provider", rename_all = "lowercase")]
 pub enum StorageConfig {
     Gcp(GcpConfig),
 }
