@@ -108,6 +108,7 @@ pub struct InterestReceivable {
 pub struct CreditFacilityInternalAccountSets {
     pub facility: InternalAccountSetDetails,
     pub collateral: InternalAccountSetDetails,
+    pub in_liquidation: InternalAccountSetDetails,
     pub disbursed_receivable: DisbursedReceivable,
     pub disbursed_defaulted: InternalAccountSetDetails,
     pub interest_receivable: InterestReceivable,
@@ -121,6 +122,7 @@ impl CreditFacilityInternalAccountSets {
         let Self {
             facility,
             collateral,
+            in_liquidation,
             interest_income,
             fee_income,
 
@@ -142,6 +144,7 @@ impl CreditFacilityInternalAccountSets {
         let mut ids = vec![
             facility.id,
             collateral.id,
+            in_liquidation.id,
             interest_income.id,
             fee_income.id,
             disbursed_defaulted.id,
@@ -240,6 +243,16 @@ impl CreditLedger {
             format!("{journal_id}:{CREDIT_COLLATERAL_ACCOUNT_SET_REF}"),
             CREDIT_COLLATERAL_ACCOUNT_SET_NAME.to_string(),
             collateral_normal_balance_type,
+        )
+        .await?;
+
+        let in_liquidation_normal_balance_type = DebitOrCredit::Credit;
+        let in_liquidation_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_REF}"),
+            CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_NAME.to_string(),
+            in_liquidation_normal_balance_type,
         )
         .await?;
 
@@ -759,6 +772,10 @@ impl CreditLedger {
             collateral: InternalAccountSetDetails {
                 id: collateral_account_set_id,
                 normal_balance_type: collateral_normal_balance_type,
+            },
+            in_liquidation: InternalAccountSetDetails {
+                id: in_liquidation_account_set_id,
+                normal_balance_type: in_liquidation_normal_balance_type,
             },
             disbursed_receivable,
             disbursed_defaulted: InternalAccountSetDetails {

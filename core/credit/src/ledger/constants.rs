@@ -23,6 +23,11 @@ pub const CREDIT_FACILITY_REMAINING_ACCOUNT_SET_REF: &str = "credit-facility-rem
 pub const CREDIT_COLLATERAL_ACCOUNT_SET_NAME: &str = "Credit Collateral Account Set";
 pub const CREDIT_COLLATERAL_ACCOUNT_SET_REF: &str = "credit-collateral-account-set";
 
+pub const CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_NAME: &str =
+    "Credit Facility In-Liquidation Account Set";
+pub const CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_REF: &str =
+    "credit-facility-in-liquidation-account-set";
+
 pub const SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_NAME: &str =
     "Short Term Credit Individual Disbursed Receivable Account Set";
 pub const SHORT_TERM_CREDIT_INDIVIDUAL_DISBURSED_RECEIVABLE_ACCOUNT_SET_REF: &str =
