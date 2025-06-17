@@ -90,10 +90,16 @@ where
 
         let filename_str = filename.into();
         let content_type_str = content_type.into();
+        let document_id = DocumentId::new();
+        let path_in_storage = format!("documents/{}", document_id);
+        let storage_identifier = self.storage.storage_identifier();
+
         let new_document = NewDocument::builder()
-            .id(DocumentId::new())
+            .id(document_id)
             .filename(filename_str)
-            .content_type(content_type_str.clone())
+            .content_type(content_type_str)
+            .path_in_storage(path_in_storage)
+            .storage_identifier(storage_identifier)
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build document");
@@ -101,11 +107,8 @@ where
         let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
-        // Upload the file to storage
-        let storage_path = document.storage_path();
-
         self.storage
-            .upload(content, &storage_path, &content_type_str)
+            .upload(content, &document.path_in_storage, &document.content_type)
             .await?;
 
         // Now record the upload in the entity

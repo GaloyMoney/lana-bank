@@ -38,6 +38,10 @@ impl Storage {
         &self.config.bucket_name
     }
 
+    pub fn storage_identifier(&self) -> String {
+        format!("gcp:{}", self.config.bucket_name)
+    }
+
     fn path_with_prefix(&self, path: &str) -> String {
         format!("{}/{}", self.config.root_folder, path)
     }

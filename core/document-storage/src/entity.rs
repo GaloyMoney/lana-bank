@@ -20,6 +20,8 @@ pub enum DocumentEvent {
         sanitized_filename: String,
         original_filename: String,
         content_type: String,
+        path_in_storage: String,
+        storage_identifier: String,
     },
     FileUploaded {
         audit_info: AuditInfo,
@@ -31,7 +33,8 @@ pub enum DocumentEvent {
 pub struct Document {
     pub id: DocumentId,
     pub filename: String,
-    pub content_type: String,
+    pub(super) content_type: String,
+    pub(super) path_in_storage: String,
     events: EntityEvents<DocumentEvent>,
 }
 
@@ -51,10 +54,6 @@ impl Document {
     pub fn upload_file(&mut self, audit_info: AuditInfo) {
         self.events.push(DocumentEvent::FileUploaded { audit_info });
     }
-
-    pub fn storage_path(&self) -> String {
-        format!("documents/{}", self.id)
-    }
 }
 
 impl TryFromEvents<DocumentEvent> for Document {
@@ -67,12 +66,14 @@ impl TryFromEvents<DocumentEvent> for Document {
                     id,
                     sanitized_filename,
                     content_type,
+                    path_in_storage,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .filename(sanitized_filename.clone())
-                        .content_type(content_type.clone());
+                        .content_type(content_type.clone())
+                        .path_in_storage(path_in_storage.clone());
                 }
                 DocumentEvent::FileUploaded { .. } => {
                     // FileUploaded event doesn't modify any fields now
@@ -95,6 +96,10 @@ pub struct NewDocument {
     sanitized_filename: String,
     #[builder(setter(into))]
     pub(super) content_type: String,
+    #[builder(setter(into))]
+    pub(super) path_in_storage: String,
+    #[builder(setter(into))]
+    pub(super) storage_identifier: String,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -126,6 +131,8 @@ impl IntoEvents<DocumentEvent> for NewDocument {
                 sanitized_filename: self.sanitized_filename,
                 original_filename: self.filename,
                 content_type: self.content_type,
+                path_in_storage: self.path_in_storage,
+                storage_identifier: self.storage_identifier,
             }],
         )
     }
