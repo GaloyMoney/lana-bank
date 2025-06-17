@@ -1,0 +1,78 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "credit_facility_id",
+        "id",
+        "obligation_id",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "completed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "LiquidationProcessEvent"
+}
