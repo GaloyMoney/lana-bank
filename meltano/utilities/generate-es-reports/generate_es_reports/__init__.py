@@ -43,9 +43,7 @@ def main():
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
         # Remove item_root/item_wrap, use only custom_root and attr_type
-        xml_bytes = dicttoxml(
-            rows_data, custom_root="rows", attr_type=False
-        )
+        xml_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
         xml_content = xml_bytes.decode("utf-8")
         date_str = datetime.now().strftime("%Y-%m-%d")
         blob_path = f"reports/{date_str}/{report_name}.xml"
