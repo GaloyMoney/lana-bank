@@ -40,7 +40,6 @@ def main():
         query = f"SELECT * FROM `{project_id}.{dataset}.{report_name}`;"
         query_job = bq_client.query(query)
         rows = query_job.result()
-        print(query, query_job.schema); exit()
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
         xml_bytes = dicttoxml(
