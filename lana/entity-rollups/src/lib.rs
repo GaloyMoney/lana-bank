@@ -42,7 +42,11 @@ struct UpdateSchemasArgs {
     schemas_out_dir: String,
 
     /// Output directory for migration files
-    #[arg(long, env = "MIGRATIONS_OUT_DIR", default_value = "./migrations")]
+    #[arg(
+        long,
+        env = "MIGRATIONS_OUT_DIR",
+        default_value = "lana/app/migrations"
+    )]
     migrations_out_dir: String,
 
     /// Force recreate by deleting existing schema files first

@@ -318,7 +318,6 @@
         DATABASE_URL = "postgres://${PGUSER}:${PGPASSWORD}@${PGHOST}:5433/pg?sslmode=disable";
         PG_CON = "${DATABASE_URL}";
         CUSTODIAN_ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
-        MIGRATIONS_OUT_DIR = "lana/app/migrations";
       };
     in
       with pkgs; {
