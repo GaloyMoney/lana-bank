@@ -68,7 +68,6 @@ impl CoreDocumentStorageAction {
     pub const DOCUMENT_CREATE: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::Create);
     pub const DOCUMENT_READ: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::Read);
     pub const DOCUMENT_LIST: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::List);
-    pub const DOCUMENT_UPLOAD: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::Upload);
 
     pub fn entities() -> Vec<(
         CoreDocumentStorageActionDiscriminants,
@@ -96,7 +95,6 @@ pub enum DocumentEntityAction {
     Read,
     Create,
     List,
-    Upload,
 }
 
 impl DocumentEntityAction {
@@ -122,8 +120,6 @@ impl DocumentEntityAction {
                         PERMISSION_SET_DOCUMENT_STORAGE_VIEWER,
                     ],
                 ),
-
-                Self::Upload => ActionDescription::new(variant, &[PERMISSION_SET_DOCUMENT_STORAGE_WRITER]),
             };
             res.push(action_description);
         }

@@ -8,16 +8,16 @@ mod primitives;
 mod publisher;
 mod repo;
 
-
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
+use tracing::instrument;
 
-pub use entity::Document;
+pub use entity::{Document, NewDocument};
 use error::*;
 pub use event::*;
 pub use primitives::*;
-pub use repo::{DocumentRepo};
+pub use repo::DocumentRepo;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -67,7 +67,47 @@ where
         }
     }
 
-    pub async fn upload(&self) -> Result<(), DocumentStorageError> {
-        todo!()
+    #[instrument(name = "document_storage.create_and_upload", skip(self, content), err)]
+    pub async fn create_and_upload(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        content: Vec<u8>,
+        filename: impl Into<String> + std::fmt::Debug,
+        content_type: impl Into<String> + std::fmt::Debug,
+    ) -> Result<Document, DocumentStorageError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                DocumentStorageObject::all_documents(),
+                CoreDocumentStorageAction::DOCUMENT_CREATE,
+            )
+            .await?;
+
+        let new_document = NewDocument::builder()
+            .id(DocumentId::new())
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("Could not build document");
+
+        let mut db = self.repo.begin_op().await?;
+        let mut document = self.repo.create_in_op(&mut db, new_document).await?;
+
+        // Now upload the file (using the same audit_info since upload is implicit in create)
+        document.upload_file(
+            filename.into(),
+            content_type.into(),
+            audit_info,
+        );
+
+        self.repo.update_in_op(&mut db, &mut document).await?;
+
+        // TODO: Actually upload the content to storage
+        // For now we just simulate the upload process
+        let _ = content; // Suppress unused warning
+
+        db.commit().await?;
+
+        Ok(document)
     }
 }

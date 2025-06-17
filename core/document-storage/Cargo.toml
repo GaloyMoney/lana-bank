@@ -6,7 +6,7 @@ edition = "2021"
 [features]
 default = []
 fail-on-warnings = []
-json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
 
 [dependencies]
 audit = { path = "../../lib/audit" }

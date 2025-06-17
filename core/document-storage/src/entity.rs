@@ -16,7 +16,11 @@ use crate::primitives::*;
 pub enum DocumentEvent {
     Initialized {
         id: DocumentId,
-        #[cfg_attr(feature = "json-schema", schemars(skip))]
+        audit_info: AuditInfo,
+    },
+    FileUploaded {
+        filename: String,
+        content_type: String,
         audit_info: AuditInfo,
     },
 }
@@ -25,6 +29,10 @@ pub enum DocumentEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Document {
     pub id: DocumentId,
+    #[builder(setter(strip_option), default)]
+    pub filename: Option<String>,
+    #[builder(setter(strip_option), default)]
+    pub content_type: Option<String>,
     events: EntityEvents<DocumentEvent>,
 }
 
@@ -40,6 +48,16 @@ impl Document {
             .entity_first_persisted_at()
             .expect("entity_first_persisted_at not found")
     }
+
+    pub fn upload_file(&mut self, filename: String, content_type: String, audit_info: AuditInfo) {
+        self.events.push(DocumentEvent::FileUploaded {
+            filename: filename.clone(),
+            content_type: content_type.clone(),
+            audit_info,
+        });
+        self.filename = Some(filename);
+        self.content_type = Some(content_type);
+    }
 }
 
 impl TryFromEvents<DocumentEvent> for Document {
@@ -50,6 +68,15 @@ impl TryFromEvents<DocumentEvent> for Document {
             match event {
                 DocumentEvent::Initialized { id, .. } => {
                     builder = builder.id(*id);
+                }
+                DocumentEvent::FileUploaded {
+                    filename,
+                    content_type,
+                    ..
+                } => {
+                    builder = builder
+                        .filename(filename.clone())
+                        .content_type(content_type.clone());
                 }
             }
         }

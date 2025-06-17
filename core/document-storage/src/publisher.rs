@@ -38,10 +38,11 @@ where
     ) -> Result<(), DocumentStorageError> {
         use DocumentEvent::*;
         let publish_events = new_events
-            .map(|event| match &event.event {
-                Initialized { id, .. } => CoreDocumentStorageEvent::DocumentCreated {
+            .filter_map(|event| match &event.event {
+                Initialized { id, .. } => Some(CoreDocumentStorageEvent::DocumentCreated {
                     id: *id,
-                },
+                }),
+                FileUploaded { .. } => None, // Don't publish file upload events for now
             })
             .collect::<Vec<_>>();
         self.outbox
