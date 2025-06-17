@@ -122,15 +122,23 @@ plugins:
       https://raw.githubusercontent.com/apache/airflow/constraints-2.10.4/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
   - name: generate-es-reports
     namespace: generate_es_reports
-    pip_url: -e utilities/generate-es-reports
-    executable: generate-reports
+    pip_url: -e ${MELTANO_PROJECT_ROOT}/utilities/generate-es-reports
+    executable: generate-es-reports
     settings:
     - name: DBT_BIGQUERY_PROJECT
       env: DBT_BIGQUERY_PROJECT
       value: lana-dev-440721
-    - name: DBT_BIGQUERY_DATASET
-      env: DBT_BIGQUERY_DATASET
-    - name: DOCS_BUCKET_NAME
-      env: DOCS_BUCKET_NAME
-    - name: DBT_BIGQUERY_KEYFILE
-      env: DBT_BIGQUERY_KEYFILE
+    - name: GOOGLE_APPLICATION_CREDENTIALS
+      env: GOOGLE_APPLICATION_CREDENTIALS
+      value: ${MELTANO_PROJECT_ROOT}/keyfile.json
+    - name: BQ_PROJECT
+      env: BQ_PROJECT
+    - name: BQ_DATASET
+      env: BQ_DATASET
+    - name: BQ_TABLE
+      env: BQ_TABLE
+    - name: GCS_BUCKET
+      env: GCS_BUCKET
+    - name: REPORT_NAME
+      env: REPORT_NAME
+      value: report

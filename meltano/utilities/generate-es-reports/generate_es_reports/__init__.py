@@ -21,11 +21,10 @@ def main():
     dataset = os.getenv("DBT_BIGQUERY_DATASET")
     bucket_name = os.getenv("DOCS_BUCKET_NAME")
 
-    # Use DBT_BIGQUERY_KEYFILE for authentication
-    keyfile = os.getenv("DBT_BIGQUERY_KEYFILE")
+    keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     if not keyfile or not os.path.isfile(keyfile):
         raise RuntimeError(
-            "DBT_BIGQUERY_KEYFILE environment variable must be set to the path of a valid service account JSON file."
+            "GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the path of a valid service account JSON file."
         )
     credentials = service_account.Credentials.from_service_account_file(keyfile)
 
@@ -41,6 +40,7 @@ def main():
         query = f"SELECT * FROM `{project_id}.{dataset}.{report_name}`;"
         query_job = bq_client.query(query)
         rows = query_job.result()
+        print(query, query_job.schema); exit()
         field_names = [field.name for field in query_job.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
         xml_bytes = dicttoxml(
