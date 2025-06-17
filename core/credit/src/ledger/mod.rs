@@ -945,6 +945,7 @@ impl CreditLedger {
         CreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+
             disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
             disbursed_receivable_overdue_account_id,
@@ -954,6 +955,7 @@ impl CreditLedger {
             interest_receivable_overdue_account_id,
             interest_defaulted_account_id,
 
+            in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
         }: CreditFacilityAccountIds,
@@ -1723,6 +1725,7 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let CreditFacilityAccountIds {
             facility_account_id,
+            in_liquidation_account_id,
             disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
             disbursed_receivable_overdue_account_id,
@@ -1763,6 +1766,22 @@ impl CreditLedger {
             facility_reference,
             facility_name,
             facility_name,
+        )
+        .await?;
+
+        let in_liquidation_reference =
+            &format!("credit-facility-obs-in-liquidation:{}", credit_facility_id);
+        let in_liquidation_name = &format!(
+            "Off-Balance-Sheet In-Liquidation Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            in_liquidation_account_id,
+            self.internal_account_sets.in_liquidation,
+            in_liquidation_reference,
+            in_liquidation_name,
+            in_liquidation_name,
         )
         .await?;
 
