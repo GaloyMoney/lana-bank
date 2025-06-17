@@ -51,6 +51,59 @@ impl Default for SchemaInfo {
     }
 }
 
+fn delete_related_migration_files(
+    migrations_out_dir: &str,
+    schema: &SchemaInfo,
+) -> anyhow::Result<()> {
+    let migrations_dir = std::path::Path::new(migrations_out_dir);
+    if !migrations_dir.exists() {
+        return Ok(());
+    }
+
+    // Generate the rollup table name pattern from the schema name
+    // e.g., UserEvent -> core_user_events_rollup
+    let entity_base = schema.name.replace("Event", "");
+    let table_base = format!("{}_{}", schema.table_prefix, to_snake_case(&entity_base));
+    let rollup_table_name = format!("{}_events_rollup", table_base);
+
+    // Read directory and find matching migration files
+    let entries = std::fs::read_dir(migrations_dir)?;
+    for entry in entries {
+        let entry = entry?;
+        let file_name = entry.file_name();
+        let file_name_str = file_name.to_string_lossy();
+
+        // Check if this migration file is related to our rollup table
+        // Pattern: YYYYMMDDHHMMSS_create_<rollup_table_name>.sql
+        // Pattern: YYYYMMDDHHMMSS_update_<rollup_table_name>.sql
+        if file_name_str.contains(&rollup_table_name)
+            && (file_name_str.contains("_create_") || file_name_str.contains("_update_"))
+            && file_name_str.ends_with(".sql")
+        {
+            let file_path = entry.path();
+            std::fs::remove_file(&file_path)?;
+            println!("  Deleted migration: {}", file_path.display());
+        }
+    }
+
+    Ok(())
+}
+
+fn to_snake_case(s: &str) -> String {
+    let mut result = String::new();
+    let mut prev_was_upper = false;
+
+    for (i, ch) in s.chars().enumerate() {
+        if ch.is_uppercase() && i > 0 && !prev_was_upper {
+            result.push('_');
+        }
+        result.push(ch.to_lowercase().next().unwrap());
+        prev_was_upper = ch.is_uppercase();
+    }
+
+    result
+}
+
 pub fn update_schemas(
     schemas_out_dir: &str,
     migrations_out_dir: &str,
@@ -315,7 +368,7 @@ pub fn update_schemas(
     // Delete existing schema files if force_recreate is requested
     if force_recreate {
         println!(
-            "{} Force recreate enabled - deleting existing schema files...",
+            "{} Force recreate enabled - deleting existing schema files and migrations...",
             "🗑️".yellow().bold()
         );
 
@@ -323,8 +376,11 @@ pub fn update_schemas(
             let schema_path = std::path::Path::new(schemas_out_dir).join(schema.filename);
             if schema_path.exists() {
                 std::fs::remove_file(&schema_path)?;
-                println!("  Deleted: {}", schema_path.display());
+                println!("  Deleted schema: {}", schema_path.display());
             }
+
+            // Delete related migration files
+            delete_related_migration_files(migrations_out_dir, schema)?;
         }
     }
 

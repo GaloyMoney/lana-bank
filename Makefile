@@ -125,11 +125,7 @@ check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
 
 # Default (nix-based) schema update
 update-schemas:
-	SQLX_OFFLINE=true nix run .#entity-rollups -- update-schemas
-
-# Cargo alternative for faster compilation during development
-update-schemas-cargo:
-	SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas
+	SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas --force-recreate
 
 clippy:
 	SQLX_OFFLINE=true cargo clippy --all-features
