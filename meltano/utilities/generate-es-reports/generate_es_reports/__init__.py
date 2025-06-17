@@ -42,8 +42,9 @@ def main():
         rows = query_job.result()
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
+        # Remove item_root/item_wrap, use only custom_root and attr_type
         xml_bytes = dicttoxml(
-            rows_data, custom_root="rows", item_root="row", attr_type=False
+            rows_data, custom_root="rows", attr_type=False
         )
         xml_content = xml_bytes.decode("utf-8")
         date_str = datetime.now().strftime("%Y-%m-%d")
