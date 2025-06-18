@@ -100,7 +100,11 @@ where
 
         let obligation = self
             .obligations
-            .start_liquidation_process_in_op(&mut db, self.config.obligation_id)
+            .start_liquidation_process_in_op(
+                &mut db,
+                self.config.obligation_id,
+                self.config.effective,
+            )
             .await?;
 
         if let Some(defaulted_at) = obligation.defaulted_at() {

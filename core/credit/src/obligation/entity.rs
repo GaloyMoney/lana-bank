@@ -439,6 +439,7 @@ impl Obligation {
 
     pub(crate) fn start_liquidation(
         &mut self,
+        effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
     ) -> Idempotent<NewLiquidationProcess> {
         idempotency_guard!(
@@ -464,6 +465,7 @@ impl Obligation {
             .obligation_id(self.id)
             .in_liquidation_account_id(self.in_liquidation_account())
             .initial_amount(self.outstanding())
+            .effective(effective)
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment allocation");
@@ -880,7 +882,7 @@ mod test {
     #[test]
     fn payment_allocation_ignored_in_liquidation() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.start_liquidation(&dummy_audit_info());
+        let _ = obligation.start_liquidation(Utc::now().date_naive(), &dummy_audit_info());
         assert!(
             obligation
                 .allocate_payment(
