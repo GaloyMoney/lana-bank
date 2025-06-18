@@ -11,6 +11,7 @@ json-schema = [
   "governance/json-schema", 
   "core-custody/json-schema",
   "core-customer/json-schema",
+  "document-storage/json-schema",
   "core-deposit/json-schema",
   "core-credit/json-schema",
   "core-accounting/json-schema"
@@ -28,6 +29,7 @@ core-customer = { path = "../../core/customer", default-features = false }
 core-deposit = { path = "../../core/deposit" }
 core-credit = { path = "../../core/credit" }
 core-accounting = { path = "../../core/accounting" }
+document-storage = { path = "../../core/document-storage" }
 
 clap = { workspace = true }
 schemars = { workspace = true }

@@ -1635,6 +1635,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "document-storage",
  "governance",
  "schemars",
  "serde_json",

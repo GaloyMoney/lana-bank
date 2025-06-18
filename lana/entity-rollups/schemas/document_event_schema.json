@@ -1,0 +1,168 @@
+{
+  "$schema": "http://json-schema.org/draft-07/schema#",
+  "definitions": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/definitions/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_entry_id",
+        "sub"
+      ],
+      "type": "object"
+    }
+  },
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "content_type": {
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "meta": true,
+        "original_filename": {
+          "type": "string"
+        },
+        "owner_id": {
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "path_in_storage": {
+          "type": "string"
+        },
+        "sanitized_filename": {
+          "type": "string"
+        },
+        "storage_identifier": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "initialized"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "content_type",
+        "id",
+        "original_filename",
+        "path_in_storage",
+        "sanitized_filename",
+        "storage_identifier",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "file_uploaded"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "error": {
+          "type": "string"
+        },
+        "type": {
+          "enum": [
+            "upload_failed"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "error",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "download_link_generated"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "deleted"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/definitions/AuditInfo"
+        },
+        "type": {
+          "enum": [
+            "archived"
+          ],
+          "type": "string"
+        }
+      },
+      "required": [
+        "audit_info",
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "DocumentEvent"
+}

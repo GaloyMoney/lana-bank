@@ -20,6 +20,11 @@ use error::*;
 pub use primitives::*;
 pub use repo::DocumentRepo;
 
+#[cfg(feature = "json-schema")]
+pub mod event_schema {
+    pub use crate::entity::DocumentEvent;
+}
+
 pub struct DocumentStorage<Perms>
 where
     Perms: PermissionCheck,
