@@ -1599,6 +1599,8 @@ export enum PermissionSetName {
   DashboardViewer = 'DASHBOARD_VIEWER',
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
+  DocumentViewer = 'DOCUMENT_VIEWER',
+  DocumentWriter = 'DOCUMENT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER'
 }
