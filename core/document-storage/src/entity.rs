@@ -87,8 +87,11 @@ impl Document {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn upload_file(&mut self, audit_info: AuditInfo) {
+    pub fn upload_file(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(self.events.iter_all(), DocumentEvent::FileUploaded { .. });
+
         self.events.push(DocumentEvent::FileUploaded { audit_info });
+        Idempotent::Executed(())
     }
 
     pub fn upload_failed(&mut self, error: String) {
@@ -120,13 +123,19 @@ impl Document {
         &self.path_in_storage
     }
 
-    pub fn delete(&mut self, audit_info: AuditInfo) {
+    pub fn delete(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(self.events.iter_all(), DocumentEvent::Deleted { .. });
+
         self.events.push(DocumentEvent::Deleted { audit_info });
+        Idempotent::Executed(())
     }
 
-    pub fn archive(&mut self, audit_info: AuditInfo) {
+    pub fn archive(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(self.events.iter_all(), DocumentEvent::Archived { .. });
+
         self.events.push(DocumentEvent::Archived { audit_info });
         self.status = DocumentStatus::Archived;
+        Idempotent::Executed(())
     }
 }
 

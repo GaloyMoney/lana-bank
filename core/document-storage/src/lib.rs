@@ -106,10 +106,10 @@ where
             .await?;
 
         // Now record the upload in the entity
-        document.upload_file(audit_info);
-
-        self.repo.update_in_op(&mut db, &mut document).await?;
-        db.commit().await?;
+        if document.upload_file(audit_info).did_execute() {
+            self.repo.update_in_op(&mut db, &mut document).await?;
+            db.commit().await?;
+        }
 
         Ok(document)
     }
@@ -217,9 +217,10 @@ where
             })
             .await?;
 
-        document.delete(audit_info);
-        self.repo.delete_in_op(&mut db, document).await?;
-        db.commit().await?;
+        if document.delete(audit_info).did_execute() {
+            self.repo.delete_in_op(&mut db, document).await?;
+            db.commit().await?;
+        }
 
         Ok(())
     }
@@ -241,8 +242,9 @@ where
 
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
-        document.archive(audit_info);
-        self.repo.update(&mut document).await?;
+        if document.archive(audit_info).did_execute() {
+            self.repo.update(&mut document).await?;
+        }
 
         Ok(document)
     }
