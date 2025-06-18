@@ -17,7 +17,11 @@ import { Badge } from "@lana/web/ui/badge"
 
 import { useState, useCallback } from "react"
 
+import { Button } from "@lana/web/ui/button"
+
 import { LanaBankIcon } from "../icons"
+
+import { createSumsubPermalink } from "./server-actions"
 
 import { KycLevel, MeQuery } from "@/lib/graphql/generated"
 
@@ -77,7 +81,6 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
                   <AvatarFallback>{avatarCallback}</AvatarFallback>
                 </Avatar>
               </DropdownMenuTrigger>
-
               <DropdownMenuContent
                 align="end"
                 className="w-48"
@@ -93,7 +96,6 @@ function NavBar({ meQueryData }: { meQueryData: MeQuery }) {
                     <span>{item.label}</span>
                   </DropdownMenuItem>
                 ))}
-
                 <DropdownMenuSeparator />
                 <DropdownMenuSub>
                   <DropdownMenuSubTrigger className="cursor-pointer">
@@ -149,6 +151,28 @@ const levelLabels = {
 }
 
 export function KYCBadge({ level, className }: KYCBadgeProps) {
+  const [isStartKycLoading, setStartKycLoading] = useState(false)
+
+  const startYourKyc = async () => {
+    setStartKycLoading(true)
+    try {
+      const sumsubPermalink = await createSumsubPermalink()
+      window.open(sumsubPermalink, "_blank")
+    } finally {
+      setStartKycLoading(false)
+    }
+  }
+
+  if (level === KycLevel.NotKyced) {
+    return (
+      <div className={isStartKycLoading ? "cursor-wait" : ""}>
+        <Button onClick={startYourKyc} variant="link" disabled={isStartKycLoading}>
+          Start your KYC process
+        </Button>
+      </div>
+    )
+  }
+
   return (
     <Badge
       variant="outline"

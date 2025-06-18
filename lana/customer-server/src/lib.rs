@@ -65,7 +65,7 @@ pub struct CustomerJwtClaims {
 #[instrument(name = "customer_server.graphql", skip_all, fields(error, error.level, error.message))]
 pub async fn graphql_handler(
     headers: HeaderMap,
-    schema: Extension<Schema<graphql::Query, EmptyMutation, EmptySubscription>>,
+    schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,
     Claims(jwt_claims): Claims<CustomerJwtClaims>,
     req: GraphQLRequest,
 ) -> GraphQLResponse {

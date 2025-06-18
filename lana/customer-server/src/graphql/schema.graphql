@@ -280,6 +280,10 @@ enum KycLevel {
 	ADVANCED
 }
 
+type Mutation {
+	sumsubPermalinkCreate: String!
+}
+
 scalar OneTimeFeeRatePct
 
 type Outstanding {
@@ -392,4 +396,5 @@ Directs the executor to skip this field or fragment when the `if` argument is tr
 directive @skip(if: Boolean!) on FIELD | FRAGMENT_SPREAD | INLINE_FRAGMENT
 schema {
 	query: Query
+	mutation: Mutation
 }
