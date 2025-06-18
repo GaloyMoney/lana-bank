@@ -1,5 +1,6 @@
 with chart as (
     select
+        code,
         dotted_code,
         name,
         account_set_id,
@@ -15,13 +16,14 @@ balances as (
 
 final as (
     select
+        c.code,
         c.dotted_code,
         c.name,
         c.account_set_id,
         coalesce(sum(balance), 0) as balance
     from chart as c
     left join balances using (account_set_id)
-    group by dotted_code, name, account_set_id
+    group by code, dotted_code, name, account_set_id
 )
 
 select * from final
