@@ -49,6 +49,9 @@
             "null"
           ]
         },
+        "path_in_bucket": {
+          "type": "string"
+        },
         "type": {
           "enum": [
             "initialized"
@@ -60,6 +63,7 @@
         "audit_info",
         "csv_type",
         "id",
+        "path_in_bucket",
         "type"
       ],
       "type": "object"
@@ -70,9 +74,6 @@
           "$ref": "#/definitions/AuditInfo"
         },
         "bucket": {
-          "type": "string"
-        },
-        "path_in_bucket": {
           "type": "string"
         },
         "recorded_at": {
@@ -89,7 +90,6 @@
       "required": [
         "audit_info",
         "bucket",
-        "path_in_bucket",
         "recorded_at",
         "type"
       ],

@@ -1559,6 +1559,7 @@ dependencies = [
  "outbox",
  "schemars",
  "serde",
+ "serde_json",
  "sqlx",
  "strum",
  "thiserror 2.0.12",
