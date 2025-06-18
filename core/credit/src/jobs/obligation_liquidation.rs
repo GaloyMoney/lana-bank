@@ -6,7 +6,7 @@ use authz::PermissionCheck;
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, obligation::Obligations, primitives::*};
+use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
 use super::obligation_defaulted;
 
@@ -31,6 +31,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     obligations: Obligations<Perms, E>,
+    ledger: CreditLedger,
     jobs: Jobs,
 }
 
@@ -41,8 +42,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(obligations: &Obligations<Perms, E>, jobs: &Jobs) -> Self {
+    pub fn new(ledger: &CreditLedger, obligations: &Obligations<Perms, E>, jobs: &Jobs) -> Self {
         Self {
+            ledger: ledger.clone(),
             obligations: obligations.clone(),
             jobs: jobs.clone(),
         }
@@ -69,6 +71,7 @@ where
         Ok(Box::new(ObligationLiquidationJobRunner::<Perms, E> {
             config: job.config()?,
             obligations: self.obligations.clone(),
+            ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
         }))
     }
@@ -81,6 +84,7 @@ where
 {
     config: ObligationLiquidationJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
+    ledger: CreditLedger,
     jobs: Jobs,
 }
 
@@ -98,7 +102,7 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut db = self.obligations.begin_op().await?;
 
-        let obligation = self
+        let (obligation, liquidation_process) = self
             .obligations
             .start_liquidation_process_in_op(
                 &mut db,
@@ -106,6 +110,12 @@ where
                 self.config.effective,
             )
             .await?;
+
+        let liquidation_process = if let Some(liquidation_process) = liquidation_process {
+            liquidation_process
+        } else {
+            return Ok(JobCompletion::Complete);
+        };
 
         if let Some(defaulted_at) = obligation.defaulted_at() {
             self.jobs
@@ -121,6 +131,11 @@ where
                 )
                 .await?;
         }
+
+        self.ledger
+            .reserve_for_liquidation(db, liquidation_process)
+            .await?;
+
         Ok(JobCompletion::Complete)
     }
 }

@@ -255,6 +255,7 @@ where
         >::new(&ledger, &obligations, jobs));
         jobs.add_initializer(
             obligation_liquidation::ObligationLiquidationJobInitializer::<Perms, E>::new(
+                &ledger,
                 &obligations,
                 jobs,
             ),
