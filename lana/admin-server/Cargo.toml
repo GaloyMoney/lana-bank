@@ -1,6 +1,6 @@
 [package]
 name = "admin-server"
-version = "0.3.661-dev"
+version = "0.3.666-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 

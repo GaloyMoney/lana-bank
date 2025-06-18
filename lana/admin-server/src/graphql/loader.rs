@@ -144,7 +144,7 @@ impl Loader<governance::ApprovalProcessId> for LanaLoader {
 
 impl Loader<DocumentId> for LanaLoader {
     type Value = Document;
-    type Error = Arc<lana_app::document::error::DocumentError>;
+    type Error = Arc<lana_app::document::error::DocumentStorageError>;
 
     async fn load(
         &self,

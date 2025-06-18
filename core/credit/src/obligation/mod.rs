@@ -7,12 +7,14 @@ mod repo;
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use es_entity::Idempotent;
 use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
     jobs::obligation_due,
+    liquidation_process::LiquidationProcessRepo,
     payment_allocation::NewPaymentAllocation,
     primitives::{
         CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationType,
@@ -38,6 +40,7 @@ where
 {
     authz: Perms,
     repo: ObligationRepo<E>,
+    liquidation_process_repo: LiquidationProcessRepo<E>,
     jobs: Jobs,
 }
 
@@ -50,6 +53,7 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
+            liquidation_process_repo: self.liquidation_process_repo.clone(),
             jobs: self.jobs.clone(),
         }
     }
@@ -70,9 +74,11 @@ where
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
+        let liquidation_process_repo = LiquidationProcessRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
             repo: obligation_repo,
+            liquidation_process_repo,
             jobs: jobs.clone(),
         }
     }
@@ -196,6 +202,36 @@ where
         Ok(data)
     }
 
+    pub async fn start_liquidation_process_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: ObligationId,
+    ) -> Result<(), ObligationError> {
+        let mut obligation = self.repo.find_by_id(id).await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreCreditObject::obligation(id),
+                CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+            )
+            .await
+            .map_err(authz::error::AuthorizationError::from)?;
+
+        if let Idempotent::Executed(new_liquidation_process) =
+            obligation.start_liquidation(&audit_info)
+        {
+            self.repo.update_in_op(db, &mut obligation).await?;
+            self.liquidation_process_repo
+                .create_in_op(db, new_liquidation_process)
+                .await?;
+        }
+
+        Ok(())
+    }
+
     pub async fn find_by_id_without_audit(
         &self,
         id: ObligationId,
@@ -219,7 +255,7 @@ where
         let mut remaining = amount;
         let mut new_allocations = Vec::new();
         for obligation in obligations.iter_mut() {
-            if let es_entity::Idempotent::Executed(Some(new_allocation)) =
+            if let es_entity::Idempotent::Executed(new_allocation) =
                 obligation.allocate_payment(remaining, payment_id, effective, audit_info)
             {
                 self.repo.update_in_op(db, obligation).await?;

@@ -7,9 +7,8 @@ use config::StorageConfig;
 use error::*;
 
 #[derive(Debug, Clone)]
-pub struct LocationInCloud<'a> {
-    pub bucket: &'a str,
-    pub path_in_bucket: &'a str,
+pub struct LocationInStorage<'a> {
+    pub path_in_storage: &'a str,
 }
 
 #[derive(Clone)]
@@ -45,6 +44,15 @@ impl Storage {
         }
     }
 
+    pub fn storage_identifier(&self) -> String {
+        match &self.config {
+            StorageConfig::Gcp(gcp_config) => format!("gcp:{}", gcp_config.bucket_name),
+            StorageConfig::Local(local_config) => {
+                format!("local:{}", local_config.root_folder.display())
+            }
+        }
+    }
+
     pub async fn upload(
         &self,
         file: Vec<u8>,
@@ -58,24 +66,24 @@ impl Storage {
         Ok(())
     }
 
-    pub async fn remove(&self, location: LocationInCloud<'_>) -> Result<(), StorageError> {
+    pub async fn remove(&self, location: LocationInStorage<'_>) -> Result<(), StorageError> {
         self.client()
             .await?
-            .remove(location.bucket, location.path_in_bucket)
+            .remove(location.path_in_storage)
             .await?;
         Ok(())
     }
 
     pub async fn generate_download_link(
         &self,
-        location: impl Into<LocationInCloud<'_>>,
+        location: impl Into<LocationInStorage<'_>>,
     ) -> Result<String, StorageError> {
         let location = location.into();
 
         let link = self
             .client()
             .await?
-            .generate_download_link(location.bucket, location.path_in_bucket)
+            .generate_download_link(location.path_in_storage)
             .await?;
 
         Ok(link)

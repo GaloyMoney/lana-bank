@@ -10,6 +10,7 @@ mod history;
 mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
+mod liquidation_process;
 mod obligation;
 mod payment;
 mod payment_allocation;
@@ -64,8 +65,8 @@ pub mod event_schema {
     pub use crate::{
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         disbursal::DisbursalEvent, interest_accrual_cycle::InterestAccrualCycleEvent,
-        obligation::ObligationEvent, payment::PaymentEvent,
-        payment_allocation::PaymentAllocationEvent,
+        liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
+        payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
     };
 }
 

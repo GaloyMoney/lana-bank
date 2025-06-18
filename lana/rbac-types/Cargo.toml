@@ -1,6 +1,6 @@
 [package]
 name = "rbac-types"
-version = "0.3.661-dev"
+version = "0.3.666-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
@@ -22,6 +22,7 @@ core-credit = { path = "../../core/credit" }
 core-custody = { path = "../../core/custody" }
 core-deposit = { path = "../../core/deposit" }
 core-accounting = { path = "../../core/accounting" }
+document-storage = { path = "../../core/document-storage" }
 lana-ids = { path = "../ids/" }
 
 audit = { path = "../../lib/audit" }

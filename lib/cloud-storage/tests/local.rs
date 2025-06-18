@@ -16,9 +16,8 @@ async fn upload_and_download_local() -> anyhow::Result<()> {
         .upload(content.clone(), filename, "text/plain")
         .await?;
     let link = storage
-        .generate_download_link(cloud_storage::LocationInCloud {
-            bucket: "",
-            path_in_bucket: filename,
+        .generate_download_link(cloud_storage::LocationInStorage {
+            path_in_storage: filename,
         })
         .await?;
     assert!(link.starts_with("file://"));
@@ -27,9 +26,8 @@ async fn upload_and_download_local() -> anyhow::Result<()> {
     assert_eq!(downloaded, content_str);
 
     storage
-        .remove(cloud_storage::LocationInCloud {
-            bucket: "",
-            path_in_bucket: filename,
+        .remove(cloud_storage::LocationInStorage {
+            path_in_storage: filename,
         })
         .await?;
     assert!(!std::path::Path::new(path).exists());

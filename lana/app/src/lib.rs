@@ -5,13 +5,21 @@ pub mod accounting_init;
 pub mod app;
 pub mod applicant;
 pub mod authorization;
-pub mod document;
 pub mod primitives;
 pub mod report;
 pub mod service_account;
 
 pub mod storage {
     pub use cloud_storage::*;
+}
+
+pub mod document {
+    pub use document_storage::{
+        Document, DocumentId, DocumentOwnerId, DocumentRepo, DocumentStatus,
+        GeneratedDocumentDownloadLink, NewDocument, error,
+    };
+    pub type DocumentStorage =
+        document_storage::DocumentStorage<crate::authorization::Authorization>;
 }
 
 pub mod outbox {

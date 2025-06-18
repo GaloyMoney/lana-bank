@@ -78,11 +78,11 @@ impl StorageClient for GcpClient {
         Ok(())
     }
 
-    async fn remove(&self, bucket: &str, path_in_bucket: &str) -> Result<(), StorageClientError> {
+    async fn remove(&self, path_in_bucket: &str) -> Result<(), StorageClientError> {
         let object_name = self.path_with_prefix(path_in_bucket);
 
         let req = DeleteObjectRequest {
-            bucket: bucket.to_owned(),
+            bucket: self.bucket_name().to_owned(),
             object: object_name,
             ..Default::default()
         };
@@ -93,7 +93,6 @@ impl StorageClient for GcpClient {
 
     async fn generate_download_link(
         &self,
-        bucket: &str,
         path_in_bucket: &str,
     ) -> Result<String, StorageClientError> {
         let object_name = self.path_with_prefix(path_in_bucket);
@@ -105,7 +104,7 @@ impl StorageClient for GcpClient {
 
         let signed_url = self
             .client
-            .signed_url(bucket, &object_name, None, None, opts)
+            .signed_url(self.bucket_name(), &object_name, None, None, opts)
             .await?;
 
         Ok(signed_url)

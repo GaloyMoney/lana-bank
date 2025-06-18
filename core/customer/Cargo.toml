@@ -1,6 +1,6 @@
 [package]
 name = "core-customer"
-version = "0.3.661-dev"
+version = "0.3.666-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
@@ -12,7 +12,7 @@ ignored = ["governance"]
 default = ["governance"]
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "governance?/graphql", "dep:async-graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
 governance = ["dep:governance"]
 
 [dependencies]

@@ -8,7 +8,10 @@ use std::cmp::Ordering;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{CreditFacilityId, payment_allocation::NewPaymentAllocation, primitives::*};
+use crate::{
+    liquidation_process::NewLiquidationProcess, payment_allocation::NewPaymentAllocation,
+    primitives::*,
+};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -55,6 +58,14 @@ pub enum ObligationEvent {
         payment_id: PaymentId,
         payment_allocation_id: PaymentAllocationId,
         amount: UsdCents,
+    },
+    LiquidationProcessStarted {
+        liquidation_process_id: LiquidationProcessId,
+        audit_info: AuditInfo,
+    },
+    LiquidationProcessConcluded {
+        liquidation_process_id: LiquidationProcessId,
+        audit_info: AuditInfo,
     },
     Completed {
         effective: chrono::NaiveDate,
@@ -284,6 +295,22 @@ impl Obligation {
             })
     }
 
+    pub fn has_outstanding_balance(&self) -> bool {
+        !self.outstanding().is_zero()
+    }
+
+    pub fn is_in_liquidation(&self) -> bool {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|e| match e {
+                ObligationEvent::LiquidationProcessStarted { .. } => Some(true),
+                ObligationEvent::LiquidationProcessConcluded { .. } => Some(false),
+                _ => None,
+            })
+            .unwrap_or_default()
+    }
+
     pub(crate) fn record_due(
         &mut self,
         effective: chrono::NaiveDate,
@@ -385,20 +412,61 @@ impl Obligation {
 
         Ok(Idempotent::Executed(res))
     }
+
+    pub(crate) fn start_liquidation(
+        &mut self,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<NewLiquidationProcess> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ObligationEvent::LiquidationProcessStarted { .. },
+            => ObligationEvent::LiquidationProcessConcluded {..}
+        );
+
+        match self.status() {
+            ObligationStatus::NotYetDue | ObligationStatus::Due | ObligationStatus::Overdue => (),
+            _ => return Idempotent::Ignored,
+        }
+
+        if !self.has_outstanding_balance() {
+            return Idempotent::Ignored;
+        }
+
+        let liquidation_process_id = LiquidationProcessId::new();
+        let new_liquidation_process = NewLiquidationProcess::builder()
+            .id(liquidation_process_id)
+            .credit_facility_id(self.credit_facility_id)
+            .obligation_id(self.id)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new payment allocation");
+
+        self.events
+            .push(ObligationEvent::LiquidationProcessStarted {
+                liquidation_process_id,
+                audit_info: audit_info.clone(),
+            });
+
+        Idempotent::Executed(new_liquidation_process)
+    }
+
     pub(crate) fn allocate_payment(
         &mut self,
         amount: UsdCents,
         payment_id: PaymentId,
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
-    ) -> Idempotent<Option<NewPaymentAllocation>> {
+    ) -> Idempotent<NewPaymentAllocation> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
-            return Idempotent::Executed(None);
+            return Idempotent::Ignored;
+        }
+        if self.is_in_liquidation() {
+            return Idempotent::Ignored;
         }
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
@@ -443,7 +511,7 @@ impl Obligation {
             });
         }
 
-        Idempotent::Executed(Some(allocation))
+        Idempotent::Executed(allocation)
     }
 }
 
@@ -475,6 +543,8 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::OverdueRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
                 ObligationEvent::PaymentAllocated { .. } => (),
+                ObligationEvent::LiquidationProcessStarted { .. } => (),
+                ObligationEvent::LiquidationProcessConcluded { .. } => (),
                 ObligationEvent::Completed { .. } => (),
             }
         }
@@ -770,6 +840,22 @@ mod test {
             )
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::Paid);
+    }
+
+    #[test]
+    fn payment_allocation_ignored_in_liquidation() {
+        let mut obligation = obligation_from(initial_events());
+        let _ = obligation.start_liquidation(&dummy_audit_info());
+        assert!(
+            obligation
+                .allocate_payment(
+                    UsdCents::ONE,
+                    PaymentId::new(),
+                    Utc::now().date_naive(),
+                    &dummy_audit_info(),
+                )
+                .was_ignored()
+        );
     }
 
     mod is_status_up_to_date {

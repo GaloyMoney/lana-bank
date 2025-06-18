@@ -285,6 +285,11 @@ crate = "notification"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
+[[licenses.clarify]]
+crate = "document-storage"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
 [licenses.private]
 # If true, ignores workspace crates that aren't published, or are only
 # published to private registries.

@@ -2,7 +2,6 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 use super::{StorageClient, error::StorageClientError};
-
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct LocalConfig {
     #[serde(default)]
@@ -43,7 +42,7 @@ impl StorageClient for LocalClient {
         Ok(())
     }
 
-    async fn remove(&self, _bucket: &str, path_in_bucket: &str) -> Result<(), StorageClientError> {
+    async fn remove(&self, path_in_bucket: &str) -> Result<(), StorageClientError> {
         let full_path = self.resolve(path_in_bucket);
         tokio::fs::remove_file(full_path).await?;
         Ok(())
@@ -51,7 +50,6 @@ impl StorageClient for LocalClient {
 
     async fn generate_download_link(
         &self,
-        _bucket: &str,
         path_in_bucket: &str,
     ) -> Result<String, StorageClientError> {
         let full_path = self.resolve(path_in_bucket);

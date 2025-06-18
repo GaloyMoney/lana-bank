@@ -1021,7 +1021,7 @@ export type Disbursed = {
 
 export type Document = {
   __typename?: 'Document';
-  customerId: Scalars['UUID']['output'];
+  customerId?: Maybe<Scalars['UUID']['output']>;
   documentId: Scalars['UUID']['output'];
   filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
@@ -1599,6 +1599,8 @@ export enum PermissionSetName {
   DashboardViewer = 'DASHBOARD_VIEWER',
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
+  DocumentViewer = 'DOCUMENT_VIEWER',
+  DocumentWriter = 'DOCUMENT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER'
 }
@@ -2530,7 +2532,7 @@ export type CustomerDocumentAttachMutationVariables = Exact<{
 }>;
 
 
-export type CustomerDocumentAttachMutation = { __typename?: 'Mutation', customerDocumentAttach: { __typename?: 'DocumentCreatePayload', document: { __typename?: 'Document', id: string, customerId: string, filename: string } } };
+export type CustomerDocumentAttachMutation = { __typename?: 'Mutation', customerDocumentAttach: { __typename?: 'DocumentCreatePayload', document: { __typename?: 'Document', id: string, customerId?: string | null, filename: string } } };
 
 export type GetCustomerDocumentsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];

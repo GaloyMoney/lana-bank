@@ -19,7 +19,7 @@ use crate::{
     customer_sync::CustomerSync,
     dashboard::Dashboard,
     deposit::Deposits,
-    document::Documents,
+    document::DocumentStorage,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -49,7 +49,7 @@ pub struct LanaApp {
     custody: Custody,
     price: Price,
     report: Reports,
-    documents: Documents,
+    documents: DocumentStorage,
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
@@ -77,7 +77,7 @@ impl LanaApp {
         let governance = Governance::new(&pool, &authz, &outbox);
         let price = Price::new();
         let storage = Storage::new(&config.storage);
-        let documents = Documents::new(&pool, &storage, &authz);
+        let documents = DocumentStorage::new(&pool, &authz, &storage);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =
@@ -242,7 +242,7 @@ impl LanaApp {
         &self.access
     }
 
-    pub fn documents(&self) -> &Documents {
+    pub fn documents(&self) -> &DocumentStorage {
         &self.documents
     }
 

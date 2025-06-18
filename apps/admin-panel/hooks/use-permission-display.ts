@@ -97,6 +97,16 @@ export function usePermissionDisplay() {
           label: t("custody_writer.label"),
           description: t("custody_writer.description"),
         }
+      case PermissionSetName.DocumentViewer:
+        return {
+          label: t("document_viewer.label"),
+          description: t("document_viewer.description"),
+        }
+      case PermissionSetName.DocumentWriter:
+        return {
+          label: t("document_writer.label"),
+          description: t("document_writer.description"),
+        }
     }
 
     const exhaustiveCheck: never = permissionName

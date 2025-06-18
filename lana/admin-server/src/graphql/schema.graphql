@@ -1029,7 +1029,7 @@ type Disbursed {
 type Document {
 	id: ID!
 	documentId: UUID!
-	customerId: UUID!
+	customerId: UUID
 	status: DocumentStatus!
 	filename: String!
 }
@@ -1411,6 +1411,8 @@ enum PermissionSetName {
 	CREDIT_WRITER
 	CUSTOMER_VIEWER
 	CUSTOMER_WRITER
+	DOCUMENT_VIEWER
+	DOCUMENT_WRITER
 	CUSTODY_VIEWER
 	CUSTODY_WRITER
 	DASHBOARD_VIEWER

@@ -253,6 +253,22 @@ CREATE TABLE core_obligation_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_liquidation_processes (
+  id UUID PRIMARY KEY,
+  obligation_id UUID NOT NULL REFERENCES core_obligations(id),
+  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_liquidation_process_events (
+  id UUID NOT NULL REFERENCES core_liquidation_processes(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_disbursals (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
@@ -317,6 +333,25 @@ CREATE TABLE core_payment_allocation_events (
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+-- Document storage tables
+CREATE TABLE core_documents (
+  id UUID PRIMARY KEY,
+  owner_id UUID,
+  deleted BOOLEAN NOT NULL DEFAULT FALSE,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE INDEX idx_core_documents_owner_id ON core_documents(owner_id);
+
+CREATE TABLE core_document_events (
+  id UUID NOT NULL REFERENCES core_documents(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(id, sequence)
 );
 

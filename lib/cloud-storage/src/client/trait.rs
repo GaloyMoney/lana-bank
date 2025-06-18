@@ -10,10 +10,9 @@ pub trait StorageClient: Send + 'static {
         path: &str,
         mime_type: &str,
     ) -> Result<(), StorageClientError>;
-    async fn remove(&self, bucket: &str, path_in_bucket: &str) -> Result<(), StorageClientError>;
+    async fn remove(&self, path_in_storage: &str) -> Result<(), StorageClientError>;
     async fn generate_download_link(
         &self,
-        bucket: &str,
-        path_in_bucket: &str,
+        path_in_storage: &str,
     ) -> Result<String, StorageClientError>;
 }
