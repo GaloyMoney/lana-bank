@@ -9,7 +9,7 @@ pub use lana_app::document::{Document as DomainDocument, DocumentStatus};
 pub struct Document {
     id: ID,
     document_id: UUID,
-    customer_id: Option<UUID>,
+    customer_id: UUID,
     status: DocumentStatus,
 
     #[graphql(skip)]
@@ -21,7 +21,7 @@ impl From<DomainDocument> for Document {
         Self {
             id: document.id.to_global_id(),
             document_id: UUID::from(document.id),
-            customer_id: document.owner_id.map(UUID::from),
+            customer_id: UUID::from(document.reference_id),
             status: document.status,
             entity: Arc::new(document),
         }

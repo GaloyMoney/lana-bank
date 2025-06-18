@@ -339,7 +339,7 @@ CREATE TABLE core_payment_allocation_events (
 -- Document storage tables
 CREATE TABLE core_documents (
   id UUID PRIMARY KEY,
-  reference_id UUID,
+  reference_id UUID NOT NULL,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );

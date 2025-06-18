@@ -69,7 +69,7 @@ where
         content: Vec<u8>,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
-        reference_id: impl Into<Option<ReferenceId>> + std::fmt::Debug,
+        reference_id: impl Into<ReferenceId> + std::fmt::Debug,
         document_type: impl Into<DocumentType> + std::fmt::Debug,
     ) -> Result<Document, DocumentStorageError> {
         let audit_info = self
@@ -152,7 +152,7 @@ where
         Ok(self
             .repo
             .list_for_reference_id_by_created_at(
-                Some(reference_id.into()),
+                reference_id.into(),
                 Default::default(),
                 ListDirection::Descending,
             )

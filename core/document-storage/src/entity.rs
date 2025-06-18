@@ -37,7 +37,7 @@ pub enum DocumentEvent {
     Initialized {
         id: DocumentId,
         document_type: DocumentType,
-        reference_id: Option<ReferenceId>,
+        reference_id: ReferenceId,
         sanitized_filename: String,
         original_filename: String,
         content_type: String,
@@ -69,7 +69,7 @@ pub struct Document {
     pub filename: String,
     pub content_type: String,
     pub(super) path_in_storage: String,
-    pub owner_id: Option<ReferenceId>,
+    pub reference_id: ReferenceId,
     pub status: DocumentStatus,
     events: EntityEvents<DocumentEvent>,
 }
@@ -158,7 +158,7 @@ impl TryFromEvents<DocumentEvent> for Document {
                         .filename(sanitized_filename.clone())
                         .content_type(content_type.clone())
                         .path_in_storage(path_in_storage.clone())
-                        .owner_id(*owner_id)
+                        .reference_id(*owner_id)
                         .status(DocumentStatus::Active);
                 }
                 DocumentEvent::FileUploaded { .. } => {
@@ -201,7 +201,7 @@ pub struct NewDocument {
     #[builder(setter(into))]
     pub(super) storage_identifier: String,
     #[builder(setter(into))]
-    pub(super) reference_id: Option<ReferenceId>,
+    pub(super) reference_id: ReferenceId,
     pub(super) audit_info: AuditInfo,
 }
 
