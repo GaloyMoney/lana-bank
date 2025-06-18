@@ -7,6 +7,7 @@ pub use core_access::CoreAccessEvent;
 pub use core_credit::{CollateralAction, CoreCreditEvent, ObligationStatus, ObligationType};
 pub use core_customer::CoreCustomerEvent;
 pub use core_deposit::CoreDepositEvent;
+pub use document_storage::CoreDocumentStorageEvent;
 pub use governance::GovernanceEvent;
 pub use outbox::OutboxEventMarker;
 
@@ -18,6 +19,7 @@ pub enum LanaEvent {
     Customer(CoreCustomerEvent),
     Credit(CoreCreditEvent),
     Deposit(CoreDepositEvent),
+    DocumentStorage(CoreDocumentStorageEvent),
 }
 
 macro_rules! impl_event_marker {
@@ -43,3 +45,4 @@ impl_event_marker!(CoreAccessEvent, Access);
 impl_event_marker!(CoreCreditEvent, Credit);
 impl_event_marker!(CoreDepositEvent, Deposit);
 impl_event_marker!(CoreCustomerEvent, Customer);
+impl_event_marker!(CoreDocumentStorageEvent, DocumentStorage);

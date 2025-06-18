@@ -30,6 +30,8 @@ pub enum PermissionSetName {
     CreditWriter,
     CustomerViewer,
     CustomerWriter,
+    DocumentViewer,
+    DocumentWriter,
     CustodyViewer,
     CustodyWriter,
     DashboardViewer,
@@ -59,6 +61,9 @@ impl std::str::FromStr for PermissionSetName {
 
             core_customer::PERMISSION_SET_CUSTOMER_VIEWER => Ok(CustomerViewer),
             core_customer::PERMISSION_SET_CUSTOMER_WRITER => Ok(CustomerWriter),
+
+            document_storage::PERMISSION_SET_DOCUMENT_STORAGE_VIEWER => Ok(DocumentViewer),
+            document_storage::PERMISSION_SET_DOCUMENT_STORAGE_WRITER => Ok(DocumentWriter),
 
             core_custody::PERMISSION_SET_CUSTODY_VIEWER => Ok(CustodyViewer),
             core_custody::PERMISSION_SET_CUSTODY_WRITER => Ok(CustodyWriter),

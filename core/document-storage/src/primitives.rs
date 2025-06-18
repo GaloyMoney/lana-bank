@@ -72,6 +72,10 @@ impl CoreDocumentStorageAction {
         CoreDocumentStorageAction::Document(DocumentEntityAction::Create);
     pub const DOCUMENT_READ: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::Read);
     pub const DOCUMENT_LIST: Self = CoreDocumentStorageAction::Document(DocumentEntityAction::List);
+    pub const DOCUMENT_GENERATE_DOWNLOAD_LINK: Self =
+        CoreDocumentStorageAction::Document(DocumentEntityAction::GenerateDownloadLink);
+    pub const DOCUMENT_DELETE: Self =
+        CoreDocumentStorageAction::Document(DocumentEntityAction::Delete);
 
     pub fn entities() -> Vec<(
         CoreDocumentStorageActionDiscriminants,
@@ -101,6 +105,8 @@ pub enum DocumentEntityAction {
     Read,
     Create,
     List,
+    GenerateDownloadLink,
+    Delete,
 }
 
 impl DocumentEntityAction {
@@ -128,6 +134,18 @@ impl DocumentEntityAction {
                         PERMISSION_SET_DOCUMENT_STORAGE_VIEWER,
                     ],
                 ),
+
+                Self::GenerateDownloadLink => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_DOCUMENT_STORAGE_VIEWER,
+                        PERMISSION_SET_DOCUMENT_STORAGE_WRITER,
+                    ],
+                ),
+
+                Self::Delete => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_DOCUMENT_STORAGE_WRITER])
+                }
             };
             res.push(action_description);
         }

@@ -109,7 +109,7 @@ impl Customer {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let documents = app
             .documents()
-            .list_for_customer_id(sub, self.entity.id)
+            .list_for_owner_id(sub, uuid::Uuid::from(self.entity.id))
             .await?;
         Ok(documents.into_iter().map(Document::from).collect())
     }

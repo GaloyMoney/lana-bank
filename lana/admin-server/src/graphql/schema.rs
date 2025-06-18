@@ -8,6 +8,7 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
+    document::DocumentOwnerId,
 };
 
 use crate::primitives::*;
@@ -802,13 +803,18 @@ impl Mutation {
         let mut file = input.file.value(ctx)?;
         let mut data = Vec::new();
         file.content.read_to_end(&mut data)?;
-
         exec_mutation!(
             DocumentCreatePayload,
             Document,
             ctx,
-            app.documents()
-                .create(sub, data, input.customer_id, file.filename)
+            app.documents().create_and_upload(
+                sub,
+                data,
+                file.filename,
+                file.content_type
+                    .unwrap_or_else(|| "application/octet-stream".to_string()),
+                DocumentOwnerId::from(&input.customer_id),
+            )
         )
     }
 
@@ -1561,7 +1567,7 @@ impl Mutation {
         // not using macro here because DocumentDownloadLinksGeneratePayload is non standard
         let doc = app
             .documents()
-            .generate_download_link(sub, input.document_id.into())
+            .generate_download_link(sub, input.document_id)
             .await?;
         Ok(DocumentDownloadLinksGeneratePayload::from(doc))
     }

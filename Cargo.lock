@@ -1549,6 +1549,7 @@ dependencies = [
 name = "document-storage"
 version = "0.1.0"
 dependencies = [
+ "async-graphql",
  "audit",
  "authz",
  "chrono",
@@ -2734,6 +2735,7 @@ dependencies = [
  "customer-sync",
  "dashboard",
  "derive_builder",
+ "document-storage",
  "es-entity",
  "futures",
  "gcp-bigquery-client",
@@ -2794,6 +2796,7 @@ dependencies = [
  "core-credit",
  "core-customer",
  "core-deposit",
+ "document-storage",
  "governance",
  "outbox",
  "serde",
@@ -3908,6 +3911,7 @@ dependencies = [
  "core-customer",
  "core-deposit",
  "dashboard",
+ "document-storage",
  "es-entity",
  "governance",
  "lana-ids",

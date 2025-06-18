@@ -16,7 +16,7 @@ use outbox::{Outbox, OutboxEventMarker};
 use std::collections::HashMap;
 use tracing::instrument;
 
-pub use entity::{Document, GeneratedDocumentDownloadLink, NewDocument};
+pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
 pub use event::*;
 pub use primitives::*;
@@ -150,7 +150,7 @@ where
     pub async fn list_for_owner_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        owner_id: DocumentOwnerId,
+        owner_id: impl Into<DocumentOwnerId> + std::fmt::Debug,
     ) -> Result<Vec<Document>, DocumentStorageError> {
         self.authz
             .enforce_permission(
@@ -163,7 +163,7 @@ where
         Ok(self
             .repo
             .list_for_owner_id_by_created_at(
-                Some(owner_id),
+                Some(owner_id.into()),
                 Default::default(),
                 ListDirection::Descending,
             )
@@ -175,14 +175,15 @@ where
     pub async fn generate_download_link(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        document_id: DocumentId,
+        document_id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<GeneratedDocumentDownloadLink, DocumentStorageError> {
+        let document_id = document_id.into();
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
                 DocumentStorageObject::document(document_id),
-                CoreDocumentStorageAction::DOCUMENT_READ,
+                CoreDocumentStorageAction::DOCUMENT_GENERATE_DOWNLOAD_LINK,
             )
             .await?;
 
@@ -213,7 +214,7 @@ where
             .enforce_permission(
                 sub,
                 DocumentStorageObject::document(document_id.into()),
-                CoreDocumentStorageAction::DOCUMENT_READ,
+                CoreDocumentStorageAction::DOCUMENT_DELETE,
             )
             .await?;
 

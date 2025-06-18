@@ -9,6 +9,7 @@ use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
 use dashboard::DashboardModuleAction;
+use document_storage::CoreDocumentStorageAction;
 use governance::GovernanceAction;
 
 pub const PERMISSION_SET_APP_VIEWER: &str = "app_viewer";
@@ -22,6 +23,7 @@ pub enum LanaAction {
     Governance(GovernanceAction),
     Access(CoreAccessAction),
     Customer(CoreCustomerAction),
+    Document(CoreDocumentStorageAction),
     Accounting(CoreAccountingAction),
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
@@ -56,6 +58,7 @@ impl LanaAction {
                 Governance => flatten(module, GovernanceAction::entities()),
                 Access => flatten(module, CoreAccessAction::entities()),
                 Customer => flatten(module, CoreCustomerAction::entities()),
+                Document => flatten(module, CoreDocumentStorageAction::entities()),
                 Accounting => flatten(module, CoreAccountingAction::entities()),
                 Dashboard => flatten(module, DashboardModuleAction::entities()),
                 Deposit => flatten(module, CoreDepositAction::entities()),
@@ -116,6 +119,12 @@ impl From<CoreCustodyAction> for LanaAction {
     }
 }
 
+impl From<CoreDocumentStorageAction> for LanaAction {
+    fn from(action: CoreDocumentStorageAction) -> Self {
+        LanaAction::Document(action)
+    }
+}
+
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:", LanaActionDiscriminants::from(self))?;
@@ -125,6 +134,7 @@ impl Display for LanaAction {
             Governance(action) => action.fmt(f),
             Access(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
+            Document(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
@@ -145,6 +155,7 @@ impl FromStr for LanaAction {
             Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
             Access => LanaAction::from(action.parse::<CoreAccessAction>()?),
             Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),
+            Document => LanaAction::from(action.parse::<CoreDocumentStorageAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
@@ -177,7 +188,6 @@ macro_rules! impl_trivial_action {
 pub enum AppAction {
     Report(ReportAction),
     Audit(AuditAction),
-    Document(DocumentAction),
 }
 
 impl AppAction {
@@ -190,7 +200,6 @@ impl AppAction {
             let actions = match entity {
                 Report => ReportAction::describe(),
                 Audit => AuditAction::describe(),
-                Document => DocumentAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -207,7 +216,6 @@ impl Display for AppAction {
         match self {
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
-            Document(action) => action.fmt(f),
         }
     }
 }
@@ -223,7 +231,6 @@ impl FromStr for AppAction {
         let res = match entity.parse()? {
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
-            Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
         Ok(res)
     }
@@ -254,48 +261,6 @@ impl AuditAction {
 }
 
 impl_trivial_action!(AuditAction, Audit);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum DocumentAction {
-    Create,
-    Read,
-    List,
-    GenerateDownloadLink,
-    Delete,
-    Archive,
-}
-
-impl DocumentAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-                Self::GenerateDownloadLink => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-                Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::Archive => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-            };
-            res.push(action_description);
-        }
-
-        res
-    }
-}
-
-impl_trivial_action!(DocumentAction, Document);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]

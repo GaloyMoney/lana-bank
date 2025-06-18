@@ -1029,7 +1029,7 @@ type Disbursed {
 type Document {
 	id: ID!
 	documentId: UUID!
-	customerId: UUID!
+	customerId: UUID
 	status: DocumentStatus!
 	filename: String!
 }

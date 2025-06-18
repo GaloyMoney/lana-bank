@@ -6,6 +6,7 @@ edition = "2021"
 [features]
 default = []
 fail-on-warnings = []
+graphql = ["dep:async-graphql", "es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
 
 [dependencies]
@@ -24,3 +25,4 @@ derive_builder = { workspace = true }
 strum = { workspace = true }
 tracing = { workspace = true }
 schemars = { workspace = true, optional = true }
+async-graphql = { workspace = true, optional = true }

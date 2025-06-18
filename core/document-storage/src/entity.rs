@@ -16,6 +16,7 @@ pub struct GeneratedDocumentDownloadLink {
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum DocumentStatus {
     Active,
     Archived,
