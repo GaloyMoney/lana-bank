@@ -22,6 +22,13 @@ pub enum DocumentStatus {
     Archived,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum UploadStatus {
+    Pending,
+    Completed,
+    Failed,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -39,6 +46,9 @@ pub enum DocumentEvent {
     },
     FileUploaded {
         audit_info: AuditInfo,
+    },
+    UploadFailed {
+        error: String,
     },
     DownloadLinkGenerated {
         audit_info: AuditInfo,
@@ -78,6 +88,21 @@ impl Document {
 
     pub fn upload_file(&mut self, audit_info: AuditInfo) {
         self.events.push(DocumentEvent::FileUploaded { audit_info });
+    }
+
+    pub fn upload_failed(&mut self, error: String) {
+        self.events.push(DocumentEvent::UploadFailed { error });
+    }
+
+    pub fn upload_status(&self) -> UploadStatus {
+        for e in self.events.iter_all().rev() {
+            match e {
+                DocumentEvent::FileUploaded { .. } => return UploadStatus::Completed,
+                DocumentEvent::UploadFailed { .. } => return UploadStatus::Failed,
+                _ => {}
+            }
+        }
+        UploadStatus::Pending
     }
 
     pub fn storage_path(&self) -> &str {
@@ -128,6 +153,9 @@ impl TryFromEvents<DocumentEvent> for Document {
                 }
                 DocumentEvent::FileUploaded { .. } => {
                     // FileUploaded event doesn't modify any fields now
+                }
+                DocumentEvent::UploadFailed { .. } => {
+                    // UploadFailed event doesn't modify any fields
                 }
                 DocumentEvent::DownloadLinkGenerated { .. } => {
                     // DownloadLinkGenerated event doesn't modify any fields
