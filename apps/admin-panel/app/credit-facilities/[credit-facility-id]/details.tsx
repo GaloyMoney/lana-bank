@@ -21,6 +21,7 @@ import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 import { DetailsCard, DetailItemProps } from "@/components/details"
+import { removeUnderscore } from "@/lib/utils"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -43,8 +44,8 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 
   const details: DetailItemProps[] = [
     {
-      label: t("details.customerEmail"),
-      value: creditFacilityDetails.customer.email,
+      label: t("details.customer"),
+      value: `${creditFacilityDetails.customer.email} (${removeUnderscore(creditFacilityDetails.customer.customerType)})`,
       href: `/customers/${creditFacilityDetails.customer.customerId}`,
     },
     {

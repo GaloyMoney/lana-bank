@@ -80,6 +80,7 @@ gql`
     }
     customer {
       customerId
+      customerType
       email
     }
     approvalProcess {

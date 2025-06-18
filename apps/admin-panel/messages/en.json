@@ -525,7 +525,7 @@
       "DetailsCard": {
         "title": "Credit Facility",
         "details": {
-          "customerEmail": "Customer Email",
+          "customer": "Customer",
           "collateralizationState": "Collateralization State",
           "status": "Status",
           "expiresAt": "Expires At"
