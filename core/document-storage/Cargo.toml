@@ -8,18 +8,16 @@ license = "FSL-1.1-ALv2"
 default = []
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "es-entity/graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
 cloud-storage = { path = "../../lib/cloud-storage" }
 
 es-entity = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
-uuid = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 chrono = { workspace = true }
