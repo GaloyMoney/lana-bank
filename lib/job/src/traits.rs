@@ -4,6 +4,7 @@ use chrono::{DateTime, Utc};
 use super::{
     current::CurrentJob,
     entity::{Job, JobType},
+    error::JobRunError,
 };
 
 pub trait JobInitializer: Send + Sync + 'static {
@@ -38,10 +39,7 @@ pub enum JobCompletion {
 
 #[async_trait]
 pub trait JobRunner: Send + Sync + 'static {
-    async fn run(
-        &self,
-        current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>>;
+    async fn run(&self, current_job: CurrentJob) -> Result<JobCompletion, JobRunError>;
 }
 
 #[derive(Debug)]
