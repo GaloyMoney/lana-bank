@@ -23,6 +23,10 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
 
+  const effectiveRate =
+    Number(creditFacility.creditFacilityTerms.annualRate) +
+    Number(creditFacility.creditFacilityTerms.oneTimeFeeRate)
+
   const details: DetailItemProps[] = [
     {
       label: t("details.duration"),
@@ -57,6 +61,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
       label: t("details.structuringFeeRate"),
       value: `${creditFacility.creditFacilityTerms.oneTimeFeeRate}%`,
     },
+    { label: t("details.effectiveRate"), value: `${effectiveRate}%` },
   ]
 
   return (
