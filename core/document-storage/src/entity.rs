@@ -43,6 +43,7 @@ pub enum DocumentEvent {
         path_in_storage: String,
         storage_identifier: String,
         owner_id: Option<DocumentOwnerId>,
+        meta: Option<serde_json::Value>,
     },
     FileUploaded {
         audit_info: AuditInfo,
@@ -190,6 +191,8 @@ pub struct NewDocument {
     pub(super) storage_identifier: String,
     pub(super) owner_id: Option<DocumentOwnerId>,
     pub(super) audit_info: AuditInfo,
+    #[builder(setter(custom), default)]
+    pub(super) meta: Option<serde_json::Value>,
 }
 
 impl NewDocumentBuilder {
@@ -200,6 +203,11 @@ impl NewDocumentBuilder {
             .replace(|c: char| !c.is_alphanumeric() && c != '-', "-");
         self.filename = Some(filename);
         self.sanitized_filename = Some(sanitized);
+        self
+    }
+
+    pub fn meta<T: Serialize>(mut self, meta: T) -> Self {
+        self.meta = Some(Some(serde_json::to_value(meta).expect("serialize meta")));
         self
     }
 }
@@ -223,6 +231,7 @@ impl IntoEvents<DocumentEvent> for NewDocument {
                 path_in_storage: self.path_in_storage,
                 storage_identifier: self.storage_identifier,
                 owner_id: self.owner_id,
+                meta: self.meta,
             }],
         )
     }
