@@ -15,3 +15,4 @@ chart as (
 )
 
 select * from final
+order by id_codigo_cuenta
