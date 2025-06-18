@@ -22,6 +22,7 @@ use crate::{
     ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
+    liquidation_process::LiquidationProcess,
     payment_allocation::PaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
@@ -1306,17 +1307,13 @@ impl CreditLedger {
     pub async fn reserve_for_liquidation(
         &self,
         op: es_entity::DbOp<'_>,
-        ObligationReserveForLiquidation {
+        LiquidationProcess {
             tx_id,
-            outstanding,
-            credit_facility_account_ids:
-                CreditFacilityAccountIds {
-                    in_liquidation_account_id,
-                    ..
-                },
+            initial_amount: outstanding,
+            in_liquidation_account_id,
             effective,
             ..
-        }: ObligationReserveForLiquidation,
+        }: LiquidationProcess,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala

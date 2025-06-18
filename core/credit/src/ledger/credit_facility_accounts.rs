@@ -81,12 +81,3 @@ pub struct CreditFacilityInterestAccrual {
     pub period: InterestPeriod,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
 }
-
-#[derive(Debug, Clone)]
-pub struct ObligationReserveForLiquidation {
-    pub tx_id: LedgerTxId,
-    pub tx_ref: String,
-    pub outstanding: UsdCents,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
-    pub effective: chrono::NaiveDate,
-}
