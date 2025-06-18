@@ -19,6 +19,13 @@
         "sub"
       ],
       "type": "object"
+    },
+    "DocumentType": {
+      "enum": [
+        "customer_document",
+        "ledger_account_csv"
+      ],
+      "type": "string"
     }
   },
   "oneOf": [
@@ -30,11 +37,13 @@
         "content_type": {
           "type": "string"
         },
+        "document_type": {
+          "$ref": "#/definitions/DocumentType"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
         },
-        "meta": true,
         "original_filename": {
           "type": "string"
         },
@@ -64,6 +73,7 @@
       "required": [
         "audit_info",
         "content_type",
+        "document_type",
         "id",
         "original_filename",
         "path_in_storage",
