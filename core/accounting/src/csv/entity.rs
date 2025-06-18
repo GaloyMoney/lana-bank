@@ -143,7 +143,7 @@ impl AccountingCsv {
         });
 
         Ok(LocationInStorage {
-            path_in_bucket: &self.path_in_storage,
+            path_in_storage: &self.path_in_storage,
         })
     }
 }

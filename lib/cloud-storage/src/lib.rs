@@ -18,7 +18,7 @@ const LINK_DURATION_IN_SECS: u64 = 60 * 5;
 
 #[derive(Debug, Clone)]
 pub struct LocationInStorage<'a> {
-    pub path_in_bucket: &'a str,
+    pub path_in_storage: &'a str,
 }
 
 #[derive(Clone)]
@@ -77,7 +77,7 @@ impl Storage {
 
     pub async fn remove(&self, location: LocationInStorage<'_>) -> Result<(), StorageError> {
         let bucket = self.config.bucket_name.clone();
-        let object_name = self.path_with_prefix(location.path_in_bucket);
+        let object_name = self.path_with_prefix(location.path_in_storage);
 
         let req = DeleteObjectRequest {
             bucket,
@@ -95,7 +95,7 @@ impl Storage {
     ) -> Result<String, StorageError> {
         let location = location.into();
 
-        let object_name = self.path_with_prefix(location.path_in_bucket);
+        let object_name = self.path_with_prefix(location.path_in_storage);
 
         let opts = SignedURLOptions {
             expires: std::time::Duration::new(LINK_DURATION_IN_SECS, 0),

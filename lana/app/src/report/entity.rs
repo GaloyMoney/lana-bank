@@ -17,7 +17,7 @@ pub struct ReportLocationInCloud {
 impl<'a> From<&'a ReportLocationInCloud> for LocationInStorage<'a> {
     fn from(meta: &'a ReportLocationInCloud) -> Self {
         LocationInStorage {
-            path_in_bucket: &meta.path_in_bucket,
+            path_in_storage: &meta.path_in_bucket,
         }
     }
 }
