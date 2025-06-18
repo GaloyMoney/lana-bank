@@ -8,7 +8,7 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
-    document::ReferenceId,
+    document::{DocumentType, ReferenceId},
 };
 
 use crate::primitives::*;
@@ -814,6 +814,7 @@ impl Mutation {
                 file.content_type
                     .unwrap_or_else(|| "application/octet-stream".to_string()),
                 ReferenceId::from(&input.customer_id),
+                DocumentType::CustomerDocument,
             )
         )
     }

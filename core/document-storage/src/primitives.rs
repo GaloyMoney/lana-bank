@@ -1,3 +1,5 @@
+use serde::{Deserialize, Serialize};
+
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
@@ -6,6 +8,12 @@ pub use authz::{action_description::*, AllOrOne};
 es_entity::entity_id! {
     DocumentId,
     ReferenceId,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize, strum::Display)]
+pub enum DocumentType {
+    CustomerDocument,
+    LedgerAccountCsv,
 }
 
 pub type DocumentAllOrOne = AllOrOne<DocumentId>;

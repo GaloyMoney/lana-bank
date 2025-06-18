@@ -36,13 +36,14 @@ pub enum UploadStatus {
 pub enum DocumentEvent {
     Initialized {
         id: DocumentId,
-        audit_info: AuditInfo,
+        document_type: DocumentType,
+        reference_id: Option<ReferenceId>,
         sanitized_filename: String,
         original_filename: String,
         content_type: String,
         path_in_storage: String,
         storage_identifier: String,
-        reference_id: Option<ReferenceId>,
+        audit_info: AuditInfo,
     },
     FileUploaded {
         audit_info: AuditInfo,
@@ -187,6 +188,8 @@ impl TryFromEvents<DocumentEvent> for Document {
 pub struct NewDocument {
     #[builder(setter(into))]
     pub(super) id: DocumentId,
+    #[builder(setter(into))]
+    document_type: DocumentType,
     #[builder(setter(custom))]
     filename: String,
     #[builder(private)]
@@ -226,6 +229,7 @@ impl IntoEvents<DocumentEvent> for NewDocument {
             self.id,
             [DocumentEvent::Initialized {
                 id: self.id,
+                document_type: self.document_type,
                 audit_info: self.audit_info,
                 sanitized_filename: self.sanitized_filename,
                 original_filename: self.filename,

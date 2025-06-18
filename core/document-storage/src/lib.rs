@@ -70,6 +70,7 @@ where
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
         reference_id: impl Into<Option<ReferenceId>> + std::fmt::Debug,
+        document_type: impl Into<DocumentType> + std::fmt::Debug,
     ) -> Result<Document, DocumentStorageError> {
         let audit_info = self
             .authz
@@ -81,11 +82,13 @@ where
             .await?;
 
         let document_id = DocumentId::new();
-        let path_in_storage = format!("documents/{}", document_id);
+        let document_type = document_type.into();
+        let path_in_storage = format!("documents/{}/{}", document_type, document_id);
         let storage_identifier = self.storage.storage_identifier();
 
         let new_document = NewDocument::builder()
             .id(document_id)
+            .document_type(document_type)
             .filename(filename)
             .content_type(content_type)
             .path_in_storage(path_in_storage)

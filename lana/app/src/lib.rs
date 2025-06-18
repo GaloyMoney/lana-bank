@@ -15,8 +15,8 @@ pub mod storage {
 
 pub mod document {
     pub use document_storage::{
-        error, Document, DocumentId, DocumentRepo, DocumentStatus, GeneratedDocumentDownloadLink,
-        NewDocument, ReferenceId,
+        error, Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
+        GeneratedDocumentDownloadLink, NewDocument, ReferenceId,
     };
     pub type DocumentStorage =
         document_storage::DocumentStorage<crate::authorization::Authorization>;
