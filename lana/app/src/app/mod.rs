@@ -77,7 +77,7 @@ impl LanaApp {
         let governance = Governance::new(&pool, &authz, &outbox);
         let price = Price::new();
         let storage = Storage::new(&config.storage);
-        let documents = DocumentStorage::new(&pool, &authz, &outbox, &storage);
+        let documents = DocumentStorage::new(&pool, &authz, &storage);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =

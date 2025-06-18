@@ -1,9 +1,8 @@
 use sqlx::PgPool;
 
 use es_entity::*;
-use outbox::OutboxEventMarker;
 
-use crate::{event::CoreDocumentStorageEvent, primitives::*, publisher::*};
+use crate::primitives::*;
 
 use super::{entity::*, error::*};
 
@@ -13,46 +12,22 @@ use super::{entity::*, error::*};
     err = "DocumentStorageError",
     columns(owner_id(ty = "Option<DocumentOwnerId>", list_for, update(persist = false))),
     tbl_prefix = "core",
-    delete = "soft",
-    post_persist_hook = "publish"
+    delete = "soft"
 )]
-pub struct DocumentRepo<E>
-where
-    E: OutboxEventMarker<CoreDocumentStorageEvent>,
-{
+pub struct DocumentRepo {
     pool: PgPool,
-    publisher: DocumentStoragePublisher<E>,
 }
 
-impl<E> Clone for DocumentRepo<E>
-where
-    E: OutboxEventMarker<CoreDocumentStorageEvent>,
-{
+impl Clone for DocumentRepo {
     fn clone(&self) -> Self {
         Self {
             pool: self.pool.clone(),
-            publisher: self.publisher.clone(),
         }
     }
 }
 
-impl<E> DocumentRepo<E>
-where
-    E: OutboxEventMarker<CoreDocumentStorageEvent>,
-{
-    pub(super) fn new(pool: &PgPool, publisher: &DocumentStoragePublisher<E>) -> Self {
-        Self {
-            pool: pool.clone(),
-            publisher: publisher.clone(),
-        }
-    }
-
-    async fn publish(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        entity: &Document,
-        new_events: es_entity::LastPersisted<'_, DocumentEvent>,
-    ) -> Result<(), DocumentStorageError> {
-        self.publisher.publish(db, entity, new_events).await
+impl DocumentRepo {
+    pub(super) fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
     }
 }

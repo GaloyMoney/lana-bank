@@ -3,72 +3,54 @@
 
 mod entity;
 pub mod error;
-mod event;
 mod primitives;
-mod publisher;
 mod repo;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cloud_storage::Storage;
 use es_entity::ListDirection;
-use outbox::{Outbox, OutboxEventMarker};
 use std::collections::HashMap;
 use tracing::instrument;
 
 pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
-pub use event::*;
 pub use primitives::*;
 pub use repo::DocumentRepo;
 
-#[cfg(feature = "json-schema")]
-pub mod event_schema {
-    pub use crate::entity::DocumentEvent;
-}
-
-use publisher::*;
-
-pub struct DocumentStorage<Perms, E>
+pub struct DocumentStorage<Perms>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     authz: Perms,
-    outbox: Outbox<E>,
-    repo: DocumentRepo<E>,
+    repo: DocumentRepo,
     storage: Storage,
 }
 
-impl<Perms, E> Clone for DocumentStorage<Perms, E>
+impl<Perms> Clone for DocumentStorage<Perms>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            outbox: self.outbox.clone(),
             repo: self.repo.clone(),
             storage: self.storage.clone(),
         }
     }
 }
 
-impl<Perms, E> DocumentStorage<Perms, E>
+impl<Perms> DocumentStorage<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreDocumentStorageAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DocumentStorageObject>,
-    E: OutboxEventMarker<CoreDocumentStorageEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>, storage: &Storage) -> Self {
-        let publisher = DocumentStoragePublisher::new(outbox);
-        let repo = DocumentRepo::new(pool, &publisher);
+    pub fn new(pool: &sqlx::PgPool, authz: &Perms, storage: &Storage) -> Self {
+        let repo = DocumentRepo::new(pool);
         Self {
             repo,
             authz: authz.clone(),
-            outbox: outbox.clone(),
             storage: storage.clone(),
         }
     }

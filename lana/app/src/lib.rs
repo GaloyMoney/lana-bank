@@ -18,10 +18,8 @@ pub mod document {
         Document, DocumentId, DocumentOwnerId, DocumentRepo, DocumentStatus,
         GeneratedDocumentDownloadLink, NewDocument, error,
     };
-    pub type DocumentStorage = document_storage::DocumentStorage<
-        crate::authorization::Authorization,
-        lana_events::LanaEvent,
-    >;
+    pub type DocumentStorage =
+        document_storage::DocumentStorage<crate::authorization::Authorization>;
 }
 
 pub mod outbox {
