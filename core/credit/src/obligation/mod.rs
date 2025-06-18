@@ -206,6 +206,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: ObligationId,
+        effective: chrono::NaiveDate,
     ) -> Result<Obligation, ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
@@ -221,7 +222,7 @@ where
             .map_err(authz::error::AuthorizationError::from)?;
 
         if let Idempotent::Executed(new_liquidation_process) =
-            obligation.start_liquidation(&audit_info)
+            obligation.start_liquidation(effective, &audit_info)
         {
             self.repo.update_in_op(db, &mut obligation).await?;
             self.liquidation_process_repo
