@@ -38,15 +38,15 @@
         "original_filename": {
           "type": "string"
         },
-        "owner_id": {
+        "path_in_storage": {
+          "type": "string"
+        },
+        "reference_id": {
           "format": "uuid",
           "type": [
             "string",
             "null"
           ]
-        },
-        "path_in_storage": {
-          "type": "string"
         },
         "sanitized_filename": {
           "type": "string"

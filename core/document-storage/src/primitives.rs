@@ -5,7 +5,7 @@ pub use authz::{action_description::*, AllOrOne};
 
 es_entity::entity_id! {
     DocumentId,
-    DocumentOwnerId,
+    ReferenceId,
 }
 
 pub type DocumentAllOrOne = AllOrOne<DocumentId>;

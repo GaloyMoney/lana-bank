@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object, types::connection::*};
+use async_graphql::{types::connection::*, Context, Object};
 
 use std::io::Read;
 
@@ -8,7 +8,7 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
-    document::DocumentOwnerId,
+    document::ReferenceId,
 };
 
 use crate::primitives::*;
@@ -813,7 +813,7 @@ impl Mutation {
                 file.filename,
                 file.content_type
                     .unwrap_or_else(|| "application/octet-stream".to_string()),
-                DocumentOwnerId::from(&input.customer_id),
+                ReferenceId::from(&input.customer_id),
             )
         )
     }

@@ -69,7 +69,7 @@ where
         content: Vec<u8>,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
-        owner_id: impl Into<Option<DocumentOwnerId>> + std::fmt::Debug,
+        reference_id: impl Into<Option<ReferenceId>> + std::fmt::Debug,
     ) -> Result<Document, DocumentStorageError> {
         let audit_info = self
             .authz
@@ -80,20 +80,17 @@ where
             )
             .await?;
 
-        let filename_str = filename.into();
-        let content_type_str = content_type.into();
-        let owner_id_opt = owner_id.into();
         let document_id = DocumentId::new();
         let path_in_storage = format!("documents/{}", document_id);
         let storage_identifier = self.storage.storage_identifier();
 
         let new_document = NewDocument::builder()
             .id(document_id)
-            .filename(filename_str)
-            .content_type(content_type_str.clone())
+            .filename(filename)
+            .content_type(content_type)
             .path_in_storage(path_in_storage)
             .storage_identifier(storage_identifier)
-            .owner_id(owner_id_opt)
+            .reference_id(reference_id)
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build document");
@@ -135,11 +132,11 @@ where
         }
     }
 
-    #[instrument(name = "document_storage.list_for_owner_id", skip(self), err)]
-    pub async fn list_for_owner_id(
+    #[instrument(name = "document_storage.list_for_reference_id", skip(self), err)]
+    pub async fn list_for_reference_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        owner_id: impl Into<DocumentOwnerId> + std::fmt::Debug,
+        reference_id: impl Into<ReferenceId> + std::fmt::Debug,
     ) -> Result<Vec<Document>, DocumentStorageError> {
         self.authz
             .enforce_permission(
@@ -151,8 +148,8 @@ where
 
         Ok(self
             .repo
-            .list_for_owner_id_by_created_at(
-                Some(owner_id.into()),
+            .list_for_reference_id_by_created_at(
+                Some(reference_id.into()),
                 Default::default(),
                 ListDirection::Descending,
             )

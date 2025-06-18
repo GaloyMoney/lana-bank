@@ -42,7 +42,7 @@ pub enum DocumentEvent {
         content_type: String,
         path_in_storage: String,
         storage_identifier: String,
-        owner_id: Option<DocumentOwnerId>,
+        reference_id: Option<ReferenceId>,
         meta: Option<serde_json::Value>,
     },
     FileUploaded {
@@ -69,7 +69,7 @@ pub struct Document {
     pub filename: String,
     pub content_type: String,
     pub(super) path_in_storage: String,
-    pub owner_id: Option<DocumentOwnerId>,
+    pub owner_id: Option<ReferenceId>,
     pub status: DocumentStatus,
     events: EntityEvents<DocumentEvent>,
 }
@@ -150,7 +150,7 @@ impl TryFromEvents<DocumentEvent> for Document {
                     sanitized_filename,
                     content_type,
                     path_in_storage,
-                    owner_id,
+                    reference_id: owner_id,
                     ..
                 } => {
                     builder = builder
@@ -198,7 +198,8 @@ pub struct NewDocument {
     pub(super) path_in_storage: String,
     #[builder(setter(into))]
     pub(super) storage_identifier: String,
-    pub(super) owner_id: Option<DocumentOwnerId>,
+    #[builder(setter(into))]
+    pub(super) reference_id: Option<ReferenceId>,
     pub(super) audit_info: AuditInfo,
     #[builder(setter(custom), default)]
     pub(super) meta: Option<serde_json::Value>,
@@ -239,7 +240,7 @@ impl IntoEvents<DocumentEvent> for NewDocument {
                 content_type: self.content_type,
                 path_in_storage: self.path_in_storage,
                 storage_identifier: self.storage_identifier,
-                owner_id: self.owner_id,
+                reference_id: self.reference_id,
                 meta: self.meta,
             }],
         )
