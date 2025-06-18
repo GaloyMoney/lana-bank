@@ -43,6 +43,10 @@
     },
     "InterestAccrualCycleAccountIds": {
       "properties": {
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "interest_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -69,7 +73,8 @@
         "interest_receivable_due_account_id",
         "interest_receivable_overdue_account_id",
         "interest_defaulted_account_id",
-        "interest_income_account_id"
+        "interest_income_account_id",
+        "in_liquidation_account_id"
       ],
       "type": "object"
     },

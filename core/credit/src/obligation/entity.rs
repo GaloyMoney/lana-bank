@@ -31,6 +31,7 @@ pub enum ObligationEvent {
         not_yet_due_accounts: ObligationAccounts,
         due_accounts: ObligationAccounts,
         overdue_accounts: ObligationAccounts,
+        in_liquidation_account_id: CalaAccountId,
         defaulted_account_id: CalaAccountId,
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
@@ -157,6 +158,19 @@ impl Obligation {
                 ObligationEvent::Initialized {
                     overdue_accounts, ..
                 } => Some(*overdue_accounts),
+                _ => None,
+            })
+            .expect("Entity was not Initialized")
+    }
+
+    pub fn in_liquidation_account(&self) -> CalaAccountId {
+        self.events
+            .iter_all()
+            .find_map(|e| match e {
+                ObligationEvent::Initialized {
+                    in_liquidation_account_id,
+                    ..
+                } => Some(*in_liquidation_account_id),
                 _ => None,
             })
             .expect("Entity was not Initialized")
@@ -579,6 +593,8 @@ pub struct NewObligation {
     due_accounts: ObligationAccounts,
     overdue_accounts: ObligationAccounts,
     #[builder(setter(into))]
+    in_liquidation_account_id: CalaAccountId,
+    #[builder(setter(into))]
     defaulted_account_id: CalaAccountId,
     due_date: DateTime<Utc>,
     overdue_date: Option<DateTime<Utc>>,
@@ -619,6 +635,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 not_yet_due_accounts: self.not_yet_due_accounts,
                 due_accounts: self.due_accounts,
                 overdue_accounts: self.overdue_accounts,
+                in_liquidation_account_id: self.in_liquidation_account_id,
                 defaulted_account_id: self.defaulted_account_id,
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
@@ -692,6 +709,7 @@ mod test {
                 receivable_account_id: CalaAccountId::new(),
                 account_to_be_credited_id: CalaAccountId::new(),
             },
+            in_liquidation_account_id: CalaAccountId::new(),
             defaulted_account_id: CalaAccountId::new(),
             due_date: Utc::now(),
             overdue_date: Some(Utc::now()),
@@ -908,6 +926,7 @@ mod test {
                     receivable_account_id: CalaAccountId::new(),
                     account_to_be_credited_id: CalaAccountId::new(),
                 },
+                in_liquidation_account_id: CalaAccountId::new(),
                 defaulted_account_id: CalaAccountId::new(),
                 due_date: due_timestamp(now),
                 overdue_date: Some(overdue_timestamp(now)),

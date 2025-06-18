@@ -22,6 +22,7 @@ pub struct InterestAccrualCycleAccountIds {
     pub interest_receivable_overdue_account_id: CalaAccountId,
     pub interest_defaulted_account_id: CalaAccountId,
     pub interest_income_account_id: CalaAccountId,
+    pub in_liquidation_account_id: CalaAccountId,
 }
 
 impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
@@ -36,6 +37,7 @@ impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
             interest_defaulted_account_id: credit_facility_account_ids
                 .interest_defaulted_account_id,
             interest_income_account_id: credit_facility_account_ids.interest_income_account_id,
+            in_liquidation_account_id: credit_facility_account_ids.in_liquidation_account_id,
         }
     }
 }
@@ -311,6 +313,7 @@ impl InterestAccrualCycle {
                     receivable_account_id: self.account_ids.interest_receivable_overdue_account_id,
                     account_to_be_credited_id: self.account_ids.interest_income_account_id,
                 })
+                .in_liquidation_account_id(self.account_ids.in_liquidation_account_id)
                 .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
                 .due_date(due_date)
                 .overdue_date(overdue_date)
