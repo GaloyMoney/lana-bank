@@ -14,11 +14,10 @@ pub struct LocalClient {
 }
 
 impl LocalClient {
-    pub fn init(config: &LocalConfig) -> Result<Self, StorageClientError> {
-        std::fs::create_dir_all(&config.root_folder)?; // ensure base dir
-        Ok(LocalClient {
+    pub fn new(config: &LocalConfig) -> Self {
+        LocalClient {
             root_folder: config.root_folder.clone(),
-        })
+        }
     }
 
     fn resolve<P: AsRef<Path>>(&self, relative: P) -> PathBuf {

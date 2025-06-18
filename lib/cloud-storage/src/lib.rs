@@ -31,7 +31,7 @@ impl Storage {
                 Ok(Box::new(client))
             }
             StorageConfig::Local(local_config) => {
-                let client = LocalClient::init(local_config)?;
+                let client = LocalClient::new(local_config);
                 Ok(Box::new(client))
             }
         }
