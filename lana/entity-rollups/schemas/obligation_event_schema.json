@@ -89,6 +89,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -135,6 +139,7 @@
         "not_yet_due_accounts",
         "due_accounts",
         "overdue_accounts",
+        "in_liquidation_account_id",
         "defaulted_account_id",
         "due_date",
         "effective",
