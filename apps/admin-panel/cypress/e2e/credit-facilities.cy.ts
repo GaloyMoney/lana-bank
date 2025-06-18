@@ -156,7 +156,7 @@ describe("credit facility", () => {
 
   it("should show newly created credit facility in the list", () => {
     cy.visit(`/credit-facilities`)
-    cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
+    cy.get('[data-testid="table-row-0"] > :nth-child(10) > a > .gap-2').click()
     cy.contains("$5,000.00").should("be.visible")
     cy.takeScreenshot("credit_facility_in_list")
   })

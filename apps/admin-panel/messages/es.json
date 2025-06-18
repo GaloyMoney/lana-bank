@@ -19,7 +19,9 @@
     "upload": "Subir",
     "close": "Cerrar",
     "submit": "Enviar",
-    "set": "Establecer"
+    "set": "Establecer",
+    "customerType": "Tipo de Cliente",
+    "dateOfIssuance": "Fecha de Emisión"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permisos que tiene este rol",
@@ -396,10 +398,14 @@
     "table": {
       "headers": {
         "customer": "Cliente",
+        "state": "Estado",
         "status": "Estado",
         "outstanding": "Pendiente",
         "collateralizationState": "Estado",
         "cvl": "CVL",
+        "nominalRate": "Tasa nominal",
+        "effectiveRate": "Tasa efectiva",
+        "interestDays": "Días de interés",
         "createdAt": "Creado El"
       }
     },
@@ -528,7 +534,8 @@
           "customerEmail": "Correo Electrónico del Cliente",
           "collateralizationState": "Estado de Colateralización",
           "status": "Estado",
-          "expiresAt": "Vence El"
+          "expiresAt": "Fecha de vencimiento",
+          "monthlyPayment": "Pago Mensual"
         },
         "buttons": {
           "loanTerms": "Términos del Préstamo",
