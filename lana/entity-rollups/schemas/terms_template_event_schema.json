@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,15 +7,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -25,14 +24,12 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "months"
-              ],
+              "const": "months",
               "type": "string"
             },
             "value": {
               "format": "uint32",
-              "minimum": 0.0,
+              "minimum": 0,
               "type": "integer"
             }
           },
@@ -49,9 +46,7 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "end_of_month"
-              ],
+              "const": "end_of_month",
               "type": "string"
             }
           },
@@ -63,9 +58,7 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "end_of_day"
-              ],
+              "const": "end_of_day",
               "type": "string"
             }
           },
@@ -81,14 +74,12 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "days"
-              ],
+              "const": "days",
               "type": "string"
             },
             "value": {
               "format": "uint64",
-              "minimum": 0.0,
+              "minimum": 0,
               "type": "integer"
             }
           },
@@ -103,37 +94,49 @@
     "TermValues": {
       "properties": {
         "accrual_cycle_interval": {
-          "$ref": "#/definitions/InterestInterval"
+          "$ref": "#/$defs/InterestInterval"
         },
         "accrual_interval": {
-          "$ref": "#/definitions/InterestInterval"
+          "$ref": "#/$defs/InterestInterval"
         },
         "annual_rate": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "duration": {
-          "$ref": "#/definitions/FacilityDuration"
+          "$ref": "#/$defs/FacilityDuration"
         },
         "initial_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "interest_due_duration_from_accrual": {
-          "$ref": "#/definitions/ObligationDuration"
+          "$ref": "#/$defs/ObligationDuration"
         },
         "liquidation_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "margin_call_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "obligation_liquidation_duration_from_due": {
           "anyOf": [
             {
-              "$ref": "#/definitions/ObligationDuration"
+              "$ref": "#/$defs/ObligationDuration"
             },
             {
               "type": "null"
@@ -143,7 +146,7 @@
         "obligation_overdue_duration_from_due": {
           "anyOf": [
             {
-              "$ref": "#/definitions/ObligationDuration"
+              "$ref": "#/$defs/ObligationDuration"
             },
             {
               "type": "null"
@@ -151,29 +154,33 @@
           ]
         },
         "one_time_fee_rate": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         }
       },
       "required": [
-        "accrual_cycle_interval",
-        "accrual_interval",
         "annual_rate",
         "duration",
-        "initial_cvl",
         "interest_due_duration_from_accrual",
+        "accrual_cycle_interval",
+        "accrual_interval",
+        "one_time_fee_rate",
         "liquidation_cvl",
         "margin_call_cvl",
-        "one_time_fee_rate"
+        "initial_cvl"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "id": {
           "format": "uuid",
@@ -183,43 +190,39 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         },
         "values": {
-          "$ref": "#/definitions/TermValues"
+          "$ref": "#/$defs/TermValues"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "id",
         "name",
-        "type",
-        "values"
+        "values",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "term_values_updated"
-          ],
+          "const": "term_values_updated",
           "type": "string"
         },
         "values": {
-          "$ref": "#/definitions/TermValues"
+          "$ref": "#/$defs/TermValues"
         }
       },
       "required": [
-        "audit_info",
         "type",
-        "values"
+        "values",
+        "audit_info"
       ],
       "type": "object"
     }

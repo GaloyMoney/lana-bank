@@ -1,0 +1,243 @@
+{
+  "$defs": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/$defs/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sub",
+        "audit_entry_id"
+      ],
+      "type": "object"
+    },
+    "CreditFacilityAccountIds": {
+      "properties": {
+        "collateral_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "disbursed_defaulted_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "disbursed_receivable_due_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "disbursed_receivable_not_yet_due_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "disbursed_receivable_overdue_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "fee_income_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_defaulted_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_income_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_receivable_due_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_receivable_not_yet_due_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "interest_receivable_overdue_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "facility_account_id",
+        "disbursed_receivable_not_yet_due_account_id",
+        "disbursed_receivable_due_account_id",
+        "disbursed_receivable_overdue_account_id",
+        "disbursed_defaulted_account_id",
+        "collateral_account_id",
+        "interest_receivable_not_yet_due_account_id",
+        "interest_receivable_due_account_id",
+        "interest_receivable_overdue_account_id",
+        "interest_defaulted_account_id",
+        "interest_income_account_id",
+        "fee_income_account_id"
+      ],
+      "type": "object"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "account_ids": {
+          "$ref": "#/$defs/CreditFacilityAccountIds"
+        },
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "approval_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "disbursal_credit_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "due_date": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidation_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "overdue_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "approval_process_id",
+        "facility_id",
+        "amount",
+        "account_ids",
+        "disbursal_credit_account_id",
+        "due_date",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "approval_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "approved": {
+          "type": "boolean"
+        },
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "type": {
+          "const": "approval_process_concluded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "approval_process_id",
+        "approved",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "settled",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "obligation_id",
+        "amount",
+        "effective",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "cancelled",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "audit_info"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "DisbursalEvent"
+}

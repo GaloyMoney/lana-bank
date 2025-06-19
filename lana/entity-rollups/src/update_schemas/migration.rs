@@ -672,6 +672,8 @@ fn extract_fields_and_events_from_schema(
                         } else {
                             None
                         }
+                    } else if let Some(Value::String(const_val)) = type_obj.get("const") {
+                        Some(const_val.clone())
                     } else {
                         None
                     }
@@ -1000,6 +1002,10 @@ fn find_events_with_audit_info(schema: &Value) -> Vec<String> {
                                 let upper_camel = to_upper_camel_case(type_name);
                                 events_with_audit_info.push(upper_camel);
                             }
+                        } else if let Some(Value::String(const_val)) = type_obj.get("const") {
+                            // Convert snake_case to UpperCamelCase (PascalCase)
+                            let upper_camel = to_upper_camel_case(const_val);
+                            events_with_audit_info.push(upper_camel);
                         }
                     }
                 }

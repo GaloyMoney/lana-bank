@@ -1,11 +1,10 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AccountCode": {
       "properties": {
         "sections": {
           "items": {
-            "$ref": "#/definitions/AccountCodeSection"
+            "$ref": "#/$defs/AccountCodeSection"
           },
           "type": "array"
         }
@@ -40,18 +39,18 @@
     "AccountSpec": {
       "properties": {
         "code": {
-          "$ref": "#/definitions/AccountCode"
+          "$ref": "#/$defs/AccountCode"
         },
         "name": {
-          "$ref": "#/definitions/AccountName"
+          "$ref": "#/$defs/AccountName"
         },
         "normal_balance_type": {
-          "$ref": "#/definitions/DebitOrCredit"
+          "$ref": "#/$defs/DebitOrCredit"
         },
         "parent": {
           "anyOf": [
             {
-              "$ref": "#/definitions/AccountCode"
+              "$ref": "#/$defs/AccountCode"
             },
             {
               "type": "null"
@@ -73,15 +72,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -93,11 +92,12 @@
       "type": "string"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "id": {
           "format": "uuid",
@@ -110,45 +110,41 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "id",
         "name",
         "reference",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "ledger_account_set_id": {
           "format": "uuid",
           "type": "string"
         },
         "spec": {
-          "$ref": "#/definitions/AccountSpec"
+          "$ref": "#/$defs/AccountSpec"
         },
         "type": {
-          "enum": [
-            "node_added"
-          ],
+          "const": "node_added",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "ledger_account_set_id",
+        "type",
         "spec",
-        "type"
+        "ledger_account_set_id",
+        "audit_info"
       ],
       "type": "object"
     }

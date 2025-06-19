@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,15 +7,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -29,10 +28,11 @@
     },
     "UsdCents": {
       "format": "uint64",
-      "minimum": 0.0,
+      "minimum": 0,
       "type": "integer"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
@@ -41,10 +41,10 @@
           "type": "string"
         },
         "amount": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "credit_facility_id": {
           "format": "uuid",
@@ -64,7 +64,7 @@
         },
         "obligation_allocation_idx": {
           "format": "uint",
-          "minimum": 0.0,
+          "minimum": 0,
           "type": "integer"
         },
         "obligation_id": {
@@ -72,7 +72,7 @@
           "type": "string"
         },
         "obligation_type": {
-          "$ref": "#/definitions/ObligationType"
+          "$ref": "#/$defs/ObligationType"
         },
         "payment_id": {
           "format": "uuid",
@@ -83,26 +83,24 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "account_to_be_debited_id",
-        "amount",
-        "audit_info",
-        "credit_facility_id",
-        "effective",
+        "type",
         "id",
         "ledger_tx_id",
-        "obligation_allocation_idx",
-        "obligation_id",
-        "obligation_type",
         "payment_id",
+        "obligation_id",
+        "obligation_allocation_idx",
+        "obligation_type",
+        "credit_facility_id",
+        "amount",
         "receivable_account_id",
-        "type"
+        "account_to_be_debited_id",
+        "effective",
+        "audit_info"
       ],
       "type": "object"
     }

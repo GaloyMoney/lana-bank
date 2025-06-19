@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "ApprovalRules": {
       "oneOf": [
         {
@@ -11,29 +10,25 @@
             },
             "threshold": {
               "format": "uint",
-              "minimum": 0.0,
+              "minimum": 0,
               "type": "integer"
             },
             "type": {
-              "enum": [
-                "committee_threshold"
-              ],
+              "const": "committee_threshold",
               "type": "string"
             }
           },
           "required": [
+            "type",
             "committee_id",
-            "threshold",
-            "type"
+            "threshold"
           ],
           "type": "object"
         },
         {
           "properties": {
             "type": {
-              "enum": [
-                "system_auto_approve"
-              ],
+              "const": "system_auto_approve",
               "type": "string"
             }
           },
@@ -51,24 +46,25 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "id": {
           "format": "uuid",
@@ -82,26 +78,24 @@
           "type": "string"
         },
         "rules": {
-          "$ref": "#/definitions/ApprovalRules"
+          "$ref": "#/$defs/ApprovalRules"
         },
         "target_ref": {
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "id",
         "policy_id",
         "process_type",
         "rules",
         "target_ref",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
@@ -112,26 +106,24 @@
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "approved"
-          ],
+          "const": "approved",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "approver_id",
-        "audit_info",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "denier_id": {
           "format": "uuid",
@@ -141,17 +133,15 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "denied"
-          ],
+          "const": "denied",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "denier_id",
         "reason",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
@@ -161,19 +151,17 @@
           "type": "boolean"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "concluded"
-          ],
+          "const": "concluded",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "approved",
-        "audit_info",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

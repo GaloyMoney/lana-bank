@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,24 +7,25 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "email": {
           "type": "string"
@@ -35,17 +35,15 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "email",
+        "type",
         "id",
-        "type"
+        "email",
+        "audit_info"
       ],
       "type": "object"
     },
@@ -56,61 +54,55 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "authentication_id_updated"
-          ],
+          "const": "authentication_id_updated",
           "type": "string"
         }
       },
       "required": [
-        "authentication_id",
-        "type"
+        "type",
+        "authentication_id"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "role_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "role_granted"
-          ],
+          "const": "role_granted",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "role_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "role_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "role_revoked"
-          ],
+          "const": "role_revoked",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "role_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

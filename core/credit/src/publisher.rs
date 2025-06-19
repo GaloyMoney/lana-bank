@@ -8,6 +8,7 @@ use crate::{
     interest_accrual_cycle::{
         InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
     },
+    liquidation_process::{LiquidationProcess, LiquidationProcessEvent, error::LiquidationProcessError},
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,

@@ -7,11 +7,13 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{ChartEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    ObligationEvent, PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
+    LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent, PaymentEvent,
+    TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
+use document_storage::event_schema::DocumentEvent;
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
@@ -355,6 +357,20 @@ pub fn update_schemas(
                 },
             ],
             generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "LiquidationProcessEvent",
+            filename: "liquidation_process_event_schema.json",
+            toggle_events: vec!["Completed"],
+            generate_schema: || serde_json::to_value(schema_for!(LiquidationProcessEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "DocumentEvent",
+            filename: "document_event_schema.json",
+            toggle_events: vec!["FileUploaded", "Deleted", "Archived"],
+            generate_schema: || serde_json::to_value(schema_for!(DocumentEvent)).unwrap(),
             ..Default::default()
         },
         SchemaInfo {

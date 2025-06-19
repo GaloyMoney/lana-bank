@@ -336,7 +336,6 @@ CREATE TABLE core_payment_allocation_events (
   UNIQUE(id, sequence)
 );
 
--- Document storage tables
 CREATE TABLE core_documents (
   id UUID PRIMARY KEY,
   reference_id UUID NOT NULL,
@@ -352,23 +351,6 @@ CREATE TABLE core_document_events (
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  UNIQUE(id, sequence)
-);
-
-CREATE TABLE documents (
-  id UUID PRIMARY KEY,
-  deleted BOOLEAN NOT NULL DEFAULT FALSE,
-  customer_id UUID NOT NULL REFERENCES core_customers(id),
-  created_at TIMESTAMPTZ NOT NULL
-);
-CREATE INDEX idx_documents_customer_id_deleted_id ON documents (customer_id, deleted, id);
-
-CREATE TABLE document_events (
-  id UUID NOT NULL REFERENCES documents(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
 
