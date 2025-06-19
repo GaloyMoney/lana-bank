@@ -132,16 +132,15 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
-      
       checkCode = craneLib.mkCargoDerivation {
-        pname            = "check-code";
-        version          = "0.1.0";
-        src              = rustSource;
-        cargoToml        = ./Cargo.toml;
-        cargoLock        = ./Cargo.lock;
-        cargoArtifacts   = debugCargoArtifacts;
-        SQLX_OFFLINE     = true;
-        cargoExtraArgs   = "--all-targets --all-features";
+        pname = "check-code";
+        version = "0.1.0";
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
+        cargoLock = ./Cargo.lock;
+        cargoArtifacts = debugCargoArtifacts;
+        SQLX_OFFLINE = true;
+        cargoExtraArgs = "--all-targets --all-features";
 
         nativeBuildInputs = [
           pkgs.protobuf
@@ -171,13 +170,13 @@
       };
 
       testInCi = craneLib.mkCargoDerivation {
-        pname            = "test-in-ci";
-        version          = "0.1.0";
-        src              = rustSource;
-        cargoToml        = ./Cargo.toml;
-        cargoLock        = ./Cargo.lock;
-        cargoArtifacts   = debugCargoArtifacts;
-        SQLX_OFFLINE     = true;
+        pname = "test-in-ci";
+        version = "0.1.0";
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
+        cargoLock = ./Cargo.lock;
+        cargoArtifacts = debugCargoArtifacts;
+        SQLX_OFFLINE = true;
 
         nativeBuildInputs = [
           pkgs.cacert
@@ -200,39 +199,39 @@
           cargo nextest run --workspace --locked --verbose
         '';
 
-        installPhase = "touch $out";  
+        installPhase = "touch $out";
       };
 
       entity-rollups = craneLib.buildPackage {
-        src            = rustSource;
-        cargoToml      = ./Cargo.toml;
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
         cargoArtifacts = debugCargoArtifacts;
-        pname          = "entity-rollups";
-        version        = "0.1.0";
-        doCheck        = false;
-        SQLX_OFFLINE   = true;
+        pname = "entity-rollups";
+        version = "0.1.0";
+        doCheck = false;
+        SQLX_OFFLINE = true;
         cargoExtraArgs = "-p entity-rollups --all-features";
       };
 
       write_sdl = craneLib.buildPackage {
-        src            = rustSource;
-        cargoToml      = ./Cargo.toml;
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
         cargoArtifacts = debugCargoArtifacts;
-        pname          = "write_sdl";
-        version        = "0.1.0";
-        doCheck        = false;
-        SQLX_OFFLINE   = true;
+        pname = "write_sdl";
+        version = "0.1.0";
+        doCheck = false;
+        SQLX_OFFLINE = true;
         cargoExtraArgs = "--bin write_sdl";
       };
 
       write_customer_sdl = craneLib.buildPackage {
-        src            = rustSource;
-        cargoToml      = ./Cargo.toml;
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
         cargoArtifacts = debugCargoArtifacts;
-        pname          = "write_customer_sdl";
-        version        = "0.1.0";
-        doCheck        = false;
-        SQLX_OFFLINE   = true;
+        pname = "write_customer_sdl";
+        version = "0.1.0";
+        doCheck = false;
+        SQLX_OFFLINE = true;
         cargoExtraArgs = "--bin write_customer_sdl";
       };
 
