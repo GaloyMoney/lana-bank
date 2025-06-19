@@ -35,7 +35,7 @@ clap = { workspace = true }
 schemars = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-colored = "2.0"
+colored = "3.0"
 similar = { version = "2.6", features = ["inline"] }
 
 [dev-dependencies]

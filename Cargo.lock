@@ -342,7 +342,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "es-entity",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "sqlx",
  "thiserror 2.0.12",
@@ -355,7 +355,7 @@ dependencies = [
  "async-trait",
  "audit",
  "es-entity",
- "schemars",
+ "schemars 0.8.22",
  "sqlx",
  "sqlx-adapter",
  "thiserror 2.0.12",
@@ -796,7 +796,7 @@ dependencies = [
  "es-entity",
  "rust_decimal",
  "rusty-money",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sqlx",
@@ -988,11 +988,10 @@ checksum = "5b63caa9aa9397e2d9480a9b13673856c78d8ac123288526c37d7839f2a86990"
 
 [[package]]
 name = "colored"
-version = "2.2.0"
+version = "3.0.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "117725a109d387c937a1533ce01b450cbde6b88abceea8473c4d7a85853cda3c"
+checksum = "fde0e0ec90c9dfb3b4b1a0891a7dcd0e2bffde2f7efed5fe7c9bb00e5bfb915e"
 dependencies = [
- "lazy_static",
  "windows-sys 0.59.0",
 ]
 
@@ -1051,7 +1050,7 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sqlx",
@@ -1081,7 +1080,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sqlx",
@@ -1118,7 +1117,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "serde_with",
@@ -1142,7 +1141,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "hex",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sqlx",
@@ -1164,7 +1163,7 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "sqlx",
  "strum",
@@ -1197,7 +1196,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sim-time",
@@ -1232,7 +1231,7 @@ dependencies = [
  "async-graphql",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "thiserror 2.0.12",
 ]
@@ -1247,7 +1246,7 @@ dependencies = [
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -1435,7 +1434,7 @@ dependencies = [
  "job",
  "lana-events",
  "outbox",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sim-time",
@@ -1557,7 +1556,7 @@ dependencies = [
  "cloud-storage",
  "derive_builder",
  "es-entity",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "sqlx",
  "strum",
@@ -1635,7 +1634,7 @@ dependencies = [
  "core-deposit",
  "document-storage",
  "governance",
- "schemars",
+ "schemars 0.8.22",
  "serde_json",
  "similar",
  "tempfile",
@@ -1679,7 +1678,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "es-entity-macros",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sim-time",
@@ -2097,7 +2096,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "outbox",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "sqlx",
  "strum",
@@ -2618,7 +2617,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "rand 0.9.1",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "serde_with",
@@ -2753,7 +2752,7 @@ dependencies = [
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "serial_test",
@@ -2809,7 +2808,7 @@ dependencies = [
  "es-entity",
  "governance",
  "job",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "sqlx",
 ]
@@ -3302,7 +3301,7 @@ dependencies = [
  "chrono",
  "es-entity",
  "futures",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "serde_json",
  "sqlx",
@@ -3913,7 +3912,7 @@ dependencies = [
  "es-entity",
  "governance",
  "lana-ids",
- "schemars",
+ "schemars 0.8.22",
  "serde",
  "sqlx",
  "strum",
@@ -3939,6 +3938,26 @@ dependencies = [
  "getrandom 0.2.16",
  "libredox",
  "thiserror 1.0.69",
+]
+
+[[package]]
+name = "ref-cast"
+version = "1.0.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4a0ae411dbe946a674d89546582cea4ba2bb8defac896622d6496f14c23ba5cf"
+dependencies = [
+ "ref-cast-impl",
+]
+
+[[package]]
+name = "ref-cast-impl"
+version = "1.0.24"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1165225c21bff1f3bbce98f5a1f889949bc902d3575308cc7b0de30b4f6d27c7"
+dependencies = [
+ "proc-macro2",
+ "quote",
+ "syn 2.0.103",
 ]
 
 [[package]]
@@ -4150,9 +4169,9 @@ dependencies = [
 
 [[package]]
 name = "rust_decimal"
-version = "1.37.1"
+version = "1.37.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "faa7de2ba56ac291bd90c6b9bece784a52ae1411f9506544b3eae36dd2356d50"
+checksum = "b203a6425500a03e0919c42d3c47caca51e79f1132046626d2c8871c5092035d"
 dependencies = [
  "arrayvec",
  "borsh",
@@ -4300,6 +4319,18 @@ dependencies = [
 ]
 
 [[package]]
+name = "schemars"
+version = "0.9.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "4cd191f9397d57d581cddd31014772520aa448f65ef991055d7f61582c65165f"
+dependencies = [
+ "dyn-clone",
+ "ref-cast",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
 name = "schemars_derive"
 version = "0.8.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4396,15 +4427,16 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "3.12.0"
+version = "3.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6b6f7f2fcb69f747921f79f3926bd1e203fce4fef62c268dd3abfb6d86029aa"
+checksum = "bf65a400f8f66fb7b0552869ad70157166676db75ed8181f8104ea91cf9d0b42"
 dependencies = [
  "base64 0.22.1",
  "chrono",
  "hex",
  "indexmap 1.9.3",
  "indexmap 2.9.0",
+ "schemars 0.9.0",
  "serde",
  "serde_derive",
  "serde_json",
@@ -4414,9 +4446,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with_macros"
-version = "3.12.0"
+version = "3.13.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8d00caa5193a3c8362ac2b73be6b9e768aa5a4b2f721d8f4b339600c3cb51f8e"
+checksum = "81679d9ed988d5e9a5e6531dc3f2c28efbd639cbd1dfb628df08edea6004da77"
 dependencies = [
  "darling",
  "proc-macro2",

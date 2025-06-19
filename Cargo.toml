@@ -100,11 +100,11 @@ strum = { version = "0.26", features = ["derive"] }
 serde = { version = "1.0.214", features = ["derive"] }
 serde_yaml = "0.9.32"
 serde_json = "1.0.133"
-serde_with = "3.12.0"
+serde_with = "3.13.0"
 futures = "0.3.29"
 reqwest = { version = "0.12.20", default-features = false, features = ["json", "rustls-tls", "charset", "http2", "macos-system-configuration", "multipart"] }
 rust_decimal_macros = "1.37.1"
-rust_decimal = "1.37.1"
+rust_decimal = "1.37.2"
 rusty-money = { version = "0.4", features = ["iso", "crypto"] }
 base64 = { version = "0.22.1" }
 jsonwebtoken = "9.3.1"
