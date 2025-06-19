@@ -6,7 +6,7 @@ titles as (
         100 as order_by,
         '    A. Flujos de efectivo proveniente de actividades de operación:' as title,
         '    A. Cash flows from operating activities:' as eng_title,
-        [] as source_account_codes,
+        cast([] as ARRAY<STRING>) as source_account_codes,
         union all
     select
         200,

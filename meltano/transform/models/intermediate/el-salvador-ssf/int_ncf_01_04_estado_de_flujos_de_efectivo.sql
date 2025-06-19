@@ -2,7 +2,7 @@ with
 
 config as (
     select *
-    from {{ ref('int_ncf_01_04_estado_de_flujos_de_efectivo_config') }}
+    from {{ ref('static_ncf_01_04_account_config') }}
 ),
 
 chart as (
