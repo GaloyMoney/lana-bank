@@ -47,6 +47,77 @@ impl DocumentStorage {
         }
     }
 
+    #[instrument(name = "document_storage.create", skip(self), err)]
+    pub async fn create(
+        &self,
+        audit_info: AuditInfo,
+        filename: impl Into<String> + std::fmt::Debug,
+        content_type: impl Into<String> + std::fmt::Debug,
+        reference_id: impl Into<ReferenceId> + std::fmt::Debug,
+        document_type: impl Into<DocumentType> + std::fmt::Debug,
+    ) -> Result<Document, DocumentStorageError> {
+        let document_id = DocumentId::new();
+        let document_type = document_type.into();
+        let path_in_storage = format!("documents/{}/{}", document_type, document_id);
+        let storage_identifier = self.storage.storage_identifier();
+
+        let new_document = NewDocument::builder()
+            .id(document_id)
+            .document_type(document_type)
+            .filename(filename)
+            .content_type(content_type)
+            .path_in_storage(path_in_storage)
+            .storage_identifier(storage_identifier)
+            .reference_id(reference_id)
+            .audit_info(audit_info)
+            .build()
+            .expect("Could not build document");
+
+        let mut db = self.repo.begin_op().await?;
+        let document = self.repo.create_in_op(&mut db, new_document).await?;
+        db.commit().await?;
+
+        Ok(document)
+    }
+
+    #[instrument(
+        name = "document_storage.upload_in_op",
+        skip(self, content, document, db),
+        err
+    )]
+    pub async fn upload_in_op(
+        &self,
+        content: Vec<u8>,
+        document: &mut Document,
+        audit_info: AuditInfo,
+        db: &mut es_entity::DbOp<'_>,
+    ) -> Result<(), DocumentStorageError> {
+        self.storage
+            .upload(content, &document.path_in_storage, &document.content_type)
+            .await?;
+
+        // Now record the upload in the entity
+        if document.upload_file(audit_info).did_execute() {
+            self.repo.update_in_op(db, document).await?;
+        }
+
+        Ok(())
+    }
+
+    #[instrument(name = "document_storage.upload", skip(self, content, document), err)]
+    pub async fn upload(
+        &self,
+        content: Vec<u8>,
+        document: &mut Document,
+        audit_info: AuditInfo,
+    ) -> Result<(), DocumentStorageError> {
+        let mut db = self.repo.begin_op().await?;
+        self.upload_in_op(content, document, audit_info, &mut db)
+            .await?;
+        db.commit().await?;
+        Ok(())
+    }
+
     #[instrument(name = "document_storage.create_and_upload", skip(self, content), err)]
     pub async fn create_and_upload(
         &self,
@@ -77,15 +148,10 @@ impl DocumentStorage {
         let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
-        self.storage
-            .upload(content, &document.path_in_storage, &document.content_type)
+        self.upload_in_op(content, &mut document, audit_info, &mut db)
             .await?;
 
-        // Now record the upload in the entity
-        if document.upload_file(audit_info).did_execute() {
-            self.repo.update_in_op(&mut db, &mut document).await?;
-            db.commit().await?;
-        }
+        db.commit().await?;
 
         Ok(document)
     }
