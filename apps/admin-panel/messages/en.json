@@ -532,7 +532,7 @@
           "dateOfIssuance": "Date of Issuance",
           "maturityDate": "Maturity Date",
           "monthlyPayment": "Monthly Payment",
-          "noMonthlyPaymentAvailable": "No monthly payment available",
+          "noMonthlyPaymentAvailable": "No monthly payment available"
         },
         "buttons": {
           "loanTerms": "Loan Terms",
