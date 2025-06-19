@@ -54,12 +54,10 @@ teardown_file() {
   # Execute the GraphQL mutation for file upload
   response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")  
   document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.documentId')
-  [[ "$document_id" != "" ]] || exit 1
+  [[ "$document_id" != null ]] || exit 1
   
-  # Clean up the temporary file
   rm "$temp_file"
 
-  # Fetch the document by ID
   variables=$(jq -n \
     --arg documentId "$document_id" \
     '{
@@ -80,7 +78,7 @@ teardown_file() {
       "customerId": $customerId
     }')
 
-  exec_admin_graphql 'documents-for-customer' "$variables"
+  exec_admin_graphql 'customer-documents' "$variables"
 
   documents_count=$(graphql_output '.data.customer.documents | length')
   [[ "$documents_count" -ge 1 ]] || exit 1
@@ -141,7 +139,7 @@ teardown_file() {
       "customerId": $customerId
     }')
 
-  exec_admin_graphql 'documents-for-customer' "$variables"
+  exec_admin_graphql 'customer-documents' "$variables"
 
   # Check if the deleted document is not in the list
   documents=$(graphql_output '.data.customer.documents')
