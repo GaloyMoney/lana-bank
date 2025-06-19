@@ -251,7 +251,7 @@ titles as (
     select
         4200,
         'Cambios en el valor razonable del elemento a término de los contratos a término de una partida cubierta relacionada con una transacción',
-        'Changes in the fair value of the forward element of a hedged item's forward contracts related to a transaction',
+        'Changes in the fair value of the forward element of a hedged item''s forward contracts related to a transaction',
         [],
         union all
     select
@@ -293,19 +293,19 @@ titles as (
     select
         4900,
         'Cambios en el valor razonable del valor temporal de una opción de una partida cubierta relacionada con un período de tiempo',
-        'Changes in the fair value of the time value of a hedged item's option related to a time period',
+        'Changes in the fair value of the time value of a hedged item''s option related to a time period',
         [],
         union all
     select
         5000,
         'Cambios en el valor razonable del elemento a término de los contratos a término de una partida cubierta relacionada con una transacción',
-        'Changes in the fair value of the forward element of a hedged item's forward contracts related to a transaction',
+        'Changes in the fair value of the forward element of a hedged item''s forward contracts related to a transaction',
         [],
         union all
     select
         5100,
         'Cambios en el valor razonable del elemento a término de los contratos a término de una partida cubierta relacionada con un período de tiempo',
-        'Changes in the fair value of the forward element of a hedged item's forward contracts relate to a period of time',
+        'Changes in the fair value of the forward element of a hedged item''s forward contracts relate to a period of time',
         [],
         union all
     select
