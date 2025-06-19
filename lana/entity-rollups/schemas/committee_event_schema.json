@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,24 +7,25 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "id": {
           "format": "uuid",
@@ -35,63 +35,57 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "id",
         "name",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "member_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "member_added"
-          ],
+          "const": "member_added",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "member_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "member_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "member_removed"
-          ],
+          "const": "member_removed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "member_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

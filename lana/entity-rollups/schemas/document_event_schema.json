@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,15 +7,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -28,17 +27,18 @@
       "type": "string"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "content_type": {
           "type": "string"
         },
         "document_type": {
-          "$ref": "#/definitions/DocumentType"
+          "$ref": "#/$defs/DocumentType"
         },
         "id": {
           "format": "uuid",
@@ -61,41 +61,37 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "content_type",
-        "document_type",
+        "type",
         "id",
-        "original_filename",
-        "path_in_storage",
+        "document_type",
         "reference_id",
         "sanitized_filename",
+        "original_filename",
+        "content_type",
+        "path_in_storage",
         "storage_identifier",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "file_uploaded"
-          ],
+          "const": "file_uploaded",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "type"
+        "type",
+        "audit_info"
       ],
       "type": "object"
     },
@@ -105,69 +101,61 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "upload_failed"
-          ],
+          "const": "upload_failed",
           "type": "string"
         }
       },
       "required": [
-        "error",
-        "type"
+        "type",
+        "error"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "download_link_generated"
-          ],
+          "const": "download_link_generated",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "type"
+        "type",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "deleted"
-          ],
+          "const": "deleted",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "type"
+        "type",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "archived"
-          ],
+          "const": "archived",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "type"
+        "type",
+        "audit_info"
       ],
       "type": "object"
     }

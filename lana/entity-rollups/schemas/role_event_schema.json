@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,24 +7,25 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "id": {
           "format": "uuid",
@@ -43,64 +43,58 @@
           "uniqueItems": true
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "id",
         "name",
         "permission_sets",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "permission_set_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "permission_set_added"
-          ],
+          "const": "permission_set_added",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "permission_set_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "permission_set_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "permission_set_removed"
-          ],
+          "const": "permission_set_removed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "permission_set_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }
