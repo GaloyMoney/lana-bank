@@ -9,8 +9,10 @@ pub struct CreditModuleConfig {
     chart_of_accounts_id: Option<UUID>,
     chart_of_account_facility_omnibus_parent_code: Option<String>,
     chart_of_account_collateral_omnibus_parent_code: Option<String>,
+    chart_of_account_in_liquidation_omnibus_parent_code: Option<String>,
     chart_of_account_facility_parent_code: Option<String>,
     chart_of_account_collateral_parent_code: Option<String>,
+    chart_of_account_in_liquidation_parent_code: Option<String>,
     chart_of_account_interest_income_parent_code: Option<String>,
     chart_of_account_fee_income_parent_code: Option<String>,
 
@@ -85,11 +87,19 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
                     .chart_of_account_collateral_omnibus_parent_code
                     .to_string(),
             ),
+            chart_of_account_in_liquidation_omnibus_parent_code: Some(
+                values
+                    .chart_of_account_in_liquidation_omnibus_parent_code
+                    .to_string(),
+            ),
             chart_of_account_facility_parent_code: Some(
                 values.chart_of_account_facility_parent_code.to_string(),
             ),
             chart_of_account_collateral_parent_code: Some(
                 values.chart_of_account_collateral_parent_code.to_string(),
+            ),
+            chart_of_account_in_liquidation_parent_code: Some(
+                values.chart_of_account_in_liquidation_parent_code.to_string(),
             ),
             chart_of_account_interest_income_parent_code: Some(
                 values
@@ -289,8 +299,10 @@ impl From<DomainChartOfAccountsIntegrationConfig> for CreditModuleConfig {
 pub struct CreditModuleConfigureInput {
     pub chart_of_account_facility_omnibus_parent_code: String,
     pub chart_of_account_collateral_omnibus_parent_code: String,
+    pub chart_of_account_in_liquidation_omnibus_parent_code: String,
     pub chart_of_account_facility_parent_code: String,
     pub chart_of_account_collateral_parent_code: String,
+    pub chart_of_account_in_liquidation_parent_code: String,
     pub chart_of_account_interest_income_parent_code: String,
     pub chart_of_account_fee_income_parent_code: String,
 
