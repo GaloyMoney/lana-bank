@@ -150,7 +150,7 @@ impl TryFromEvents<DocumentEvent> for Document {
                     sanitized_filename,
                     content_type,
                     path_in_storage,
-                    reference_id: owner_id,
+                    reference_id,
                     ..
                 } => {
                     builder = builder
@@ -158,7 +158,7 @@ impl TryFromEvents<DocumentEvent> for Document {
                         .filename(sanitized_filename.clone())
                         .content_type(content_type.clone())
                         .path_in_storage(path_in_storage.clone())
-                        .reference_id(*owner_id)
+                        .reference_id(*reference_id)
                         .status(DocumentStatus::Active);
                 }
                 DocumentEvent::FileUploaded { .. } => {
