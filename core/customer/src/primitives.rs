@@ -118,9 +118,7 @@ impl CustomerObject {
     pub fn all_customer_documents() -> CustomerObject {
         CustomerObject::CustomerDocument(AllOrOne::All)
     }
-    pub fn customer_document(
-        id: impl Into<Option<CustomerDocumentId>>,
-    ) -> CustomerObject {
+    pub fn customer_document(id: impl Into<Option<CustomerDocumentId>>) -> CustomerObject {
         match id.into() {
             Some(id) => CustomerObject::CustomerDocument(AllOrOne::ById(id)),
             None => CustomerObject::all_customer_documents(),

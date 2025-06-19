@@ -1,4 +1,4 @@
-use async_graphql::{types::connection::*, Context, Object};
+use async_graphql::{Context, Object, types::connection::*};
 
 use std::io::Read;
 
