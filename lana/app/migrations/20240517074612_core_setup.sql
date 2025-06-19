@@ -339,12 +339,12 @@ CREATE TABLE core_payment_allocation_events (
 -- Document storage tables
 CREATE TABLE core_documents (
   id UUID PRIMARY KEY,
-  owner_id UUID,
+  reference_id UUID NOT NULL,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
-CREATE INDEX idx_core_documents_owner_id ON core_documents(owner_id);
+CREATE INDEX idx_core_documents_reference_id ON core_documents(reference_id);
 
 CREATE TABLE core_document_events (
   id UUID NOT NULL REFERENCES core_documents(id),

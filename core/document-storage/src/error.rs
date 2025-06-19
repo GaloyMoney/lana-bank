@@ -8,10 +8,6 @@ pub enum DocumentStorageError {
     EsEntityError(es_entity::EsEntityError),
     #[error("DocumentStorageError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
-    #[error("DocumentStorageError - AuthorizationError: {0}")]
-    AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("DocumentStorageError - AuditError: ${0}")]
-    AuditError(#[from] audit::error::AuditError),
     #[error("DocumentStorageError - StorageError: {0}")]
     StorageError(#[from] cloud_storage::error::StorageError),
 }

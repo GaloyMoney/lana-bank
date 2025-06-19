@@ -206,7 +206,7 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: ObligationId,
-    ) -> Result<(), ObligationError> {
+    ) -> Result<Obligation, ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
         let audit_info = self
@@ -229,7 +229,7 @@ where
                 .await?;
         }
 
-        Ok(())
+        Ok(obligation)
     }
 
     pub async fn find_by_id_without_audit(

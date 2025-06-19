@@ -776,7 +776,7 @@ export type Customer = {
   customerId: Scalars['UUID']['output'];
   customerType: CustomerType;
   depositAccount?: Maybe<DepositAccount>;
-  documents: Array<Document>;
+  documents: Array<CustomerDocument>;
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   level: KycLevel;
@@ -805,6 +805,53 @@ export type CustomerCreateInput = {
 export type CustomerCreatePayload = {
   __typename?: 'CustomerCreatePayload';
   customer: Customer;
+};
+
+export type CustomerDocument = {
+  __typename?: 'CustomerDocument';
+  customerId: Scalars['UUID']['output'];
+  documentId: Scalars['UUID']['output'];
+  filename: Scalars['String']['output'];
+  id: Scalars['ID']['output'];
+  status: DocumentStatus;
+};
+
+export type CustomerDocumentArchiveInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type CustomerDocumentArchivePayload = {
+  __typename?: 'CustomerDocumentArchivePayload';
+  document: CustomerDocument;
+};
+
+export type CustomerDocumentCreateInput = {
+  customerId: Scalars['UUID']['input'];
+  file: Scalars['Upload']['input'];
+};
+
+export type CustomerDocumentCreatePayload = {
+  __typename?: 'CustomerDocumentCreatePayload';
+  document: CustomerDocument;
+};
+
+export type CustomerDocumentDeleteInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type CustomerDocumentDeletePayload = {
+  __typename?: 'CustomerDocumentDeletePayload';
+  deletedDocumentId: Scalars['UUID']['output'];
+};
+
+export type CustomerDocumentDownloadLinksGenerateInput = {
+  documentId: Scalars['UUID']['input'];
+};
+
+export type CustomerDocumentDownloadLinksGeneratePayload = {
+  __typename?: 'CustomerDocumentDownloadLinksGeneratePayload';
+  documentId: Scalars['UUID']['output'];
+  link: Scalars['String']['output'];
 };
 
 /** An edge in a connection. */
@@ -1017,53 +1064,6 @@ export type Disbursed = {
   dueOutstanding: Outstanding;
   outstanding: Outstanding;
   total: Total;
-};
-
-export type Document = {
-  __typename?: 'Document';
-  customerId?: Maybe<Scalars['UUID']['output']>;
-  documentId: Scalars['UUID']['output'];
-  filename: Scalars['String']['output'];
-  id: Scalars['ID']['output'];
-  status: DocumentStatus;
-};
-
-export type DocumentArchiveInput = {
-  documentId: Scalars['UUID']['input'];
-};
-
-export type DocumentArchivePayload = {
-  __typename?: 'DocumentArchivePayload';
-  document: Document;
-};
-
-export type DocumentCreateInput = {
-  customerId: Scalars['UUID']['input'];
-  file: Scalars['Upload']['input'];
-};
-
-export type DocumentCreatePayload = {
-  __typename?: 'DocumentCreatePayload';
-  document: Document;
-};
-
-export type DocumentDeleteInput = {
-  documentId: Scalars['UUID']['input'];
-};
-
-export type DocumentDeletePayload = {
-  __typename?: 'DocumentDeletePayload';
-  deletedDocumentId: Scalars['UUID']['output'];
-};
-
-export type DocumentDownloadLinksGenerateInput = {
-  documentId: Scalars['UUID']['input'];
-};
-
-export type DocumentDownloadLinksGeneratePayload = {
-  __typename?: 'DocumentDownloadLinksGeneratePayload';
-  documentId: Scalars['UUID']['output'];
-  link: Scalars['String']['output'];
 };
 
 export enum DocumentStatus {
@@ -1289,14 +1289,14 @@ export type Mutation = {
   custodianConfigUpdate: CustodianConfigUpdatePayload;
   custodianCreate: CustodianCreatePayload;
   customerCreate: CustomerCreatePayload;
-  customerDocumentAttach: DocumentCreatePayload;
+  customerDocumentArchive: CustomerDocumentArchivePayload;
+  customerDocumentAttach: CustomerDocumentCreatePayload;
+  customerDocumentDelete: CustomerDocumentDeletePayload;
+  customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
   customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
-  documentArchive: DocumentArchivePayload;
-  documentDelete: DocumentDeletePayload;
-  documentDownloadLinkGenerate: DocumentDownloadLinksGeneratePayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
@@ -1404,8 +1404,23 @@ export type MutationCustomerCreateArgs = {
 };
 
 
+export type MutationCustomerDocumentArchiveArgs = {
+  input: CustomerDocumentArchiveInput;
+};
+
+
 export type MutationCustomerDocumentAttachArgs = {
-  input: DocumentCreateInput;
+  input: CustomerDocumentCreateInput;
+};
+
+
+export type MutationCustomerDocumentDeleteArgs = {
+  input: CustomerDocumentDeleteInput;
+};
+
+
+export type MutationCustomerDocumentDownloadLinkGenerateArgs = {
+  input: CustomerDocumentDownloadLinksGenerateInput;
 };
 
 
@@ -1426,21 +1441,6 @@ export type MutationDepositModuleConfigureArgs = {
 
 export type MutationDepositRecordArgs = {
   input: DepositRecordInput;
-};
-
-
-export type MutationDocumentArchiveArgs = {
-  input: DocumentArchiveInput;
-};
-
-
-export type MutationDocumentDeleteArgs = {
-  input: DocumentDeleteInput;
-};
-
-
-export type MutationDocumentDownloadLinkGenerateArgs = {
-  input: DocumentDownloadLinksGenerateInput;
 };
 
 
@@ -1599,8 +1599,6 @@ export enum PermissionSetName {
   DashboardViewer = 'DASHBOARD_VIEWER',
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
-  DocumentViewer = 'DOCUMENT_VIEWER',
-  DocumentWriter = 'DOCUMENT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
   GovernanceWriter = 'GOVERNANCE_WRITER'
 }
@@ -1686,6 +1684,7 @@ export type Query = {
   custodians: CustodianConnection;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
+  customerDocument?: Maybe<CustomerDocument>;
   customers: CustomerConnection;
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
@@ -1693,7 +1692,6 @@ export type Query = {
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
-  document?: Maybe<Document>;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
@@ -1792,6 +1790,11 @@ export type QueryCustomerByEmailArgs = {
 };
 
 
+export type QueryCustomerDocumentArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
 export type QueryCustomersArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   filter?: InputMaybe<CustomersFilter>;
@@ -1819,11 +1822,6 @@ export type QueryDisbursalArgs = {
 export type QueryDisbursalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-
-export type QueryDocumentArgs = {
-  id: Scalars['UUID']['input'];
 };
 
 
@@ -2512,19 +2510,19 @@ export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
 
 export type GetCustomerCreditFacilitiesQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'Collateral', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }> } | null };
 
-export type DocumentDownloadLinkGenerateMutationVariables = Exact<{
-  input: DocumentDownloadLinksGenerateInput;
+export type CustomerDocumentDownloadLinkGenerateMutationVariables = Exact<{
+  input: CustomerDocumentDownloadLinksGenerateInput;
 }>;
 
 
-export type DocumentDownloadLinkGenerateMutation = { __typename?: 'Mutation', documentDownloadLinkGenerate: { __typename?: 'DocumentDownloadLinksGeneratePayload', link: string } };
+export type CustomerDocumentDownloadLinkGenerateMutation = { __typename?: 'Mutation', customerDocumentDownloadLinkGenerate: { __typename?: 'CustomerDocumentDownloadLinksGeneratePayload', link: string } };
 
-export type DocumentDeleteMutationVariables = Exact<{
-  input: DocumentDeleteInput;
+export type CustomerDocumentDeleteMutationVariables = Exact<{
+  input: CustomerDocumentDeleteInput;
 }>;
 
 
-export type DocumentDeleteMutation = { __typename?: 'Mutation', documentDelete: { __typename?: 'DocumentDeletePayload', deletedDocumentId: string } };
+export type CustomerDocumentDeleteMutation = { __typename?: 'Mutation', customerDocumentDelete: { __typename?: 'CustomerDocumentDeletePayload', deletedDocumentId: string } };
 
 export type CustomerDocumentAttachMutationVariables = Exact<{
   file: Scalars['Upload']['input'];
@@ -2532,14 +2530,14 @@ export type CustomerDocumentAttachMutationVariables = Exact<{
 }>;
 
 
-export type CustomerDocumentAttachMutation = { __typename?: 'Mutation', customerDocumentAttach: { __typename?: 'DocumentCreatePayload', document: { __typename?: 'Document', id: string, customerId?: string | null, filename: string } } };
+export type CustomerDocumentAttachMutation = { __typename?: 'Mutation', customerDocumentAttach: { __typename?: 'CustomerDocumentCreatePayload', document: { __typename?: 'CustomerDocument', id: string, customerId: string, filename: string } } };
 
 export type GetCustomerDocumentsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
 
 
-export type GetCustomerDocumentsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'Document', id: string, filename: string, documentId: string }> } | null };
+export type GetCustomerDocumentsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, documentId: string }> } | null };
 
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -4442,72 +4440,72 @@ export type GetCustomerCreditFacilitiesQueryHookResult = ReturnType<typeof useGe
 export type GetCustomerCreditFacilitiesLazyQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesLazyQuery>;
 export type GetCustomerCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof useGetCustomerCreditFacilitiesSuspenseQuery>;
 export type GetCustomerCreditFacilitiesQueryResult = Apollo.QueryResult<GetCustomerCreditFacilitiesQuery, GetCustomerCreditFacilitiesQueryVariables>;
-export const DocumentDownloadLinkGenerateDocument = gql`
-    mutation DocumentDownloadLinkGenerate($input: DocumentDownloadLinksGenerateInput!) {
-  documentDownloadLinkGenerate(input: $input) {
+export const CustomerDocumentDownloadLinkGenerateDocument = gql`
+    mutation CustomerDocumentDownloadLinkGenerate($input: CustomerDocumentDownloadLinksGenerateInput!) {
+  customerDocumentDownloadLinkGenerate(input: $input) {
     link
   }
 }
     `;
-export type DocumentDownloadLinkGenerateMutationFn = Apollo.MutationFunction<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>;
+export type CustomerDocumentDownloadLinkGenerateMutationFn = Apollo.MutationFunction<CustomerDocumentDownloadLinkGenerateMutation, CustomerDocumentDownloadLinkGenerateMutationVariables>;
 
 /**
- * __useDocumentDownloadLinkGenerateMutation__
+ * __useCustomerDocumentDownloadLinkGenerateMutation__
  *
- * To run a mutation, you first call `useDocumentDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDocumentDownloadLinkGenerateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCustomerDocumentDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerDocumentDownloadLinkGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [documentDownloadLinkGenerateMutation, { data, loading, error }] = useDocumentDownloadLinkGenerateMutation({
+ * const [customerDocumentDownloadLinkGenerateMutation, { data, loading, error }] = useCustomerDocumentDownloadLinkGenerateMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDocumentDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>) {
+export function useCustomerDocumentDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<CustomerDocumentDownloadLinkGenerateMutation, CustomerDocumentDownloadLinkGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>(DocumentDownloadLinkGenerateDocument, options);
+        return Apollo.useMutation<CustomerDocumentDownloadLinkGenerateMutation, CustomerDocumentDownloadLinkGenerateMutationVariables>(CustomerDocumentDownloadLinkGenerateDocument, options);
       }
-export type DocumentDownloadLinkGenerateMutationHookResult = ReturnType<typeof useDocumentDownloadLinkGenerateMutation>;
-export type DocumentDownloadLinkGenerateMutationResult = Apollo.MutationResult<DocumentDownloadLinkGenerateMutation>;
-export type DocumentDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<DocumentDownloadLinkGenerateMutation, DocumentDownloadLinkGenerateMutationVariables>;
-export const DocumentDeleteDocument = gql`
-    mutation DocumentDelete($input: DocumentDeleteInput!) {
-  documentDelete(input: $input) {
+export type CustomerDocumentDownloadLinkGenerateMutationHookResult = ReturnType<typeof useCustomerDocumentDownloadLinkGenerateMutation>;
+export type CustomerDocumentDownloadLinkGenerateMutationResult = Apollo.MutationResult<CustomerDocumentDownloadLinkGenerateMutation>;
+export type CustomerDocumentDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentDownloadLinkGenerateMutation, CustomerDocumentDownloadLinkGenerateMutationVariables>;
+export const CustomerDocumentDeleteDocument = gql`
+    mutation CustomerDocumentDelete($input: CustomerDocumentDeleteInput!) {
+  customerDocumentDelete(input: $input) {
     deletedDocumentId
   }
 }
     `;
-export type DocumentDeleteMutationFn = Apollo.MutationFunction<DocumentDeleteMutation, DocumentDeleteMutationVariables>;
+export type CustomerDocumentDeleteMutationFn = Apollo.MutationFunction<CustomerDocumentDeleteMutation, CustomerDocumentDeleteMutationVariables>;
 
 /**
- * __useDocumentDeleteMutation__
+ * __useCustomerDocumentDeleteMutation__
  *
- * To run a mutation, you first call `useDocumentDeleteMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useDocumentDeleteMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useCustomerDocumentDeleteMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustomerDocumentDeleteMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [documentDeleteMutation, { data, loading, error }] = useDocumentDeleteMutation({
+ * const [customerDocumentDeleteMutation, { data, loading, error }] = useCustomerDocumentDeleteMutation({
  *   variables: {
  *      input: // value for 'input'
  *   },
  * });
  */
-export function useDocumentDeleteMutation(baseOptions?: Apollo.MutationHookOptions<DocumentDeleteMutation, DocumentDeleteMutationVariables>) {
+export function useCustomerDocumentDeleteMutation(baseOptions?: Apollo.MutationHookOptions<CustomerDocumentDeleteMutation, CustomerDocumentDeleteMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<DocumentDeleteMutation, DocumentDeleteMutationVariables>(DocumentDeleteDocument, options);
+        return Apollo.useMutation<CustomerDocumentDeleteMutation, CustomerDocumentDeleteMutationVariables>(CustomerDocumentDeleteDocument, options);
       }
-export type DocumentDeleteMutationHookResult = ReturnType<typeof useDocumentDeleteMutation>;
-export type DocumentDeleteMutationResult = Apollo.MutationResult<DocumentDeleteMutation>;
-export type DocumentDeleteMutationOptions = Apollo.BaseMutationOptions<DocumentDeleteMutation, DocumentDeleteMutationVariables>;
+export type CustomerDocumentDeleteMutationHookResult = ReturnType<typeof useCustomerDocumentDeleteMutation>;
+export type CustomerDocumentDeleteMutationResult = Apollo.MutationResult<CustomerDocumentDeleteMutation>;
+export type CustomerDocumentDeleteMutationOptions = Apollo.BaseMutationOptions<CustomerDocumentDeleteMutation, CustomerDocumentDeleteMutationVariables>;
 export const CustomerDocumentAttachDocument = gql`
     mutation CustomerDocumentAttach($file: Upload!, $customerId: UUID!) {
   customerDocumentAttach(input: {file: $file, customerId: $customerId}) {

@@ -36,14 +36,14 @@ pub enum UploadStatus {
 pub enum DocumentEvent {
     Initialized {
         id: DocumentId,
-        audit_info: AuditInfo,
+        document_type: DocumentType,
+        reference_id: ReferenceId,
         sanitized_filename: String,
         original_filename: String,
         content_type: String,
         path_in_storage: String,
         storage_identifier: String,
-        owner_id: Option<DocumentOwnerId>,
-        meta: Option<serde_json::Value>,
+        audit_info: AuditInfo,
     },
     FileUploaded {
         audit_info: AuditInfo,
@@ -69,7 +69,7 @@ pub struct Document {
     pub filename: String,
     pub content_type: String,
     pub(super) path_in_storage: String,
-    pub owner_id: Option<DocumentOwnerId>,
+    pub reference_id: ReferenceId,
     pub status: DocumentStatus,
     events: EntityEvents<DocumentEvent>,
 }
@@ -150,7 +150,7 @@ impl TryFromEvents<DocumentEvent> for Document {
                     sanitized_filename,
                     content_type,
                     path_in_storage,
-                    owner_id,
+                    reference_id,
                     ..
                 } => {
                     builder = builder
@@ -158,7 +158,7 @@ impl TryFromEvents<DocumentEvent> for Document {
                         .filename(sanitized_filename.clone())
                         .content_type(content_type.clone())
                         .path_in_storage(path_in_storage.clone())
-                        .owner_id(*owner_id)
+                        .reference_id(*reference_id)
                         .status(DocumentStatus::Active);
                 }
                 DocumentEvent::FileUploaded { .. } => {
@@ -188,6 +188,8 @@ impl TryFromEvents<DocumentEvent> for Document {
 pub struct NewDocument {
     #[builder(setter(into))]
     pub(super) id: DocumentId,
+    #[builder(setter(into))]
+    document_type: DocumentType,
     #[builder(setter(custom))]
     filename: String,
     #[builder(private)]
@@ -198,10 +200,9 @@ pub struct NewDocument {
     pub(super) path_in_storage: String,
     #[builder(setter(into))]
     pub(super) storage_identifier: String,
-    pub(super) owner_id: Option<DocumentOwnerId>,
+    #[builder(setter(into))]
+    pub(super) reference_id: ReferenceId,
     pub(super) audit_info: AuditInfo,
-    #[builder(setter(custom), default)]
-    pub(super) meta: Option<serde_json::Value>,
 }
 
 impl NewDocumentBuilder {
@@ -212,11 +213,6 @@ impl NewDocumentBuilder {
             .replace(|c: char| !c.is_alphanumeric() && c != '-', "-");
         self.filename = Some(filename);
         self.sanitized_filename = Some(sanitized);
-        self
-    }
-
-    pub fn meta<T: Serialize>(mut self, meta: T) -> Self {
-        self.meta = Some(Some(serde_json::to_value(meta).expect("serialize meta")));
         self
     }
 }
@@ -233,14 +229,14 @@ impl IntoEvents<DocumentEvent> for NewDocument {
             self.id,
             [DocumentEvent::Initialized {
                 id: self.id,
+                document_type: self.document_type,
                 audit_info: self.audit_info,
                 sanitized_filename: self.sanitized_filename,
                 original_filename: self.filename,
                 content_type: self.content_type,
                 path_in_storage: self.path_in_storage,
                 storage_identifier: self.storage_identifier,
-                owner_id: self.owner_id,
-                meta: self.meta,
+                reference_id: self.reference_id,
             }],
         )
     }

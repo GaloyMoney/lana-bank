@@ -288,22 +288,22 @@ where
     ) -> Result<(), LiquidationProcessError> {
         use LiquidationProcessEvent::*;
         let publish_events = new_events
-            .filter_map(|event| match &event.event {
+            .map(|event| match &event.event {
                 Initialized {
                     id,
                     obligation_id,
                     credit_facility_id,
                     ..
-                } => Some(CoreCreditEvent::LiquidationProcessStarted {
+                } => CoreCreditEvent::LiquidationProcessStarted {
                     id: *id,
                     obligation_id: *obligation_id,
                     credit_facility_id: *credit_facility_id,
-                }),
-                Completed { .. } => Some(CoreCreditEvent::LiquidationProcessConcluded {
+                },
+                Completed { .. } => CoreCreditEvent::LiquidationProcessConcluded {
                     id: entity.id,
                     obligation_id: entity.obligation_id,
                     credit_facility_id: entity.credit_facility_id,
-                }),
+                },
             })
             .collect::<Vec<_>>();
         self.outbox

@@ -5,7 +5,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    credit_facility::*, deposit_account::*, document::Document, primitives::SortDirection,
+    credit_facility::*, deposit_account::*, document::CustomerDocument, primitives::SortDirection,
 };
 
 pub use lana_app::customer::{
@@ -105,13 +105,13 @@ impl Customer {
         Ok(credit_facilities)
     }
 
-    async fn documents(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Document>> {
+    async fn documents(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<CustomerDocument>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let documents = app
-            .documents()
-            .list_for_owner_id(sub, uuid::Uuid::from(self.entity.id))
+            .customers()
+            .list_documents_for_customer_id(sub, self.entity.id)
             .await?;
-        Ok(documents.into_iter().map(Document::from).collect())
+        Ok(documents.into_iter().map(CustomerDocument::from).collect())
     }
 
     async fn subject_can_create_credit_facility(

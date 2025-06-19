@@ -1,6 +1,6 @@
 [package]
 name = "core-customer"
-version = "0.3.666-dev"
+version = "0.3.669-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
@@ -21,6 +21,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 governance = { path = "../governance", optional = true }
+document-storage = { path = "../document-storage" }
 
 es-entity = { workspace = true }
 strum = { workspace = true }

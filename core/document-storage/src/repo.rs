@@ -10,7 +10,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Document",
     err = "DocumentStorageError",
-    columns(owner_id(ty = "Option<DocumentOwnerId>", list_for, update(persist = false))),
+    columns(reference_id(ty = "ReferenceId", list_for, update(persist = false))),
     tbl_prefix = "core",
     delete = "soft"
 )]

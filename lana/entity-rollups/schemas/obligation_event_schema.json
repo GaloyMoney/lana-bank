@@ -89,6 +89,13 @@
           "format": "uuid",
           "type": "string"
         },
+        "liquidation_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "not_yet_due_accounts": {
           "$ref": "#/definitions/ObligationAccounts"
         },

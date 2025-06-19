@@ -35,6 +35,7 @@ pub enum ObligationEvent {
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
         defaulted_date: Option<DateTime<Utc>>,
+        liquidation_date: Option<DateTime<Utc>>,
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
@@ -106,6 +107,15 @@ impl Obligation {
     pub fn overdue_at(&self) -> Option<DateTime<Utc>> {
         self.events.iter_all().find_map(|e| match e {
             ObligationEvent::Initialized { overdue_date, .. } => *overdue_date,
+            _ => None,
+        })
+    }
+
+    pub fn liquidation_at(&self) -> Option<DateTime<Utc>> {
+        self.events.iter_all().find_map(|e| match e {
+            ObligationEvent::Initialized {
+                liquidation_date, ..
+            } => *liquidation_date,
             _ => None,
         })
     }
@@ -574,6 +584,8 @@ pub struct NewObligation {
     overdue_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
+    #[builder(setter(strip_option), default)]
+    liquidation_date: Option<DateTime<Utc>>,
     effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
@@ -611,6 +623,7 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
                 defaulted_date: self.defaulted_date,
+                liquidation_date: self.liquidation_date,
                 effective: self.effective,
                 audit_info: self.audit_info,
             }],
@@ -683,6 +696,7 @@ mod test {
             due_date: Utc::now(),
             overdue_date: Some(Utc::now()),
             defaulted_date: None,
+            liquidation_date: None,
             effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         }]
@@ -898,6 +912,7 @@ mod test {
                 due_date: due_timestamp(now),
                 overdue_date: Some(overdue_timestamp(now)),
                 defaulted_date: Some(defaulted_timestamp(now)),
+                liquidation_date: None,
                 effective: Utc::now().date_naive(),
                 audit_info: dummy_audit_info(),
             }]

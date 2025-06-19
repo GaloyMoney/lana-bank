@@ -6,53 +6,52 @@ use authz::PermissionCheck;
 use job::*;
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
+use crate::{event::CoreCreditEvent, obligation::Obligations, primitives::*};
 
-use super::{obligation_defaulted, obligation_liquidation};
+use super::obligation_defaulted;
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct ObligationOverdueJobConfig<Perms, E> {
+pub struct ObligationLiquidationJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for ObligationOverdueJobConfig<Perms, E>
+impl<Perms, E> JobConfig for ObligationLiquidationJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = ObligationOverdueJobInitializer<Perms, E>;
+    type Initializer = ObligationLiquidationJobInitializer<Perms, E>;
 }
-pub struct ObligationOverdueJobInitializer<Perms, E>
+pub struct ObligationLiquidationJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
     obligations: Obligations<Perms, E>,
-    ledger: CreditLedger,
     jobs: Jobs,
 }
 
-impl<Perms, E> ObligationOverdueJobInitializer<Perms, E>
+impl<Perms, E> ObligationLiquidationJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(ledger: &CreditLedger, obligations: &Obligations<Perms, E>, jobs: &Jobs) -> Self {
+    pub fn new(obligations: &Obligations<Perms, E>, jobs: &Jobs) -> Self {
         Self {
-            ledger: ledger.clone(),
             obligations: obligations.clone(),
             jobs: jobs.clone(),
         }
     }
 }
 
-const OBLIGATION_OVERDUE_JOB: JobType = JobType::new("obligation-overdue");
-impl<Perms, E> JobInitializer for ObligationOverdueJobInitializer<Perms, E>
+const OBLIGATION_LIQUIDATION_PROCESSING_JOB: JobType =
+    JobType::new("obligation-liquidation-processing");
+impl<Perms, E> JobInitializer for ObligationLiquidationJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -63,32 +62,30 @@ where
     where
         Self: Sized,
     {
-        OBLIGATION_OVERDUE_JOB
+        OBLIGATION_LIQUIDATION_PROCESSING_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(ObligationOverdueJobRunner::<Perms, E> {
+        Ok(Box::new(ObligationLiquidationJobRunner::<Perms, E> {
             config: job.config()?,
             obligations: self.obligations.clone(),
-            ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
         }))
     }
 }
 
-pub struct ObligationOverdueJobRunner<Perms, E>
+pub struct ObligationLiquidationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    config: ObligationOverdueJobConfig<Perms, E>,
+    config: ObligationLiquidationJobConfig<Perms, E>,
     obligations: Obligations<Perms, E>,
-    ledger: CreditLedger,
     jobs: Jobs,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for ObligationOverdueJobRunner<Perms, E>
+impl<Perms, E> JobRunner for ObligationLiquidationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -100,31 +97,13 @@ where
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut db = self.obligations.begin_op().await?;
-        let (obligation, overdue_data) = self
+
+        let obligation = self
             .obligations
-            .record_overdue_in_op(&mut db, self.config.obligation_id, self.config.effective)
+            .start_liquidation_process_in_op(&mut db, self.config.obligation_id)
             .await?;
 
-        let overdue = if let Some(overdue) = overdue_data {
-            overdue
-        } else {
-            return Ok(JobCompletion::Complete);
-        };
-
-        if let Some(liquidation_at) = obligation.liquidation_at() {
-            self.jobs
-                .create_and_spawn_at_in_op(
-                    &mut db,
-                    JobId::new(),
-                    obligation_liquidation::ObligationLiquidationJobConfig::<Perms, E> {
-                        obligation_id: obligation.id,
-                        effective: liquidation_at.date_naive(),
-                        _phantom: std::marker::PhantomData,
-                    },
-                    liquidation_at,
-                )
-                .await?;
-        } else if let Some(defaulted_at) = obligation.defaulted_at() {
+        if let Some(defaulted_at) = obligation.defaulted_at() {
             self.jobs
                 .create_and_spawn_at_in_op(
                     &mut db,
@@ -138,9 +117,6 @@ where
                 )
                 .await?;
         }
-
-        self.ledger.record_obligation_overdue(db, overdue).await?;
-
         Ok(JobCompletion::Complete)
     }
 }

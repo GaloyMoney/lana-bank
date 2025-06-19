@@ -10,7 +10,6 @@ use core_custody::CoreCustodyObject;
 use core_customer::{CustomerId, CustomerObject};
 use core_deposit::CoreDepositObject;
 use dashboard::DashboardModuleObject;
-use document_storage::DocumentStorageObject;
 use governance::GovernanceObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
@@ -21,7 +20,6 @@ pub enum LanaObject {
     Governance(GovernanceObject),
     Access(CoreAccessObject),
     Customer(CustomerObject),
-    Document(DocumentStorageObject),
     Accounting(CoreAccountingObject),
     Deposit(CoreDepositObject),
     Credit(CoreCreditObject),
@@ -75,12 +73,6 @@ impl From<CoreCreditObject> for LanaObject {
     }
 }
 
-impl From<DocumentStorageObject> for LanaObject {
-    fn from(object: DocumentStorageObject) -> Self {
-        LanaObject::Document(object)
-    }
-}
-
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
@@ -95,7 +87,6 @@ impl Display for LanaObject {
             Credit(object) => object.fmt(f),
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
-            Document(object) => object.fmt(f),
         }
     }
 }
@@ -111,7 +102,6 @@ impl FromStr for LanaObject {
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
             Access => LanaObject::from(object.parse::<CoreAccessObject>()?),
             Customer => LanaObject::from(object.parse::<CustomerObject>()?),
-            Document => LanaObject::from(object.parse::<DocumentStorageObject>()?),
             Accounting => LanaObject::from(object.parse::<CoreAccountingObject>()?),
             Deposit => LanaObject::from(object.parse::<CoreDepositObject>()?),
             Credit => LanaObject::from(object.parse::<CoreCreditObject>()?),

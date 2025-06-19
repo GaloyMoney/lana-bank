@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT owner_id, id FROM core_documents WHERE ((owner_id = $1) AND (COALESCE(id > $3, true))) AND deleted = FALSE ORDER BY id ASC LIMIT $2) SELECT i.id AS \"entity_id: DocumentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_document_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_documents WHERE reference_id = $1) SELECT i.id AS \"entity_id: DocumentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_document_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -26,8 +26,6 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid",
-        "Int8",
         "Uuid"
       ]
     },
@@ -38,5 +36,5 @@
       false
     ]
   },
-  "hash": "bb783bafdc4ea9ea994e96b4a247e5f880692ae1d3757000d4d8df45fecb1162"
+  "hash": "d391d45a240ed44d81c550e9ab932cc5feb7c763bb676bbb4d5df5fdade6cefe"
 }

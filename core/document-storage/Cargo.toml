@@ -1,6 +1,6 @@
 [package]
 name = "document-storage"
-version = "0.1.0"
+version = "0.3.669-dev"
 edition = "2021"
 license = "FSL-1.1-ALv2"
 
@@ -12,14 +12,12 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
 audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
 cloud-storage = { path = "../../lib/cloud-storage" }
 
 es-entity = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
 serde = { workspace = true }
-serde_json = { workspace = true }
 chrono = { workspace = true }
 derive_builder = { workspace = true }
 strum = { workspace = true }

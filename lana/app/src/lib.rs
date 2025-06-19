@@ -15,11 +15,10 @@ pub mod storage {
 
 pub mod document {
     pub use document_storage::{
-        Document, DocumentId, DocumentOwnerId, DocumentRepo, DocumentStatus,
-        GeneratedDocumentDownloadLink, NewDocument, error,
+        Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
+        GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
     };
-    pub type DocumentStorage =
-        document_storage::DocumentStorage<crate::authorization::Authorization>;
+    pub type DocumentStorage = document_storage::DocumentStorage;
 }
 
 pub mod outbox {
@@ -52,8 +51,8 @@ pub mod access {
 
 pub mod customer {
     pub use core_customer::{
-        AccountStatus, Customer, CustomerId, CustomerType, CustomersCursor, CustomersSortBy,
-        FindManyCustomers, KycLevel, Sort, error,
+        AccountStatus, Customer, CustomerDocumentId, CustomerId, CustomerType, CustomersCursor,
+        CustomersSortBy, FindManyCustomers, KycLevel, Sort, error,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;

@@ -1,8 +1,0 @@
-mutation DocumentDownloadLinkGenerate(
-  $input: DocumentDownloadLinksGenerateInput!
-) {
-  documentDownloadLinkGenerate(input: $input) {
-    documentId
-    link
-  }
-}

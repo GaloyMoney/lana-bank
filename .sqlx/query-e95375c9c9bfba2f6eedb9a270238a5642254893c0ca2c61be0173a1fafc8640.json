@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_documents (id, owner_id, created_at) VALUES ($1, $2, $3)",
+  "query": "INSERT INTO core_documents (id, reference_id, created_at) VALUES ($1, $2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -12,5 +12,5 @@
     },
     "nullable": []
   },
-  "hash": "3f71083ae4a512f2c5473a7634dfa769e6865ccfd78b6b8acdbb7bbc8c24aba1"
+  "hash": "e95375c9c9bfba2f6eedb9a270238a5642254893c0ca2c61be0173a1fafc8640"
 }

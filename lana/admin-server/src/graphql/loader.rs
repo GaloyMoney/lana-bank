@@ -12,6 +12,7 @@ use lana_app::{
     },
     app::LanaApp,
     custody::error::CoreCustodyError,
+    customer::CustomerDocumentId,
     deposit::error::CoreDepositError,
 };
 
@@ -142,15 +143,19 @@ impl Loader<governance::ApprovalProcessId> for LanaLoader {
     }
 }
 
-impl Loader<DocumentId> for LanaLoader {
-    type Value = Document;
-    type Error = Arc<lana_app::document::error::DocumentStorageError>;
+impl Loader<CustomerDocumentId> for LanaLoader {
+    type Value = CustomerDocument;
+    type Error = Arc<lana_app::customer::error::CustomerError>;
 
     async fn load(
         &self,
-        keys: &[DocumentId],
-    ) -> Result<HashMap<DocumentId, Document>, Self::Error> {
-        self.app.documents().find_all(keys).await.map_err(Arc::new)
+        keys: &[CustomerDocumentId],
+    ) -> Result<HashMap<CustomerDocumentId, CustomerDocument>, Self::Error> {
+        self.app
+            .customers()
+            .find_all_documents(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

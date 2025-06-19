@@ -54,23 +54,21 @@ teardown_file() {
   # Execute the GraphQL mutation for file upload
   response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")  
   document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.documentId')
-  [[ "$document_id" != "" ]] || exit 1
+  [[ "$document_id" != null ]] || exit 1
   
-  # Clean up the temporary file
   rm "$temp_file"
 
-  # Fetch the document by ID
   variables=$(jq -n \
     --arg documentId "$document_id" \
     '{
       "id": $documentId
     }')
 
-  exec_admin_graphql 'document' "$variables"
-  fetched_document_id=$(graphql_output .data.document.documentId)
+  exec_admin_graphql 'customer-document' "$variables"
+  fetched_document_id=$(graphql_output .data.customerDocument.documentId)
   [[ "$fetched_document_id" == "$document_id" ]] || exit 1
 
-  fetched_customer_id=$(graphql_output .data.document.customerId)
+  fetched_customer_id=$(graphql_output .data.customerDocument.customerId)
   [[ "$fetched_customer_id" == "$customer_id" ]] || exit 1
 
   # Fetch documents for the customer
@@ -80,7 +78,7 @@ teardown_file() {
       "customerId": $customerId
     }')
 
-  exec_admin_graphql 'documents-for-customer' "$variables"
+  exec_admin_graphql 'customer-documents' "$variables"
 
   documents_count=$(graphql_output '.data.customer.documents | length')
   [[ "$documents_count" -ge 1 ]] || exit 1
@@ -97,9 +95,9 @@ teardown_file() {
       }
     }')
 
-  exec_admin_graphql 'document-download-link-generate' "$variables"
+  exec_admin_graphql 'customer-document-download-link-generate' "$variables"
 
-  download_link=$(graphql_output .data.documentDownloadLinkGenerate.link)
+  download_link=$(graphql_output .data.customerDocumentDownloadLinkGenerate.link)
   [[ "$download_link" != "null" && "$download_link" != "" ]] || exit 1
 
   response=$(curl -s -o /dev/null -w "%{http_code}" "$download_link")
@@ -114,9 +112,9 @@ teardown_file() {
       }
     }')
 
-  exec_admin_graphql 'document-archive' "$variables"
+  exec_admin_graphql 'customer-document-archive' "$variables"
 
-  status=$(graphql_output .data.documentArchive.document.status)
+  status=$(graphql_output .data.customerDocumentArchive.document.status)
   [[ "$status" == "ARCHIVED" ]] || exit 1
 
   # Delete the document
@@ -128,9 +126,9 @@ teardown_file() {
       }
     }')
 
-  exec_admin_graphql 'document-delete' "$variables"
+  exec_admin_graphql 'customer-document-delete' "$variables"
 
-  deleted_document_id=$(graphql_output .data.documentDelete.deletedDocumentId)
+  deleted_document_id=$(graphql_output .data.customerDocumentDelete.deletedDocumentId)
   [[ "$deleted_document_id" == "$document_id" ]] || exit 1
 
   # Verify that the deleted document is no longer accessible
@@ -141,7 +139,7 @@ teardown_file() {
       "customerId": $customerId
     }')
 
-  exec_admin_graphql 'documents-for-customer' "$variables"
+  exec_admin_graphql 'customer-documents' "$variables"
 
   # Check if the deleted document is not in the list
   documents=$(graphql_output '.data.customer.documents')
@@ -154,7 +152,7 @@ teardown_file() {
       "id": $documentId
     }')
 
-  exec_admin_graphql 'document' "$variables"
-  document=$(graphql_output '.document')
+  exec_admin_graphql 'customer-document' "$variables"
+  document=$(graphql_output '.customerDocument')
   [[ "$document" == "null" ]] || exit 1
 }

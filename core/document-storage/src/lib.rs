@@ -6,8 +6,7 @@ pub mod error;
 mod primitives;
 mod repo;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
+use audit::AuditInfo;
 use cloud_storage::Storage;
 use es_entity::ListDirection;
 use std::collections::HashMap;
@@ -25,39 +24,25 @@ pub mod event_schema {
     pub use crate::entity::DocumentEvent;
 }
 
-pub struct DocumentStorage<Perms>
-where
-    Perms: PermissionCheck,
-{
-    authz: Perms,
+pub struct DocumentStorage {
     repo: DocumentRepo,
     storage: Storage,
 }
 
-impl<Perms> Clone for DocumentStorage<Perms>
-where
-    Perms: PermissionCheck,
-{
+impl Clone for DocumentStorage {
     fn clone(&self) -> Self {
         Self {
-            authz: self.authz.clone(),
             repo: self.repo.clone(),
             storage: self.storage.clone(),
         }
     }
 }
 
-impl<Perms> DocumentStorage<Perms>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreDocumentStorageAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<DocumentStorageObject>,
-{
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, storage: &Storage) -> Self {
+impl DocumentStorage {
+    pub fn new(pool: &sqlx::PgPool, storage: &Storage) -> Self {
         let repo = DocumentRepo::new(pool);
         Self {
             repo,
-            authz: authz.clone(),
             storage: storage.clone(),
         }
     }
@@ -65,35 +50,26 @@ where
     #[instrument(name = "document_storage.create_and_upload", skip(self, content), err)]
     pub async fn create_and_upload(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: AuditInfo,
         content: Vec<u8>,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
-        owner_id: impl Into<Option<DocumentOwnerId>> + std::fmt::Debug,
+        reference_id: impl Into<ReferenceId> + std::fmt::Debug,
+        document_type: impl Into<DocumentType> + std::fmt::Debug,
     ) -> Result<Document, DocumentStorageError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                DocumentStorageObject::all_documents(),
-                CoreDocumentStorageAction::DOCUMENT_CREATE,
-            )
-            .await?;
-
-        let filename_str = filename.into();
-        let content_type_str = content_type.into();
-        let owner_id_opt = owner_id.into();
         let document_id = DocumentId::new();
-        let path_in_storage = format!("documents/{}", document_id);
+        let document_type = document_type.into();
+        let path_in_storage = format!("documents/{}/{}", document_type, document_id);
         let storage_identifier = self.storage.storage_identifier();
 
         let new_document = NewDocument::builder()
             .id(document_id)
-            .filename(filename_str)
-            .content_type(content_type_str.clone())
+            .document_type(document_type)
+            .filename(filename)
+            .content_type(content_type)
             .path_in_storage(path_in_storage)
             .storage_identifier(storage_identifier)
-            .owner_id(owner_id_opt)
+            .reference_id(reference_id)
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build document");
@@ -117,17 +93,8 @@ where
     #[instrument(name = "document_storage.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<Option<Document>, DocumentStorageError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                DocumentStorageObject::document(id.into()),
-                CoreDocumentStorageAction::DOCUMENT_READ,
-            )
-            .await?;
-
         match self.repo.find_by_id(id.into()).await {
             Ok(document) => Ok(Some(document)),
             Err(e) if e.was_not_found() => Ok(None),
@@ -135,24 +102,15 @@ where
         }
     }
 
-    #[instrument(name = "document_storage.list_for_owner_id", skip(self), err)]
-    pub async fn list_for_owner_id(
+    #[instrument(name = "document_storage.list_for_reference_id", skip(self), err)]
+    pub async fn list_for_reference_id(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        owner_id: impl Into<DocumentOwnerId> + std::fmt::Debug,
+        reference_id: impl Into<ReferenceId> + std::fmt::Debug,
     ) -> Result<Vec<Document>, DocumentStorageError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                DocumentStorageObject::all_documents(),
-                CoreDocumentStorageAction::DOCUMENT_LIST,
-            )
-            .await?;
-
         Ok(self
             .repo
-            .list_for_owner_id_by_created_at(
-                Some(owner_id.into()),
+            .list_for_reference_id_by_created_at(
+                reference_id.into(),
                 Default::default(),
                 ListDirection::Descending,
             )
@@ -163,18 +121,10 @@ where
     #[instrument(name = "document_storage.generate_download_link", skip(self), err)]
     pub async fn generate_download_link(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: AuditInfo,
         document_id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<GeneratedDocumentDownloadLink, DocumentStorageError> {
         let document_id = document_id.into();
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                DocumentStorageObject::document(document_id),
-                CoreDocumentStorageAction::DOCUMENT_GENERATE_DOWNLOAD_LINK,
-            )
-            .await?;
 
         let mut document = self.repo.find_by_id(document_id).await?;
 
@@ -195,18 +145,9 @@ where
     #[instrument(name = "document_storage.delete", skip(self), err)]
     pub async fn delete(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: AuditInfo,
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<(), DocumentStorageError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                DocumentStorageObject::document(document_id.into()),
-                CoreDocumentStorageAction::DOCUMENT_DELETE,
-            )
-            .await?;
-
         let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
@@ -228,18 +169,9 @@ where
     #[instrument(name = "document_storage.archive", skip(self), err)]
     pub async fn archive(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: AuditInfo,
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<Document, DocumentStorageError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                DocumentStorageObject::document(document_id.into()),
-                CoreDocumentStorageAction::DOCUMENT_READ,
-            )
-            .await?;
-
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         if document.archive(audit_info).did_execute() {

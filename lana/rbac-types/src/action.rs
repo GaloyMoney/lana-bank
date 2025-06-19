@@ -9,7 +9,6 @@ use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
 use dashboard::DashboardModuleAction;
-use document_storage::CoreDocumentStorageAction;
 use governance::GovernanceAction;
 
 pub const PERMISSION_SET_APP_VIEWER: &str = "app_viewer";
@@ -23,7 +22,6 @@ pub enum LanaAction {
     Governance(GovernanceAction),
     Access(CoreAccessAction),
     Customer(CoreCustomerAction),
-    Document(CoreDocumentStorageAction),
     Accounting(CoreAccountingAction),
     Dashboard(DashboardModuleAction),
     Deposit(CoreDepositAction),
@@ -58,7 +56,6 @@ impl LanaAction {
                 Governance => flatten(module, GovernanceAction::entities()),
                 Access => flatten(module, CoreAccessAction::entities()),
                 Customer => flatten(module, CoreCustomerAction::entities()),
-                Document => flatten(module, CoreDocumentStorageAction::entities()),
                 Accounting => flatten(module, CoreAccountingAction::entities()),
                 Dashboard => flatten(module, DashboardModuleAction::entities()),
                 Deposit => flatten(module, CoreDepositAction::entities()),
@@ -119,12 +116,6 @@ impl From<CoreCustodyAction> for LanaAction {
     }
 }
 
-impl From<CoreDocumentStorageAction> for LanaAction {
-    fn from(action: CoreDocumentStorageAction) -> Self {
-        LanaAction::Document(action)
-    }
-}
-
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:", LanaActionDiscriminants::from(self))?;
@@ -134,7 +125,6 @@ impl Display for LanaAction {
             Governance(action) => action.fmt(f),
             Access(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
-            Document(action) => action.fmt(f),
             Dashboard(action) => action.fmt(f),
             Accounting(action) => action.fmt(f),
             Deposit(action) => action.fmt(f),
@@ -155,7 +145,6 @@ impl FromStr for LanaAction {
             Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
             Access => LanaAction::from(action.parse::<CoreAccessAction>()?),
             Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),
-            Document => LanaAction::from(action.parse::<CoreDocumentStorageAction>()?),
             Dashboard => LanaAction::from(action.parse::<DashboardModuleAction>()?),
             Accounting => LanaAction::from(action.parse::<CoreAccountingAction>()?),
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
