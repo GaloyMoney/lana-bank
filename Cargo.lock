@@ -1109,6 +1109,7 @@ dependencies = [
  "core-money",
  "core-price",
  "derive_builder",
+ "document-storage",
  "es-entity",
  "futures",
  "governance",
@@ -1159,6 +1160,7 @@ dependencies = [
  "authz",
  "chrono",
  "derive_builder",
+ "document-storage",
  "es-entity",
  "governance",
  "outbox",
@@ -1551,7 +1553,6 @@ version = "0.3.669-dev"
 dependencies = [
  "async-graphql",
  "audit",
- "authz",
  "chrono",
  "cloud-storage",
  "derive_builder",

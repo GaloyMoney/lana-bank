@@ -9,7 +9,7 @@ pub use core_credit::{
     PaymentAllocationId, PaymentId, TermsTemplateId,
 };
 pub use core_custody::CustodianId;
-pub use core_customer::CustomerId;
+pub use core_customer::{CustomerDocumentId, CustomerId};
 pub use core_deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;

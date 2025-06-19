@@ -49,7 +49,6 @@ pub struct LanaApp {
     custody: Custody,
     price: Price,
     report: Reports,
-    documents: DocumentStorage,
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
@@ -77,7 +76,7 @@ impl LanaApp {
         let governance = Governance::new(&pool, &authz, &outbox);
         let price = Price::new();
         let storage = Storage::new(&config.storage);
-        let documents = DocumentStorage::new(&pool, &authz, &storage);
+        let documents = DocumentStorage::new(&pool, &storage);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =
@@ -101,7 +100,7 @@ impl LanaApp {
 
         StatementsInit::statements(&accounting).await?;
 
-        let customers = Customers::new(&pool, &authz, &outbox);
+        let customers = Customers::new(&pool, &authz, &outbox, documents.clone());
         let deposits = Deposits::init(
             &pool,
             &authz,
@@ -162,7 +161,6 @@ impl LanaApp {
             report,
             credit,
             custody,
-            documents,
             outbox,
             governance,
             dashboard,
@@ -240,10 +238,6 @@ impl LanaApp {
 
     pub fn access(&self) -> &Access {
         &self.access
-    }
-
-    pub fn documents(&self) -> &DocumentStorage {
-        &self.documents
     }
 
     pub async fn get_visible_nav_items(

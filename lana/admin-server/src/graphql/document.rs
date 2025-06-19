@@ -1,12 +1,13 @@
 use async_graphql::*;
 
 use crate::primitives::*;
+use lana_app::customer::CustomerDocumentId;
 
 pub use lana_app::document::{Document as DomainDocument, DocumentStatus};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
-pub struct Document {
+pub struct CustomerDocument {
     id: ID,
     document_id: UUID,
     customer_id: UUID,
@@ -16,7 +17,13 @@ pub struct Document {
     pub(super) entity: Arc<DomainDocument>,
 }
 
-impl From<DomainDocument> for Document {
+impl CustomerDocument {
+    pub fn customer_document_id(&self) -> CustomerDocumentId {
+        CustomerDocumentId::from(self.entity.id)
+    }
+}
+
+impl From<DomainDocument> for CustomerDocument {
     fn from(document: DomainDocument) -> Self {
         Self {
             id: document.id.to_global_id(),
@@ -29,32 +36,32 @@ impl From<DomainDocument> for Document {
 }
 
 #[ComplexObject]
-impl Document {
+impl CustomerDocument {
     async fn filename(&self) -> &str {
         &self.entity.filename
     }
 }
 
 #[derive(InputObject)]
-pub struct DocumentCreateInput {
+pub struct CustomerDocumentCreateInput {
     pub file: Upload,
     pub customer_id: UUID,
 }
-crate::mutation_payload! { DocumentCreatePayload, document: Document }
+crate::mutation_payload! { CustomerDocumentCreatePayload, document: CustomerDocument }
 
 #[derive(InputObject)]
-pub struct DocumentDownloadLinksGenerateInput {
+pub struct CustomerDocumentDownloadLinksGenerateInput {
     pub document_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub struct DocumentDownloadLinksGeneratePayload {
+pub struct CustomerDocumentDownloadLinksGeneratePayload {
     document_id: UUID,
     link: String,
 }
 
 impl From<lana_app::document::GeneratedDocumentDownloadLink>
-    for DocumentDownloadLinksGeneratePayload
+    for CustomerDocumentDownloadLinksGeneratePayload
 {
     fn from(value: lana_app::document::GeneratedDocumentDownloadLink) -> Self {
         Self {
@@ -65,16 +72,16 @@ impl From<lana_app::document::GeneratedDocumentDownloadLink>
 }
 
 #[derive(InputObject)]
-pub struct DocumentDeleteInput {
+pub struct CustomerDocumentDeleteInput {
     pub document_id: UUID,
 }
 #[derive(SimpleObject)]
-pub struct DocumentDeletePayload {
+pub struct CustomerDocumentDeletePayload {
     pub deleted_document_id: UUID,
 }
 
 #[derive(InputObject)]
-pub struct DocumentArchiveInput {
+pub struct CustomerDocumentArchiveInput {
     pub document_id: UUID,
 }
-crate::mutation_payload! { DocumentArchivePayload, document: Document }
+crate::mutation_payload! { CustomerDocumentArchivePayload, document: CustomerDocument }

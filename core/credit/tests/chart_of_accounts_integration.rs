@@ -8,6 +8,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 
 use core_accounting::CoreAccounting;
 use core_credit::*;
+use document_storage::DocumentStorage;
 use helpers::{action, event, object};
 
 #[tokio::test]
@@ -16,9 +17,11 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
+    let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
 
     let governance = governance::Governance::new(&pool, &authz, &outbox);
-    let customers = core_customer::Customers::new(&pool, &authz, &outbox);
+    let customers = core_customer::Customers::new(&pool, &authz, &outbox, document_storage);
     let price = core_price::Price::new();
 
     let cala_config = CalaLedgerConfig::builder()
@@ -44,7 +47,6 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
-    let storage = Storage::new(&StorageConfig::default());
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting

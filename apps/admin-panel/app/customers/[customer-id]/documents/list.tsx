@@ -16,8 +16,8 @@ import {
   GetCustomerDocumentsDocument,
   GetCustomerDocumentsQuery,
   useCustomerDocumentAttachMutation,
-  useDocumentDeleteMutation,
-  useDocumentDownloadLinkGenerateMutation,
+  useCustomerDocumentDeleteMutation,
+  useCustomerDocumentDownloadLinkGenerateMutation,
 } from "@/lib/graphql/generated"
 import CardWrapper from "@/components/card-wrapper"
 
@@ -39,14 +39,16 @@ export const Documents: React.FC<DocumentProps> = ({ customer, refetch }) => {
 }
 
 gql`
-  mutation DocumentDownloadLinkGenerate($input: DocumentDownloadLinksGenerateInput!) {
-    documentDownloadLinkGenerate(input: $input) {
+  mutation CustomerDocumentDownloadLinkGenerate(
+    $input: CustomerDocumentDownloadLinksGenerateInput!
+  ) {
+    customerDocumentDownloadLinkGenerate(input: $input) {
       link
     }
   }
 
-  mutation DocumentDelete($input: DocumentDeleteInput!) {
-    documentDelete(input: $input) {
+  mutation CustomerDocumentDelete($input: CustomerDocumentDeleteInput!) {
+    customerDocumentDelete(input: $input) {
       deletedDocumentId
     }
   }
@@ -73,8 +75,9 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
   const [linkLoading, setLinkLoading] = useState<{ [key: string]: boolean }>({})
   const [deleteLoading, setDeleteLoading] = useState<{ [key: string]: boolean }>({})
 
-  const [documentDownloadLinkGenerate] = useDocumentDownloadLinkGenerateMutation()
-  const [documentDelete] = useDocumentDeleteMutation({
+  const [customerDocumentDownloadLinkGenerate] =
+    useCustomerDocumentDownloadLinkGenerateMutation()
+  const [customerDocumentDelete] = useCustomerDocumentDeleteMutation({
     refetchQueries: [GetCustomerDocumentsDocument],
   })
 
@@ -82,18 +85,18 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
     async (id: string) => {
       setLinkLoading((prev) => ({ ...prev, [id]: true }))
 
-      const { data } = await documentDownloadLinkGenerate({
+      const { data } = await customerDocumentDownloadLinkGenerate({
         variables: { input: { documentId: id } },
       }).finally(() => setLinkLoading((prev) => ({ ...prev, [id]: false })))
 
-      if (!data?.documentDownloadLinkGenerate?.link) {
+      if (!data?.customerDocumentDownloadLinkGenerate?.link) {
         toast.error(t("messages.generateLinkError"))
         return
       }
 
-      window.open(data.documentDownloadLinkGenerate.link, "_blank")
+      window.open(data.customerDocumentDownloadLinkGenerate.link, "_blank")
     },
-    [documentDownloadLinkGenerate, t],
+    [customerDocumentDownloadLinkGenerate, t],
   )
 
   const deleteDocument = useCallback(
@@ -101,7 +104,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
       setDeleteLoading((prev) => ({ ...prev, [id]: true }))
 
       try {
-        await documentDelete({
+        await customerDocumentDelete({
           variables: { input: { documentId: id } },
         })
         toast.success(t("messages.deleteSuccess"))
@@ -113,7 +116,7 @@ const CustomerDocuments: React.FC<CustomerDocumentsProps> = ({ documents, refetc
         setDeleteLoading((prev) => ({ ...prev, [id]: false }))
       }
     },
-    [documentDelete, refetch, t],
+    [customerDocumentDelete, refetch, t],
   )
 
   const columns: Column<DocumentType>[] = [

@@ -21,6 +21,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 governance = { path = "../governance", optional = true }
+document-storage = { path = "../document-storage" }
 
 es-entity = { workspace = true }
 strum = { workspace = true }

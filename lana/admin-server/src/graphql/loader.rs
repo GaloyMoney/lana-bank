@@ -5,13 +5,14 @@ use std::collections::HashMap;
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
-        AccountingCsvId, Chart, LedgerAccountId, TransactionTemplateId,
         chart_of_accounts::error::ChartOfAccountsError, csv::error::AccountingCsvError,
         ledger_transaction::error::LedgerTransactionError,
-        transaction_templates::error::TransactionTemplateError,
+        transaction_templates::error::TransactionTemplateError, AccountingCsvId, Chart,
+        LedgerAccountId, TransactionTemplateId,
     },
     app::LanaApp,
     custody::error::CoreCustodyError,
+    customer::CustomerDocumentId,
     deposit::error::CoreDepositError,
 };
 
@@ -142,15 +143,19 @@ impl Loader<governance::ApprovalProcessId> for LanaLoader {
     }
 }
 
-impl Loader<DocumentId> for LanaLoader {
-    type Value = Document;
-    type Error = Arc<lana_app::document::error::DocumentStorageError>;
+impl Loader<CustomerDocumentId> for LanaLoader {
+    type Value = CustomerDocument;
+    type Error = Arc<lana_app::customer::error::CustomerError>;
 
     async fn load(
         &self,
-        keys: &[DocumentId],
-    ) -> Result<HashMap<DocumentId, Document>, Self::Error> {
-        self.app.documents().find_all(keys).await.map_err(Arc::new)
+        keys: &[CustomerDocumentId],
+    ) -> Result<HashMap<CustomerDocumentId, CustomerDocument>, Self::Error> {
+        self.app
+            .customers()
+            .find_all_documents(keys)
+            .await
+            .map_err(Arc::new)
     }
 }
 

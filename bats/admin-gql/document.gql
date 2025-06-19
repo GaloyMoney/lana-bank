@@ -1,5 +1,5 @@
-query Document($id: UUID!) {
-  document(id: $id) {
+query CustomerDocument($id: UUID!) {
+  customerDocument(id: $id) {
     documentId
     customerId
     filename

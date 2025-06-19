@@ -18,8 +18,7 @@ pub mod document {
         Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
         GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
     };
-    pub type DocumentStorage =
-        document_storage::DocumentStorage<crate::authorization::Authorization>;
+    pub type DocumentStorage = document_storage::DocumentStorage;
 }
 
 pub mod outbox {
@@ -52,7 +51,7 @@ pub mod access {
 
 pub mod customer {
     pub use core_customer::{
-        AccountStatus, Customer, CustomerId, CustomerType, CustomersCursor, CustomersSortBy,
+        AccountStatus, Customer, CustomerId, CustomerDocumentId, CustomerType, CustomersCursor, CustomersSortBy,
         FindManyCustomers, KycLevel, Sort, error,
     };
     pub type Customers =

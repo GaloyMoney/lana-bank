@@ -1,5 +1,5 @@
-mutation DocumentArchive($input: DocumentArchiveInput!) {
-  documentArchive(input: $input) {
+mutation CustomerDocumentArchive($input: CustomerDocumentArchiveInput!) {
+  customerDocumentArchive(input: $input) {
     document {
       id
       customerId

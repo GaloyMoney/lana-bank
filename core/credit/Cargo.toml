@@ -46,6 +46,7 @@ sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
+document-storage = { path = "../document-storage" }
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
 tokio = { workspace = true }
 anyhow = { workspace = true }

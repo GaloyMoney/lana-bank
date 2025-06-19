@@ -148,7 +148,7 @@ generates:
               status: "mockEnums.approvalProcessStatus()"
               approvalProcessType: "mockEnums.approvalProcessType()"
 
-            Document:
+            CustomerDocument:
               status: "mockEnums.documentStatus()"
 
             User:

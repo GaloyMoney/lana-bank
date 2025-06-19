@@ -1,5 +1,5 @@
-mutation DocumentDelete($input: DocumentDeleteInput!) {
-  documentDelete(input: $input) {
+mutation CustomerDocumentDelete($input: CustomerDocumentDeleteInput!) {
+  customerDocumentDelete(input: $input) {
     deletedDocumentId
   }
 }

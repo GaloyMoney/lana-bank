@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object, types::connection::*};
+use async_graphql::{types::connection::*, Context, Object};
 
 use std::io::Read;
 
@@ -8,7 +8,6 @@ use lana_app::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
-    document::{DocumentType, ReferenceId},
 };
 
 use crate::primitives::*;
@@ -443,13 +442,18 @@ impl Query {
         )
     }
 
-    async fn document(
+    async fn customer_document(
         &self,
         ctx: &Context<'_>,
         id: UUID,
-    ) -> async_graphql::Result<Option<Document>> {
+    ) -> async_graphql::Result<Option<CustomerDocument>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Document, ctx, app.documents().find_by_id(sub, id))
+        maybe_fetch_one!(
+            CustomerDocument,
+            CustomerDocumentId,
+            ctx,
+            app.customers().find_customer_document_by_id(sub, id)
+        )
     }
 
     async fn ledger_account(
@@ -796,25 +800,25 @@ impl Mutation {
     pub async fn customer_document_attach(
         &self,
         ctx: &Context<'_>,
-        input: DocumentCreateInput,
-    ) -> async_graphql::Result<DocumentCreatePayload> {
+        input: CustomerDocumentCreateInput,
+    ) -> async_graphql::Result<CustomerDocumentCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         let mut file = input.file.value(ctx)?;
         let mut data = Vec::new();
         file.content.read_to_end(&mut data)?;
         exec_mutation!(
-            DocumentCreatePayload,
-            Document,
+            CustomerDocumentCreatePayload,
+            CustomerDocument,
+            CustomerDocumentId,
             ctx,
-            app.documents().create_and_upload(
+            app.customers().create_document(
                 sub,
+                input.customer_id,
                 data,
                 file.filename,
                 file.content_type
                     .unwrap_or_else(|| "application/octet-stream".to_string()),
-                ReferenceId::from(&input.customer_id),
-                DocumentType::CustomerDocument,
             )
         )
     }
@@ -1559,44 +1563,47 @@ impl Mutation {
         )
     }
 
-    async fn document_download_link_generate(
+    async fn customer_document_download_link_generate(
         &self,
         ctx: &Context<'_>,
-        input: DocumentDownloadLinksGenerateInput,
-    ) -> async_graphql::Result<DocumentDownloadLinksGeneratePayload> {
+        input: CustomerDocumentDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<CustomerDocumentDownloadLinksGeneratePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         // not using macro here because DocumentDownloadLinksGeneratePayload is non standard
         let doc = app
-            .documents()
-            .generate_download_link(sub, input.document_id)
+            .customers()
+            .generate_document_download_link(sub, input.document_id)
             .await?;
-        Ok(DocumentDownloadLinksGeneratePayload::from(doc))
+        Ok(CustomerDocumentDownloadLinksGeneratePayload::from(doc))
     }
 
-    async fn document_delete(
+    async fn customer_document_delete(
         &self,
         ctx: &Context<'_>,
-        input: DocumentDeleteInput,
-    ) -> async_graphql::Result<DocumentDeletePayload> {
+        input: CustomerDocumentDeleteInput,
+    ) -> async_graphql::Result<CustomerDocumentDeletePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         // not using macro here because DocumentDeletePayload is non standard
-        app.documents().delete(sub, input.document_id).await?;
-        Ok(DocumentDeletePayload {
+        app.customers()
+            .delete_document(sub, input.document_id)
+            .await?;
+        Ok(CustomerDocumentDeletePayload {
             deleted_document_id: input.document_id,
         })
     }
 
-    async fn document_archive(
+    async fn customer_document_archive(
         &self,
         ctx: &Context<'_>,
-        input: DocumentArchiveInput,
-    ) -> async_graphql::Result<DocumentArchivePayload> {
+        input: CustomerDocumentArchiveInput,
+    ) -> async_graphql::Result<CustomerDocumentArchivePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            DocumentArchivePayload,
-            Document,
+            CustomerDocumentArchivePayload,
+            CustomerDocument,
+            CustomerDocumentId,
             ctx,
-            app.documents().archive(sub, input.document_id)
+            app.customers().archive_document(sub, input.document_id)
         )
     }
 
