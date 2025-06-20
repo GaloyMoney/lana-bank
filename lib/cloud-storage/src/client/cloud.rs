@@ -63,6 +63,7 @@ impl StorageClient for GcpClient {
         mime_type: &str,
     ) -> Result<(), StorageClientError> {
         let bucket = self.bucket_name();
+        // `path_in_bucket` is already &str, so no `.to_string()` here.
         let object_name = self.path_with_prefix(path_in_bucket);
 
         let mut media = Media::new(object_name);
@@ -70,32 +71,33 @@ impl StorageClient for GcpClient {
         let upload_type = UploadType::Simple(media);
 
         let req = UploadObjectRequest {
-            bucket: bucket.to_string(),
+            bucket: bucket.to_owned(),
             ..Default::default()
         };
         self.client.upload_object(&req, file, &upload_type).await?;
-
         Ok(())
     }
 
-    async fn remove(&self, path_in_bucket: &str) -> Result<(), StorageClientError> {
-        let object_name = self.path_with_prefix(path_in_bucket);
+    async fn remove<'a>(
+        &self,
+        location_in_storage: super::r#trait::LocationInStorage<'a>,
+    ) -> Result<(), StorageClientError> {
+        let object_name = self.path_with_prefix(location_in_storage.path);
 
         let req = DeleteObjectRequest {
             bucket: self.bucket_name().to_owned(),
             object: object_name,
             ..Default::default()
         };
-
         self.client.delete_object(&req).await?;
         Ok(())
     }
 
-    async fn generate_download_link(
+    async fn generate_download_link<'a>(
         &self,
-        path_in_bucket: &str,
+        location_in_storage: super::r#trait::LocationInStorage<'a>,
     ) -> Result<String, StorageClientError> {
-        let object_name = self.path_with_prefix(path_in_bucket);
+        let object_name = self.path_with_prefix(location_in_storage.path);
 
         let opts = SignedURLOptions {
             expires: std::time::Duration::new(LINK_DURATION_IN_SECS, 0),
@@ -108,5 +110,9 @@ impl StorageClient for GcpClient {
             .await?;
 
         Ok(signed_url)
+    }
+
+    fn identifier(&self) -> String {
+        format!("gcp:{}", self.bucket_name())
     }
 }

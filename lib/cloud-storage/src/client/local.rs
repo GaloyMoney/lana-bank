@@ -42,17 +42,24 @@ impl StorageClient for LocalClient {
         Ok(())
     }
 
-    async fn remove(&self, path_in_bucket: &str) -> Result<(), StorageClientError> {
-        let full_path = self.resolve(path_in_bucket);
+    async fn remove<'a>(
+        &self,
+        location_in_storage: super::LocationInStorage<'a>,
+    ) -> Result<(), StorageClientError> {
+        let full_path = self.resolve(location_in_storage.path);
         tokio::fs::remove_file(full_path).await?;
         Ok(())
     }
 
-    async fn generate_download_link(
+    async fn generate_download_link<'a>(
         &self,
-        path_in_bucket: &str,
+        location_in_storage: super::LocationInStorage<'a>,
     ) -> Result<String, StorageClientError> {
-        let full_path = self.resolve(path_in_bucket);
+        let full_path = self.resolve(location_in_storage.path);
         Ok(format!("file://{}", full_path.to_string_lossy()))
+    }
+
+    fn identifier(&self) -> String {
+        format!("local:{}", self.root_folder.display())
     }
 }

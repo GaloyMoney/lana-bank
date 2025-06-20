@@ -141,11 +141,8 @@ where
         match csv_result {
             Ok(csv_data) => {
                 let path_in_bucket = format!("accounting_csvs/{}.csv", export.id);
-                match self
-                    .storage
-                    .upload(csv_data, &path_in_bucket, "text/csv")
-                    .await
-                {
+                let client = self.storage.client().await?;
+                match client.upload(csv_data, &path_in_bucket, "text/csv").await {
                     Ok(_) => {
                         let _ = export
                             .file_uploaded(self.storage.bucket_name().to_string(), audit_info);

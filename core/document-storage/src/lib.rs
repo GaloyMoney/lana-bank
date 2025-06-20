@@ -60,7 +60,8 @@ impl DocumentStorage {
         let document_id = DocumentId::new();
         let document_type = document_type.into();
         let path_in_storage = format!("documents/{}/{}", document_type, document_id);
-        let storage_identifier = self.storage.storage_identifier();
+
+        let client = self.storage.client().await?;
 
         let new_document = NewDocument::builder()
             .id(document_id)
@@ -68,7 +69,7 @@ impl DocumentStorage {
             .filename(filename)
             .content_type(content_type)
             .path_in_storage(path_in_storage)
-            .storage_identifier(storage_identifier)
+            .storage_identifier(client.identifier())
             .reference_id(reference_id)
             .audit_info(audit_info.clone())
             .build()
@@ -77,9 +78,10 @@ impl DocumentStorage {
         let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
-        self.storage
+        client
             .upload(content, &document.path_in_storage, &document.content_type)
-            .await?;
+            .await
+            .map_err(cloud_storage::error::StorageError::from)?;
 
         // Now record the upload in the entity
         if document.upload_file(audit_info).did_execute() {
@@ -130,12 +132,13 @@ impl DocumentStorage {
 
         let document_location = document.download_link_generated(audit_info);
 
-        let link = self
-            .storage
+        let client = self.storage.client().await?;
+        let link = client
             .generate_download_link(cloud_storage::LocationInStorage {
-                path_in_storage: document_location,
+                path: document_location,
             })
-            .await?;
+            .await
+            .map_err(cloud_storage::error::StorageError::from)?;
 
         self.repo.update(&mut document).await?;
 
@@ -152,11 +155,14 @@ impl DocumentStorage {
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
         let document_location = document.path_for_removal();
-        self.storage
+
+        let client = self.storage.client().await?;
+        client
             .remove(cloud_storage::LocationInStorage {
-                path_in_storage: document_location,
+                path: document_location,
             })
-            .await?;
+            .await
+            .map_err(cloud_storage::error::StorageError::from)?;
 
         if document.delete(audit_info).did_execute() {
             self.repo.delete_in_op(&mut db, document).await?;

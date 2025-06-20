@@ -12,23 +12,23 @@ async fn upload_and_download_local() -> anyhow::Result<()> {
     let content = content_str.as_bytes().to_vec();
     let filename = "sub/test.txt";
 
-    storage
+    let client = storage.client().await?;
+
+    client
         .upload(content.clone(), filename, "text/plain")
         .await?;
-    let link = storage
-        .generate_download_link(cloud_storage::LocationInStorage {
-            path_in_storage: filename,
-        })
+
+    let link = client
+        .generate_download_link(cloud_storage::LocationInStorage { path: filename })
         .await?;
     assert!(link.starts_with("file://"));
+
     let path = link.trim_start_matches("file://");
     let downloaded = tokio::fs::read_to_string(path).await?;
     assert_eq!(downloaded, content_str);
 
-    storage
-        .remove(cloud_storage::LocationInStorage {
-            path_in_storage: filename,
-        })
+    client
+        .remove(cloud_storage::LocationInStorage { path: filename })
         .await?;
     assert!(!std::path::Path::new(path).exists());
 

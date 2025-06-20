@@ -26,13 +26,13 @@ async fn upload_doc() -> anyhow::Result<()> {
     let content = content_str.as_bytes().to_vec();
     let filename = "test.txt";
 
-    let _ = storage.upload(content, filename, "application/txt").await;
+    let client = storage.client().await?;
+
+    let _ = client.upload(content, filename, "application/txt").await;
 
     // generate link
-    let location = LocationInStorage {
-        path_in_storage: filename,
-    };
-    let link = storage.generate_download_link(location.clone()).await?;
+    let location = LocationInStorage { path: filename };
+    let link = client.generate_download_link(location.clone()).await?;
 
     // download and verify the link
     let res = reqwest::get(link).await?;
@@ -42,7 +42,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     assert_eq!(return_content, content_str);
 
     // remove docs
-    let _ = storage.remove(location).await;
+    let _ = client.remove(location).await;
 
     Ok(())
 }
