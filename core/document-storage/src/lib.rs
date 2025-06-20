@@ -17,7 +17,7 @@ pub use entity::{
 };
 use error::*;
 pub use primitives::*;
-pub use repo::DocumentRepo;
+pub use repo::{document_cursor::DocumentsByCreatedAtCursor, DocumentRepo};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -182,6 +182,28 @@ impl DocumentStorage {
             )
             .await?
             .entities)
+    }
+
+    #[instrument(
+        name = "document_storage.list_for_reference_id_paginated",
+        skip(self),
+        err
+    )]
+    pub async fn list_for_reference_id_paginated(
+        &self,
+        reference_id: impl Into<ReferenceId> + std::fmt::Debug,
+        query: es_entity::PaginatedQueryArgs<DocumentsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<Document, DocumentsByCreatedAtCursor>,
+        DocumentStorageError,
+    > {
+        self.repo
+            .list_for_reference_id_by_created_at(
+                reference_id.into(),
+                query,
+                ListDirection::Descending,
+            )
+            .await
     }
 
     #[instrument(name = "document_storage.generate_download_link", skip(self), err)]

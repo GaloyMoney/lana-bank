@@ -248,3 +248,40 @@ macro_rules! mutation_payload {
         }
     };
 }
+
+#[macro_export]
+macro_rules! list_with_cursor_and_id {
+    ($cursor:ty, $entity:ty, $id:ty, $ctx:expr, $after:expr, $first:expr, $load:expr) => {{
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
+        async_graphql::types::connection::query(
+            $after,
+            None,
+            Some($first),
+            None,
+            |after, _, first, _| async move {
+                let first = first.expect("First always exists") as usize;
+                let args = es_entity::PaginatedQueryArgs { first, after };
+                let res = $load(args).await?;
+                let mut connection =
+                    async_graphql::types::connection::Connection::new(false, res.has_next_page);
+                connection
+                    .edges
+                    .extend(res.entities.into_iter().map(|entity| {
+                        let cursor = <$cursor>::from(&entity);
+                        Edge::new(cursor, <$entity>::from(entity))
+                    }));
+                loader
+                    .feed_many(
+                        connection
+                            .edges
+                            .iter()
+                            .map(|e| (<$id>::from(e.node.entity.id), e.node.clone())),
+                    )
+                    .await;
+
+                Ok::<_, async_graphql::Error>(connection)
+            },
+        )
+        .await
+    }};
+}

@@ -95,6 +95,7 @@ impl LanaApp {
             &cala,
             journal_init.journal_id,
             &storage,
+            documents.clone(),
             &jobs,
         );
 
