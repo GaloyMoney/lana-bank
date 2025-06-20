@@ -3,20 +3,18 @@ use async_trait::async_trait;
 use authz::PermissionCheck;
 
 use audit::AuditSvc;
-use cloud_storage::Storage;
+use document_storage::{DocumentId, DocumentStorage};
 use job::*;
 use serde::{Deserialize, Serialize};
 
-use crate::{ledger_account::LedgerAccounts, primitives::AccountingCsvId};
+use crate::{ledger_account::LedgerAccounts, primitives::LedgerAccountId};
 
-use super::{
-    CoreAccountingAction, CoreAccountingObject, error::AccountingCsvError, generate::GenerateCsv,
-    primitives::AccountingCsvType, repo::AccountingCsvRepo,
-};
+use super::{CoreAccountingAction, CoreAccountingObject, generate::GenerateCsv};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GenerateAccountingCsvConfig<Perms> {
-    pub accounting_csv_id: AccountingCsvId,
+    pub document_id: DocumentId,
+    pub ledger_account_id: LedgerAccountId,
     pub _phantom: std::marker::PhantomData<Perms>,
 }
 
@@ -35,8 +33,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    repo: AccountingCsvRepo,
-    storage: Storage,
+    document_storage: DocumentStorage,
     ledger_accounts: LedgerAccounts<Perms>,
     audit: Perms::Audit,
 }
@@ -48,14 +45,12 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
     pub fn new(
-        repo: &AccountingCsvRepo,
-        storage: &Storage,
+        document_storage: &DocumentStorage,
         ledger_accounts: &LedgerAccounts<Perms>,
         audit: &Perms::Audit,
     ) -> Self {
         Self {
-            repo: repo.clone(),
-            storage: storage.clone(),
+            document_storage: document_storage.clone(),
             ledger_accounts: ledger_accounts.clone(),
             audit: audit.clone(),
         }
@@ -80,8 +75,7 @@ where
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(GenerateAccountingCsvJobRunner {
             config: job.config()?,
-            repo: self.repo.clone(),
-            storage: self.storage.clone(),
+            document_storage: self.document_storage.clone(),
             generator: GenerateCsv::new(&self.ledger_accounts),
             audit: self.audit.clone(),
         }))
@@ -95,8 +89,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
     config: GenerateAccountingCsvConfig<Perms>,
-    repo: AccountingCsvRepo,
-    storage: Storage,
+    document_storage: DocumentStorage,
     generator: GenerateCsv<Perms>,
     audit: Perms::Audit,
 }
@@ -112,56 +105,50 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut csv = self.repo.find_by_id(self.config.accounting_csv_id).await?;
-        let mut db = self.repo.begin_op().await?;
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(
-                db.tx(),
+            .record_system_entry(
                 CoreAccountingObject::all_accounting_csvs(),
                 CoreAccountingAction::ACCOUNTING_CSV_GENERATE,
             )
             .await?;
 
-        let csv_type = csv.csv_type;
-        let csv_result = match csv_type {
-            AccountingCsvType::LedgerAccount => {
-                let ledger_account_id = csv.ledger_account_id.ok_or_else(|| {
-                    AccountingCsvError::MissingRequiredField("ledger_account_id".to_string())
-                })?;
-
-                self.generator
-                    .generate_ledger_account_csv(ledger_account_id)
-                    .await
-            }
-            AccountingCsvType::ProfitAndLoss => Err(AccountingCsvError::UnsupportedCsvType),
-            AccountingCsvType::BalanceSheet => Err(AccountingCsvError::UnsupportedCsvType),
-        };
+        // Generate CSV data
+        let csv_result = self
+            .generator
+            .generate_ledger_account_csv(self.config.ledger_account_id)
+            .await;
 
         match csv_result {
             Ok(csv_data) => {
-                match self
-                    .storage
-                    .upload(csv_data, &csv.path_in_storage, "text/csv")
-                    .await
+                // Find the document and upload content
+                if let Some(mut document) = self
+                    .document_storage
+                    .find_by_id(self.config.document_id)
+                    .await?
                 {
-                    Ok(_) => {
-                        let _ =
-                            csv.file_uploaded(self.storage.bucket_name().to_string(), audit_info);
+                    match self
+                        .document_storage
+                        .upload(csv_data, &mut document, audit_info)
+                        .await
+                    {
+                        Ok(_) => {
+                            // Upload successful
+                        }
+                        Err(e) => {
+                            // Upload failed - document storage will handle the error state
+                            return Err(e.into());
+                        }
                     }
-                    Err(e) => {
-                        let _ = csv.upload_failed(e.to_string(), audit_info);
-                    }
+                } else {
+                    return Err("Document not found".into());
                 }
             }
             Err(e) => {
-                let _ = csv.upload_failed(e.to_string(), audit_info);
+                return Err(e.into());
             }
         }
 
-        self.repo.update_in_op(&mut db, &mut csv).await?;
-        let (now, tx) = (db.now(), db.into_tx());
-        let db_static = es_entity::DbOp::new(tx, now);
-        Ok(JobCompletion::CompleteWithOp(db_static))
+        Ok(JobCompletion::Complete)
     }
 }

@@ -5,8 +5,9 @@ use std::collections::HashMap;
 use lana_app::{
     access::{error::CoreAccessError, user::error::UserError},
     accounting::{
-        AccountingCsvId, Chart, LedgerAccountId, TransactionTemplateId,
-        chart_of_accounts::error::ChartOfAccountsError, csv::error::AccountingCsvError,
+        Chart, LedgerAccountId, TransactionTemplateId,
+        chart_of_accounts::error::ChartOfAccountsError,
+        csv::{AccountingCsvDocumentId, error::AccountingCsvError},
         ledger_transaction::error::LedgerTransactionError,
         transaction_templates::error::TransactionTemplateError,
     },
@@ -356,18 +357,18 @@ impl Loader<LedgerAccountId> for LanaLoader {
     }
 }
 
-impl Loader<AccountingCsvId> for LanaLoader {
-    type Value = AccountingCsv;
+impl Loader<AccountingCsvDocumentId> for LanaLoader {
+    type Value = AccountingCsvDocument;
     type Error = Arc<AccountingCsvError>;
 
     async fn load(
         &self,
-        keys: &[AccountingCsvId],
-    ) -> Result<HashMap<AccountingCsvId, AccountingCsv>, Self::Error> {
+        keys: &[AccountingCsvDocumentId],
+    ) -> Result<HashMap<AccountingCsvDocumentId, AccountingCsvDocument>, Self::Error> {
         self.app
             .accounting()
             .csvs()
-            .find_all(keys)
+            .find_all_documents::<AccountingCsvDocument>(keys)
             .await
             .map_err(Arc::new)
     }

@@ -20,6 +20,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use cloud_storage::Storage;
+use document_storage::DocumentStorage;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
@@ -93,7 +94,8 @@ where
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
-        storage: &Storage,
+        _storage: &Storage,
+        document_storage: DocumentStorage,
         jobs: &Jobs,
     ) -> Self {
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
@@ -104,7 +106,7 @@ where
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
-        let csvs = AccountingCsvs::new(pool, authz, jobs, storage, &ledger_accounts);
+        let csvs = AccountingCsvs::new(pool, authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),

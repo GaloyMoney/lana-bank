@@ -2,8 +2,9 @@ use async_graphql::{Context, Object, types::connection::*};
 
 use std::io::Read;
 
+use document_storage::DocumentsByCreatedAtCursor;
 use lana_app::{
-    accounting::csv::AccountingCsvsByCreatedAtCursor,
+    accounting::csv::AccountingCsvDocumentId,
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
@@ -759,20 +760,20 @@ impl Query {
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<
-        Connection<AccountingCsvsByCreatedAtCursor, AccountingCsv, EmptyFields, EmptyFields>,
+        Connection<DocumentsByCreatedAtCursor, AccountingCsvDocument, EmptyFields, EmptyFields>,
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        list_with_cursor!(
-            AccountingCsvsByCreatedAtCursor,
-            AccountingCsv,
+        list_with_cursor_and_id!(
+            DocumentsByCreatedAtCursor,
+            AccountingCsvDocument,
+            AccountingCsvDocumentId,
             ctx,
             after,
             first,
-            |query| app.accounting().csvs().list_for_ledger_account_id(
-                sub,
-                query,
-                ledger_account_id
-            )
+            |query| app
+                .accounting()
+                .csvs()
+                .list_for_ledger_account_id_paginated(sub, ledger_account_id, query)
         )
     }
 }
@@ -1718,8 +1719,8 @@ impl Mutation {
             .create_ledger_account_csv(sub, input.ledger_account_id)
             .await?;
 
-        let csv = AccountingCsv::from(csv);
-        Ok(LedgerAccountCsvCreatePayload::from(csv))
+        let csv_document = AccountingCsvDocument::from(csv);
+        Ok(LedgerAccountCsvCreatePayload::from(csv_document))
     }
 
     pub async fn accounting_csv_download_link_generate(

@@ -16,6 +16,8 @@ pub enum AccountingCsvError {
     StorageError(#[from] cloud_storage::error::StorageError),
     #[error("AccountingCsvError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("AccountingCsvError - DocumentStorageError: {0}")]
+    DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
     #[error("AccountingCsvError - CsvError: {0}")]
     CsvError(String),
     #[error("AccountingCsvError - UnsupportedCsvType")]

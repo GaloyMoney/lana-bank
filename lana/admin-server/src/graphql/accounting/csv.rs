@@ -1,29 +1,46 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use lana_app::accounting::csv::{AccountingCsv as DomainAccountingCsv, AccountingCsvStatus};
+pub use document_storage::{Document as DomainDocument, DocumentStatus};
+pub use lana_app::accounting::csv::AccountingCsvDocumentId;
 use std::sync::Arc;
 
 #[derive(SimpleObject, Clone)]
-pub struct AccountingCsv {
+#[graphql(complex)]
+pub struct AccountingCsvDocument {
     id: ID,
-    csv_id: UUID,
-    status: AccountingCsvStatus,
+    document_id: UUID,
+    ledger_account_id: UUID,
+    status: DocumentStatus,
     created_at: Timestamp,
 
     #[graphql(skip)]
-    pub entity: Arc<DomainAccountingCsv>,
+    pub entity: Arc<DomainDocument>,
 }
 
-impl From<DomainAccountingCsv> for AccountingCsv {
-    fn from(csv: DomainAccountingCsv) -> Self {
+impl AccountingCsvDocument {
+    pub fn accounting_csv_document_id(&self) -> AccountingCsvDocumentId {
+        AccountingCsvDocumentId::from(self.entity.id)
+    }
+}
+
+impl From<DomainDocument> for AccountingCsvDocument {
+    fn from(document: DomainDocument) -> Self {
         Self {
-            id: csv.id.into(),
-            csv_id: UUID::from(csv.id),
-            status: csv.status(),
-            created_at: csv.created_at().into(),
-            entity: Arc::new(csv),
+            id: document.id.to_global_id(),
+            document_id: UUID::from(document.id),
+            ledger_account_id: UUID::from(document.reference_id),
+            status: document.status,
+            created_at: document.created_at().into(),
+            entity: Arc::new(document),
         }
+    }
+}
+
+#[ComplexObject]
+impl AccountingCsvDocument {
+    async fn filename(&self) -> &str {
+        &self.entity.filename
     }
 }
 
@@ -33,13 +50,11 @@ pub struct AccountingCsvDownloadLink {
     pub csv_id: UUID,
 }
 
-impl From<lana_app::accounting::csv::GeneratedAccountingCsvDownloadLink>
-    for AccountingCsvDownloadLink
-{
-    fn from(result: lana_app::accounting::csv::GeneratedAccountingCsvDownloadLink) -> Self {
+impl From<document_storage::GeneratedDocumentDownloadLink> for AccountingCsvDownloadLink {
+    fn from(result: document_storage::GeneratedDocumentDownloadLink) -> Self {
         Self {
-            url: result.link.url,
-            csv_id: UUID::from(result.accounting_csv_id),
+            url: result.link,
+            csv_id: UUID::from(result.document_id),
         }
     }
 }
@@ -48,7 +63,7 @@ impl From<lana_app::accounting::csv::GeneratedAccountingCsvDownloadLink>
 pub struct LedgerAccountCsvCreateInput {
     pub ledger_account_id: UUID,
 }
-crate::mutation_payload! { LedgerAccountCsvCreatePayload, accounting_csv: AccountingCsv }
+crate::mutation_payload! { LedgerAccountCsvCreatePayload, accounting_csv_document: AccountingCsvDocument }
 
 #[derive(InputObject)]
 pub struct AccountingCsvDownloadLinkGenerateInput {

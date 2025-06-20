@@ -13,6 +13,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 core-money = { path = "../money" }
+document-storage = { path = "../document-storage" }
 job = { path = "../../lib/job" }
 cloud-storage = { path = "../../lib/cloud-storage" }
 
