@@ -15,15 +15,12 @@ async fn upload_doc() -> anyhow::Result<()> {
     }
 
     let config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
-        StorageConfig::new_dev_mode(name_prefix)
+        StorageConfig::new_gcp_dev_mode(name_prefix)
     } else {
-        StorageConfig {
-            root_folder: "gha".to_string(),
-            bucket_name: "gha-lana-documents".to_string(),
-        }
+        StorageConfig::new_gcp("gha".to_string(), "gha-lana-documents".to_string())
     };
 
-    let storage = Storage::new(&config);
+    let storage = Storage::init(&config).await?;
 
     let content_str = "test";
     let content = content_str.as_bytes().to_vec();
@@ -32,9 +29,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     let _ = storage.upload(content, filename, "application/txt").await;
 
     // generate link
-    let location = LocationInStorage {
-        path_in_storage: filename,
-    };
+    let location = LocationInStorage { path: filename };
     let link = storage.generate_download_link(location.clone()).await?;
 
     // download and verify the link

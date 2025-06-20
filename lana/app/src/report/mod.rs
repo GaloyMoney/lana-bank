@@ -137,7 +137,10 @@ impl Reports {
 
         let mut download_links = vec![];
         for location in report.download_links() {
-            let url = self.storage.generate_download_link(&location).await?;
+            let url = self
+                .storage
+                .generate_download_link((&location).into())
+                .await?;
 
             download_links.push(ReportDownloadLink {
                 report_name: location.report_name.clone(),

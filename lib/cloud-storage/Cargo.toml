@@ -14,3 +14,7 @@ serde = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
 reqwest = { workspace = true }
+async-trait = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

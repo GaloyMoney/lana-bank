@@ -8,6 +8,7 @@ app:
   service_account:
     gcp_location: europe-west6
   storage:
+    provider: gcp
     bucket_name: "gha-lana-documents"
     root_folder: "gha"
   report:
