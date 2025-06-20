@@ -20,7 +20,12 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      - run: nix develop -c gsutil ls -b gs://gha-lana-documents
+      - name: Test GCS access
+        run: |
+          echo "$GOOGLE_CREDENTIALS" > /tmp/gcp-key.json
+          nix develop -c gcloud auth activate-service-account --key-file=/tmp/gcp-key.json
+          nix develop -c gsutil ls -b gs://gha-lana-documents
+          rm /tmp/gcp-key.json
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           
