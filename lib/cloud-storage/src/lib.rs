@@ -6,7 +6,6 @@ pub use client::LocationInStorage;
 use client::{GcpClient, LocalClient, StorageClient};
 use config::StorageConfig;
 use error::*;
-
 #[derive(Clone)]
 pub struct Storage {
     config: StorageConfig,
@@ -38,12 +37,37 @@ impl Storage {
             StorageConfig::Local(local_config) => local_config.root_folder.display().to_string(),
         }
     }
-}
 
-impl std::ops::Deref for Storage {
-    type Target = dyn StorageClient;
+    pub async fn upload(
+        &self,
+        file: Vec<u8>,
+        path: &str,
+        mime_type: &str,
+    ) -> Result<(), StorageError> {
+        self.client.upload(file, path, mime_type).await?;
+        Ok(())
+    }
 
-    fn deref(&self) -> &Self::Target {
-        self.client.as_ref()
+    pub async fn remove<'a>(
+        &self,
+        location_in_storage: LocationInStorage<'a>,
+    ) -> Result<(), StorageError> {
+        self.client.remove(location_in_storage).await?;
+        Ok(())
+    }
+
+    pub async fn generate_download_link<'a>(
+        &self,
+        location_in_storage: LocationInStorage<'a>,
+    ) -> Result<String, StorageError> {
+        let link = self
+            .client
+            .generate_download_link(location_in_storage)
+            .await?;
+        Ok(link)
+    }
+
+    pub fn identifier(&self) -> String {
+        self.client.identifier()
     }
 }

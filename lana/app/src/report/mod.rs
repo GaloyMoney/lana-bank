@@ -140,8 +140,7 @@ impl Reports {
             let url = self
                 .storage
                 .generate_download_link((&location).into())
-                .await
-                .map_err(cloud_storage::error::StorageError::from)?;
+                .await?;
 
             download_links.push(ReportDownloadLink {
                 report_name: location.report_name.clone(),

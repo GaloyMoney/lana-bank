@@ -132,11 +132,7 @@ where
         let mut csv = self.repo.find_by_id(accounting_csv_id).await?;
         let location = csv.download_link_generated(audit_info)?;
 
-        let url = self
-            .storage
-            .generate_download_link(location)
-            .await
-            .map_err(cloud_storage::error::StorageError::from)?;
+        let url = self.storage.generate_download_link(location).await?;
 
         self.repo.update(&mut csv).await?;
 

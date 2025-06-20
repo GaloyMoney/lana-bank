@@ -93,8 +93,7 @@ impl DocumentStorage {
     ) -> Result<(), DocumentStorageError> {
         self.storage
             .upload(content, &document.path_in_storage, &document.content_type)
-            .await
-            .map_err(cloud_storage::error::StorageError::from)?;
+            .await?;
 
         // Now record the upload in the entity
         if document.upload_file(audit_info).did_execute() {
@@ -200,8 +199,7 @@ impl DocumentStorage {
             .generate_download_link(cloud_storage::LocationInStorage {
                 path: document_location,
             })
-            .await
-            .map_err(cloud_storage::error::StorageError::from)?;
+            .await?;
 
         self.repo.update(&mut document).await?;
 
@@ -223,8 +221,7 @@ impl DocumentStorage {
             .remove(cloud_storage::LocationInStorage {
                 path: document_location,
             })
-            .await
-            .map_err(cloud_storage::error::StorageError::from)?;
+            .await?;
 
         if document.delete(audit_info).did_execute() {
             self.repo.delete_in_op(&mut db, document).await?;
