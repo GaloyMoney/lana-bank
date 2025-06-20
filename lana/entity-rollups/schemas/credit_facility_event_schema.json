@@ -58,6 +58,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "interest_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -81,6 +85,7 @@
       },
       "required": [
         "facility_account_id",
+        "in_liquidation_account_id",
         "disbursed_receivable_not_yet_due_account_id",
         "disbursed_receivable_due_account_id",
         "disbursed_receivable_overdue_account_id",

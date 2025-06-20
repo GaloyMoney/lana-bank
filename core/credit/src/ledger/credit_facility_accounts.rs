@@ -13,6 +13,7 @@ use crate::{
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityAccountIds {
     pub facility_account_id: CalaAccountId,
+    pub in_liquidation_account_id: CalaAccountId,
     pub disbursed_receivable_not_yet_due_account_id: CalaAccountId,
     pub disbursed_receivable_due_account_id: CalaAccountId,
     pub disbursed_receivable_overdue_account_id: CalaAccountId,
@@ -31,6 +32,7 @@ impl CreditFacilityAccountIds {
     pub fn new() -> Self {
         Self {
             facility_account_id: CalaAccountId::new(),
+            in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
@@ -78,4 +80,13 @@ pub struct CreditFacilityInterestAccrual {
     pub interest: UsdCents,
     pub period: InterestPeriod,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
+}
+
+#[derive(Debug, Clone)]
+pub struct ObligationReserveForLiquidation {
+    pub tx_id: LedgerTxId,
+    pub tx_ref: String,
+    pub outstanding: UsdCents,
+    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub effective: chrono::NaiveDate,
 }
