@@ -83,6 +83,21 @@ impl Chart {
         self.all_accounts.get(code)
     }
 
+    fn is_leaf_account(&self, code: &AccountCode) -> bool {
+        self.children::<CalaAccountSetId>(code).is_empty()
+    }
+
+    pub fn leaf_account_spec(
+        &self,
+        code: &AccountCode,
+    ) -> Result<Option<&(AccountSpec, CalaAccountSetId)>, ChartOfAccountsError> {
+        if !self.is_leaf_account(code) {
+            return Err(ChartOfAccountsError::NonLeafAccount);
+        };
+
+        Ok(self.all_accounts.get(code))
+    }
+
     /// Returns ancestors of this chart of accounts, starting with `code` (not included).
     /// The lower in hierarchy the parent is, the lower index it will have in the resulting vector;
     /// the root of the chart of accounts will be last.
