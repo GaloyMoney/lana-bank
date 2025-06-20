@@ -19,10 +19,14 @@ jobs:
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - run: nix develop -c gsutil ls -b gs://gha-lana-documents
+        env:
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           
       - name: Run integration tests with podman
         run: nix develop -c make test-integration-podman
         env:
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
-          TF_VAR_name_prefix: "gha" 
+          TF_VAR_name_prefix: "gha"
