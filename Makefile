@@ -102,7 +102,16 @@ check-code-tf:
 	tofu fmt -recursive .
 	git diff --exit-code *.tf
 
+# Default (nix-based) code checking
 check-code-rust: sdl-rust update-schemas
+	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
+	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
+	git diff --exit-code lana/entity-rollups/schemas
+	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
+	nix build .#check-code -L --option sandbox false
+
+# Cargo alternative for faster compilation during development
+check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	git diff --exit-code lana/entity-rollups/schemas
@@ -114,7 +123,12 @@ check-code-rust: sdl-rust update-schemas
 	cargo deny check
 	cargo machete
 
+# Default (nix-based) schema update
 update-schemas:
+	SQLX_OFFLINE=true nix run .#entity-rollups -- update-schemas
+
+# Cargo alternative for faster compilation during development
+update-schemas-cargo:
 	SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas
 
 clippy:
@@ -129,7 +143,13 @@ build-for-tests:
 e2e: clean-deps start-deps build-for-tests
 	bats -t bats
 
+# Default (nix-based) SDL generation
 sdl-rust:
+	SQLX_OFFLINE=true nix run .#write_sdl -- > lana/admin-server/src/graphql/schema.graphql
+	SQLX_OFFLINE=true nix run .#write_customer_sdl -- > lana/customer-server/src/graphql/schema.graphql
+
+# Cargo alternative for faster compilation during development
+sdl-rust-cargo:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
 
@@ -138,6 +158,9 @@ sdl-js:
 	cd apps/customer-portal && pnpm install && pnpm codegen
 
 full-sdl: sdl-rust sdl-js
+
+# Cargo alternative for full SDL generation
+full-sdl-cargo: sdl-rust-cargo sdl-js
 
 # Frontend Apps
 check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
@@ -217,8 +240,12 @@ tilt-in-ci:
 start-cypress-stack:
 	./dev/bin/start-cypress-stack.sh
 
-
+# Default (nix-based) test in CI
 test-in-ci: start-deps setup-db
+	nix build .#test-in-ci -L --option sandbox false
+
+# Cargo alternative for faster compilation during development
+test-in-ci-cargo: start-deps setup-db
 	cargo nextest run --verbose --locked
 
 build-x86_64-unknown-linux-musl-release:

@@ -15,12 +15,15 @@ import { CreditFacilityTermsDialog } from "./terms-dialog"
 
 import {
   ApprovalProcessStatus,
+  CreditFacilityRepaymentType,
   GetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 import { DetailsCard, DetailItemProps } from "@/components/details"
+import { removeUnderscore } from "@/lib/utils"
+import Balance from "@/components/balance/balance"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -41,10 +44,14 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
+  const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
+    (plan) => plan.repaymentType === CreditFacilityRepaymentType.Interest,
+  )?.initial
+
   const details: DetailItemProps[] = [
     {
-      label: t("details.customerEmail"),
-      value: creditFacilityDetails.customer.email,
+      label: t("details.customer"),
+      value: `${creditFacilityDetails.customer.email} (${removeUnderscore(creditFacilityDetails.customer.customerType)})`,
       href: `/customers/${creditFacilityDetails.customer.customerId}`,
     },
     {
@@ -65,7 +72,19 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       ),
     },
     {
-      label: t("details.expiresAt"),
+      label: t("details.monthlyPayment"),
+      value: monthlyPaymentAmount ? (
+        <Balance amount={monthlyPaymentAmount} currency="usd" />
+      ) : (
+        t("details.noMonthlyPaymentAvailable")
+      ),
+    },
+    {
+      label: t("details.dateOfIssuance"),
+      value: formatDate(creditFacilityDetails.createdAt),
+    },
+    {
+      label: t("details.maturityDate"),
       value: formatDate(creditFacilityDetails.maturesAt),
     },
   ]
@@ -116,6 +135,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       <DetailsCard
         title={t("title")}
         details={details}
+        columns={3}
         footerContent={footerContent}
         errorMessage={creditFacilityDetails.approvalProcess.deniedReason}
       />

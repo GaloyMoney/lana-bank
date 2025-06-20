@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,36 +7,37 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
     "UsdCents": {
       "format": "uint64",
-      "minimum": 0.0,
+      "minimum": 0,
       "type": "integer"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "amount": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         },
         "approval_process_id": {
           "format": "uuid",
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "deposit_account_id": {
           "format": "uuid",
@@ -51,20 +51,18 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "amount",
-        "approval_process_id",
-        "audit_info",
-        "deposit_account_id",
+        "type",
         "id",
+        "deposit_account_id",
+        "amount",
         "reference",
-        "type"
+        "approval_process_id",
+        "audit_info"
       ],
       "type": "object"
     },
@@ -78,66 +76,60 @@
           "type": "boolean"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "approval_process_concluded"
-          ],
+          "const": "approval_process_concluded",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "approval_process_id",
         "approved",
-        "audit_info",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "confirmed"
-          ],
+          "const": "confirmed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "ledger_tx_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "cancelled"
-          ],
+          "const": "cancelled",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "ledger_tx_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

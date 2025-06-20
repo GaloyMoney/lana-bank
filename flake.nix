@@ -32,7 +32,8 @@
         inherit system overlays;
       };
 
-      craneLib = crane.mkLib pkgs;
+      craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
+      #craneLib = crane.mkLib pkgs;
       # craneLib = craneLib.crateNameFromCargoToml {cargoToml = "./path/to/Cargo.toml";};
 
       rustSource = pkgs.lib.cleanSourceWith {
@@ -131,13 +132,121 @@
       lana-cli-release = mkLanaCli "release";
       lana-cli-static = mkLanaCliStatic "release";
 
+      checkCode = craneLib.mkCargoDerivation {
+        pname = "check-code";
+        version = "0.1.0";
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
+        cargoLock = ./Cargo.lock;
+        cargoArtifacts = debugCargoArtifacts;
+        SQLX_OFFLINE = true;
+        cargoExtraArgs = "--all-targets --all-features";
+
+        nativeBuildInputs = [
+          pkgs.protobuf
+          pkgs.cacert
+          pkgs.cargo-audit
+          pkgs.cargo-deny
+          pkgs.cargo-machete
+        ];
+
+        configurePhase = ''
+          export CARGO_NET_GIT_FETCH_WITH_CLI=true
+          export PROTOC="${pkgs.protobuf}/bin/protoc"
+          export PATH="${pkgs.protobuf}/bin:${pkgs.gitMinimal}/bin:${pkgs.coreutils}/bin:$PATH"
+          export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+          export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
+        '';
+
+        buildPhaseCargoCommand = "check";
+        buildPhase = ''
+          cargo fmt --check
+          cargo clippy --all-targets --all-features || true
+          cargo audit
+          cargo deny check
+          cargo machete
+        '';
+        installPhase = "touch $out";
+      };
+
+      testInCi = craneLib.mkCargoDerivation {
+        pname = "test-in-ci";
+        version = "0.1.0";
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
+        cargoLock = ./Cargo.lock;
+        cargoArtifacts = debugCargoArtifacts;
+        SQLX_OFFLINE = true;
+
+        nativeBuildInputs = [
+          pkgs.cacert
+          pkgs.cargo-nextest
+          pkgs.protobuf
+          pkgs.gitMinimal
+        ];
+
+        configurePhase = ''
+          export CARGO_NET_GIT_FETCH_WITH_CLI=true
+          export PROTOC="${pkgs.protobuf}/bin/protoc"
+          export PATH="${pkgs.protobuf}/bin:$PATH"
+          export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
+          export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
+        '';
+
+        buildPhaseCargoCommand = "nextest run";
+        buildPhase = ''
+          # run whole workspace tests, verbose+locked to mirror Makefile
+          cargo nextest run --workspace --locked --verbose
+        '';
+
+        installPhase = "touch $out";
+      };
+
+      entity-rollups = craneLib.buildPackage {
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
+        cargoArtifacts = debugCargoArtifacts;
+        pname = "entity-rollups";
+        version = "0.1.0";
+        doCheck = false;
+        SQLX_OFFLINE = true;
+        cargoExtraArgs = "-p entity-rollups --all-features";
+      };
+
+      write_sdl = craneLib.buildPackage {
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
+        cargoArtifacts = debugCargoArtifacts;
+        pname = "write_sdl";
+        version = "0.1.0";
+        doCheck = false;
+        SQLX_OFFLINE = true;
+        cargoExtraArgs = "--bin write_sdl";
+      };
+
+      write_customer_sdl = craneLib.buildPackage {
+        src = rustSource;
+        cargoToml = ./Cargo.toml;
+        cargoArtifacts = debugCargoArtifacts;
+        pname = "write_customer_sdl";
+        version = "0.1.0";
+        doCheck = false;
+        SQLX_OFFLINE = true;
+        cargoExtraArgs = "--bin write_customer_sdl";
+      };
+
       meltano = pkgs.callPackage ./meltano.nix {};
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
       rustToolchain = rustVersion.override {
-        extensions = ["rust-analyzer" "rust-src"];
+        extensions = [
+          "rust-analyzer"
+          "rust-src"
+          "rustfmt"
+          "clippy"
+        ];
         targets = ["x86_64-unknown-linux-musl"];
       };
 
@@ -217,6 +326,11 @@
           debug = lana-cli-debug;
           release = lana-cli-release;
           static = lana-cli-static;
+          check-code = checkCode;
+          test-in-ci = testInCi;
+          entity-rollups = entity-rollups;
+          write_sdl = write_sdl;
+          write_customer_sdl = write_customer_sdl;
           inherit meltano;
         };
 

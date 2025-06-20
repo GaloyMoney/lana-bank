@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AccountingCsvType": {
       "enum": [
         "ledger_account",
@@ -16,27 +15,28 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "csv_type": {
-          "$ref": "#/definitions/AccountingCsvType"
+          "$ref": "#/$defs/AccountingCsvType"
         },
         "id": {
           "format": "uuid",
@@ -53,25 +53,23 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "csv_type",
+        "type",
         "id",
+        "csv_type",
         "path_in_bucket",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "bucket": {
           "type": "string"
@@ -81,24 +79,22 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "file_uploaded"
-          ],
+          "const": "file_uploaded",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "bucket",
-        "recorded_at",
-        "type"
+        "audit_info",
+        "recorded_at"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "error": {
           "type": "string"
@@ -108,24 +104,22 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "upload_failed"
-          ],
+          "const": "upload_failed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "error",
-        "recorded_at",
-        "type"
+        "audit_info",
+        "recorded_at"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "bucket": {
           "type": "string"
@@ -138,18 +132,16 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "download_link_generated"
-          ],
+          "const": "download_link_generated",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "bucket",
         "path_in_bucket",
-        "recorded_at",
-        "type"
+        "audit_info",
+        "recorded_at"
       ],
       "type": "object"
     }

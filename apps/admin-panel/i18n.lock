@@ -298,12 +298,13 @@ checksums:
     CreditFacilities/CreditFacilityDetails/History/messages/emptyTable: 37a7aed7a4d616149ed640ce3d72d6f9
     CreditFacilities/CreditFacilityDetails/TermsDialog/title: c531b88ecfe7dd2337a34f4a9ed18a5f
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
-    CreditFacilities/CreditFacilityDetails/TermsDialog/details/interestRate: c80e0e607a0f82c490d098e2e49e9c0e
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/interestRate: d4a1febd63ce7963b18c16a27824ce95
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/targetCvl: 7352e14d09b0f91c5262a2861bd6d036
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/marginCallCvl: 0f3e5e753a6597188deb78325a13a1e4
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/liquidationCvl: 4ff7e3744753ab1c2d1a42e60c3ebfac
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/dateCreated: ee01a6e3f6a547bee9fe53f7ccdcb2cc
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/structuringFeeRate: 6884eb8153e27f57dfff956ff8efa511
+    CreditFacilities/CreditFacilityDetails/TermsDialog/details/effectiveRate: 7dd8de3c81e63d553bf906f47f584518
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -325,10 +326,13 @@ checksums:
     CreditFacilities/CreditFacilityDetails/FacilityCard/details/totalDisbursed: cb99a99a24571c807d0e6e8873058f97
     CreditFacilities/CreditFacilityDetails/FacilityCard/details/totalCost: ee3537a63dd283614e9e21ab6c2fbc61
     CreditFacilities/CreditFacilityDetails/DetailsCard/title: d96f87cd95639f3ba97b53f681f2fb5f
-    CreditFacilities/CreditFacilityDetails/DetailsCard/details/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
-    CreditFacilities/CreditFacilityDetails/DetailsCard/details/expiresAt: de9955ebfaf87be5dbf05ed5b6941a09
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/dateOfIssuance: b813f3bd9092c493e51b49aca81e9219
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/maturityDate: 682c7847ef7947ed9d2812f6f1a402cd
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/monthlyPayment: 5d0ad4eae4d1d2cfa2b3b097c2139844
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/noMonthlyPaymentAvailable: 3571c074ce377c24810128d5ee89fb5e
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanTerms: 1ebf872e0d722fc8651f5f7108208fc3
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
@@ -344,7 +348,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/termsTemplate: 21fcfdd286d7253fb4818bd0db3b12db
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/creditFacilityTerms: 981094b2d79c6d9ac74c17b56fec30f1
-    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/interestRate: cda40ba773dec9bdf510201b70014393
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/interestRate: d4a1febd63ce7963b18c16a27824ce95
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/months: da74749fbe80394fa0f72973d7b0964a

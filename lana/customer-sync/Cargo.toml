@@ -1,6 +1,6 @@
 [package]
 name = "customer-sync"
-version = "0.3.669-dev"
+version = "0.3.672-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 

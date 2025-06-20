@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "PermissionValues": {
       "properties": {
         "action": {
@@ -11,12 +10,13 @@
         }
       },
       "required": [
-        "action",
-        "object"
+        "object",
+        "action"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
@@ -26,7 +26,7 @@
         },
         "initial_permissions": {
           "items": {
-            "$ref": "#/definitions/PermissionValues"
+            "$ref": "#/$defs/PermissionValues"
           },
           "type": "array",
           "uniqueItems": true
@@ -35,17 +35,15 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "id",
-        "initial_permissions",
         "name",
-        "type"
+        "initial_permissions"
       ],
       "type": "object"
     }

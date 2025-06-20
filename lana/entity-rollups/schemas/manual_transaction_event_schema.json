@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,24 +7,25 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "description": {
           "type": "string"
@@ -42,19 +42,17 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "description",
+        "type",
         "id",
         "ledger_transaction_id",
+        "description",
         "reference",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }
