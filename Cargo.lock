@@ -973,9 +973,11 @@ name = "cloud-storage"
 version = "0.3.673-dev"
 dependencies = [
  "anyhow",
+ "async-trait",
  "google-cloud-storage",
  "reqwest",
  "serde",
+ "tempfile",
  "thiserror 2.0.12",
  "tokio",
 ]
