@@ -61,15 +61,13 @@ impl DocumentStorage {
         let document_type = document_type.into();
         let path_in_storage = format!("documents/{}/{}", document_type, document_id);
 
-        let client = self.storage.client().await?;
-
         let new_document = NewDocument::builder()
             .id(document_id)
             .document_type(document_type)
             .filename(filename)
             .content_type(content_type)
             .path_in_storage(path_in_storage)
-            .storage_identifier(client.identifier())
+            .storage_identifier(self.storage.identifier())
             .reference_id(reference_id)
             .audit_info(audit_info.clone())
             .build()
@@ -78,7 +76,7 @@ impl DocumentStorage {
         let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
-        client
+        self.storage
             .upload(content, &document.path_in_storage, &document.content_type)
             .await
             .map_err(cloud_storage::error::StorageError::from)?;
@@ -132,8 +130,8 @@ impl DocumentStorage {
 
         let document_location = document.download_link_generated(audit_info);
 
-        let client = self.storage.client().await?;
-        let link = client
+        let link = self
+            .storage
             .generate_download_link(cloud_storage::LocationInStorage {
                 path: document_location,
             })
@@ -156,8 +154,7 @@ impl DocumentStorage {
 
         let document_location = document.path_for_removal();
 
-        let client = self.storage.client().await?;
-        client
+        self.storage
             .remove(cloud_storage::LocationInStorage {
                 path: document_location,
             })

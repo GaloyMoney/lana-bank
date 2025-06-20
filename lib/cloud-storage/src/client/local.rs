@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::path::{Path, PathBuf};
 
 use super::{StorageClient, error::StorageClientError};
+
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct LocalConfig {
     #[serde(default)]

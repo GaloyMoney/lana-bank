@@ -63,7 +63,6 @@ impl StorageClient for GcpClient {
         mime_type: &str,
     ) -> Result<(), StorageClientError> {
         let bucket = self.bucket_name();
-        // `path_in_bucket` is already &str, so no `.to_string()` here.
         let object_name = self.path_with_prefix(path_in_bucket);
 
         let mut media = Media::new(object_name);

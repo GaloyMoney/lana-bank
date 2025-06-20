@@ -45,8 +45,7 @@ pub async fn execute(
 
         let path_in_bucket = path_to_report(&report_name, &day);
 
-        let client = storage.client().await?;
-        match client
+        match storage
             .upload(xml_bytes.to_vec(), &path_in_bucket, "application/xml")
             .await
         {

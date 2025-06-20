@@ -136,9 +136,9 @@ impl Reports {
         let mut report = self.repo.find_by_id(report_id).await?;
 
         let mut download_links = vec![];
-        let client = self.storage.client().await?;
         for location in report.download_links() {
-            let url = client
+            let url = self
+                .storage
                 .generate_download_link((&location).into())
                 .await
                 .map_err(cloud_storage::error::StorageError::from)?;

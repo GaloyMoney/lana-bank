@@ -17,7 +17,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
 
     let outbox = outbox::Outbox::<event::DummyEvent>::init(&pool).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
-    let storage = Storage::new(&StorageConfig::default());
+    let storage = Storage::init(&StorageConfig::default()).await?;
     let document_storage = DocumentStorage::new(&pool, &storage);
 
     let governance = governance::Governance::new(&pool, &authz, &outbox);
