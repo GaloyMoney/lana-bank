@@ -18,13 +18,6 @@
         "audit_entry_id"
       ],
       "type": "object"
-    },
-    "DocumentType": {
-      "enum": [
-        "customer_document",
-        "ledger_account_csv"
-      ],
-      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -38,7 +31,7 @@
           "type": "string"
         },
         "document_type": {
-          "$ref": "#/$defs/DocumentType"
+          "type": "string"
         },
         "id": {
           "format": "uuid",

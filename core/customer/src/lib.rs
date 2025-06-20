@@ -25,6 +25,8 @@ pub use event::*;
 pub use primitives::*;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
 
+pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");
+
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::entity::CustomerEvent;
@@ -422,7 +424,7 @@ where
                 filename,
                 content_type,
                 customer_id,
-                DocumentType::CustomerDocument,
+                CUSTOMER_DOCUMENT,
             )
             .await?;
 
