@@ -15,8 +15,12 @@ use crate::primitives::*;
 pub enum LiquidationProcessEvent {
     Initialized {
         id: LiquidationProcessId,
+        tx_id: LedgerTxId,
         obligation_id: ObligationId,
         credit_facility_id: CreditFacilityId,
+        in_liquidation_account_id: CalaAccountId,
+        initial_amount: UsdCents,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
     Completed {
@@ -28,8 +32,12 @@ pub enum LiquidationProcessEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct LiquidationProcess {
     pub id: LiquidationProcessId,
+    pub tx_id: LedgerTxId,
     pub obligation_id: ObligationId,
     pub credit_facility_id: CreditFacilityId,
+    pub in_liquidation_account_id: CalaAccountId,
+    pub initial_amount: UsdCents,
+    pub effective: chrono::NaiveDate,
     events: EntityEvents<LiquidationProcessEvent>,
 }
 
@@ -42,14 +50,22 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
             match event {
                 LiquidationProcessEvent::Initialized {
                     id,
+                    tx_id,
                     obligation_id,
                     credit_facility_id,
+                    in_liquidation_account_id,
+                    initial_amount,
+                    effective,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
+                        .tx_id(*tx_id)
                         .obligation_id(*obligation_id)
                         .credit_facility_id(*credit_facility_id)
+                        .in_liquidation_account_id(*in_liquidation_account_id)
+                        .initial_amount(*initial_amount)
+                        .effective(*effective)
                 }
                 LiquidationProcessEvent::Completed { .. } => (),
             }
@@ -63,9 +79,15 @@ pub struct NewLiquidationProcess {
     #[builder(setter(into))]
     pub(crate) id: LiquidationProcessId,
     #[builder(setter(into))]
+    pub(crate) tx_id: LedgerTxId,
+    #[builder(setter(into))]
     pub(crate) obligation_id: ObligationId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
+    #[builder(setter(into))]
+    pub(super) in_liquidation_account_id: CalaAccountId,
+    pub(super) initial_amount: UsdCents,
+    pub(super) effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
 }
@@ -82,8 +104,12 @@ impl IntoEvents<LiquidationProcessEvent> for NewLiquidationProcess {
             self.id,
             [LiquidationProcessEvent::Initialized {
                 id: self.id,
+                tx_id: self.tx_id,
                 obligation_id: self.obligation_id,
                 credit_facility_id: self.credit_facility_id,
+                in_liquidation_account_id: self.in_liquidation_account_id,
+                initial_amount: self.initial_amount,
+                effective: self.effective,
                 audit_info: self.audit_info,
             }],
         )

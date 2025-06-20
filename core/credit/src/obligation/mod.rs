@@ -14,7 +14,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     event::CoreCreditEvent,
     jobs::obligation_due,
-    liquidation_process::LiquidationProcessRepo,
+    liquidation_process::{LiquidationProcess, LiquidationProcessRepo},
     payment_allocation::NewPaymentAllocation,
     primitives::{
         CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationType,
@@ -206,7 +206,8 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: ObligationId,
-    ) -> Result<Obligation, ObligationError> {
+        effective: chrono::NaiveDate,
+    ) -> Result<(Obligation, Option<LiquidationProcess>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
         let audit_info = self
@@ -220,16 +221,21 @@ where
             .await
             .map_err(authz::error::AuthorizationError::from)?;
 
-        if let Idempotent::Executed(new_liquidation_process) =
-            obligation.start_liquidation(&audit_info)
+        let liquidation_process = if let Idempotent::Executed(new_liquidation_process) =
+            obligation.start_liquidation(effective, &audit_info)
         {
             self.repo.update_in_op(db, &mut obligation).await?;
-            self.liquidation_process_repo
+            let liquidation_process = self
+                .liquidation_process_repo
                 .create_in_op(db, new_liquidation_process)
                 .await?;
-        }
 
-        Ok(obligation)
+            Some(liquidation_process)
+        } else {
+            None
+        };
+
+        Ok((obligation, liquidation_process))
     }
 
     pub async fn find_by_id_without_audit(
