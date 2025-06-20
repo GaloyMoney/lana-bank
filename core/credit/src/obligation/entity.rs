@@ -8,7 +8,10 @@ use std::cmp::Ordering;
 use audit::AuditInfo;
 use es_entity::*;
 
-use crate::{CreditFacilityId, liquidation_process::NewLiquidationProcess, payment_allocation::NewPaymentAllocation, primitives::*};
+use crate::{
+    liquidation_process::NewLiquidationProcess, payment_allocation::NewPaymentAllocation,
+    primitives::*, CreditFacilityId,
+};
 
 use super::{error::ObligationError, primitives::*};
 
@@ -716,21 +719,17 @@ mod test {
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
 
-        assert!(
-            obligation
-                .record_overdue(Utc::now().date_naive(), dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(obligation
+            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap()
+            .did_execute());
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
-        assert!(
-            obligation
-                .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(obligation
+            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap()
+            .did_execute());
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
@@ -860,16 +859,14 @@ mod test {
     fn payment_allocation_ignored_in_liquidation() {
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.start_liquidation(&dummy_audit_info());
-        assert!(
-            obligation
-                .allocate_payment(
-                    UsdCents::ONE,
-                    PaymentId::new(),
-                    Utc::now().date_naive(),
-                    &dummy_audit_info(),
-                )
-                .was_ignored()
-        );
+        assert!(obligation
+            .allocate_payment(
+                UsdCents::ONE,
+                PaymentId::new(),
+                Utc::now().date_naive(),
+                &dummy_audit_info(),
+            )
+            .was_ignored());
     }
 
     mod is_status_up_to_date {
