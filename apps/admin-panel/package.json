@@ -52,7 +52,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^4.0.0-next.16",
+    "@chromatic-com/storybook": "^4.0.1",
     "@faker-js/faker": "^9.8.0",
     "@graphql-codegen/cli": "5.0.7",
     "@graphql-codegen/client-preset": "^4.8.2",
