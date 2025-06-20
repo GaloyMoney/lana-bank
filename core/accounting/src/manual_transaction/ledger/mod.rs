@@ -1,5 +1,7 @@
 mod template;
 
+use serde::{Deserialize, Serialize};
+
 use cala_ledger::{AccountId, AccountSetId, CalaLedger, account::NewAccount};
 
 use crate::{
@@ -48,8 +50,23 @@ impl ManualTransactionLedger {
         account_id_or_code: &AccountIdOrCode,
     ) -> Result<AccountId, ManualTransactionError> {
         match account_id_or_code {
-            AccountIdOrCode::Id(account_id) => Ok((*account_id).into()),
-            AccountIdOrCode::Code(code) => match chart.account_spec(code) {
+            AccountIdOrCode::Id(account_id) => {
+                let account = self
+                    .cala
+                    .accounts()
+                    .find(AccountId::from(*account_id))
+                    .await?;
+                if let Some(metadata) = account.values().metadata.as_ref() {
+                    let ManualTransactionAccountMeta { code } =
+                        serde_json::from_value(metadata.clone())
+                            .expect("Could not deserialize metadata");
+
+                    chart.leaf_account_spec(&code)?;
+                };
+
+                Ok((*account_id).into())
+            }
+            AccountIdOrCode::Code(code) => match chart.leaf_account_spec(code)? {
                 Some((_, parent_id)) => {
                     self.find_or_create_manual_account(
                         parent_id,
@@ -100,6 +117,9 @@ impl ManualTransactionLedger {
                     .id(AccountId::new())
                     .code(external_id)
                     .external_id(external_id)
+                    .metadata(ManualTransactionAccountMeta {
+                        code: parent_code.clone(),
+                    })?
                     .build()
                     .unwrap(),
             )
@@ -112,4 +132,9 @@ impl ManualTransactionLedger {
 
         Ok(manual_account.id)
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ManualTransactionAccountMeta {
+    pub code: AccountCode,
 }

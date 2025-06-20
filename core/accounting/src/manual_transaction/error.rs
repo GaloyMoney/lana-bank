@@ -8,6 +8,8 @@ pub enum ManualTransactionError {
     EsEntityError(es_entity::EsEntityError),
     #[error("ManualTransactionError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("ManualTransactionError - SerdeJson: {0}")]
+    SerdeJson(#[from] serde_json::Error),
     #[error("ManualTransactionError - CalaError: {0}")]
     LedgerError(#[from] cala_ledger::error::LedgerError),
     #[error("ManualTransactionError - CalaAccountSetError: {0}")]
@@ -18,6 +20,8 @@ pub enum ManualTransactionError {
     TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("ManualTransactionError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("ManualTransactionError - ChartOfAccountsError: {0}")]
+    ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
     #[error("ManualTransactionError - Unknown account code: {0}")]
     UnknownAccountCode(String),
 }
