@@ -143,7 +143,7 @@ impl AccountingCsv {
         });
 
         Ok(LocationInStorage {
-            path_in_storage: &self.path_in_storage,
+            path: &self.path_in_storage,
         })
     }
 }

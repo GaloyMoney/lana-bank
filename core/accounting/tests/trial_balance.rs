@@ -22,7 +22,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
 
-    let storage = Storage::new(&StorageConfig::default());
+    let storage = Storage::init(&StorageConfig::default()).await?;
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
