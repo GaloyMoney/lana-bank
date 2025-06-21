@@ -37,6 +37,7 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**
 #### Docker
 
 - Choose the install method for your system https://docs.docker.com/desktop/
+- or use podman
 
 ### Environment Variables
 
