@@ -103,8 +103,8 @@ importers:
         version: 3.25.67
     devDependencies:
       '@chromatic-com/storybook':
-        specifier: ^4.0.0-next.16
-        version: 4.0.0(storybook@9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3))
+        specifier: ^4.0.1
+        version: 4.0.1(storybook@9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3))
       '@graphql-codegen/cli':
         specifier: 5.0.7
         version: 5.0.7(@types/node@20.17.57)(enquirer@2.4.1)(graphql@16.11.0)(typescript@5.8.3)
@@ -296,8 +296,8 @@ importers:
         version: 3.25.67
     devDependencies:
       '@chromatic-com/storybook':
-        specifier: ^4.0.0
-        version: 4.0.0(storybook@9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3))
+        specifier: ^4.0.1
+        version: 4.0.1(storybook@9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3))
       '@graphql-codegen/cli':
         specifier: 5.0.7
         version: 5.0.7(@types/node@20.17.57)(enquirer@2.4.1)(graphql@16.11.0)(typescript@5.8.3)
@@ -1194,8 +1194,8 @@ packages:
   '@chevrotain/utils@11.0.3':
     resolution: {integrity: sha512-YslZMgtJUyuMbZ+aKvfF3x1f5liK4mWNxghFRv7jqRR9C3R3fAOGTTKvxXDa2Y1s9zSbcpuO0cAxDYsc9SrXoQ==}
 
-  '@chromatic-com/storybook@4.0.0':
-    resolution: {integrity: sha512-FfyMHK/lz/dHezWxwNZv4ReFORWVvv+bJx71NT2BSfLhOKOaoZnKJOe4QLyGxWAB7ynnedrM9V9qea3FPFj+rQ==}
+  '@chromatic-com/storybook@4.0.1':
+    resolution: {integrity: sha512-GQXe5lyZl3yLewLJQyFXEpOp2h+mfN2bPrzYaOFNCJjO4Js9deKbRHTOSaiP2FRwZqDLdQwy2+SEGeXPZ94yYw==}
     engines: {node: '>=20.0.0', yarn: '>=1.22.18'}
     peerDependencies:
       storybook: ^0.0.0-0 || ^9.0.0 || ^9.1.0-0
@@ -4242,8 +4242,8 @@ packages:
     resolution: {integrity: sha512-7VT13fmjotKpGipCW9JEQAusEPE+Ei8nl6/g4FBAmIm0GOOLMua9NDDo/DWp0ZAxCr3cPq5ZpBqmPAQgDda2Pw==}
     engines: {node: '>= 8.10.0'}
 
-  chromatic@12.0.0:
-    resolution: {integrity: sha512-X7v26BLfAzHCU92nxPsCuvt+MazmA7S6cN7pCRRhnDYChDxHES48YvXarOybLdlH9kNP/3lMyknu6iseTh0T9A==}
+  chromatic@12.2.0:
+    resolution: {integrity: sha512-GswmBW9ZptAoTns1BMyjbm55Z7EsIJnUvYKdQqXIBZIKbGErmpA+p4c0BYA+nzw5B0M+rb3Iqp1IaH8TFwIQew==}
     hasBin: true
     peerDependencies:
       '@chromatic-com/cypress': ^0.*.* || ^1.0.0
@@ -9865,10 +9865,10 @@ snapshots:
 
   '@chevrotain/utils@11.0.3': {}
 
-  '@chromatic-com/storybook@4.0.0(storybook@9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3))':
+  '@chromatic-com/storybook@4.0.1(storybook@9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3))':
     dependencies:
       '@neoconfetti/react': 1.0.0
-      chromatic: 12.0.0
+      chromatic: 12.2.0
       filesize: 10.1.6
       jsonfile: 6.1.0
       storybook: 9.0.12(@testing-library/dom@10.4.0)(prettier@3.5.3)
@@ -13597,7 +13597,7 @@ snapshots:
     optionalDependencies:
       fsevents: 2.3.3
 
-  chromatic@12.0.0: {}
+  chromatic@12.2.0: {}
 
   chrome-trace-event@1.0.4: {}
 
