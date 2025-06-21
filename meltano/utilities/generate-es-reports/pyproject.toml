@@ -1,7 +1,7 @@
 [project]
-name = "tap-bitfinexapi"
+name = "generate-es-reports"
 version = "0.0.1"
-description = "Singer tap for BitfinexApi, built with the Meltano Singer SDK."
+description = "generate-es-reports"
 readme = "README.md"
 requires-python = ">=3.9"
 dynamic = ["dependencies"]
@@ -11,11 +11,15 @@ dynamic = ["dependencies"]
 [tool.poetry.dependencies]
 singer-sdk = { version="~=0.43.1", extras = [] }
 requests = "~=2.32.4"
+google-cloud-bigquery = "^3.17.2"
+google-cloud-storage = "^2.16.0"
+dicttoxml = "^1.7.16"
+google-auth = "^2.29.0"
+google-auth-oauthlib = "^1.2.0"
 
 [build-system]
 requires = ["poetry-core>=2,<3"]
 build-backend = "poetry.core.masonry.api"
 
-[tool.poetry.scripts]
-# CLI declaration
-tap-bitfinexapi = 'tap_bitfinexapi.tap:TapBitfinexApi.cli'
+[project.scripts]
+generate-es-reports = 'generate_es_reports:main'
