@@ -1250,6 +1250,17 @@ export type Loan = {
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
 };
 
+export type LoanAgreementGenerateInput = {
+  customerId: Scalars['UUID']['input'];
+};
+
+export type LoanAgreementGeneratePayload = {
+  __typename?: 'LoanAgreementGeneratePayload';
+  customerId: Scalars['UUID']['output'];
+  filename: Scalars['String']['output'];
+  pdfBytes: Array<Scalars['Int']['output']>;
+};
+
 export type ManualTransactionEntryInput = {
   accountRef: Scalars['String']['input'];
   amount: Scalars['Decimal']['input'];
@@ -1298,6 +1309,7 @@ export type Mutation = {
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
+  loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
@@ -1446,6 +1458,11 @@ export type MutationDepositRecordArgs = {
 
 export type MutationLedgerAccountCsvCreateArgs = {
   input: LedgerAccountCsvCreateInput;
+};
+
+
+export type MutationLoanAgreementGenerateArgs = {
+  input: LoanAgreementGenerateInput;
 };
 
 
