@@ -17,7 +17,7 @@ use document_storage::event_schema::DocumentEvent;
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
-pub use json_schema::*;
+pub use json_schema::{SchemaChangeInfo, detect_schema_changes, process_schemas_with_changes};
 pub use migration::*;
 
 #[derive(Clone)]
@@ -381,26 +381,44 @@ pub fn update_schemas(
         },
     ];
 
-    // Delete existing schema files if force_recreate is requested
+    // First, detect which schemas have changed
+    let schema_changes = detect_schema_changes(&schemas, schemas_out_dir)?;
+
+    // Delete existing schema files and migrations only for changed schemas if force_recreate is requested
     if force_recreate {
-        println!(
-            "{} Force recreate enabled - deleting existing schema files and migrations...",
-            "🗑️".yellow().bold()
-        );
+        let changed_schemas: Vec<_> = schema_changes
+            .iter()
+            .filter(|change| change.has_changed)
+            .collect();
 
-        for schema in &schemas {
-            let schema_path = std::path::Path::new(schemas_out_dir).join(schema.filename);
-            if schema_path.exists() {
-                std::fs::remove_file(&schema_path)?;
-                println!("  Deleted schema: {}", schema_path.display());
+        if !changed_schemas.is_empty() {
+            println!(
+                "{} Force recreate enabled - deleting schema files and migrations for {} changed schema(s)...",
+                "🗑️".yellow().bold(),
+                changed_schemas.len()
+            );
+
+            for change in &changed_schemas {
+                let schema_path =
+                    std::path::Path::new(schemas_out_dir).join(change.schema_info.filename);
+                if schema_path.exists() {
+                    std::fs::remove_file(&schema_path)?;
+                    println!("  Deleted schema: {}", schema_path.display());
+                }
+
+                // Delete related migration files
+                delete_related_migration_files(migrations_out_dir, &change.schema_info)?;
             }
-
-            // Delete related migration files
-            delete_related_migration_files(migrations_out_dir, schema)?;
+        } else {
+            println!(
+                "{} Force recreate enabled but no schema changes detected - nothing to delete",
+                "ℹ️".blue().bold()
+            );
         }
     }
 
-    let schema_changes = process_schemas(&schemas, schemas_out_dir)?;
+    // Process schemas (this will now write files that were deleted above)
+    let schema_changes = process_schemas_with_changes(&schema_changes, schemas_out_dir)?;
 
     // Generate migrations for rollup tables
     println!(
