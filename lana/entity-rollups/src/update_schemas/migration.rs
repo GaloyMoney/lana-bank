@@ -384,14 +384,10 @@ pub fn generate_rollup_migrations(
         ),
     );
     handlebars.register_template_string("rollup_table_only", table_template_content)?;
-    handlebars.register_template_string(
-        "rollup_trigger_function",
-        trigger_function_template_content,
-    )?;
-    handlebars.register_template_string(
-        "rollup_trigger_creation",
-        trigger_creation_template_content,
-    )?;
+    handlebars
+        .register_template_string("rollup_trigger_function", trigger_function_template_content)?;
+    handlebars
+        .register_template_string("rollup_trigger_creation", trigger_creation_template_content)?;
     handlebars.register_template_string("rollup_table_alter", alter_template_content)?;
 
     // Register fragment templates
