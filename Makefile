@@ -111,7 +111,7 @@ check-code-rust: sdl-rust update-schemas
 	nix build .#check-code -L --option sandbox false
 
 # Cargo alternative for faster compilation during development
-check-code-rust-cargo: sdl-rust-cargo
+check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	git diff --exit-code lana/entity-rollups/schemas

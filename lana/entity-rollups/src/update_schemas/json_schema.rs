@@ -10,14 +10,48 @@ use std::{
 
 use super::SchemaInfo;
 
+#[derive(Clone)]
 pub struct SchemaChangeInfo {
     pub schema_info: SchemaInfo,
     pub previous_schema: Option<Value>,
     pub current_schema: Value,
+    pub has_changed: bool,
 }
 
-pub fn process_schemas(
+pub fn detect_schema_changes(
     schemas: &[SchemaInfo],
+    schemas_out_dir: &str,
+) -> anyhow::Result<Vec<SchemaChangeInfo>> {
+    let schemas_dir = Path::new(schemas_out_dir);
+    let mut schema_changes = Vec::new();
+
+    for schema_info in schemas {
+        let filepath = schemas_dir.join(schema_info.filename);
+        let new_schema = (schema_info.generate_schema)();
+
+        let (previous_schema, has_changed) = if filepath.exists() {
+            let existing_content = fs::read_to_string(&filepath)?;
+            let existing_schema: serde_json::Value = serde_json::from_str(&existing_content)?;
+
+            let changed = existing_schema != new_schema;
+            (Some(existing_schema), changed)
+        } else {
+            (None, true) // New schema is always considered a change
+        };
+
+        schema_changes.push(SchemaChangeInfo {
+            schema_info: schema_info.clone(),
+            previous_schema,
+            current_schema: new_schema,
+            has_changed,
+        });
+    }
+
+    Ok(schema_changes)
+}
+
+pub fn process_schemas_with_changes(
+    schema_changes: &[SchemaChangeInfo],
     schemas_out_dir: &str,
 ) -> anyhow::Result<Vec<SchemaChangeInfo>> {
     let schemas_dir = Path::new(schemas_out_dir);
@@ -26,53 +60,51 @@ pub fn process_schemas(
     }
 
     let mut has_breaking_changes = false;
-    let mut schema_changes = Vec::new();
+    let mut processed_changes = Vec::new();
 
-    for schema_info in schemas {
-        let filepath = schemas_dir.join(schema_info.filename);
-        let new_schema = (schema_info.generate_schema)();
-        let new_schema_pretty = serde_json::to_string_pretty(&new_schema)?;
+    for change in schema_changes {
+        let filepath = schemas_dir.join(change.schema_info.filename);
+        let new_schema_pretty = serde_json::to_string_pretty(&change.current_schema)?;
 
-        let previous_schema = if filepath.exists() {
-            let existing_content = fs::read_to_string(&filepath)?;
-            let existing_schema: serde_json::Value = serde_json::from_str(&existing_content)?;
-
-            if existing_schema != new_schema {
-                println!("{} {}", "Schema changed:".yellow().bold(), schema_info.name);
+        if change.has_changed {
+            if let Some(ref previous_schema) = change.previous_schema {
+                println!(
+                    "{} {}",
+                    "Schema changed:".yellow().bold(),
+                    change.schema_info.name
+                );
 
                 // Show diff
+                let existing_content = serde_json::to_string_pretty(previous_schema)?;
                 show_diff(&existing_content, &new_schema_pretty);
 
                 // Check for breaking changes
-                if is_breaking_change(&existing_schema, &new_schema)? {
+                if is_breaking_change(previous_schema, &change.current_schema)? {
                     println!(
                         "{} Breaking change detected in {}",
                         "❌".red(),
-                        schema_info.name.red().bold()
+                        change.schema_info.name.red().bold()
                     );
                     has_breaking_changes = true;
                 } else {
                     println!(
                         "{} Non-breaking change in {}",
                         "✅".green(),
-                        schema_info.name.green()
+                        change.schema_info.name.green()
                     );
                 }
-                Some(existing_schema)
             } else {
-                println!("{} {} (no changes)", "✅".green(), schema_info.name);
-                Some(existing_schema)
+                println!(
+                    "{} Creating new schema: {}",
+                    "📝".blue(),
+                    change.schema_info.name
+                );
             }
         } else {
-            println!("{} Creating new schema: {}", "📝".blue(), schema_info.name);
-            None
-        };
+            println!("{} {} (no changes)", "✅".green(), change.schema_info.name);
+        }
 
-        schema_changes.push(SchemaChangeInfo {
-            schema_info: schema_info.clone(),
-            previous_schema,
-            current_schema: new_schema,
-        });
+        processed_changes.push(change.clone());
 
         // Write the new schema
         fs::write(&filepath, format!("{}\n", new_schema_pretty))?;
@@ -88,7 +120,7 @@ pub fn process_schemas(
         );
     }
 
-    Ok(schema_changes)
+    Ok(processed_changes)
 }
 
 pub fn show_diff(old_content: &str, new_content: &str) {
