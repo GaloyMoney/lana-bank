@@ -1519,7 +1519,6 @@ type Query {
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
 	customerDocument(id: UUID!): CustomerDocument
 	ledgerAccount(id: UUID!): LedgerAccount
-	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction

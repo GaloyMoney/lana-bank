@@ -1695,7 +1695,6 @@ export type Query = {
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
-  ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   me: Subject;
@@ -1838,11 +1837,6 @@ export type QueryLedgerAccountArgs = {
 
 export type QueryLedgerAccountByCodeArgs = {
   code: Scalars['String']['input'];
-};
-
-
-export type QueryLedgerAccountCsvCreateArgs = {
-  input: LedgerAccountCsvCreateInput;
 };
 
 

@@ -470,22 +470,6 @@ impl Query {
         )
     }
 
-    async fn ledger_account_csv_create(
-        &self,
-        ctx: &Context<'_>,
-        input: LedgerAccountCsvCreateInput,
-    ) -> async_graphql::Result<LedgerAccountCsvCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let csv = app
-            .accounting()
-            .csvs()
-            .create_ledger_account_csv(sub, input.ledger_account_id)
-            .await?;
-
-        let csv = AccountingCsv::from(csv);
-        Ok(LedgerAccountCsvCreatePayload::from(csv))
-    }
-
     async fn ledger_account_by_code(
         &self,
         ctx: &Context<'_>,
