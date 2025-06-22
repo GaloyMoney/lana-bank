@@ -1,19 +1,16 @@
 query CustomerAuditLog($id: UUID!) {
   customer(id: $id) {
     customerId
-    audit {
+  }
+  audit(first: 100, after: null) {
+    nodes {
       subject {
         ... on User {
           userId
           email
-          roles
-        }
-        ... on Customer {
-          customerId
-          email
-          status
-          level
-          applicantId
+          role {
+            name
+          }
         }
         ... on System {
           name
