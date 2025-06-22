@@ -15,6 +15,7 @@ mod deposit_account;
 mod deposit_account_history;
 mod deposit_config;
 mod document;
+mod loan_agreement;
 mod loader;
 mod price;
 mod primitives;
@@ -34,6 +35,7 @@ use async_graphql::*;
 
 use loader::LanaLoader;
 pub use schema::*;
+pub use loan_agreement::*;
 
 use lana_app::app::LanaApp;
 

@@ -11,6 +11,7 @@ use core_customer::{CoreCustomerAction, CustomerObject};
 use core_deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
+use core_document_storage::{CoreDocumentStorageAction, CoreDocumentStorageObject};
 
 pub type Authorization = authz::Authorization<Audit, core_access::AuthRoleToken>;
 
@@ -145,4 +146,29 @@ pub struct GovernanceNavigationItems {
     pub committee: bool,
     pub policy: bool,
     pub approval_process: bool,
+}
+
+impl From<CoreDocumentStorageAction> for AuditAction {
+    fn from(action: CoreDocumentStorageAction) -> Self {
+        match action {
+            CoreDocumentStorageAction::DOCUMENT_CREATE => AuditAction::DocumentCreate,
+            CoreDocumentStorageAction::DOCUMENT_GENERATE_DOWNLOAD_LINK => AuditAction::DocumentGenerateDownloadLink,
+            CoreDocumentStorageAction::DOCUMENT_DELETE => AuditAction::DocumentDelete,
+            CoreDocumentStorageAction::DOCUMENT_ARCHIVE => AuditAction::DocumentArchive,
+            CoreDocumentStorageAction::LOAN_AGREEMENT_CREATE => AuditAction::LoanAgreementCreate,
+            CoreDocumentStorageAction::LOAN_AGREEMENT_GENERATE => AuditAction::LoanAgreementGenerate,
+            CoreDocumentStorageAction::LOAN_AGREEMENT_GENERATE_DOWNLOAD_LINK => AuditAction::LoanAgreementGenerateDownloadLink,
+        }
+    }
+}
+
+impl From<CoreDocumentStorageObject> for AppObject {
+    fn from(object: CoreDocumentStorageObject) -> Self {
+        match object {
+            CoreDocumentStorageObject::Document(id) => AppObject::Document(id.into()),
+            CoreDocumentStorageObject::LoanAgreement(id) => AppObject::LoanAgreement(id.into()),
+            CoreDocumentStorageObject::AllDocuments => AppObject::AllDocuments,
+            CoreDocumentStorageObject::AllLoanAgreements => AppObject::AllLoanAgreements,
+        }
+    }
 }

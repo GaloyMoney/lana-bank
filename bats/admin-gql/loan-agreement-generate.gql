@@ -1,0 +1,7 @@
+mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
+  loanAgreementGenerate(input: $input) {
+    customerId
+    storagePath
+    filename
+  }
+}

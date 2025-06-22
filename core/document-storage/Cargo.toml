@@ -1,25 +1,27 @@
 [package]
-name = "document-storage"
-version = "0.3.673-dev"
+name = "core-document-storage"
+version = "0.1.0"
 edition = "2021"
-license = "FSL-1.1-ALv2"
-
-[features]
-default = []
-fail-on-warnings = []
-graphql = ["dep:async-graphql", "es-entity/graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
+async-graphql = { workspace = true, optional = true }
+async-trait = { workspace = true }
 audit = { path = "../../lib/audit" }
+authz = { path = "../../lib/authz" }
+chrono = { workspace = true }
 cloud-storage = { path = "../../lib/cloud-storage" }
-
-es-entity = { workspace = true }
+derive_builder = { workspace = true }
+es-entity = { path = "../../lib/es-entity" }
+handlebars = { workspace = true }
+job = { path = "../../lib/job" }
+schemars = { workspace = true, optional = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
 sqlx = { workspace = true }
 thiserror = { workspace = true }
-serde = { workspace = true }
-chrono = { workspace = true }
-derive_builder = { workspace = true }
 tracing = { workspace = true }
-schemars = { workspace = true, optional = true }
-async-graphql = { workspace = true, optional = true }
+uuid = { workspace = true }
+
+[features]
+json-schema = ["schemars"]
+graphql = ["async-graphql"]

@@ -5,6 +5,7 @@ mod entity;
 pub mod error;
 mod primitives;
 mod repo;
+pub mod loan_agreement;
 
 use audit::AuditInfo;
 use cloud_storage::Storage;
@@ -19,9 +20,52 @@ use error::*;
 pub use primitives::*;
 pub use repo::DocumentRepo;
 
+// Re-export loan agreement types
+pub use loan_agreement::{
+    LoanAgreement, LoanAgreementStatus, GeneratedLoanAgreementDownloadLink, 
+    LoanAgreementId, LoanAgreements
+};
+
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::entity::DocumentEvent;
+    pub use crate::loan_agreement::LoanAgreementEvent;
+}
+
+// Add actions and objects for authorization
+pub enum CoreDocumentStorageAction {
+    DOCUMENT_CREATE,
+    DOCUMENT_GENERATE_DOWNLOAD_LINK,
+    DOCUMENT_DELETE,
+    DOCUMENT_ARCHIVE,
+    LOAN_AGREEMENT_CREATE,
+    LOAN_AGREEMENT_GENERATE,
+    LOAN_AGREEMENT_GENERATE_DOWNLOAD_LINK,
+}
+
+pub enum CoreDocumentStorageObject {
+    Document(DocumentId),
+    LoanAgreement(LoanAgreementId),
+    AllDocuments,
+    AllLoanAgreements,
+}
+
+impl CoreDocumentStorageObject {
+    pub fn all_documents() -> Self {
+        Self::AllDocuments
+    }
+    
+    pub fn all_loan_agreements() -> Self {
+        Self::AllLoanAgreements  
+    }
+    
+    pub fn document(id: DocumentId) -> Self {
+        Self::Document(id)
+    }
+    
+    pub fn loan_agreement(id: LoanAgreementId) -> Self {
+        Self::LoanAgreement(id)
+    }
 }
 
 pub struct DocumentStorage {

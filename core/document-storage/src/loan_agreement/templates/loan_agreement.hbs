@@ -1,0 +1,126 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Agreement</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            line-height: 1.6;
+            margin: 40px;
+            color: #333;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            border-bottom: 2px solid #333;
+            padding-bottom: 20px;
+        }
+        .section {
+            margin-bottom: 30px;
+        }
+        .section h2 {
+            color: #2c3e50;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 10px;
+        }
+        .loan-details {
+            background-color: #f8f9fa;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+        }
+        .loan-details table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+        .loan-details td {
+            padding: 8px;
+            border-bottom: 1px solid #ddd;
+        }
+        .loan-details td:first-child {
+            font-weight: bold;
+            width: 30%;
+        }
+        .signature-section {
+            margin-top: 60px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .signature-box {
+            width: 45%;
+            border-top: 1px solid #333;
+            padding-top: 10px;
+            text-align: center;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>LOAN AGREEMENT</h1>
+        <p>Customer ID: {{customer_id}}</p>
+        <p>Date: {{generation_date}}</p>
+    </div>
+
+    <div class="section">
+        <h2>Borrower Information</h2>
+        <p><strong>Name:</strong> {{customer_name}}</p>
+        <p><strong>Customer ID:</strong> {{customer_id}}</p>
+    </div>
+
+    <div class="section">
+        <h2>Loan Details</h2>
+        <div class="loan-details">
+            <table>
+                <tr>
+                    <td>Loan Amount:</td>
+                    <td>{{loan_amount}}</td>
+                </tr>
+                <tr>
+                    <td>Interest Rate:</td>
+                    <td>{{interest_rate}} per annum</td>
+                </tr>
+                <tr>
+                    <td>Term:</td>
+                    <td>{{term_months}} months</td>
+                </tr>
+                <tr>
+                    <td>Loan Type:</td>
+                    <td>Bitcoin-backed loan</td>
+                </tr>
+            </table>
+        </div>
+    </div>
+
+    <div class="section">
+        <h2>Terms and Conditions</h2>
+        <p>1. <strong>Repayment:</strong> The borrower agrees to repay the loan amount plus interest according to the agreed schedule.</p>
+        
+        <p>2. <strong>Collateral:</strong> This loan is secured by Bitcoin collateral held by Lana Bank.</p>
+        
+        <p>3. <strong>Default:</strong> In case of default, Lana Bank reserves the right to liquidate the collateral to recover the outstanding amount.</p>
+        
+        <p>4. <strong>Interest:</strong> Interest will be calculated and charged according to the agreed rate and schedule.</p>
+        
+        <p>5. <strong>Governing Law:</strong> This agreement is governed by applicable banking regulations.</p>
+    </div>
+
+    <div class="signature-section">
+        <div class="signature-box">
+            <p>Borrower Signature</p>
+            <p>{{customer_name}}</p>
+            <p>Date: _____________</p>
+        </div>
+        <div class="signature-box">
+            <p>Lana Bank Representative</p>
+            <p>Name: _____________</p>
+            <p>Date: _____________</p>
+        </div>
+    </div>
+
+    <div style="margin-top: 40px; font-size: 12px; color: #666; text-align: center;">
+        <p>This document was generated electronically by Lana Bank on {{generation_date}}</p>
+    </div>
+</body>
+</html>

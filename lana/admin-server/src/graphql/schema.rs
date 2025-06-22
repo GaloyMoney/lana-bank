@@ -1754,4 +1754,34 @@ impl Mutation {
 
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
     }
+
+    pub async fn loan_agreement_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanAgreementGenerateInput,
+    ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let result = app
+            .document_storage()
+            .loan_agreements()
+            .create_loan_agreement(sub, input.customer_id.into())
+            .await?;
+
+        Ok(LoanAgreementGeneratePayload::from(result))
+    }
+
+    pub async fn loan_agreement_download_link_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanAgreementDownloadLinkGenerateInput,
+    ) -> async_graphql::Result<LoanAgreementDownloadLinkGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let result = app
+            .document_storage()
+            .loan_agreements()
+            .generate_download_link(sub, input.loan_agreement_id.into())
+            .await?;
+
+        Ok(LoanAgreementDownloadLinkGeneratePayload::from(result))
+    }
 }

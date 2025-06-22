@@ -20,6 +20,7 @@ use crate::{
     dashboard::Dashboard,
     deposit::Deposits,
     document::DocumentStorage,
+    document_storage,
     governance::Governance,
     job::Jobs,
     notification::Notification,
@@ -52,6 +53,7 @@ pub struct LanaApp {
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
+    document_storage: document_storage::DocumentStorageApp,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
 }
@@ -77,6 +79,7 @@ impl LanaApp {
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = DocumentStorage::new(&pool, &storage);
+        let document_storage = document_storage::DocumentStorageApp::new(&pool, &authz, &jobs, &storage);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =
@@ -164,6 +167,7 @@ impl LanaApp {
             outbox,
             governance,
             dashboard,
+            document_storage,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
         })
@@ -238,6 +242,10 @@ impl LanaApp {
 
     pub fn access(&self) -> &Access {
         &self.access
+    }
+
+    pub fn document_storage(&self) -> &document_storage::DocumentStorageApp {
+        &self.document_storage
     }
 
     pub async fn get_visible_nav_items(

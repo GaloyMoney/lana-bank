@@ -4,6 +4,7 @@ use std::borrow::Cow;
 es_entity::entity_id! {
     DocumentId,
     ReferenceId,
+    CustomerId,
 }
 
 #[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize, sqlx::Type)]

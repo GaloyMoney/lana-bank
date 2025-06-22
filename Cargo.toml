@@ -129,7 +129,7 @@ google-cloud-storage = { version = "0.24.0", default-features = false, features 
 rand = "0.9"
 serial_test = { version = "3.2.0", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
-handlebars = "6.3.2"
+handlebars = "5.1"
 schemars = { version = "0.9", features = ["derive", "chrono04", "rust_decimal1"] }
 
 # Note: The workspace uses resolver = "2" which should unify features across all dependencies.
