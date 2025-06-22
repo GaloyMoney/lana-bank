@@ -157,10 +157,12 @@ impl TryFromEvents<AccountingCsvEvent> for AccountingCsv {
                 id,
                 csv_type,
                 ledger_account_id,
+                path_in_bucket,
                 ..
             } = event
             {
                 builder = builder.id(*id).csv_type(*csv_type);
+                builder = builder.path_in_storage(path_in_bucket.clone());
                 if let Some(account_id) = ledger_account_id {
                     builder = builder.ledger_account_id(*account_id);
                 }
@@ -195,7 +197,7 @@ impl IntoEvents<AccountingCsvEvent> for NewAccountingCsv {
                 id: self.id,
                 csv_type: self.csv_type,
                 ledger_account_id: self.ledger_account_id,
-                path_in_bucket: "".to_string(),
+                path_in_bucket: format!("accounting_csvs/{}.csv", self.id),
                 audit_info: self.audit_info,
             }],
         )
