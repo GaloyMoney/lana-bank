@@ -86,7 +86,7 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
   const appVersion = env.NEXT_PUBLIC_APP_VERSION
   const client = useMemo(() => {
     return makeClient({
-      coreAdminGqlUrl: appVersion.endsWith("dev") ? "/admin/graphql" : "/graphql",
+      coreAdminGqlUrl: "/graphql",
     })
   }, [appVersion])
 

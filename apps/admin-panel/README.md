@@ -14,7 +14,7 @@ pnpm dev
 
 ### Steps to log in to the admin panel locally:
 
-1. Go to `http://localhost:4455/admin` URL to open the admin panel login.
+1. Go to `http://admin.localhost:4455` URL to open the admin panel login.
 2. Enter the email. For now, we have two allowed emails: `admin@galoy.io`.
 3. Get the login code by running `make get-superadmin-login-code` or `make get-admin-login-code EMAIL=admin@galoy.io` in the project root.
 4. Enter the code to log in to the admin panel.

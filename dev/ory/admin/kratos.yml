@@ -4,12 +4,12 @@ dsn: "overridden-by-env"
 
 serve:
   public:
-    base_url: http://localhost:4455
+    base_url: http://admin.localhost:4455
     cors:
       enabled: true
       allow_credentials: true
       allowed_origins:
-        - http://localhost:4455
+        - http://admin.localhost:4455
       allowed_methods: [POST, GET, PUT, PATCH, DELETE]
       allowed_headers:
         - Authorization
@@ -24,9 +24,9 @@ serve:
     base_url: http://localhost:4434/
 
 selfservice:
-  default_browser_return_url: http://localhost:4455/
+  default_browser_return_url: http://admin.localhost:4455/
   allowed_return_urls:
-    - http://localhost:4455/
+    - http://admin.localhost:4455/
 
   methods:
     code:
@@ -37,10 +37,10 @@ selfservice:
 
   flows:
     login:
-      ui_url: http://localhost:4455/admin/login
+      ui_url: http://admin.localhost:4455/login
 
     error:
-      ui_url: http://localhost:4455/admin/errored
+      ui_url: http://admin.localhost:4455/errored
 
     settings:
       lifespan: 1s

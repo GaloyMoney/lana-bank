@@ -71,12 +71,12 @@ After bringing the development stack up, you can access the following services:
 
 | Service         | URL                                                        | Notes                                 |
 | --------------- | ---------------------------------------------------------- | ------------------------------------- |
-| Admin Panel     | [http://localhost:4455/admin](http://localhost:4455/admin) | Admin panel for managing the platform |
-| Customer Portal | [http://localhost:4455/app](http://localhost:4455/app)     | App for customers to see their data   |
+| Admin Panel     | [http://admin.localhost:4455](http://admin.localhost:4455) | Admin panel for managing the platform |
+| Customer Portal | [http://app.localhost:4455](http://app.localhost:4455)     | App for customers to see their data   |
 
 #### Steps to access Admin Panel
 
-1. Open [Admin Panel](http://localhost:4455/admin) in your browser
+1. Open [Admin Panel](http://admin.localhost:4455) in your browser
 1. Use email `admin@galoy.io` to log in
 1. Get the login code by running `make get-superadmin-login-code` or `make get-admin-login-code EMAIL=admin@galoy.io`
 1. You're in!
@@ -84,7 +84,7 @@ After bringing the development stack up, you can access the following services:
 #### Steps to access Customer Portal
 
 1. Create customer from Admin Panel
-1. Open [Customer Portal](http://localhost:4455/app) in a separate browser (or incognito mode)
+1. Open [Customer Portal](http://app.localhost:4455) in a separate browser (or incognito mode)
 1. Use the customer email to try and login
 1. Get the login code by running `make get-customer-login-code EMAIL=your-customer-email@example.com`
 1. You're in!

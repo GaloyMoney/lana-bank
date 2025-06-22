@@ -33,7 +33,7 @@ local_resource(
         "core-pg",
     ],
     links = [
-        link("http://localhost:4455/admin/graphql", "playground"),
+        link("http://admin.localhost:4455/graphql", "playground"),
     ]
 )
 
@@ -41,21 +41,21 @@ local_resource(
     "admin-panel",
     labels = ["apps"],
     serve_env = {
-        "NEXT_PUBLIC_BASE_PATH": "/admin",
-        "NEXT_PUBLIC_CORE_ADMIN_URL": "/admin/graphql"
+        "NEXT_PUBLIC_BASE_PATH": "/",
+        "NEXT_PUBLIC_CORE_ADMIN_URL": "/graphql"
     },
     serve_cmd = "cd .. && make start-admin",
     readiness_probe = probe(
         initial_delay_secs = 3,
         period_secs = 1,
         http_get = http_get_action(
-            path = "/admin",
-            port = 4455,
+            path = "/",
+            port = 3001,
         ),
     ),
     allow_parallel = True,
     links = [
-        link("http://localhost:4455/admin", "admin-panel"),
+        link("http://admin.localhost:4455", "admin-panel"),
     ]
 )
 
@@ -63,20 +63,20 @@ local_resource(
     "customer-portal",
     labels = ["apps"],
     serve_env = {
-        "NEXT_PUBLIC_BASE_PATH": "/app",
-        "NEXT_PUBLIC_CORE_APP_URL": "/app/graphql"
+        "NEXT_PUBLIC_BASE_PATH": "/",
+        "NEXT_PUBLIC_CORE_APP_URL": "/graphql"
     },
     serve_cmd = "cd .. && make start-customer-portal",
     readiness_probe = probe(
         initial_delay_secs = 3,
         period_secs = 1,
         http_get = http_get_action(
-            path = "/app",
-            port = 4455,
+            path = "/",
+            port = 3002,
         ),
     ),
     allow_parallel = True,
     links = [
-        link("http://localhost:4455/app", "customer-portal"),
+        link("http://app.localhost:4455", "customer-portal"),
     ]
 )

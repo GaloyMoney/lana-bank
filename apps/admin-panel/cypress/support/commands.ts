@@ -39,7 +39,7 @@ Cypress.Commands.add(
     return cy
       .request({
         method: "POST",
-        url: "http://localhost:4455/admin/graphql",
+        url: "http://admin.localhost:4455/graphql",
         body: {
           query,
           variables,

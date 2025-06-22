@@ -75,8 +75,8 @@ wait4x http http://localhost:5253/health --timeout 60s
 
 # Step 5: Start admin panel in background
 echo "Starting admin panel..."
-export NEXT_PUBLIC_BASE_PATH="/admin"
-export NEXT_PUBLIC_CORE_ADMIN_URL="/admin/graphql"
+export NEXT_PUBLIC_BASE_PATH="/"
+export NEXT_PUBLIC_CORE_ADMIN_URL="/graphql"
 
 cd apps/admin-panel
 nohup nix develop -c bash -c "pnpm install --frozen-lockfile && pnpm dev" > "../../admin-panel.log" 2>&1 &
@@ -85,7 +85,7 @@ cd ../..
 
 # Step 6: Wait for admin panel to be ready
 echo "Waiting for admin panel to be ready..."
-wait4x http http://localhost:4455/admin/api/health --timeout 60s
+wait4x http http://admin.localhost:4455/api/health --timeout 60s
 
 echo "All services are ready!"
 exit 0

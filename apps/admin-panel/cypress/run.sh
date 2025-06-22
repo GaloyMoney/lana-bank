@@ -18,7 +18,7 @@ cookie_jar() {
 
 # Browser-based login for Cypress (different from API-based login in helpers.bash)
 login_superadmin_browser() {
-  ADMIN_URL="http://localhost:4455/admin"
+  ADMIN_URL="http://admin.localhost:4455"
   email="admin@galoy.io"
   
   echo "--- Starting superadmin browser login process ---"

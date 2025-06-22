@@ -193,7 +193,7 @@ test-cypress-in-ci:
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:5253/graphql || echo "GraphQL endpoint check failed"
 	@echo "Admin panel status:"
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:3001 || echo "Admin panel direct check failed"
-	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:4455/admin || echo "Admin panel via proxy failed"
+	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://admin.localhost:4455 || echo "Admin panel via proxy failed"
 	@echo "Database connectivity check:"
 	@echo "Container status:"
 	@podman ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "Failed to check container status"

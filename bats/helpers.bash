@@ -6,8 +6,8 @@ mkdir -p "$CACHE_DIR"
 
 OATHKEEPER_PROXY="http://localhost:4455"
 
-GQL_APP_ENDPOINT="${OATHKEEPER_PROXY}/app/graphql"
-GQL_ADMIN_ENDPOINT="${OATHKEEPER_PROXY}/admin/graphql"
+GQL_APP_ENDPOINT="http://app.localhost:4455/graphql"
+GQL_ADMIN_ENDPOINT="http://admin.localhost:4455/graphql"
 
 LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
@@ -73,14 +73,14 @@ graphql_output() {
 login_customer() {
   local email=$1
 
-  flowId=$(curl -s -X GET -H "Accept: application/json" "${OATHKEEPER_PROXY}/app/self-service/login/api" | jq -r '.id')
+  flowId=$(curl -s -X GET -H "Accept: application/json" "http://app.localhost:4455/self-service/login/api" | jq -r '.id')
   variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
-  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/app/self-service/login?flow=$flowId"
+  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://app.localhost:4455/self-service/login?flow=$flowId"
   sleep 1
 
   code=$(getEmailCode $email)
   variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
-  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/app/self-service/login?flow=$flowId")
+  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://app.localhost:4455/self-service/login?flow=$flowId")
   token=$(echo $session | jq -r '.session_token')
   cache_value "$email" $token
 }
@@ -109,14 +109,14 @@ exec_customer_graphql() {
 login_superadmin() {
   local email="admin@galoy.io"
 
-  flowId=$(curl -s -X GET -H "Accept: application/json" "${OATHKEEPER_PROXY}/admin/self-service/login/api" | jq -r '.id')
+  flowId=$(curl -s -X GET -H "Accept: application/json" "http://admin.localhost:4455/self-service/login/api" | jq -r '.id')
   variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
-  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/admin/self-service/login?flow=$flowId"
+  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId"
   sleep 1
 
   code=$(getEmailCode $email)
   variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
-  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "${OATHKEEPER_PROXY}/admin/self-service/login?flow=$flowId")
+  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId")
   token=$(echo $session | jq -r '.session_token')
   cache_value "superadmin" $token
 }
