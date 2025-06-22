@@ -17,7 +17,7 @@ async fn upload_doc() -> anyhow::Result<()> {
     let config = if let Ok(name_prefix) = std::env::var("DEV_ENV_NAME_PREFIX") {
         StorageConfig::new_gcp_dev_mode(name_prefix)
     } else {
-        StorageConfig::new_gcp("gha".to_string(), "gha-lana-documents".to_string())
+        StorageConfig::new_gcp("gha-lana-documents".to_string(), "gha".to_string())
     };
 
     let storage = Storage::init(&config).await?;
