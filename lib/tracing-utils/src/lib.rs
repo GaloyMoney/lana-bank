@@ -1,6 +1,3 @@
-#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-
 use opentelemetry::{KeyValue, global, trace::TracerProvider};
 use opentelemetry_sdk::{
     Resource,

@@ -136,5 +136,11 @@ schemars = { version = "0.9", features = ["derive", "chrono04", "rust_decimal1"]
 # The reqwest dependency is configured with rustls-tls to prevent OpenSSL dependencies in CI builds.
 # The kratos-admin library now uses direct HTTP calls with reqwest instead of ory-kratos-client.
 
+[workspace.lints.rust]
+warnings = { level = "deny", priority = -1 }
+
+[workspace.lints.clippy]
+all = { level = "deny", priority = -1 }
+
 [profile.release]
 lto = true 

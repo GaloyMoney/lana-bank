@@ -4,6 +4,9 @@ version = "0.3.673-dev"
 license = "FSL-1.1-ALv2"
 edition = "2021"
 
+[lints]
+workspace = true
+
 [features]
 
 fail-on-warnings = []

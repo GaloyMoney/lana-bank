@@ -1,6 +1,3 @@
-#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-
 // This module was created by splitting the code from the
 // [`axum-jwt-auth`](https://github.com/cmackenzie1/axum-jwt-auth) crate
 

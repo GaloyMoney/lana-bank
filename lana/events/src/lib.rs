@@ -1,6 +1,3 @@
-#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-
 use serde::{Deserialize, Serialize};
 
 pub use core_access::CoreAccessEvent;
