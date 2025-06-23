@@ -9,7 +9,9 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 
 pub fn custody_config() -> CustodyConfig {
     CustodyConfig {
-        custodian_encryption: CustodianEncryptionConfig { key: [1u8; 32].into() },
+        custodian_encryption: CustodianEncryptionConfig {
+            key: [1u8; 32].into(),
+        },
         deprecated_encryption_key: None,
     }
 }

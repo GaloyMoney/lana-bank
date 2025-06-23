@@ -19,8 +19,8 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
   total JSONB,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[],
+  audit_entry_ids BIGINT[],
 
   -- Toggle fields
   is_interest_accruals_posted BOOLEAN DEFAULT false
@@ -72,16 +72,16 @@ BEGIN
     new_row.effective := (NEW.event ->> 'effective');
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     new_row.total := (NEW.event -> 'total');
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
        ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.audit_entry_ids := CASE
+       WHEN NEW.event ? 'audit_entry_ids' THEN
+         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
+       ELSE ARRAY[]::BIGINT[]
      END
 ;
     new_row.is_interest_accruals_posted := false;
@@ -99,8 +99,8 @@ BEGIN
     new_row.effective := current_row.effective;
     new_row.obligation_id := current_row.obligation_id;
     new_row.total := current_row.total;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.is_interest_accruals_posted := current_row.is_interest_accruals_posted;
   END IF;
 
@@ -118,15 +118,15 @@ BEGIN
       new_row.accrued_at := (NEW.event ->> 'accrued_at')::TIMESTAMPTZ;
       new_row.amount := (NEW.event -> 'amount');
       new_row.tx_ref := (NEW.event ->> 'tx_ref');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'interest_accruals_posted' THEN
       new_row.tx_ref := (NEW.event ->> 'tx_ref');
       new_row.effective := (NEW.event ->> 'effective');
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
       new_row.total := (NEW.event -> 'total');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_interest_accruals_posted := true;
   END CASE;
 
@@ -147,8 +147,8 @@ BEGIN
     effective,
     obligation_id,
     total,
-    audit_entry_ids,
     ledger_tx_ids,
+    audit_entry_ids,
     is_interest_accruals_posted
   )
   VALUES (
@@ -168,8 +168,8 @@ BEGIN
     new_row.effective,
     new_row.obligation_id,
     new_row.total,
-    new_row.audit_entry_ids,
     new_row.ledger_tx_ids,
+    new_row.audit_entry_ids,
     new_row.is_interest_accruals_posted
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -187,8 +187,8 @@ BEGIN
     effective = EXCLUDED.effective,
     obligation_id = EXCLUDED.obligation_id,
     total = EXCLUDED.total,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
     ledger_tx_ids = EXCLUDED.ledger_tx_ids,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
     is_interest_accruals_posted = EXCLUDED.is_interest_accruals_posted;
 
   RETURN NEW;

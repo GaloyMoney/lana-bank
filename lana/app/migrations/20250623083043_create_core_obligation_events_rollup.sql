@@ -25,10 +25,10 @@ CREATE TABLE core_obligation_events_rollup (
   liquidation_process_id UUID,
 
   -- Collection rollups
+  payment_ids UUID[],
   audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[],
   payment_allocation_ids UUID[],
-  payment_ids UUID[],
 
   -- Toggle fields
   is_due_recorded BOOLEAN DEFAULT false,
@@ -89,6 +89,12 @@ BEGIN
     new_row.defaulted_amount := (NEW.event -> 'defaulted_amount');
     new_row.payment_allocation_amount := (NEW.event -> 'payment_allocation_amount');
     new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
+    new_row.payment_ids := CASE
+       WHEN NEW.event ? 'payment_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'payment_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
@@ -104,12 +110,6 @@ BEGIN
     new_row.payment_allocation_ids := CASE
        WHEN NEW.event ? 'payment_allocation_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'payment_allocation_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
-    new_row.payment_ids := CASE
-       WHEN NEW.event ? 'payment_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'payment_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -137,10 +137,10 @@ BEGIN
     new_row.defaulted_amount := current_row.defaulted_amount;
     new_row.payment_allocation_amount := current_row.payment_allocation_amount;
     new_row.liquidation_process_id := current_row.liquidation_process_id;
+    new_row.payment_ids := current_row.payment_ids;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.payment_allocation_ids := current_row.payment_allocation_ids;
-    new_row.payment_ids := current_row.payment_ids;
     new_row.is_due_recorded := current_row.is_due_recorded;
     new_row.is_overdue_recorded := current_row.is_overdue_recorded;
     new_row.is_defaulted_recorded := current_row.is_defaulted_recorded;
@@ -182,9 +182,9 @@ BEGIN
       new_row.is_defaulted_recorded := true;
     WHEN 'payment_allocated' THEN
       new_row.payment_allocation_amount := (NEW.event -> 'payment_allocation_amount');
+      new_row.payment_ids := array_append(COALESCE(current_row.payment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_id')::UUID);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.payment_allocation_ids := array_append(COALESCE(current_row.payment_allocation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_allocation_id')::UUID);
-      new_row.payment_ids := array_append(COALESCE(current_row.payment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_id')::UUID);
     WHEN 'liquidation_process_started' THEN
       new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -220,10 +220,10 @@ BEGIN
     defaulted_amount,
     payment_allocation_amount,
     liquidation_process_id,
+    payment_ids,
     audit_entry_ids,
     ledger_tx_ids,
     payment_allocation_ids,
-    payment_ids,
     is_due_recorded,
     is_overdue_recorded,
     is_defaulted_recorded,
@@ -252,10 +252,10 @@ BEGIN
     new_row.defaulted_amount,
     new_row.payment_allocation_amount,
     new_row.liquidation_process_id,
+    new_row.payment_ids,
     new_row.audit_entry_ids,
     new_row.ledger_tx_ids,
     new_row.payment_allocation_ids,
-    new_row.payment_ids,
     new_row.is_due_recorded,
     new_row.is_overdue_recorded,
     new_row.is_defaulted_recorded,
@@ -282,10 +282,10 @@ BEGIN
     defaulted_amount = EXCLUDED.defaulted_amount,
     payment_allocation_amount = EXCLUDED.payment_allocation_amount,
     liquidation_process_id = EXCLUDED.liquidation_process_id,
+    payment_ids = EXCLUDED.payment_ids,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
     ledger_tx_ids = EXCLUDED.ledger_tx_ids,
     payment_allocation_ids = EXCLUDED.payment_allocation_ids,
-    payment_ids = EXCLUDED.payment_ids,
     is_due_recorded = EXCLUDED.is_due_recorded,
     is_overdue_recorded = EXCLUDED.is_overdue_recorded,
     is_defaulted_recorded = EXCLUDED.is_defaulted_recorded,
