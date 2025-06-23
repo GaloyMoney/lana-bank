@@ -10,7 +10,7 @@ use lana_events::LanaEvent;
 use rbac_types::{LanaAction, LanaObject, Subject};
 
 use email::EmailNotification;
-use email::job::{EmailEventListenerConfig, EmailEventListenerJobInitializer};
+use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
 
 pub use config::NotificationConfig;
 
@@ -31,7 +31,7 @@ impl Notification {
     ) -> Result<Self, error::NotificationError> {
         let email = EmailNotification::init(jobs, config.email, users, credit, customers).await?;
         jobs.add_initializer_and_spawn_unique(
-            EmailEventListenerJobInitializer::new(outbox, &email),
+            EmailEventListenerInit::new(outbox, &email),
             EmailEventListenerConfig,
         )
         .await?;

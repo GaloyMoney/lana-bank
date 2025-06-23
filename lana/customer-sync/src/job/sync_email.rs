@@ -32,10 +32,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Initializer = SyncEmailJobInitializer<Perms, E>;
+    type Initializer = SyncEmailInit<Perms, E>;
 }
 
-pub struct SyncEmailJobInitializer<Perms, E>
+pub struct SyncEmailInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -45,7 +45,7 @@ where
     kratos_admin: KratosAdmin,
 }
 
-impl<Perms, E> SyncEmailJobInitializer<Perms, E>
+impl<Perms, E> SyncEmailInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
@@ -66,7 +66,7 @@ where
 }
 
 const SYNC_EMAIL_JOB: JobType = JobType::new("sync-email-job");
-impl<Perms, E> JobInitializer for SyncEmailJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for SyncEmailInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,

@@ -38,10 +38,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreateDepositAccountJobInitializer<Perms, E>;
+    type Initializer = CreateDepositAccountInit<Perms, E>;
 }
 
-pub struct CreateDepositAccountJobInitializer<Perms, E>
+pub struct CreateDepositAccountInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -53,7 +53,7 @@ where
     config: CustomerSyncConfig,
 }
 
-impl<Perms, E> CreateDepositAccountJobInitializer<Perms, E>
+impl<Perms, E> CreateDepositAccountInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -75,7 +75,7 @@ where
 
 const CUSTOMER_SYNC_CREATE_DEPOSIT_ACCOUNT: JobType =
     JobType::new("customer-sync-create-deposit-account");
-impl<Perms, E> JobInitializer for CreateDepositAccountJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for CreateDepositAccountInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:

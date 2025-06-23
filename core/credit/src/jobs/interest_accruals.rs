@@ -25,10 +25,10 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = InterestAccrualJobInitializer<Perms, E>;
+    type Initializer = InterestAccrualInit<Perms, E>;
 }
 
-pub struct InterestAccrualJobInitializer<Perms, E>
+pub struct InterestAccrualInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -38,7 +38,7 @@ where
     jobs: Jobs,
 }
 
-impl<Perms, E> InterestAccrualJobInitializer<Perms, E>
+impl<Perms, E> InterestAccrualInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -61,7 +61,7 @@ where
 }
 
 const INTEREST_ACCRUAL_JOB: JobType = JobType::new("interest-accrual");
-impl<Perms, E> JobInitializer for InterestAccrualJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for InterestAccrualInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:

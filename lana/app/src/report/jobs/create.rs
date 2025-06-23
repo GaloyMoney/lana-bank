@@ -17,7 +17,7 @@ pub struct CreateReportJobConfig {
     pub job_interval: CreateReportInterval,
 }
 impl JobConfig for CreateReportJobConfig {
-    type Initializer = CreateReportJobInitializer;
+    type Initializer = CreateReportInit;
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
@@ -39,13 +39,13 @@ impl CreateReportInterval {
     }
 }
 
-pub struct CreateReportJobInitializer {
+pub struct CreateReportInit {
     repo: ReportRepo,
     jobs: Jobs,
     audit: Audit,
 }
 
-impl CreateReportJobInitializer {
+impl CreateReportInit {
     pub fn new(repo: &ReportRepo, jobs: &Jobs, audit: &Audit) -> Self {
         Self {
             repo: repo.clone(),
@@ -56,7 +56,7 @@ impl CreateReportJobInitializer {
 }
 
 const CREATE_REPORT_JOB: JobType = JobType::new("create-report");
-impl JobInitializer for CreateReportJobInitializer {
+impl JobInitializer for CreateReportInit {
     fn job_type() -> JobType
     where
         Self: Sized,

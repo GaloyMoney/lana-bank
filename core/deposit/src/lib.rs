@@ -42,9 +42,7 @@ pub use history::{DepositAccountHistoryCursor, DepositAccountHistoryEntry};
 use ledger::*;
 pub use primitives::*;
 pub use processes::approval::APPROVE_WITHDRAWAL_PROCESS;
-use processes::approval::{
-    ApproveWithdrawal, WithdrawApprovalJobConfig, WithdrawApprovalJobInitializer,
-};
+use processes::approval::{ApproveWithdrawal, WithdrawApprovalInit, WithdrawApprovalJobConfig};
 use publisher::DepositPublisher;
 use withdrawal::*;
 pub use withdrawal::{Withdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor};
@@ -120,7 +118,7 @@ where
         let approve_withdrawal = ApproveWithdrawal::new(&withdrawals, authz.audit(), governance);
 
         jobs.add_initializer_and_spawn_unique(
-            WithdrawApprovalJobInitializer::new(outbox, &approve_withdrawal),
+            WithdrawApprovalInit::new(outbox, &approve_withdrawal),
             WithdrawApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;

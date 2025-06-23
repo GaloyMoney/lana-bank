@@ -23,9 +23,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = ObligationOverdueJobInitializer<Perms, E>;
+    type Initializer = ObligationOverdueInit<Perms, E>;
 }
-pub struct ObligationOverdueJobInitializer<Perms, E>
+pub struct ObligationOverdueInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -35,7 +35,7 @@ where
     jobs: Jobs,
 }
 
-impl<Perms, E> ObligationOverdueJobInitializer<Perms, E>
+impl<Perms, E> ObligationOverdueInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -52,7 +52,7 @@ where
 }
 
 const OBLIGATION_OVERDUE_JOB: JobType = JobType::new("obligation-overdue");
-impl<Perms, E> JobInitializer for ObligationOverdueJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for ObligationOverdueInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,

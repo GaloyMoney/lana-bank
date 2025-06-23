@@ -17,17 +17,17 @@ pub struct GenerateReportConfig {
     pub(in crate::report) report_id: ReportId,
 }
 impl JobConfig for GenerateReportConfig {
-    type Initializer = GenerateReportJobInitializer;
+    type Initializer = GenerateReportInit;
 }
 
-pub struct GenerateReportJobInitializer {
+pub struct GenerateReportInit {
     repo: ReportRepo,
     report_config: ReportConfig,
     audit: Audit,
     storage: Storage,
 }
 
-impl GenerateReportJobInitializer {
+impl GenerateReportInit {
     pub fn new(
         repo: &ReportRepo,
         report_config: &ReportConfig,
@@ -44,7 +44,7 @@ impl GenerateReportJobInitializer {
 }
 
 const REPORT_JOB: JobType = JobType::new("generate-report");
-impl JobInitializer for GenerateReportJobInitializer {
+impl JobInitializer for GenerateReportInit {
     fn job_type() -> JobType
     where
         Self: Sized,

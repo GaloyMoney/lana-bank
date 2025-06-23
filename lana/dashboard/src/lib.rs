@@ -55,7 +55,7 @@ where
     ) -> Result<Self, DashboardError> {
         let repo = DashboardRepo::new(pool);
         jobs.add_initializer_and_spawn_unique(
-            DashboardProjectionJobInitializer::new(outbox, &repo),
+            DashboardProjectionInit::new(outbox, &repo),
             DashboardProjectionJobConfig,
         )
         .await?;

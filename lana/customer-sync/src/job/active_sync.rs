@@ -38,10 +38,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CustomerActiveSyncJobInitializer<Perms, E>;
+    type Initializer = CustomerActiveSyncInit<Perms, E>;
 }
 
-pub struct CustomerActiveSyncJobInitializer<Perms, E>
+pub struct CustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -53,7 +53,7 @@ where
     config: CustomerSyncConfig,
 }
 
-impl<Perms, E> CustomerActiveSyncJobInitializer<Perms, E>
+impl<Perms, E> CustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -74,7 +74,7 @@ where
 }
 
 const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("customer-active-sync");
-impl<Perms, E> JobInitializer for CustomerActiveSyncJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for CustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:

@@ -29,10 +29,10 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    type Initializer = UserOnboardingJobInitializer<Audit, E>;
+    type Initializer = UserOnboardingInit<Audit, E>;
 }
 
-pub struct UserOnboardingJobInitializer<Audit, E>
+pub struct UserOnboardingInit<Audit, E>
 where
     Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
@@ -42,7 +42,7 @@ where
     users: Users<Audit, E>,
 }
 
-impl<Audit, E> UserOnboardingJobInitializer<Audit, E>
+impl<Audit, E> UserOnboardingInit<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,
@@ -60,7 +60,7 @@ where
 }
 
 const USER_ONBOARDING_JOB: JobType = JobType::new("user-onboarding");
-impl<Audit, E> JobInitializer for UserOnboardingJobInitializer<Audit, E>
+impl<Audit, E> JobInitializer for UserOnboardingInit<Audit, E>
 where
     Audit: AuditSvc,
     <Audit as AuditSvc>::Subject: From<UserId>,

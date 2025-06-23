@@ -21,9 +21,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = ObligationDefaultedJobInitializer<Perms, E>;
+    type Initializer = ObligationDefaultedInit<Perms, E>;
 }
-pub struct ObligationDefaultedJobInitializer<Perms, E>
+pub struct ObligationDefaultedInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -32,7 +32,7 @@ where
     ledger: CreditLedger,
 }
 
-impl<Perms, E> ObligationDefaultedJobInitializer<Perms, E>
+impl<Perms, E> ObligationDefaultedInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -48,7 +48,7 @@ where
 }
 
 const OBLIGATION_DEFAULTED_JOB: JobType = JobType::new("obligation-defaulted");
-impl<Perms, E> JobInitializer for ObligationDefaultedJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for ObligationDefaultedInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,

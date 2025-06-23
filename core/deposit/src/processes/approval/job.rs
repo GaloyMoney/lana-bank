@@ -31,10 +31,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
 {
-    type Initializer = WithdrawApprovalJobInitializer<Perms, E>;
+    type Initializer = WithdrawApprovalInit<Perms, E>;
 }
 
-pub struct WithdrawApprovalJobInitializer<Perms, E>
+pub struct WithdrawApprovalInit<Perms, E>
 where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
@@ -47,7 +47,7 @@ where
     process: ApproveWithdrawal<Perms, E>,
 }
 
-impl<Perms, E> WithdrawApprovalJobInitializer<Perms, E>
+impl<Perms, E> WithdrawApprovalInit<Perms, E>
 where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,
@@ -65,7 +65,7 @@ where
 }
 
 const WITHDRAW_APPROVE_JOB: JobType = JobType::new("withdraw-approval");
-impl<Perms, E> JobInitializer for WithdrawApprovalJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for WithdrawApprovalInit<Perms, E>
 where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,
     Perms: PermissionCheck,

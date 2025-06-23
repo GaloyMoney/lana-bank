@@ -14,15 +14,15 @@ pub struct EmailSenderConfig {
 }
 
 impl JobConfig for EmailSenderConfig {
-    type Initializer = EmailSenderJobInitializer;
+    type Initializer = EmailSenderInit;
 }
 
-pub struct EmailSenderJobInitializer {
+pub struct EmailSenderInit {
     smtp_client: SmtpClient,
     template: EmailTemplate,
 }
 
-impl EmailSenderJobInitializer {
+impl EmailSenderInit {
     pub fn new(smtp_client: SmtpClient, template: EmailTemplate) -> Self {
         Self {
             smtp_client,
@@ -33,7 +33,7 @@ impl EmailSenderJobInitializer {
 
 const EMAIL_SENDER_JOB: JobType = JobType::new("email-sender");
 
-impl JobInitializer for EmailSenderJobInitializer {
+impl JobInitializer for EmailSenderInit {
     fn job_type() -> JobType {
         EMAIL_SENDER_JOB
     }

@@ -9,7 +9,7 @@ use ::job::{JobId, Jobs};
 use core_access::user::Users;
 use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
 use core_customer::Customers;
-use job::{EmailSenderConfig, EmailSenderJobInitializer};
+use job::{EmailSenderConfig, EmailSenderInit};
 use lana_events::LanaEvent;
 
 use crate::{Authorization, LanaAudit};
@@ -37,7 +37,7 @@ impl EmailNotification {
     ) -> Result<Self, EmailError> {
         let smtp_client = SmtpClient::init(config)?;
         let template = EmailTemplate::new()?;
-        jobs.add_initializer(EmailSenderJobInitializer::new(smtp_client, template));
+        jobs.add_initializer(EmailSenderInit::new(smtp_client, template));
         Ok(Self {
             jobs: jobs.clone(),
             users: users.clone(),

@@ -53,7 +53,7 @@ where
         let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin);
 
         jobs.add_initializer_and_spawn_unique(
-            UserOnboardingJobInitializer::new(outbox, users, kratos_admin),
+            UserOnboardingInit::new(outbox, users, kratos_admin),
             UserOnboardingJobConfig::new(),
         )
         .await?;

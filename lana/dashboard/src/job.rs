@@ -8,15 +8,15 @@ use crate::{Outbox, repo::DashboardRepo, values::*};
 #[derive(serde::Serialize)]
 pub struct DashboardProjectionJobConfig;
 impl JobConfig for DashboardProjectionJobConfig {
-    type Initializer = DashboardProjectionJobInitializer;
+    type Initializer = DashboardProjectionInit;
 }
 
-pub struct DashboardProjectionJobInitializer {
+pub struct DashboardProjectionInit {
     outbox: Outbox,
     repo: DashboardRepo,
 }
 
-impl DashboardProjectionJobInitializer {
+impl DashboardProjectionInit {
     pub fn new(outbox: &Outbox, repo: &DashboardRepo) -> Self {
         Self {
             repo: repo.clone(),
@@ -26,7 +26,7 @@ impl DashboardProjectionJobInitializer {
 }
 
 const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("dashboard-projection");
-impl JobInitializer for DashboardProjectionJobInitializer {
+impl JobInitializer for DashboardProjectionInit {
     fn job_type() -> JobType
     where
         Self: Sized,

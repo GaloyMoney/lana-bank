@@ -56,7 +56,7 @@ where
     ) -> Self {
         let repo = AccountingCsvRepo::new(pool);
 
-        jobs.add_initializer(GenerateAccountingCsvJobInitializer::new(
+        jobs.add_initializer(GenerateAccountingCsvInit::new(
             &repo,
             storage,
             ledger_accounts,

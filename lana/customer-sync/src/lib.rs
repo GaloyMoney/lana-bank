@@ -65,22 +65,22 @@ where
         config: CustomerSyncConfig,
     ) -> Result<Self, CustomerSyncError> {
         jobs.add_initializer_and_spawn_unique(
-            CreateDepositAccountJobInitializer::new(outbox, deposit, config.clone()),
+            CreateDepositAccountInit::new(outbox, deposit, config.clone()),
             CreateDepositAccountJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreateKratosUserJobInitializer::new(outbox, customers, config.clone()),
+            CreateKratosUserInit::new(outbox, customers, config.clone()),
             CreateKratosUserJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            SyncEmailJobInitializer::new(outbox, customers, config.clone()),
+            SyncEmailInit::new(outbox, customers, config.clone()),
             SyncEmailJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CustomerActiveSyncJobInitializer::new(outbox, deposit, config),
+            CustomerActiveSyncInit::new(outbox, deposit, config),
             CustomerActiveSyncJobConfig::new(),
         )
         .await?;

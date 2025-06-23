@@ -23,9 +23,9 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = ObligationLiquidationJobInitializer<Perms, E>;
+    type Initializer = ObligationLiquidationInit<Perms, E>;
 }
-pub struct ObligationLiquidationJobInitializer<Perms, E>
+pub struct ObligationLiquidationInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
@@ -35,7 +35,7 @@ where
     jobs: Jobs,
 }
 
-impl<Perms, E> ObligationLiquidationJobInitializer<Perms, E>
+impl<Perms, E> ObligationLiquidationInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
@@ -53,7 +53,7 @@ where
 
 const OBLIGATION_LIQUIDATION_PROCESSING_JOB: JobType =
     JobType::new("obligation-liquidation-processing");
-impl<Perms, E> JobInitializer for ObligationLiquidationJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for ObligationLiquidationInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,

@@ -37,10 +37,10 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    type Initializer = CreateKratosUserJobInitializer<Perms, E>;
+    type Initializer = CreateKratosUserInit<Perms, E>;
 }
 
-pub struct CreateKratosUserJobInitializer<Perms, E>
+pub struct CreateKratosUserInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
@@ -50,7 +50,7 @@ where
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> CreateKratosUserJobInitializer<Perms, E>
+impl<Perms, E> CreateKratosUserInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
@@ -71,7 +71,7 @@ where
 }
 
 const CUSTOMER_SYNC_CREATE_KRATOS_USER: JobType = JobType::new("customer-sync-create-kratos-user");
-impl<Perms, E> JobInitializer for CreateKratosUserJobInitializer<Perms, E>
+impl<Perms, E> JobInitializer for CreateKratosUserInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:

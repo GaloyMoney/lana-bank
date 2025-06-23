@@ -186,41 +186,40 @@ where
         let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(authz, &ledger);
         let terms_templates = TermsTemplates::new(pool, authz);
 
+        jobs
+            .add_initializer_and_spawn_unique(
+                collateralization_from_price::CreditFacilityCollateralizationFromPriceInit::<
+                    Perms,
+                    E,
+                >::new(credit_facilities.clone()),
+                collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
+                    job_interval: std::time::Duration::from_secs(30),
+                    upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
+        jobs
+            .add_initializer_and_spawn_unique(
+                collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
+                    Perms,
+                    E,
+                >::new(outbox, &credit_facilities),
+                collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
+                    upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
         jobs.add_initializer_and_spawn_unique(
-            collateralization_from_price::CreditFacilityCollateralizationFromPriceJobInitializer::<
-                Perms,
-                E,
-            >::new(credit_facilities.clone()),
-            collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
-                job_interval: std::time::Duration::from_secs(30),
-                upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
-                _phantom: std::marker::PhantomData,
-            },
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
-            collateralization_from_events::CreditFacilityCollateralizationFromEventsJobInitializer::<
-                Perms,
-                E,
-            >::new(outbox, &credit_facilities),
-            collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
-                upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
-                _phantom: std::marker::PhantomData,
-            },
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
-            credit_facility_history::HistoryProjectionJobInitializer::<E>::new(
-                outbox,
-                &history_repo,
-            ),
+            credit_facility_history::HistoryProjectionInit::<E>::new(outbox, &history_repo),
             credit_facility_history::HistoryProjectionConfig {
                 _phantom: std::marker::PhantomData,
             },
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            credit_facility_repayment_plan::RepaymentPlanProjectionJobInitializer::<E>::new(
+            credit_facility_repayment_plan::RepaymentPlanProjectionInit::<E>::new(
                 outbox,
                 &repayment_plan_repo,
             ),
@@ -229,15 +228,13 @@ where
             },
         )
         .await?;
+        jobs.add_initializer(interest_accruals::InterestAccrualInit::<Perms, E>::new(
+            &ledger,
+            &credit_facilities,
+            jobs,
+        ));
         jobs.add_initializer(
-            interest_accruals::InterestAccrualJobInitializer::<Perms, E>::new(
-                &ledger,
-                &credit_facilities,
-                jobs,
-            ),
-        );
-        jobs.add_initializer(
-            interest_accrual_cycles::InterestAccrualCycleJobInitializer::<Perms, E>::new(
+            interest_accrual_cycles::InterestAccrualCycleInit::<Perms, E>::new(
                 &ledger,
                 &obligations,
                 &credit_facilities,
@@ -245,40 +242,38 @@ where
                 authz.audit(),
             ),
         );
+        jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
+            &ledger,
+            &obligations,
+            jobs,
+        ));
+        jobs.add_initializer(obligation_overdue::ObligationOverdueInit::<Perms, E>::new(
+            &ledger,
+            &obligations,
+            jobs,
+        ));
         jobs.add_initializer(
-            obligation_due::ObligationDueJobInitializer::<Perms, E>::new(
+            obligation_liquidation::ObligationLiquidationInit::<Perms, E>::new(
                 &ledger,
                 &obligations,
                 jobs,
             ),
         );
-        jobs.add_initializer(obligation_overdue::ObligationOverdueJobInitializer::<
-            Perms,
-            E,
-        >::new(&ledger, &obligations, jobs));
         jobs.add_initializer(
-            obligation_liquidation::ObligationLiquidationJobInitializer::<Perms, E>::new(
-                &ledger,
-                &obligations,
-                jobs,
-            ),
+            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(&ledger, &obligations),
         );
-        jobs.add_initializer(obligation_defaulted::ObligationDefaultedJobInitializer::<
-            Perms,
-            E,
-        >::new(&ledger, &obligations));
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityApprovalJobInitializer::new(outbox, &approve_credit_facility),
+            CreditFacilityApprovalInit::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            DisbursalApprovalJobInitializer::new(outbox, &approve_disbursal),
+            DisbursalApprovalInit::new(outbox, &approve_disbursal),
             DisbursalApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityActivationJobInitializer::new(outbox, &activate_credit_facility),
+            CreditFacilityActivationInit::new(outbox, &activate_credit_facility),
             CreditFacilityActivationJobConfig::<Perms, E>::new(),
         )
         .await?;
