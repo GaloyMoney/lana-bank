@@ -27,12 +27,10 @@ pub enum AccountingCsvEvent {
     },
     FileUploaded {
         bucket: String,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     UploadFailed {
         error: String,
-        audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
     DownloadLinkGenerated {
@@ -81,7 +79,7 @@ impl AccountingCsv {
         None
     }
 
-    pub fn file_uploaded(&mut self, bucket: String, audit_info: AuditInfo) -> Idempotent<()> {
+    pub fn file_uploaded(&mut self, bucket: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
             AccountingCsvEvent::FileUploaded { .. }
@@ -89,16 +87,14 @@ impl AccountingCsv {
 
         self.events.push(AccountingCsvEvent::FileUploaded {
             bucket,
-            audit_info,
             recorded_at: Utc::now(),
         });
         Idempotent::Executed(())
     }
 
-    pub fn upload_failed(&mut self, error: String, audit_info: AuditInfo) {
+    pub fn upload_failed(&mut self, error: String) {
         self.events.push(AccountingCsvEvent::UploadFailed {
             error,
-            audit_info,
             recorded_at: Utc::now(),
         });
     }

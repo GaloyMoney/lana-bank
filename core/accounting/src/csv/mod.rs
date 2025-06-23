@@ -98,20 +98,20 @@ where
             .expect("Could not build new Accounting CSV");
 
         let mut db = self.repo.begin_op().await?;
-        let csv = self.repo.create_in_op(&mut db, new_csv).await?;
+        let csv_job = self.repo.create_in_op(&mut db, new_csv).await?;
         self.jobs
             .create_and_spawn_in_op::<GenerateAccountingCsvConfig<Perms>>(
                 &mut db,
-                csv.id,
+                csv_job.id,
                 GenerateAccountingCsvConfig {
-                    accounting_csv_id: csv.id,
+                    accounting_csv_id: csv_job.id,
                     _phantom: std::marker::PhantomData,
                 },
             )
             .await?;
 
         db.commit().await?;
-        Ok(csv)
+        Ok(csv_job)
     }
 
     #[instrument(name = "core_accounting.csv.generate_download_link", skip(self), err)]
@@ -129,16 +129,16 @@ where
             )
             .await?;
 
-        let mut csv = self.repo.find_by_id(accounting_csv_id).await?;
-        let location = csv.download_link_generated(audit_info)?;
+        let mut csv_job = self.repo.find_by_id(accounting_csv_id).await?;
+        let location = csv_job.download_link_generated(audit_info)?;
 
         let url = self.storage.generate_download_link(location).await?;
-        self.repo.update(&mut csv).await?;
+        self.repo.update(&mut csv_job).await?;
 
         Ok(GeneratedAccountingCsvDownloadLink {
             accounting_csv_id,
             link: AccountingCsvDownloadLink {
-                csv_type: csv.csv_type,
+                csv_type: csv_job.csv_type,
                 url,
             },
         })
