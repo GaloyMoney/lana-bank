@@ -321,7 +321,7 @@
         ];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
-        DATABASE_URL = "postgres://user:password@$127.0.0.1:5433/pg?sslmode=disable";
+        DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
         PG_CON = "${DATABASE_URL}";
         CUSTODIAN_ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
       };
