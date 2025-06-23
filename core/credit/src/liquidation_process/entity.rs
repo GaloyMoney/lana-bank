@@ -15,7 +15,7 @@ use crate::primitives::*;
 pub enum LiquidationProcessEvent {
     Initialized {
         id: LiquidationProcessId,
-        tx_id: LedgerTxId,
+        ledger_tx_id: LedgerTxId,
         obligation_id: ObligationId,
         credit_facility_id: CreditFacilityId,
         in_liquidation_account_id: CalaAccountId,
@@ -32,7 +32,7 @@ pub enum LiquidationProcessEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct LiquidationProcess {
     pub id: LiquidationProcessId,
-    pub tx_id: LedgerTxId,
+    pub ledger_tx_id: LedgerTxId,
     pub obligation_id: ObligationId,
     pub credit_facility_id: CreditFacilityId,
     pub in_liquidation_account_id: CalaAccountId,
@@ -50,7 +50,7 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
             match event {
                 LiquidationProcessEvent::Initialized {
                     id,
-                    tx_id,
+                    ledger_tx_id,
                     obligation_id,
                     credit_facility_id,
                     in_liquidation_account_id,
@@ -60,7 +60,7 @@ impl TryFromEvents<LiquidationProcessEvent> for LiquidationProcess {
                 } => {
                     builder = builder
                         .id(*id)
-                        .tx_id(*tx_id)
+                        .ledger_tx_id(*ledger_tx_id)
                         .obligation_id(*obligation_id)
                         .credit_facility_id(*credit_facility_id)
                         .in_liquidation_account_id(*in_liquidation_account_id)
@@ -79,7 +79,7 @@ pub struct NewLiquidationProcess {
     #[builder(setter(into))]
     pub(crate) id: LiquidationProcessId,
     #[builder(setter(into))]
-    pub(crate) tx_id: LedgerTxId,
+    pub(crate) ledger_tx_id: LedgerTxId,
     #[builder(setter(into))]
     pub(crate) obligation_id: ObligationId,
     #[builder(setter(into))]
@@ -104,7 +104,7 @@ impl IntoEvents<LiquidationProcessEvent> for NewLiquidationProcess {
             self.id,
             [LiquidationProcessEvent::Initialized {
                 id: self.id,
-                tx_id: self.tx_id,
+                ledger_tx_id: self.ledger_tx_id,
                 obligation_id: self.obligation_id,
                 credit_facility_id: self.credit_facility_id,
                 in_liquidation_account_id: self.in_liquidation_account_id,

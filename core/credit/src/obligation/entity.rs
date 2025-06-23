@@ -9,8 +9,8 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    CreditFacilityId, liquidation_process::NewLiquidationProcess,
-    payment_allocation::NewPaymentAllocation, primitives::*,
+    liquidation_process::NewLiquidationProcess, payment_allocation::NewPaymentAllocation,
+    primitives::*, CreditFacilityId,
 };
 
 use super::{error::ObligationError, primitives::*};
@@ -463,7 +463,7 @@ impl Obligation {
         let liquidation_process_id = LiquidationProcessId::new();
         let new_liquidation_process = NewLiquidationProcess::builder()
             .id(liquidation_process_id)
-            .tx_id(LedgerTxId::new())
+            .ledger_tx_id(LedgerTxId::new())
             .credit_facility_id(self.credit_facility_id)
             .obligation_id(self.id)
             .in_liquidation_account_id(self.in_liquidation_account())
@@ -742,21 +742,17 @@ mod test {
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
 
-        assert!(
-            obligation
-                .record_overdue(Utc::now().date_naive(), dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(obligation
+            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap()
+            .did_execute());
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
-        assert!(
-            obligation
-                .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
-                .unwrap()
-                .did_execute()
-        );
+        assert!(obligation
+            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+            .unwrap()
+            .did_execute());
         let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
         assert!(matches!(res, Idempotent::Ignored));
 
@@ -886,16 +882,14 @@ mod test {
     fn payment_allocation_ignored_in_liquidation() {
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.start_liquidation(Utc::now().date_naive(), &dummy_audit_info());
-        assert!(
-            obligation
-                .allocate_payment(
-                    UsdCents::ONE,
-                    PaymentId::new(),
-                    Utc::now().date_naive(),
-                    &dummy_audit_info(),
-                )
-                .was_ignored()
-        );
+        assert!(obligation
+            .allocate_payment(
+                UsdCents::ONE,
+                PaymentId::new(),
+                Utc::now().date_naive(),
+                &dummy_audit_info(),
+            )
+            .was_ignored());
     }
 
     mod is_status_up_to_date {

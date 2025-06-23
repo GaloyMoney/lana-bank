@@ -12,16 +12,13 @@ mod templates;
 mod velocity;
 
 use cala_ledger::{
-    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
     account::NewAccount,
     account_set::{AccountSet, AccountSetMemberId, AccountSetUpdate, NewAccountSet},
     velocity::{NewVelocityControl, VelocityControlId},
+    CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, TransactionId,
 };
 
 use crate::{
-    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
-    ObligationDefaultedReallocationData, ObligationDueReallocationData,
-    ObligationOverdueReallocationData,
     liquidation_process::LiquidationProcess,
     payment_allocation::PaymentAllocation,
     primitives::{
@@ -29,6 +26,9 @@ use crate::{
         CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
         InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId, Satoshis, UsdCents,
     },
+    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
+    ObligationDefaultedReallocationData, ObligationDueReallocationData,
+    ObligationOverdueReallocationData,
 };
 
 pub use balance::*;
@@ -1308,7 +1308,7 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         LiquidationProcess {
-            tx_id,
+            ledger_tx_id,
             initial_amount: outstanding,
             in_liquidation_account_id,
             effective,
@@ -1319,7 +1319,7 @@ impl CreditLedger {
         self.cala
             .post_transaction_in_op(
                 &mut op,
-                tx_id,
+                ledger_tx_id,
                 templates::RESERVE_FOR_LIQUIDATION_CODE,
                 templates::ReserveForLiquidationParams {
                     journal_id: self.journal_id,
