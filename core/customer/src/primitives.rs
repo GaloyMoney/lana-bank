@@ -5,7 +5,11 @@ pub use audit::AuditInfo;
 pub use authz::{action_description::*, AllOrOne};
 
 es_entity::entity_id! {
-    CustomerId;
+    CustomerId,
+    CustomerDocumentId;
+
+    CustomerId => document_storage::ReferenceId,
+    CustomerDocumentId => document_storage::DocumentId
 }
 
 es_entity::entity_id! { AuthenticationId }
@@ -88,6 +92,7 @@ impl From<CustomerType> for String {
 }
 
 pub type CustomerAllOrOne = AllOrOne<CustomerId>;
+pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 
 pub const PERMISSION_SET_CUSTOMER_VIEWER: &str = "customer_viewer";
 pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
@@ -97,6 +102,7 @@ pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CustomerObject {
     Customer(CustomerAllOrOne),
+    CustomerDocument(CustomerDocumentAllOrOne),
 }
 
 impl CustomerObject {
@@ -109,6 +115,15 @@ impl CustomerObject {
             None => CustomerObject::all_customers(),
         }
     }
+    pub fn all_customer_documents() -> CustomerObject {
+        CustomerObject::CustomerDocument(AllOrOne::All)
+    }
+    pub fn customer_document(id: impl Into<Option<CustomerDocumentId>>) -> CustomerObject {
+        match id.into() {
+            Some(id) => CustomerObject::CustomerDocument(AllOrOne::ById(id)),
+            None => CustomerObject::all_customer_documents(),
+        }
+    }
 }
 
 impl Display for CustomerObject {
@@ -117,6 +132,7 @@ impl Display for CustomerObject {
         use CustomerObject::*;
         match self {
             Customer(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            CustomerDocument(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
     }
 }
@@ -132,6 +148,10 @@ impl FromStr for CustomerObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
                 CustomerObject::Customer(obj_ref)
             }
+            CustomerDocument => {
+                let obj_ref = id.parse().map_err(|_| "could not parse CustomerObject")?;
+                CustomerObject::CustomerDocument(obj_ref)
+            }
         };
         Ok(res)
     }
@@ -142,6 +162,7 @@ impl FromStr for CustomerObject {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum CoreCustomerAction {
     Customer(CustomerEntityAction),
+    CustomerDocument(CustomerDocumentEntityAction),
 }
 
 impl CoreCustomerAction {
@@ -157,6 +178,16 @@ impl CoreCustomerAction {
         CoreCustomerAction::Customer(CustomerEntityAction::ApproveKyc);
     pub const CUSTOMER_DECLINE_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::DeclineKyc);
+    pub const CUSTOMER_DOCUMENT_CREATE: Self =
+        CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Create);
+    pub const CUSTOMER_DOCUMENT_READ: Self =
+        CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Read);
+    pub const CUSTOMER_DOCUMENT_LIST: Self =
+        CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::List);
+    pub const CUSTOMER_DOCUMENT_DELETE: Self =
+        CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Delete);
+    pub const CUSTOMER_DOCUMENT_GENERATE_DOWNLOAD_LINK: Self =
+        CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::GenerateDownloadLink);
 
     pub fn entities() -> Vec<(
         CoreCustomerActionDiscriminants,
@@ -169,6 +200,7 @@ impl CoreCustomerAction {
         for entity in <CoreCustomerActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
                 Customer => CustomerEntityAction::describe(),
+                CustomerDocument => CustomerDocumentEntityAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -246,6 +278,7 @@ impl Display for CoreCustomerAction {
         use CoreCustomerAction::*;
         match self {
             Customer(action) => action.fmt(f),
+            CustomerDocument(action) => action.fmt(f),
         }
     }
 }
@@ -258,6 +291,9 @@ impl FromStr for CoreCustomerAction {
         use CoreCustomerActionDiscriminants::*;
         let res = match entity.parse()? {
             Customer => CoreCustomerAction::from(action.parse::<CustomerEntityAction>()?),
+            CustomerDocument => {
+                CoreCustomerAction::from(action.parse::<CustomerDocumentEntityAction>()?)
+            }
         };
         Ok(res)
     }
@@ -266,5 +302,62 @@ impl FromStr for CoreCustomerAction {
 impl From<CustomerEntityAction> for CoreCustomerAction {
     fn from(action: CustomerEntityAction) -> Self {
         CoreCustomerAction::Customer(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum CustomerDocumentEntityAction {
+    Read,
+    Create,
+    List,
+    Delete,
+    GenerateDownloadLink,
+}
+
+impl CustomerDocumentEntityAction {
+    pub fn describe() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
+
+                Self::Read => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_CUSTOMER_VIEWER,
+                        PERMISSION_SET_CUSTOMER_WRITER,
+                    ],
+                ),
+
+                Self::List => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_CUSTOMER_WRITER,
+                        PERMISSION_SET_CUSTOMER_VIEWER,
+                    ],
+                ),
+
+                Self::GenerateDownloadLink => ActionDescription::new(
+                    variant,
+                    &[
+                        PERMISSION_SET_CUSTOMER_VIEWER,
+                        PERMISSION_SET_CUSTOMER_WRITER,
+                    ],
+                ),
+
+                Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+}
+
+impl From<CustomerDocumentEntityAction> for CoreCustomerAction {
+    fn from(action: CustomerDocumentEntityAction) -> Self {
+        CoreCustomerAction::CustomerDocument(action)
     }
 }

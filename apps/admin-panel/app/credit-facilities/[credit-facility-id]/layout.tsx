@@ -78,8 +78,17 @@ gql`
         units
       }
     }
+    repaymentPlan {
+      repaymentType
+      status
+      initial
+      outstanding
+      accrualAt
+      dueAt
+    }
     customer {
       customerId
+      customerType
       email
     }
     approvalProcess {

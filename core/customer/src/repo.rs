@@ -18,6 +18,7 @@ use super::{entity::*, error::*};
         telegram_id(ty = "String", list_by),
         status(ty = "AccountStatus", list_for)
     ),
+    tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
 pub struct CustomerRepo<E>

@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,15 +7,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -29,10 +28,11 @@
     },
     "Satoshis": {
       "format": "uint64",
-      "minimum": 0.0,
+      "minimum": 0,
       "type": "integer"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
@@ -49,52 +49,48 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "account_id",
-        "credit_facility_id",
+        "type",
         "id",
-        "type"
+        "account_id",
+        "credit_facility_id"
       ],
       "type": "object"
     },
     {
       "properties": {
         "abs_diff": {
-          "$ref": "#/definitions/Satoshis"
+          "$ref": "#/$defs/Satoshis"
         },
         "action": {
-          "$ref": "#/definitions/CollateralAction"
+          "$ref": "#/$defs/CollateralAction"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "collateral_amount": {
+          "$ref": "#/$defs/Satoshis"
         },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
-        "new_value": {
-          "$ref": "#/definitions/Satoshis"
-        },
         "type": {
-          "enum": [
-            "updated"
-          ],
+          "const": "updated",
           "type": "string"
         }
       },
       "required": [
+        "type",
+        "ledger_tx_id",
+        "collateral_amount",
         "abs_diff",
         "action",
-        "audit_info",
-        "ledger_tx_id",
-        "new_value",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

@@ -1,6 +1,6 @@
 [package]
 name = "cloud-storage"
-version = "0.3.662-dev"
+version = "0.3.681-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
@@ -14,3 +14,7 @@ serde = { workspace = true }
 anyhow = { workspace = true }
 tokio = { workspace = true }
 reqwest = { workspace = true }
+async-trait = { workspace = true }
+
+[dev-dependencies]
+tempfile = { workspace = true }

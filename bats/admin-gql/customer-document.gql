@@ -1,0 +1,8 @@
+query CustomerDocument($id: UUID!) {
+  customerDocument(id: $id) {
+    documentId
+    customerId
+    filename
+    status
+  }
+}

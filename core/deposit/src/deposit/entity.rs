@@ -16,7 +16,7 @@ use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId};
 pub enum DepositEvent {
     Initialized {
         id: DepositId,
-        ledger_transaction_id: CalaTransactionId,
+        ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
         reference: String,
@@ -112,7 +112,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
             [DepositEvent::Initialized {
                 reference: self.reference(),
                 id: self.id,
-                ledger_transaction_id: self.ledger_transaction_id,
+                ledger_tx_id: self.ledger_transaction_id,
                 deposit_account_id: self.deposit_account_id,
                 amount: self.amount,
                 audit_info: self.audit_info,

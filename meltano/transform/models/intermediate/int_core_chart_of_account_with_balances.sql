@@ -1,27 +1,25 @@
 with chart as (
-    select
-        code,
-        name,
-        account_set_id,
+    select *
     from {{ ref('int_core_chart_of_accounts') }}
 ),
 
 balances as (
-    select
-        *,
+    select *
     from {{ ref('int_account_sets_expanded_with_balances') }}
 ),
 
 
 final as (
     select
-        c.code,
-        c.name,
-        c.account_set_id,
+        code,
+        dotted_code,
+        spaced_code,
+        name,
+        account_set_id,
         coalesce(sum(balance), 0) as balance
-    from chart as c
+    from chart
     left join balances using (account_set_id)
-    group by code, name, account_set_id
+    group by code, dotted_code, spaced_code, name, account_set_id
 )
 
 select * from final

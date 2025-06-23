@@ -13,6 +13,9 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use document_storage::{
+    Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
+};
 use outbox::{Outbox, OutboxEventMarker};
 
 pub use entity::Customer;
@@ -21,6 +24,8 @@ use error::*;
 pub use event::*;
 pub use primitives::*;
 pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
+
+pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -37,6 +42,7 @@ where
     authz: Perms,
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
+    document_storage: DocumentStorage,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -49,6 +55,7 @@ where
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            document_storage: self.document_storage.clone(),
         }
     }
 }
@@ -60,13 +67,19 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, outbox: &Outbox<E>) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        outbox: &Outbox<E>,
+        document_storage: DocumentStorage,
+    ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
         let repo = CustomerRepo::new(pool, &publisher);
         Self {
             repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            document_storage,
         }
     }
 
@@ -381,5 +394,174 @@ where
         }
 
         Ok(customer)
+    }
+
+    // Document management methods
+    #[instrument(name = "customer.create_document", skip(self, content), err)]
+    pub async fn create_document(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        content: Vec<u8>,
+        filename: impl Into<String> + std::fmt::Debug,
+        content_type: impl Into<String> + std::fmt::Debug,
+    ) -> Result<Document, CustomerError> {
+        let customer_id = customer_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customer_documents(),
+                CoreCustomerAction::CUSTOMER_DOCUMENT_CREATE,
+            )
+            .await?;
+
+        let document = self
+            .document_storage
+            .create_and_upload(
+                audit_info,
+                content,
+                filename,
+                content_type,
+                customer_id,
+                CUSTOMER_DOCUMENT,
+            )
+            .await?;
+
+        Ok(document)
+    }
+
+    #[instrument(name = "customer.list_documents_for_customer", skip(self), err)]
+    pub async fn list_documents_for_customer_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Vec<Document>, CustomerError> {
+        let customer_id = customer_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customer_documents(),
+                CoreCustomerAction::CUSTOMER_DOCUMENT_LIST,
+            )
+            .await?;
+
+        let documents = self
+            .document_storage
+            .list_for_reference_id(customer_id)
+            .await?;
+
+        Ok(documents)
+    }
+
+    #[instrument(name = "customer.generate_document_download_link", skip(self), err)]
+    pub async fn generate_document_download_link(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        document_id: impl Into<CustomerDocumentId> + std::fmt::Debug + Copy,
+    ) -> Result<GeneratedDocumentDownloadLink, CustomerError> {
+        let customer_document_id = document_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer_document(customer_document_id),
+                CoreCustomerAction::CUSTOMER_DOCUMENT_GENERATE_DOWNLOAD_LINK,
+            )
+            .await?;
+
+        let link = self
+            .document_storage
+            .generate_download_link(audit_info, customer_document_id)
+            .await?;
+
+        Ok(link)
+    }
+
+    #[instrument(name = "customer.delete_document", skip(self), err)]
+    pub async fn delete_document(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        document_id: impl Into<CustomerDocumentId> + std::fmt::Debug + Copy,
+    ) -> Result<(), CustomerError> {
+        let customer_document_id = document_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer_document(customer_document_id),
+                CoreCustomerAction::CUSTOMER_DOCUMENT_DELETE,
+            )
+            .await?;
+
+        self.document_storage
+            .delete(audit_info, customer_document_id)
+            .await?;
+
+        Ok(())
+    }
+
+    #[instrument(name = "customer.archive_document", skip(self), err)]
+    pub async fn archive_document(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        document_id: impl Into<CustomerDocumentId> + std::fmt::Debug + Copy,
+    ) -> Result<Document, CustomerError> {
+        let customer_document_id = document_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer_document(customer_document_id),
+                CoreCustomerAction::CUSTOMER_DOCUMENT_DELETE,
+            )
+            .await?;
+
+        let document = self
+            .document_storage
+            .archive(audit_info, customer_document_id)
+            .await?;
+
+        Ok(document)
+    }
+
+    #[instrument(name = "customer.find_customer_document_by_id", skip(self), err)]
+    pub async fn find_customer_document_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        document_id: impl Into<CustomerDocumentId> + std::fmt::Debug + Copy,
+    ) -> Result<Option<Document>, CustomerError> {
+        let customer_document_id = document_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::customer_document(customer_document_id),
+                CoreCustomerAction::CUSTOMER_DOCUMENT_READ,
+            )
+            .await?;
+
+        let document = self
+            .document_storage
+            .find_by_id(customer_document_id)
+            .await?;
+
+        Ok(document)
+    }
+
+    #[instrument(name = "customer.find_all_documents", skip(self), err)]
+    pub async fn find_all_documents<T: From<Document>>(
+        &self,
+        ids: &[CustomerDocumentId],
+    ) -> Result<HashMap<CustomerDocumentId, T>, CustomerError> {
+        let document_ids: Vec<DocumentId> = ids.iter().map(|id| (*id).into()).collect();
+        let documents: HashMap<DocumentId, T> =
+            self.document_storage.find_all(&document_ids).await?;
+
+        let result = documents
+            .into_iter()
+            .map(|(doc_id, document)| (CustomerDocumentId::from(doc_id), document))
+            .collect();
+
+        Ok(result)
     }
 }

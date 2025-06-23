@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,15 +7,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -32,8 +31,8 @@
         }
       },
       "required": [
-        "account_to_be_credited_id",
-        "receivable_account_id"
+        "receivable_account_id",
+        "account_to_be_credited_id"
       ],
       "type": "object"
     },
@@ -46,18 +45,19 @@
     },
     "UsdCents": {
       "format": "uint64",
-      "minimum": 0.0,
+      "minimum": 0,
       "type": "integer"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "amount": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "credit_facility_id": {
           "format": "uuid",
@@ -75,7 +75,7 @@
           ]
         },
         "due_accounts": {
-          "$ref": "#/definitions/ObligationAccounts"
+          "$ref": "#/$defs/ObligationAccounts"
         },
         "due_date": {
           "format": "date-time",
@@ -89,14 +89,29 @@
           "format": "uuid",
           "type": "string"
         },
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "liquidation_date": {
+          "format": "date-time",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "not_yet_due_accounts": {
-          "$ref": "#/definitions/ObligationAccounts"
+          "$ref": "#/$defs/ObligationAccounts"
         },
         "obligation_type": {
-          "$ref": "#/definitions/ObligationType"
+          "$ref": "#/$defs/ObligationType"
         },
         "overdue_accounts": {
-          "$ref": "#/definitions/ObligationAccounts"
+          "$ref": "#/$defs/ObligationAccounts"
         },
         "overdue_date": {
           "format": "date-time",
@@ -108,120 +123,113 @@
         "reference": {
           "type": "string"
         },
-        "tx_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "amount",
-        "audit_info",
+        "type",
+        "id",
         "credit_facility_id",
-        "defaulted_account_id",
+        "obligation_type",
+        "amount",
+        "reference",
+        "ledger_tx_id",
+        "not_yet_due_accounts",
         "due_accounts",
+        "overdue_accounts",
+        "in_liquidation_account_id",
+        "defaulted_account_id",
         "due_date",
         "effective",
-        "id",
-        "not_yet_due_accounts",
-        "obligation_type",
-        "overdue_accounts",
-        "reference",
-        "tx_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "amount": {
-          "$ref": "#/definitions/UsdCents"
-        },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
-        "tx_id": {
+        "due_amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "due_recorded"
-          ],
+          "const": "due_recorded",
           "type": "string"
         }
       },
       "required": [
-        "amount",
-        "audit_info",
-        "tx_id",
-        "type"
+        "type",
+        "ledger_tx_id",
+        "due_amount",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "amount": {
-          "$ref": "#/definitions/UsdCents"
-        },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
-        "tx_id": {
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "overdue_amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "type": {
+          "const": "overdue_recorded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "overdue_amount",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "defaulted_amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "overdue_recorded"
-          ],
+          "const": "defaulted_recorded",
           "type": "string"
         }
       },
       "required": [
-        "amount",
-        "audit_info",
-        "tx_id",
-        "type"
+        "type",
+        "ledger_tx_id",
+        "defaulted_amount",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "amount": {
-          "$ref": "#/definitions/UsdCents"
-        },
-        "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
-        },
-        "tx_id": {
+        "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
-        "type": {
-          "enum": [
-            "defaulted_recorded"
-          ],
-          "type": "string"
-        }
-      },
-      "required": [
-        "amount",
-        "audit_info",
-        "tx_id",
-        "type"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "amount": {
-          "$ref": "#/definitions/UsdCents"
+        "payment_allocation_amount": {
+          "$ref": "#/$defs/UsdCents"
         },
         "payment_allocation_id": {
           "format": "uuid",
@@ -231,46 +239,80 @@
           "format": "uuid",
           "type": "string"
         },
-        "tx_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "type": {
-          "enum": [
-            "payment_allocated"
-          ],
+          "const": "payment_allocated",
           "type": "string"
         }
       },
       "required": [
-        "amount",
-        "payment_allocation_id",
+        "type",
+        "ledger_tx_id",
         "payment_id",
-        "tx_id",
-        "type"
+        "payment_allocation_id",
+        "payment_allocation_amount"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "liquidation_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "liquidation_process_started",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_process_id",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "liquidation_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "liquidation_process_concluded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "liquidation_process_id",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
         },
         "effective": {
           "format": "date",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "completed"
-          ],
+          "const": "completed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "effective",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

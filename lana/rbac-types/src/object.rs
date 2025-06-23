@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use lana_ids::{DocumentId, ReportId};
+use lana_ids::ReportId;
 
 use authz::AllOrOne;
 use core_access::CoreAccessObject;
@@ -78,15 +78,15 @@ impl Display for LanaObject {
         write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
         use LanaObject::*;
         match self {
-            App(action) => action.fmt(f),
-            Governance(action) => action.fmt(f),
-            Access(action) => action.fmt(f),
-            Customer(action) => action.fmt(f),
-            Accounting(action) => action.fmt(f),
-            Deposit(action) => action.fmt(f),
-            Credit(action) => action.fmt(f),
-            Custody(action) => action.fmt(f),
-            Dashboard(action) => action.fmt(f),
+            App(object) => object.fmt(f),
+            Governance(object) => object.fmt(f),
+            Access(object) => object.fmt(f),
+            Customer(object) => object.fmt(f),
+            Accounting(object) => object.fmt(f),
+            Deposit(object) => object.fmt(f),
+            Credit(object) => object.fmt(f),
+            Custody(object) => object.fmt(f),
+            Dashboard(object) => object.fmt(f),
         }
     }
 }
@@ -119,7 +119,6 @@ impl FromStr for LanaObject {
 es_entity::entity_id!(ApplicantId, AuditId);
 
 pub type ApplicantAllOrOne = AllOrOne<ApplicantId>;
-pub type DocumentAllOrOne = AllOrOne<DocumentId>;
 pub type ReportAllOrOne = AllOrOne<ReportId>;
 pub type AuditAllOrOne = AllOrOne<AuditId>;
 
@@ -128,18 +127,11 @@ pub type AuditAllOrOne = AllOrOne<AuditId>;
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppObject {
     Applicant(ApplicantAllOrOne),
-    Document(DocumentAllOrOne),
     Report(ReportAllOrOne),
     Audit(AuditAllOrOne),
 }
 
 impl AppObject {
-    pub const fn all_documents() -> Self {
-        Self::Document(AllOrOne::All)
-    }
-    pub const fn document(id: DocumentId) -> Self {
-        Self::Document(AllOrOne::ById(id))
-    }
     pub const fn all_reports() -> Self {
         Self::Report(AllOrOne::All)
     }
@@ -156,7 +148,6 @@ impl Display for AppObject {
         let discriminant = AppObjectDiscriminants::from(self);
         match self {
             Self::Applicant(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Self::Document(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Self::Report(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
             Self::Audit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
         }
@@ -173,10 +164,6 @@ impl FromStr for AppObject {
             Applicant => {
                 let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
                 Self::Applicant(obj_ref)
-            }
-            Document => {
-                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
-                Self::Document(obj_ref)
             }
             Report => {
                 let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;

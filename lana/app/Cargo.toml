@@ -1,6 +1,6 @@
 [package]
 name = "lana-app"
-version = "0.3.662-dev"
+version = "0.3.681-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
@@ -40,6 +40,7 @@ core-customer = { path = "../../core/customer", features = ["graphql"] }
 core-price = { path = "../../core/price" }
 core-deposit = { path = "../../core/deposit", features = ["graphql"] }
 core-accounting = { path = "../../core/accounting", features = ["graphql"] }
+document-storage = { path = "../../core/document-storage", features = ["graphql"] }
 job = { path = "../../lib/job" }
 outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }

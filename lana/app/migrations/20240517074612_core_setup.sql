@@ -1,11 +1,11 @@
-CREATE TABLE committees (
+CREATE TABLE core_committees (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE committee_events (
-  id UUID NOT NULL REFERENCES committees(id),
+CREATE TABLE core_committee_events (
+  id UUID NOT NULL REFERENCES core_committees(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -13,15 +13,15 @@ CREATE TABLE committee_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE policies (
+CREATE TABLE core_policies (
   id UUID PRIMARY KEY,
-  committee_id UUID REFERENCES committees(id),
+  committee_id UUID REFERENCES core_committees(id),
   process_type VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE policy_events (
-  id UUID NOT NULL REFERENCES policies(id),
+CREATE TABLE core_policy_events (
+  id UUID NOT NULL REFERENCES core_policies(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -29,16 +29,16 @@ CREATE TABLE policy_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE approval_processes (
+CREATE TABLE core_approval_processes (
   id UUID PRIMARY KEY,
-  policy_id UUID REFERENCES policies(id),
-  committee_id UUID REFERENCES committees(id),
+  policy_id UUID REFERENCES core_policies(id),
+  committee_id UUID REFERENCES core_committees(id),
   process_type VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE approval_process_events (
-  id UUID NOT NULL REFERENCES approval_processes(id),
+CREATE TABLE core_approval_process_events (
+  id UUID NOT NULL REFERENCES core_approval_processes(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -95,7 +95,7 @@ CREATE TABLE core_deposit_events (
 CREATE TABLE core_withdrawals (
   id UUID PRIMARY KEY,
   deposit_account_id UUID NOT NULL REFERENCES core_deposit_accounts(id),
-  approval_process_id UUID REFERENCES approval_processes(id),
+  approval_process_id UUID REFERENCES core_approval_processes(id),
   cancelled_tx_id UUID DEFAULT NULL,
   reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
@@ -110,7 +110,7 @@ CREATE TABLE core_withdrawal_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE customers (
+CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
   authentication_id UUID UNIQUE DEFAULT NULL,
   email VARCHAR NOT NULL UNIQUE,
@@ -119,8 +119,8 @@ CREATE TABLE customers (
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE customer_events (
-  id UUID NOT NULL REFERENCES customers(id),
+CREATE TABLE core_customer_events (
+  id UUID NOT NULL REFERENCES core_customers(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -128,14 +128,14 @@ CREATE TABLE customer_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE terms_templates (
+CREATE TABLE core_terms_templates (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE terms_template_events (
-  id UUID NOT NULL REFERENCES terms_templates(id),
+CREATE TABLE core_terms_template_events (
+  id UUID NOT NULL REFERENCES core_terms_templates(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -205,8 +205,8 @@ CREATE TABLE core_collateral_events (
 
 CREATE TABLE core_credit_facilities (
   id UUID PRIMARY KEY,
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
+  customer_id UUID NOT NULL REFERENCES core_customers(id),
+  approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL,
@@ -253,10 +253,26 @@ CREATE TABLE core_obligation_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_liquidation_processes (
+  id UUID PRIMARY KEY,
+  obligation_id UUID NOT NULL REFERENCES core_obligations(id),
+  credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_liquidation_process_events (
+  id UUID NOT NULL REFERENCES core_liquidation_processes(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_disbursals (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),
-  approval_process_id UUID NOT NULL REFERENCES approval_processes(id),
+  approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   obligation_id UUID DEFAULT NULL REFERENCES core_obligations(id),
   concluded_tx_id UUID DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL
@@ -320,20 +336,21 @@ CREATE TABLE core_payment_allocation_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE documents (
+CREATE TABLE core_documents (
   id UUID PRIMARY KEY,
+  reference_id UUID NOT NULL,
   deleted BOOLEAN NOT NULL DEFAULT FALSE,
-  customer_id UUID NOT NULL REFERENCES customers(id),
-  created_at TIMESTAMPTZ NOT NULL
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
-CREATE INDEX idx_documents_customer_id_deleted_id ON documents (customer_id, deleted, id);
 
-CREATE TABLE document_events (
-  id UUID NOT NULL REFERENCES documents(id),
+CREATE INDEX idx_core_documents_reference_id ON core_documents(reference_id);
+
+CREATE TABLE core_document_events (
+  id UUID NOT NULL REFERENCES core_documents(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(id, sequence)
 );
 

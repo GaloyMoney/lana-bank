@@ -22,7 +22,7 @@ pub enum PermissionSetEvent {
     Initialized {
         id: PermissionSetId,
         name: String,
-        initial_permissions: HashSet<PermissionValues>,
+        permissions: HashSet<PermissionValues>,
     },
 }
 
@@ -42,23 +42,22 @@ impl PermissionSet {
         A: std::str::FromStr,
     {
         self.events.iter_all().flat_map(|event| match event {
-            PermissionSetEvent::Initialized {
-                initial_permissions: permissions,
-                ..
-            } => permissions.iter().map(|permission| {
-                Permission::new(
-                    permission
-                        .object
-                        .parse()
-                        .map_err(|_| ())
-                        .expect("Could not parse object"),
-                    permission
-                        .action
-                        .parse()
-                        .map_err(|_| ())
-                        .expect("Could not parse action"),
-                )
-            }),
+            PermissionSetEvent::Initialized { permissions, .. } => {
+                permissions.iter().map(|permission| {
+                    Permission::new(
+                        permission
+                            .object
+                            .parse()
+                            .map_err(|_| ())
+                            .expect("Could not parse object"),
+                        permission
+                            .action
+                            .parse()
+                            .map_err(|_| ())
+                            .expect("Could not parse action"),
+                    )
+                })
+            }
         })
     }
 }
@@ -120,7 +119,7 @@ impl IntoEvents<PermissionSetEvent> for NewPermissionSet {
             [PermissionSetEvent::Initialized {
                 id: self.id,
                 name: self.name,
-                initial_permissions: self.permissions,
+                permissions: self.permissions,
             }],
         )
     }

@@ -1,0 +1,98 @@
+{
+  "$defs": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/$defs/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sub",
+        "audit_entry_id"
+      ],
+      "type": "object"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "initial_amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "obligation_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "ledger_tx_id",
+        "obligation_id",
+        "credit_facility_id",
+        "in_liquidation_account_id",
+        "initial_amount",
+        "effective",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "type": {
+          "const": "completed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "audit_info"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "LiquidationProcessEvent"
+}

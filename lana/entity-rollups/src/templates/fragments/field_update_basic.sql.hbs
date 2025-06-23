@@ -1,0 +1,1 @@
+{{#if this.is_jsonb_field}}({{nested_json_extract this.json_path true}}){{else}}({{nested_json_extract this.json_path false}}){{#if this.cast_type}}::{{this.cast_type}}{{/if}}{{/if}}

@@ -16,6 +16,8 @@ pub enum CustomerError {
     AuditError(#[from] audit::error::AuditError),
     #[error("CustomerError - SubjectIsNotCustomer")]
     SubjectIsNotCustomer,
+    #[error("CustomerError - DocumentStorageError: {0}")]
+    DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
 }
 
 es_entity::from_es_entity_error!(CustomerError);

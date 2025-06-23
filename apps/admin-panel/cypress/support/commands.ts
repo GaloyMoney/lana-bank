@@ -282,4 +282,4 @@ Cypress.Commands.add("uploadChartOfAccounts", () => {
     .should("be.visible")
 })
 
-export { }
+export {}

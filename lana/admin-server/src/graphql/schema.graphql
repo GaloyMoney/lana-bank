@@ -774,7 +774,7 @@ type Customer {
 	applicantId: String
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
-	documents: [Document!]!
+	documents: [CustomerDocument!]!
 	subjectCanCreateCreditFacility: Boolean!
 }
 
@@ -801,6 +801,48 @@ input CustomerCreateInput {
 
 type CustomerCreatePayload {
 	customer: Customer!
+}
+
+type CustomerDocument {
+	id: ID!
+	documentId: UUID!
+	customerId: UUID!
+	status: DocumentStatus!
+	filename: String!
+}
+
+input CustomerDocumentArchiveInput {
+	documentId: UUID!
+}
+
+type CustomerDocumentArchivePayload {
+	document: CustomerDocument!
+}
+
+input CustomerDocumentCreateInput {
+	file: Upload!
+	customerId: UUID!
+}
+
+type CustomerDocumentCreatePayload {
+	document: CustomerDocument!
+}
+
+input CustomerDocumentDeleteInput {
+	documentId: UUID!
+}
+
+type CustomerDocumentDeletePayload {
+	deletedDocumentId: UUID!
+}
+
+input CustomerDocumentDownloadLinksGenerateInput {
+	documentId: UUID!
+}
+
+type CustomerDocumentDownloadLinksGeneratePayload {
+	documentId: UUID!
+	link: String!
 }
 
 """
@@ -1026,48 +1068,6 @@ type Disbursed {
 	dueOutstanding: Outstanding!
 }
 
-type Document {
-	id: ID!
-	documentId: UUID!
-	customerId: UUID!
-	status: DocumentStatus!
-	filename: String!
-}
-
-input DocumentArchiveInput {
-	documentId: UUID!
-}
-
-type DocumentArchivePayload {
-	document: Document!
-}
-
-input DocumentCreateInput {
-	file: Upload!
-	customerId: UUID!
-}
-
-type DocumentCreatePayload {
-	document: Document!
-}
-
-input DocumentDeleteInput {
-	documentId: UUID!
-}
-
-type DocumentDeletePayload {
-	deletedDocumentId: UUID!
-}
-
-input DocumentDownloadLinksGenerateInput {
-	documentId: UUID!
-}
-
-type DocumentDownloadLinksGeneratePayload {
-	documentId: UUID!
-	link: String!
-}
-
 enum DocumentStatus {
 	ACTIVE
 	ARCHIVED
@@ -1282,7 +1282,7 @@ type ManualTransactionExecutePayload {
 }
 
 type Mutation {
-	customerDocumentAttach(input: DocumentCreateInput!): DocumentCreatePayload!
+	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
@@ -1315,9 +1315,9 @@ type Mutation {
 	policyAssignCommittee(input: PolicyAssignCommitteeInput!): PolicyAssignCommitteePayload!
 	approvalProcessApprove(input: ApprovalProcessApproveInput!): ApprovalProcessApprovePayload!
 	approvalProcessDeny(input: ApprovalProcessDenyInput!, reason: String!): ApprovalProcessDenyPayload!
-	documentDownloadLinkGenerate(input: DocumentDownloadLinksGenerateInput!): DocumentDownloadLinksGeneratePayload!
-	documentDelete(input: DocumentDeleteInput!): DocumentDeletePayload!
-	documentArchive(input: DocumentArchiveInput!): DocumentArchivePayload!
+	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
+	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
+	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
@@ -1517,9 +1517,8 @@ type Query {
 	policies(first: Int!, after: String): PolicyConnection!
 	approvalProcess(id: UUID!): ApprovalProcess
 	approvalProcesses(first: Int!, after: String): ApprovalProcessConnection!
-	document(id: UUID!): Document
+	customerDocument(id: UUID!): CustomerDocument
 	ledgerAccount(id: UUID!): LedgerAccount
-	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	ledgerAccountByCode(code: String!): LedgerAccount
 	transactionTemplates(first: Int!, after: String): TransactionTemplateConnection!
 	ledgerTransaction(id: UUID!): LedgerTransaction

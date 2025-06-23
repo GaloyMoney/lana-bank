@@ -56,7 +56,8 @@ wait_for_approval() {
 
   variables=$(jq -n --arg id "$customer_id" '{ id: $id }')
   exec_admin_graphql 'customer-audit-log' "$variables"
-  echo $(graphql_output) | jq .
+  audit_nodes_count=$(graphql_output '.data.audit.nodes | length')
+  [[ "$audit_nodes_count" -gt 0 ]] || exit 1
 }
 
 @test "customer: can login" {

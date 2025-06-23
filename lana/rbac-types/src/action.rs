@@ -177,7 +177,6 @@ macro_rules! impl_trivial_action {
 pub enum AppAction {
     Report(ReportAction),
     Audit(AuditAction),
-    Document(DocumentAction),
 }
 
 impl AppAction {
@@ -190,7 +189,6 @@ impl AppAction {
             let actions = match entity {
                 Report => ReportAction::describe(),
                 Audit => AuditAction::describe(),
-                Document => DocumentAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -207,7 +205,6 @@ impl Display for AppAction {
         match self {
             Report(action) => action.fmt(f),
             Audit(action) => action.fmt(f),
-            Document(action) => action.fmt(f),
         }
     }
 }
@@ -223,7 +220,6 @@ impl FromStr for AppAction {
         let res = match entity.parse()? {
             Report => AppAction::from(action.parse::<ReportAction>()?),
             Audit => AppAction::from(action.parse::<AuditAction>()?),
-            Document => AppAction::from(action.parse::<DocumentAction>()?),
         };
         Ok(res)
     }
@@ -254,48 +250,6 @@ impl AuditAction {
 }
 
 impl_trivial_action!(AuditAction, Audit);
-
-#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum DocumentAction {
-    Create,
-    Read,
-    List,
-    GenerateDownloadLink,
-    Delete,
-    Archive,
-}
-
-impl DocumentAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-                Self::GenerateDownloadLink => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-                Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::Archive => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-            };
-            res.push(action_description);
-        }
-
-        res
-    }
-}
-
-impl_trivial_action!(DocumentAction, Document);
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]

@@ -22,6 +22,7 @@ use crate::{
     ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
+    liquidation_process::LiquidationProcess,
     payment_allocation::PaymentAllocation,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
@@ -108,6 +109,7 @@ pub struct InterestReceivable {
 pub struct CreditFacilityInternalAccountSets {
     pub facility: InternalAccountSetDetails,
     pub collateral: InternalAccountSetDetails,
+    pub in_liquidation: InternalAccountSetDetails,
     pub disbursed_receivable: DisbursedReceivable,
     pub disbursed_defaulted: InternalAccountSetDetails,
     pub interest_receivable: InterestReceivable,
@@ -121,6 +123,7 @@ impl CreditFacilityInternalAccountSets {
         let Self {
             facility,
             collateral,
+            in_liquidation,
             interest_income,
             fee_income,
 
@@ -142,6 +145,7 @@ impl CreditFacilityInternalAccountSets {
         let mut ids = vec![
             facility.id,
             collateral.id,
+            in_liquidation.id,
             interest_income.id,
             fee_income.id,
             disbursed_defaulted.id,
@@ -167,6 +171,7 @@ pub struct CreditLedger {
     journal_id: JournalId,
     facility_omnibus_account_ids: LedgerOmnibusAccountIds,
     collateral_omnibus_account_ids: LedgerOmnibusAccountIds,
+    in_liquidation_omnibus_account_ids: LedgerOmnibusAccountIds,
     internal_account_sets: CreditFacilityInternalAccountSets,
     credit_facility_control_id: VelocityControlId,
     usd: Currency,
@@ -188,6 +193,7 @@ impl CreditLedger {
         templates::InitiateDisbursal::init(cala).await?;
         templates::CancelDisbursal::init(cala).await?;
         templates::ConfirmDisbursal::init(cala).await?;
+        templates::ReserveForLiquidation::init(cala).await?;
 
         let collateral_omnibus_normal_balance_type = DebitOrCredit::Debit;
         let collateral_omnibus_account_ids = Self::find_or_create_omnibus_account(
@@ -211,6 +217,17 @@ impl CreditLedger {
         )
         .await?;
 
+        let in_liquidation_omnibus_normal_balance_type = DebitOrCredit::Debit;
+        let in_liquidation_omnibus_account_ids = Self::find_or_create_omnibus_account(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_REF}"),
+            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_REF}"),
+            CREDIT_FACILITY_IN_LIQUIDATION_OMNIBUS_ACCOUNT_SET_NAME.to_string(),
+            in_liquidation_omnibus_normal_balance_type,
+        )
+        .await?;
+
         let facility_normal_balance_type = DebitOrCredit::Credit;
         let facility_account_set_id = Self::find_or_create_account_set(
             cala,
@@ -228,6 +245,16 @@ impl CreditLedger {
             format!("{journal_id}:{CREDIT_COLLATERAL_ACCOUNT_SET_REF}"),
             CREDIT_COLLATERAL_ACCOUNT_SET_NAME.to_string(),
             collateral_normal_balance_type,
+        )
+        .await?;
+
+        let in_liquidation_normal_balance_type = DebitOrCredit::Credit;
+        let in_liquidation_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_REF}"),
+            CREDIT_FACILITY_IN_LIQUIDATION_ACCOUNT_SET_NAME.to_string(),
+            in_liquidation_normal_balance_type,
         )
         .await?;
 
@@ -748,6 +775,10 @@ impl CreditLedger {
                 id: collateral_account_set_id,
                 normal_balance_type: collateral_normal_balance_type,
             },
+            in_liquidation: InternalAccountSetDetails {
+                id: in_liquidation_account_set_id,
+                normal_balance_type: in_liquidation_normal_balance_type,
+            },
             disbursed_receivable,
             disbursed_defaulted: InternalAccountSetDetails {
                 id: disbursed_defaulted_account_set_id,
@@ -787,6 +818,7 @@ impl CreditLedger {
             journal_id,
             facility_omnibus_account_ids,
             collateral_omnibus_account_ids,
+            in_liquidation_omnibus_account_ids,
             internal_account_sets,
             credit_facility_control_id,
             usd: Currency::USD,
@@ -915,6 +947,7 @@ impl CreditLedger {
         CreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
+
             disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
             disbursed_receivable_overdue_account_id,
@@ -924,6 +957,7 @@ impl CreditLedger {
             interest_receivable_overdue_account_id,
             interest_defaulted_account_id,
 
+            in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
         }: CreditFacilityAccountIds,
@@ -1262,6 +1296,38 @@ impl CreditLedger {
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
                     defaulted_account_id,
+                    effective,
+                },
+            )
+            .await?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn reserve_for_liquidation(
+        &self,
+        op: es_entity::DbOp<'_>,
+        LiquidationProcess {
+            ledger_tx_id,
+            initial_amount: outstanding,
+            in_liquidation_account_id,
+            effective,
+            ..
+        }: LiquidationProcess,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                ledger_tx_id,
+                templates::RESERVE_FOR_LIQUIDATION_CODE,
+                templates::ReserveForLiquidationParams {
+                    journal_id: self.journal_id,
+                    amount: outstanding.to_usd(),
+                    liquidation_omnibus_account_id: self
+                        .in_liquidation_omnibus_account_ids
+                        .account_id,
+                    facility_liquidation_account_id: in_liquidation_account_id,
                     effective,
                 },
             )
@@ -1693,6 +1759,7 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let CreditFacilityAccountIds {
             facility_account_id,
+            in_liquidation_account_id,
             disbursed_receivable_not_yet_due_account_id,
             disbursed_receivable_due_account_id,
             disbursed_receivable_overdue_account_id,
@@ -1733,6 +1800,22 @@ impl CreditLedger {
             facility_reference,
             facility_name,
             facility_name,
+        )
+        .await?;
+
+        let in_liquidation_reference =
+            &format!("credit-facility-obs-in-liquidation:{}", credit_facility_id);
+        let in_liquidation_name = &format!(
+            "Off-Balance-Sheet In-Liquidation Account for Credit Facility {}",
+            credit_facility_id
+        );
+        self.create_account_in_op(
+            op,
+            in_liquidation_account_id,
+            self.internal_account_sets.in_liquidation,
+            in_liquidation_reference,
+            in_liquidation_name,
+            in_liquidation_name,
         )
         .await?;
 

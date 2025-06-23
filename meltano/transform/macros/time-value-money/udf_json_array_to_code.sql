@@ -1,6 +1,6 @@
 {% macro create_udf_json_array_to_code() %}
 
-CREATE OR REPLACE FUNCTION {{target.schema}}.udf_json_array_to_code (json_array_of_code_obj STRING)
+CREATE OR REPLACE FUNCTION {{target.schema}}.udf_json_array_to_code (json_array_of_code_obj STRING, separator STRING)
 RETURNS STRING
 LANGUAGE js
 AS r"""
@@ -9,7 +9,7 @@ AS r"""
     for (var i=0;i<parsedJSON.length;i++) {
         codes.push(parsedJSON[i].code);
     }
-    return codes.join('.')
+    return codes.join(separator)
 """
 
 {% endmacro %}

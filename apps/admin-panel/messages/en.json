@@ -484,12 +484,13 @@
         "title": "Terms",
         "details": {
           "duration": "Duration",
-          "interestRate": "Interest (APR)",
+          "interestRate": "Nominal Interest Rate",
           "targetCvl": "Target/initial CVL %",
           "marginCallCvl": "Margin call CVL %",
           "liquidationCvl": "Liquidation CVL %",
           "dateCreated": "Date created",
-          "structuringFeeRate": "Structuring Fee Rate"
+          "structuringFeeRate": "Structuring Fee Rate",
+          "effectiveRate": "Effective Rate"
         }
       },
       "CollateralCard": {
@@ -525,10 +526,13 @@
       "DetailsCard": {
         "title": "Credit Facility",
         "details": {
-          "customerEmail": "Customer Email",
+          "customer": "Customer",
           "collateralizationState": "Collateralization State",
           "status": "Status",
-          "expiresAt": "Expires At"
+          "dateOfIssuance": "Date of Issuance",
+          "maturityDate": "Maturity Date",
+          "monthlyPayment": "Monthly Payment",
+          "noMonthlyPaymentAvailable": "No monthly payment available"
         },
         "buttons": {
           "loanTerms": "Loan Terms",
@@ -559,7 +563,7 @@
             "facilityAmount": "Facility Amount",
             "termsTemplate": "Terms Template",
             "creditFacilityTerms": "Credit Facility Terms",
-            "interestRate": "Interest Rate (APR)",
+            "interestRate": "Nominal Interest Rate",
             "initialCvl": "Initial CVL (%)",
             "duration": "Duration",
             "months": "months",

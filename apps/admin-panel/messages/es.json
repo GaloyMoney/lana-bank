@@ -484,12 +484,13 @@
         "title": "Términos",
         "details": {
           "duration": "Duración",
-          "interestRate": "Interés (APR)",
+          "interestRate": "Tasa de interés nominal",
           "targetCvl": "CVL objetivo/inicial %",
           "marginCallCvl": "CVL de llamada de margen %",
           "liquidationCvl": "CVL de liquidación %",
           "dateCreated": "Fecha de creación",
-          "structuringFeeRate": "Tasa de Comisión de Estructuración"
+          "structuringFeeRate": "Tasa de Comisión de Estructuración",
+          "effectiveRate": "Tasa efectiva"
         }
       },
       "CollateralCard": {
@@ -525,10 +526,13 @@
       "DetailsCard": {
         "title": "Línea de Crédito",
         "details": {
-          "customerEmail": "Correo Electrónico del Cliente",
+          "customer": "Cliente",
           "collateralizationState": "Estado de Colateralización",
           "status": "Estado",
-          "expiresAt": "Vence El"
+          "dateOfIssuance": "Fecha de emisión",
+          "maturityDate": "Fecha de vencimiento",
+          "monthlyPayment": "Pago mensual",
+          "noMonthlyPaymentAvailable": "No hay pago mensual disponible"
         },
         "buttons": {
           "loanTerms": "Términos del Préstamo",
@@ -559,7 +563,7 @@
             "facilityAmount": "Monto de Facilidad",
             "termsTemplate": "Plantilla de Términos",
             "creditFacilityTerms": "Términos de Línea de Crédito",
-            "interestRate": "Tasa de Interés (APR)",
+            "interestRate": "Tasa de interés nominal",
             "initialCvl": "CVL Inicial (%)",
             "duration": "Duración",
             "months": "meses",

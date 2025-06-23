@@ -5,13 +5,20 @@ pub mod accounting_init;
 pub mod app;
 pub mod applicant;
 pub mod authorization;
-pub mod document;
 pub mod primitives;
 pub mod report;
 pub mod service_account;
 
 pub mod storage {
     pub use cloud_storage::*;
+}
+
+pub mod document {
+    pub use document_storage::{
+        Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
+        GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
+    };
+    pub type DocumentStorage = document_storage::DocumentStorage;
 }
 
 pub mod outbox {
@@ -44,8 +51,8 @@ pub mod access {
 
 pub mod customer {
     pub use core_customer::{
-        AccountStatus, Customer, CustomerId, CustomerType, CustomersCursor, CustomersSortBy,
-        FindManyCustomers, KycLevel, Sort, error,
+        AccountStatus, Customer, CustomerDocumentId, CustomerId, CustomerType, CustomersCursor,
+        CustomersSortBy, FindManyCustomers, KycLevel, Sort, error,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;

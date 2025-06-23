@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AccountStatus": {
       "enum": [
         "inactive",
@@ -15,15 +14,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -48,14 +47,15 @@
       "type": "string"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "customer_type": {
-          "$ref": "#/definitions/CustomerType"
+          "$ref": "#/$defs/CustomerType"
         },
         "email": {
           "type": "string"
@@ -68,19 +68,17 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "customer_type",
-        "email",
+        "type",
         "id",
+        "email",
         "telegram_id",
-        "type"
+        "customer_type",
+        "audit_info"
       ],
       "type": "object"
     },
@@ -91,15 +89,13 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "authentication_id_updated"
-          ],
+          "const": "authentication_id_updated",
           "type": "string"
         }
       },
       "required": [
-        "authentication_id",
-        "type"
+        "type",
+        "authentication_id"
       ],
       "type": "object"
     },
@@ -109,19 +105,17 @@
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "kyc_started"
-          ],
+          "const": "kyc_started",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "applicant_id",
-        "audit_info",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
@@ -131,23 +125,21 @@
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "level": {
-          "$ref": "#/definitions/KycLevel"
+          "$ref": "#/$defs/KycLevel"
         },
         "type": {
-          "enum": [
-            "kyc_approved"
-          ],
+          "const": "kyc_approved",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "applicant_id",
-        "audit_info",
         "level",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
@@ -157,85 +149,77 @@
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "kyc_declined"
-          ],
+          "const": "kyc_declined",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "applicant_id",
-        "audit_info",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "status": {
-          "$ref": "#/definitions/AccountStatus"
+          "$ref": "#/$defs/AccountStatus"
         },
         "type": {
-          "enum": [
-            "account_status_updated"
-          ],
+          "const": "account_status_updated",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "status",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "telegram_id": {
           "type": "string"
         },
         "type": {
-          "enum": [
-            "telegram_id_updated"
-          ],
+          "const": "telegram_id_updated",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "telegram_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "email": {
           "type": "string"
         },
         "type": {
-          "enum": [
-            "email_updated"
-          ],
+          "const": "email_updated",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "email",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

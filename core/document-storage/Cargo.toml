@@ -1,0 +1,25 @@
+[package]
+name = "document-storage"
+version = "0.3.681-dev"
+edition = "2021"
+license = "FSL-1.1-ALv2"
+
+[features]
+default = []
+fail-on-warnings = []
+graphql = ["dep:async-graphql", "es-entity/graphql"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
+
+[dependencies]
+audit = { path = "../../lib/audit" }
+cloud-storage = { path = "../../lib/cloud-storage" }
+
+es-entity = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+serde = { workspace = true }
+chrono = { workspace = true }
+derive_builder = { workspace = true }
+tracing = { workspace = true }
+schemars = { workspace = true, optional = true }
+async-graphql = { workspace = true, optional = true }

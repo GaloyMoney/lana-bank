@@ -112,7 +112,7 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut export = self.repo.find_by_id(self.config.accounting_csv_id).await?;
+        let mut csv = self.repo.find_by_id(self.config.accounting_csv_id).await?;
         let mut db = self.repo.begin_op().await?;
         let audit_info = self
             .audit
@@ -123,10 +123,10 @@ where
             )
             .await?;
 
-        let csv_type = export.csv_type;
+        let csv_type = csv.csv_type;
         let csv_result = match csv_type {
             AccountingCsvType::LedgerAccount => {
-                let ledger_account_id = export.ledger_account_id.ok_or_else(|| {
+                let ledger_account_id = csv.ledger_account_id.ok_or_else(|| {
                     AccountingCsvError::MissingRequiredField("ledger_account_id".to_string())
                 })?;
 
@@ -140,30 +140,26 @@ where
 
         match csv_result {
             Ok(csv_data) => {
-                let path_in_bucket = format!("accounting_csvs/{}.csv", export.id);
                 match self
                     .storage
-                    .upload(csv_data, &path_in_bucket, "text/csv")
+                    .upload(csv_data, &csv.path_in_storage, "text/csv")
                     .await
                 {
                     Ok(_) => {
-                        let _ = export.file_uploaded(
-                            path_in_bucket,
-                            self.storage.bucket_name().to_string(),
-                            audit_info,
-                        );
+                        let _ =
+                            csv.file_uploaded(self.storage.bucket_name().to_string(), audit_info);
                     }
                     Err(e) => {
-                        let _ = export.upload_failed(e.to_string(), audit_info);
+                        let _ = csv.upload_failed(e.to_string(), audit_info);
                     }
                 }
             }
             Err(e) => {
-                let _ = export.upload_failed(e.to_string(), audit_info);
+                let _ = csv.upload_failed(e.to_string(), audit_info);
             }
         }
 
-        self.repo.update_in_op(&mut db, &mut export).await?;
+        self.repo.update_in_op(&mut db, &mut csv).await?;
         let (now, tx) = (db.now(), db.into_tx());
         let db_static = es_entity::DbOp::new(tx, now);
         Ok(JobCompletion::CompleteWithOp(db_static))

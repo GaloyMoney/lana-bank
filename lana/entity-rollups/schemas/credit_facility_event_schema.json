@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,15 +7,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -59,6 +58,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "interest_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -81,28 +84,29 @@
         }
       },
       "required": [
-        "collateral_account_id",
-        "disbursed_defaulted_account_id",
-        "disbursed_receivable_due_account_id",
-        "disbursed_receivable_not_yet_due_account_id",
-        "disbursed_receivable_overdue_account_id",
         "facility_account_id",
-        "fee_income_account_id",
+        "in_liquidation_account_id",
+        "disbursed_receivable_not_yet_due_account_id",
+        "disbursed_receivable_due_account_id",
+        "disbursed_receivable_overdue_account_id",
+        "disbursed_defaulted_account_id",
+        "collateral_account_id",
+        "interest_receivable_not_yet_due_account_id",
+        "interest_receivable_due_account_id",
+        "interest_receivable_overdue_account_id",
         "interest_defaulted_account_id",
         "interest_income_account_id",
-        "interest_receivable_due_account_id",
-        "interest_receivable_not_yet_due_account_id",
-        "interest_receivable_overdue_account_id"
+        "fee_income_account_id"
       ],
       "type": "object"
     },
     "CreditFacilityReceivable": {
       "properties": {
         "disbursed": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         },
         "interest": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         }
       },
       "required": [
@@ -116,14 +120,12 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "months"
-              ],
+              "const": "months",
               "type": "string"
             },
             "value": {
               "format": "uint32",
-              "minimum": 0.0,
+              "minimum": 0,
               "type": "integer"
             }
           },
@@ -140,9 +142,7 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "end_of_month"
-              ],
+              "const": "end_of_month",
               "type": "string"
             }
           },
@@ -154,9 +154,7 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "end_of_day"
-              ],
+              "const": "end_of_day",
               "type": "string"
             }
           },
@@ -174,7 +172,7 @@
           "type": "string"
         },
         "interval": {
-          "$ref": "#/definitions/InterestInterval"
+          "$ref": "#/$defs/InterestInterval"
         },
         "start": {
           "format": "date-time",
@@ -182,9 +180,9 @@
         }
       },
       "required": [
-        "end",
         "interval",
-        "start"
+        "start",
+        "end"
       ],
       "type": "object"
     },
@@ -193,14 +191,12 @@
         {
           "properties": {
             "type": {
-              "enum": [
-                "days"
-              ],
+              "const": "days",
               "type": "string"
             },
             "value": {
               "format": "uint64",
-              "minimum": 0.0,
+              "minimum": 0,
               "type": "integer"
             }
           },
@@ -213,47 +209,59 @@
       ]
     },
     "PriceOfOneBTC": {
-      "$ref": "#/definitions/UsdCents"
+      "$ref": "#/$defs/UsdCents"
     },
     "Satoshis": {
       "format": "uint64",
-      "minimum": 0.0,
+      "minimum": 0,
       "type": "integer"
     },
     "TermValues": {
       "properties": {
         "accrual_cycle_interval": {
-          "$ref": "#/definitions/InterestInterval"
+          "$ref": "#/$defs/InterestInterval"
         },
         "accrual_interval": {
-          "$ref": "#/definitions/InterestInterval"
+          "$ref": "#/$defs/InterestInterval"
         },
         "annual_rate": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "duration": {
-          "$ref": "#/definitions/FacilityDuration"
+          "$ref": "#/$defs/FacilityDuration"
         },
         "initial_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "interest_due_duration_from_accrual": {
-          "$ref": "#/definitions/ObligationDuration"
+          "$ref": "#/$defs/ObligationDuration"
         },
         "liquidation_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "margin_call_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         },
         "obligation_liquidation_duration_from_due": {
           "anyOf": [
             {
-              "$ref": "#/definitions/ObligationDuration"
+              "$ref": "#/$defs/ObligationDuration"
             },
             {
               "type": "null"
@@ -263,7 +271,7 @@
         "obligation_overdue_duration_from_due": {
           "anyOf": [
             {
-              "$ref": "#/definitions/ObligationDuration"
+              "$ref": "#/$defs/ObligationDuration"
             },
             {
               "type": "null"
@@ -271,44 +279,48 @@
           ]
         },
         "one_time_fee_rate": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
-          "type": "string"
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
         }
       },
       "required": [
-        "accrual_cycle_interval",
-        "accrual_interval",
         "annual_rate",
         "duration",
-        "initial_cvl",
         "interest_due_duration_from_accrual",
+        "accrual_cycle_interval",
+        "accrual_interval",
+        "one_time_fee_rate",
         "liquidation_cvl",
         "margin_call_cvl",
-        "one_time_fee_rate"
+        "initial_cvl"
       ],
       "type": "object"
     },
     "UsdCents": {
       "format": "uint64",
-      "minimum": 0.0,
+      "minimum": 0,
       "type": "integer"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "account_ids": {
-          "$ref": "#/definitions/CreditFacilityAccountIds"
+          "$ref": "#/$defs/CreditFacilityAccountIds"
         },
         "amount": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         },
         "approval_process_id": {
           "format": "uuid",
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "collateral_id": {
           "format": "uuid",
@@ -331,27 +343,25 @@
           "type": "string"
         },
         "terms": {
-          "$ref": "#/definitions/TermValues"
+          "$ref": "#/$defs/TermValues"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "account_ids",
-        "amount",
-        "approval_process_id",
-        "audit_info",
-        "collateral_id",
-        "customer_id",
-        "disbursal_credit_account_id",
+        "type",
         "id",
+        "customer_id",
+        "collateral_id",
         "ledger_tx_id",
         "terms",
-        "type"
+        "amount",
+        "account_ids",
+        "disbursal_credit_account_id",
+        "approval_process_id",
+        "audit_info"
       ],
       "type": "object"
     },
@@ -365,20 +375,18 @@
           "type": "boolean"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "approval_process_concluded"
-          ],
+          "const": "approval_process_concluded",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "approval_process_id",
         "approved",
-        "audit_info",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
@@ -389,33 +397,31 @@
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "activated"
-          ],
+          "const": "activated",
           "type": "string"
         }
       },
       "required": [
-        "activated_at",
-        "audit_info",
+        "type",
         "ledger_tx_id",
-        "type"
+        "activated_at",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
-        "idx": {
+        "interest_accrual_cycle_idx": {
           "format": "int32",
           "type": "integer"
         },
@@ -423,132 +429,123 @@
           "format": "uuid",
           "type": "string"
         },
-        "period": {
-          "$ref": "#/definitions/InterestPeriod"
+        "interest_period": {
+          "$ref": "#/$defs/InterestPeriod"
         },
         "type": {
-          "enum": [
-            "interest_accrual_cycle_started"
-          ],
+          "const": "interest_accrual_cycle_started",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "idx",
+        "type",
         "interest_accrual_id",
-        "period",
-        "type"
+        "interest_accrual_cycle_idx",
+        "interest_period",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
-        "idx": {
+        "interest_accrual_cycle_idx": {
           "format": "int32",
           "type": "integer"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
         },
         "obligation_id": {
           "format": "uuid",
           "type": "string"
         },
-        "tx_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "type": {
-          "enum": [
-            "interest_accrual_cycle_concluded"
-          ],
+          "const": "interest_accrual_cycle_concluded",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "idx",
+        "type",
+        "interest_accrual_cycle_idx",
+        "ledger_tx_id",
         "obligation_id",
-        "tx_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "collateral": {
-          "$ref": "#/definitions/Satoshis"
+          "$ref": "#/$defs/Satoshis"
+        },
+        "collateralization_state": {
+          "$ref": "#/$defs/CollateralizationState"
         },
         "outstanding": {
-          "$ref": "#/definitions/CreditFacilityReceivable"
+          "$ref": "#/$defs/CreditFacilityReceivable"
         },
         "price": {
-          "$ref": "#/definitions/PriceOfOneBTC"
-        },
-        "state": {
-          "$ref": "#/definitions/CollateralizationState"
+          "$ref": "#/$defs/PriceOfOneBTC"
         },
         "type": {
-          "enum": [
-            "collateralization_state_changed"
-          ],
+          "const": "collateralization_state_changed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
+        "collateralization_state",
         "collateral",
         "outstanding",
         "price",
-        "state",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
-        "ratio": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?$",
+        "collateralization_ratio": {
+          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
           "type": [
             "string",
+            "number",
             "null"
           ]
         },
         "type": {
-          "enum": [
-            "collateralization_ratio_changed"
-          ],
+          "const": "collateralization_ratio_changed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "type"
+        "type",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "completed"
-          ],
+          "const": "completed",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "type"
+        "type",
+        "audit_info"
       ],
       "type": "object"
     }

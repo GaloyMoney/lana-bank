@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,15 +7,15 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
@@ -50,6 +49,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "interest_defaulted_account_id": {
           "format": "uuid",
           "type": "string"
@@ -72,42 +75,44 @@
         }
       },
       "required": [
-        "collateral_account_id",
-        "disbursed_defaulted_account_id",
-        "disbursed_receivable_due_account_id",
-        "disbursed_receivable_not_yet_due_account_id",
-        "disbursed_receivable_overdue_account_id",
         "facility_account_id",
-        "fee_income_account_id",
+        "in_liquidation_account_id",
+        "disbursed_receivable_not_yet_due_account_id",
+        "disbursed_receivable_due_account_id",
+        "disbursed_receivable_overdue_account_id",
+        "disbursed_defaulted_account_id",
+        "collateral_account_id",
+        "interest_receivable_not_yet_due_account_id",
+        "interest_receivable_due_account_id",
+        "interest_receivable_overdue_account_id",
         "interest_defaulted_account_id",
         "interest_income_account_id",
-        "interest_receivable_due_account_id",
-        "interest_receivable_not_yet_due_account_id",
-        "interest_receivable_overdue_account_id"
+        "fee_income_account_id"
       ],
       "type": "object"
     },
     "UsdCents": {
       "format": "uint64",
-      "minimum": 0.0,
+      "minimum": 0,
       "type": "integer"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "account_ids": {
-          "$ref": "#/definitions/CreditFacilityAccountIds"
+          "$ref": "#/$defs/CreditFacilityAccountIds"
         },
         "amount": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         },
         "approval_process_id": {
           "format": "uuid",
           "type": "string"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "disbursal_credit_account_id": {
           "format": "uuid",
@@ -140,22 +145,20 @@
           ]
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "account_ids",
-        "amount",
+        "type",
+        "id",
         "approval_process_id",
-        "audit_info",
+        "facility_id",
+        "amount",
+        "account_ids",
         "disbursal_credit_account_id",
         "due_date",
-        "facility_id",
-        "id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
@@ -169,30 +172,28 @@
           "type": "boolean"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
-          "enum": [
-            "approval_process_concluded"
-          ],
+          "const": "approval_process_concluded",
           "type": "string"
         }
       },
       "required": [
+        "type",
         "approval_process_id",
         "approved",
-        "audit_info",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "amount": {
-          "$ref": "#/definitions/UsdCents"
+          "$ref": "#/$defs/UsdCents"
         },
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "effective": {
           "format": "date",
@@ -207,42 +208,38 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "settled"
-          ],
+          "const": "settled",
           "type": "string"
         }
       },
       "required": [
-        "amount",
-        "audit_info",
-        "effective",
+        "type",
         "ledger_tx_id",
         "obligation_id",
-        "type"
+        "amount",
+        "effective",
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "enum": [
-            "cancelled"
-          ],
+          "const": "cancelled",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "ledger_tx_id",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     }

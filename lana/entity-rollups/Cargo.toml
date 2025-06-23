@@ -1,6 +1,6 @@
 [package]
 name = "entity-rollups"
-version = "0.3.662-dev"
+version = "0.3.681-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
@@ -11,6 +11,7 @@ json-schema = [
   "governance/json-schema", 
   "core-custody/json-schema",
   "core-customer/json-schema",
+  "document-storage/json-schema",
   "core-deposit/json-schema",
   "core-credit/json-schema",
   "core-accounting/json-schema"
@@ -28,13 +29,17 @@ core-customer = { path = "../../core/customer", default-features = false }
 core-deposit = { path = "../../core/deposit" }
 core-credit = { path = "../../core/credit" }
 core-accounting = { path = "../../core/accounting" }
+document-storage = { path = "../../core/document-storage" }
 
 clap = { workspace = true }
 schemars = { workspace = true }
 serde_json = { workspace = true }
 anyhow = { workspace = true }
-colored = "2.0"
+colored = "3.0"
 similar = { version = "2.6", features = ["inline"] }
+handlebars = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
 
 [dev-dependencies]
 tempfile = "3.13.0"

@@ -12,16 +12,10 @@ GQL_ADMIN_ENDPOINT="${OATHKEEPER_PROXY}/admin/graphql"
 LANA_HOME="${LANA_HOME:-.lana}"
 SERVER_PID_FILE="${LANA_HOME}/server-pid"
 
-export LANA_CONFIG="${REPO_ROOT}/bats/lana-sim-time.yml"
-
-SERVER_PID_FILE="${LANA_HOME}/server-pid"
-
 LOG_FILE=".e2e-logs"
 
 server_cmd() {
-  server_location="$(nix build . --print-out-paths)/bin/lana-cli"
-
-  bash -c ${server_location} $@
+  nix run .
 }
 
 start_server() {

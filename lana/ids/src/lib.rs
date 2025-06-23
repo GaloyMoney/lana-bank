@@ -1,7 +1,6 @@
 use cala_ledger::primitives::TransactionId as LedgerTransactionId;
 
 es_entity::entity_id! {
-    DocumentId,
     CreditFacilityId,
     DisbursalId,
     PaymentId,

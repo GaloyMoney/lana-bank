@@ -1,6 +1,5 @@
 {
-  "$schema": "http://json-schema.org/draft-07/schema#",
-  "definitions": {
+  "$defs": {
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -8,22 +7,23 @@
     "AuditInfo": {
       "properties": {
         "audit_entry_id": {
-          "$ref": "#/definitions/AuditEntryId"
+          "$ref": "#/$defs/AuditEntryId"
         },
         "sub": {
           "type": "string"
         }
       },
       "required": [
-        "audit_entry_id",
-        "sub"
+        "sub",
+        "audit_entry_id"
       ],
       "type": "object"
     },
     "ConfigCypher": {
       "items": {
         "format": "uint8",
-        "minimum": 0.0,
+        "maximum": 255,
+        "minimum": 0,
         "type": "integer"
       },
       "type": "array"
@@ -31,17 +31,19 @@
     "Nonce": {
       "items": {
         "format": "uint8",
-        "minimum": 0.0,
+        "maximum": 255,
+        "minimum": 0,
         "type": "integer"
       },
       "type": "array"
     }
   },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "id": {
           "format": "uuid",
@@ -51,51 +53,47 @@
           "type": "string"
         },
         "type": {
-          "enum": [
-            "initialized"
-          ],
+          "const": "initialized",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
+        "type",
         "id",
         "name",
-        "type"
+        "audit_info"
       ],
       "type": "object"
     },
     {
       "properties": {
         "audit_info": {
-          "$ref": "#/definitions/AuditInfo"
+          "$ref": "#/$defs/AuditInfo"
         },
         "encrypted_custodian_config": {
-          "items": [
-            {
-              "$ref": "#/definitions/ConfigCypher"
-            },
-            {
-              "$ref": "#/definitions/Nonce"
-            }
-          ],
           "maxItems": 2,
           "minItems": 2,
+          "prefixItems": [
+            {
+              "$ref": "#/$defs/ConfigCypher"
+            },
+            {
+              "$ref": "#/$defs/Nonce"
+            }
+          ],
           "type": [
             "array",
             "null"
           ]
         },
         "type": {
-          "enum": [
-            "config_updated"
-          ],
+          "const": "config_updated",
           "type": "string"
         }
       },
       "required": [
-        "audit_info",
-        "type"
+        "type",
+        "audit_info"
       ],
       "type": "object"
     }

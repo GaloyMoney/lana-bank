@@ -1,6 +1,6 @@
 [package]
 name = "core-credit"
-version = "0.3.662-dev"
+version = "0.3.681-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
@@ -46,6 +46,7 @@ sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
+document-storage = { path = "../document-storage" }
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
 tokio = { workspace = true }
 anyhow = { workspace = true }

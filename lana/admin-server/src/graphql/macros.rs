@@ -47,6 +47,18 @@ macro_rules! maybe_fetch_one {
             Ok(None)
         }
     };
+    ($ty:ty, $id:ty, $ctx:expr, $load_entity:expr) => {
+        if let Some(entity) = $load_entity.await? {
+            let entity = <$ty>::from(entity);
+            let loader = $ctx.data_unchecked::<LanaDataLoader>();
+            loader
+                .feed_one(<$id>::from(entity.entity.id), entity.clone())
+                .await;
+            Ok(Some(entity))
+        } else {
+            Ok(None)
+        }
+    };
 }
 
 #[macro_export]
@@ -55,6 +67,14 @@ macro_rules! exec_mutation {
         let entity = <$ty>::from($load.await?);
         let loader = $ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(entity.entity.id, entity.clone()).await;
+        Ok(<$payload>::from(entity))
+    }};
+    ($payload:ty, $ty:ty, $id:ty, $ctx:expr, $load:expr) => {{
+        let entity = <$ty>::from($load.await?);
+        let loader = $ctx.data_unchecked::<LanaDataLoader>();
+        loader
+            .feed_one(<$id>::from(entity.entity.id), entity.clone())
+            .await;
         Ok(<$payload>::from(entity))
     }};
 }
