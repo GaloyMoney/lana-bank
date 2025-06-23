@@ -11,7 +11,7 @@ pub enum StorageConfig {
 
 impl Default for StorageConfig {
     fn default() -> Self {
-        StorageConfig::Gcp(GcpConfig::default())
+        StorageConfig::Local(LocalConfig::default())
     }
 }
 
