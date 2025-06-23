@@ -9,6 +9,5 @@ pub enum CoreCustodyEvent {
         id: WalletId,
         label: String,
         address: String,
-        full_response: serde_json::Value,
     },
 }

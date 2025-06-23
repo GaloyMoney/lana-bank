@@ -9,7 +9,12 @@ use crate::{event::CoreCustodyEvent, publisher::CustodyPublisher};
 use super::{entity::*, error::*};
 
 #[derive(EsRepo)]
-#[es_repo(entity = "Wallet", err = "WalletError", tbl_prefix = "core")]
+#[es_repo(
+    entity = "Wallet",
+    err = "WalletError",
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
+)]
 pub struct WalletRepo<E>
 where
     E: OutboxEventMarker<CoreCustodyEvent>,
@@ -27,6 +32,15 @@ where
             pool: pool.clone(),
             publisher: publisher.clone(),
         }
+    }
+
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &Wallet,
+        new_events: es_entity::LastPersisted<'_, WalletEvent>,
+    ) -> Result<(), WalletError> {
+        self.publisher.publish_wallet(db, entity, new_events).await
     }
 }
 
