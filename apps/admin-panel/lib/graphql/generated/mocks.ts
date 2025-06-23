@@ -97,7 +97,7 @@ export const mockAccountingCsvDownloadLinkGenerateInput = (overrides?: Partial<A
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('AccountingCsvDownloadLinkGenerateInput');
     return {
-        accountingCsvId: overrides && overrides.hasOwnProperty('accountingCsvId') ? overrides.accountingCsvId! : generateMockValue.uuid(),
+        accountCsvExport: overrides && overrides.hasOwnProperty('accountCsvExport') ? overrides.accountCsvExport! : generateMockValue.uuid(),
     };
 };
 

@@ -33,7 +33,7 @@ type AccountingCsvDownloadLink {
 }
 
 input AccountingCsvDownloadLinkGenerateInput {
-	accountingCsvId: UUID!
+	accountCsvExport: UUID!
 }
 
 type AccountingCsvDownloadLinkGeneratePayload {

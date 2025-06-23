@@ -67,7 +67,7 @@ export type AccountingCsvDownloadLink = {
 };
 
 export type AccountingCsvDownloadLinkGenerateInput = {
-  accountingCsvId: Scalars['UUID']['input'];
+  accountCsvExport: Scalars['UUID']['input'];
 };
 
 export type AccountingCsvDownloadLinkGeneratePayload = {

@@ -213,7 +213,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       const result = await generateDownloadLink({
         variables: {
           input: {
-            accountingCsvId: selectedCsvId,
+            accountCsvExport: selectedCsvId,
           },
         },
       })
