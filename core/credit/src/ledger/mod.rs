@@ -2065,12 +2065,25 @@ impl CreditLedger {
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.begin_operation().await?;
 
+        let Self {
+            facility_omnibus_account_ids,
+            collateral_omnibus_account_ids,
+            in_liquidation_omnibus_account_ids,
+            internal_account_sets,
+
+            cala: _,
+            journal_id: _,
+            credit_facility_control_id: _,
+            usd: _,
+            btc: _,
+        } = self;
+
         let mut account_set_ids = vec![
-            self.facility_omnibus_account_ids.account_set_id,
-            self.collateral_omnibus_account_ids.account_set_id,
-            self.in_liquidation_omnibus_account_ids.account_set_id,
+            facility_omnibus_account_ids.account_set_id,
+            collateral_omnibus_account_ids.account_set_id,
+            in_liquidation_omnibus_account_ids.account_set_id,
         ];
-        account_set_ids.extend(self.internal_account_sets.account_set_ids());
+        account_set_ids.extend(internal_account_sets.account_set_ids());
         let mut account_sets = self
             .cala
             .account_sets()
