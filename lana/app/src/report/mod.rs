@@ -1,9 +1,10 @@
 mod config;
 mod entity;
 pub mod error;
-mod jobs;
 mod repo;
 pub mod upload;
+
+mod job;
 
 use authz::PermissionCheck;
 use tracing::instrument;
@@ -18,7 +19,7 @@ use crate::{
 pub use config::*;
 pub use entity::*;
 use error::*;
-use jobs as report_jobs;
+use job as report_jobs;
 use repo::*;
 
 #[derive(Clone)]
@@ -38,7 +39,7 @@ impl Reports {
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let repo = ReportRepo::new(pool);
-        jobs.add_initializer(report_jobs::generate::GenerateReportInit::new(
+        jobs.add_initializer(report_jobs::GenerateReportInit::new(
             &repo,
             config,
             authz.audit(),
@@ -46,9 +47,9 @@ impl Reports {
         ));
         if !config.dev_disable_auto_create {
             jobs.add_initializer_and_spawn_unique(
-                report_jobs::create::CreateReportInit::new(&repo, jobs, authz.audit()),
-                report_jobs::create::CreateReportJobConfig {
-                    job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
+                report_jobs::CreateReportInit::new(&repo, jobs, authz.audit()),
+                report_jobs::CreateReportJobConfig {
+                    job_interval: report_jobs::CreateReportInterval::EndOfDay,
                 },
             )
             .await?;
@@ -81,7 +82,7 @@ impl Reports {
             .create_and_spawn_in_op(
                 &mut db,
                 report.id,
-                report_jobs::generate::GenerateReportConfig {
+                report_jobs::GenerateReportConfig {
                     report_id: report.id,
                 },
             )

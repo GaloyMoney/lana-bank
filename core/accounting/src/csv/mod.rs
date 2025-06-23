@@ -1,6 +1,5 @@
 mod entity;
 pub mod error;
-mod generate;
 mod job;
 mod primitives;
 mod repo;
