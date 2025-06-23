@@ -40,8 +40,10 @@ type CreditConfigUpdateDialogProps = {
 const initialFormData: CreditModuleConfigureInput = {
   chartOfAccountFacilityOmnibusParentCode: "",
   chartOfAccountCollateralOmnibusParentCode: "",
+  chartOfAccountInLiquidationOmnibusParentCode: "",
   chartOfAccountFacilityParentCode: "",
   chartOfAccountCollateralParentCode: "",
+  chartOfAccountInLiquidationParentCode: "",
   chartOfAccountInterestIncomeParentCode: "",
   chartOfAccountFeeIncomeParentCode: "",
   chartOfAccountShortTermIndividualDisbursedReceivableParentCode: "",
@@ -84,8 +86,10 @@ const initialFormData: CreditModuleConfigureInput = {
 const creditModuleCodes = {
   chartOfAccountFacilityOmnibusParentCode: "9110.02.0201",
   chartOfAccountCollateralOmnibusParentCode: "9220.08.0201",
+  chartOfAccountInLiquidationOmnibusParentCode: "9170.00.0001",
   chartOfAccountFacilityParentCode: "9110.02.0201",
   chartOfAccountCollateralParentCode: "9220.08.0201",
+  chartOfAccountInLiquidationParentCode: "9170.00.0001",
   chartOfAccountInterestIncomeParentCode: "6110.01.0100",
   chartOfAccountFeeIncomeParentCode: "6110.01.0300",
   chartOfAccountShortTermIndividualInterestReceivableParentCode: "1141.04.9901",
