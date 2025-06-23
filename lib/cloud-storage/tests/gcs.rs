@@ -2,14 +2,17 @@ use cloud_storage::{LocationInStorage, Storage, config::StorageConfig};
 
 #[tokio::test]
 async fn upload_doc() -> anyhow::Result<()> {
-    let gcp_creds_var = std::env::var("GOOGLE_APPLICATION_CREDENTIALS");
-    let creds_file_exists = gcp_creds_var
-        .map(|path| std::path::Path::new(&path).exists())
+    let creds_path = std::env::var("GOOGLE_APPLICATION_CREDENTIALS").ok();
+    let should_run = creds_path
+        .as_ref()
+        .filter(|p| std::path::Path::new(p).exists())
+        .and_then(|p| std::fs::read_to_string(p).ok())
+        .map(|s| !s.trim().is_empty())
         .unwrap_or(false);
 
     // Skip if the GOOGLE_APPLICATION_CREDENTIALS var is not set,
     // or if it is set but the file it points to doesn't exist.
-    if !creds_file_exists {
+    if !should_run {
         println!("Skipping GCS test: GOOGLE_APPLICATION_CREDENTIALS not set or file missing.");
         return Ok(());
     }
