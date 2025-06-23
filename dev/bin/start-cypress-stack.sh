@@ -66,7 +66,7 @@ echo "Starting core server..."
 
 # Start server in background and capture PID using nix
 nix build .
-nohup nix run . -- --config ./bats/lana-sim-time.yml > "$LOG_FILE" 2>&1 &
+nohup nix run . -- --config ./bats/lana.yml > "$LOG_FILE" 2>&1 &
 echo $! > "$CORE_PID_FILE"
 
 # Step 4: Wait for core server to be ready

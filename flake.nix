@@ -350,7 +350,7 @@
           // {
             inherit nativeBuildInputs;
             shellHook = ''
-              export LANA_CONFIG="$(pwd)/bats/lana-sim-time.yml"
+              export LANA_CONFIG="$(pwd)/bats/lana.yml"
               export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
             '';
           });
