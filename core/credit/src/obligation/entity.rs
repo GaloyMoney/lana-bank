@@ -463,7 +463,7 @@ impl Obligation {
         let liquidation_process_id = LiquidationProcessId::new();
         let new_liquidation_process = NewLiquidationProcess::builder()
             .id(liquidation_process_id)
-            .tx_id(LedgerTxId::new())
+            .ledger_tx_id(LedgerTxId::new())
             .credit_facility_id(self.credit_facility_id)
             .obligation_id(self.id)
             .in_liquidation_account_id(self.in_liquidation_account())

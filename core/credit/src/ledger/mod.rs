@@ -1308,7 +1308,7 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         LiquidationProcess {
-            tx_id,
+            ledger_tx_id,
             initial_amount: outstanding,
             in_liquidation_account_id,
             effective,
@@ -1319,7 +1319,7 @@ impl CreditLedger {
         self.cala
             .post_transaction_in_op(
                 &mut op,
-                tx_id,
+                ledger_tx_id,
                 templates::RESERVE_FOR_LIQUIDATION_CODE,
                 templates::ReserveForLiquidationParams {
                     journal_id: self.journal_id,

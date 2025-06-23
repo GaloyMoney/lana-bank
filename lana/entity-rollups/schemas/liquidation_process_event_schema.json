@@ -51,11 +51,11 @@
         "initial_amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "obligation_id": {
+        "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
-        "tx_id": {
+        "obligation_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -67,7 +67,7 @@
       "required": [
         "type",
         "id",
-        "tx_id",
+        "ledger_tx_id",
         "obligation_id",
         "credit_facility_id",
         "in_liquidation_account_id",
