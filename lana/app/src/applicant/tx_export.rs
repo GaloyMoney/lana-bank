@@ -19,16 +19,16 @@ use crate::{
 pub struct SumsubExportJobConfig;
 
 impl JobConfig for SumsubExportJobConfig {
-    type Initializer = SumsubExportInitializer;
+    type Initializer = SumsubExportJobInitializer;
 }
 
-pub struct SumsubExportInitializer {
+pub struct SumsubExportJobInitializer {
     outbox: Outbox,
     sumsub_client: SumsubClient,
     deposits: Deposits,
 }
 
-impl SumsubExportInitializer {
+impl SumsubExportJobInitializer {
     pub fn new(outbox: &Outbox, sumsub_client: &SumsubClient, deposits: &Deposits) -> Self {
         Self {
             outbox: outbox.clone(),
@@ -39,7 +39,7 @@ impl SumsubExportInitializer {
 }
 
 const SUMSUB_EXPORT_JOB: JobType = JobType::new("sumsub-export");
-impl JobInitializer for SumsubExportInitializer {
+impl JobInitializer for SumsubExportJobInitializer {
     fn job_type() -> JobType
     where
         Self: Sized,

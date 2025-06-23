@@ -38,7 +38,7 @@ impl Reports {
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let repo = ReportRepo::new(pool);
-        jobs.add_initializer(report_jobs::generate::GenerateReportInitializer::new(
+        jobs.add_initializer(report_jobs::generate::GenerateReportJobInitializer::new(
             &repo,
             config,
             authz.audit(),
@@ -46,7 +46,7 @@ impl Reports {
         ));
         if !config.dev_disable_auto_create {
             jobs.add_initializer_and_spawn_unique(
-                report_jobs::create::CreateReportInitializer::new(&repo, jobs, authz.audit()),
+                report_jobs::create::CreateReportJobInitializer::new(&repo, jobs, authz.audit()),
                 report_jobs::create::CreateReportJobConfig {
                     job_interval: report_jobs::create::CreateReportInterval::EndOfDay,
                 },

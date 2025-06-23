@@ -112,12 +112,12 @@ where
     }
 }
 
-pub struct HistoryProjectionInitializer<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct HistoryProjectionJobInitializer<E: OutboxEventMarker<CoreCreditEvent>> {
     outbox: Outbox<E>,
     repo: HistoryRepo,
 }
 
-impl<E> HistoryProjectionInitializer<E>
+impl<E> HistoryProjectionJobInitializer<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -130,7 +130,7 @@ where
 }
 
 const HISTORY_PROJECTION: JobType = JobType::new("credit-facility-history-projection");
-impl<E> JobInitializer for HistoryProjectionInitializer<E>
+impl<E> JobInitializer for HistoryProjectionJobInitializer<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -157,5 +157,5 @@ impl<E> JobConfig for HistoryProjectionConfig<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = HistoryProjectionInitializer<E>;
+    type Initializer = HistoryProjectionJobInitializer<E>;
 }

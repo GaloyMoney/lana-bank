@@ -14,15 +14,15 @@ use crate::email::EmailNotification;
 pub struct EmailEventListenerConfig;
 
 impl JobConfig for EmailEventListenerConfig {
-    type Initializer = EmailEventListenerInitializer;
+    type Initializer = EmailEventListenerJobInitializer;
 }
 
-pub struct EmailEventListenerInitializer {
+pub struct EmailEventListenerJobInitializer {
     outbox: Outbox<LanaEvent>,
     email_notification: EmailNotification,
 }
 
-impl EmailEventListenerInitializer {
+impl EmailEventListenerJobInitializer {
     pub fn new(outbox: &Outbox<LanaEvent>, email_notification: &EmailNotification) -> Self {
         Self {
             outbox: outbox.clone(),
@@ -32,7 +32,7 @@ impl EmailEventListenerInitializer {
 }
 
 const EMAIL_LISTENER_JOB: JobType = JobType::new("email-listener");
-impl JobInitializer for EmailEventListenerInitializer {
+impl JobInitializer for EmailEventListenerJobInitializer {
     fn job_type() -> JobType {
         EMAIL_LISTENER_JOB
     }

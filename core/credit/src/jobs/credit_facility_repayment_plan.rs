@@ -112,12 +112,12 @@ where
     }
 }
 
-pub struct RepaymentPlanProjectionInitializer<E: OutboxEventMarker<CoreCreditEvent>> {
+pub struct RepaymentPlanProjectionJobInitializer<E: OutboxEventMarker<CoreCreditEvent>> {
     outbox: Outbox<E>,
     repo: RepaymentPlanRepo,
 }
 
-impl<E> RepaymentPlanProjectionInitializer<E>
+impl<E> RepaymentPlanProjectionJobInitializer<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -131,7 +131,7 @@ where
 
 const REPAYMENT_PLAN_PROJECTION: JobType =
     JobType::new("credit-facility-repayment-plan-projection");
-impl<E> JobInitializer for RepaymentPlanProjectionInitializer<E>
+impl<E> JobInitializer for RepaymentPlanProjectionJobInitializer<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -158,5 +158,5 @@ impl<E> JobConfig for RepaymentPlanProjectionConfig<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    type Initializer = RepaymentPlanProjectionInitializer<E>;
+    type Initializer = RepaymentPlanProjectionJobInitializer<E>;
 }

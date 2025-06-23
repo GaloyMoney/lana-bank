@@ -26,10 +26,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    type Initializer = GenerateAccountingCsvInitializer<Perms>;
+    type Initializer = GenerateAccountingCsvJobInitializer<Perms>;
 }
 
-pub struct GenerateAccountingCsvInitializer<Perms>
+pub struct GenerateAccountingCsvJobInitializer<Perms>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
@@ -41,7 +41,7 @@ where
     audit: Perms::Audit,
 }
 
-impl<Perms> GenerateAccountingCsvInitializer<Perms>
+impl<Perms> GenerateAccountingCsvJobInitializer<Perms>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
@@ -64,7 +64,7 @@ where
 
 pub const GENERATE_ACCOUNTING_CSV_JOB: JobType = JobType::new("generate-accounting-csv");
 
-impl<Perms> JobInitializer for GenerateAccountingCsvInitializer<Perms>
+impl<Perms> JobInitializer for GenerateAccountingCsvJobInitializer<Perms>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,

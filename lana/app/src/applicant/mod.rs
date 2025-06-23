@@ -167,7 +167,7 @@ impl Applicants {
         let sumsub_client = SumsubClient::new(config);
 
         jobs.add_initializer_and_spawn_unique(
-            tx_export::SumsubExportInitializer::new(outbox, &sumsub_client, deposits),
+            tx_export::SumsubExportJobInitializer::new(outbox, &sumsub_client, deposits),
             tx_export::SumsubExportJobConfig,
         )
         .await?;

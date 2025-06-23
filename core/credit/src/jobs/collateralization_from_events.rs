@@ -23,10 +23,10 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreditFacilityCollateralizationFromEventsInitializer<Perms, E>;
+    type Initializer = CreditFacilityCollateralizationFromEventsJobInitializer<Perms, E>;
 }
 
-pub struct CreditFacilityCollateralizationFromEventsInitializer<Perms, E>
+pub struct CreditFacilityCollateralizationFromEventsJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -39,7 +39,7 @@ where
     credit_facilities: CreditFacilities<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityCollateralizationFromEventsInitializer<Perms, E>
+impl<Perms, E> CreditFacilityCollateralizationFromEventsJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -58,7 +58,7 @@ where
 
 const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("credit-facility-collateralization-from-events");
-impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromEventsInitializer<Perms, E>
+impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromEventsJobInitializer<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:

@@ -199,7 +199,7 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            collateralization_from_events::CreditFacilityCollateralizationFromEventsInitializer::<
+            collateralization_from_events::CreditFacilityCollateralizationFromEventsJobInitializer::<
                 Perms,
                 E,
             >::new(outbox, &credit_facilities),
@@ -210,14 +210,17 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            credit_facility_history::HistoryProjectionInitializer::<E>::new(outbox, &history_repo),
+            credit_facility_history::HistoryProjectionJobInitializer::<E>::new(
+                outbox,
+                &history_repo,
+            ),
             credit_facility_history::HistoryProjectionConfig {
                 _phantom: std::marker::PhantomData,
             },
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            credit_facility_repayment_plan::RepaymentPlanProjectionInitializer::<E>::new(
+            credit_facility_repayment_plan::RepaymentPlanProjectionJobInitializer::<E>::new(
                 outbox,
                 &repayment_plan_repo,
             ),
