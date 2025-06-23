@@ -39,7 +39,6 @@ impl From<KomainuConfig> for komainu::KomainuConfig {
             secret_key: komainu::KomainuSecretKey::Plain {
                 dem: config.secret_key,
             },
-            proxy: None,
             komainu_test: config.testing_instance,
         }
     }

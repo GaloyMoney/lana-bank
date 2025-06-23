@@ -13,13 +13,13 @@ use p256::{
 };
 use reqwest::{
     header::{HeaderValue, CONTENT_TYPE},
-    Client, Method, Proxy, RequestBuilder, Url,
+    Client, Method, RequestBuilder, Url,
 };
 use serde::{de::DeserializeOwned, Serialize};
 use sha2::{Digest as _, Sha256};
 use tokio::sync::Mutex;
 
-pub use config::{KomainuConfig, KomainuProxy, KomainuSecretKey};
+pub use config::{KomainuConfig, KomainuSecretKey};
 pub use error::KomainuError;
 use wire::{Fallible, GetToken, GetTokenResponse, Many};
 pub use wire::{Request, Transaction, Wallet};
@@ -44,15 +44,6 @@ impl KomainuClient {
             KomainuSecretKey::Plain { dem } => SecretKey::from_pkcs8_pem(dem).unwrap().into(),
         };
 
-        let http_client = if let Some(KomainuProxy::Socks5(proxy)) = &config.proxy {
-            Client::builder()
-                .proxy(Proxy::all(format!("socks5://{proxy}")).expect("correct proxy scheme"))
-                .build()
-                .expect("correct client")
-        } else {
-            Client::new()
-        };
-
         let host = if config.komainu_test {
             "https://api-uat.komainu.io"
         } else {
@@ -65,7 +56,7 @@ impl KomainuClient {
         };
 
         Self {
-            http_client,
+            http_client: Client::new(),
             access_token: Default::default(),
             signing_key,
             get_token_request,
