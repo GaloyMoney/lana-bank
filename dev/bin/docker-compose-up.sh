@@ -29,8 +29,4 @@ echo "Pulling Docker images..."
 echo "Starting services..."
 "$ENGINE" compose "${FILES[@]}" up -d "$@"
 
-while ! pg_isready -d pg -p 5433 -U user; do
-  echo "PostgreSQL not yet ready..."
-  sleep 1
-done
-echo "PostgreSQL ready"
+wait4x postgresql ${PG_CON}

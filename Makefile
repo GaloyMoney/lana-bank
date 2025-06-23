@@ -79,7 +79,6 @@ clean-deps:
 
 start-deps:
 	./dev/bin/docker-compose-up.sh
-	wait4x postgresql $${PG_CON}
 
 # Rust backend
 setup-db:
@@ -196,8 +195,6 @@ test-cypress-in-ci:
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:3001 || echo "Admin panel direct check failed"
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:4455/admin || echo "Admin panel via proxy failed"
 	@echo "Database connectivity check:"
-	@podman exec lana-bank-kratos-admin-pg-1 pg_isready -U dbuser || echo "Kratos admin DB not ready"
-	@podman exec lana-bank-core-pg-1 pg_isready -U user || echo "Core DB not ready"
 	@echo "Container status:"
 	@podman ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "Failed to check container status"
 	@echo "--- End Health Checks ---"
