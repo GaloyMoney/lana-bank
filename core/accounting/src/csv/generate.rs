@@ -52,7 +52,7 @@ where
             "Description",
             "Entry Type",
         ])
-        .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
+        .map_err(|e| AccountingCsvError::CsvGenerationError(e.to_string()))?;
 
         for entry in history_result {
             let formatted_amount = entry.amount.to_display_amount();
@@ -71,11 +71,11 @@ where
                 entry.description.unwrap_or_default(),
                 entry.entry_type,
             ])
-            .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
+            .map_err(|e| AccountingCsvError::CsvGenerationError(e.to_string()))?;
         }
         let csv_data = wtr
             .into_inner()
-            .map_err(|e| AccountingCsvError::CsvError(e.to_string()))?;
+            .map_err(|e| AccountingCsvError::CsvGenerationError(e.to_string()))?;
 
         Ok(csv_data)
     }

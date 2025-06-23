@@ -34,8 +34,6 @@ pub enum AccountingCsvEvent {
         recorded_at: DateTime<Utc>,
     },
     DownloadLinkGenerated {
-        bucket: String,
-        path_in_bucket: String,
         audit_info: AuditInfo,
         recorded_at: DateTime<Utc>,
     },
@@ -68,15 +66,6 @@ impl AccountingCsv {
             }
         }
         AccountingCsvStatus::Pending
-    }
-
-    pub fn last_error(&self) -> Option<&str> {
-        for e in self.events.iter_all().rev() {
-            if let AccountingCsvEvent::UploadFailed { error, .. } = e {
-                return Some(error);
-            }
-        }
-        None
     }
 
     pub fn file_uploaded(&mut self, bucket: String) -> Idempotent<()> {
@@ -119,21 +108,7 @@ impl AccountingCsv {
         if self.status() != AccountingCsvStatus::Completed {
             return Err(AccountingCsvError::CsvNotReady);
         }
-        let paths = self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|e| {
-                if let AccountingCsvEvent::FileUploaded { bucket, .. } = e {
-                    Some(bucket.to_string())
-                } else {
-                    None
-                }
-            })
-            .expect("paths not found");
         self.events.push(AccountingCsvEvent::DownloadLinkGenerated {
-            bucket: paths,
-            path_in_bucket: self.path_in_storage.clone(),
             audit_info,
             recorded_at: Utc::now(),
         });

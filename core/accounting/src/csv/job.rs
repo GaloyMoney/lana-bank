@@ -38,7 +38,6 @@ where
     repo: AccountingCsvRepo,
     storage: Storage,
     ledger_accounts: LedgerAccounts<Perms>,
-    audit: Perms::Audit,
 }
 
 impl<Perms> GenerateAccountingCsvInit<Perms>
@@ -51,13 +50,11 @@ where
         repo: &AccountingCsvRepo,
         storage: &Storage,
         ledger_accounts: &LedgerAccounts<Perms>,
-        audit: &Perms::Audit,
     ) -> Self {
         Self {
             repo: repo.clone(),
             storage: storage.clone(),
             ledger_accounts: ledger_accounts.clone(),
-            audit: audit.clone(),
         }
     }
 }
@@ -83,7 +80,6 @@ where
             repo: self.repo.clone(),
             storage: self.storage.clone(),
             generator: GenerateCsv::new(&self.ledger_accounts),
-            audit: self.audit.clone(),
         }))
     }
 }
@@ -98,7 +94,6 @@ where
     repo: AccountingCsvRepo,
     storage: Storage,
     generator: GenerateCsv<Perms>,
-    audit: Perms::Audit,
 }
 
 #[async_trait]

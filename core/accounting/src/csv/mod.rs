@@ -60,7 +60,6 @@ where
             &repo,
             storage,
             ledger_accounts,
-            authz.audit(),
         ));
 
         Self {

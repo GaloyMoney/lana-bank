@@ -17,13 +17,11 @@ pub enum AccountingCsvError {
     #[error("AccountingCsvError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("AccountingCsvError - CsvError: {0}")]
-    CsvError(String),
+    CsvGenerationError(String),
     #[error("AccountingCsvError - UnsupportedCsvType")]
     UnsupportedCsvType,
     #[error("AccountingCsvError - CsvNotReady")]
     CsvNotReady,
-    #[error("AccountingCsvError - CsvFileNotFound")]
-    CsvFileNotFound,
     #[error("AccountingCsvError - MissingRequiredField: {0}")]
     MissingRequiredField(String),
 }
