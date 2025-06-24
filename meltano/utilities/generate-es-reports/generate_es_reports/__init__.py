@@ -1,11 +1,13 @@
 import os
+import io
+import csv
 from datetime import datetime
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from re import compile
 
-table_name_pattern = compile(r"report_([a-z]+_\d+)_\d+_(.+)")
+table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
 
 def main():
@@ -39,6 +41,7 @@ def main():
             continue
         norm_name = match.group(1)
         report_name = match.group(2)
+        date_str = datetime.now().strftime("%Y-%m-%d")
 
         query = f"SELECT * FROM `{project_id}.{dataset}.{table_name}`;"
         query_job = bq_client.query(query)
@@ -46,16 +49,32 @@ def main():
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
 
-        # TODO: Here we should branch to different serializations for different norms
+        if norm_name == "nrp_41":
+            report_content_type = "text/xml"
+            report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
+            report_content = report_bytes.decode("utf-8")
+            blob_path = f"reports/{date_str}/{norm_name}/{report_name}.xml"
 
-        xml_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
-        xml_content = xml_bytes.decode("utf-8")
-        date_str = datetime.now().strftime("%Y-%m-%d")
-        blob_path = f"reports/{date_str}/{norm_name}/{report_name}.xml"
+        elif norm_name == "nrsf_03":
+            report_content_type = "text/plain"
+            output = io.StringIO()
+            writer = csv.DictWriter(
+                output, fieldnames=field_names, delimiter="|", lineterminator="\n"
+            )
+            writer.writeheader()
+            writer.writerows(rows_data)
+            report_content = output.getvalue()
+            blob_path = f"reports/{date_str}/{norm_name}/{report_name}.txt"
+
+        else:
+            # TODO: we'll have to come up with some kind of convention for
+            # serializing ad-hoc internal reports when we have those
+            pass
+
         storage_client = storage.Client(project=project_id, credentials=credentials)
         bucket = storage_client.bucket(bucket_name)
         blob = bucket.blob(blob_path)
-        blob.upload_from_string(xml_content, content_type="text/xml")
+        blob.upload_from_string(report_content, content_type=report_content_type)
         print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
 
 
