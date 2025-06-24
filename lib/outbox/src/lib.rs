@@ -1,6 +1,3 @@
-#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
-#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
-
 mod event;
 mod listener;
 mod repo;
