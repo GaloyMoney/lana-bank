@@ -1732,7 +1732,7 @@ impl Mutation {
         let result = app
             .accounting()
             .csvs()
-            .generate_download_link(sub, input.accounting_csv_id.into())
+            .generate_download_link(sub, input.document_id.into())
             .await?;
 
         let link = AccountingCsvDownloadLink::from(result);

@@ -67,6 +67,6 @@ crate::mutation_payload! { LedgerAccountCsvCreatePayload, accounting_csv_documen
 
 #[derive(InputObject)]
 pub struct AccountingCsvDownloadLinkGenerateInput {
-    pub accounting_csv_id: UUID,
+    pub document_id: UUID,
 }
 crate::mutation_payload! { AccountingCsvDownloadLinkGeneratePayload, link: AccountingCsvDownloadLink }

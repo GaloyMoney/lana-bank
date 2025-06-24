@@ -42,22 +42,33 @@ export enum AccountStatus {
   Inactive = 'INACTIVE'
 }
 
-export type AccountingCsv = {
-  __typename?: 'AccountingCsv';
+export type AccountingCsvDocument = {
+  __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
-  csvId: Scalars['UUID']['output'];
+  documentId: Scalars['UUID']['output'];
+  filename: Scalars['String']['output'];
   id: Scalars['ID']['output'];
-  status: AccountingCsvStatus;
+  ledgerAccountId: Scalars['UUID']['output'];
+  status: DocumentStatus;
 };
 
-export type AccountingCsvConnection = {
-  __typename?: 'AccountingCsvConnection';
+export type AccountingCsvDocumentConnection = {
+  __typename?: 'AccountingCsvDocumentConnection';
   /** A list of edges. */
-  edges: Array<AccountingCsvEdge>;
+  edges: Array<AccountingCsvDocumentEdge>;
   /** A list of nodes. */
-  nodes: Array<AccountingCsv>;
+  nodes: Array<AccountingCsvDocument>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type AccountingCsvDocumentEdge = {
+  __typename?: 'AccountingCsvDocumentEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: AccountingCsvDocument;
 };
 
 export type AccountingCsvDownloadLink = {
@@ -67,28 +78,13 @@ export type AccountingCsvDownloadLink = {
 };
 
 export type AccountingCsvDownloadLinkGenerateInput = {
-  accountingCsvId: Scalars['UUID']['input'];
+  documentId: Scalars['UUID']['input'];
 };
 
 export type AccountingCsvDownloadLinkGeneratePayload = {
   __typename?: 'AccountingCsvDownloadLinkGeneratePayload';
   link: AccountingCsvDownloadLink;
 };
-
-/** An edge in a connection. */
-export type AccountingCsvEdge = {
-  __typename?: 'AccountingCsvEdge';
-  /** A cursor for use in pagination */
-  cursor: Scalars['String']['output'];
-  /** The item at the end of the edge */
-  node: AccountingCsv;
-};
-
-export enum AccountingCsvStatus {
-  Completed = 'COMPLETED',
-  Failed = 'FAILED',
-  Pending = 'PENDING'
-}
 
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
@@ -1204,7 +1200,7 @@ export type LedgerAccountCsvCreateInput = {
 
 export type LedgerAccountCsvCreatePayload = {
   __typename?: 'LedgerAccountCsvCreatePayload';
-  accountingCsv: AccountingCsv;
+  accountingCsvDocument: AccountingCsvDocument;
 };
 
 /** An edge in a connection. */
@@ -1669,7 +1665,7 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
 
 export type Query = {
   __typename?: 'Query';
-  accountingCsvsForLedgerAccountId: AccountingCsvConnection;
+  accountingCsvsForLedgerAccountId: AccountingCsvDocumentConnection;
   approvalProcess?: Maybe<ApprovalProcess>;
   approvalProcesses: ApprovalProcessConnection;
   audit: AuditEntryConnection;
@@ -2660,14 +2656,14 @@ export type AccountingCsvsForLedgerAccountIdQueryVariables = Exact<{
 }>;
 
 
-export type AccountingCsvsForLedgerAccountIdQuery = { __typename?: 'Query', accountingCsvsForLedgerAccountId: { __typename?: 'AccountingCsvConnection', edges: Array<{ __typename?: 'AccountingCsvEdge', cursor: string, node: { __typename?: 'AccountingCsv', id: string, csvId: string, status: AccountingCsvStatus, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
+export type AccountingCsvsForLedgerAccountIdQuery = { __typename?: 'Query', accountingCsvsForLedgerAccountId: { __typename?: 'AccountingCsvDocumentConnection', edges: Array<{ __typename?: 'AccountingCsvDocumentEdge', cursor: string, node: { __typename?: 'AccountingCsvDocument', id: string, documentId: string, status: DocumentStatus, createdAt: any } }>, pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null } } };
 
 export type LedgerAccountCsvCreateMutationVariables = Exact<{
   input: LedgerAccountCsvCreateInput;
 }>;
 
 
-export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsv: { __typename?: 'AccountingCsv', id: string, csvId: string, status: AccountingCsvStatus, createdAt: any } } };
+export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsvDocument: { __typename?: 'AccountingCsvDocument', id: string, status: DocumentStatus, createdAt: any } } };
 
 export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
   input: AccountingCsvDownloadLinkGenerateInput;
@@ -5465,7 +5461,7 @@ export const AccountingCsvsForLedgerAccountIdDocument = gql`
     edges {
       node {
         id
-        csvId
+        documentId
         status
         createdAt
       }
@@ -5516,9 +5512,8 @@ export type AccountingCsvsForLedgerAccountIdQueryResult = Apollo.QueryResult<Acc
 export const LedgerAccountCsvCreateDocument = gql`
     mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
   ledgerAccountCsvCreate(input: $input) {
-    accountingCsv {
+    accountingCsvDocument {
       id
-      csvId
       status
       createdAt
     }

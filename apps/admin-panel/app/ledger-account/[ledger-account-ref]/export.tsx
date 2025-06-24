@@ -45,7 +45,7 @@ gql`
       edges {
         node {
           id
-          csvId
+          documentId
           status
           createdAt
         }
@@ -60,9 +60,8 @@ gql`
 
   mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
     ledgerAccountCsvCreate(input: $input) {
-      accountingCsv {
+      accountingCsvDocument {
         id
-        csvId
         status
         createdAt
       }
@@ -83,7 +82,7 @@ gql`
 
 type CsvOption = {
   id: string
-  csvId: string
+  documentId: string
   label: string
   status: AccountingCsvStatus
   createdAt: string
@@ -125,14 +124,14 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
     if (data?.accountingCsvsForLedgerAccountId.edges) {
       const options = data.accountingCsvsForLedgerAccountId.edges.map((edge) => ({
         id: edge.node.id,
-        csvId: edge.node.csvId,
+        documentId: edge.node.documentId,
         label: `${formatDate(edge.node.createdAt)} - ${t(`status.${edge.node.status.toLowerCase()}`)}`,
         status: edge.node.status,
         createdAt: edge.node.createdAt,
       }))
       setCsvOptions(options)
       if (pollingCsvIdRef.current) {
-        const pollingCsv = options.find((opt) => opt.csvId === pollingCsvIdRef.current)
+        const pollingCsv = options.find((opt) => opt.documentId === pollingCsvIdRef.current)
         if (pollingCsv) {
           if (selectedCsvId !== pollingCsvIdRef.current) {
             setSelectedCsvId(pollingCsvIdRef.current)
@@ -146,7 +145,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
           }
         }
       } else if (!selectedCsvId && options.length > 0) {
-        setSelectedCsvId(options[0].csvId)
+        setSelectedCsvId(options[0].documentId)
       }
     }
   }, [data, selectedCsvId, t])
@@ -188,7 +187,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       })
 
       if (result.data) {
-        const newCsvId = result.data.ledgerAccountCsvCreate.accountingCsv.csvId
+        const newCsvId = result.data.ledgerAccountCsvCreate.accountingCsvDocument.documentId
         toast.success(t("csvCreating"))
         startPolling(newCsvId)
         await refetch()
@@ -202,7 +201,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
   const handleDownload = async () => {
     if (!selectedCsvId) return
 
-    const selectedOption = csvOptions.find((opt) => opt.csvId === selectedCsvId)
+    const selectedOption = csvOptions.find((opt) => opt.documentId === selectedCsvId)
     if (!selectedOption || selectedOption.status !== AccountingCsvStatus.Completed) {
       toast.error(t("errors.notReady"))
       return
@@ -213,7 +212,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       const result = await generateDownloadLink({
         variables: {
           input: {
-            accountingCsvId: selectedCsvId,
+            documentId: selectedCsvId,
           },
         },
       })
@@ -241,7 +240,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
   }
 
   const isSelectedCompleted = selectedCsvId
-    ? csvOptions.find((opt) => opt.csvId === selectedCsvId)?.status ===
+    ? csvOptions.find((opt) => opt.documentId === selectedCsvId)?.status ===
       AccountingCsvStatus.Completed
     : false
 
@@ -276,7 +275,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
                   </SelectTrigger>
                   <SelectContent>
                     {csvOptions.map((option) => (
-                      <SelectItem key={option.id} value={option.csvId}>
+                      <SelectItem key={option.id} value={option.documentId}>
                         <div className="flex items-center">
                           {option.status === AccountingCsvStatus.Completed ? (
                             <CheckCircle className="h-4 w-4 mr-2 text-success" />
