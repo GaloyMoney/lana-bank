@@ -12,10 +12,10 @@ CREATE TABLE core_approval_process_events_rollup (
   approved BOOLEAN,
 
   -- Collection rollups
-  approver_ids UUID[],
   deny_reasons VARCHAR[],
-  audit_entry_ids BIGINT[],
   denier_ids UUID[],
+  audit_entry_ids BIGINT[],
+  approver_ids UUID[],
 
   -- Toggle fields
   is_concluded BOOLEAN DEFAULT false
@@ -60,16 +60,16 @@ BEGIN
     new_row.rules := (NEW.event -> 'rules');
     new_row.target_ref := (NEW.event ->> 'target_ref');
     new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-    new_row.approver_ids := CASE
-       WHEN NEW.event ? 'approver_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'approver_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
     new_row.deny_reasons := CASE
        WHEN NEW.event ? 'deny_reasons' THEN
          ARRAY(SELECT value::text FROM jsonb_array_elements_text(NEW.event -> 'deny_reasons'))
        ELSE ARRAY[]::VARCHAR[]
+     END
+;
+    new_row.denier_ids := CASE
+       WHEN NEW.event ? 'denier_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'denier_ids'))
+       ELSE ARRAY[]::UUID[]
      END
 ;
     new_row.audit_entry_ids := CASE
@@ -78,9 +78,9 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
-    new_row.denier_ids := CASE
-       WHEN NEW.event ? 'denier_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'denier_ids'))
+    new_row.approver_ids := CASE
+       WHEN NEW.event ? 'approver_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'approver_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -92,10 +92,10 @@ BEGIN
     new_row.rules := current_row.rules;
     new_row.target_ref := current_row.target_ref;
     new_row.approved := current_row.approved;
-    new_row.approver_ids := current_row.approver_ids;
     new_row.deny_reasons := current_row.deny_reasons;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.denier_ids := current_row.denier_ids;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.approver_ids := current_row.approver_ids;
     new_row.is_concluded := current_row.is_concluded;
   END IF;
 
@@ -108,12 +108,12 @@ BEGIN
       new_row.target_ref := (NEW.event ->> 'target_ref');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'approved' THEN
-      new_row.approver_ids := array_append(COALESCE(current_row.approver_ids, ARRAY[]::UUID[]), (NEW.event ->> 'approver_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.approver_ids := array_append(COALESCE(current_row.approver_ids, ARRAY[]::UUID[]), (NEW.event ->> 'approver_id')::UUID);
     WHEN 'denied' THEN
       new_row.deny_reasons := array_append(COALESCE(current_row.deny_reasons, ARRAY[]::VARCHAR[]), (NEW.event ->> 'reason'));
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.denier_ids := array_append(COALESCE(current_row.denier_ids, ARRAY[]::UUID[]), (NEW.event ->> 'denier_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'concluded' THEN
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -130,10 +130,10 @@ BEGIN
     rules,
     target_ref,
     approved,
-    approver_ids,
     deny_reasons,
-    audit_entry_ids,
     denier_ids,
+    audit_entry_ids,
+    approver_ids,
     is_concluded
   )
   VALUES (
@@ -146,10 +146,10 @@ BEGIN
     new_row.rules,
     new_row.target_ref,
     new_row.approved,
-    new_row.approver_ids,
     new_row.deny_reasons,
-    new_row.audit_entry_ids,
     new_row.denier_ids,
+    new_row.audit_entry_ids,
+    new_row.approver_ids,
     new_row.is_concluded
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -160,10 +160,10 @@ BEGIN
     rules = EXCLUDED.rules,
     target_ref = EXCLUDED.target_ref,
     approved = EXCLUDED.approved,
-    approver_ids = EXCLUDED.approver_ids,
     deny_reasons = EXCLUDED.deny_reasons,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
     denier_ids = EXCLUDED.denier_ids,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
+    approver_ids = EXCLUDED.approver_ids,
     is_concluded = EXCLUDED.is_concluded;
 
   RETURN NEW;

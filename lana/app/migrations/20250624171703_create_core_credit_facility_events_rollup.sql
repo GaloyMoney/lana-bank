@@ -24,9 +24,9 @@ CREATE TABLE core_credit_facility_events_rollup (
 
   -- Collection rollups
   ledger_tx_ids UUID[],
-  interest_accrual_ids UUID[],
   audit_entry_ids BIGINT[],
   obligation_ids UUID[],
+  interest_accrual_ids UUID[],
 
   -- Toggle fields
   is_approval_process_concluded BOOLEAN DEFAULT false,
@@ -90,12 +90,6 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.interest_accrual_ids := CASE
-       WHEN NEW.event ? 'interest_accrual_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'interest_accrual_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
@@ -105,6 +99,12 @@ BEGIN
     new_row.obligation_ids := CASE
        WHEN NEW.event ? 'obligation_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.interest_accrual_ids := CASE
+       WHEN NEW.event ? 'interest_accrual_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'interest_accrual_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -130,9 +130,9 @@ BEGIN
     new_row.price := current_row.price;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.obligation_ids := current_row.obligation_ids;
+    new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
     new_row.is_activated := current_row.is_activated;
     new_row.is_completed := current_row.is_completed;
@@ -163,8 +163,8 @@ BEGIN
     WHEN 'interest_accrual_cycle_started' THEN
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
       new_row.interest_period := (NEW.event -> 'interest_period');
-      new_row.interest_accrual_ids := array_append(COALESCE(current_row.interest_accrual_ids, ARRAY[]::UUID[]), (NEW.event ->> 'interest_accrual_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.interest_accrual_ids := array_append(COALESCE(current_row.interest_accrual_ids, ARRAY[]::UUID[]), (NEW.event ->> 'interest_accrual_id')::UUID);
     WHEN 'interest_accrual_cycle_concluded' THEN
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
@@ -206,9 +206,9 @@ BEGIN
     price,
     collateralization_ratio,
     ledger_tx_ids,
-    interest_accrual_ids,
     audit_entry_ids,
     obligation_ids,
+    interest_accrual_ids,
     is_approval_process_concluded,
     is_activated,
     is_completed
@@ -235,9 +235,9 @@ BEGIN
     new_row.price,
     new_row.collateralization_ratio,
     new_row.ledger_tx_ids,
-    new_row.interest_accrual_ids,
     new_row.audit_entry_ids,
     new_row.obligation_ids,
+    new_row.interest_accrual_ids,
     new_row.is_approval_process_concluded,
     new_row.is_activated,
     new_row.is_completed
@@ -262,9 +262,9 @@ BEGIN
     price = EXCLUDED.price,
     collateralization_ratio = EXCLUDED.collateralization_ratio,
     ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    interest_accrual_ids = EXCLUDED.interest_accrual_ids,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
     obligation_ids = EXCLUDED.obligation_ids,
+    interest_accrual_ids = EXCLUDED.interest_accrual_ids,
     is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
     is_activated = EXCLUDED.is_activated,
     is_completed = EXCLUDED.is_completed;

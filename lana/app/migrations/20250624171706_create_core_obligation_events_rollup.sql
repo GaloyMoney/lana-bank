@@ -12,6 +12,7 @@ CREATE TABLE core_obligation_events_rollup (
   due_accounts JSONB,
   due_date TIMESTAMPTZ,
   effective VARCHAR,
+  in_liquidation_account_id UUID,
   liquidation_date TIMESTAMPTZ,
   not_yet_due_accounts JSONB,
   obligation_type JSONB,
@@ -25,9 +26,9 @@ CREATE TABLE core_obligation_events_rollup (
   liquidation_process_id UUID,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[],
-  ledger_tx_ids UUID[],
   payment_allocation_ids UUID[],
+  ledger_tx_ids UUID[],
+  audit_entry_ids BIGINT[],
   payment_ids UUID[],
 
   -- Toggle fields
@@ -78,6 +79,7 @@ BEGIN
     new_row.due_accounts := (NEW.event -> 'due_accounts');
     new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
     new_row.effective := (NEW.event ->> 'effective');
+    new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
     new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
     new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
     new_row.obligation_type := (NEW.event -> 'obligation_type');
@@ -89,10 +91,10 @@ BEGIN
     new_row.defaulted_amount := (NEW.event -> 'defaulted_amount');
     new_row.payment_allocation_amount := (NEW.event -> 'payment_allocation_amount');
     new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
+    new_row.payment_allocation_ids := CASE
+       WHEN NEW.event ? 'payment_allocation_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'payment_allocation_ids'))
+       ELSE ARRAY[]::UUID[]
      END
 ;
     new_row.ledger_tx_ids := CASE
@@ -101,10 +103,10 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.payment_allocation_ids := CASE
-       WHEN NEW.event ? 'payment_allocation_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'payment_allocation_ids'))
-       ELSE ARRAY[]::UUID[]
+    new_row.audit_entry_ids := CASE
+       WHEN NEW.event ? 'audit_entry_ids' THEN
+         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
+       ELSE ARRAY[]::BIGINT[]
      END
 ;
     new_row.payment_ids := CASE
@@ -126,6 +128,7 @@ BEGIN
     new_row.due_accounts := current_row.due_accounts;
     new_row.due_date := current_row.due_date;
     new_row.effective := current_row.effective;
+    new_row.in_liquidation_account_id := current_row.in_liquidation_account_id;
     new_row.liquidation_date := current_row.liquidation_date;
     new_row.not_yet_due_accounts := current_row.not_yet_due_accounts;
     new_row.obligation_type := current_row.obligation_type;
@@ -137,9 +140,9 @@ BEGIN
     new_row.defaulted_amount := current_row.defaulted_amount;
     new_row.payment_allocation_amount := current_row.payment_allocation_amount;
     new_row.liquidation_process_id := current_row.liquidation_process_id;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.payment_allocation_ids := current_row.payment_allocation_ids;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.payment_ids := current_row.payment_ids;
     new_row.is_due_recorded := current_row.is_due_recorded;
     new_row.is_overdue_recorded := current_row.is_overdue_recorded;
@@ -157,33 +160,34 @@ BEGIN
       new_row.due_accounts := (NEW.event -> 'due_accounts');
       new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
       new_row.effective := (NEW.event ->> 'effective');
+      new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
       new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
       new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
       new_row.obligation_type := (NEW.event -> 'obligation_type');
       new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
       new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
       new_row.reference := (NEW.event ->> 'reference');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'due_recorded' THEN
       new_row.due_amount := (NEW.event -> 'due_amount');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_due_recorded := true;
     WHEN 'overdue_recorded' THEN
       new_row.overdue_amount := (NEW.event -> 'overdue_amount');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_overdue_recorded := true;
     WHEN 'defaulted_recorded' THEN
       new_row.defaulted_amount := (NEW.event -> 'defaulted_amount');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_defaulted_recorded := true;
     WHEN 'payment_allocated' THEN
       new_row.payment_allocation_amount := (NEW.event -> 'payment_allocation_amount');
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.payment_allocation_ids := array_append(COALESCE(current_row.payment_allocation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_allocation_id')::UUID);
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.payment_ids := array_append(COALESCE(current_row.payment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_id')::UUID);
     WHEN 'liquidation_process_started' THEN
       new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
@@ -209,6 +213,7 @@ BEGIN
     due_accounts,
     due_date,
     effective,
+    in_liquidation_account_id,
     liquidation_date,
     not_yet_due_accounts,
     obligation_type,
@@ -220,9 +225,9 @@ BEGIN
     defaulted_amount,
     payment_allocation_amount,
     liquidation_process_id,
-    audit_entry_ids,
-    ledger_tx_ids,
     payment_allocation_ids,
+    ledger_tx_ids,
+    audit_entry_ids,
     payment_ids,
     is_due_recorded,
     is_overdue_recorded,
@@ -241,6 +246,7 @@ BEGIN
     new_row.due_accounts,
     new_row.due_date,
     new_row.effective,
+    new_row.in_liquidation_account_id,
     new_row.liquidation_date,
     new_row.not_yet_due_accounts,
     new_row.obligation_type,
@@ -252,9 +258,9 @@ BEGIN
     new_row.defaulted_amount,
     new_row.payment_allocation_amount,
     new_row.liquidation_process_id,
-    new_row.audit_entry_ids,
-    new_row.ledger_tx_ids,
     new_row.payment_allocation_ids,
+    new_row.ledger_tx_ids,
+    new_row.audit_entry_ids,
     new_row.payment_ids,
     new_row.is_due_recorded,
     new_row.is_overdue_recorded,
@@ -271,6 +277,7 @@ BEGIN
     due_accounts = EXCLUDED.due_accounts,
     due_date = EXCLUDED.due_date,
     effective = EXCLUDED.effective,
+    in_liquidation_account_id = EXCLUDED.in_liquidation_account_id,
     liquidation_date = EXCLUDED.liquidation_date,
     not_yet_due_accounts = EXCLUDED.not_yet_due_accounts,
     obligation_type = EXCLUDED.obligation_type,
@@ -282,9 +289,9 @@ BEGIN
     defaulted_amount = EXCLUDED.defaulted_amount,
     payment_allocation_amount = EXCLUDED.payment_allocation_amount,
     liquidation_process_id = EXCLUDED.liquidation_process_id,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
     payment_allocation_ids = EXCLUDED.payment_allocation_ids,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
     payment_ids = EXCLUDED.payment_ids,
     is_due_recorded = EXCLUDED.is_due_recorded,
     is_overdue_recorded = EXCLUDED.is_overdue_recorded,

@@ -9,9 +9,9 @@ CREATE TABLE core_chart_events_rollup (
   reference VARCHAR,
 
   -- Collection rollups
+  audit_entry_ids BIGINT[],
   node_specs JSONB,
-  ledger_account_set_ids UUID[],
-  audit_entry_ids BIGINT[]
+  ledger_account_set_ids UUID[]
 
 );
 
@@ -50,6 +50,12 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
+    new_row.audit_entry_ids := CASE
+       WHEN NEW.event ? 'audit_entry_ids' THEN
+         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
+       ELSE ARRAY[]::BIGINT[]
+     END
+;
     new_row.node_specs := CASE
        WHEN NEW.event ? 'node_specs' THEN
          (NEW.event -> 'node_specs')
@@ -62,19 +68,13 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
   ELSE
     -- Default all fields to current values
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.node_specs := current_row.node_specs;
     new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -84,9 +84,9 @@ BEGIN
       new_row.reference := (NEW.event ->> 'reference');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'node_added' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.node_specs := COALESCE(current_row.node_specs, '[]'::JSONB) || jsonb_build_array(NEW.event -> 'spec');
       new_row.ledger_account_set_ids := array_append(COALESCE(current_row.ledger_account_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_set_id')::UUID);
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -96,9 +96,9 @@ BEGIN
     modified_at,
     name,
     reference,
+    audit_entry_ids,
     node_specs,
-    ledger_account_set_ids,
-    audit_entry_ids
+    ledger_account_set_ids
   )
   VALUES (
     new_row.id,
@@ -107,18 +107,18 @@ BEGIN
     new_row.modified_at,
     new_row.name,
     new_row.reference,
+    new_row.audit_entry_ids,
     new_row.node_specs,
-    new_row.ledger_account_set_ids,
-    new_row.audit_entry_ids
+    new_row.ledger_account_set_ids
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
     name = EXCLUDED.name,
     reference = EXCLUDED.reference,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
     node_specs = EXCLUDED.node_specs,
-    ledger_account_set_ids = EXCLUDED.ledger_account_set_ids,
-    audit_entry_ids = EXCLUDED.audit_entry_ids;
+    ledger_account_set_ids = EXCLUDED.ledger_account_set_ids;
 
   RETURN NEW;
 END;
