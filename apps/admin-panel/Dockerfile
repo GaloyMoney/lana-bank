@@ -7,7 +7,7 @@ WORKDIR /app
 
 RUN npm install -g pnpm@9.15.2
 
-COPY pnpm-workspace.yaml pnpm-lock.yaml ./
+COPY package.json pnpm-workspace.yaml pnpm-lock.yaml ./
 
 COPY apps/admin-panel/package.json ./apps/admin-panel/
 COPY apps/shared-web/package.json ./apps/shared-web/
