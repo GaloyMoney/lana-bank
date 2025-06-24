@@ -256,6 +256,18 @@ type ChartOfAccounts {
 	children: [ChartNode!]!
 }
 
+input ChartOfAccountsAddNodeInput {
+	chartId: UUID!
+	parent: AccountCode
+	code: AccountCode!
+	name: String!
+	normalBalanceType: DebitOrCredit!
+}
+
+type ChartOfAccountsAddNodePayload {
+	success: Boolean!
+}
+
 input ChartOfAccountsCsvImportInput {
 	chartId: UUID!
 	file: Upload!
@@ -1339,6 +1351,7 @@ type Mutation {
 	reportCreate: ReportCreatePayload!
 	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	chartOfAccountsAddNode(input: ChartOfAccountsAddNodeInput!): ChartOfAccountsAddNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
