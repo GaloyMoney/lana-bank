@@ -2663,7 +2663,7 @@ export type LedgerAccountCsvCreateMutationVariables = Exact<{
 }>;
 
 
-export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsvDocument: { __typename?: 'AccountingCsvDocument', id: string, status: DocumentStatus, createdAt: any } } };
+export type LedgerAccountCsvCreateMutation = { __typename?: 'Mutation', ledgerAccountCsvCreate: { __typename?: 'LedgerAccountCsvCreatePayload', accountingCsvDocument: { __typename?: 'AccountingCsvDocument', id: string, documentId: string, status: DocumentStatus, createdAt: any } } };
 
 export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
   input: AccountingCsvDownloadLinkGenerateInput;
@@ -5514,6 +5514,7 @@ export const LedgerAccountCsvCreateDocument = gql`
   ledgerAccountCsvCreate(input: $input) {
     accountingCsvDocument {
       id
+      documentId
       status
       createdAt
     }

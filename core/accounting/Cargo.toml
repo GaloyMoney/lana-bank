@@ -7,7 +7,7 @@ edition = "2024"
 [features]
 fail-on-warnings = []
 graphql = [ "dep:async-graphql" ]
-json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema"]
 
 [dependencies]
 audit = { path = "../../lib/audit" }

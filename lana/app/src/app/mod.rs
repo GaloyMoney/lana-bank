@@ -94,7 +94,6 @@ impl LanaApp {
             &authz,
             &cala,
             journal_init.journal_id,
-            &storage,
             documents.clone(),
             &jobs,
         );

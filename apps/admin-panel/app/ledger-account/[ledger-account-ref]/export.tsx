@@ -20,7 +20,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@lana/web/ui/select"
-import { Loader2, FileDown, FileUp, CheckCircle, AlertCircle, Clock } from "lucide-react"
+import { Loader2, FileDown, FileUp, CheckCircle, Clock } from "lucide-react"
 
 import { formatDate } from "@lana/web/utils"
 
@@ -28,7 +28,7 @@ import {
   useAccountingCsvsForLedgerAccountIdQuery,
   useLedgerAccountCsvCreateMutation,
   useAccountingCsvDownloadLinkGenerateMutation,
-  AccountingCsvStatus,
+  DocumentStatus,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -62,6 +62,7 @@ gql`
     ledgerAccountCsvCreate(input: $input) {
       accountingCsvDocument {
         id
+        documentId
         status
         createdAt
       }
@@ -84,7 +85,7 @@ type CsvOption = {
   id: string
   documentId: string
   label: string
-  status: AccountingCsvStatus
+  status: DocumentStatus
   createdAt: string
 }
 
@@ -131,15 +132,17 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       }))
       setCsvOptions(options)
       if (pollingCsvIdRef.current) {
-        const pollingCsv = options.find((opt) => opt.documentId === pollingCsvIdRef.current)
+        const pollingCsv = options.find(
+          (opt) => opt.documentId === pollingCsvIdRef.current,
+        )
         if (pollingCsv) {
           if (selectedCsvId !== pollingCsvIdRef.current) {
             setSelectedCsvId(pollingCsvIdRef.current)
           }
-          if (pollingCsv.status === AccountingCsvStatus.Completed) {
+          if (pollingCsv.status === DocumentStatus.Active) {
             stopPolling()
             toast.success(t("csvReady"))
-          } else if (pollingCsv.status === AccountingCsvStatus.Failed) {
+          } else if (pollingCsv.status === DocumentStatus.Archived) {
             stopPolling()
             toast.error(t("csvFailed"))
           }
@@ -187,7 +190,8 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
       })
 
       if (result.data) {
-        const newCsvId = result.data.ledgerAccountCsvCreate.accountingCsvDocument.documentId
+        const newCsvId =
+          result.data.ledgerAccountCsvCreate.accountingCsvDocument.documentId
         toast.success(t("csvCreating"))
         startPolling(newCsvId)
         await refetch()
@@ -202,7 +206,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
     if (!selectedCsvId) return
 
     const selectedOption = csvOptions.find((opt) => opt.documentId === selectedCsvId)
-    if (!selectedOption || selectedOption.status !== AccountingCsvStatus.Completed) {
+    if (!selectedOption || selectedOption.status !== DocumentStatus.Active) {
       toast.error(t("errors.notReady"))
       return
     }
@@ -241,7 +245,7 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
 
   const isSelectedCompleted = selectedCsvId
     ? csvOptions.find((opt) => opt.documentId === selectedCsvId)?.status ===
-      AccountingCsvStatus.Completed
+      DocumentStatus.Active
     : false
 
   return (
@@ -277,12 +281,10 @@ export const ExportCsvDialog: React.FC<ExportCsvDialogProps> = ({
                     {csvOptions.map((option) => (
                       <SelectItem key={option.id} value={option.documentId}>
                         <div className="flex items-center">
-                          {option.status === AccountingCsvStatus.Completed ? (
+                          {option.status === DocumentStatus.Active ? (
                             <CheckCircle className="h-4 w-4 mr-2 text-success" />
-                          ) : option.status === AccountingCsvStatus.Pending ? (
-                            <Clock className="h-4 w-4 mr-2 text-warning" />
                           ) : (
-                            <AlertCircle className="h-4 w-4 mr-2 text-destructive" />
+                            <Clock className="h-4 w-4 mr-2 text-warning" />
                           )}
                           {formatDate(option.createdAt)}
                         </div>

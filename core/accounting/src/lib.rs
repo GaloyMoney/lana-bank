@@ -19,7 +19,6 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use cloud_storage::Storage;
 use document_storage::DocumentStorage;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
@@ -93,7 +92,6 @@ where
         authz: &Perms,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
-        _storage: &Storage,
         document_storage: DocumentStorage,
         jobs: &Jobs,
     ) -> Self {

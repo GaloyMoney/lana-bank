@@ -2,6 +2,7 @@ mod helpers;
 
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
+use document_storage::DocumentStorage;
 use job::{JobExecutorConfig, Jobs};
 
 use cala_ledger::{CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit};
@@ -65,9 +66,10 @@ async fn prepare_test() -> anyhow::Result<(
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting
         .chart_of_accounts()

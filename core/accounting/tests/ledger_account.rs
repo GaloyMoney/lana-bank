@@ -8,6 +8,7 @@ use cala_ledger::{
 };
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
+use document_storage::DocumentStorage;
 use helpers::{action, object};
 use job::{JobExecutorConfig, Jobs};
 
@@ -22,9 +23,10 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
 
     let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting.chart_of_accounts().create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone()).await?;
     let import = r#"
@@ -86,9 +88,10 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     
     let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting.chart_of_accounts().create_chart(&DummySubject, "Test chart".to_string(), chart_ref.clone()).await?;
     let import = r#"
@@ -139,10 +142,11 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
     let storage = Storage::new(&StorageConfig::default());
+    let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
-    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id ,
-        &storage,
+    let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id,
+        document_storage,
         &jobs,
     );
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

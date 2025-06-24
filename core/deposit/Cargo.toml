@@ -45,6 +45,7 @@ schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
+document-storage = { path = "../document-storage" }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }

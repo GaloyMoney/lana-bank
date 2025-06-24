@@ -1192,6 +1192,7 @@ dependencies = [
  "core-customer",
  "core-money",
  "derive_builder",
+ "document-storage",
  "es-entity",
  "futures",
  "governance",
