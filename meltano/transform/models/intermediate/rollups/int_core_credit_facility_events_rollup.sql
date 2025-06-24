@@ -50,9 +50,6 @@ with credit_facility as (
             id,
             customer_id,
             amount,
-            last_sequence,
-            created_at,
-            modified_at,
             ledger_tx_ids,
             account_ids,
             terms,
@@ -68,6 +65,9 @@ with credit_facility as (
             interest_accrual_cycle_idx,
             interest_period,
             outstanding,
+            last_sequence,
+            created_at,
+            modified_at,
             _sdc_received_at,
             _sdc_batched_at,
             _sdc_extracted_at,
@@ -76,7 +76,6 @@ with credit_facility as (
             _sdc_table_version
         )
     from {{ ref('stg_core_credit_facility_events_rollup') }}
-    where approved
 )
 
 
