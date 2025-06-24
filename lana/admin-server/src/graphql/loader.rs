@@ -7,7 +7,7 @@ use lana_app::{
     accounting::{
         Chart, LedgerAccountId, TransactionTemplateId,
         chart_of_accounts::error::ChartOfAccountsError,
-        csv::{AccountingCsvDocumentId, error::AccountingCsvError},
+        csv::{AccountingCsvDocumentId, error::AccountingCsvExportError},
         ledger_transaction::error::LedgerTransactionError,
         transaction_templates::error::TransactionTemplateError,
     },
@@ -359,7 +359,7 @@ impl Loader<LedgerAccountId> for LanaLoader {
 
 impl Loader<AccountingCsvDocumentId> for LanaLoader {
     type Value = AccountingCsvDocument;
-    type Error = Arc<AccountingCsvError>;
+    type Error = Arc<AccountingCsvExportError>;
 
     async fn load(
         &self,

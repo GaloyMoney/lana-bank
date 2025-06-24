@@ -14,8 +14,8 @@ pub enum CoreAccountingError {
     LedgerTransactionError(#[from] super::ledger_transaction::error::LedgerTransactionError),
     #[error("CoreAccountingError - AccountCodeParseError: {0}")]
     AccountCodeParseError(#[from] super::AccountCodeParseError),
-    #[error("CoreAccountingError - AccountingCsvError: {0}")]
-    AccountingCsvError(#[from] super::csv::error::AccountingCsvError),
+    #[error("CoreAccountingError - AccountingCsvExportError: {0}")]
+    AccountingCsvExportError(#[from] super::csv::error::AccountingCsvExportError),
     #[error("CoreAccountingError - TrialBalanceError: {0}")]
     TrialBalance(#[from] super::trial_balance::error::TrialBalanceError),
 }

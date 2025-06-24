@@ -26,7 +26,7 @@ pub use primitives::*;
 pub const LEDGER_ACCOUNT_CSV: DocumentType = DocumentType::new("ledger_account_csv");
 
 #[derive(Clone)]
-pub struct AccountingCsvs<Perms>
+pub struct AccountingCsvExports<Perms>
 where
     Perms: PermissionCheck,
 {
@@ -35,7 +35,7 @@ where
     document_storage: DocumentStorage,
 }
 
-impl<Perms> AccountingCsvs<Perms>
+impl<Perms> AccountingCsvExports<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
@@ -65,7 +65,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         ledger_account_id: impl Into<LedgerAccountId> + std::fmt::Debug,
-    ) -> Result<Document, AccountingCsvError> {
+    ) -> Result<Document, AccountingCsvExportError> {
         let ledger_account_id = ledger_account_id.into();
 
         let audit_info = self
@@ -111,7 +111,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         document_id: DocumentId,
-    ) -> Result<GeneratedDocumentDownloadLink, AccountingCsvError> {
+    ) -> Result<GeneratedDocumentDownloadLink, AccountingCsvExportError> {
         let audit_info = self
             .authz
             .enforce_permission(
@@ -138,7 +138,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         ledger_account_id: impl Into<LedgerAccountId> + std::fmt::Debug,
-    ) -> Result<Vec<Document>, AccountingCsvError> {
+    ) -> Result<Vec<Document>, AccountingCsvExportError> {
         let ledger_account_id = ledger_account_id.into();
 
         let _audit_info = self
@@ -170,7 +170,7 @@ where
         query: es_entity::PaginatedQueryArgs<document_storage::DocumentsByCreatedAtCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<Document, document_storage::DocumentsByCreatedAtCursor>,
-        AccountingCsvError,
+        AccountingCsvExportError,
     > {
         let ledger_account_id = ledger_account_id.into();
 
@@ -198,7 +198,8 @@ where
     pub async fn find_all_documents<T: From<Document>>(
         &self,
         ids: &[AccountingCsvDocumentId],
-    ) -> Result<std::collections::HashMap<AccountingCsvDocumentId, T>, AccountingCsvError> {
+    ) -> Result<std::collections::HashMap<AccountingCsvDocumentId, T>, AccountingCsvExportError>
+    {
         let document_ids: Vec<DocumentId> = ids.iter().map(|id| (*id).into()).collect();
         let documents: std::collections::HashMap<DocumentId, T> =
             self.document_storage.find_all(&document_ids).await?;

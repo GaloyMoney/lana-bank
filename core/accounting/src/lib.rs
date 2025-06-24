@@ -26,7 +26,7 @@ use tracing::instrument;
 
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
 pub use chart_of_accounts::{Chart, ChartOfAccounts, error as chart_of_accounts_error, tree};
-pub use csv::AccountingCsvs;
+pub use csv::AccountingCsvExports;
 use error::CoreAccountingError;
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
@@ -56,7 +56,7 @@ where
     profit_and_loss: ProfitAndLossStatements<Perms>,
     transaction_templates: TransactionTemplates<Perms>,
     balance_sheets: BalanceSheets<Perms>,
-    csvs: AccountingCsvs<Perms>,
+    csvs: AccountingCsvExports<Perms>,
     trial_balances: TrialBalances<Perms>,
 }
 
@@ -103,7 +103,7 @@ where
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
-        let csvs = AccountingCsvs::new(authz, jobs, document_storage, &ledger_accounts);
+        let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),
@@ -144,7 +144,7 @@ where
         &self.profit_and_loss
     }
 
-    pub fn csvs(&self) -> &AccountingCsvs<Perms> {
+    pub fn csvs(&self) -> &AccountingCsvExports<Perms> {
         &self.csvs
     }
 

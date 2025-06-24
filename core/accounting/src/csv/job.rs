@@ -9,7 +9,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::{ledger_account::LedgerAccounts, primitives::LedgerAccountId};
 
-use super::{CoreAccountingAction, CoreAccountingObject, generate::GenerateCsv};
+use super::{CoreAccountingAction, CoreAccountingObject, generate::GenerateCsvExport};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GenerateAccountingCsvConfig<Perms> {
@@ -73,16 +73,16 @@ where
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(GenerateAccountingCsvJobRunner {
+        Ok(Box::new(GenerateAccountingCsvExportJobRunner {
             config: job.config()?,
             document_storage: self.document_storage.clone(),
-            generator: GenerateCsv::new(&self.ledger_accounts),
+            generator: GenerateCsvExport::new(&self.ledger_accounts),
             audit: self.audit.clone(),
         }))
     }
 }
 
-pub struct GenerateAccountingCsvJobRunner<Perms>
+pub struct GenerateAccountingCsvExportJobRunner<Perms>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
@@ -90,12 +90,12 @@ where
 {
     config: GenerateAccountingCsvConfig<Perms>,
     document_storage: DocumentStorage,
-    generator: GenerateCsv<Perms>,
+    generator: GenerateCsvExport<Perms>,
     audit: Perms::Audit,
 }
 
 #[async_trait]
-impl<Perms> JobRunner for GenerateAccountingCsvJobRunner<Perms>
+impl<Perms> JobRunner for GenerateAccountingCsvExportJobRunner<Perms>
 where
     Perms: authz::PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
