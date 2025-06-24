@@ -203,3 +203,194 @@ sources:
           error_after:
             count: 7
             period: day
+
+
+      - name: public_core_user_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_role_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_permission_set_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_approval_process_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_committee_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_policy_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_customer_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_deposit_account_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_deposit_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_withdrawal_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_custodian_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_collateral_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_credit_facility_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_disbursal_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_interest_accrual_cycle_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_obligation_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_payment_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_payment_allocation_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_terms_template_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_chart_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_manual_transaction_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
