@@ -1,8 +1,6 @@
 use document_storage::DocumentId;
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::AccountingCsvId;
-
 es_entity::entity_id! {
     AccountingCsvDocumentId;
     AccountingCsvDocumentId => DocumentId
@@ -19,22 +17,8 @@ pub enum AccountingCsvType {
     BalanceSheet,
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-pub enum AccountingCsvStatus {
-    Pending,
-    Completed,
-    Failed,
-}
-
 #[derive(Debug, Clone)]
 pub struct AccountingCsvDownloadLink {
     pub csv_type: AccountingCsvType,
     pub url: String,
-}
-
-#[derive(Debug, Clone)]
-pub struct GeneratedAccountingCsvDownloadLink {
-    pub accounting_csv_id: AccountingCsvId,
-    pub link: AccountingCsvDownloadLink,
 }

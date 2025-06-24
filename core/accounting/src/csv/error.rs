@@ -8,20 +8,10 @@ pub enum AccountingCsvError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("AccountingCsvError - LedgerAccountError: {0}")]
     LedgerAccountError(#[from] crate::ledger_account::error::LedgerAccountError),
-    #[error("AccountingCsvError - StorageError: {0}")]
-    StorageError(#[from] cloud_storage::error::StorageError),
     #[error("AccountingCsvError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("AccountingCsvError - DocumentStorageError: {0}")]
     DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
     #[error("AccountingCsvError - CsvError: {0}")]
-    CsvError(String),
-    #[error("AccountingCsvError - UnsupportedCsvType")]
-    UnsupportedCsvType,
-    #[error("AccountingCsvError - CsvNotReady")]
-    CsvNotReady,
-    #[error("AccountingCsvError - CsvFileNotFound")]
-    CsvFileNotFound,
-    #[error("AccountingCsvError - MissingRequiredField: {0}")]
-    MissingRequiredField(String),
+    CsvError(String)
 }
