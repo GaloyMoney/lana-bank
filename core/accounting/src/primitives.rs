@@ -129,6 +129,13 @@ impl std::fmt::Display for AccountCodeSection {
 pub struct AccountCode {
     sections: Vec<AccountCodeSection>,
 }
+
+impl From<AccountCode> for Vec<AccountCodeSection> {
+    fn from(code: AccountCode) -> Self {
+        code.sections
+    }
+}
+
 impl AccountCode {
     pub fn new(section: Vec<AccountCodeSection>) -> Self {
         AccountCode { sections: section }
@@ -268,7 +275,7 @@ pub struct AccountSpec {
 }
 
 impl AccountSpec {
-    pub(super) fn new(
+    pub fn new(
         parent: Option<AccountCode>,
         sections: Vec<AccountCodeSection>,
         name: AccountName,

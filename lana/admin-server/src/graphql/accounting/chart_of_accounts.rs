@@ -2,6 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::accounting::AccountCode, primitives::*};
 
+use cala_ledger::DebitOrCredit;
 use lana_app::accounting::Chart as DomainChart;
 
 #[derive(SimpleObject, Clone)]
@@ -62,3 +63,38 @@ pub struct ChartOfAccountsCsvImportInput {
     pub file: Upload,
 }
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
+
+#[derive(InputObject)]
+pub struct ChartOfAccountsAddNodeInput {
+    pub chart_id: UUID,
+    pub parent: Option<AccountCode>,
+    pub code: AccountCode,
+    pub name: String,
+    pub normal_balance_type: DebitOrCredit,
+}
+
+impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
+    type Error = Box<dyn std::error::Error + Sync + Send>;
+
+    fn try_from(input: ChartOfAccountsAddNodeInput) -> Result<Self, Self::Error> {
+        let ChartOfAccountsAddNodeInput {
+            parent,
+            code,
+            name,
+            normal_balance_type,
+            ..
+        } = input;
+
+        Ok(Self::new(
+            parent.map(|v| v.try_into()).transpose()?,
+            code.try_into()?,
+            name.parse()?,
+            normal_balance_type,
+        ))
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct ChartOfAccountsAddNodePayload {
+    pub success: bool,
+}
