@@ -1,0 +1,13 @@
+# Dev container build artifacts
+.build/
+*.log
+
+# VS Code specific
+.vscode/
+
+# Docker build cache
+.dockerignore
+
+# Temporary files
+tmp/
+temp/ 
