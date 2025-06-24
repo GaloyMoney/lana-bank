@@ -23,10 +23,10 @@ CREATE TABLE core_credit_facility_events_rollup (
   collateralization_ratio VARCHAR,
 
   -- Collection rollups
-  interest_accrual_ids UUID[],
   ledger_tx_ids UUID[],
-  obligation_ids UUID[],
+  interest_accrual_ids UUID[],
   audit_entry_ids BIGINT[],
+  obligation_ids UUID[],
 
   -- Toggle fields
   is_approval_process_concluded BOOLEAN DEFAULT false,
@@ -84,21 +84,15 @@ BEGIN
     new_row.outstanding := (NEW.event -> 'outstanding');
     new_row.price := (NEW.event -> 'price');
     new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
-    new_row.interest_accrual_ids := CASE
-       WHEN NEW.event ? 'interest_accrual_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'interest_accrual_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.obligation_ids := CASE
-       WHEN NEW.event ? 'obligation_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
+    new_row.interest_accrual_ids := CASE
+       WHEN NEW.event ? 'interest_accrual_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'interest_accrual_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -106,6 +100,12 @@ BEGIN
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
        ELSE ARRAY[]::BIGINT[]
+     END
+;
+    new_row.obligation_ids := CASE
+       WHEN NEW.event ? 'obligation_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
+       ELSE ARRAY[]::UUID[]
      END
 ;
     new_row.is_approval_process_concluded := false;
@@ -129,10 +129,10 @@ BEGIN
     new_row.outstanding := current_row.outstanding;
     new_row.price := current_row.price;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
-    new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.obligation_ids := current_row.obligation_ids;
+    new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.obligation_ids := current_row.obligation_ids;
     new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
     new_row.is_activated := current_row.is_activated;
     new_row.is_completed := current_row.is_completed;
@@ -168,8 +168,8 @@ BEGIN
     WHEN 'interest_accrual_cycle_concluded' THEN
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.obligation_ids := array_append(COALESCE(current_row.obligation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.obligation_ids := array_append(COALESCE(current_row.obligation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_id')::UUID);
     WHEN 'collateralization_state_changed' THEN
       new_row.collateral := (NEW.event -> 'collateral');
       new_row.collateralization_state := (NEW.event -> 'collateralization_state');
@@ -205,10 +205,10 @@ BEGIN
     outstanding,
     price,
     collateralization_ratio,
-    interest_accrual_ids,
     ledger_tx_ids,
-    obligation_ids,
+    interest_accrual_ids,
     audit_entry_ids,
+    obligation_ids,
     is_approval_process_concluded,
     is_activated,
     is_completed
@@ -234,10 +234,10 @@ BEGIN
     new_row.outstanding,
     new_row.price,
     new_row.collateralization_ratio,
-    new_row.interest_accrual_ids,
     new_row.ledger_tx_ids,
-    new_row.obligation_ids,
+    new_row.interest_accrual_ids,
     new_row.audit_entry_ids,
+    new_row.obligation_ids,
     new_row.is_approval_process_concluded,
     new_row.is_activated,
     new_row.is_completed
@@ -261,10 +261,10 @@ BEGIN
     outstanding = EXCLUDED.outstanding,
     price = EXCLUDED.price,
     collateralization_ratio = EXCLUDED.collateralization_ratio,
-    interest_accrual_ids = EXCLUDED.interest_accrual_ids,
     ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    obligation_ids = EXCLUDED.obligation_ids,
+    interest_accrual_ids = EXCLUDED.interest_accrual_ids,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
+    obligation_ids = EXCLUDED.obligation_ids,
     is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
     is_activated = EXCLUDED.is_activated,
     is_completed = EXCLUDED.is_completed;

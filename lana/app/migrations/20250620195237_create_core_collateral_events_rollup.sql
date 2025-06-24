@@ -7,14 +7,13 @@ CREATE TABLE core_collateral_events_rollup (
   -- Flattened fields from the event JSON
   account_id UUID,
   credit_facility_id UUID,
-  wallet_id UUID,
   abs_diff JSONB,
   action JSONB,
   collateral_amount JSONB,
 
   -- Collection rollups
-  ledger_tx_ids UUID[],
-  audit_entry_ids BIGINT[]
+  audit_entry_ids BIGINT[],
+  ledger_tx_ids UUID[]
 
 );
 
@@ -53,32 +52,30 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.account_id := (NEW.event ->> 'account_id')::UUID;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
     new_row.abs_diff := (NEW.event -> 'abs_diff');
     new_row.action := (NEW.event -> 'action');
     new_row.collateral_amount := (NEW.event -> 'collateral_amount');
-    new_row.ledger_tx_ids := CASE
-       WHEN NEW.event ? 'ledger_tx_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
        ELSE ARRAY[]::BIGINT[]
      END
 ;
+    new_row.ledger_tx_ids := CASE
+       WHEN NEW.event ? 'ledger_tx_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
   ELSE
     -- Default all fields to current values
     new_row.account_id := current_row.account_id;
     new_row.credit_facility_id := current_row.credit_facility_id;
-    new_row.wallet_id := current_row.wallet_id;
     new_row.abs_diff := current_row.abs_diff;
     new_row.action := current_row.action;
     new_row.collateral_amount := current_row.collateral_amount;
-    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -86,13 +83,12 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_id := (NEW.event ->> 'account_id')::UUID;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-      new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
     WHEN 'updated' THEN
       new_row.abs_diff := (NEW.event -> 'abs_diff');
       new_row.action := (NEW.event -> 'action');
       new_row.collateral_amount := (NEW.event -> 'collateral_amount');
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;
 
   INSERT INTO core_collateral_events_rollup (
@@ -102,12 +98,11 @@ BEGIN
     modified_at,
     account_id,
     credit_facility_id,
-    wallet_id,
     abs_diff,
     action,
     collateral_amount,
-    ledger_tx_ids,
-    audit_entry_ids
+    audit_entry_ids,
+    ledger_tx_ids
   )
   VALUES (
     new_row.id,
@@ -116,24 +111,22 @@ BEGIN
     new_row.modified_at,
     new_row.account_id,
     new_row.credit_facility_id,
-    new_row.wallet_id,
     new_row.abs_diff,
     new_row.action,
     new_row.collateral_amount,
-    new_row.ledger_tx_ids,
-    new_row.audit_entry_ids
+    new_row.audit_entry_ids,
+    new_row.ledger_tx_ids
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
     account_id = EXCLUDED.account_id,
     credit_facility_id = EXCLUDED.credit_facility_id,
-    wallet_id = EXCLUDED.wallet_id,
     abs_diff = EXCLUDED.abs_diff,
     action = EXCLUDED.action,
     collateral_amount = EXCLUDED.collateral_amount,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    audit_entry_ids = EXCLUDED.audit_entry_ids;
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids;
 
   RETURN NEW;
 END;
