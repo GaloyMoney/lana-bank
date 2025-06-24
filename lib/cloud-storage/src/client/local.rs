@@ -59,8 +59,4 @@ impl StorageClient for LocalClient {
         let full_path = self.resolve(location_in_storage.path);
         Ok(format!("file://{}", full_path.to_string_lossy()))
     }
-
-    fn identifier(&self) -> String {
-        format!("local:{}", self.root_folder.display())
-    }
 }

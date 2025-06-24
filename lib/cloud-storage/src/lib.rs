@@ -77,8 +77,7 @@ impl Storage {
         Ok(link)
     }
 
-    pub async fn identifier(&self) -> Result<String, StorageError> {
-        let client = self.get_client().await?;
-        Ok(client.identifier())
+    pub fn identifier(&self) -> String {
+        self.config.identifier()
     }
 }

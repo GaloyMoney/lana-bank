@@ -25,6 +25,4 @@ pub trait StorageClient: Send + Sync {
         &self,
         location_in_storage: LocationInStorage<'a>,
     ) -> Result<String, StorageClientError>;
-
-    fn identifier(&self) -> String;
 }

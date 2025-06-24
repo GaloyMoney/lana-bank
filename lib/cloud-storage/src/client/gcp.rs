@@ -110,8 +110,4 @@ impl StorageClient for GcpClient {
 
         Ok(signed_url)
     }
-
-    fn identifier(&self) -> String {
-        format!("gcp:{}", self.bucket_name())
-    }
 }

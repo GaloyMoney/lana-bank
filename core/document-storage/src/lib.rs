@@ -59,7 +59,7 @@ impl DocumentStorage {
         let document_id = DocumentId::new();
         let document_type = document_type.into();
         let path_in_storage = format!("documents/{}/{}", document_type, document_id);
-        let storage_identifier = self.storage.identifier().await?;
+        let storage_identifier = self.storage.identifier();
 
         let new_document = NewDocument::builder()
             .id(document_id)
@@ -131,7 +131,7 @@ impl DocumentStorage {
         let document_id = DocumentId::new();
         let document_type = document_type.into();
         let path_in_storage = format!("documents/{}/{}", document_type, document_id);
-        let storage_identifier = self.storage.identifier().await?;
+        let storage_identifier = self.storage.identifier();
 
         let new_document = NewDocument::builder()
             .id(document_id)

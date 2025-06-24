@@ -32,4 +32,13 @@ impl StorageConfig {
             root_folder: root_folder.into(),
         })
     }
+
+    pub(super) fn identifier(&self) -> String {
+        match self {
+            StorageConfig::Gcp(gcp_config) => format!("gcp:{}", gcp_config.bucket_name),
+            StorageConfig::Local(local_config) => {
+                format!("local:{}", local_config.root_folder.display())
+            }
+        }
+    }
 }
