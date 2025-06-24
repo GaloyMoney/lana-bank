@@ -41,7 +41,6 @@ pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::chart_of_accounts::ChartEvent;
-    pub use crate::csv::AccountingCsvEvent;
     pub use crate::manual_transaction::ManualTransactionEvent;
 }
 
@@ -106,7 +105,7 @@ where
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
-        let csvs = AccountingCsvs::new(pool, authz, jobs, document_storage, &ledger_accounts);
+        let csvs = AccountingCsvs::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
         Self {
             authz: authz.clone(),

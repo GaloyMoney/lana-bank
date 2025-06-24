@@ -1,9 +1,7 @@
-mod entity;
 pub mod error;
 mod generate;
 mod job;
 mod primitives;
-mod repo;
 
 use tracing::instrument;
 
@@ -21,14 +19,9 @@ use super::{
     primitives::LedgerAccountId,
 };
 
-#[cfg(feature = "json-schema")]
-pub use entity::AccountingCsvEvent;
-pub use entity::{AccountingCsv, NewAccountingCsv};
 use error::*;
 use job::*;
 pub use primitives::*;
-// Note: Using EntityByCreatedAtCursor from es_entity instead of custom cursor since we now use Document storage
-use repo::*;
 
 pub const LEDGER_ACCOUNT_CSV: DocumentType = DocumentType::new("ledger_account_csv");
 
@@ -37,7 +30,6 @@ pub struct AccountingCsvs<Perms>
 where
     Perms: PermissionCheck,
 {
-    repo: AccountingCsvRepo,
     authz: Perms,
     jobs: Jobs,
     document_storage: DocumentStorage,
@@ -50,14 +42,11 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
     pub fn new(
-        pool: &sqlx::PgPool,
         authz: &Perms,
         jobs: &Jobs,
         document_storage: DocumentStorage,
         ledger_accounts: &LedgerAccounts<Perms>,
     ) -> Self {
-        let repo = AccountingCsvRepo::new(pool);
-
         jobs.add_initializer(GenerateAccountingCsvInit::new(
             &document_storage,
             ledger_accounts,
@@ -65,7 +54,6 @@ where
         ));
 
         Self {
-            repo,
             authz: authz.clone(),
             jobs: jobs.clone(),
             document_storage,
@@ -102,7 +90,7 @@ where
             .await?;
 
         // Create and spawn job to generate and upload the CSV content
-        let mut db = self.repo.begin_op().await?;
+        let mut db = self.document_storage.begin_op().await?;
         self.jobs
             .create_and_spawn_in_op::<GenerateAccountingCsvConfig<Perms>>(
                 &mut db,
@@ -114,7 +102,6 @@ where
                 },
             )
             .await?;
-
         db.commit().await?;
         Ok(document)
     }

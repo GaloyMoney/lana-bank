@@ -5,14 +5,16 @@ enum AccountStatus {
 	ACTIVE
 }
 
-type AccountingCsv {
+type AccountingCsvDocument {
 	id: ID!
-	csvId: UUID!
-	status: AccountingCsvStatus!
+	documentId: UUID!
+	ledgerAccountId: UUID!
+	status: DocumentStatus!
 	createdAt: Timestamp!
+	filename: String!
 }
 
-type AccountingCsvConnection {
+type AccountingCsvDocumentConnection {
 	"""
 	Information to aid in pagination.
 	"""
@@ -20,11 +22,25 @@ type AccountingCsvConnection {
 	"""
 	A list of edges.
 	"""
-	edges: [AccountingCsvEdge!]!
+	edges: [AccountingCsvDocumentEdge!]!
 	"""
 	A list of nodes.
 	"""
-	nodes: [AccountingCsv!]!
+	nodes: [AccountingCsvDocument!]!
+}
+
+"""
+An edge in a connection.
+"""
+type AccountingCsvDocumentEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: AccountingCsvDocument!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type AccountingCsvDownloadLink {
@@ -38,26 +54,6 @@ input AccountingCsvDownloadLinkGenerateInput {
 
 type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
-}
-
-"""
-An edge in a connection.
-"""
-type AccountingCsvEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: AccountingCsv!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
-}
-
-enum AccountingCsvStatus {
-	PENDING
-	COMPLETED
-	FAILED
 }
 
 scalar AnnualRatePct
@@ -1207,7 +1203,7 @@ input LedgerAccountCsvCreateInput {
 }
 
 type LedgerAccountCsvCreatePayload {
-	accountingCsv: AccountingCsv!
+	accountingCsvDocument: AccountingCsvDocument!
 }
 
 """
@@ -1536,7 +1532,7 @@ type Query {
 	creditConfig: CreditModuleConfig
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
-	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvConnection!
+	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 }
 
 type RealtimePrice {

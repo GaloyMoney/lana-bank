@@ -47,6 +47,10 @@ impl DocumentStorage {
         }
     }
 
+    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, sqlx::Error> {
+        self.repo.begin_op().await
+    }
+
     #[instrument(name = "document_storage.create", skip(self), err)]
     pub async fn create(
         &self,

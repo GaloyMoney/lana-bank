@@ -113,7 +113,6 @@ where
             )
             .await?;
 
-        // Generate CSV data
         let csv_result = self
             .generator
             .generate_ledger_account_csv(self.config.ledger_account_id)
@@ -121,7 +120,6 @@ where
 
         match csv_result {
             Ok(csv_data) => {
-                // Find the document and upload content
                 if let Some(mut document) = self
                     .document_storage
                     .find_by_id(self.config.document_id)
@@ -132,11 +130,8 @@ where
                         .upload(csv_data, &mut document, audit_info)
                         .await
                     {
-                        Ok(_) => {
-                            // Upload successful
-                        }
+                        Ok(_) => {}
                         Err(e) => {
-                            // Upload failed - document storage will handle the error state
                             return Err(e.into());
                         }
                     }

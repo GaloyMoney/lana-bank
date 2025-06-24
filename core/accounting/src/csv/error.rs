@@ -4,10 +4,6 @@ use thiserror::Error;
 pub enum AccountingCsvError {
     #[error("AccountingCsvError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
-    #[error("AccountingCsvError - EsEntityError: {0}")]
-    EsEntityError(es_entity::EsEntityError),
-    #[error("AccountingCsvError - CursorDestructureError: {0}")]
-    CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("AccountingCsvError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("AccountingCsvError - LedgerAccountError: {0}")]
@@ -29,5 +25,3 @@ pub enum AccountingCsvError {
     #[error("AccountingCsvError - MissingRequiredField: {0}")]
     MissingRequiredField(String),
 }
-
-es_entity::from_es_entity_error!(AccountingCsvError);
