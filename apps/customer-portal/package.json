@@ -30,7 +30,7 @@
     "clsx": "^2.1.1",
     "input-otp": "^1.2.4",
     "jose": "^6.0.11",
-    "lucide-react": "^0.518.0",
+    "lucide-react": "^0.522.0",
     "next": "15.3.4",
     "next-runtime-env": "^3.3.0",
     "next-themes": "^0.4.6",
@@ -45,7 +45,7 @@
     "zod": "^3.25.67"
   },
   "devDependencies": {
-    "@chromatic-com/storybook": "^4.0.0",
+    "@chromatic-com/storybook": "^4.0.1",
     "@graphql-codegen/cli": "5.0.7",
     "@graphql-codegen/client-preset": "^4.8.2",
     "@graphql-codegen/introspection": "4.0.3",
@@ -66,12 +66,12 @@
     "eslint": "^8.57.0",
     "eslint-config-next": "15.3.4",
     "eslint-config-prettier": "^10.1.5",
-    "eslint-plugin-import": "^2.29.1",
+    "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.0",
     "eslint-plugin-storybook": "^9.0.12",
     "otplib": "^12.0.1",
     "postcss": "^8",
-    "prettier": "^3.5.3",
+    "prettier": "^3.6.0",
     "storybook": "^9.0.12",
     "tailwindcss": "^3.3.5",
     "typescript": "5"
