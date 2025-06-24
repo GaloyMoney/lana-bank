@@ -12,14 +12,14 @@ use error::*;
 #[derive(Clone)]
 pub struct Storage {
     config: StorageConfig,
-    cell: Arc<OnceCell<Arc<dyn StorageClient>>>,
+    cell: OnceCell<Arc<dyn StorageClient>>,
 }
 
 impl Storage {
     pub fn new(config: &StorageConfig) -> Self {
         Self {
             config: config.clone(),
-            cell: Arc::new(OnceCell::new()),
+            cell: OnceCell::new(),
         }
     }
 
