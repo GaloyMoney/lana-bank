@@ -72,7 +72,7 @@ where
     pub async fn add_new_chart_accounts_to_trial_balance(
         &self,
         name: &str,
-        new_chart_account_set_ids: &Vec<CalaAccountSetId>,
+        new_chart_account_set_ids: &[CalaAccountSetId],
     ) -> Result<(), TrialBalanceError> {
         let trial_balance_id = self
             .trial_balance_ledger

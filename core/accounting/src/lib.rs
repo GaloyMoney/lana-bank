@@ -295,4 +295,25 @@ where
 
         Ok(chart)
     }
+
+    #[instrument(name = "core_accounting.add_node", skip(self), err)]
+    pub async fn add_node(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        account_spec: AccountSpec,
+        trial_balance_ref: &str,
+    ) -> Result<bool, CoreAccountingError> {
+        if let Some(new_account_set_id) = self
+            .chart_of_accounts()
+            .add_node(sub, chart_id, account_spec)
+            .await?
+        {
+            self.trial_balances()
+                .add_new_chart_accounts_to_trial_balance(trial_balance_ref, &[new_account_set_id])
+                .await?;
+        }
+
+        Ok(true)
+    }
 }

@@ -11,12 +11,9 @@ use authz::PermissionCheck;
 
 use cala_ledger::{CalaLedger, account::Account, account_set::NewAccountSet};
 
-use crate::{
-    LedgerAccountId,
-    primitives::{
-        AccountIdOrCode, CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction,
-        CoreAccountingObject,
-    },
+use crate::primitives::{
+    AccountIdOrCode, AccountSpec, CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction,
+    CoreAccountingObject, LedgerAccountId,
 };
 
 pub(super) use csv::{CsvParseError, CsvParser};
@@ -181,6 +178,61 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
+    }
+
+    #[instrument(name = "core_accounting.chart_of_accounts.add_node", skip(self,), err)]
+    pub async fn add_node(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        spec: impl Into<AccountSpec> + std::fmt::Debug,
+    ) -> Result<Option<CalaAccountSetId>, ChartOfAccountsError> {
+        let id = id.into();
+        let spec = spec.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::chart(id),
+                CoreAccountingAction::CHART_UPDATE,
+            )
+            .await?;
+        let mut chart = self.repo.find_by_id(id).await?;
+
+        let es_entity::Idempotent::Executed((parent, account_set_id)) =
+            chart.create_node(&spec, audit_info.clone())
+        else {
+            return Ok(None);
+        };
+
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        let new_account_set = NewAccountSet::builder()
+            .id(account_set_id)
+            .journal_id(self.journal_id)
+            .name(spec.name.to_string())
+            .description(spec.name.to_string())
+            .external_id(spec.code.account_set_external_id(id))
+            .normal_balance_type(spec.normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        self.cala
+            .account_sets()
+            .create_in_op(&mut op, new_account_set)
+            .await?;
+        if let Some(parent) = parent {
+            self.cala
+                .account_sets()
+                .add_member_in_op(&mut op, parent, account_set_id)
+                .await?;
+        }
+
+        op.commit().await?;
+
+        Ok(chart.trial_balance_account_id_from_new_account(account_set_id))
     }
 
     #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self), err)]

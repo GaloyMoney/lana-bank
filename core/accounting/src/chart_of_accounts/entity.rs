@@ -106,6 +106,25 @@ impl Chart {
             )
     }
 
+    pub fn trial_balance_account_id_from_new_account(
+        &self,
+        new_account_set_id: CalaAccountSetId,
+    ) -> Option<CalaAccountSetId> {
+        self.all_accounts.values().find_map(
+            |AccountDetails {
+                 spec,
+                 account_set_id: id,
+                 ..
+             }| {
+                if spec.code.len_sections() == 2 && new_account_set_id == *id {
+                    Some(*id)
+                } else {
+                    None
+                }
+            },
+        )
+    }
+
     fn account_spec(&self, code: &AccountCode) -> Option<&AccountDetails> {
         self.all_accounts.get(code)
     }
