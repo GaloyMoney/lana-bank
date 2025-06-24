@@ -1569,7 +1569,8 @@
     "noEntries": "Sin asientos",
     "details": {
       "description": "Descripción",
-      "createdAt": "Creado el"
+      "createdAt": "Creado el",
+      "effective": "Fecha efectiva"
     },
     "entriesTitle": "Asientos contables",
     "entriesDescription": "Asientos asociados con esta transacción",
@@ -1588,6 +1589,7 @@
     "fields": {
       "description": "Descripción de la transacción",
       "reference": "Referencia de la transacción",
+      "effective": "Fecha efectiva",
       "entries": "Asientos contables para esta transacción",
       "usd": "USD",
       "btc": "BTC",
@@ -1596,7 +1598,8 @@
     },
     "placeholders": {
       "description": "Ingrese la descripción de la transacción",
-      "reference": "Ingrese la referencia de la transacción"
+      "reference": "Ingrese la referencia de la transacción",
+      "effective": "Seleccionar fecha efectiva"
     },
     "noEntries": "No hay asientos contables para esta transacción. Por favor, añada uno.",
     "addEntryBtn": "Añadir",

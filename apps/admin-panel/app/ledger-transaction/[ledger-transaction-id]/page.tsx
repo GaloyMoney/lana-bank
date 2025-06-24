@@ -4,22 +4,14 @@ import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 import { use } from "react"
 
-import { DetailItem } from "@lana/web/components/details"
-
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@lana/web/ui/card"
-
 import Link from "next/link"
 
 import { formatDate } from "@lana/web/utils"
 
+import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
+
 import { useLedgerTransactionQuery, DebitOrCredit } from "@/lib/graphql/generated"
-import { DetailsGroup } from "@/components/details"
+import { DetailsCard } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
 
@@ -30,6 +22,7 @@ gql`
       ledgerTransactionId
       createdAt
       description
+      effective
       entries {
         id
         entryId
@@ -74,32 +67,28 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
 
   return (
     <>
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          {error ? (
-            <p className="text-destructive text-sm">{error?.message}</p>
-          ) : (
-            <>
-              {!loading && (
-                <DetailsGroup className="mb-4">
-                  <DetailItem
-                    label={t("details.description")}
-                    value={data?.ledgerTransaction?.description}
-                  />
-                  <DetailItem
-                    label={t("details.createdAt")}
-                    value={formatDate(data?.ledgerTransaction?.createdAt)}
-                  />
-                </DetailsGroup>
-              )}
-            </>
-          )}
-        </CardContent>
-      </Card>
+      <DetailsCard
+        title={t("title")}
+        description={t("description")}
+        columns={3}
+        details={[
+          {
+            label: t("details.description"),
+            value: data?.ledgerTransaction?.description,
+          },
+          {
+            label: t("details.createdAt"),
+            value: formatDate(data?.ledgerTransaction?.createdAt),
+          },
+          {
+            label: t("details.effective"),
+            value: formatDate(data?.ledgerTransaction?.effective, {
+              includeTime: false,
+            }),
+          },
+        ]}
+        errorMessage={error?.message}
+      />
       <Card className="mt-2">
         <CardHeader>
           <CardTitle>{t("entriesTitle")}</CardTitle>

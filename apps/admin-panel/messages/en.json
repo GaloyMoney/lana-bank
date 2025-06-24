@@ -1569,7 +1569,8 @@
     "noEntries": "No entries",
     "details": {
       "description": "Description",
-      "createdAt": "Created At"
+      "createdAt": "Created At",
+      "effective": "Effective Date"
     },
     "entriesTitle": "Journal Entries",
     "entriesDescription": "Entries associated with this transaction",
@@ -1588,6 +1589,7 @@
     "fields": {
       "description": "Transaction Description",
       "reference": "Transaction Reference",
+      "effective": "Effective Date",
       "entries": "Journal Entries for this transaction",
       "usd": "USD",
       "btc": "BTC",
@@ -1596,7 +1598,8 @@
     },
     "placeholders": {
       "description": "Enter transaction description",
-      "reference": "Enter transaction reference"
+      "reference": "Enter transaction reference",
+      "effective": "Select effective date"
     },
     "noEntries": "No journal entry for this transaction. Please add one.",
     "addEntryBtn": "Add",

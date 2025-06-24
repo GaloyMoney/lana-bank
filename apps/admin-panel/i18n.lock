@@ -928,6 +928,7 @@ checksums:
     LedgerTransaction/noEntries: 17c4758dd5718f652fe0a2b338098300
     LedgerTransaction/details/description: e17686a22ffad04cc7bb70524ed4478b
     LedgerTransaction/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    LedgerTransaction/details/effective: aab6741517742a24eb46f529ebb94bf6
     LedgerTransaction/entriesTitle: a4ce78dcd06b9cc27fd29d25ec9079be
     LedgerTransaction/entriesDescription: d2bd608e92a19ca27d17eaadbf8c0cc2
     LedgerTransaction/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
@@ -940,6 +941,7 @@ checksums:
     ManualTransactions/description: d61b154d1f4d49c1df3d2fa866c90a44
     ManualTransactions/fields/description: bbe6ebc0b363d71b3a82e8440822a618
     ManualTransactions/fields/reference: 1d75a71b5bc3c2e4abf8dd5f080d07a6
+    ManualTransactions/fields/effective: aab6741517742a24eb46f529ebb94bf6
     ManualTransactions/fields/entries: f3c21fcba59800632a9b8e844879ab2e
     ManualTransactions/fields/usd: ccab1dedf8c4cc7e2110c7deba52e2a0
     ManualTransactions/fields/btc: af1432546a2c9130c9163b2269d5b60d
@@ -947,6 +949,7 @@ checksums:
     ManualTransactions/fields/credit: 2d447a71ec815a039f175e94fbb12a56
     ManualTransactions/placeholders/description: c7a11b94e00ee35afec9b506a955b303
     ManualTransactions/placeholders/reference: ef1ef43fd3049ac07aa4eb8b3c12ee80
+    ManualTransactions/placeholders/effective: 28024c33b1f6c361cfb2c5d469317ce5
     ManualTransactions/noEntries: b5cb1e87c57993a1088d73aae3b829ee
     ManualTransactions/addEntryBtn: 87c4a663507f2bcbbf79934af8164e13
     ManualTransactions/execute: 3fe1686d6b7aa4a7fd6eced8098c1da5

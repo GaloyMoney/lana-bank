@@ -253,58 +253,59 @@ const CreateButton = () => {
   }
 
   const availableItems = getAvailableMenuItems()
-  if (!showCreateButton(pathName) || availableItems.length === 0) {
-    return <div className="invisible w-[88px] h-[36px]" aria-hidden="true" />
-  }
-
+  const showCreate = showCreateButton(pathName) && availableItems.length > 0
   const disabled = isButtonDisabled()
   const message = getDisabledMessage()
 
   return (
     <>
-      <TooltipProvider>
-        <Tooltip>
-          <TooltipTrigger asChild>
-            <div>
-              <DropdownMenu
-                open={showMenu && !disabled}
-                onOpenChange={(open) => {
-                  if (open && !disabled) decideCreation()
-                  else setShowMenu(false)
-                }}
-              >
-                <DropdownMenuTrigger asChild>
-                  <Button
-                    data-testid="global-create-button"
-                    disabled={disabled}
-                    tabIndex={-1}
-                  >
-                    <HiPlus className="h-4 w-4" />
-                    {t("buttons.create")}
-                  </Button>
-                </DropdownMenuTrigger>
-                <DropdownMenuContent align="end" className="w-36">
-                  {availableItems.map((item) => (
-                    <DropdownMenuItem
-                      key={item.label}
-                      data-testid={item.dataTestId}
-                      onClick={item.onClick}
-                      className="cursor-pointer"
+      {showCreate ? (
+        <TooltipProvider>
+          <Tooltip>
+            <TooltipTrigger asChild>
+              <div>
+                <DropdownMenu
+                  open={showMenu && !disabled}
+                  onOpenChange={(open) => {
+                    if (open && !disabled) decideCreation()
+                    else setShowMenu(false)
+                  }}
+                >
+                  <DropdownMenuTrigger asChild>
+                    <Button
+                      data-testid="global-create-button"
+                      disabled={disabled}
+                      tabIndex={-1}
                     >
-                      {item.label}
-                    </DropdownMenuItem>
-                  ))}
-                </DropdownMenuContent>
-              </DropdownMenu>
-            </div>
-          </TooltipTrigger>
-          {disabled && message && (
-            <TooltipContent>
-              <p>{message}</p>
-            </TooltipContent>
-          )}
-        </Tooltip>
-      </TooltipProvider>
+                      <HiPlus className="h-4 w-4" />
+                      {t("buttons.create")}
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-36">
+                    {availableItems.map((item) => (
+                      <DropdownMenuItem
+                        key={item.label}
+                        data-testid={item.dataTestId}
+                        onClick={item.onClick}
+                        className="cursor-pointer"
+                      >
+                        {item.label}
+                      </DropdownMenuItem>
+                    ))}
+                  </DropdownMenuContent>
+                </DropdownMenu>
+              </div>
+            </TooltipTrigger>
+            {disabled && message && (
+              <TooltipContent>
+                <p>{message}</p>
+              </TooltipContent>
+            )}
+          </Tooltip>
+        </TooltipProvider>
+      ) : (
+        <div className="invisible w-[88px] h-[36px]" aria-hidden="true" />
+      )}
 
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}
