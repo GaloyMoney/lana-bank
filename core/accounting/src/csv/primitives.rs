@@ -4,19 +4,8 @@ use serde::{Deserialize, Serialize};
 use crate::primitives::AccountingCsvId;
 
 es_entity::entity_id! {
-    AccountingCsvDocumentId
-}
-
-impl From<DocumentId> for AccountingCsvDocumentId {
-    fn from(id: DocumentId) -> Self {
-        AccountingCsvDocumentId::from(uuid::Uuid::from(id))
-    }
-}
-
-impl From<AccountingCsvDocumentId> for DocumentId {
-    fn from(id: AccountingCsvDocumentId) -> Self {
-        DocumentId::from(uuid::Uuid::from(id))
-    }
+    AccountingCsvDocumentId;
+    AccountingCsvDocumentId => DocumentId
 }
 
 #[derive(
