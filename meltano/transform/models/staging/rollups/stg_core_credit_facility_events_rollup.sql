@@ -1,6 +1,7 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['id'],
+    full_refresh = false,
 ) }}
 
 with ordered as (
@@ -22,7 +23,6 @@ with ordered as (
 )
 
 select
-    id as credit_facility_id,
-    * except (id, order_received_desc),
+    * except (order_received_desc),
 from ordered
 where order_received_desc = 1
