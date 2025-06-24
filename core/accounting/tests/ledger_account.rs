@@ -21,7 +21,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
 
-    let storage = Storage::init(&StorageConfig::default()).await?;
+    let storage = Storage::new(&StorageConfig::default());
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
@@ -85,7 +85,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
     
-    let storage = Storage::init(&StorageConfig::default()).await?;
+    let storage = Storage::new(&StorageConfig::default());
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
@@ -138,7 +138,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
-    let storage = Storage::init(&StorageConfig::default()).await?;
+    let storage = Storage::new(&StorageConfig::default());
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id ,

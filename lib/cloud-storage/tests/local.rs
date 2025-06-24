@@ -6,7 +6,7 @@ async fn upload_and_download_local() -> anyhow::Result<()> {
     let dir = TempDir::new()?;
     let root = dir.path().to_str().unwrap().to_string();
     let config = StorageConfig::new_local(root);
-    let storage = Storage::init(&config).await?;
+    let storage = Storage::new(&config);
 
     let content_str = "localtest";
     let content = content_str.as_bytes().to_vec();

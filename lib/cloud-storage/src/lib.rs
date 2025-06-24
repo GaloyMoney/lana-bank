@@ -2,6 +2,9 @@ mod client;
 pub mod config;
 pub mod error;
 
+use std::sync::Arc;
+use tokio::sync::OnceCell;
+
 pub use client::LocationInStorage;
 use client::{GcpClient, LocalClient, StorageClient};
 use config::StorageConfig;
@@ -9,26 +12,33 @@ use error::*;
 #[derive(Clone)]
 pub struct Storage {
     config: StorageConfig,
-    client: std::sync::Arc<dyn StorageClient>,
+    cell: Arc<OnceCell<Arc<dyn StorageClient>>>,
 }
 
 impl Storage {
-    pub async fn init(config: &StorageConfig) -> Result<Self, StorageError> {
-        let client = match config {
-            StorageConfig::Gcp(gcp_config) => {
-                let client = GcpClient::init(gcp_config).await?;
-                std::sync::Arc::new(client) as std::sync::Arc<dyn StorageClient>
-            }
-            StorageConfig::Local(local_config) => {
-                let client = LocalClient::new(local_config);
-                std::sync::Arc::new(client) as std::sync::Arc<dyn StorageClient>
-            }
-        };
-
-        Ok(Self {
+    pub fn new(config: &StorageConfig) -> Self {
+        Self {
             config: config.clone(),
-            client,
-        })
+            cell: Arc::new(OnceCell::new()),
+        }
+    }
+
+    async fn get_client(&self) -> Result<&Arc<dyn StorageClient>, StorageError> {
+        self.cell
+            .get_or_try_init(|| async {
+                let client: Arc<dyn StorageClient> = match self.config {
+                    StorageConfig::Gcp(ref gcp_config) => {
+                        let gcp = GcpClient::init(gcp_config).await?;
+                        Arc::new(gcp)
+                    }
+                    StorageConfig::Local(ref local_config) => {
+                        let local = LocalClient::new(local_config);
+                        Arc::new(local)
+                    }
+                };
+                Ok(client)
+            })
+            .await
     }
 
     pub fn bucket_name(&self) -> String {
@@ -44,7 +54,8 @@ impl Storage {
         path: &str,
         mime_type: &str,
     ) -> Result<(), StorageError> {
-        self.client.upload(file, path, mime_type).await?;
+        let client = self.get_client().await?;
+        client.upload(file, path, mime_type).await?;
         Ok(())
     }
 
@@ -52,7 +63,8 @@ impl Storage {
         &self,
         location_in_storage: LocationInStorage<'a>,
     ) -> Result<(), StorageError> {
-        self.client.remove(location_in_storage).await?;
+        let client = self.get_client().await?;
+        client.remove(location_in_storage).await?;
         Ok(())
     }
 
@@ -60,14 +72,13 @@ impl Storage {
         &self,
         location_in_storage: LocationInStorage<'a>,
     ) -> Result<String, StorageError> {
-        let link = self
-            .client
-            .generate_download_link(location_in_storage)
-            .await?;
+        let client = self.get_client().await?;
+        let link = client.generate_download_link(location_in_storage).await?;
         Ok(link)
     }
 
-    pub fn identifier(&self) -> String {
-        self.client.identifier()
+    pub async fn identifier(&self) -> Result<String, StorageError> {
+        let client = self.get_client().await?;
+        Ok(client.identifier())
     }
 }

@@ -37,7 +37,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     )
     .await?;
 
-    let storage = Storage::init(&StorageConfig::default()).await?;
+    let storage = Storage::new(&StorageConfig::default());
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, &storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
     let chart = accounting

@@ -23,7 +23,7 @@ async fn upload_doc() -> anyhow::Result<()> {
         StorageConfig::new_gcp("gha-lana-documents".to_string(), "gha".to_string())
     };
 
-    let storage = Storage::init(&config).await?;
+    let storage = Storage::new(&config);
 
     let content_str = "test";
     let content = content_str.as_bytes().to_vec();
