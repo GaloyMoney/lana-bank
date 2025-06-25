@@ -12,6 +12,7 @@ ignored = ["schemars"]
 fail-on-warnings = []
 sim-time = [ "dep:sim-time", "es-entity/sim-time" ]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
+graphql = ["es-entity/graphql", "dep:async-graphql"]
 
 [dependencies]
 es-entity = { workspace = true }
@@ -30,6 +31,7 @@ tokio = { workspace = true }
 uuid = { workspace = true }
 rand = { workspace = true }
 schemars = { workspace = true, optional = true }
+async-graphql = { workspace = true, optional = true }
 
 [dev-dependencies]
 anyhow = { workspace = true }

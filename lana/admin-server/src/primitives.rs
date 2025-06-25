@@ -4,6 +4,7 @@ use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
 pub use lana_app::{
+    job::JobId,
     primitives::{
         ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustodianId, CustomerDocumentId,
         CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus, DocumentId,
@@ -128,7 +129,8 @@ impl_to_global_id! {
     ApprovalProcessId,
     DepositAccountId,
     LedgerTransactionId,
-    PaymentAllocationId
+    PaymentAllocationId,
+    JobId
 }
 
 use cala_ledger::EntryId;

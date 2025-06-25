@@ -15,6 +15,7 @@ mod deposit_account;
 mod deposit_account_history;
 mod deposit_config;
 mod document;
+mod job;
 mod loader;
 mod price;
 mod primitives;

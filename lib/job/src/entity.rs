@@ -1,3 +1,5 @@
+#[cfg(feature = "graphql")]
+use async_graphql::*;
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -28,6 +30,14 @@ impl std::fmt::Display for JobType {
     }
 }
 
+#[derive(Clone, Debug, Serialize, Deserialize)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum, Copy, Eq, PartialEq))]
+pub enum JobStatus {
+    Running,
+    Completed,
+    Errored,
+}
+
 #[derive(EsEvent, Debug, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "JobId")]
@@ -55,6 +65,37 @@ pub struct Job {
 impl Job {
     pub fn config<T: serde::de::DeserializeOwned>(&self) -> Result<T, serde_json::Error> {
         serde_json::from_value(self.config.clone())
+    }
+
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
+    }
+
+    pub fn status(&self) -> JobStatus {
+        for event in self.events.iter_all().rev() {
+            match event {
+                JobEvent::Completed => return JobStatus::Completed,
+                JobEvent::Errored { .. } => return JobStatus::Errored,
+                _ => {}
+            }
+        }
+        JobStatus::Running
+    }
+
+    pub fn last_error(&self) -> Option<String> {
+        // If job is completed, return None even if there were previous errors
+        if matches!(self.status(), JobStatus::Completed) {
+            return None;
+        }
+
+        for event in self.events.iter_all().rev() {
+            if let JobEvent::Errored { error } = event {
+                return Some(error.clone());
+            }
+        }
+        None
     }
 
     pub(super) fn completed(&mut self) {

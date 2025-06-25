@@ -41,7 +41,7 @@ core-price = { path = "../../core/price" }
 core-deposit = { path = "../../core/deposit", features = ["graphql"] }
 core-accounting = { path = "../../core/accounting", features = ["graphql"] }
 document-storage = { path = "../../core/document-storage", features = ["graphql"] }
-job = { path = "../../lib/job" }
+job = { path = "../../lib/job", features = ["graphql"] }
 outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }

@@ -16,8 +16,9 @@ use crate::primitives::*;
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, custody::*,
-    customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*,
-    price::*, profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
+    customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, job::*, loader::*,
+    policy::*, price::*, profit_and_loss_config::*, report::*, sumsub::*, terms_template::*,
+    withdrawal::*,
 };
 
 pub struct Query;
@@ -659,6 +660,11 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let users = app.reports().list_reports(sub).await?;
         Ok(users.into_iter().map(Report::from).collect())
+    }
+
+    async fn job(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Job>> {
+        let app = ctx.data_unchecked::<LanaApp>();
+        Ok(app.jobs().find(id.into()).await.ok().map(Job::from))
     }
 
     async fn audit(

@@ -37,7 +37,7 @@ use error::ApplicationError;
 #[derive(Clone)]
 pub struct LanaApp {
     _pool: PgPool,
-    _jobs: Jobs,
+    jobs: Jobs,
     audit: Audit,
     authz: Authorization,
     accounting: Accounting,
@@ -149,7 +149,7 @@ impl LanaApp {
 
         Ok(Self {
             _pool: pool,
-            _jobs: jobs,
+            jobs,
             audit,
             authz,
             accounting,
@@ -195,6 +195,10 @@ impl LanaApp {
 
     pub fn outbox(&self) -> &Outbox {
         &self.outbox
+    }
+
+    pub fn jobs(&self) -> &Jobs {
+        &self.jobs
     }
 
     #[instrument(name = "lana.audit.list_audit", skip(self), err)]
