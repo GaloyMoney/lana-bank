@@ -1068,7 +1068,8 @@ export type Disbursed = {
 
 export enum DocumentStatus {
   Active = 'ACTIVE',
-  Archived = 'ARCHIVED'
+  Archived = 'ARCHIVED',
+  Deleted = 'DELETED'
 }
 
 export type Duration = {
