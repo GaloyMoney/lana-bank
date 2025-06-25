@@ -87,7 +87,7 @@ describe("Customers", () => {
   })
 
   it("KYC verification", () => {
-    cy.intercept("POST", "/admin/graphql", (req) => {
+    cy.intercept("POST", "/graphql", (req) => {
       if (req.body.operationName === "sumsubPermalinkCreate") {
         req.reply({
           statusCode: 200,
