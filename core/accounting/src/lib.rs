@@ -98,7 +98,8 @@ where
         let chart_of_accounts = ChartOfAccounts::new(pool, authz, cala, journal_id);
         let journal = Journal::new(authz, cala, journal_id);
         let ledger_accounts = LedgerAccounts::new(authz, cala, journal_id);
-        let manual_transactions = ManualTransactions::new(pool, authz, cala, journal_id);
+        let manual_transactions =
+            ManualTransactions::new(pool, authz, &chart_of_accounts, cala, journal_id);
         let ledger_transactions = LedgerTransactions::new(authz, cala);
         let profit_and_loss = ProfitAndLossStatements::new(pool, authz, cala, journal_id);
         let transaction_templates = TransactionTemplates::new(authz, cala);
@@ -255,19 +256,11 @@ where
         effective: Option<chrono::NaiveDate>,
         entries: Vec<ManualEntryInput>,
     ) -> Result<LedgerTransaction, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
-
         let tx = self
             .manual_transactions
             .execute(
                 sub,
-                &chart,
+                chart_ref,
                 reference,
                 description,
                 effective.unwrap_or_else(|| chrono::Utc::now().date_naive()),

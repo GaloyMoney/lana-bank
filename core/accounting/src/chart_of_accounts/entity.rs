@@ -106,7 +106,7 @@ impl Chart {
             )
     }
 
-    pub fn account_spec(&self, code: &AccountCode) -> Option<&AccountDetails> {
+    fn account_spec(&self, code: &AccountCode) -> Option<&AccountDetails> {
         self.all_accounts.get(code)
     }
 
@@ -325,9 +325,9 @@ pub enum ManualAccountFromChart {
     NewAccount((CalaAccountSetId, NewAccount)),
 }
 
-pub struct AccountDetails {
+struct AccountDetails {
     spec: AccountSpec,
-    pub account_set_id: CalaAccountSetId,
+    account_set_id: CalaAccountSetId,
     manual_transaction_account_id: Option<LedgerAccountId>,
 }
 

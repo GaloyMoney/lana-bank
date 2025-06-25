@@ -1,5 +1,7 @@
 use thiserror::Error;
 
+use crate::chart_of_accounts;
+
 #[derive(Error, Debug)]
 pub enum ManualTransactionError {
     #[error("ManualTransactionError - Sqlx: {0}")]
@@ -18,8 +20,8 @@ pub enum ManualTransactionError {
     TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("ManualTransactionError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
-    #[error("ManualTransactionError - Unknown account code: {0}")]
-    UnknownAccountCode(String),
+    #[error("ManualTransactionError - ChartOfAccounts: {0}")]
+    ChartOfAccountsError(#[from] chart_of_accounts::error::ChartOfAccountsError),
 }
 
 es_entity::from_es_entity_error!(ManualTransactionError);

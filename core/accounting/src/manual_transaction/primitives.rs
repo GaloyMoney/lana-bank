@@ -3,7 +3,7 @@ use derive_builder::Builder;
 use cala_ledger::{Currency, DebitOrCredit};
 use rust_decimal::Decimal;
 
-pub use crate::primitives::AccountIdOrCode;
+use crate::primitives::AccountIdOrCode;
 
 pub use cala_ledger::TransactionId as CalaTransactionId;
 

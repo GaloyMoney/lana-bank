@@ -14,7 +14,7 @@ use cala_ledger::{CalaLedger, JournalId};
 use ledger::{EntryParams, ManualTransactionLedger, ManualTransactionParams};
 
 use crate::{
-    Chart,
+    chart_of_accounts::ChartOfAccounts,
     primitives::{CalaTxId, CoreAccountingAction, CoreAccountingObject, ManualTransactionId},
 };
 use error::*;
@@ -34,6 +34,7 @@ where
 {
     ledger: ManualTransactionLedger,
     authz: Perms,
+    chart_of_accounts: ChartOfAccounts<Perms>,
     journal_id: JournalId,
     repo: ManualTransactionRepo,
 }
@@ -47,12 +48,14 @@ where
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
+        chart_of_accounts: &ChartOfAccounts<Perms>,
         cala: &CalaLedger,
         journal_id: JournalId,
     ) -> Self {
         let repo = ManualTransactionRepo::new(pool);
         Self {
             ledger: ManualTransactionLedger::new(cala),
+            chart_of_accounts: chart_of_accounts.clone(),
             authz: authz.clone(),
             journal_id,
             repo,
@@ -118,7 +121,7 @@ where
     pub async fn execute(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: &Chart,
+        chart_ref: &str,
         reference: Option<String>,
         description: String,
         effective: chrono::NaiveDate,
@@ -151,11 +154,15 @@ where
         let mut entry_params = vec![];
         for e in entries {
             let account_id = self
-                .ledger
-                .resolve_account_id(chart, &e.account_id_or_code)
+                .chart_of_accounts
+                .manual_transaction_account_id_for_account_id_or_code(
+                    sub,
+                    chart_ref,
+                    e.account_id_or_code,
+                )
                 .await?;
             entry_params.push(EntryParams {
-                account_id,
+                account_id: account_id.into(),
                 amount: e.amount,
                 currency: e.currency,
                 direction: e.direction,

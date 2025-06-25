@@ -1,14 +1,10 @@
 mod template;
 
-use cala_ledger::{AccountId, AccountSetId, CalaLedger, account::NewAccount};
+use cala_ledger::CalaLedger;
 
-use crate::{
-    Chart,
-    chart_of_accounts::AccountDetails,
-    primitives::{AccountCode, CalaTxId},
-};
+use crate::primitives::CalaTxId;
 
-use super::{error::ManualTransactionError, primitives::AccountIdOrCode};
+use super::error::ManualTransactionError;
 
 use template::*;
 pub use template::{EntryParams, ManualTransactionParams};
@@ -41,79 +37,5 @@ impl ManualTransactionLedger {
         op.commit().await?;
 
         Ok(())
-    }
-
-    pub async fn resolve_account_id(
-        &self,
-        chart: &Chart,
-        account_id_or_code: &AccountIdOrCode,
-    ) -> Result<AccountId, ManualTransactionError> {
-        match account_id_or_code {
-            AccountIdOrCode::Id(account_id) => Ok((*account_id).into()),
-            AccountIdOrCode::Code(code) => match chart.account_spec(code) {
-                Some(AccountDetails {
-                    account_set_id: parent_id,
-                    ..
-                }) => {
-                    self.find_or_create_manual_account(
-                        parent_id,
-                        code,
-                        code.manual_account_external_id(chart.id),
-                    )
-                    .await
-                }
-                None => Err(ManualTransactionError::UnknownAccountCode(code.to_string())),
-            },
-        }
-    }
-
-    async fn find_or_create_manual_account(
-        &self,
-        parent_id: &AccountSetId,
-        parent_code: &AccountCode,
-        external_id: String,
-    ) -> Result<AccountId, ManualTransactionError> {
-        let manual_account = self
-            .cala
-            .accounts()
-            .find_by_external_id(external_id.clone())
-            .await;
-
-        match manual_account {
-            Ok(existing) => Ok(existing.id()),
-            Err(e) if e.was_not_found() => {
-                self.create_manual_account(parent_id, parent_code, &external_id)
-                    .await
-            }
-            Err(err) => Err(err.into()),
-        }
-    }
-
-    async fn create_manual_account(
-        &self,
-        parent_id: &AccountSetId,
-        parent_code: &AccountCode,
-        external_id: &str,
-    ) -> Result<AccountId, ManualTransactionError> {
-        let manual_account = self
-            .cala
-            .accounts()
-            .create(
-                NewAccount::builder()
-                    .name(format!("{} Manual", parent_code))
-                    .id(AccountId::new())
-                    .code(external_id)
-                    .external_id(external_id)
-                    .build()
-                    .unwrap(),
-            )
-            .await?;
-
-        self.cala
-            .account_sets()
-            .add_member(*parent_id, manual_account.id)
-            .await?;
-
-        Ok(manual_account.id)
     }
 }
