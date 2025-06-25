@@ -58,8 +58,8 @@ class ApplicantStream(Stream):
         )
         self.sumsub_client = SumsubClient(
             {
-                "key": tap.config["key"],
-                "secret": tap.config["secret"],
+                "key": tap.sumsub_key,
+                "secret": tap.sumsub_secret,
             }
         )
 

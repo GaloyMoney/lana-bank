@@ -15,7 +15,8 @@ environments:
               password: password
           - name: tap-sumsubapi
             config:
-              host: core-pg
+              host: localhost
+              port: 5433
               user: user
               database: pg
               password: password

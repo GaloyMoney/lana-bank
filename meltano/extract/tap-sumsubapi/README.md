@@ -1,5 +1,12 @@
 # tap-sumsubapi
 
+Set the following environment variables to run this tap:
+
+```bash
+export SUMSUBAPI_SECRET=your_secret_here
+export SUMSUBAPI_KEY=your_key_here
+```
+
 `tap-sumsubapi` is a Singer tap for the Sumsub Api.
 
 Built with the [Meltano Tap SDK](https://sdk.meltano.com) for Singer Taps.

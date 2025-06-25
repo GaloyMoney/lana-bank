@@ -6,6 +6,7 @@ from singer_sdk import Tap
 from singer_sdk import typing as th  # JSON schema typing helpers
 
 from tap_sumsubapi.streams import ApplicantStream
+import os
 
 STREAM_TYPES = [ApplicantStream]
 
@@ -62,19 +63,27 @@ class TapSumsubApi(Tap):
             "secret",
             th.StringType,
             description="Example: Hej2ch71kG2kTd1iIUDZFNsO5C1lh5Gq",
-            required=True,
         ),
         th.Property(
             "key",
             th.StringType,
             description="Example: sbx:uY0CgwELmgUAEyl4hNWxLngb.0WSeQeiYny4WEqmAALEAiK2qTC96fBad",
-            required=True,
         ),
     ).to_dict()
 
     def discover_streams(self):
         """Return a list of discovered streams."""
         return [stream_class(tap=self) for stream_class in STREAM_TYPES]
+
+    @property
+    def sumsub_key(self):
+        """Get Sumsub key from config or environment."""
+        return self.config.get('key') or os.getenv('SUMSUB_KEY')
+
+    @property
+    def sumsub_secret(self):
+        """Get Sumsub secret from config or environment."""
+        return self.config.get('secret') or os.getenv('SUMSUB_SECRET')
 
 
 if __name__ == "__main__":
