@@ -1071,6 +1071,7 @@ type Disbursed {
 enum DocumentStatus {
 	ACTIVE
 	ARCHIVED
+	DELETED
 }
 
 type Duration {
