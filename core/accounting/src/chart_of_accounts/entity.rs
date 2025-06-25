@@ -83,19 +83,29 @@ impl Chart {
         self.all_accounts.get(code)
     }
 
-    fn is_leaf_account(&self, code: &AccountCode) -> bool {
-        self.children::<CalaAccountSetId>(code).is_empty()
-    }
-
-    pub fn leaf_account_spec(
+    pub fn check_can_have_manual_transactions(
         &self,
         code: &AccountCode,
-    ) -> Result<Option<&(AccountSpec, CalaAccountSetId)>, ChartOfAccountsError> {
-        if !self.is_leaf_account(code) {
-            return Err(ChartOfAccountsError::NonLeafAccount);
+    ) -> Result<(), ChartOfAccountsError> {
+        if !self.children::<CalaAccountSetId>(code).is_empty() {
+            return Err(ChartOfAccountsError::NonLeafAccount(code.to_string()));
         };
 
-        Ok(self.all_accounts.get(code))
+        Ok(())
+    }
+
+    pub fn manual_transactions_account_set_id(
+        &self,
+        code: &AccountCode,
+    ) -> Result<&CalaAccountSetId, ChartOfAccountsError> {
+        self.check_can_have_manual_transactions(code)?;
+
+        let (_, manual_transactions_account_set_id) = self
+            .all_accounts
+            .get(code)
+            .ok_or(ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+
+        Ok(manual_transactions_account_set_id)
     }
 
     /// Returns ancestors of this chart of accounts, starting with `code` (not included).

@@ -61,22 +61,20 @@ impl ManualTransactionLedger {
                         serde_json::from_value::<ManualTransactionAccountMeta>(meta.clone()).ok()
                     })
                 {
-                    chart.leaf_account_spec(&code)?;
+                    chart.check_can_have_manual_transactions(&code)?;
                 }
 
                 Ok((*account_id).into())
             }
-            AccountIdOrCode::Code(code) => match chart.leaf_account_spec(code)? {
-                Some((_, parent_id)) => {
-                    self.find_or_create_manual_account(
-                        parent_id,
-                        code,
-                        code.manual_account_external_id(chart.id),
-                    )
-                    .await
-                }
-                None => Err(ManualTransactionError::UnknownAccountCode(code.to_string())),
-            },
+            AccountIdOrCode::Code(code) => {
+                let account_set_id = chart.manual_transactions_account_set_id(code)?;
+                self.find_or_create_manual_account(
+                    account_set_id,
+                    code,
+                    code.manual_account_external_id(chart.id),
+                )
+                .await
+            }
         }
     }
 

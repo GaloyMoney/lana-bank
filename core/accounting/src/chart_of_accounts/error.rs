@@ -20,8 +20,8 @@ pub enum ChartOfAccountsError {
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
     #[error("ChartOfAccountsError - CalaAccountSetError: {0}")]
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
-    #[error("ChartOfAccountsError - NonLeafAccountError")]
-    NonLeafAccount,
+    #[error("ChartOfAccountsError - NonLeafAccountError: {0}")]
+    NonLeafAccount(String),
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountsError);

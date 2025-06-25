@@ -22,8 +22,6 @@ pub enum ManualTransactionError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ManualTransactionError - ChartOfAccountsError: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
-    #[error("ManualTransactionError - Unknown account code: {0}")]
-    UnknownAccountCode(String),
 }
 
 es_entity::from_es_entity_error!(ManualTransactionError);
