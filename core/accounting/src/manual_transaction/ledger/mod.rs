@@ -56,13 +56,13 @@ impl ManualTransactionLedger {
                     .accounts()
                     .find(AccountId::from(*account_id))
                     .await?;
-                if let Some(metadata) = account.values().metadata.as_ref() {
-                    let ManualTransactionAccountMeta { code } =
-                        serde_json::from_value(metadata.clone())
-                            .expect("Could not deserialize metadata");
-
+                if let Some(ManualTransactionAccountMeta { code }) =
+                    account.values().metadata.as_ref().and_then(|meta| {
+                        serde_json::from_value::<ManualTransactionAccountMeta>(meta.clone()).ok()
+                    })
+                {
                     chart.leaf_account_spec(&code)?;
-                };
+                }
 
                 Ok((*account_id).into())
             }
