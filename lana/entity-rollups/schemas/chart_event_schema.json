@@ -147,6 +147,31 @@
         "audit_info"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "ledger_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "manual_transaction_account_added",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "code",
+        "ledger_account_id",
+        "audit_info"
+      ],
+      "type": "object"
     }
   ],
   "title": "ChartEvent"
