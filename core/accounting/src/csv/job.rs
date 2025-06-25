@@ -35,7 +35,6 @@ where
 {
     document_storage: DocumentStorage,
     ledger_accounts: LedgerAccounts<Perms>,
-    audit: Perms::Audit,
 }
 
 impl<Perms> GenerateAccountingCsvInit<Perms>
@@ -47,12 +46,10 @@ where
     pub fn new(
         document_storage: &DocumentStorage,
         ledger_accounts: &LedgerAccounts<Perms>,
-        audit: &Perms::Audit,
     ) -> Self {
         Self {
             document_storage: document_storage.clone(),
             ledger_accounts: ledger_accounts.clone(),
-            audit: audit.clone(),
         }
     }
 }
@@ -77,7 +74,6 @@ where
             config: job.config()?,
             document_storage: self.document_storage.clone(),
             generator: GenerateCsvExport::new(&self.ledger_accounts),
-            audit: self.audit.clone(),
         }))
     }
 }
@@ -91,7 +87,6 @@ where
     config: GenerateAccountingCsvConfig<Perms>,
     document_storage: DocumentStorage,
     generator: GenerateCsvExport<Perms>,
-    audit: Perms::Audit,
 }
 
 #[async_trait]
@@ -105,14 +100,6 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let audit_info = self
-            .audit
-            .record_system_entry(
-                CoreAccountingObject::all_accounting_csvs(),
-                CoreAccountingAction::ACCOUNTING_CSV_GENERATE,
-            )
-            .await?;
-
         let csv_result = self
             .generator
             .generate_ledger_account_csv(self.config.ledger_account_id)
@@ -125,11 +112,7 @@ where
                     .find_by_id(self.config.document_id)
                     .await?
                 {
-                    match self
-                        .document_storage
-                        .upload(csv_data, &mut document, audit_info)
-                        .await
-                    {
+                    match self.document_storage.upload(csv_data, &mut document).await {
                         Ok(_) => {}
                         Err(e) => {
                             return Err(e.into());

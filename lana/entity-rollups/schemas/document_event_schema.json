@@ -74,17 +74,13 @@
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "file_uploaded",
           "type": "string"
         }
       },
       "required": [
-        "type",
-        "audit_info"
+        "type"
       ],
       "type": "object"
     },

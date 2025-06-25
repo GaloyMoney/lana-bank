@@ -46,9 +46,7 @@ pub enum DocumentEvent {
         storage_identifier: String,
         audit_info: AuditInfo,
     },
-    FileUploaded {
-        audit_info: AuditInfo,
-    },
+    FileUploaded {},
     UploadFailed {
         error: String,
     },
@@ -88,10 +86,10 @@ impl Document {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn upload_file(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+    pub fn upload_file(&mut self) -> Idempotent<()> {
         idempotency_guard!(self.events.iter_all(), DocumentEvent::FileUploaded { .. });
 
-        self.events.push(DocumentEvent::FileUploaded { audit_info });
+        self.events.push(DocumentEvent::FileUploaded {});
         Idempotent::Executed(())
     }
 

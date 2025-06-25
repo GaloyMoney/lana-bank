@@ -91,7 +91,6 @@ impl DocumentStorage {
         &self,
         content: Vec<u8>,
         document: &mut Document,
-        audit_info: AuditInfo,
         db: &mut es_entity::DbOp<'_>,
     ) -> Result<(), DocumentStorageError> {
         self.storage
@@ -99,7 +98,7 @@ impl DocumentStorage {
             .await?;
 
         // Now record the upload in the entity
-        if document.upload_file(audit_info).did_execute() {
+        if document.upload_file().did_execute() {
             self.repo.update_in_op(db, document).await?;
         }
 
@@ -111,11 +110,9 @@ impl DocumentStorage {
         &self,
         content: Vec<u8>,
         document: &mut Document,
-        audit_info: AuditInfo,
     ) -> Result<(), DocumentStorageError> {
         let mut db = self.repo.begin_op().await?;
-        self.upload_in_op(content, document, audit_info, &mut db)
-            .await?;
+        self.upload_in_op(content, document, &mut db).await?;
         db.commit().await?;
         Ok(())
     }
@@ -150,8 +147,7 @@ impl DocumentStorage {
         let mut db = self.repo.begin_op().await?;
         let mut document = self.repo.create_in_op(&mut db, new_document).await?;
 
-        self.upload_in_op(content, &mut document, audit_info, &mut db)
-            .await?;
+        self.upload_in_op(content, &mut document, &mut db).await?;
 
         db.commit().await?;
 

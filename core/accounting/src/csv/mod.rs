@@ -50,7 +50,6 @@ where
         jobs.add_initializer(GenerateAccountingCsvInit::new(
             &document_storage,
             ledger_accounts,
-            authz.audit(),
         ));
 
         Self {
