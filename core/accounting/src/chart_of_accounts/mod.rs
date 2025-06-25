@@ -9,10 +9,14 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account_set::NewAccountSet};
+use cala_ledger::{CalaLedger, account::Account, account_set::NewAccountSet};
 
-use crate::primitives::{
-    CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
+use crate::{
+    LedgerAccountId,
+    primitives::{
+        AccountIdOrCode, CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction,
+        CoreAccountingObject,
+    },
 };
 
 pub(super) use csv::{CsvParseError, CsvParser};
@@ -233,5 +237,59 @@ where
         ids: &[ChartId],
     ) -> Result<std::collections::HashMap<ChartId, T>, ChartOfAccountsError> {
         self.repo.find_all(ids).await
+    }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.manual_transaction_account_id_for_account_id_or_code",
+        skip(self),
+        err
+    )]
+    pub async fn manual_transaction_account_id_for_account_id_or_code(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        account_id_or_code: AccountIdOrCode,
+    ) -> Result<LedgerAccountId, ChartOfAccountsError> {
+        let mut chart = self.repo.find_by_reference(chart_ref.to_string()).await?;
+
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_charts(),
+                CoreAccountingAction::CHART_UPDATE,
+            )
+            .await?;
+
+        let manual_transaction_account_id = match chart
+            .manual_transaction_account(account_id_or_code, audit_info)?
+        {
+            ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
+            ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
+                let mut op = self.repo.begin_op().await?;
+                self.repo.update_in_op(&mut op, &mut chart).await?;
+
+                let mut op = self.cala.ledger_operation_from_db_op(op);
+                let Account {
+                    id: manual_transaction_account_id,
+                    ..
+                } = self
+                    .cala
+                    .accounts()
+                    .create_in_op(&mut op, new_account)
+                    .await?;
+
+                self.cala
+                    .account_sets()
+                    .add_member_in_op(&mut op, account_set_id, manual_transaction_account_id)
+                    .await?;
+
+                op.commit().await?;
+
+                manual_transaction_account_id.into()
+            }
+        };
+
+        Ok(manual_transaction_account_id)
     }
 }

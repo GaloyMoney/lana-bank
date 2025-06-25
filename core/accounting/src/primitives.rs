@@ -240,6 +240,24 @@ impl std::fmt::Display for AccountCode {
     }
 }
 
+#[derive(Clone, Debug)]
+pub enum AccountIdOrCode {
+    Id(LedgerAccountId),
+    Code(AccountCode),
+}
+
+impl std::str::FromStr for AccountIdOrCode {
+    type Err = anyhow::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        if let Ok(id) = s.parse::<LedgerAccountId>() {
+            Ok(AccountIdOrCode::Id(id))
+        } else {
+            Ok(AccountIdOrCode::Code(s.parse()?))
+        }
+    }
+}
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountSpec {
@@ -529,6 +547,7 @@ impl FromStr for CoreAccountingObject {
 impl CoreAccountingAction {
     pub const CHART_CREATE: Self = CoreAccountingAction::Chart(ChartAction::Create);
     pub const CHART_LIST: Self = CoreAccountingAction::Chart(ChartAction::List);
+    pub const CHART_UPDATE: Self = CoreAccountingAction::Chart(ChartAction::Update);
     pub const CHART_IMPORT_ACCOUNTS: Self =
         CoreAccountingAction::Chart(ChartAction::ImportAccounts);
 
@@ -668,6 +687,7 @@ impl FromStr for CoreAccountingAction {
 pub enum ChartAction {
     Create,
     List,
+    Update,
     ImportAccounts,
 }
 
@@ -687,6 +707,9 @@ impl ChartAction {
                         PERMISSION_SET_ACCOUNTING_WRITER,
                     ],
                 ),
+                Self::Update => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
+                }
                 Self::ImportAccounts => {
                     ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
                 }

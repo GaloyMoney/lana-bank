@@ -82,6 +82,7 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
                 id: *id,
                 spec: spec.clone(),
             }),
+            _ => (),
         }
     }
 

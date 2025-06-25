@@ -4,6 +4,7 @@ use cala_ledger::{AccountId, AccountSetId, CalaLedger, account::NewAccount};
 
 use crate::{
     Chart,
+    chart_of_accounts::AccountDetails,
     primitives::{AccountCode, CalaTxId},
 };
 
@@ -50,7 +51,10 @@ impl ManualTransactionLedger {
         match account_id_or_code {
             AccountIdOrCode::Id(account_id) => Ok((*account_id).into()),
             AccountIdOrCode::Code(code) => match chart.account_spec(code) {
-                Some((_, parent_id)) => {
+                Some(AccountDetails {
+                    account_set_id: parent_id,
+                    ..
+                }) => {
                     self.find_or_create_manual_account(
                         parent_id,
                         code,

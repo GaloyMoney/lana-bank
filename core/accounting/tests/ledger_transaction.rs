@@ -6,7 +6,7 @@ use document_storage::DocumentStorage;
 use job::{JobExecutorConfig, Jobs};
 
 use cala_ledger::{CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit};
-use core_accounting::{CoreAccounting, ManualEntryInput, manual_transaction::AccountIdOrCode};
+use core_accounting::{AccountIdOrCode, CoreAccounting, ManualEntryInput};
 use helpers::{action, object};
 use rust_decimal_macros::dec;
 
