@@ -75,7 +75,6 @@ wait4x http http://localhost:5253/health --timeout 60s
 
 # Step 5: Start admin panel in background
 echo "Starting admin panel..."
-export NEXT_PUBLIC_BASE_PATH="/"
 export NEXT_PUBLIC_CORE_ADMIN_URL="/graphql"
 
 cd apps/admin-panel

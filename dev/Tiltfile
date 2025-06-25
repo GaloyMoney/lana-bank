@@ -41,7 +41,6 @@ local_resource(
     "admin-panel",
     labels = ["apps"],
     serve_env = {
-        "NEXT_PUBLIC_BASE_PATH": "/",
         "NEXT_PUBLIC_CORE_ADMIN_URL": "/graphql"
     },
     serve_cmd = "cd .. && make start-admin",
@@ -63,7 +62,6 @@ local_resource(
     "customer-portal",
     labels = ["apps"],
     serve_env = {
-        "NEXT_PUBLIC_BASE_PATH": "/",
         "NEXT_PUBLIC_CORE_APP_URL": "/graphql"
     },
     serve_cmd = "cd .. && make start-customer-portal",

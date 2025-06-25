@@ -2,10 +2,9 @@
 - id: kratos-admin
   upstream:
     url: http://host.containers.internal:4433
-    strip_path: /admin
   match:
-    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/<(sessions|self-service)>/<.*>
-    methods: [ GET, POST, PUT, OPTIONS, DELETE, PATCH ]
+    url: <(http|https)>://<admin.localhost:4455>/<(sessions|self-service)>/<.*>
+    methods: [GET, POST, PUT, OPTIONS, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:
@@ -16,10 +15,9 @@
 - id: admin-api # lana/admin-server
   upstream:
     url: http://host.containers.internal:5253
-    strip_path: /admin
   match:
-    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin/graphql
-    methods: [ GET, POST, OPTIONS ]
+    url: <(http|https)>://<admin.localhost:4455>/graphql
+    methods: [GET, POST, OPTIONS]
   authenticators:
     - handler: cookie_session
       config:
@@ -41,10 +39,9 @@
 - id: admin-panel-ui # apps/admin-panel
   upstream:
     url: http://host.containers.internal:3001
-    # strip_path: /admin # nextjs base path will handle this
   match:
-    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/admin<(?!\/sessions|\/self-service|\/graphql).*>
-    methods: [ GET, POST, OPTIONS, PUT, DELETE, PATCH ]
+    url: <(http|https)>://<admin.localhost:4455><(?!\/sessions|\/self-service|\/graphql).*>
+    methods: [GET, POST, OPTIONS, PUT, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:
@@ -56,10 +53,9 @@
 - id: kratos-customer
   upstream:
     url: http://host.containers.internal:4435
-    strip_path: /app
   match:
-    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app/<(sessions|self-service)>/<.*>
-    methods: [ GET, POST, PUT, OPTIONS, DELETE, PATCH ]
+    url: <(http|https)>://<app.localhost:4455>/<(sessions|self-service)>/<.*>
+    methods: [GET, POST, PUT, OPTIONS, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:
@@ -70,10 +66,9 @@
 - id: app-api # lana/customer-server
   upstream:
     url: http://host.containers.internal:5254
-    strip_path: /app
   match:
-    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app/graphql
-    methods: [ GET, POST, OPTIONS ]
+    url: <(http|https)>://<app.localhost:4455>/graphql
+    methods: [GET, POST, OPTIONS]
   authenticators:
     - handler: cookie_session
       config:
@@ -92,14 +87,12 @@
       config:
         claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
 
-
 - id: customer-portal-ui # apps/customer-portal
   upstream:
     url: http://host.containers.internal:3002
-    # strip_path: /app # nextjs base path will handle this
   match:
-    url: <(http|https)>://<[a-zA-Z0-9-.:]+>/app<(?!\/sessions|\/self-service|\/graphql).*>
-    methods: [ GET, POST, OPTIONS, PUT, DELETE, PATCH ]
+    url: <(http|https)>://<app.localhost:4455><(?!\/sessions|\/self-service|\/graphql).*>
+    methods: [GET, POST, OPTIONS, PUT, DELETE, PATCH]
   authenticators:
     - handler: noop
   authorizer:

@@ -5,12 +5,9 @@
 import { Configuration, FrontendApi, UiNodeInputAttributes } from "@ory/client"
 import axios, { AxiosError } from "axios"
 
-import { basePath } from "@/env"
-
 export const getOryClient = () =>
   new FrontendApi(
     new Configuration({
-      basePath,
       baseOptions: {
         withCredentials: true,
         timeout: 10000,

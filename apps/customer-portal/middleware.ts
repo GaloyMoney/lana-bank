@@ -2,8 +2,6 @@ import { NextRequest, NextResponse } from "next/server"
 
 import { toSession } from "./lib/kratos/public/to-session"
 
-const basePath = process.env.NEXT_PUBLIC_BASE_PATH || ""
-
 export async function middleware(request: NextRequest): Promise<NextResponse | void> {
   const path = request.nextUrl.pathname
   const isAuthRoute = path.startsWith("/auth")
@@ -17,17 +15,17 @@ export async function middleware(request: NextRequest): Promise<NextResponse | v
 
     if (!(session instanceof Error) && session?.active) {
       if (isAuthRoute) {
-        return NextResponse.redirect(new URL(basePath || "/", request.url))
+        return NextResponse.redirect(new URL("/", request.url))
       }
       return NextResponse.next()
     }
 
     if (!isAuthRoute) {
-      return NextResponse.redirect(new URL(`${basePath}/auth`, request.url))
+      return NextResponse.redirect(new URL("/auth", request.url))
     }
   } catch (error) {
     if (!isAuthRoute) {
-      return NextResponse.redirect(new URL(`${basePath}/auth`, request.url))
+      return NextResponse.redirect(new URL("/auth", request.url))
     }
   }
 

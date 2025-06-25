@@ -2,7 +2,7 @@ import { ApolloClient, ApolloLink, HttpLink, InMemoryCache } from "@apollo/clien
 import { registerApolloClient } from "@apollo/client-integration-nextjs"
 import { headers } from "next/headers"
 
-import { basePath, env } from "@/env"
+import { env } from "@/env"
 
 export const { getClient } = registerApolloClient(async () => {
   const headersObj = await headers()
@@ -14,7 +14,7 @@ export const { getClient } = registerApolloClient(async () => {
     cache: new InMemoryCache(),
     link: ApolloLink.from([
       new HttpLink({
-        uri: `${env.NEXT_PUBLIC_CORE_URL + basePath}/graphql`,
+        uri: `${env.NEXT_PUBLIC_CORE_URL}/graphql`,
         fetchOptions: { cache: "no-store" },
         headers: requestHeaders,
       }),
