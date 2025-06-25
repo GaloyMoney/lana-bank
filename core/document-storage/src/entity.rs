@@ -127,6 +127,7 @@ impl Document {
         idempotency_guard!(self.events.iter_all(), DocumentEvent::Deleted { .. });
 
         self.events.push(DocumentEvent::Deleted { audit_info });
+        self.status = DocumentStatus::Deleted;
         Idempotent::Executed(())
     }
 

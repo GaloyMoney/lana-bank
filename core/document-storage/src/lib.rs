@@ -51,14 +51,15 @@ impl DocumentStorage {
         self.repo.begin_op().await
     }
 
-    #[instrument(name = "document_storage.create", skip(self), err)]
-    pub async fn create(
+    #[instrument(name = "document_storage.create_in_op", skip(self, db), err)]
+    pub async fn create_in_op(
         &self,
         audit_info: AuditInfo,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
         reference_id: impl Into<ReferenceId> + std::fmt::Debug,
         document_type: impl Into<DocumentType> + std::fmt::Debug,
+        db: &mut es_entity::DbOp<'_>,
     ) -> Result<Document, DocumentStorageError> {
         let document_id = DocumentId::new();
         let document_type = document_type.into();
@@ -77,10 +78,7 @@ impl DocumentStorage {
             .build()
             .expect("Could not build document");
 
-        let mut db = self.repo.begin_op().await?;
-        let document = self.repo.create_in_op(&mut db, new_document).await?;
-        db.commit().await?;
-
+        let document = self.repo.create_in_op(db, new_document).await?;
         Ok(document)
     }
 

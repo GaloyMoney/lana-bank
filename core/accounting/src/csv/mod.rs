@@ -77,20 +77,19 @@ where
             )
             .await?;
 
-        // Create document using document storage instead of AccountingCsv entity
+        let mut db = self.document_storage.begin_op().await?;
         let document = self
             .document_storage
-            .create(
+            .create_in_op(
                 audit_info.clone(),
                 format!("ledger-account-{}.csv", ledger_account_id),
                 "text/csv",
                 ReferenceId::from(uuid::Uuid::from(ledger_account_id)),
                 LEDGER_ACCOUNT_CSV,
+                &mut db,
             )
             .await?;
 
-        // Create and spawn job to generate and upload the CSV content
-        let mut db = self.document_storage.begin_op().await?;
         self.jobs
             .create_and_spawn_in_op::<GenerateAccountingCsvConfig<Perms>>(
                 &mut db,
