@@ -126,7 +126,7 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "cala_server.jobs.find_by_id", skip(self))]
+    #[instrument(name = "lana.jobs.find_by_id", skip(self))]
     pub async fn find_by_id(
         &self,
         id: impl Into<JobId> + std::fmt::Debug,
