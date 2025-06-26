@@ -83,7 +83,6 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
     {
       key: "__typename",
       header: t("columns.amount"),
-      align: "right",
       render: (
         _: CreditFacilityHistoryEntry["__typename"],
         entry: CreditFacilityHistoryEntry,
@@ -93,28 +92,24 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
             return (
               <div
                 className={cn(
-                  "flex justify-end gap-1",
+                  "flex gap-1",
                   entry.action === CollateralAction.Add
                     ? "text-success"
                     : "text-destructive",
                 )}
               >
                 <div>{entry.action === CollateralAction.Add ? "+" : "-"}</div>
-                <Balance amount={entry.satoshis} currency="btc" align="end" />
+                <Balance amount={entry.satoshis} currency="btc" />
               </div>
             )
           case "CreditFacilityCollateralizationUpdated":
-            return (
-              <div className="flex flex-col gap-1 justify-end">
-                <Balance amount={entry.collateral} currency="btc" align="end" />
-              </div>
-            )
+            return <Balance amount={entry.collateral} currency="btc" />
           case "CreditFacilityApproved":
           case "CreditFacilityIncrementalPayment":
           case "CreditFacilityDisbursalExecuted":
           case "CreditFacilityInterestAccrued":
           case "CreditFacilityLiquidationAmountReserved":
-            return <Balance amount={entry.cents} currency="usd" align="end" />
+            return <Balance amount={entry.cents} currency="usd" />
           default:
             return <span>-</span>
         }
@@ -128,6 +123,9 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
         data={creditFacility.history}
         columns={columns}
         emptyMessage={t("messages.emptyTable")}
+        navigateTo={(entry) =>
+          "txId" in entry ? `/ledger-transaction/${entry.txId}` : null
+        }
       />
     </CardWrapper>
   )
