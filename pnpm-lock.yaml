@@ -12,8 +12,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^1.0.34
-        version: 1.0.34
+        specifier: ^1.0.35
+        version: 1.0.35
       '@mermaid-js/mermaid-cli':
         specifier: ^11.6.0
         version: 11.6.0(@types/react@19.1.8)(puppeteer@24.10.0(typescript@5.8.3))
@@ -148,8 +148,8 @@ importers:
         specifier: ^0.14.0
         version: 0.14.4
       '@types/lodash':
-        specifier: ^4.17.18
-        version: 4.17.18
+        specifier: ^4.17.19
+        version: 4.17.19
       '@types/node':
         specifier: '20'
         version: 20.17.57
@@ -196,8 +196,8 @@ importers:
         specifier: ^9.0.13
         version: 9.0.13(eslint@8.57.1)(storybook@9.0.13(@testing-library/dom@10.4.0)(prettier@3.6.1))(typescript@5.8.3)
       graphql-codegen-typescript-mock-data:
-        specifier: ^4.4.0
-        version: 4.4.0(graphql@16.11.0)
+        specifier: ^5.0.0
+        version: 5.0.0(graphql@16.11.0)(typescript@5.8.3)
       lodash:
         specifier: ^4.17.21
         version: 4.17.21
@@ -532,8 +532,8 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anthropic-ai/claude-code@1.0.34':
-    resolution: {integrity: sha512-9mQd8hodE5/RxZnsWUCdLzqGUKuCzBczrfc2QfxrNSlvUFpOgTzjT1Zlww2vW9v0K1e5K9g1o08apqPl/QPmpw==}
+  '@anthropic-ai/claude-code@1.0.35':
+    resolution: {integrity: sha512-rQr03moVxUZSR9hZGHXatjukxmgK9VoihiVG/lkUWFb6NDxhG+EZB+jSY2gtTsxJwnE1pQciLvOPVI/UxXo4TA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -1398,10 +1398,6 @@ packages:
   '@eslint/js@8.57.1':
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
-
-  '@faker-js/faker@8.4.1':
-    resolution: {integrity: sha512-XQ3cU+Q8Uqmrbf2e0cIC/QN43sTBSC8KF12u29Mb47tWrt2hAgBXSgpZMj4Ao8Uk0iJcU99QsOCaIL8934obCg==}
-    engines: {node: ^14.17.0 || ^16.13.0 || >=18.0.0, npm: '>=6.14.13'}
 
   '@faker-js/faker@9.8.0':
     resolution: {integrity: sha512-U9wpuSrJC93jZBxx/Qq2wPjCuYISBueyVUGK7qqdmj7r/nxaxwW8AQDCLeRO7wZnjj94sh3p246cAYjUKuqgfg==}
@@ -3231,8 +3227,8 @@ packages:
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
 
-  '@types/lodash@4.17.18':
-    resolution: {integrity: sha512-KJ65INaxqxmU6EoCiJmRPZC9H9RVWCRd349tXM2M3O5NA7cY6YL7c0bHAHQ93NOfTObEQ004kd2QVHs/r0+m4g==}
+  '@types/lodash@4.17.19':
+    resolution: {integrity: sha512-NYqRyg/hIQrYPT9lbOeYc3kIRabJDn/k4qQHIXUpx88CBDww2fD15Sg5kbXlW86zm2XEW4g0QxkTI3/Kfkc7xQ==}
 
   '@types/mdx@2.0.13':
     resolution: {integrity: sha512-+OWZQfAYyio6YkJb3HLxDrvnx6SWWDbC0zVPfBRzUk0/nqoDyf6dNxQi3eArPe8rJ473nobTMQ/8Zk+LxJ+Yuw==}
@@ -5788,10 +5784,12 @@ packages:
   graphemer@1.4.0:
     resolution: {integrity: sha512-EtKwoO6kxCL9WO5xipiHTZlSzBm7WLT627TqC/uVRd0HKmq8NXyebnNYxDoBi7wt8eTWrUrKXCOVaFq9x1kgag==}
 
-  graphql-codegen-typescript-mock-data@4.4.0:
-    resolution: {integrity: sha512-HXqSJRqpDKlK65jKZiWxkcWp/KCxpzpBNmGw7AWEN0Hzdk++UZZsveg0D8JaX9LVcVBBubamOInaYqjY8cm/Fw==}
+  graphql-codegen-typescript-mock-data@5.0.0:
+    resolution: {integrity: sha512-hrJTQDEXGhvxmX7/d1Upje1tzjTZebcbczVcbE9u4HCazOUvM/o6QQG8BjBF3bG9501bzGL8KWODZJb8PCZ3Rw==}
+    engines: {node: '>=18.0.0'}
     peerDependencies:
       graphql: ^14.6.0 || ^15.0.0 || ^16.0.0
+      typescript: '>=5.0.0'
 
   graphql-config@5.1.5:
     resolution: {integrity: sha512-mG2LL1HccpU8qg5ajLROgdsBzx/o2M6kgI3uAmoaXiSH9PCUbtIyLomLqUtCFaAeG2YCFsl0M5cfQ9rKmDoMVA==}
@@ -9022,7 +9020,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anthropic-ai/claude-code@1.0.34':
+  '@anthropic-ai/claude-code@1.0.35':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -10082,8 +10080,6 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@faker-js/faker@8.4.1': {}
-
   '@faker-js/faker@9.8.0': {}
 
   '@fastify/busboy@3.1.1': {}
@@ -10288,7 +10284,7 @@ snapshots:
 
   '@graphql-codegen/schema-ast@4.1.0(graphql@16.11.0)':
     dependencies:
-      '@graphql-codegen/plugin-helpers': 5.1.1(graphql@16.11.0)
+      '@graphql-codegen/plugin-helpers': 5.1.0(graphql@16.11.0)
       '@graphql-tools/utils': 10.8.6(graphql@16.11.0)
       graphql: 16.11.0
       tslib: 2.6.3
@@ -10417,7 +10413,7 @@ snapshots:
     dependencies:
       graphql: 16.11.0
       lodash.sortby: 4.7.0
-      tslib: 2.8.1
+      tslib: 2.6.3
 
   '@graphql-tools/executor-common@0.0.4(graphql@16.11.0)':
     dependencies:
@@ -10651,7 +10647,7 @@ snapshots:
       cross-inspect: 1.0.1
       dset: 3.1.4
       graphql: 16.11.0
-      tslib: 2.6.3
+      tslib: 2.8.1
 
   '@graphql-tools/utils@9.2.1(graphql@16.11.0)':
     dependencies:
@@ -12401,7 +12397,7 @@ snapshots:
 
   '@types/json5@0.0.29': {}
 
-  '@types/lodash@4.17.18': {}
+  '@types/lodash@4.17.19': {}
 
   '@types/mdx@2.0.13': {}
 
@@ -15543,10 +15539,10 @@ snapshots:
 
   graphemer@1.4.0: {}
 
-  graphql-codegen-typescript-mock-data@4.4.0(graphql@16.11.0):
+  graphql-codegen-typescript-mock-data@5.0.0(graphql@16.11.0)(typescript@5.8.3):
     dependencies:
-      '@faker-js/faker': 8.4.1
-      '@graphql-codegen/plugin-helpers': 5.1.0(graphql@16.11.0)
+      '@faker-js/faker': 9.8.0
+      '@graphql-codegen/plugin-helpers': 5.1.1(graphql@16.11.0)
       '@graphql-tools/utils': 10.8.6(graphql@16.11.0)
       casual: 1.6.2
       change-case-all: 1.0.15
@@ -15555,6 +15551,7 @@ snapshots:
       pascal-case: 3.1.2
       sentence-case: 3.0.4
       tslib: 2.8.1
+      typescript: 5.8.3
       upper-case: 2.0.2
 
   graphql-config@5.1.5(@types/node@20.17.57)(graphql@16.11.0)(typescript@5.8.3):
