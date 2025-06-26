@@ -549,6 +549,7 @@ type CreditFacilityIncrementalPayment {
 	recordedAt: Timestamp!
 	effective: Date!
 	txId: UUID!
+	payment: CreditFacilityPaymentAllocation!
 }
 
 type CreditFacilityInterestAccrued {

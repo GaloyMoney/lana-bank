@@ -1,7 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
 pub use lana_app::primitives::CollateralAction;
+
+use super::CreditFacilityPaymentAllocation;
+use crate::primitives::*;
 
 #[derive(async_graphql::Union)]
 pub enum CreditFacilityHistoryEntry {
@@ -14,11 +16,28 @@ pub enum CreditFacilityHistoryEntry {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub tx_id: UUID,
+}
+
+#[ComplexObject]
+impl CreditFacilityIncrementalPayment {
+    async fn payment(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let payment_allocation = app
+            .credit()
+            .payments()
+            .find_allocation_by_id(&sub, self.tx_id)
+            .await?;
+        Ok(CreditFacilityPaymentAllocation::from(payment_allocation))
+    }
 }
 
 #[derive(SimpleObject)]

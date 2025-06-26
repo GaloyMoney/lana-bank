@@ -556,6 +556,7 @@ export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
   cents: Scalars['UsdCents']['output'];
   effective: Scalars['Date']['output'];
+  payment: CreditFacilityPaymentAllocation;
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };
