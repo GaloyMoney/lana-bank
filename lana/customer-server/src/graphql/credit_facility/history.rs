@@ -35,7 +35,7 @@ impl CreditFacilityIncrementalPayment {
         let payment_allocation = app
             .credit()
             .payments()
-            .find_allocation_by_id(&sub, self.tx_id)
+            .find_allocation_by_id(sub, self.tx_id)
             .await?;
 
         Ok(CreditFacilityPaymentAllocation::from(payment_allocation))

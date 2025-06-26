@@ -56,7 +56,7 @@ pub struct DisbursalEntry {
 #[graphql(complex)]
 pub struct PaymentEntry {
     #[graphql(skip)]
-    pub tx_id: UUID,
+    payment_allocation_id: PaymentAllocationId,
     pub recorded_at: Timestamp,
 }
 
@@ -133,11 +133,11 @@ impl PaymentEntry {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
 
         let payment_allocation = loader
-            .load_one(PaymentAllocationId::from(self.tx_id))
+            .load_one(self.payment_allocation_id)
             .await?
             .expect("payment allocation should exist");
 
-        Ok(CreditFacilityPaymentAllocation::from(payment_allocation))
+        Ok(payment_allocation)
     }
 }
 
@@ -170,7 +170,7 @@ impl From<lana_app::deposit::DepositAccountHistoryEntry> for DepositAccountHisto
             }
             lana_app::deposit::DepositAccountHistoryEntry::Payment(entry) => {
                 Self::Payment(PaymentEntry {
-                    tx_id: UUID::from(entry.tx_id),
+                    payment_allocation_id: entry.tx_id.into(),
                     recorded_at: entry.recorded_at.into(),
                 })
             }

@@ -22,6 +22,8 @@ pub struct CreditFacilityIncrementalPayment {
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub tx_id: UUID,
+    #[graphql(skip)]
+    payment_allocation_id: PaymentAllocationId,
 }
 
 #[ComplexObject]
@@ -33,11 +35,11 @@ impl CreditFacilityIncrementalPayment {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
 
         let payment_allocation = loader
-            .load_one(PaymentAllocationId::from(self.tx_id))
+            .load_one(self.payment_allocation_id)
             .await?
             .expect("payment allocation should exist");
 
-        Ok(CreditFacilityPaymentAllocation::from(payment_allocation))
+        Ok(payment_allocation)
     }
 }
 
@@ -134,6 +136,7 @@ impl From<lana_app::credit::IncrementalPayment> for CreditFacilityIncrementalPay
             recorded_at: payment.recorded_at.into(),
             effective: payment.effective.into(),
             tx_id: UUID::from(payment.payment_id),
+            payment_allocation_id: payment.payment_id,
         }
     }
 }
