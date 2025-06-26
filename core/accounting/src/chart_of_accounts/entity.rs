@@ -254,7 +254,7 @@ impl Chart {
                                 .code(code.manual_account_external_id(self.id))
                                 .external_id(code.manual_account_external_id(self.id))
                                 .build()
-                                .unwrap(),
+                                .expect("Could not build new account"),
                         ))
                     }
                 };
