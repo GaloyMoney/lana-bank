@@ -416,15 +416,6 @@ where
                 .custody
                 .create_new_wallet_in_op(&mut db, sub, custodian_id.into())
                 .await?;
-            self.custody
-                .generate_wallet_address_in_op(
-                    &mut db,
-                    sub,
-                    wallet.id,
-                    &format!("Credit Facility {id}"),
-                )
-                .await?;
-
             Some(wallet.id)
         } else {
             None

@@ -243,26 +243,29 @@ where
             .build()
             .expect("all fields for new wallet provided");
 
-        Ok(self.wallets.create_in_op(db, new_wallet).await?)
+        let mut wallet = self.wallets.create_in_op(db, new_wallet).await?;
+
+        self.generate_wallet_address_in_op(db, sub, &mut wallet)
+            .await?;
+
+        Ok(wallet)
     }
 
-    pub async fn generate_wallet_address_in_op(
+    async fn generate_wallet_address_in_op(
         &self,
         db: &mut DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        wallet_id: WalletId,
-        label: &str,
+        wallet: &mut Wallet,
     ) -> Result<(), CoreCustodyError> {
         let audit_info = self
             .authz
             .enforce_permission(
                 sub,
-                CoreCustodyObject::wallet(wallet_id),
+                CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_GENERATE_ADDRESS,
             )
             .await?;
 
-        let mut wallet = self.wallets.find_by_id_in_tx(db.tx(), &wallet_id).await?;
         let custodian = self
             .custodians
             .find_by_id_in_tx(db.tx(), &wallet.custodian_id)
@@ -275,7 +278,7 @@ where
             .await?;
         let address = client
             .create_address(
-                label,
+                &format!("Wallet {}", wallet.id),
                 self.custodian_state.persisted_state_for(custodian_id),
             )
             .await?;
@@ -289,7 +292,7 @@ where
             )
             .did_execute()
         {
-            self.wallets.update_in_op(db, &mut wallet).await?;
+            self.wallets.update_in_op(db, wallet).await?;
         }
 
         Ok(())
