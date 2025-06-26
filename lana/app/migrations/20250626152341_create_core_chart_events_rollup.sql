@@ -1,5 +1,3 @@
--- Current table structure after migration:
-/*
 -- Auto-generated rollup table for ChartEvent
 CREATE TABLE core_chart_events_rollup (
   id UUID PRIMARY KEY,
@@ -10,22 +8,14 @@ CREATE TABLE core_chart_events_rollup (
   name VARCHAR,
   reference VARCHAR,
   code JSONB,
-  ledger_account_id UUID,
 
   -- Collection rollups
   node_specs JSONB,
   audit_entry_ids BIGINT[],
-  ledger_account_set_ids UUID[]
+  ledger_account_set_ids UUID[],
+  manual_ledger_account_ids UUID[]
 
 );
-*/
-
--- Migration to update core_chart_events_rollup table schema
-
--- Add new columns
-ALTER TABLE core_chart_events_rollup ADD COLUMN IF NOT EXISTS code JSONB;
-ALTER TABLE core_chart_events_rollup ADD COLUMN IF NOT EXISTS ledger_account_id UUID;
-
 
 -- Auto-generated trigger function for ChartEvent
 CREATE OR REPLACE FUNCTION core_chart_events_rollup_trigger()
@@ -63,7 +53,6 @@ BEGIN
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
     new_row.code := (NEW.event -> 'code');
-    new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
     new_row.node_specs := CASE
        WHEN NEW.event ? 'node_specs' THEN
          (NEW.event -> 'node_specs')
@@ -82,15 +71,21 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
+    new_row.manual_ledger_account_ids := CASE
+       WHEN NEW.event ? 'manual_ledger_account_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'manual_ledger_account_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
   ELSE
     -- Default all fields to current values
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
     new_row.code := current_row.code;
-    new_row.ledger_account_id := current_row.ledger_account_id;
     new_row.node_specs := current_row.node_specs;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
+    new_row.manual_ledger_account_ids := current_row.manual_ledger_account_ids;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -105,8 +100,8 @@ BEGIN
       new_row.ledger_account_set_ids := array_append(COALESCE(current_row.ledger_account_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_set_id')::UUID);
     WHEN 'manual_transaction_account_added' THEN
       new_row.code := (NEW.event -> 'code');
-      new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.manual_ledger_account_ids := array_append(COALESCE(current_row.manual_ledger_account_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_id')::UUID);
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -117,10 +112,10 @@ BEGIN
     name,
     reference,
     code,
-    ledger_account_id,
     node_specs,
     audit_entry_ids,
-    ledger_account_set_ids
+    ledger_account_set_ids,
+    manual_ledger_account_ids
   )
   VALUES (
     new_row.id,
@@ -130,10 +125,10 @@ BEGIN
     new_row.name,
     new_row.reference,
     new_row.code,
-    new_row.ledger_account_id,
     new_row.node_specs,
     new_row.audit_entry_ids,
-    new_row.ledger_account_set_ids
+    new_row.ledger_account_set_ids,
+    new_row.manual_ledger_account_ids
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
@@ -141,11 +136,17 @@ BEGIN
     name = EXCLUDED.name,
     reference = EXCLUDED.reference,
     code = EXCLUDED.code,
-    ledger_account_id = EXCLUDED.ledger_account_id,
     node_specs = EXCLUDED.node_specs,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
-    ledger_account_set_ids = EXCLUDED.ledger_account_set_ids;
+    ledger_account_set_ids = EXCLUDED.ledger_account_set_ids,
+    manual_ledger_account_ids = EXCLUDED.manual_ledger_account_ids;
 
   RETURN NEW;
 END;
 $$ LANGUAGE plpgsql;
+
+-- Auto-generated trigger for ChartEvent
+CREATE TRIGGER core_chart_events_rollup_trigger
+  AFTER INSERT ON core_chart_events
+  FOR EACH ROW
+  EXECUTE FUNCTION core_chart_events_rollup_trigger();

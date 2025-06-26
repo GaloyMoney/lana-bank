@@ -355,6 +355,12 @@ pub fn update_schemas(
                     add_events: vec!["NodeAdded".to_string()],
                     remove_events: vec![],
                 },
+                CollectionRollup {
+                    column_name: "manual_ledger_account_ids",
+                    values: "ledger_account_id",
+                    add_events: vec!["ManualTransactionAccountAdded".to_string()],
+                    remove_events: vec![],
+                },
             ],
             generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
             ..Default::default()
@@ -382,12 +388,12 @@ pub fn update_schemas(
     ];
 
     // First, detect which schemas have changed
-    let schema_changes = detect_schema_changes(&schemas, schemas_out_dir)?;
+    let mut schema_changes = detect_schema_changes(&schemas, schemas_out_dir)?;
 
     // Delete existing schema files and migrations only for changed schemas if force_recreate is requested
     if force_recreate {
         let changed_schemas: Vec<_> = schema_changes
-            .iter()
+            .iter_mut()
             .filter(|change| change.has_changed)
             .collect();
 
@@ -398,13 +404,15 @@ pub fn update_schemas(
                 changed_schemas.len()
             );
 
-            for change in &changed_schemas {
+            for change in changed_schemas {
                 let schema_path =
                     std::path::Path::new(schemas_out_dir).join(change.schema_info.filename);
                 if schema_path.exists() {
                     std::fs::remove_file(&schema_path)?;
                     println!("  Deleted schema: {}", schema_path.display());
                 }
+
+                change.previous_schema = None;
 
                 // Delete related migration files
                 delete_related_migration_files(migrations_out_dir, &change.schema_info)?;
