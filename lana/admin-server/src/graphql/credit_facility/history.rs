@@ -2,7 +2,7 @@ use async_graphql::*;
 
 pub use lana_app::primitives::CollateralAction;
 
-use super::{CreditFacilityDisbursal, CreditFacilityPaymentAllocation};
+use super::{CreditFacilityDisbursal, CreditFacilityPaymentAllocation, LanaDataLoader};
 use crate::primitives::*;
 
 #[derive(async_graphql::Union)]
@@ -30,13 +30,12 @@ impl CreditFacilityIncrementalPayment {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
 
-        let payment_allocation = app
-            .credit()
-            .payments()
-            .find_allocation_by_id(&sub, self.tx_id)
-            .await?;
+        let payment_allocation = loader
+            .load_one(PaymentAllocationId::from(self.tx_id))
+            .await?
+            .expect("payment allocation should exist");
 
         Ok(CreditFacilityPaymentAllocation::from(payment_allocation))
     }

@@ -7,6 +7,7 @@ use super::{
         disbursal::CreditFacilityDisbursal, payment_allocation::CreditFacilityPaymentAllocation,
     },
     deposit::Deposit,
+    loader::LanaDataLoader,
     withdrawal::Withdrawal,
 };
 
@@ -129,15 +130,14 @@ impl PaymentEntry {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
 
-        let payment = app
-            .credit()
-            .payments()
-            .find_allocation_by_id(sub, self.tx_id)
-            .await?;
+        let payment_allocation = loader
+            .load_one(PaymentAllocationId::from(self.tx_id))
+            .await?
+            .expect("payment allocation should exist");
 
-        Ok(CreditFacilityPaymentAllocation::from(payment))
+        Ok(CreditFacilityPaymentAllocation::from(payment_allocation))
     }
 }
 

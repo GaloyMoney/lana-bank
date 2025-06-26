@@ -324,6 +324,22 @@ impl Loader<CreditFacilityId> for LanaLoader {
     }
 }
 
+impl Loader<PaymentAllocationId> for LanaLoader {
+    type Value = CreditFacilityPaymentAllocation;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
+
+    async fn load(
+        &self,
+        keys: &[PaymentAllocationId],
+    ) -> Result<HashMap<PaymentAllocationId, Self::Value>, Self::Error> {
+        self.app
+            .credit()
+            .payments()
+            .find_all_allocations(keys)
+            .await
+            .map_err(|e| Arc::new(e.into()))
+    }
+}
 impl Loader<DisbursalId> for LanaLoader {
     type Value = CreditFacilityDisbursal;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;
