@@ -126,9 +126,17 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "cala_server.jobs.find", skip(self))]
-    pub async fn find(&self, id: JobId) -> Result<Job, JobError> {
-        self.repo.find_by_id(id).await
+    #[instrument(name = "cala_server.jobs.find_by_id", skip(self))]
+    pub async fn find_by_id(
+        &self,
+        id: impl Into<JobId> + std::fmt::Debug,
+    ) -> Result<Option<Job>, JobError> {
+        let id = id.into();
+        match self.repo.find_by_id(id).await {
+            Ok(job) => Ok(Some(job)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 
     pub async fn find_all<T: From<Job>>(

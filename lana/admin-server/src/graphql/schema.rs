@@ -664,7 +664,7 @@ impl Query {
 
     async fn job(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Job>> {
         let app = ctx.data_unchecked::<LanaApp>();
-        Ok(app.jobs().find(id.into()).await.ok().map(Job::from))
+        maybe_fetch_one!(Job, ctx, app.jobs().find_by_id(id))
     }
 
     async fn audit(
