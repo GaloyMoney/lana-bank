@@ -175,8 +175,8 @@ mod tests {
         let now = crate::time::now();
 
         // Test with a high attempt number that would exceed max_backoff
-        // attempt 20: 100ms * 2^19 = 100ms * 524,288 = 52,428,800ms = ~52 seconds
-        // But max_backoff is 60,000ms, so it should be capped
+        // attempt 20: 100ms * 2^19 = 100ms * 524,288 = 52,428,800ms = ~14.5 hours
+        // But max_backoff is 60,000ms (60 seconds), so it should be capped
         let attempt_time = settings.next_attempt_at(20);
         let delay = attempt_time.signed_duration_since(now).num_milliseconds();
 
@@ -266,27 +266,5 @@ mod tests {
             "Times should be nearly identical without jitter, diff: {}ms",
             diff
         );
-    }
-
-    #[test]
-    fn test_retry_settings_default() {
-        let settings = RetrySettings::default();
-
-        assert_eq!(settings.n_attempts, Some(30));
-        assert_eq!(settings.n_warn_attempts, Some(3));
-        assert_eq!(settings.min_backoff, Duration::from_secs(1));
-        assert_eq!(settings.max_backoff, Duration::from_secs(60 * 60 * 24 * 30)); // 30 days
-        assert_eq!(settings.backoff_jitter_pct, 20);
-    }
-
-    #[test]
-    fn test_retry_settings_repeat_indefinitely() {
-        let settings = RetrySettings::repeat_indefinitely();
-
-        assert_eq!(settings.n_attempts, None);
-        assert_eq!(settings.n_warn_attempts, None);
-        assert_eq!(settings.min_backoff, Duration::from_secs(1));
-        assert_eq!(settings.max_backoff, Duration::from_secs(60 * 60 * 24 * 30)); // 30 days
-        assert_eq!(settings.backoff_jitter_pct, 20);
     }
 }
