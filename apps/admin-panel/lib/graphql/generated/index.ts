@@ -526,6 +526,7 @@ export type CreditFacilityDisbursalEdge = {
 export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
+  disbursal: CreditFacilityDisbursal;
   effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];

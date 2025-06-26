@@ -517,6 +517,7 @@ type CreditFacilityDisbursalExecuted {
 	recordedAt: Timestamp!
 	effective: Date!
 	txId: UUID!
+	disbursal: CreditFacilityDisbursal!
 }
 
 input CreditFacilityDisbursalInitiateInput {
