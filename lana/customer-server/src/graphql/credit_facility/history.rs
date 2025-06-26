@@ -1,7 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
 pub use lana_app::primitives::CollateralAction;
+
+use super::{CreditFacilityDisbursal, CreditFacilityPaymentAllocation};
+use crate::primitives::*;
 
 #[derive(async_graphql::Union)]
 pub enum CreditFacilityHistoryEntry {
@@ -14,11 +16,30 @@ pub enum CreditFacilityHistoryEntry {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub tx_id: UUID,
+}
+
+#[ComplexObject]
+impl CreditFacilityIncrementalPayment {
+    async fn payment(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let payment_allocation = app
+            .credit()
+            .payments()
+            .find_allocation_by_id(&sub, self.tx_id)
+            .await?;
+
+        Ok(CreditFacilityPaymentAllocation::from(payment_allocation))
+    }
 }
 
 #[derive(SimpleObject)]
@@ -50,11 +71,27 @@ pub struct CreditFacilityCollateralizationUpdated {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub tx_id: UUID,
+}
+
+#[ComplexObject]
+impl CreditFacilityDisbursalExecuted {
+    async fn disbursal(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityDisbursal> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let disbursal = app
+            .credit()
+            .disbursals()
+            .find_by_concluded_tx_id(sub, self.tx_id)
+            .await?;
+
+        Ok(CreditFacilityDisbursal::from(disbursal))
+    }
 }
 
 #[derive(SimpleObject)]

@@ -18,6 +18,7 @@ use super::terms::*;
 use balance::*;
 use disbursal::*;
 use history::*;
+use payment_allocation::*;
 use repayment::*;
 
 #[derive(SimpleObject, Clone)]
