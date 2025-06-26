@@ -163,19 +163,34 @@ impl Chart {
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
     }
 
+    pub fn check_can_have_manual_transactions(
+        &self,
+        code: &AccountCode,
+    ) -> Result<(), ChartOfAccountsError> {
+        if !self.children::<CalaAccountSetId>(code).is_empty() {
+            return Err(ChartOfAccountsError::NonLeafAccount(code.to_string()));
+        };
+
+        Ok(())
+    }
+
     fn manual_transaction_account_id_from_code(
         &self,
         code: &AccountCode,
     ) -> Result<(CalaAccountSetId, Option<LedgerAccountId>), ChartOfAccountsError> {
-        self.account_spec(code)
-            .map(
-                |AccountDetails {
-                     account_set_id,
-                     manual_transaction_account_id,
-                     ..
-                 }| (*account_set_id, *manual_transaction_account_id),
-            )
-            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
+        let account_details = self
+            .account_spec(code)
+            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+
+        self.check_can_have_manual_transactions(code)?;
+
+        let AccountDetails {
+            account_set_id,
+            manual_transaction_account_id,
+            ..
+        } = account_details;
+
+        Ok((*account_set_id, *manual_transaction_account_id))
     }
 
     pub fn manual_transaction_account(
@@ -185,7 +200,11 @@ impl Chart {
     ) -> Result<ManualAccountFromChart, ChartOfAccountsError> {
         match account_id_or_code {
             AccountIdOrCode::Id(id) => Ok(match self.manual_transaction_accounts.get(&id) {
-                Some(_) => ManualAccountFromChart::IdInChart(id),
+                Some(code) => {
+                    self.check_can_have_manual_transactions(code)?;
+
+                    ManualAccountFromChart::IdInChart(id)
+                }
                 None => ManualAccountFromChart::NonChartId(id),
             }),
             AccountIdOrCode::Code(code) => {
@@ -499,7 +518,7 @@ mod test {
 
     #[test]
     fn manual_transaction_account_by_code_existing_account() {
-        let (mut chart, (_l1, _l2, _l3)) = default_chart();
+        let (mut chart, _) = default_chart();
         let acct_code = code("1.1.1");
 
         let first = chart
@@ -564,5 +583,31 @@ mod test {
             ChartOfAccountsError::CodeNotFoundInChart(c) => assert_eq!(c, bad_code),
             other => panic!("expected CodeNotFoundInChart, got {:?}", other),
         }
+    }
+
+    #[test]
+    fn manual_transaction_non_leaf_code() {
+        let (mut chart, _) = default_chart();
+        let acct_code = code("1.1");
+
+        let res = chart.manual_transaction_account(
+            AccountIdOrCode::Code(acct_code.clone()),
+            dummy_audit_info(),
+        );
+        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
+    }
+
+    #[test]
+    fn manual_transaction_non_leaf_account_id_in_chart() {
+        let (mut chart, _) = default_chart();
+        let random_id = LedgerAccountId::new();
+        let acct_code = code("1.1");
+        chart
+            .manual_transaction_accounts
+            .insert(random_id, acct_code);
+
+        let res =
+            chart.manual_transaction_account(AccountIdOrCode::Id(random_id), dummy_audit_info());
+        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
     }
 }
