@@ -49,7 +49,7 @@ def main():
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
 
-        if norm_name == "nrp_41":
+        if norm_name in ["nrp_41", "nrp_51"]:
             report_content_type = "text/xml"
             report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
             report_content = report_bytes.decode("utf-8")
