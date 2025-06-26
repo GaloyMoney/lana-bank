@@ -53,8 +53,8 @@ impl TryFrom<Entry> for JournalEntry {
 impl JournalEntryAmount {
     pub fn to_display_amount(&self) -> String {
         match self {
-            JournalEntryAmount::Usd(cents) => cents.formatted_usd(),
-            JournalEntryAmount::Btc(sats) => sats.formatted_btc(),
+            JournalEntryAmount::Usd(cents) => cents.to_usd().to_string(),
+            JournalEntryAmount::Btc(sats) => sats.to_btc().to_string(),
         }
     }
 
