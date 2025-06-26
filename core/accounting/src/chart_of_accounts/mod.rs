@@ -9,7 +9,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account::Account, account_set::NewAccountSet};
+use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
     AccountIdOrCode, AccountSpec, CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction,
@@ -133,21 +133,15 @@ where
         let mut new_account_sets = Vec::new();
         let mut new_connections = Vec::new();
         for spec in account_specs {
-            if let es_entity::Idempotent::Executed((parent, set_id)) =
-                chart.create_node(&spec, audit_info.clone())
+            if let es_entity::Idempotent::Executed(NewChartAccountDetails {
+                parent_account_set_id,
+                new_account_set,
+            }) = chart.create_node(&spec, self.journal_id, audit_info.clone())
             {
-                let new_account_set = NewAccountSet::builder()
-                    .id(set_id)
-                    .journal_id(self.journal_id)
-                    .name(spec.name.to_string())
-                    .description(spec.name.to_string())
-                    .external_id(spec.code.account_set_external_id(id))
-                    .normal_balance_type(spec.normal_balance_type)
-                    .build()
-                    .expect("Could not build new account set");
+                let account_set_id = new_account_set.id;
                 new_account_sets.push(new_account_set);
-                if let Some(parent) = parent {
-                    new_connections.push((parent, set_id));
+                if let Some(parent) = parent_account_set_id {
+                    new_connections.push((parent, account_set_id));
                 }
             }
         }
@@ -199,31 +193,24 @@ where
             .await?;
         let mut chart = self.repo.find_by_id(id).await?;
 
-        let es_entity::Idempotent::Executed((parent, account_set_id)) =
-            chart.create_node(&spec, audit_info.clone())
+        let es_entity::Idempotent::Executed(NewChartAccountDetails {
+            parent_account_set_id,
+            new_account_set,
+        }) = chart.create_node(&spec, self.journal_id, audit_info.clone())
         else {
             return Ok(None);
         };
+        let account_set_id = new_account_set.id;
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        let new_account_set = NewAccountSet::builder()
-            .id(account_set_id)
-            .journal_id(self.journal_id)
-            .name(spec.name.to_string())
-            .description(spec.name.to_string())
-            .external_id(spec.code.account_set_external_id(id))
-            .normal_balance_type(spec.normal_balance_type)
-            .build()
-            .expect("Could not build new account set");
 
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
             .await?;
-        if let Some(parent) = parent {
+        if let Some(parent) = parent_account_set_id {
             self.cala
                 .account_sets()
                 .add_member_in_op(&mut op, parent, account_set_id)

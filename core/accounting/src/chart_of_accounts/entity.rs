@@ -1,4 +1,4 @@
-use cala_ledger::account::NewAccount;
+use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -53,8 +53,9 @@ impl Chart {
     pub fn create_node(
         &mut self,
         spec: &AccountSpec,
+        journal_id: CalaJournalId,
         audit_info: AuditInfo,
-    ) -> Idempotent<(Option<CalaAccountSetId>, CalaAccountSetId)> {
+    ) -> Idempotent<NewChartAccountDetails> {
         if self.all_accounts.contains_key(&spec.code) {
             return Idempotent::Ignored;
         }
@@ -64,7 +65,7 @@ impl Chart {
             ledger_account_set_id,
             audit_info,
         });
-        let parent = if let Some(parent) = spec.parent.as_ref() {
+        let parent_account_set_id = if let Some(parent) = spec.parent.as_ref() {
             self.all_accounts.get(parent).map(
                 |AccountDetails {
                      account_set_id: id, ..
@@ -81,7 +82,21 @@ impl Chart {
                 manual_transaction_account_id: None,
             },
         );
-        Idempotent::Executed((parent, ledger_account_set_id))
+
+        let new_account_set = NewAccountSet::builder()
+            .id(ledger_account_set_id)
+            .journal_id(journal_id)
+            .name(spec.name.to_string())
+            .description(spec.name.to_string())
+            .external_id(spec.code.account_set_external_id(self.id))
+            .normal_balance_type(spec.normal_balance_type)
+            .build()
+            .expect("Could not build new account set");
+
+        Idempotent::Executed(NewChartAccountDetails {
+            parent_account_set_id,
+            new_account_set,
+        })
     }
 
     pub fn trial_balance_account_ids_from_new_accounts(
@@ -369,6 +384,11 @@ struct AccountDetails {
     manual_transaction_account_id: Option<LedgerAccountId>,
 }
 
+pub struct NewChartAccountDetails {
+    pub new_account_set: NewAccountSet,
+    pub parent_account_set_id: Option<CalaAccountSetId>,
+}
+
 #[cfg(test)]
 mod test {
     use audit::{AuditEntryId, AuditInfo};
@@ -400,7 +420,10 @@ mod test {
         (CalaAccountSetId, CalaAccountSetId, CalaAccountSetId),
     ) {
         let mut chart = chart_from(initial_events());
-        let (_, level_1_id) = chart
+        let NewChartAccountDetails {
+            new_account_set: level_1_new_account_set,
+            ..
+        } = chart
             .create_node(
                 &AccountSpec::new(
                     None,
@@ -408,10 +431,14 @@ mod test {
                     "Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
                 ),
+                CalaJournalId::new(),
                 dummy_audit_info(),
             )
             .expect("Already executed");
-        let (_, level_2_id) = chart
+        let NewChartAccountDetails {
+            new_account_set: level_2_new_account_set,
+            ..
+        } = chart
             .create_node(
                 &AccountSpec::new(
                     Some(code("1")),
@@ -419,10 +446,14 @@ mod test {
                     "Current Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
                 ),
+                CalaJournalId::new(),
                 dummy_audit_info(),
             )
             .expect("Already executed");
-        let (_, level_3_id) = chart
+        let NewChartAccountDetails {
+            new_account_set: level_3_new_account_set,
+            ..
+        } = chart
             .create_node(
                 &AccountSpec::new(
                     Some(code("1.1")),
@@ -430,11 +461,19 @@ mod test {
                     "Cash".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
                 ),
+                CalaJournalId::new(),
                 dummy_audit_info(),
             )
             .expect("Already executed");
 
-        (chart, (level_1_id, level_2_id, level_3_id))
+        (
+            chart,
+            (
+                level_1_new_account_set.id,
+                level_2_new_account_set.id,
+                level_3_new_account_set.id,
+            ),
+        )
     }
 
     fn section(s: &str) -> AccountCodeSection {
@@ -460,7 +499,14 @@ mod test {
     fn adds_from_some_new_trial_balance_accounts() {
         let (mut chart, _) = default_chart();
 
-        let (_, new_account_set_id) = chart
+        let NewChartAccountDetails {
+            new_account_set:
+                NewAccountSet {
+                    id: new_account_set_id,
+                    ..
+                },
+            ..
+        } = chart
             .create_node(
                 &AccountSpec::new(
                     Some(code("1")),
@@ -468,6 +514,7 @@ mod test {
                     "Long-term Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
                 ),
+                CalaJournalId::new(),
                 dummy_audit_info(),
             )
             .expect("Already executed");

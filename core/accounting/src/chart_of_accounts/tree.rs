@@ -137,7 +137,10 @@ mod tests {
     use cala_ledger::DebitOrCredit;
     use es_entity::*;
 
-    use crate::chart_of_accounts::{Chart, NewChart};
+    use crate::{
+        chart_of_accounts::{Chart, NewChart},
+        primitives::CalaJournalId,
+    };
 
     use super::*;
 
@@ -179,6 +182,7 @@ mod tests {
                         name: "Assets".parse().unwrap(),
                         normal_balance_type: DebitOrCredit::Credit,
                     },
+                    CalaJournalId::new(),
                     dummy_audit_info(),
                 )
                 .unwrap();
@@ -190,6 +194,7 @@ mod tests {
                         name: "Assets".parse().unwrap(),
                         normal_balance_type: DebitOrCredit::Credit,
                     },
+                    CalaJournalId::new(),
                     dummy_audit_info(),
                 )
                 .unwrap();
@@ -203,6 +208,7 @@ mod tests {
                         name: "Cash".parse().unwrap(),
                         normal_balance_type: DebitOrCredit::Credit,
                     },
+                    CalaJournalId::new(),
                     dummy_audit_info(),
                 )
                 .unwrap();
@@ -221,6 +227,7 @@ mod tests {
                         name: "Central Office".parse().unwrap(),
                         normal_balance_type: DebitOrCredit::Credit,
                     },
+                    CalaJournalId::new(),
                     dummy_audit_info(),
                 )
                 .unwrap();
