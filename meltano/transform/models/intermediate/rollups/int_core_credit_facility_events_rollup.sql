@@ -3,7 +3,7 @@ with credit_facility as (
         id as credit_facility_id,
         customer_id,
 
-        amount as facility_amount_usd,
+        cast(amount as numeric) / {{ var('cents_per_usd') }} as facility_amount_usd,
         cast(json_value(terms, "$.annual_rate") as numeric) as annual_rate,
         cast(json_value(terms, "$.one_time_fee_rate") as numeric) as one_time_fee_rate,
 
@@ -17,16 +17,18 @@ with credit_facility as (
         json_value(terms, "$.accrual_interval.type") as accrual_interval,
         json_value(terms, "$.accrual_cycle_interval.type") as accrual_cycle_interval,
 
-        collateral,
-        price,
-        collateralization_ratio,
+        cast(collateral as numeric) as collateral_amount_sats,
+        cast(collateral as numeric) / {{ var('sats_per_bitcoin') }} as collateral_amount_btc,
+        cast(price as numeric) / {{ var('cents_per_usd') }} as price_usd_per_btc,
+        cast(collateral as numeric) / {{ var('sats_per_bitcoin') }} * cast(price as numeric) / {{ var('cents_per_usd') }} as collateral_amount_usd,
+        cast(collateralization_ratio as numeric) as collateralization_ratio,
         collateralization_state,
 
         approved,
 
         is_approval_process_concluded,
         is_activated,
-        activated_at,
+        cast(activated_at as timestamp) as activated_at,
         is_completed,
 
         interest_accrual_cycle_idx,
@@ -34,8 +36,8 @@ with credit_facility as (
         cast(json_value(interest_period, "$.end") as timestamp) as interest_period_end_at,
         json_value(interest_period, "$.interval.type") as interest_period_interval_type,
 
-        cast(json_value(outstanding, "$.interest") as numeric) as outstanding_interest,
-        cast(json_value(outstanding, "$.disbursed") as numeric) as outstanding_disbursed,
+        cast(json_value(outstanding, "$.interest") as numeric) / {{ var('cents_per_usd') }} as outstanding_interest_usd,
+        cast(json_value(outstanding, "$.disbursed") as numeric) / {{ var('cents_per_usd') }} as outstanding_disbursed_usd,
 
         cast(json_value(terms, "$.interest_due_duration_from_accrual.value") as integer) as interest_due_duration_from_accrual_value,
         json_value(terms, "$.interest_due_duration_from_accrual.type") as interest_due_duration_from_accrual_type,

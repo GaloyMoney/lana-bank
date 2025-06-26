@@ -4,12 +4,11 @@ with credit_facility as (
         credit_facility_id,
 
         action,
-        abs_diff,
-        collateral_amount,
+        cast(abs_diff as numeric) as abs_diff_sats,
+        cast(abs_diff as numeric) / {{ var('sats_per_bitcoin') }} as abs_diff_btc,
+        cast(collateral_amount as numeric) as collateral_amount_sats,
+        cast(collateral_amount as numeric) / {{ var('sats_per_bitcoin') }} as collateral_amount_btc,
         account_id,
-
-        audit_entry_ids,
-        ledger_tx_ids,
 
         * except(
             id,

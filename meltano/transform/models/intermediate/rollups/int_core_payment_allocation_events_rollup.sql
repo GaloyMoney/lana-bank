@@ -3,7 +3,7 @@ with credit_facility as (
         id as payment_allocation_id,
         payment_id,
         credit_facility_id,
-        amount,
+        cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
         effective,
         obligation_type,
         obligation_allocation_idx,

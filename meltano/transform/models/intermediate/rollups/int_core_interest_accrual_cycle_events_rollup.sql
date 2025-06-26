@@ -3,18 +3,18 @@ with credit_facility as (
         id as interest_accrual_cycle_id,
         credit_facility_id,
         obligation_id,
-        facility_matures_at,
+        cast(facility_matures_at as timestamp) as facility_matures_at,
         idx,
         effective,
-        accrued_at,
+        cast(accrued_at as timestamp) as accrued_at,
 
         cast(json_value(period, "$.start") as timestamp) as period_start_at,
         cast(json_value(period, "$.end") as timestamp) as period_end_at,
         json_value(period, "$.interval.type") as period_interval_type,
 
 
-        amount,
-        total,
+        cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
+        cast(total as numeric) / {{ var('cents_per_usd') }} as total_usd,
         is_interest_accruals_posted,
 
         cast(json_value(terms, "$.annual_rate") as numeric) as annual_rate,

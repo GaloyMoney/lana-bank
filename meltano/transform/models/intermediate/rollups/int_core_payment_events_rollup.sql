@@ -3,8 +3,9 @@ with credit_facility as (
         id as payment_id,
         credit_facility_id,
         amount,
-        interest,
-        disbursal,
+        cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
+        cast(interest as numeric) / {{ var('cents_per_usd') }} as interest_usd,
+        cast(disbursal as numeric) / {{ var('cents_per_usd') }} as disbursal_usd,
         is_payment_allocated,
 
         * except(

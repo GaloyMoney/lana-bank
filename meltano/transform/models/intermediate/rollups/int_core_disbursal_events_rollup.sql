@@ -3,14 +3,14 @@ with credit_facility as (
         id as disbursal_id,
         credit_facility_id,
         effective,
-        amount,
+        cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
         approved,
         is_approval_process_concluded,
         is_settled,
         is_cancelled,
-        due_date,
-        overdue_date,
-        liquidation_date,
+        cast(due_date as timestamp) as due_date,
+        cast(overdue_date as timestamp) as overdue_date,
+        cast(liquidation_date as timestamp) as liquidation_date,
 
         * except(
             id,

@@ -5,7 +5,7 @@ with credit_facility as (
 
         effective,
         is_completed,
-        initial_amount,
+        cast(initial_amount as numeric) / {{ var('cents_per_usd') }} as initial_amount_usd,
 
         * except(
             id,
