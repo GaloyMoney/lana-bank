@@ -35,8 +35,8 @@ impl EmailNotification {
         credit: &CoreCredit<Authorization, LanaEvent>,
         customers: &Customers<Authorization, LanaEvent>,
     ) -> Result<Self, EmailError> {
+        let template = EmailTemplate::new(config.admin_panel_url.clone())?;
         let smtp_client = SmtpClient::init(config)?;
-        let template = EmailTemplate::new()?;
         jobs.add_initializer(EmailSenderInit::new(smtp_client, template));
         Ok(Self {
             jobs: jobs.clone(),

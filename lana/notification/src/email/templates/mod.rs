@@ -15,16 +15,20 @@ pub enum EmailType {
 #[derive(Clone)]
 pub struct EmailTemplate {
     handlebars: Handlebars<'static>,
+    admin_panel_url: String,
 }
 
 impl EmailTemplate {
-    pub fn new() -> Result<Self, EmailError> {
+    pub fn new(admin_panel_url: String) -> Result<Self, EmailError> {
         let mut handlebars = Handlebars::new();
         handlebars.register_template_string("base", include_str!("layouts/base.hbs"))?;
         handlebars.register_template_string("styles", include_str!("partials/styles.hbs"))?;
         handlebars.register_template_string("general", include_str!("views/general.hbs"))?;
         handlebars.register_template_string("overdue", include_str!("views/overdue.hbs"))?;
-        Ok(Self { handlebars })
+        Ok(Self {
+            handlebars,
+            admin_panel_url,
+        })
     }
 
     pub fn render_email(&self, email_type: &EmailType) -> Result<(String, String), EmailError> {
@@ -52,19 +56,22 @@ impl EmailTemplate {
         data: &OverduePaymentEmailData,
     ) -> Result<(String, String), EmailError> {
         let subject = format!(
-            "Lana Bank: {} Overdue Payment - {} (Facility {})",
+            "Lana Bank: {} Overdue Payment - {}",
             data.payment_type,
-            data.outstanding_amount.formatted_usd(),
-            data.facility_id
+            data.outstanding_amount.formatted_usd()
+        );
+        let facility_url = format!(
+            "{}/credit-facilities/{}",
+            self.admin_panel_url, data.facility_id
         );
         let data = json!({
             "subject": &subject,
-            "facility_id": &data.facility_id,
             "payment_type": &data.payment_type,
             "original_amount": data.original_amount.formatted_usd(),
             "outstanding_amount": data.outstanding_amount.formatted_usd(),
             "due_date": data.due_date,
             "customer_email": &data.customer_email,
+            "facility_url": &facility_url,
         });
         let html_body = self.handlebars.render("overdue", &data)?;
         Ok((subject, html_body))

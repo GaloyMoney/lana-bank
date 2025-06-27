@@ -18,6 +18,7 @@ app:
     customer_active_check_enabled: false
   notification:
     email:
+      admin_panel_url: "http://admin.localhost:4455"
       from_email: "noreply@local.test"
       from_name: "Lana Dev"
       relay: "localhost"

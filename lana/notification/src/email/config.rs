@@ -16,4 +16,6 @@ pub struct EmailConfig {
     pub port: u16,
     #[serde(default)]
     pub insecure: bool,
+    #[serde(default)]
+    pub admin_panel_url: String,
 }
