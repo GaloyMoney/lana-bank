@@ -258,6 +258,17 @@
         "audit_info": {
           "$ref": "#/$defs/AuditInfo"
         },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "initial_amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "liquidation_process_id": {
           "format": "uuid",
           "type": "string"
@@ -270,6 +281,9 @@
       "required": [
         "type",
         "liquidation_process_id",
+        "ledger_tx_id",
+        "effective",
+        "initial_amount",
         "audit_info"
       ],
       "type": "object"
