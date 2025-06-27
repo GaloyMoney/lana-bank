@@ -6,11 +6,11 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::{
     job::JobId,
     primitives::{
-        ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustodianId, CustomerDocumentId,
-        CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus, DocumentId,
-        LedgerTransactionId, ManualTransactionId, PaymentAllocationId, PaymentId, PermissionSetId,
-        PolicyId, ReportId, ReportProgress, RoleId, Satoshis, SignedSatoshis, SignedUsdCents,
-        Subject, TermsTemplateId, UsdCents, UserId, WithdrawalId,
+        AccountSpec, ApprovalProcessId, ChartId, CommitteeId, CreditFacilityId, CustodianId,
+        CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus,
+        DocumentId, LedgerTransactionId, ManualTransactionId, PaymentAllocationId, PaymentId,
+        PermissionSetId, PolicyId, ReportId, ReportProgress, RoleId, Satoshis, SignedSatoshis,
+        SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WithdrawalId,
     },
     terms::CollateralizationState,
 };
