@@ -25,6 +25,7 @@ pub use balance::*;
 pub use disbursal::*;
 pub use error::*;
 pub use history::*;
+pub use payment_allocation::*;
 pub use repayment::*;
 
 #[derive(SimpleObject, Clone)]

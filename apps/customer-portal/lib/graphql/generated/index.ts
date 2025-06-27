@@ -123,6 +123,7 @@ export type CreditFacilityDisbursal = {
 export type CreditFacilityDisbursalExecuted = {
   __typename?: 'CreditFacilityDisbursalExecuted';
   cents: Scalars['UsdCents']['output'];
+  disbursal: CreditFacilityDisbursal;
   effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
@@ -134,6 +135,7 @@ export type CreditFacilityIncrementalPayment = {
   __typename?: 'CreditFacilityIncrementalPayment';
   cents: Scalars['UsdCents']['output'];
   effective: Scalars['Date']['output'];
+  payment: CreditFacilityPaymentAllocation;
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
 };

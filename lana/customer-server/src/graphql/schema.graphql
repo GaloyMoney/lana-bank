@@ -92,6 +92,7 @@ type CreditFacilityDisbursalExecuted {
 	recordedAt: Timestamp!
 	effective: Date!
 	txId: UUID!
+	disbursal: CreditFacilityDisbursal!
 }
 
 union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
@@ -101,6 +102,7 @@ type CreditFacilityIncrementalPayment {
 	recordedAt: Timestamp!
 	effective: Date!
 	txId: UUID!
+	payment: CreditFacilityPaymentAllocation!
 }
 
 type CreditFacilityInterestAccrued {

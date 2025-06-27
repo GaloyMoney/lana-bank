@@ -158,4 +158,13 @@ where
 
         Ok(payment_allocation)
     }
+
+    #[instrument(name = "core_credit.payment.find_all_allocations", skip(self), err)]
+    pub async fn find_all_allocations<T: From<PaymentAllocation>>(
+        &self,
+        ids: &[PaymentAllocationId],
+    ) -> Result<std::collections::HashMap<PaymentAllocationId, T>, PaymentError> {
+        let res = self.payment_allocation_repo.find_all(ids).await?;
+        Ok(res)
+    }
 }
