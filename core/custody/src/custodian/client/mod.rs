@@ -15,26 +15,26 @@ pub struct AddressResponse {
 
 #[async_trait]
 pub trait CustodianClient: Send {
-    async fn create_address<'a>(
+    async fn create_address(
         &self,
         label: &str,
-        state: CustodianStateRepo<'a>,
+        state: &CustodianStateRepo,
     ) -> Result<AddressResponse, CustodianClientError>;
 }
 
 #[async_trait]
 impl CustodianClient for komainu::KomainuClient {
-    async fn create_address<'a>(
+    async fn create_address(
         &self,
         label: &str,
-        state: CustodianStateRepo<'a>,
+        state: &CustodianStateRepo,
     ) -> Result<AddressResponse, CustodianClientError> {
-        let mut komainu_state: KomainuState = state.load().await?;
+        let mut komainu_state: KomainuState = state.load(self.custodian_id).await?;
 
         // let address = self.get_wallet_address_by_index(komainu_state.index).await?;
 
         komainu_state.first_unused_address_index += 1;
-        state.persist(&komainu_state).await?;
+        state.persist(self.custodian_id, &komainu_state).await?;
 
         Ok(AddressResponse {
             address: "bt1qaddress".to_string(),

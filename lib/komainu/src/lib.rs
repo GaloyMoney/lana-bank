@@ -18,6 +18,7 @@ use reqwest::{
 use serde::{de::DeserializeOwned, Serialize};
 use sha2::{Digest as _, Sha256};
 use tokio::sync::Mutex;
+use uuid::Uuid;
 
 pub use config::{KomainuConfig, KomainuSecretKey};
 pub use error::KomainuError;
@@ -31,10 +32,11 @@ pub struct KomainuClient {
     signing_key: SigningKey,
     host: Url,
     get_token_request: GetToken,
+    pub custodian_id: Uuid,
 }
 
 impl KomainuClient {
-    pub fn new(config: KomainuConfig) -> Self {
+    pub fn new<Id: Into<Uuid>>(config: KomainuConfig, custodian_id: Id) -> Self {
         let signing_key = match &config.secret_key {
             KomainuSecretKey::Encrypted { dem, passphrase } => {
                 SecretKey::from_pkcs8_encrypted_pem(dem, passphrase)
@@ -61,6 +63,7 @@ impl KomainuClient {
             signing_key,
             get_token_request,
             host: host.parse().expect("valid host"),
+            custodian_id: custodian_id.into(),
         }
     }
 

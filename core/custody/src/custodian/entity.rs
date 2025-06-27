@@ -106,13 +106,14 @@ impl Custodian {
     }
 
     pub async fn custodian_client(
-        self,
+        &self,
         key: EncryptionKey,
     ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
         match self.custodian_config(key) {
-            CustodianConfig::Komainu(config) => {
-                Ok(Box::new(komainu::KomainuClient::new(config.into())))
-            }
+            CustodianConfig::Komainu(config) => Ok(Box::new(komainu::KomainuClient::new(
+                config.into(),
+                self.id,
+            ))),
         }
     }
 }
