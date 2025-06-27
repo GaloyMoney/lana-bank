@@ -35,7 +35,7 @@
     "clsx": "^2.1.1",
     "cmdk": "1.1.1",
     "input-otp": "^1.2.4",
-    "lucide-react": "^0.523.0",
+    "lucide-react": "^0.525.0",
     "react-icons": "^5.5.0",
     "react-number-format": "^5.4.4",
     "sonner": "^2.0.5",
@@ -53,7 +53,7 @@
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.1",
     "postcss": "^8.5.6",
-    "prettier": "^3.6.1",
+    "prettier": "^3.6.2",
     "tailwindcss": "^3.3.5",
     "typescript": "^5.8.3"
   }
