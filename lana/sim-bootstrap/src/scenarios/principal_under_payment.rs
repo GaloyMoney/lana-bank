@@ -15,9 +15,9 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
     let deposit_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     helpers::make_deposit(&sub, app, &customer_id, deposit_amount).await?;
 
-    // Wait till 4 months before now
+    // Wait till 8 months before now
     let one_month = std::time::Duration::from_secs(30 * 24 * 60 * 60);
-    while sim_time::now() < Utc::now() - one_month * 4 {
+    while sim_time::now() < Utc::now() - one_month * 8 {
         sim_time::sleep(one_month).await;
     }
 

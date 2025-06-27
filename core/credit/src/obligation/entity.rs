@@ -606,10 +606,9 @@ pub struct NewObligation {
     defaulted_account_id: CalaAccountId,
     due_date: DateTime<Utc>,
     overdue_date: Option<DateTime<Utc>>,
+    liquidation_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<DateTime<Utc>>,
-    #[builder(setter(strip_option), default)]
-    liquidation_date: Option<DateTime<Utc>>,
     effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
