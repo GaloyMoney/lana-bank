@@ -33,6 +33,13 @@ pub struct Wallet {
 }
 
 impl Wallet {
+    pub fn address(&self) -> Option<String> {
+        self.events.iter_all().find_map(|ev| match ev {
+            WalletEvent::AddressAllocated { address, .. } => Some(address.to_owned()),
+            _ => None,
+        })
+    }
+
     pub fn allocate_address(
         &mut self,
         address: String,

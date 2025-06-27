@@ -118,7 +118,7 @@ wait_for_active() {
   cache_value 'credit_facility_id' "$credit_facility_id"
 
   address=$(graphql_output '.data.creditFacilityCreate.creditFacility.wallet.address')
-  [[ "$address" == "address" ]] || exit 1
+  [[ "$address" == "bt1qaddressmock" ]] || exit 1
 }
 
 @test "credit-facility-custody: cannot update collateral with a custodian" {
