@@ -23,10 +23,10 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
                     usd_balance: balance.total_disbursed(),
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.disbursed_outstanding_payable(),
+                    usd_balance: balance.disbursed_outstanding(),
                 },
-                due_outstanding: Outstanding {
-                    usd_balance: balance.overdue_disbursed_outstanding(),
+                outstanding_payable: Outstanding {
+                    usd_balance: balance.disbursed_outstanding_payable(),
                 },
             },
             interest: Interest {
@@ -36,8 +36,8 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
                 outstanding: Outstanding {
                     usd_balance: balance.interest_outstanding_payable(),
                 },
-                due_outstanding: Outstanding {
-                    usd_balance: balance.overdue_interest_outstanding(),
+                outstanding_payable: Outstanding {
+                    usd_balance: balance.interest_outstanding(),
                 },
             },
             outstanding: Outstanding {
@@ -77,12 +77,12 @@ pub struct FacilityRemaining {
 pub struct Disbursed {
     pub total: Total,
     pub outstanding: Outstanding,
-    pub due_outstanding: Outstanding,
+    pub outstanding_payable: Outstanding,
 }
 
 #[derive(SimpleObject)]
 pub struct Interest {
     pub total: Total,
     pub outstanding: Outstanding,
-    pub due_outstanding: Outstanding,
+    pub outstanding_payable: Outstanding,
 }
