@@ -3,8 +3,21 @@ query ChartOfAccounts {
     chartId
     name
     children {
-      name
-      accountCode
+      ...child
+      children {
+        ...child
+        children {
+         ...child
+          children {
+            ...child
+          }
+        }
+      }
     }
   }
+}
+
+fragment child on ChartNode {
+  name
+  accountCode
 }

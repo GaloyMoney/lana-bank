@@ -1,0 +1,5 @@
+mutation ChartOfAccountsAddNode($input: ChartOfAccountsAddNodeInput) {
+  chartOfAccountsAddNode(input: $input) {
+    success
+  }
+}
