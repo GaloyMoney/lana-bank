@@ -25,6 +25,51 @@ teardown_file() {
   [[ "$assets_code" -eq "1" ]] || exit 1
 }
 
+@test "accounting: add new node into chart of accounts" {
+  exec_admin_graphql 'chart-of-accounts'
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  n_children_before=$(graphql_output '
+    .data.chartOfAccounts.children[]
+    | select(.accountCode == "1")
+    | .children[]
+    | select(.accountCode == "11")
+    | .children[]
+    | select(.accountCode == "11.01")
+    | .children
+    | length')
+  
+  new_code="11.01.$(( RANDOM % 9000 + 1000 ))"
+  name="Account #$new_code"
+  variables=$(
+    jq -n \
+    --arg id "$chart_id" \
+    --arg code "$new_code" \
+    --arg name "$name" \
+    '{
+      input: {
+        chartId: $id,
+        parent: "11.01",
+        code: $code,
+        name: $name,
+        normalBalanceType: "DEBIT",
+      }
+    }'
+  )
+  exec_admin_graphql 'chart-of-accounts-add-node' "$variables"
+
+  exec_admin_graphql 'chart-of-accounts'
+  n_children_after=$(graphql_output '
+    .data.chartOfAccounts.children[]
+    | select(.accountCode == "1")
+    | .children[]
+    | select(.accountCode == "11")
+    | .children[]
+    | select(.accountCode == "11.01")
+    | .children
+    | length')
+  [[ "$n_children_after" -gt "$n_children_before" ]] || exit 1
+}
+
 @test "accounting: imported credit module config from seed into chart of accounts" {
   exec_admin_graphql 'credit-config'
   omnibus_code=$(graphql_output '.data.creditConfig.chartOfAccountFacilityOmnibusParentCode')
