@@ -227,6 +227,7 @@ impl Disbursal {
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
                 .due_date(self.due_date)
                 .overdue_date(self.overdue_date)
+                .liquidation_date(self.liquidation_date)
                 .effective(effective)
                 .audit_info(audit_info)
                 .build()
