@@ -63,6 +63,9 @@ pub enum ObligationEvent {
     },
     LiquidationProcessStarted {
         liquidation_process_id: LiquidationProcessId,
+        ledger_tx_id: LedgerTxId,
+        effective: chrono::NaiveDate,
+        initial_amount: UsdCents,
         audit_info: AuditInfo,
     },
     LiquidationProcessConcluded {
@@ -461,13 +464,15 @@ impl Obligation {
         }
 
         let liquidation_process_id = LiquidationProcessId::new();
+        let ledger_tx_id = LedgerTxId::new();
+        let initial_amount = self.outstanding();
         let new_liquidation_process = NewLiquidationProcess::builder()
             .id(liquidation_process_id)
             .ledger_tx_id(LedgerTxId::new())
             .credit_facility_id(self.credit_facility_id)
             .obligation_id(self.id)
             .in_liquidation_account_id(self.in_liquidation_account())
-            .initial_amount(self.outstanding())
+            .initial_amount(initial_amount)
             .effective(effective)
             .audit_info(audit_info.clone())
             .build()
@@ -476,6 +481,9 @@ impl Obligation {
         self.events
             .push(ObligationEvent::LiquidationProcessStarted {
                 liquidation_process_id,
+                ledger_tx_id,
+                effective,
+                initial_amount,
                 audit_info: audit_info.clone(),
             });
 
