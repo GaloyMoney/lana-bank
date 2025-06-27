@@ -275,6 +275,19 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
+export type ChartOfAccountsAddNodeInput = {
+  chartId: Scalars['UUID']['input'];
+  code: Scalars['AccountCode']['input'];
+  name: Scalars['String']['input'];
+  normalBalanceType: DebitOrCredit;
+  parent?: InputMaybe<Scalars['AccountCode']['input']>;
+};
+
+export type ChartOfAccountsAddNodePayload = {
+  __typename?: 'ChartOfAccountsAddNodePayload';
+  success: Scalars['Boolean']['output'];
+};
+
 export type ChartOfAccountsCsvImportInput = {
   chartId: Scalars['UUID']['input'];
   file: Scalars['Upload']['input'];
@@ -1293,6 +1306,7 @@ export type Mutation = {
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
+  chartOfAccountsAddNode: ChartOfAccountsAddNodePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1353,6 +1367,11 @@ export type MutationApprovalProcessDenyArgs = {
 
 export type MutationBalanceSheetConfigureArgs = {
   input: BalanceSheetModuleConfigureInput;
+};
+
+
+export type MutationChartOfAccountsAddNodeArgs = {
+  input: ChartOfAccountsAddNodeInput;
 };
 
 
