@@ -467,6 +467,7 @@ input CreditFacilityCreateInput {
 	disbursalCreditAccountId: UUID!
 	facility: UsdCents!
 	terms: TermsInput!
+	custodianId: UUID
 }
 
 type CreditFacilityCreatePayload {

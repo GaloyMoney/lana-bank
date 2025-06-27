@@ -237,6 +237,27 @@ CREATE TABLE core_custodian_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_custodian_states (
+  id UUID PRIMARY KEY REFERENCES core_custodians(id),
+  state JSONB NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+  modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+);
+
+CREATE TABLE core_wallets (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_wallet_events (
+  id UUID NOT NULL REFERENCES core_wallets(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_obligations (
   id UUID PRIMARY KEY,
   credit_facility_id UUID NOT NULL REFERENCES core_credit_facilities(id),

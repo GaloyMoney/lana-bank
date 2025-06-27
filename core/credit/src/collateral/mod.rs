@@ -3,6 +3,7 @@ pub mod error;
 mod repo;
 
 use authz::PermissionCheck;
+use core_custody::WalletId;
 use outbox::OutboxEventMarker;
 
 use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
@@ -54,12 +55,14 @@ where
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
         credit_facility_id: CreditFacilityId,
+        wallet_id: Option<WalletId>,
         account_id: CalaAccountId,
     ) -> Result<Collateral, CollateralError> {
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
             .credit_facility_id(credit_facility_id)
             .account_id(account_id)
+            .wallet_id(wallet_id)
             .build()
             .expect("all fields for new collateral provided");
 

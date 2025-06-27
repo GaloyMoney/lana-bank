@@ -9,6 +9,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use cala_ledger::AccountId as CalaAccountId;
+use core_custody::WalletId;
 
 use crate::primitives::{CollateralAction, CollateralId, CreditFacilityId, LedgerTxId, Satoshis};
 
@@ -23,6 +24,7 @@ pub enum CollateralEvent {
         id: CollateralId,
         account_id: CalaAccountId,
         credit_facility_id: CreditFacilityId,
+        wallet_id: Option<WalletId>,
     },
     Updated {
         ledger_tx_id: LedgerTxId,
@@ -38,6 +40,7 @@ pub enum CollateralEvent {
 pub struct Collateral {
     pub id: CollateralId,
     pub credit_facility_id: CreditFacilityId,
+    pub wallet_id: Option<WalletId>,
     pub amount: Satoshis,
 
     events: EntityEvents<CollateralEvent>,
@@ -93,6 +96,8 @@ pub struct NewCollateral {
     pub(super) account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
+    #[builder(default)]
+    pub(super) wallet_id: Option<WalletId>,
 }
 
 impl NewCollateral {
@@ -109,12 +114,14 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 CollateralEvent::Initialized {
                     id,
                     credit_facility_id,
+                    wallet_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .amount(Satoshis::ZERO)
-                        .credit_facility_id(*credit_facility_id);
+                        .wallet_id(*wallet_id)
+                        .credit_facility_id(*credit_facility_id)
                 }
                 CollateralEvent::Updated {
                     collateral_amount: new_value,
@@ -136,6 +143,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
                 id: self.id,
                 account_id: self.account_id,
                 credit_facility_id: self.credit_facility_id,
+                wallet_id: self.wallet_id,
             }],
         )
     }

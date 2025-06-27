@@ -7,6 +7,7 @@ CREATE TABLE core_collateral_events_rollup (
   -- Flattened fields from the event JSON
   account_id UUID,
   credit_facility_id UUID,
+  wallet_id UUID,
   abs_diff JSONB,
   action JSONB,
   collateral_amount JSONB,
@@ -52,6 +53,7 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.account_id := (NEW.event ->> 'account_id')::UUID;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+    new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
     new_row.abs_diff := (NEW.event -> 'abs_diff');
     new_row.action := (NEW.event -> 'action');
     new_row.collateral_amount := (NEW.event -> 'collateral_amount');
@@ -71,6 +73,7 @@ BEGIN
     -- Default all fields to current values
     new_row.account_id := current_row.account_id;
     new_row.credit_facility_id := current_row.credit_facility_id;
+    new_row.wallet_id := current_row.wallet_id;
     new_row.abs_diff := current_row.abs_diff;
     new_row.action := current_row.action;
     new_row.collateral_amount := current_row.collateral_amount;
@@ -83,6 +86,7 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_id := (NEW.event ->> 'account_id')::UUID;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+      new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
     WHEN 'updated' THEN
       new_row.abs_diff := (NEW.event -> 'abs_diff');
       new_row.action := (NEW.event -> 'action');
@@ -98,6 +102,7 @@ BEGIN
     modified_at,
     account_id,
     credit_facility_id,
+    wallet_id,
     abs_diff,
     action,
     collateral_amount,
@@ -111,6 +116,7 @@ BEGIN
     new_row.modified_at,
     new_row.account_id,
     new_row.credit_facility_id,
+    new_row.wallet_id,
     new_row.abs_diff,
     new_row.action,
     new_row.collateral_amount,
@@ -122,6 +128,7 @@ BEGIN
     modified_at = EXCLUDED.modified_at,
     account_id = EXCLUDED.account_id,
     credit_facility_id = EXCLUDED.credit_facility_id,
+    wallet_id = EXCLUDED.wallet_id,
     abs_diff = EXCLUDED.abs_diff,
     action = EXCLUDED.action,
     collateral_amount = EXCLUDED.collateral_amount,

@@ -205,6 +205,7 @@ pub struct CreditFacilityCreateInput {
     pub disbursal_credit_account_id: UUID,
     pub facility: UsdCents,
     pub terms: TermsInput,
+    pub custodian_id: Option<UUID>,
 }
 crate::mutation_payload! { CreditFacilityCreatePayload, credit_facility: CreditFacility }
 
