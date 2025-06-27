@@ -1,4 +1,5 @@
 mod balance;
+mod collateral;
 pub(super) mod disbursal;
 mod error;
 mod history;
@@ -10,7 +11,8 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, customer::*, loader::LanaDataLoader, primitives::SortDirection, terms::*,
+    approval_process::*, custody::Wallet, customer::*, loader::LanaDataLoader,
+    primitives::SortDirection, terms::*,
 };
 pub use lana_app::{
     credit::{
@@ -18,10 +20,12 @@ pub use lana_app::{
         CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
         FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
     },
+    custody::WalletId,
     primitives::CreditFacilityStatus,
 };
 
 pub use balance::*;
+pub use collateral::*;
 pub use disbursal::*;
 pub use error::*;
 pub use history::*;
@@ -196,6 +200,20 @@ impl CreditFacility {
             .balance(sub, self.entity.id)
             .await?;
         Ok(CreditFacilityBalance::from(balance))
+    }
+
+    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Wallet>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("credit facility has collateral");
+
+        if let Some(wallet_id) = collateral.wallet_id {
+            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+        } else {
+            Ok(None)
+        }
     }
 }
 

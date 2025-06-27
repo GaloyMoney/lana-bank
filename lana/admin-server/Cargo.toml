@@ -7,6 +7,7 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
+test-dummy = ["core-custody/test-dummy"]
 
 [dependencies]
 lana-app = { path = "../app" }

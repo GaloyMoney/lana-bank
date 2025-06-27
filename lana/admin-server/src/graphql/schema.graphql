@@ -269,13 +269,13 @@ type ChartOfAccountsCsvImportPayload {
 	success: Boolean!
 }
 
-type Collateral {
-	btcBalance: Satoshis!
-}
-
 enum CollateralAction {
 	ADD
 	REMOVE
+}
+
+type CollateralBalance {
+	btcBalance: Satoshis!
 }
 
 enum CollateralizationState {
@@ -397,6 +397,7 @@ type CreditFacility {
 	subjectCanComplete: Boolean!
 	customer: Customer!
 	balance: CreditFacilityBalance!
+	wallet: Wallet
 }
 
 type CreditFacilityApproved {
@@ -412,7 +413,7 @@ type CreditFacilityBalance {
 	interest: Interest!
 	outstanding: Outstanding!
 	dueOutstanding: Outstanding!
-	collateral: Collateral!
+	collateral: CollateralBalance!
 }
 
 input CreditFacilityCollateralUpdateInput {
@@ -1869,6 +1870,12 @@ type VisibleNavigationItems {
 	financials: Boolean!
 	governance: GovernanceNavigationItems!
 	creditFacilities: Boolean!
+}
+
+type Wallet {
+	id: ID!
+	walletId: UUID!
+	address: String!
 }
 
 type Withdrawal {

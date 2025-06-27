@@ -10,6 +10,7 @@ sim-time = [
   "lana-app/sim-time"
 ]
 sim-bootstrap = ["dep:sim-bootstrap"]
+test-dummy = ["admin-server/test-dummy"]
 
 fail-on-warnings = []
 

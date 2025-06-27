@@ -9,7 +9,7 @@ pub(super) struct CreditFacilityBalance {
     interest: Interest,
     outstanding: Outstanding,
     due_outstanding: Outstanding,
-    collateral: Collateral,
+    collateral: CollateralBalance,
 }
 
 impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBalance {
@@ -46,7 +46,7 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
             due_outstanding: Outstanding {
                 usd_balance: balance.total_overdue(),
             },
-            collateral: Collateral {
+            collateral: CollateralBalance {
                 btc_balance: balance.collateral(),
             },
         }
@@ -54,7 +54,7 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
 }
 
 #[derive(SimpleObject)]
-pub struct Collateral {
+pub struct CollateralBalance {
     pub btc_balance: Satoshis,
 }
 

@@ -44,10 +44,19 @@ impl From<KomainuConfig> for komainu::KomainuConfig {
     }
 }
 
+#[cfg(not(feature = "test-dummy"))]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
+}
+
+#[cfg(feature = "test-dummy")]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[serde(tag = "type", rename_all = "snake_case")]
+pub enum CustodianConfig {
+    Komainu(KomainuConfig),
+    Mock(crate::custodian::entity::MockConfig),
 }
 
 impl CustodianConfig {

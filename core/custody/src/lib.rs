@@ -177,6 +177,14 @@ where
     }
 
     #[instrument(name = "core_custody.find_all_custodians", skip(self), err)]
+    pub async fn find_all_wallets<T: From<Wallet>>(
+        &self,
+        ids: &[WalletId],
+    ) -> Result<std::collections::HashMap<WalletId, T>, CoreCustodyError> {
+        Ok(self.wallets.find_all(ids).await?)
+    }
+
+    #[instrument(name = "core_custody.find_all_custodians", skip(self), err)]
     pub async fn find_all_custodians<T: From<Custodian>>(
         &self,
         ids: &[CustodianId],

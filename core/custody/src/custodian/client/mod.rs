@@ -48,3 +48,27 @@ impl CustodianClient for komainu::KomainuClient {
 struct KomainuState {
     first_unused_address_index: u64,
 }
+
+#[cfg(feature = "test-dummy")]
+pub mod mock {
+    use async_trait::async_trait;
+
+    use super::*;
+
+    pub struct CustodianMock;
+
+    #[async_trait]
+    impl CustodianClient for CustodianMock {
+        async fn create_address<'a>(
+            &self,
+            label: &str,
+            _state: PersistedCustodianState<'a>,
+        ) -> Result<AddressResponse, CustodianClientError> {
+            Ok(AddressResponse {
+                address: "bt1qaddressmock".to_string(),
+                label: label.to_string(),
+                full_response: serde_json::Value::Null,
+            })
+        }
+    }
+}

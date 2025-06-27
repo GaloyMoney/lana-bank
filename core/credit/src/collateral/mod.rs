@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::collections::HashMap;
+
 use authz::PermissionCheck;
 use core_custody::WalletId;
 use outbox::OutboxEventMarker;
@@ -50,6 +52,13 @@ where
         }
     }
 
+    pub async fn find_all<T: From<Collateral>>(
+        &self,
+        ids: &[CollateralId],
+    ) -> Result<HashMap<CollateralId, T>, CollateralError> {
+        self.repo.find_all(ids).await
+    }
+
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -69,7 +78,7 @@ where
         self.repo.create_in_op(db, new_collateral).await
     }
 
-    pub(super) async fn record_collateral_update_in_op(
+    pub(super) async fn record_manual_collateral_update_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
@@ -78,6 +87,10 @@ where
         audit_info: &audit::AuditInfo,
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id(collateral_id).await?;
+
+        if collateral.wallet_id.is_some() {
+            return Err(CollateralError::ManualUpdateError);
+        }
 
         let res = if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update(updated_collateral, effective, audit_info)
