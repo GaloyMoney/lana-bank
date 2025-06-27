@@ -11,4 +11,5 @@ extend-exclude = [
 	"/apps/admin-panel/messages/es.json",
 	"/apps/admin-panel/cypress/manuals/*",
 	"scripts/reg-report-xml-validation/samples/*",
+	"meltano/utilities/generate-es-reports/generate_es_reports/schemas",
 ]

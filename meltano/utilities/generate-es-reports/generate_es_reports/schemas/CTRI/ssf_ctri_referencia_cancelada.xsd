@@ -1,0 +1,156 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/ctri/referencia_cancelada"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/ctri/referencia_cancelada">
+   <xs:element name="ctri">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="referencia_cancelada">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="cod_cartera">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Cartera
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_activo">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Activo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="num_referencia">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Referencia
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_cartera_canc">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Cartera Cancelada
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_activo_canc">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código Activo Cancelado
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="num_referencia_canc">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Referencia Cancelada
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="pago_capital">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Ultimo Pago a Capital
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="pago_interes">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Ultimo Pago a Interes
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="saldo_total_interes">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Saldo Total de Intereses
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_cancelacion" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha de Cancelación
+]]></xs:documentation>
+                     </xs:annotation>
+                     <xs:simpleType>
+                        <xs:restriction base="xs:date">
+                        <xs:maxInclusive value="9999-12-31"/>
+                        <xs:minInclusive value="1800-01-01"/>
+                     </xs:restriction>
+                     </xs:simpleType>
+                     </xs:element>                     
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

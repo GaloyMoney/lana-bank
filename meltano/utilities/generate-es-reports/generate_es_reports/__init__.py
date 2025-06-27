@@ -7,6 +7,8 @@ from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from re import compile
 
+from .validation import Validator
+
 table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
 
@@ -32,6 +34,9 @@ def main():
         )
     credentials = service_account.Credentials.from_service_account_file(keyfile)
     bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    storage_client = storage.Client(project=project_id, credentials=credentials)
+
+    validator = Validator()
 
     tables_iter = bq_client.list_tables(dataset)
     for table in tables_iter:
@@ -54,8 +59,17 @@ def main():
             report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
             report_content = report_bytes.decode("utf-8")
             blob_path = f"reports/{date_str}/{norm_name}/{report_name}.xml"
+            store_blob(
+                storage_client,
+                bucket_name,
+                blob_path,
+                report_content,
+                report_content_type,
+            )
+            if report_name == "persona":
+                validator.validate(report_name, report_bytes)
 
-        elif norm_name == "nrsf_03":
+        if norm_name == "nrsf_03":
             report_content_type = "text/plain"
             output = io.StringIO()
             writer = csv.DictWriter(
@@ -65,17 +79,41 @@ def main():
             writer.writerows(rows_data)
             report_content = output.getvalue()
             blob_path = f"reports/{date_str}/{norm_name}/{report_name}.txt"
+            store_blob(
+                storage_client,
+                bucket_name,
+                blob_path,
+                report_content,
+                report_content_type,
+            )
 
-        else:
-            # TODO: we'll have to come up with some kind of convention for
-            # serializing ad-hoc internal reports when we have those
-            pass
+        # CSV versions of all regulatory reports
+        if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
+            report_content_type = "text/plain"
+            output = io.StringIO()
+            writer = csv.DictWriter(
+                output, fieldnames=field_names, delimiter=",", lineterminator="\n"
+            )
+            writer.writeheader()
+            writer.writerows(rows_data)
+            report_content = output.getvalue()
+            blob_path = f"reports/{date_str}/{norm_name}/{report_name}.csv"
+            store_blob(
+                storage_client,
+                bucket_name,
+                blob_path,
+                report_content,
+                report_content_type,
+            )
 
-        storage_client = storage.Client(project=project_id, credentials=credentials)
-        bucket = storage_client.bucket(bucket_name)
-        blob = bucket.blob(blob_path)
-        blob.upload_from_string(report_content, content_type=report_content_type)
-        print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
+
+def store_blob(
+    storage_client, bucket_name, blob_path, report_content, report_content_type
+):
+    bucket = storage_client.bucket(bucket_name)
+    blob = bucket.blob(blob_path)
+    blob.upload_from_string(report_content, content_type=report_content_type)
+    print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
 
 
 if __name__ == "__main__":

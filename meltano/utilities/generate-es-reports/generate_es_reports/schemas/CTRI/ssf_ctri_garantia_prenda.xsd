@@ -1,0 +1,114 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/ctri/garantia_prenda"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/ctri/garantia_prenda">
+   <xs:element name="ctri">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="garantia_prenda">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="identificacion_garantia">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Identificación de la Garantía
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="denominacion_titulo">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Denominación del Titulo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="local_extranjera">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Local o Extranjera
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="monto_inversion">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Monto Inversión
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="14"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_vencimiento">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha Vencimiento
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:date">
+                             <xs:maxInclusive value="9999-12-31"/>
+                             <xs:minInclusive value="1800-01-01"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="clasificacion">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Clasificación Riesgo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="25"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="nombre_clasificadora">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Nombre Clasificadora Riesgo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="50"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

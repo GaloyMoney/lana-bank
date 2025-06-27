@@ -1,0 +1,86 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/ctri/garantia_fondo"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/ctri/garantia_fondo">
+   <xs:element name="ctri">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="garantia_fondo">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="identificacion_garantia">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Identificación de la Garantía
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="valor_garantia">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Valor del Aval
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="valor_porcentual">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Valor del Porcentaje Cubierto
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="6"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="tipo_fondo">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Tipo de Fondo
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="3"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="estado">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Estado del Aval
+]]></xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>
