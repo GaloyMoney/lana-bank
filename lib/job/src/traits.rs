@@ -50,7 +50,7 @@ pub struct RetrySettings {
     pub n_warn_attempts: Option<u32>,
     pub min_backoff: std::time::Duration,
     pub max_backoff: std::time::Duration,
-    pub backoff_jitter_pct: u32,
+    pub backoff_jitter_pct: u8,
 }
 
 impl RetrySettings {
@@ -64,34 +64,34 @@ impl RetrySettings {
 
     pub(super) fn next_attempt_at(&self, attempt: u32) -> DateTime<Utc> {
         let backoff_ms = self.calculate_backoff(attempt);
-        crate::time::now() + std::time::Duration::from_millis(backoff_ms as u64)
+        crate::time::now() + std::time::Duration::from_millis(backoff_ms)
     }
 
-    fn calculate_backoff(&self, attempt: u32) -> u128 {
+    fn calculate_backoff(&self, attempt: u32) -> u64 {
         // Calculate base exponential backoff with overflow protection
         let safe_attempt = attempt.saturating_sub(1).min(30);
-        let base_ms = self.min_backoff.as_millis();
-        let backoff = base_ms.saturating_mul(1u128 << safe_attempt);
+        let base_ms = self.min_backoff.as_millis() as u64;
+        let max_ms = self.max_backoff.as_millis() as u64;
+
+        // Use u64 arithmetic with saturation to prevent overflow
+        let backoff = base_ms.saturating_mul(1u64 << safe_attempt).min(max_ms);
 
         // Apply jitter if configured
-        let jittered_backoff = if self.backoff_jitter_pct == 0 {
+        if self.backoff_jitter_pct == 0 {
             backoff
         } else {
-            self.apply_jitter(backoff)
-        };
-
-        // Cap at max_backoff (only place this check is needed)
-        jittered_backoff.min(self.max_backoff.as_millis())
+            self.apply_jitter(backoff, max_ms)
+        }
     }
 
-    fn apply_jitter(&self, backoff_ms: u128) -> u128 {
+    fn apply_jitter(&self, backoff_ms: u64, max_ms: u64) -> u64 {
         use rand::{Rng, rng};
 
-        let jitter_amount = backoff_ms * self.backoff_jitter_pct as u128 / 100;
-        let jitter_range = jitter_amount as i128;
-        let jitter = rng().random_range(-jitter_range..=jitter_range);
+        let jitter_amount = backoff_ms * self.backoff_jitter_pct as u64 / 100;
+        let jitter = rng().random_range(-(jitter_amount as i64)..=(jitter_amount as i64));
 
-        (backoff_ms as i128 + jitter).max(0) as u128
+        let jittered = (backoff_ms as i64 + jitter).max(0) as u64;
+        jittered.min(max_ms)
     }
 }
 
@@ -113,10 +113,10 @@ mod tests {
     use super::*;
     use std::time::Duration;
 
-    const MAX_BACKOFF_MS: i64 = 60_000;
-    const TIMING_TOLERANCE_MS: i64 = 5;
+    const MAX_BACKOFF_MS: u64 = 60_000;
+    const TIMING_TOLERANCE_MS: u64 = 5;
 
-    fn test_settings(jitter_pct: u32) -> RetrySettings {
+    fn test_settings(jitter_pct: u8) -> RetrySettings {
         RetrySettings {
             n_attempts: Some(10),
             n_warn_attempts: Some(3),
@@ -126,13 +126,13 @@ mod tests {
         }
     }
 
-    fn get_delay_ms(settings: &RetrySettings, attempt: u32) -> i64 {
+    fn get_delay_ms(settings: &RetrySettings, attempt: u32) -> u64 {
         let now = crate::time::now();
         let attempt_time = settings.next_attempt_at(attempt);
-        attempt_time.signed_duration_since(now).num_milliseconds()
+        attempt_time.signed_duration_since(now).num_milliseconds() as u64
     }
 
-    fn assert_delay_exact(actual: i64, expected: i64) {
+    fn assert_delay_exact(actual: u64, expected: u64) {
         assert_eq!(
             actual, expected,
             "Expected exactly {}ms, got {}ms",
@@ -140,9 +140,14 @@ mod tests {
         );
     }
 
-    fn assert_delay_near(actual: i64, expected: i64) {
+    fn assert_delay_near(actual: u64, expected: u64) {
+        let diff = if actual > expected {
+            actual - expected
+        } else {
+            expected - actual
+        };
         assert!(
-            (actual - expected).abs() <= TIMING_TOLERANCE_MS,
+            diff <= TIMING_TOLERANCE_MS,
             "Expected ~{}ms (±{}ms), got {}ms",
             expected,
             TIMING_TOLERANCE_MS,
@@ -150,7 +155,7 @@ mod tests {
         );
     }
 
-    fn assert_delay_in_range(actual: i64, min: i64, max: i64) {
+    fn assert_delay_in_range(actual: u64, min: u64, max: u64) {
         assert!(
             actual >= min && actual <= max,
             "Expected delay in range {}-{}ms, got {}ms",
@@ -214,8 +219,8 @@ mod tests {
         for _ in 0..10 {
             let delay = get_delay_ms(&settings, 1);
             assert!(
-                delay >= 0,
-                "Delay should never be negative, got {}ms",
+                delay < u64::MAX,
+                "Delay should be reasonable, got {}ms",
                 delay
             );
         }
@@ -228,13 +233,13 @@ mod tests {
         let time1 = settings.next_attempt_at(5);
         let time2 = settings.next_attempt_at(5);
 
-        let diff = (time1.signed_duration_since(time2))
+        let diff_ms = (time1.signed_duration_since(time2))
             .num_milliseconds()
-            .abs();
+            .abs() as u64;
         assert!(
-            diff <= TIMING_TOLERANCE_MS,
+            diff_ms <= TIMING_TOLERANCE_MS,
             "Times should be nearly identical without jitter, diff: {}ms",
-            diff
+            diff_ms
         );
     }
 }
