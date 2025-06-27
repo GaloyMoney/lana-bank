@@ -13,6 +13,7 @@ use crate::{
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
     authorization::{AppAction, AppObject, AuditAction, Authorization, seed},
+    contract_creation::ContractCreation,
     credit::Credit,
     custody::Custody,
     customer::Customers,
@@ -52,6 +53,7 @@ pub struct LanaApp {
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
+    contract_creation: ContractCreation,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
 }
@@ -133,6 +135,15 @@ impl LanaApp {
         )
         .await?;
 
+        let contract_creation = ContractCreation::init(
+            config.contract_creation,
+            &customers,
+            &documents,
+            &jobs,
+            &authz,
+        )
+        .await?;
+
         Notification::init(
             config.notification,
             &jobs,
@@ -164,6 +175,7 @@ impl LanaApp {
             outbox,
             governance,
             dashboard,
+            contract_creation,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
         })
@@ -242,6 +254,10 @@ impl LanaApp {
 
     pub fn access(&self) -> &Access {
         &self.access
+    }
+
+    pub fn contract_creation(&self) -> &ContractCreation {
+        &self.contract_creation
     }
 
     pub async fn get_visible_nav_items(
