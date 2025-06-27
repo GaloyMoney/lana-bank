@@ -5,10 +5,10 @@ use std::fmt;
 pub use core_access::{PermissionSetId, RoleId, UserId};
 pub use core_accounting::{BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId};
 pub use core_credit::{
-    CollateralAction, CreditFacilityId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
-    PaymentAllocationId, PaymentId, TermsTemplateId,
+    CollateralAction, CollateralId, CreditFacilityId, CreditFacilityStatus, DisbursalId,
+    DisbursalStatus, PaymentAllocationId, PaymentId, TermsTemplateId,
 };
-pub use core_custody::CustodianId;
+pub use core_custody::{CustodianId, WalletId};
 pub use core_customer::{CustomerDocumentId, CustomerId};
 pub use core_deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use core_money::*;

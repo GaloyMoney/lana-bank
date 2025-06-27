@@ -31,6 +31,12 @@ impl core::fmt::Debug for KomainuConfig {
     }
 }
 
+#[cfg(feature = "test-dummy")]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+pub struct MockConfig {
+    pub name: String,
+}
+
 #[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -105,6 +111,7 @@ impl Custodian {
         Ok(())
     }
 
+    #[cfg(not(feature = "test-dummy"))]
     pub async fn custodian_client(
         self,
         key: EncryptionKey,
@@ -113,6 +120,19 @@ impl Custodian {
             CustodianConfig::Komainu(config) => {
                 Ok(Box::new(komainu::KomainuClient::new(config.into())))
             }
+        }
+    }
+
+    #[cfg(feature = "test-dummy")]
+    pub async fn custodian_client(
+        self,
+        key: EncryptionKey,
+    ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
+        match self.custodian_config(key) {
+            CustodianConfig::Komainu(config) => {
+                Ok(Box::new(komainu::KomainuClient::new(config.into())))
+            }
+            CustodianConfig::Mock(_name) => Ok(Box::new(super::client::mock::CustodianMock)),
         }
     }
 }

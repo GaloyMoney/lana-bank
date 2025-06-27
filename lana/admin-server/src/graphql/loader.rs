@@ -325,6 +325,36 @@ impl Loader<CreditFacilityId> for LanaLoader {
     }
 }
 
+impl Loader<CollateralId> for LanaLoader {
+    type Value = Collateral;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
+
+    async fn load(
+        &self,
+        keys: &[CollateralId],
+    ) -> Result<HashMap<CollateralId, Collateral>, Self::Error> {
+        self.app
+            .credit()
+            .collaterals()
+            .find_all(keys)
+            .await
+            .map_err(|e| Arc::new(e.into()))
+    }
+}
+
+impl Loader<WalletId> for LanaLoader {
+    type Value = Wallet;
+    type Error = Arc<lana_app::custody::error::CoreCustodyError>;
+
+    async fn load(&self, keys: &[WalletId]) -> Result<HashMap<WalletId, Wallet>, Self::Error> {
+        self.app
+            .custody()
+            .find_all_wallets(keys)
+            .await
+            .map_err(Arc::new)
+    }
+}
+
 impl Loader<DisbursalId> for LanaLoader {
     type Value = CreditFacilityDisbursal;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;

@@ -139,7 +139,7 @@ pub mod trial_balance {
 }
 
 pub mod custody {
-    pub use core_custody::{CustodyConfig, CustodyPublisher, custodian, error};
+    pub use core_custody::{CustodyConfig, CustodyPublisher, WalletId, custodian, error};
     pub type Custody =
         core_custody::CoreCustody<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
@@ -147,7 +147,7 @@ pub mod custody {
 pub mod credit {
     pub use core_credit::{
         APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
-        ChartOfAccountsIntegrationConfig, CollateralUpdated, CollateralizationUpdated,
+        ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated, CollateralizationUpdated,
         CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
         CreditFacility, CreditFacilityApproved, CreditFacilityBalanceSummary,
         CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,

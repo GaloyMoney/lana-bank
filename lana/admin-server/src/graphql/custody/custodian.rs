@@ -51,6 +51,12 @@ pub struct KomainuConfig {
     secret_key: String,
 }
 
+#[cfg(feature = "test-dummy")]
+#[derive(InputObject)]
+pub struct MockConfig {
+    name: String,
+}
+
 impl From<KomainuConfig> for DomainKomainuConfig {
     fn from(config: KomainuConfig) -> Self {
         Self {
@@ -62,11 +68,27 @@ impl From<KomainuConfig> for DomainKomainuConfig {
     }
 }
 
+#[cfg(feature = "test-dummy")]
+impl From<MockConfig> for DomainMockConfig {
+    fn from(config: MockConfig) -> Self {
+        Self { name: config.name }
+    }
+}
+
+#[cfg(not(feature = "test-dummy"))]
 #[derive(OneofObject)]
 pub enum CustodianCreateInput {
     Komainu(KomainuConfig),
 }
 
+#[cfg(feature = "test-dummy")]
+#[derive(OneofObject)]
+pub enum CustodianCreateInput {
+    Komainu(KomainuConfig),
+    Mock(MockConfig),
+}
+
+#[cfg(not(feature = "test-dummy"))]
 impl CustodianCreateInput {
     pub fn name(&self) -> &str {
         match self {
@@ -75,10 +97,31 @@ impl CustodianCreateInput {
     }
 }
 
+#[cfg(feature = "test-dummy")]
+impl CustodianCreateInput {
+    pub fn name(&self) -> &str {
+        match self {
+            CustodianCreateInput::Komainu(conf) => &conf.name,
+            CustodianCreateInput::Mock(conf) => &conf.name,
+        }
+    }
+}
+
+#[cfg(not(feature = "test-dummy"))]
 impl From<CustodianCreateInput> for DomainCustodianConfig {
     fn from(input: CustodianCreateInput) -> Self {
         match input {
             CustodianCreateInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
+        }
+    }
+}
+
+#[cfg(feature = "test-dummy")]
+impl From<CustodianCreateInput> for DomainCustodianConfig {
+    fn from(input: CustodianCreateInput) -> Self {
+        match input {
+            CustodianCreateInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
+            CustodianCreateInput::Mock(config) => DomainCustodianConfig::Mock(config.into()),
         }
     }
 }

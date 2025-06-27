@@ -82,7 +82,7 @@
           pname = "lana-cli";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
-          cargoExtraArgs = "-p lana-cli --features sim-time";
+          cargoExtraArgs = "-p lana-cli --features sim-time,test-dummy";
         };
 
       # Function to build static lana-cli (musl target for containers)
@@ -231,7 +231,7 @@
         version = "0.1.0";
         doCheck = false;
         SQLX_OFFLINE = true;
-        cargoExtraArgs = "--bin write_sdl";
+        cargoExtraArgs = "--bin write_sdl --features test-dummy";
       };
 
       write_customer_sdl = craneLib.buildPackage {

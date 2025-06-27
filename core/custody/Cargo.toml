@@ -3,11 +3,12 @@ name = "core-custody"
 version = "0.3.711-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
-[features]
 
+[features]
 fail-on-warnings = []
 graphql = ["es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
+test-dummy = []
 
 [dependencies]
 audit = { path = "../../lib/audit" }

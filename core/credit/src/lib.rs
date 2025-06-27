@@ -650,14 +650,11 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        // check if facility has custody_config???
-        // if it does this should error
-
         let mut db = self.facilities.begin_op().await?;
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
-            .record_collateral_update_in_op(
+            .record_manual_collateral_update_in_op(
                 &mut db,
                 credit_facility.collateral_id,
                 updated_collateral,
@@ -765,7 +762,7 @@ where
 
             CompletionOutcome::Completed((facility, completion)) => {
                 self.collaterals
-                    .record_collateral_update_in_op(
+                    .record_manual_collateral_update_in_op(
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,

@@ -10,4 +10,6 @@ pub use custodian_config::{CustodianConfig, CustodianEncryptionConfig, Deprecate
 pub use entity::CustodianEvent;
 pub use entity::{Custodian, KomainuConfig, NewCustodian};
 pub(super) use repo::CustodianRepo;
+#[cfg(feature = "test-dummy")]
+pub use entity::MockConfig;
 pub use repo::custodian_cursor::*;
