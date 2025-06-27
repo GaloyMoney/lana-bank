@@ -7,6 +7,8 @@ from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from re import compile
 
+from .validation import Validator
+
 table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
 
@@ -33,6 +35,8 @@ def main():
     credentials = service_account.Credentials.from_service_account_file(keyfile)
     bq_client = bigquery.Client(project=project_id, credentials=credentials)
     storage_client = storage.Client(project=project_id, credentials=credentials)
+
+    validator = Validator()
 
     tables_iter = bq_client.list_tables(dataset)
     for table in tables_iter:
@@ -62,6 +66,8 @@ def main():
                 report_content,
                 report_content_type,
             )
+            if report_name == "persona":
+                validator.validate(report_name, report_bytes)
 
         if norm_name == "nrsf_03":
             report_content_type = "text/plain"
