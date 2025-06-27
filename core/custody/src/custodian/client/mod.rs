@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use error::CustodianClientError;
 
-use super::state::repo::PersistedCustodianState;
+use super::state::repo::CustodianStateRepo;
 
 pub struct AddressResponse {
     pub address: String,
@@ -18,7 +18,7 @@ pub trait CustodianClient: Send {
     async fn create_address<'a>(
         &self,
         label: &str,
-        state: PersistedCustodianState<'a>,
+        state: CustodianStateRepo<'a>,
     ) -> Result<AddressResponse, CustodianClientError>;
 }
 
@@ -27,7 +27,7 @@ impl CustodianClient for komainu::KomainuClient {
     async fn create_address<'a>(
         &self,
         label: &str,
-        state: PersistedCustodianState<'a>,
+        state: CustodianStateRepo<'a>,
     ) -> Result<AddressResponse, CustodianClientError> {
         let mut komainu_state: KomainuState = state.load().await?;
 

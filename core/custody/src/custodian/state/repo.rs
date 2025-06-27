@@ -6,30 +6,16 @@ use crate::primitives::CustodianId;
 
 use super::error::CustodianStateError;
 
-#[derive(Clone)]
-pub struct CustodianStateRepo {
-    pool: PgPool,
-}
-
-impl CustodianStateRepo {
-    pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
-    }
-
-    pub fn persisted_state_for(&self, custodian_id: CustodianId) -> PersistedCustodianState<'_> {
-        PersistedCustodianState {
-            custodian_id,
-            pool: &self.pool,
-        }
-    }
-}
-
-pub struct PersistedCustodianState<'a> {
+pub struct CustodianStateRepo<'a> {
     custodian_id: CustodianId,
     pool: &'a PgPool,
 }
 
-impl PersistedCustodianState<'_> {
+impl<'a> CustodianStateRepo<'a> {
+    pub const fn new(custodian_id: CustodianId, pool: &'a PgPool) -> Self {
+        Self { custodian_id, pool }
+    }
+
     pub async fn load<T: DeserializeOwned + Default>(&self) -> Result<T, CustodianStateError> {
         let custodian_id: Uuid = self.custodian_id.into();
 

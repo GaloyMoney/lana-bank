@@ -40,7 +40,7 @@ where
     custodians: CustodianRepo,
     config: CustodyConfig,
     wallets: WalletRepo<E>,
-    custodian_state: CustodianStateRepo,
+    pool: sqlx::PgPool,
 }
 
 impl<Perms, E> CoreCustody<Perms, E>
@@ -61,7 +61,7 @@ where
             custodians: CustodianRepo::new(pool),
             config,
             wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
-            custodian_state: CustodianStateRepo::new(pool),
+            pool: pool.clone(),
         };
 
         if let Some(deprecated_encryption_key) = custody.config.deprecated_encryption_key.as_ref() {
@@ -279,7 +279,7 @@ where
         let address = client
             .create_address(
                 &format!("Wallet {}", wallet.id),
-                self.custodian_state.persisted_state_for(custodian_id),
+                CustodianStateRepo::new(custodian_id, &self.pool),
             )
             .await?;
 
@@ -309,7 +309,7 @@ where
             authz: self.authz.clone(),
             custodians: self.custodians.clone(),
             wallets: self.wallets.clone(),
-            custodian_state: self.custodian_state.clone(),
+            pool: self.pool.clone(),
             config: self.config.clone(),
         }
     }
