@@ -301,11 +301,18 @@ where
                     id,
                     obligation_id,
                     credit_facility_id,
+                    ledger_tx_id,
+                    initial_amount,
+                    effective,
                     ..
                 } => CoreCreditEvent::LiquidationProcessStarted {
                     id: *id,
                     obligation_id: *obligation_id,
                     credit_facility_id: *credit_facility_id,
+                    amount: *initial_amount,
+                    effective: *effective,
+                    ledger_tx_id: *ledger_tx_id,
+                    recorded_at: event.recorded_at,
                 },
                 Completed { .. } => CoreCreditEvent::LiquidationProcessConcluded {
                     id: entity.id,
