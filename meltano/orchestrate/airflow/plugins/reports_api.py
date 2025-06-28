@@ -32,15 +32,16 @@ def get_bucket():
 
 def parse_report_blob(blob_name):
     """Parse blob name to extract date and report name"""
-    # Expected format: reports/2024-01-15/report_name.xml
+    # Expected format: reports/2025-06-29/nrsf_03/funcionarios_y_empleados.txt
     parts = blob_name.split('/')
-    if len(parts) != 3 or parts[0] != 'reports':
+    if len(parts) != 4 or parts[0] != 'reports':
         return None
     
     try:
-        report_date = parts[1]  # 2024-01-15
-        report_file = parts[2]  # report_name.xml
-        report_name = report_file.replace('.xml', '')  # report_name
+        report_date = parts[1]  # 2025-06-29
+        report_category = parts[2]  # nrsf_03
+        report_file = parts[3]  # funcionarios_y_empleados.txt
+        report_name = report_file.rsplit('.', 1)[0]  # funcionarios_y_empleados
         
         # Validate date format
         datetime.strptime(report_date, '%Y-%m-%d')
@@ -48,158 +49,141 @@ def parse_report_blob(blob_name):
         return {
             'date': report_date,
             'report_name': report_name,
+            'report_category': report_category,
             'blob_name': blob_name,
             'filename': report_file
         }
     except ValueError:
         return None
 
-def generate_report_id(date, report_name):
-    """Generate a unique report ID from date and report name"""
-    return f"{date}_{report_name}"
 
-def parse_report_id(report_id):
-    """Parse report ID to extract date and report name"""
-    try:
-        # Expected format: 2024-01-15_report_name
-        parts = report_id.split('_', 1)  # Split only on first underscore
-        if len(parts) != 2:
-            return None
-        
-        date_str = parts[0]
-        report_name = parts[1]
-        
-        # Validate date format
-        datetime.strptime(date_str, '%Y-%m-%d')
-        
-        return {
-            'date': date_str,
-            'report_name': report_name
-        }
-    except ValueError:
-        return None
-
-@reports_bp.route("/reports", methods=["GET"])
-def get_all_reports():
+@reports_bp.route("/reports/dates", methods=["GET"])
+def get_available_dates():
     """
-    Return the ID and dates of all available reports
+    Return all dates for which reports are available
     
     Response format:
     {
-        "reports": [
-            {
-                "id": "2024-01-15_report_sales",
-                "date": "2024-01-15",
-                "report_name": "report_sales"
-            },
+        "dates": [
+            "2024-01-15",
+            "2024-01-14",
+            "2024-01-13",
             ...
-        ]
+        ],
+        "total_count": 3
     }
     """
     try:
         bucket = get_bucket()
-        
+
         # List all blobs in the reports/ prefix
         blobs = bucket.list_blobs(prefix='reports/')
-        
-        reports = []
-        
+        dates = set()
+
         for blob in blobs:
             parsed = parse_report_blob(blob.name)
             if not parsed:
                 continue
-            
-            report_id = generate_report_id(parsed['date'], parsed['report_name'])
-            
-            reports.append({
-                'id': report_id,
-                'date': parsed['date'],
-                'report_name': parsed['report_name']
-            })
-        
-        # Sort by date (newest first), then by report name
-        reports.sort(key=lambda x: (x['date'], x['report_name']), reverse=True)
-        
-        return jsonify({
-            'reports': reports,
-            'total_count': len(reports)
-        })
-        
-    except Exception as e:
-        return jsonify({'error': f'Error fetching reports: {str(e)}'}), 500
 
-@reports_bp.route("/reports/<report_id>", methods=["GET"])
-def get_report_signed_url(report_id):
+            dates.add(parsed['date'])
+
+        # Convert to sorted list (newest first)
+        sorted_dates = sorted(list(dates), reverse=True)
+
+        return jsonify({
+            'dates': sorted_dates,
+            'total_count': len(sorted_dates)
+        })
+
+    except Exception as e:
+        return jsonify({'error': f'Error fetching available dates: {str(e)}'}), 500
+
+@reports_bp.route("/reports/date/<date>", methods=["GET"])
+def get_reports_by_date(date):
     """
-    Return the signed URL of the exact report by ID
+    Return signed URLs of all reports for a given date
     
     Args:
-        report_id: Format "YYYY-MM-DD_report_name" (e.g., "2024-01-15_report_sales")
+        date: Date in YYYY-MM-DD format (e.g., "2024-01-15")
     
     Query Parameters:
-        expiration_hours: Hours until signed URL expires (default: 1)
+        expiration_hours: Hours until signed URLs expire (default: 1)
     
     Response format:
     {
-        "id": "2024-01-15_report_sales",
-        "date": "2024-01-15",
-        "report_name": "report_sales",
-        "filename": "report_sales.xml",
-        "signed_url": "https://storage.googleapis.com/...",
-        "expires_at": "2024-01-15T15:30:00Z"
+        "date": "2025-06-29",
+        "reports": [
+            {
+                "report_name": "funcionarios_y_empleados",
+                "report_category": "nrsf_03",
+                "filename": "funcionarios_y_empleados.txt",
+                "signed_url": "https://storage.googleapis.com/...",
+                "expires_at": "2025-06-29T15:30:00Z",
+                "size_bytes": 1024,
+                "created": "2025-06-29T10:00:00Z"
+            },
+            ...
+        ],
+        "total_count": 2
     }
     """
     try:
-        # Parse the report ID
-        parsed_id = parse_report_id(report_id)
-        if not parsed_id:
+        # Validate date format
+        try:
+            datetime.strptime(date, '%Y-%m-%d')
+        except ValueError:
             return jsonify({
-                'error': 'Invalid report ID format. Expected format: YYYY-MM-DD_report_name'
+                'error': 'Invalid date format. Expected format: YYYY-MM-DD'
             }), 400
-        
-        date_str = parsed_id['date']
-        report_name = parsed_id['report_name']
-        
-        # Construct the expected blob path
-        blob_path = f"reports/{date_str}/{report_name}.xml"
-        
+
         # Get expiration hours from query parameters
         expiration_hours = request.args.get('expiration_hours', 1, type=int)
         if expiration_hours < 1 or expiration_hours > 168:  # Max 1 week
             return jsonify({
                 'error': 'expiration_hours must be between 1 and 168 (1 week)'
             }), 400
-        
+
         bucket = get_bucket()
-        blob = bucket.blob(blob_path)
-        
-        # Check if the blob exists
-        if not blob.exists():
-            return jsonify({
-                'error': f'Report not found: {report_id}'
-            }), 404
-        
-        # Generate signed URL
+
+        # List all blobs for the specific date
+        date_prefix = f'reports/{date}/'
+        blobs = bucket.list_blobs(prefix=date_prefix)
+
+        reports = []
         expiration_time = datetime.utcnow() + timedelta(hours=expiration_hours)
-        signed_url = blob.generate_signed_url(
-            expiration=expiration_time,
-            method='GET'
-        )
-        
+
+        for blob in blobs:
+            parsed = parse_report_blob(blob.name)
+            if not parsed or parsed['date'] != date:
+                continue
+
+            # Generate signed URL
+            signed_url = blob.generate_signed_url(
+                expiration=expiration_time,
+                method='GET'
+            )
+
+            reports.append({
+                'uri': blob.name,
+                'report_name': parsed['report_name'],
+                'report_category': parsed['report_category'],
+                'filename': parsed['filename'],
+                'signed_url': signed_url,
+                'expires_at': expiration_time.isoformat() + 'Z',
+                'size_bytes': blob.size,
+                'created': blob.time_created.isoformat() if blob.time_created else None
+            })
+
+        # Sort by report name
+        reports.sort(key=lambda x: x['report_name'])
+
         return jsonify({
-            'id': report_id,
-            'date': date_str,
-            'report_name': report_name,
-            'filename': f"{report_name}.xml",
-            'blob_path': blob_path,
-            'signed_url': signed_url,
-            'expires_at': expiration_time.isoformat() + 'Z',
-            'size_bytes': blob.size,
-            'created': blob.time_created.isoformat() if blob.time_created else None
+            'date': date,
+            'reports': reports,
+            'total_count': len(reports)
         })
-        
     except Exception as e:
-        return jsonify({'error': f'Error generating signed URL: {str(e)}'}), 500
+        return jsonify({'error': f'Error fetching reports for date {date}: {str(e)}'}), 500
 
 @reports_bp.route("/reports/health", methods=["GET"])
 def health_check():
@@ -208,7 +192,7 @@ def health_check():
         # Test GCS connection
         bucket = get_bucket()
         bucket.exists()  # This will raise an exception if there are auth issues
-        
+
         return jsonify({
             'status': 'healthy',
             'timestamp': datetime.utcnow().isoformat() + 'Z',
