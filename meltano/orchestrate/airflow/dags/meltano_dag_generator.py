@@ -47,6 +47,38 @@ if not Path(PROJECT_ROOT).joinpath(MELTANO_BIN).exists():
     )
     MELTANO_BIN = "meltano"
 
+# Special handling for utility-based jobs that need 'invoke' instead of 'run'
+UTILITY_JOBS = {
+    "generate-es-reports-job": ["generate-es-reports"],  # job_name: [list of utilities to invoke]
+}
+
+
+def _get_task_command(job_name: str, task: str) -> str:
+    """
+    Generate the appropriate meltano command for a given task.
+    
+    Args:
+        job_name: Name of the Meltano job
+        task: The task within the job
+    
+    Returns:
+        The bash command to execute
+    """
+    # Check if this is a special utility job that needs 'invoke'
+    if job_name in UTILITY_JOBS:
+        utilities = UTILITY_JOBS[job_name]
+        if task in utilities:
+            logger.info(f"Using 'meltano invoke' for utility task '{task}' in job '{job_name}'")
+            return f"cd {PROJECT_ROOT}; {MELTANO_BIN} invoke {task}"
+    
+    # Default behavior: use 'meltano run'
+    if isinstance(task, Iterable) and not isinstance(task, str):
+        run_args = " ".join(task)
+    else:
+        run_args = task
+    
+    return f"cd {PROJECT_ROOT}; {MELTANO_BIN} run {run_args}"
+
 
 def _meltano_elt_generator(schedules: list) -> None:
     """Generate singular dag's for each legacy Meltano elt task.
@@ -126,9 +158,13 @@ def _meltano_job_generator(schedules: list) -> None:
             continue
 
         base_id = f"meltano_{schedule['name']}_{schedule['job']['name']}"
+        job_name = schedule['job']['name']
         common_tags = DEFAULT_TAGS.copy()
         common_tags.append(f"schedule:{schedule['name']}")
         common_tags.append(f"job:{schedule['job']['name']}")
+        # Add special tag for utility jobs
+        if job_name in UTILITY_JOBS:
+            common_tags.append("utility-job")
         interval = schedule["cron_interval"]
         args = DEFAULT_ARGS.copy()
         args["start_date"] = schedule.get("start_date", datetime(1970, 1, 1, 0, 0, 0))
@@ -152,23 +188,24 @@ def _meltano_job_generator(schedules: list) -> None:
 
                 task_id = f"{base_id}_task{idx}"
 
-                if isinstance(task, Iterable) and not isinstance(task, str):
-                    run_args = " ".join(task)
-                else:
-                    run_args = task
+                # Get the appropriate command based on job type
+                bash_command = _get_task_command(job_name, task)
 
                 task = BashOperator(
                     task_id=task_id,
-                    bash_command=f"cd {PROJECT_ROOT}; {MELTANO_BIN} run {run_args}",
+                    bash_command=bash_command,
                     dag=dag,
                 )
                 if previous_task:
                     task.set_upstream(previous_task)
                 previous_task = task
-                logger.info("Spun off task '%s' of schedule '%s': %s", task, schedule["name"], schedule)
+
+                # Log what command we're actually using
+                logger.info("Created task '%s' for schedule '%s' with command: %s", 
+                           task_id, schedule["name"], bash_command)
 
         globals()[base_id] = dag
-        logger.info(f"DAG created for schedule '{schedule['name']}', task='{run_args}'")
+        logger.info(f"DAG created for schedule '{schedule['name']}', job='{job_name}'")
 
 
 def create_dags() -> None:

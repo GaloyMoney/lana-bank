@@ -41,6 +41,14 @@ jobs:
   - name: drop-all-relations
     tasks:
       - dbt-bigquery:drop-all-relations
+  - name: generate-es-reports-job
+    tasks:
+      - generate-es-reports:run
+  - name: pipeline
+    tasks:
+      - tap-bitfinexapi target-bigquery
+      - tap-postgres target-bigquery
+      - tap-sumsubapi target-bigquery
 schedules:
   - name: postgres-to-bigquery-dbt
     interval: "*/10 * * * *"
@@ -57,6 +65,9 @@ schedules:
   - name: drop-old-relations-weekly
     interval: "@weekly"
     job: drop-old-relations
+  - name: generate-es-reports-daily
+    interval: "@daily"
+    job: generate-es-reports-job
 plugins:
   extractors:
     - name: tap-postgres
@@ -103,31 +114,30 @@ plugins:
         drop-all-relations:
           args: run-operation drop_all_relations
   utilities:
-  - name: sqlfluff
-    variant: sqlfluff
-    pip_url: sqlfluff sqlfluff-templater-dbt dbt-core dbt-bigquery
-    settings:
-    - name: dataset
-      env: DBT_BIGQUERY_DATASET
-    - name: keyfile
-      env: DBT_BIGQUERY_KEYFILE
-    - name: auth_method
-      env: DBT_BIGQUERY_AUTH_METHOD
-      value: service-account
-    - name: project
-      env: DBT_BIGQUERY_PROJECT
-      value: lana-dev-440721
-  - name: airflow
-    variant: apache
-    pip_url: git+https://github.com/meltano/airflow-ext.git@main apache-airflow[postgres]==2.10.4
-      --constraint
-      https://raw.githubusercontent.com/apache/airflow/constraints-2.10.4/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
-  - name: generate-es-reports
-    namespace: generate_es_reports
-    pip_url: -e ${MELTANO_PROJECT_ROOT}/utilities/generate-es-reports
-    executable: generate-es-reports
-    settings:
-    - name: DBT_BIGQUERY_PROJECT
-      env: DBT_BIGQUERY_PROJECT
-      value: lana-dev-440721
-
+    - name: sqlfluff
+      variant: sqlfluff
+      pip_url: sqlfluff sqlfluff-templater-dbt dbt-core dbt-bigquery
+      settings:
+        - name: dataset
+          env: DBT_BIGQUERY_DATASET
+        - name: keyfile
+          env: DBT_BIGQUERY_KEYFILE
+        - name: auth_method
+          env: DBT_BIGQUERY_AUTH_METHOD
+          value: service-account
+        - name: project
+          env: DBT_BIGQUERY_PROJECT
+          value: lana-dev-440721
+    - name: airflow
+      variant: apache
+      pip_url:
+        git+https://github.com/meltano/airflow-ext.git@main apache-airflow[postgres]==2.10.4 apache-airflow-providers-google
+        --constraint
+        https://raw.githubusercontent.com/apache/airflow/constraints-2.10.4/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
+    - name: generate-es-reports
+      namespace: generate_es_reports
+      pip_url: -e ${MELTANO_PROJECT_ROOT}/utilities/generate-es-reports
+      executable: generate-es-reports
+      commands:
+        run:
+          args: "</dev/null"
