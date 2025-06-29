@@ -43,7 +43,7 @@ jobs:
       - dbt-bigquery:drop-all-relations
   - name: generate-es-reports-job
     tasks:
-      - generate-es-reports
+      - generate-es-reports:run
   - name: pipeline
     tasks:
       - tap-bitfinexapi target-bigquery
@@ -138,3 +138,6 @@ plugins:
       namespace: generate_es_reports
       pip_url: -e ${MELTANO_PROJECT_ROOT}/utilities/generate-es-reports
       executable: generate-es-reports
+      commands:
+        run:
+          args: "</dev/null"
