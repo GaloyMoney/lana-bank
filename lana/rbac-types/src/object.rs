@@ -116,11 +116,12 @@ impl FromStr for LanaObject {
     }
 }
 
-es_entity::entity_id!(ApplicantId, AuditId);
+es_entity::entity_id!(ApplicantId, AuditId, ContractCreationId);
 
 pub type ApplicantAllOrOne = AllOrOne<ApplicantId>;
 pub type ReportAllOrOne = AllOrOne<ReportId>;
 pub type AuditAllOrOne = AllOrOne<AuditId>;
+pub type ContractCreationAllOrOne = AllOrOne<ContractCreationId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
@@ -129,6 +130,7 @@ pub enum AppObject {
     Applicant(ApplicantAllOrOne),
     Report(ReportAllOrOne),
     Audit(AuditAllOrOne),
+    ContractCreation(ContractCreationAllOrOne),
 }
 
 impl AppObject {
@@ -141,6 +143,12 @@ impl AppObject {
     pub const fn all_audits() -> Self {
         Self::Audit(AllOrOne::All)
     }
+    pub const fn all_contract_creation() -> Self {
+        Self::ContractCreation(AllOrOne::All)
+    }
+    pub const fn contract_creation(id: ContractCreationId) -> Self {
+        Self::ContractCreation(AllOrOne::ById(id))
+    }
 }
 
 impl Display for AppObject {
@@ -150,6 +158,7 @@ impl Display for AppObject {
             Self::Applicant(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Self::Report(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Self::Audit(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Self::ContractCreation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -162,16 +171,20 @@ impl FromStr for AppObject {
         use AppObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
             Applicant => {
-                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                let obj_ref = id.parse().map_err(|_| "could not parse Applicant")?;
                 Self::Applicant(obj_ref)
             }
             Report => {
-                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                let obj_ref = id.parse().map_err(|_| "could not parse Report")?;
                 Self::Report(obj_ref)
             }
             Audit => {
-                let obj_ref = id.parse().map_err(|_| "could not parse AppObject")?;
+                let obj_ref = id.parse().map_err(|_| "could not parse Audit")?;
                 Self::Audit(obj_ref)
+            }
+            ContractCreation => {
+                let obj_ref = id.parse().map_err(|_| "could not parse ContractCreation")?;
+                Self::ContractCreation(obj_ref)
             }
         };
 
