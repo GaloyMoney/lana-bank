@@ -3,14 +3,16 @@ use csv::{ReaderBuilder, Trim};
 use std::io::Cursor;
 
 use crate::primitives::{
-    AccountCodeSection, AccountCodeSectionParseError, AccountName, AccountSpec,
+    AccountCodeError, AccountCodeSection, AccountCodeSectionParseError, AccountName, AccountSpec,
 };
 
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-#[error("CsvParseError")]
-pub struct CsvParseError;
+pub enum CsvParseError {
+    #[error("CsvParseError - AccountCodeError")]
+    AccountCodeError(#[from] AccountCodeError),
+}
 
 pub struct CsvParser {
     data: String,
@@ -75,22 +77,25 @@ impl CsvParser {
                     }
 
                     if let Some(category) = category {
-                        if let Some(s) = specs.iter().rposition(|s| s.code.is_parent(&sections)) {
-                            let parent = specs[s].clone();
-                            specs.push(AccountSpec::new(
-                                Some(parent.code),
+                        if let Some(parent_spec) = specs
+                            .iter()
+                            .rposition(|spec| spec.code.is_parent(&sections))
+                            .map(|parent_idx| &specs[parent_idx])
+                        {
+                            specs.push(AccountSpec::new_spec(
+                                Some(parent_spec.code.clone()),
                                 sections,
                                 category,
-                                parent.normal_balance_type,
-                            ));
-                            continue;
+                                parent_spec.normal_balance_type,
+                            )?);
+                        } else {
+                            specs.push(AccountSpec::new_spec(
+                                None,
+                                sections,
+                                category,
+                                normal_balance_type.unwrap_or_default(),
+                            )?);
                         }
-                        specs.push(AccountSpec::new(
-                            None,
-                            sections,
-                            category,
-                            normal_balance_type.unwrap_or_default(),
-                        ));
                     }
                 }
                 Err(e) => eprintln!("Error reading record: {e}"),

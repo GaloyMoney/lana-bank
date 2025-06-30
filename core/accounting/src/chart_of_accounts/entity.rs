@@ -425,12 +425,13 @@ mod test {
             ..
         } = chart
             .create_node(
-                &AccountSpec::new(
+                &AccountSpec::new_spec(
                     None,
                     vec![section("1")],
                     "Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                ),
+                )
+                .unwrap(),
                 CalaJournalId::new(),
                 dummy_audit_info(),
             )
@@ -440,12 +441,13 @@ mod test {
             ..
         } = chart
             .create_node(
-                &AccountSpec::new(
+                &AccountSpec::new_spec(
                     Some(code("1")),
                     vec![section("1"), section("1")],
                     "Current Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                ),
+                )
+                .unwrap(),
                 CalaJournalId::new(),
                 dummy_audit_info(),
             )
@@ -455,12 +457,13 @@ mod test {
             ..
         } = chart
             .create_node(
-                &AccountSpec::new(
+                &AccountSpec::new_spec(
                     Some(code("1.1")),
                     vec![section("1"), section("1"), section("1")],
                     "Cash".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                ),
+                )
+                .unwrap(),
                 CalaJournalId::new(),
                 dummy_audit_info(),
             )
@@ -508,12 +511,13 @@ mod test {
             ..
         } = chart
             .create_node(
-                &AccountSpec::new(
+                &AccountSpec::new_spec(
                     Some(code("1")),
                     vec![section("1"), section("2")],
                     "Long-term Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
-                ),
+                )
+                .unwrap(),
                 CalaJournalId::new(),
                 dummy_audit_info(),
             )
