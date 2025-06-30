@@ -109,31 +109,17 @@ def get_available_dates():
 @reports_bp.route("/reports/date/<date>", methods=["GET"])
 def get_reports_by_date(date):
     """
-    Return signed URLs of all reports for a given date
+    Return URIs of all reports for a given date
     
     Args:
         date: Date in YYYY-MM-DD format (e.g., "2024-01-15")
     
-    Query Parameters:
-        expiration_hours: Hours until signed URLs expire (default: 1)
-    
-    Response format:
-    {
-        "date": "2025-06-29",
-        "reports": [
-            {
-                "report_name": "funcionarios_y_empleados",
-                "report_category": "nrsf_03",
-                "filename": "funcionarios_y_empleados.txt",
-                "signed_url": "https://storage.googleapis.com/...",
-                "expires_at": "2025-06-29T15:30:00Z",
-                "size_bytes": 1024,
-                "created": "2025-06-29T10:00:00Z"
-            },
-            ...
-        ],
-        "total_count": 2
-    }
+    Response format: Array<String>
+    [
+        "reports/2025-06-29/nrsf_03/funcionarios_y_empleados.txt",
+        "reports/2025-06-29/nrsf_03/other_report.txt",
+        ...
+    ]
     """
     try:
         # Validate date format
@@ -144,52 +130,25 @@ def get_reports_by_date(date):
                 'error': 'Invalid date format. Expected format: YYYY-MM-DD'
             }), 400
 
-        # Get expiration hours from query parameters
-        expiration_hours = request.args.get('expiration_hours', 1, type=int)
-        if expiration_hours < 1 or expiration_hours > 168:  # Max 1 week
-            return jsonify({
-                'error': 'expiration_hours must be between 1 and 168 (1 week)'
-            }), 400
-
         bucket = get_bucket()
 
         # List all blobs for the specific date
         date_prefix = f'reports/{date}/'
         blobs = bucket.list_blobs(prefix=date_prefix)
 
-        reports = []
-        expiration_time = datetime.utcnow() + timedelta(hours=expiration_hours)
+        uris = []
 
         for blob in blobs:
+            # Since we're using the date prefix, all blobs should be for this date
+            # But we still validate the blob name format to ensure it's a valid report
             parsed = parse_report_blob(blob.name)
-            if not parsed or parsed['date'] != date:
-                continue
+            if parsed:
+                uris.append(blob.name)
 
-            # Generate signed URL
-            signed_url = blob.generate_signed_url(
-                expiration=expiration_time,
-                method='GET'
-            )
+        # Sort URIs alphabetically
+        uris.sort()
 
-            reports.append({
-                'uri': blob.name,
-                'report_name': parsed['report_name'],
-                'report_category': parsed['report_category'],
-                'filename': parsed['filename'],
-                'signed_url': signed_url,
-                'expires_at': expiration_time.isoformat() + 'Z',
-                'size_bytes': blob.size,
-                'created': blob.time_created.isoformat() if blob.time_created else None
-            })
-
-        # Sort by report name
-        reports.sort(key=lambda x: x['report_name'])
-
-        return jsonify({
-            'date': date,
-            'reports': reports,
-            'total_count': len(reports)
-        })
+        return jsonify(uris)
     except Exception as e:
         return jsonify({'error': f'Error fetching reports for date {date}: {str(e)}'}), 500
 
