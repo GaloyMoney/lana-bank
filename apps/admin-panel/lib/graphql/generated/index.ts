@@ -1084,7 +1084,9 @@ export type Disbursed = {
 export enum DocumentStatus {
   Active = 'ACTIVE',
   Archived = 'ARCHIVED',
-  Deleted = 'DELETED'
+  Deleted = 'DELETED',
+  Failed = 'FAILED',
+  New = 'NEW'
 }
 
 export type Duration = {
@@ -1289,6 +1291,16 @@ export type LoanAgreement = {
   status: LoanAgreementStatus;
 };
 
+export type LoanAgreementDownloadLinksGenerateInput = {
+  loanAgreementId: Scalars['UUID']['input'];
+};
+
+export type LoanAgreementDownloadLinksGeneratePayload = {
+  __typename?: 'LoanAgreementDownloadLinksGeneratePayload';
+  link: Scalars['String']['output'];
+  loanAgreementId: Scalars['UUID']['output'];
+};
+
 export type LoanAgreementGenerateInput = {
   customerId: Scalars['UUID']['input'];
 };
@@ -1353,6 +1365,7 @@ export type Mutation = {
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
+  loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
@@ -1507,6 +1520,11 @@ export type MutationDepositRecordArgs = {
 
 export type MutationLedgerAccountCsvCreateArgs = {
   input: LedgerAccountCsvCreateInput;
+};
+
+
+export type MutationLoanAgreementDownloadLinkGenerateArgs = {
+  input: LoanAgreementDownloadLinksGenerateInput;
 };
 
 
@@ -1764,6 +1782,7 @@ export type Query = {
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
+  loanAgreement?: Maybe<LoanAgreement>;
   me: Subject;
   permissionSets: PermissionSetConnection;
   policies: PolicyConnection;
@@ -1921,6 +1940,11 @@ export type QueryLedgerTransactionsForTemplateCodeArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
   templateCode: Scalars['String']['input'];
+};
+
+
+export type QueryLoanAgreementArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
