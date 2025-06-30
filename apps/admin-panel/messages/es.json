@@ -559,9 +559,14 @@
         "buttons": {
           "loanTerms": "Términos del Préstamo",
           "walletDetails": "Detalles de la cartera",
+          "loanAgreement": "Contrato de Préstamo",
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
           "deny": "Rechazar"
+        },
+        "loanAgreement": {
+          "success": "Contrato de préstamo generado exitosamente",
+          "error": "Error al generar el contrato de préstamo"
         }
       },
       "Layout": {

@@ -3092,6 +3092,7 @@ dependencies = [
  "public-id",
  "rand 0.9.1",
  "rbac-types",
+ "rendering",
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",

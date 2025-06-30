@@ -15,10 +15,10 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
-    balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, custody::*,
-    customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*,
-    price::*, profit_and_loss_config::*, public_id::*, report::*, sumsub::*, terms_template::*,
-    withdrawal::*,
+    balance_sheet_config::*, committee::*, contract_creation::*, credit_config::*,
+    credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
+    document::*, loader::*, policy::*, price::*, profit_and_loss_config::*, public_id::*,
+    report::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -873,6 +873,16 @@ impl Query {
             _ => unreachable!(),
         };
         Ok(res)
+    }
+
+    async fn loan_agreement(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<LoanAgreement>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let contract = app.contract_creation().find_by_id(sub, id).await?;
+        Ok(Some(LoanAgreement::from(contract)))
     }
 }
 
@@ -1900,5 +1910,35 @@ impl Mutation {
         let link = AccountingCsvDownloadLink::from(result);
 
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
+    }
+
+    pub async fn loan_agreement_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanAgreementGenerateInput,
+    ) -> async_graphql::Result<LoanAgreementGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        // Create async job for loan agreement generation
+        let loan_agreement = app
+            .contract_creation()
+            .initiate_loan_agreement_generation(sub, input.customer_id)
+            .await?;
+
+        let loan_agreement = LoanAgreement::from(loan_agreement);
+        Ok(LoanAgreementGeneratePayload::from(loan_agreement))
+    }
+
+    async fn loan_agreement_download_link_generate(
+        &self,
+        ctx: &Context<'_>,
+        input: LoanAgreementDownloadLinksGenerateInput,
+    ) -> async_graphql::Result<LoanAgreementDownloadLinksGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let doc = app
+            .contract_creation()
+            .generate_document_download_link(sub, input.loan_agreement_id)
+            .await?;
+        Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
     }
 }

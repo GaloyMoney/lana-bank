@@ -559,9 +559,14 @@
         "buttons": {
           "loanTerms": "Loan Terms",
           "walletDetails": "Wallet Details",
+          "loanAgreement": "Loan Agreement",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
           "deny": "Deny"
+        },
+        "loanAgreement": {
+          "success": "Loan agreement generated successfully",
+          "error": "Failed to generate loan agreement"
         }
       },
       "Layout": {

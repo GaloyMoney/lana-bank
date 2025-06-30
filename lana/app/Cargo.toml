@@ -46,6 +46,7 @@ outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 cloud-storage = { path = "../../lib/cloud-storage" }
+rendering = { path = "../../lib/rendering" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }

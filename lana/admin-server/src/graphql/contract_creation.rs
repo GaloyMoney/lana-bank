@@ -1,0 +1,81 @@
+use async_graphql::*;
+
+use crate::primitives::*;
+
+#[derive(async_graphql::Enum, Clone, Debug, PartialEq, Eq, Copy)]
+pub enum LoanAgreementStatus {
+    Pending,
+    Completed,
+    Failed,
+}
+
+impl From<lana_app::contract_creation::SimpleLoanAgreementStatus> for LoanAgreementStatus {
+    fn from(status: lana_app::contract_creation::SimpleLoanAgreementStatus) -> Self {
+        match status {
+            lana_app::contract_creation::SimpleLoanAgreementStatus::Pending => Self::Pending,
+            lana_app::contract_creation::SimpleLoanAgreementStatus::Completed => Self::Completed,
+            lana_app::contract_creation::SimpleLoanAgreementStatus::Failed => Self::Failed,
+            lana_app::contract_creation::SimpleLoanAgreementStatus::Removed => Self::Failed,
+        }
+    }
+}
+
+#[derive(SimpleObject, Clone)]
+pub struct LoanAgreement {
+    id: ID,
+    status: LoanAgreementStatus,
+    created_at: Timestamp,
+}
+
+impl LoanAgreement {
+    pub fn new(
+        id: uuid::Uuid,
+        status: LoanAgreementStatus,
+        created_at: chrono::DateTime<chrono::Utc>,
+    ) -> Self {
+        Self {
+            id: id.to_string().into(),
+            status,
+            created_at: created_at.into(),
+        }
+    }
+}
+
+impl From<lana_app::contract_creation::SimpleLoanAgreement> for LoanAgreement {
+    fn from(simple_loan_agreement: lana_app::contract_creation::SimpleLoanAgreement) -> Self {
+        Self::new(
+            simple_loan_agreement.id,
+            simple_loan_agreement.status.into(),
+            simple_loan_agreement.created_at,
+        )
+    }
+}
+
+#[derive(InputObject)]
+pub struct LoanAgreementGenerateInput {
+    pub customer_id: UUID,
+}
+
+crate::mutation_payload! { LoanAgreementGeneratePayload, loan_agreement: LoanAgreement }
+
+#[derive(InputObject)]
+pub struct LoanAgreementDownloadLinksGenerateInput {
+    pub loan_agreement_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct LoanAgreementDownloadLinksGeneratePayload {
+    loan_agreement_id: UUID,
+    link: String,
+}
+
+impl From<lana_app::document::GeneratedDocumentDownloadLink>
+    for LoanAgreementDownloadLinksGeneratePayload
+{
+    fn from(value: lana_app::document::GeneratedDocumentDownloadLink) -> Self {
+        Self {
+            loan_agreement_id: UUID::from(value.document_id),
+            link: value.link,
+        }
+    }
+}

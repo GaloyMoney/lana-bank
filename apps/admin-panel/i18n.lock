@@ -351,9 +351,12 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/noMonthlyPaymentAvailable: 3571c074ce377c24810128d5ee89fb5e
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanTerms: 1ebf872e0d722fc8651f5f7108208fc3
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/walletDetails: ffdfb4ea0c46005fe1ab5851154b84ce
+    CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanAgreement: 8b57e9c349cfb05286388fec7247d078
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
+    CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/success: 62cfb0cfd632a91991a1300597f37751
+    CreditFacilities/CreditFacilityDetails/DetailsCard/loanAgreement/error: 888ad57aa228cb9a409d22468bb3f9ba
     CreditFacilities/CreditFacilityDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74

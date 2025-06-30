@@ -1,0 +1,45 @@
+# Loan Agreement
+
+## Customer Information
+
+**Full Name:** {{full_name}}
+**Email:** {{email}}
+**Customer ID:** {{customer_id}}
+**Telegram ID:** {{telegram_id}}
+
+{{#if address}}
+**Address:** {{address}}
+{{/if}}
+{{#if country}}
+**Country:** {{country}}
+{{/if}}
+
+---
+
+## Terms and Conditions
+
+This loan agreement is created for **{{full_name}}** ({{email}}).
+
+### Personal Details
+{{#if address}}
+- **Address:** {{address}}
+{{/if}}
+{{#if country}}
+- **Country of Residence:** {{country}}
+{{/if}}
+
+### Agreement Terms
+
+1. This is a Bitcoin-backed loan agreement
+2. Generated automatically by the Lana Banking System
+3. Customer contact: {{email}}
+4. Customer ID: {{customer_id}}
+
+### Contact Information
+
+- **Primary Email:** {{email}}
+- **Telegram ID:** {{telegram_id}}
+
+---
+
+*This document was generated automatically on {{date}} for customer {{full_name}}.*

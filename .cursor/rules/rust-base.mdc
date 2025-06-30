@@ -36,7 +36,7 @@ You can query the database to debug with `psql -U user -h localhost -p 5433 -d p
 
 You should know about those commands:
 
-- `make check-code` to verify that the code compile
+- `make check-code-rust-cargo` to verify that the code compile
 - `make sdl` to regenerate the schema.graphql. do not attempt to update schema.graphql yourself
 - `make sqlx-prepare` to update the .sqlx files. do not attempt to update the .sqlx files yourself
 
@@ -93,3 +93,19 @@ if the filename is different than what is above, this contains domain logic code
 ### serde
 
 if you need to serialized and deserialize json, in general try to use things like `#[serde(rename_all = "camelCase")]` instead of renaming field manually
+
+### function names
+
+we have the following convention:
+`new` -> always succeeds, sync
+`try_new` -> might fail, sync
+`init` -> might fail, async
+
+### otel
+
+instead of doing a println, we want to do debugging through otel
+the exception to this rule is when we are working on unit or integration tests where println is fine
+
+### expending macro
+
+for es-entity or indepotency guard, you can expend the macro to understand what it's doing

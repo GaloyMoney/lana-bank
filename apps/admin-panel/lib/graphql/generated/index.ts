@@ -1283,6 +1283,38 @@ export type Loan = {
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
 };
 
+export type LoanAgreement = {
+  __typename?: 'LoanAgreement';
+  createdAt: Scalars['Timestamp']['output'];
+  id: Scalars['ID']['output'];
+  status: LoanAgreementStatus;
+};
+
+export type LoanAgreementDownloadLinksGenerateInput = {
+  loanAgreementId: Scalars['UUID']['input'];
+};
+
+export type LoanAgreementDownloadLinksGeneratePayload = {
+  __typename?: 'LoanAgreementDownloadLinksGeneratePayload';
+  link: Scalars['String']['output'];
+  loanAgreementId: Scalars['UUID']['output'];
+};
+
+export type LoanAgreementGenerateInput = {
+  customerId: Scalars['UUID']['input'];
+};
+
+export type LoanAgreementGeneratePayload = {
+  __typename?: 'LoanAgreementGeneratePayload';
+  loanAgreement: LoanAgreement;
+};
+
+export enum LoanAgreementStatus {
+  Completed = 'COMPLETED',
+  Failed = 'FAILED',
+  Pending = 'PENDING'
+}
+
 export type ManualTransactionEntryInput = {
   accountRef: Scalars['String']['input'];
   amount: Scalars['Decimal']['input'];
@@ -1332,6 +1364,8 @@ export type Mutation = {
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
+  loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
+  loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
@@ -1486,6 +1520,16 @@ export type MutationDepositRecordArgs = {
 
 export type MutationLedgerAccountCsvCreateArgs = {
   input: LedgerAccountCsvCreateInput;
+};
+
+
+export type MutationLoanAgreementDownloadLinkGenerateArgs = {
+  input: LoanAgreementDownloadLinksGenerateInput;
+};
+
+
+export type MutationLoanAgreementGenerateArgs = {
+  input: LoanAgreementGenerateInput;
 };
 
 
@@ -1748,6 +1792,7 @@ export type Query = {
   ledgerAccountByCode?: Maybe<LedgerAccount>;
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
+  loanAgreement?: Maybe<LoanAgreement>;
   me: Subject;
   permissionSets: PermissionSetConnection;
   policies: PolicyConnection;
@@ -1921,6 +1966,11 @@ export type QueryLedgerTransactionsForTemplateCodeArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
   templateCode: Scalars['String']['input'];
+};
+
+
+export type QueryLoanAgreementArgs = {
+  id: Scalars['UUID']['input'];
 };
 
 
@@ -3114,6 +3164,27 @@ export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never
 
 
 export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: UsdCents } };
+
+export type LoanAgreementGenerateMutationVariables = Exact<{
+  input: LoanAgreementGenerateInput;
+}>;
+
+
+export type LoanAgreementGenerateMutation = { __typename?: 'Mutation', loanAgreementGenerate: { __typename?: 'LoanAgreementGeneratePayload', loanAgreement: { __typename?: 'LoanAgreement', id: string, status: LoanAgreementStatus, createdAt: any } } };
+
+export type LoanAgreementDownloadLinkGenerateMutationVariables = Exact<{
+  input: LoanAgreementDownloadLinksGenerateInput;
+}>;
+
+
+export type LoanAgreementDownloadLinkGenerateMutation = { __typename?: 'Mutation', loanAgreementDownloadLinkGenerate: { __typename?: 'LoanAgreementDownloadLinksGeneratePayload', loanAgreementId: string, link: string } };
+
+export type LoanAgreementQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type LoanAgreementQuery = { __typename?: 'Query', loanAgreement?: { __typename?: 'LoanAgreement', id: string, status: LoanAgreementStatus, createdAt: any } | null };
 
 export type SearchPublicIdTargetQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -7874,6 +7945,119 @@ export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRea
 export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
 export type GetRealtimePriceUpdatesSuspenseQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesSuspenseQuery>;
 export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
+export const LoanAgreementGenerateDocument = gql`
+    mutation LoanAgreementGenerate($input: LoanAgreementGenerateInput!) {
+  loanAgreementGenerate(input: $input) {
+    loanAgreement {
+      id
+      status
+      createdAt
+    }
+  }
+}
+    `;
+export type LoanAgreementGenerateMutationFn = Apollo.MutationFunction<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>;
+
+/**
+ * __useLoanAgreementGenerateMutation__
+ *
+ * To run a mutation, you first call `useLoanAgreementGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanAgreementGenerateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanAgreementGenerateMutation, { data, loading, error }] = useLoanAgreementGenerateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanAgreementGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>(LoanAgreementGenerateDocument, options);
+      }
+export type LoanAgreementGenerateMutationHookResult = ReturnType<typeof useLoanAgreementGenerateMutation>;
+export type LoanAgreementGenerateMutationResult = Apollo.MutationResult<LoanAgreementGenerateMutation>;
+export type LoanAgreementGenerateMutationOptions = Apollo.BaseMutationOptions<LoanAgreementGenerateMutation, LoanAgreementGenerateMutationVariables>;
+export const LoanAgreementDownloadLinkGenerateDocument = gql`
+    mutation LoanAgreementDownloadLinkGenerate($input: LoanAgreementDownloadLinksGenerateInput!) {
+  loanAgreementDownloadLinkGenerate(input: $input) {
+    loanAgreementId
+    link
+  }
+}
+    `;
+export type LoanAgreementDownloadLinkGenerateMutationFn = Apollo.MutationFunction<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
+
+/**
+ * __useLoanAgreementDownloadLinkGenerateMutation__
+ *
+ * To run a mutation, you first call `useLoanAgreementDownloadLinkGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useLoanAgreementDownloadLinkGenerateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [loanAgreementDownloadLinkGenerateMutation, { data, loading, error }] = useLoanAgreementDownloadLinkGenerateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useLoanAgreementDownloadLinkGenerateMutation(baseOptions?: Apollo.MutationHookOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>(LoanAgreementDownloadLinkGenerateDocument, options);
+      }
+export type LoanAgreementDownloadLinkGenerateMutationHookResult = ReturnType<typeof useLoanAgreementDownloadLinkGenerateMutation>;
+export type LoanAgreementDownloadLinkGenerateMutationResult = Apollo.MutationResult<LoanAgreementDownloadLinkGenerateMutation>;
+export type LoanAgreementDownloadLinkGenerateMutationOptions = Apollo.BaseMutationOptions<LoanAgreementDownloadLinkGenerateMutation, LoanAgreementDownloadLinkGenerateMutationVariables>;
+export const LoanAgreementDocument = gql`
+    query LoanAgreement($id: UUID!) {
+  loanAgreement(id: $id) {
+    id
+    status
+    createdAt
+  }
+}
+    `;
+
+/**
+ * __useLoanAgreementQuery__
+ *
+ * To run a query within a React component, call `useLoanAgreementQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLoanAgreementQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLoanAgreementQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useLoanAgreementQuery(baseOptions: Apollo.QueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables> & ({ variables: LoanAgreementQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+      }
+export function useLoanAgreementLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+        }
+export function useLoanAgreementSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LoanAgreementQuery, LoanAgreementQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LoanAgreementQuery, LoanAgreementQueryVariables>(LoanAgreementDocument, options);
+        }
+export type LoanAgreementQueryHookResult = ReturnType<typeof useLoanAgreementQuery>;
+export type LoanAgreementLazyQueryHookResult = ReturnType<typeof useLoanAgreementLazyQuery>;
+export type LoanAgreementSuspenseQueryHookResult = ReturnType<typeof useLoanAgreementSuspenseQuery>;
+export type LoanAgreementQueryResult = Apollo.QueryResult<LoanAgreementQuery, LoanAgreementQueryVariables>;
 export const SearchPublicIdTargetDocument = gql`
     query SearchPublicIdTarget($publicId: PublicId!) {
   publicIdTarget(id: $publicId) {
