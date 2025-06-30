@@ -48,28 +48,12 @@ podman-debug:
 	@echo "--- End Debug Information ---"
 
 # ── Container Management ──────────────────────────────────────────────────────────
-start-deps-podman: podman-setup
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./dev/bin/docker-compose-up.sh
-	wait4x postgresql $${PG_CON}
+# The ENGINE_DEFAULT and DOCKER_HOST environment variables are automatically set based on
+# available container engines. To force use of podman, set PREFER_PODMAN=1 in your environment.
+# The podman-* targets below are available for manual setup when needed.
 
-clean-deps-podman: 
-	@DOCKER_HOST=$$(./dev/bin/podman-get-socket.sh) ENGINE_DEFAULT=podman ./dev/bin/clean-deps.sh
-
-reset-deps-podman: clean-deps-podman start-deps-podman setup-db
 
 # ── Test Targets ───────────────────────────────────────────────────────────────────
-test-integration-podman: start-deps-podman
-	@echo "--- Running Integration Tests with Podman ---"
-	@$(MAKE) setup-db
-	@cargo nextest run --verbose --locked
-	@$(MAKE) clean-deps-podman
-
-test-bats-podman: start-deps-podman
-	@echo "--- Running BATS Tests with Podman ---"
-	@$(MAKE) setup-db
-	@nix build . -L
-	@./dev/bin/run-bats-with-server.sh
-	@$(MAKE) clean-deps-podman
 
 next-watch:
 	cargo watch -s 'cargo nextest run'
@@ -79,6 +63,7 @@ clean-deps:
 
 start-deps:
 	./dev/bin/docker-compose-up.sh
+	wait4x postgresql $${PG_CON}
 
 # Rust backend
 setup-db:
@@ -196,7 +181,7 @@ test-cypress-in-ci:
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://admin.localhost:4455 || echo "Admin panel via proxy failed"
 	@echo "Database connectivity check:"
 	@echo "Container status:"
-	@podman ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "Failed to check container status"
+	@$${ENGINE_DEFAULT:-docker} ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "Failed to check container status"
 	@echo "--- End Health Checks ---"
 	@echo "--- Running Cypress Tests ---"
 	cd apps/admin-panel && CI=true pnpm cypress:run headless
@@ -249,10 +234,10 @@ build-x86_64-unknown-linux-musl-release:
 
 # Login code retrieval
 get-admin-login-code:
-	@podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+	@$${ENGINE_DEFAULT:-docker} exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
 
 get-customer-login-code:
-	@podman exec lana-bank-kratos-customer-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+	@$${ENGINE_DEFAULT:-docker} exec lana-bank-kratos-customer-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
 
 get-superadmin-login-code:
-	@podman exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='admin@galoy.io' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+	@$${ENGINE_DEFAULT:-docker} exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='admin@galoy.io' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
