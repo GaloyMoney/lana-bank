@@ -744,6 +744,7 @@ type CustodianConnection {
 
 input CustodianCreateInput @oneOf {
 	komainu: KomainuConfig
+	mock: MockConfig
 }
 
 type CustodianCreatePayload {
@@ -1297,6 +1298,10 @@ input ManualTransactionExecuteInput {
 
 type ManualTransactionExecutePayload {
 	transaction: LedgerTransaction!
+}
+
+input MockConfig {
+	name: String!
 }
 
 type Mutation {

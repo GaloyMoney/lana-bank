@@ -62,7 +62,7 @@ pub mod mock {
         async fn create_address<'a>(
             &self,
             label: &str,
-            _state: PersistedCustodianState<'a>,
+            _state: CustodianStateRepo<'a>,
         ) -> Result<AddressResponse, CustodianClientError> {
             Ok(AddressResponse {
                 address: "bt1qaddressmock".to_string(),
