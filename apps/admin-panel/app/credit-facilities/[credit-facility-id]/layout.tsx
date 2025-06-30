@@ -48,6 +48,9 @@ gql`
         total {
           usdBalance
         }
+        outstandingPayable {
+          usdBalance
+        }
         outstanding {
           usdBalance
         }

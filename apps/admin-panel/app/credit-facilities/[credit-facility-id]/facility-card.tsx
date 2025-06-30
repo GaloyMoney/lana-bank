@@ -56,6 +56,15 @@ function FacilityCard({
       ),
     },
     {
+      label: t("details.disbursedOutstandingPayable"),
+      value: (
+        <Balance
+          amount={creditFacility.balance.disbursed.outstandingPayable.usdBalance}
+          currency="usd"
+        />
+      ),
+    },
+    {
       label: t("details.outstandingInterest"),
       value: (
         <Balance
