@@ -1,3 +1,9 @@
+pub use config::*;
+use error::ApplicantError;
+
+use repo::ApplicantRepo;
+pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse, SumsubClient};
+
 mod config;
 pub mod error;
 mod repo;
@@ -17,12 +23,6 @@ use crate::{
     outbox::Outbox,
     primitives::Subject,
 };
-
-pub use config::*;
-use error::ApplicantError;
-
-use repo::ApplicantRepo;
-pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse, SumsubClient};
 
 use async_graphql::*;
 

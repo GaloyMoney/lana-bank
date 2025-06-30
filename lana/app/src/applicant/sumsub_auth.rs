@@ -18,8 +18,8 @@ const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 #[derive(Clone, Debug)]
 pub struct SumsubClient {
     client: ReqwestClient,
-    pub sumsub_key: String,
-    pub sumsub_secret: String,
+    sumsub_key: String,
+    sumsub_secret: String,
 }
 
 #[derive(Deserialize, Debug)]
