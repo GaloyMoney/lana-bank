@@ -4,7 +4,6 @@
 #@   "build_edge_image",
 #@   "public_gar_registry",
 #@   "nodejs_task_image_config",
-#@   "docker_host_pool",
 #@   "edge_image_resource",
 #@   "version_resource",
 #@   "gh_release_resource",
