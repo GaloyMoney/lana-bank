@@ -52,7 +52,7 @@ teardown_file() {
     }')
 
   # Execute the GraphQL mutation for file upload
-  response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")  
+  response=$(exec_admin_graphql_upload "customer-document-attach" "$variables" "$temp_file")
   document_id=$(echo "$response" | jq -r '.data.customerDocumentAttach.document.documentId')
   [[ "$document_id" != null ]] || exit 1
   
@@ -98,7 +98,21 @@ teardown_file() {
   exec_admin_graphql 'customer-document-download-link-generate' "$variables"
 
   download_link=$(graphql_output .data.customerDocumentDownloadLinkGenerate.link)
+  echo "Download link: $download_link"
+
   [[ "$download_link" != "null" && "$download_link" != "" ]] || exit 1
+
+  # Handle both local file:// URLs and HTTP URLs
+  if [[ "$download_link" == file://* ]]; then
+    # For local storage, check if the file exists
+    local_path="${download_link#file://}"
+    [[ -f "$local_path" ]] || exit 1
+    echo "Local file verified: $local_path"
+  else
+    # For HTTP URLs (GCP), use curl
+    response=$(curl -s -o /dev/null -w "%{http_code}" "$download_link")
+    [[ "$response" == "200" ]] || exit 1
+  fi
 
   # archive the document
   variables=$(jq -n \

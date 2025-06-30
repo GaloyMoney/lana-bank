@@ -11,7 +11,7 @@
 - **Rust Architecture**: Hexagonal architecture with adapter/use-case layers
 - **File Naming**: `mod.rs` (interface), `repo.rs` (storage), `entity.rs` (events), `error.rs` (errors)
 - **Dependencies**: Add to root Cargo.toml with `{ workspace = true }`
-- **GraphQL**: Don't edit schema.graphql manually, use `make sdl`
+- **GraphQL**: Don't edit schema.graphql manually, use `make sdl-rust`
 - **Formatting**: Use Rust fmt, Follow DDD (Domain-Driven Design) pattern
 - **Error Handling**: Module-specific errors in `error.rs`
 - **Frontend**: NextJS with TypeScript, lint with `pnpm lint`

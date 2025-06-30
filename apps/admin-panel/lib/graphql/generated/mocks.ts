@@ -1629,6 +1629,34 @@ export const mockLoan = (overrides?: Partial<Loan>, _relationshipsToOmit: Set<st
     };
 };
 
+export const mockLoanAgreement = (overrides?: Partial<LoanAgreement>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LoanAgreement' } & LoanAgreement => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LoanAgreement');
+    return {
+        __typename: 'LoanAgreement',
+        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : LoanAgreementStatus.Completed,
+    };
+};
+
+export const mockLoanAgreementGenerateInput = (overrides?: Partial<LoanAgreementGenerateInput>, _relationshipsToOmit: Set<string> = new Set()): LoanAgreementGenerateInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LoanAgreementGenerateInput');
+    return {
+        customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockLoanAgreementGeneratePayload = (overrides?: Partial<LoanAgreementGeneratePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'LoanAgreementGeneratePayload' } & LoanAgreementGeneratePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('LoanAgreementGeneratePayload');
+    return {
+        __typename: 'LoanAgreementGeneratePayload',
+        loanAgreement: overrides && overrides.hasOwnProperty('loanAgreement') ? overrides.loanAgreement! : relationshipsToOmit.has('LoanAgreement') ? {} as LoanAgreement : mockLoanAgreement({}, relationshipsToOmit),
+    };
+};
+
 export const mockManualTransactionEntryInput = (overrides?: Partial<ManualTransactionEntryInput>, _relationshipsToOmit: Set<string> = new Set()): ManualTransactionEntryInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ManualTransactionEntryInput');
@@ -1693,6 +1721,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         depositModuleConfigure: overrides && overrides.hasOwnProperty('depositModuleConfigure') ? overrides.depositModuleConfigure! : relationshipsToOmit.has('DepositModuleConfigurePayload') ? {} as DepositModuleConfigurePayload : mockDepositModuleConfigurePayload({}, relationshipsToOmit),
         depositRecord: overrides && overrides.hasOwnProperty('depositRecord') ? overrides.depositRecord! : relationshipsToOmit.has('DepositRecordPayload') ? {} as DepositRecordPayload : mockDepositRecordPayload({}, relationshipsToOmit),
         ledgerAccountCsvCreate: overrides && overrides.hasOwnProperty('ledgerAccountCsvCreate') ? overrides.ledgerAccountCsvCreate! : relationshipsToOmit.has('LedgerAccountCsvCreatePayload') ? {} as LedgerAccountCsvCreatePayload : mockLedgerAccountCsvCreatePayload({}, relationshipsToOmit),
+        loanAgreementGenerate: overrides && overrides.hasOwnProperty('loanAgreementGenerate') ? overrides.loanAgreementGenerate! : relationshipsToOmit.has('LoanAgreementGeneratePayload') ? {} as LoanAgreementGeneratePayload : mockLoanAgreementGeneratePayload({}, relationshipsToOmit),
         manualTransactionExecute: overrides && overrides.hasOwnProperty('manualTransactionExecute') ? overrides.manualTransactionExecute! : relationshipsToOmit.has('ManualTransactionExecutePayload') ? {} as ManualTransactionExecutePayload : mockManualTransactionExecutePayload({}, relationshipsToOmit),
         policyAssignCommittee: overrides && overrides.hasOwnProperty('policyAssignCommittee') ? overrides.policyAssignCommittee! : relationshipsToOmit.has('PolicyAssignCommitteePayload') ? {} as PolicyAssignCommitteePayload : mockPolicyAssignCommitteePayload({}, relationshipsToOmit),
         profitAndLossStatementConfigure: overrides && overrides.hasOwnProperty('profitAndLossStatementConfigure') ? overrides.profitAndLossStatementConfigure! : relationshipsToOmit.has('ProfitAndLossStatementModuleConfigurePayload') ? {} as ProfitAndLossStatementModuleConfigurePayload : mockProfitAndLossStatementModuleConfigurePayload({}, relationshipsToOmit),

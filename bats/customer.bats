@@ -2,7 +2,6 @@
 
 load "helpers"
 
-PERSISTED_LOG_FILE="customer.e2e-logs"
 RUN_LOG_FILE="customer.run.e2e-logs"
 
 setup_file() {
@@ -47,7 +46,6 @@ wait_for_approval() {
   
   exec_admin_graphql 'customer-create' "$variables"
   customer_id=$(graphql_output .data.customerCreate.customer.customerId)
-  echo $(graphql_output) | jq .
   [[ "$customer_id" != "null" ]] || exit 1
   
   # Verify customerType in response
