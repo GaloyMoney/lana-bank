@@ -631,28 +631,34 @@ impl NewObligation {
 
 impl IntoEvents<ObligationEvent> for NewObligation {
     fn into_events(self) -> EntityEvents<ObligationEvent> {
-        EntityEvents::init(
-            self.id,
-            [ObligationEvent::Initialized {
-                id: self.id,
-                credit_facility_id: self.credit_facility_id,
-                obligation_type: self.obligation_type,
-                reference: self.reference(),
-                amount: self.amount,
-                ledger_tx_id: self.tx_id,
-                not_yet_due_accounts: self.not_yet_due_accounts,
-                due_accounts: self.due_accounts,
-                overdue_accounts: self.overdue_accounts,
-                in_liquidation_account_id: self.in_liquidation_account_id,
-                defaulted_account_id: self.defaulted_account_id,
-                due_date: self.due_date,
-                overdue_date: self.overdue_date,
-                defaulted_date: self.defaulted_date,
-                liquidation_date: self.liquidation_date,
+        let mut events = vec![ObligationEvent::Initialized {
+            id: self.id,
+            credit_facility_id: self.credit_facility_id,
+            obligation_type: self.obligation_type,
+            reference: self.reference(),
+            amount: self.amount,
+            ledger_tx_id: self.tx_id,
+            not_yet_due_accounts: self.not_yet_due_accounts,
+            due_accounts: self.due_accounts,
+            overdue_accounts: self.overdue_accounts,
+            in_liquidation_account_id: self.in_liquidation_account_id,
+            defaulted_account_id: self.defaulted_account_id,
+            due_date: self.due_date,
+            overdue_date: self.overdue_date,
+            defaulted_date: self.defaulted_date,
+            liquidation_date: self.liquidation_date,
+            effective: self.effective,
+            audit_info: self.audit_info.clone(),
+        }];
+
+        if self.amount.is_zero() {
+            events.push(ObligationEvent::Completed {
                 effective: self.effective,
                 audit_info: self.audit_info,
-            }],
-        )
+            });
+        }
+
+        EntityEvents::init(self.id, events)
     }
 }
 
@@ -726,6 +732,41 @@ mod test {
             effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         }]
+    }
+
+    #[test]
+    fn is_paid_for_zero_amount() {
+        let amount = UsdCents::ZERO;
+        let new_obligation = NewObligation::builder()
+            .id(ObligationId::new())
+            .credit_facility_id(CreditFacilityId::new())
+            .obligation_type(ObligationType::Disbursal)
+            .reference("ref-01".to_string())
+            .amount(amount)
+            .tx_id(LedgerTxId::new())
+            .not_yet_due_accounts(ObligationAccounts {
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
+            })
+            .due_accounts(ObligationAccounts {
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
+            })
+            .overdue_accounts(ObligationAccounts {
+                receivable_account_id: CalaAccountId::new(),
+                account_to_be_credited_id: CalaAccountId::new(),
+            })
+            .in_liquidation_account_id(CalaAccountId::new())
+            .defaulted_account_id(CalaAccountId::new())
+            .due_date(Utc::now())
+            .overdue_date(Some(Utc::now()))
+            .effective(Utc::now().date_naive())
+            .audit_info(dummy_audit_info())
+            .build()
+            .expect("could not build new disbursal obligation");
+        let obligation = Obligation::try_from_events(new_obligation.into_events()).unwrap();
+
+        assert_eq!(obligation.status(), ObligationStatus::Paid);
     }
 
     #[test]
