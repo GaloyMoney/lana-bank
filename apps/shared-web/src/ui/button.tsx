@@ -50,14 +50,23 @@ const Button = React.forwardRef<HTMLButtonElement, ButtonProps>(
       <Comp
         className={cn(
           buttonVariants({ variant, size, className }),
-          loading && "opacity-50 cursor-not-allowed",
+          loading && "opacity-50 cursor-not-allowed relative"
         )}
         ref={ref}
         disabled={loading || props.disabled}
         {...props}
       >
         {loading ? (
-          <span className="inline-block w-4 h-4 border-2 border-t-transparent border-white rounded-full animate-spin" />
+          <>
+            {React.Children.map(children, (child, idx) => (
+              <span key={idx} className="opacity-0">
+                {child}
+              </span>
+            ))}
+            <span className="absolute inset-0 flex items-center justify-center">
+              <span className="inline-block w-4 h-4 border-2 border-t-transparent border-current rounded-full animate-spin" />
+            </span>
+          </>
         ) : (
           children
         )}
