@@ -50,7 +50,7 @@ podman-debug:
 # ── Container Management ──────────────────────────────────────────────────────────
 # The ENGINE_DEFAULT and DOCKER_HOST environment variables are automatically set based on
 # available container engines. To force use of podman, set PREFER_PODMAN=1 in your environment.
-# The podman-* targets below are available for manual setup when needed.
+# The podman-* targets below are Linux-only and used for manual podman service setup.
 
 
 # ── Test Targets ───────────────────────────────────────────────────────────────────
