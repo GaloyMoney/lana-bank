@@ -20,10 +20,9 @@ use crate::{
 
 pub use config::*;
 use error::ApplicantError;
-use sumsub_auth::*;
 
 use repo::ApplicantRepo;
-pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
+pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse, SumsubClient};
 
 use async_graphql::*;
 
