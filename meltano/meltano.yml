@@ -105,14 +105,12 @@ plugins:
     - name: dbt-bigquery
       variant: dbt-labs
       pip_url: dbt-core~=1.8.0 dbt-bigquery~=1.8.0
+      commands:
+        drop-old-relations: run-operation drop_old_relations
+        drop-all-relations: run-operation drop_all_relations
       config:
         auth_method: service-account
         project: lana-dev-440721
-      commands:
-        drop-old-relations:
-          args: run-operation drop_old_relations
-        drop-all-relations:
-          args: run-operation drop_all_relations
   utilities:
     - name: sqlfluff
       variant: sqlfluff
@@ -131,13 +129,15 @@ plugins:
     - name: airflow
       variant: apache
       pip_url:
-        git+https://github.com/meltano/airflow-ext.git@main apache-airflow[postgres]==2.10.4 apache-airflow-providers-google
-        --constraint
-        https://raw.githubusercontent.com/apache/airflow/constraints-2.10.4/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
+        git+https://github.com/meltano/airflow-ext.git@main apache-airflow[postgres]==2.10.5
+        apache-airflow-providers-google --constraint
+        https://raw.githubusercontent.com/apache/airflow/constraints-2.10.5/constraints-no-providers-${MELTANO__PYTHON_VERSION}.txt
+      config:
+        database:
+          sql_alchemy_conn: postgresql+psycopg2://user:password@localhost:5436/pg
     - name: generate-es-reports
       namespace: generate_es_reports
       pip_url: -e ${MELTANO_PROJECT_ROOT}/utilities/generate-es-reports
       executable: generate-es-reports
       commands:
-        run:
-          args: "</dev/null"
+        run: </dev/null
