@@ -352,16 +352,11 @@ struct AccountDetails {
 
 #[cfg(test)]
 mod test {
-    use audit::{AuditEntryId, AuditInfo};
+    use audit::{AuditEntryId, AuditInfo, test_utils::dummy_audit_info};
 
     use super::*;
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
+
 
     fn chart_from(events: Vec<ChartEvent>) -> Chart {
         Chart::try_from_events(EntityEvents::init(ChartId::new(), events)).unwrap()

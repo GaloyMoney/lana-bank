@@ -293,14 +293,9 @@ impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use audit::{AuditEntryId, AuditInfo};
+    use audit::{AuditEntryId, AuditInfo, test_utils::dummy_audit_info};
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
+
 
     fn init_events(rules: ApprovalRules) -> EntityEvents<ApprovalProcessEvent> {
         EntityEvents::init(

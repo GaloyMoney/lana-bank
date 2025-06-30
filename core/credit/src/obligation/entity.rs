@@ -682,16 +682,11 @@ impl PartialEq for Obligation {
 
 #[cfg(test)]
 mod test {
-    use audit::{AuditEntryId, AuditInfo};
+    use audit::{AuditEntryId, AuditInfo, test_utils::dummy_audit_info};
 
     use super::*;
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
+
 
     fn obligation_from(events: Vec<ObligationEvent>) -> Obligation {
         Obligation::try_from_events(EntityEvents::init(ObligationId::new(), events)).unwrap()

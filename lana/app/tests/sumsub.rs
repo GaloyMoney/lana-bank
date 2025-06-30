@@ -22,25 +22,7 @@ fn get_random_credentials() -> (String, String) {
     (email, telegram_id)
 }
 
-// Function to programmatically "visit" the URL to register the applicant
-async fn _visit_permalink(url: &str) -> anyhow::Result<()> {
-    println!("DEBUG: Programmatically accessing URL: {}", url);
 
-    // Create a client with default configuration
-    let client = reqwest::Client::builder()
-        .user_agent("Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36")
-        .build()?;
-
-    // Send a GET request to the URL
-    let response = client.get(url).send().await?;
-
-    println!("DEBUG: URL access response status: {}", response.status());
-
-    // Wait a moment for Sumsub to process
-    thread::sleep(Duration::from_secs(2));
-
-    Ok(())
-}
 
 #[tokio::test]
 async fn create_permalink() -> anyhow::Result<()> {

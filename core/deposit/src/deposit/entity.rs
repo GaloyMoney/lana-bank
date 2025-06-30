@@ -123,16 +123,11 @@ impl IntoEvents<DepositEvent> for NewDeposit {
 
 #[cfg(test)]
 mod test {
-    use audit::AuditEntryId;
+    use audit::{AuditEntryId, test_utils::dummy_audit_info};
 
     use super::*;
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
+
 
     #[test]
     fn errors_when_zero_amount_deposit_amount_is_passed() {
