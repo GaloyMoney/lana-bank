@@ -29,13 +29,36 @@ services:
       DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-customer-pg ]
-  
+
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
     ports: [ 4455:4455, 4456:4456 ]
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: [ "./dev/ory:/home/ory" ]
     depends_on: [ kratos-admin, kratos-customer, otel-agent ]
+
+  mailcrab:
+    image: marlonb/mailcrab:latest
+    ports: [ 1025:1025, 1080:1080 ]
+
+  airflow-scheduler:
+    image: meltano:latest # nix build .#meltano-image && docker load < result
+    command: invoke airflow scheduler
+    volumes: ["./meltano:/workspace/meltano:rw"]
+    depends_on: [airflow-pg]
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
+
+  airflow-webserver:
+    image: meltano:latest # nix build .#meltano-image && docker load < result
+    command: invoke airflow webserver
+    ports: [8080:8080]
+    volumes: ["./meltano:/workspace/meltano:rw"]
+    depends_on: [airflow-pg]
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
 
   #! Databases
   core-pg:
@@ -53,6 +76,8 @@ services:
     ports: [ 5435:5432 ]
     environment: [ POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default ]
 
-  mailcrab:
-    image: marlonb/mailcrab:latest
-    ports: [ 1025:1025, 1080:1080 ]
+  airflow-pg:
+    image: ghcr.io/cloudnative-pg/postgresql:17.5
+    ports: [5436:5432]
+    environment:
+      [POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg]
