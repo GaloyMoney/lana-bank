@@ -36,7 +36,6 @@ with initialized as (
     select
         id as disbursal_id,
         recorded_at as event_recorded_at,
-        cast(json_value(event, '$.recorded_at') as timestamp) as settled_recorded_at,
         cast(json_value(event, '$.amount') as numeric) / {{ var('cents_per_usd') }} as settled_amount_usd,
         json_value(event, '$.ledger_tx_id') as ledger_tx_id,
         json_value(event, '$.obligation_id') as obligation_id,

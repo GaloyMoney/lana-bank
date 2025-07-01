@@ -2,7 +2,6 @@ with initialized as (
     select
         id as obligation_id,
         recorded_at as event_recorded_at,
-        cast(json_value(event, "$.recorded_at") as timestamp) as initialized_recorded_at,
 
         json_value(event, "$.credit_facility_id") as credit_facility_id,
 
