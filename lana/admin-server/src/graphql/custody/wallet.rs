@@ -26,8 +26,7 @@ impl From<DomainWallet> for Wallet {
 
 #[ComplexObject]
 impl Wallet {
-    async fn address(&self) -> &str {
-        let _x = self.entity.id.to_string();
-        "address"
+    async fn address(&self) -> Option<&str> {
+        self.entity.address()
     }
 }

@@ -48,11 +48,7 @@ wait_for_active() {
   )
 
   exec_admin_graphql 'custodian-create' "$variables"
-
   custodian_id=$(graphql_output '.data.custodianCreate.custodian.custodianId')
-
-  echo $custodian_id
-
   cache_value 'custodian_id' "$custodian_id"
 }
 
@@ -75,8 +71,6 @@ wait_for_active() {
   [[ "$deposit_account_id" != "null" ]] || exit 1
 
   custodian_id=$(read_value 'custodian_id')
-
-  echo $custodian_id
   
   facility=100000
   variables=$(
@@ -110,15 +104,13 @@ wait_for_active() {
 
   exec_admin_graphql 'credit-facility-create' "$variables"
 
-  echo $(graphql_output)
-  
   credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
 
   cache_value 'credit_facility_id' "$credit_facility_id"
 
   address=$(graphql_output '.data.creditFacilityCreate.creditFacility.wallet.address')
-  [[ "$address" == "address" ]] || exit 1
+  [[ "$address" == "bt1qaddressmock" ]] || exit 1
 }
 
 @test "credit-facility-custody: cannot update collateral with a custodian" {

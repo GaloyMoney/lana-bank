@@ -54,6 +54,13 @@ impl Wallet {
 
         Idempotent::Executed(())
     }
+
+    pub fn address(&self) -> Option<&str> {
+        self.events.iter_all().find_map(|e| match e {
+            WalletEvent::AddressAllocated { address, .. } => Some(address.as_str()),
+            _ => None,
+        })
+    }
 }
 
 impl TryFromEvents<WalletEvent> for Wallet {

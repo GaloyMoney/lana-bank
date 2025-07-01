@@ -1897,7 +1897,7 @@ type VisibleNavigationItems {
 type Wallet {
 	id: ID!
 	walletId: UUID!
-	address: String!
+	address: String
 }
 
 type Withdrawal {
