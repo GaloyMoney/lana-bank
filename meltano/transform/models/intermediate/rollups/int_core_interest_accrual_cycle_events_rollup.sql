@@ -48,8 +48,6 @@ with interest_accrual_cycle as (
             is_interest_accruals_posted,
 
             last_sequence,
-            created_at,
-            modified_at,
             _sdc_received_at,
             _sdc_batched_at,
             _sdc_extracted_at,

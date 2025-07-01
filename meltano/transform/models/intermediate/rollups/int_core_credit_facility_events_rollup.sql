@@ -68,8 +68,6 @@ with credit_facility as (
             interest_period,
             outstanding,
             last_sequence,
-            created_at,
-            modified_at,
             _sdc_received_at,
             _sdc_batched_at,
             _sdc_extracted_at,

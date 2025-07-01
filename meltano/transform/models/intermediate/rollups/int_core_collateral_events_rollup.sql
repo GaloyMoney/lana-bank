@@ -18,8 +18,6 @@ with collateral as (
             collateral_amount,
             account_id,
             last_sequence,
-            created_at,
-            modified_at,
             _sdc_received_at,
             _sdc_batched_at,
             _sdc_extracted_at,

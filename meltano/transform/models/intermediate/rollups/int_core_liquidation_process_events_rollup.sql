@@ -16,8 +16,6 @@ with liquidation_process as (
             initial_amount,
 
             last_sequence,
-            created_at,
-            modified_at,
             _sdc_received_at,
             _sdc_batched_at,
             _sdc_extracted_at,

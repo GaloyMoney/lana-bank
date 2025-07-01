@@ -24,8 +24,6 @@ with payment_allocation as (
             obligation_id,
 
             last_sequence,
-            created_at,
-            modified_at,
             _sdc_received_at,
             _sdc_batched_at,
             _sdc_extracted_at,

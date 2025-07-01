@@ -16,8 +16,6 @@ with payment as (
             is_payment_allocated,
 
             last_sequence,
-            created_at,
-            modified_at,
             _sdc_received_at,
             _sdc_batched_at,
             _sdc_extracted_at,
