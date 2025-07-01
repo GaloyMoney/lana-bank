@@ -2,7 +2,6 @@ with credit_facility as (
     select
         id as payment_id,
         credit_facility_id,
-        amount,
         cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
         cast(interest as numeric) / {{ var('cents_per_usd') }} as interest_usd,
         cast(disbursal as numeric) / {{ var('cents_per_usd') }} as disbursal_usd,
