@@ -129,11 +129,11 @@
     set -euo pipefail
     cd /workspace/meltano
 
-    # Install plugins only if .meltano/envs/default/plugins isn't populated
-    if ! ${meltano}/bin/meltano --quiet status >/dev/null 2>&1; then
+    if [ ! -f .meltano/.plugins_installed ]; then
       echo "→ First run: installing Meltano plugins…"
-      ${meltano}/bin/meltano install
-      echo "→ Now running your Meltano command..."
+      ${meltano}/bin/meltano install   # or:  meltano install -y
+      touch .meltano/.plugins_installed
+      echo "→ Plugins installed."
     fi
 
     ${meltano}/bin/meltano "$@"
