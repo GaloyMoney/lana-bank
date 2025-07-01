@@ -37,6 +37,15 @@ services:
     volumes: ["./dev/ory:/home/ory"]
     depends_on: [kratos-admin, kratos-customer, otel-agent]
 
+  airflow-scheduler:
+    image: meltano:latest # nix build .#meltano-image && docker load < result
+    command: invoke airflow scheduler
+    volumes: ["./meltano:/workspace/meltano:rw"]
+    depends_on: [airflow-pg]
+    environment:
+      AIRFLOW__CORE__EXECUTOR: LocalExecutor
+      AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
+
   airflow-webserver:
     image: meltano:latest # nix build .#meltano-image && docker load < result
     command: invoke airflow webserver
