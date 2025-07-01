@@ -5,6 +5,7 @@ extend-exclude = [
 	"/definitions/*/el-salvador-ssf/*",
 	"/meltano/transform/models/*/el-salvador-ssf/*",
 	"/meltano/transform/macros/el-salvador-ssf/*",
+	"/meltano/transform/models/outputs/non-regulatory/*",
 	"dev/fake-service-account.json",
 	"**/pnpm-lock.yaml",
 	"/apps/admin-panel/lib/graphql/generated/mocks.ts",
