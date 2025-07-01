@@ -10,7 +10,7 @@ deposit_balances as (
 deposit_accounts as (
     select *
     from
-        {{ ref('int_deposit_accounts') }}
+        {{ ref('int_core_deposit_account_events_rollup') }}
 )
 ,
 
