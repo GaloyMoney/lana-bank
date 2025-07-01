@@ -138,7 +138,7 @@ ymd() {
           duration: { period: "MONTHS", units: 3 },
           interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
           obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
-          obligationLiquidationDurationFromDue: { period: "DAYS", units: 60 },
+          obligationLiquidationDurationFromDue: { period: "DAYS", units: 360 },
           liquidationCvl: "105",
           marginCallCvl: "125",
           initialCvl: "140"
