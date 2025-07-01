@@ -21,7 +21,7 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
         sim_time::sleep(one_month).await;
     }
 
-    let cf_terms = helpers::std_terms();
+    let cf_terms = helpers::std_terms_with_liquidation();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf = app
         .credit()
