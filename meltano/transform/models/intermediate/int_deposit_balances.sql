@@ -15,7 +15,7 @@ approved_withdrawals as (
         {# withdrawal_id, #}
         deposit_account_id,
         recorded_at,
-        -amount as amount
+        -amount_usd as amount
     from {{ ref('int_approved_withdrawals') }}
 )
 ,
