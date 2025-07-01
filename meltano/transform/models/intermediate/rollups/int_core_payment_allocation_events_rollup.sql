@@ -1,4 +1,4 @@
-with credit_facility as (
+with payment_allocation as (
     select
         id as payment_allocation_id,
         payment_id,
@@ -37,4 +37,4 @@ with credit_facility as (
 )
 
 
-select * from credit_facility
+select * from payment_allocation

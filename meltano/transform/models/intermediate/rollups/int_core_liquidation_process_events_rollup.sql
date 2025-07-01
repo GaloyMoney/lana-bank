@@ -1,4 +1,4 @@
-with credit_facility as (
+with liquidation_process as (
     select
         id as liquidation_process_id,
         credit_facility_id,
@@ -29,4 +29,4 @@ with credit_facility as (
 )
 
 
-select * from credit_facility
+select * from liquidation_process

@@ -1,4 +1,4 @@
-with credit_facility as (
+with collateral as (
     select
         id as collateral_id,
         credit_facility_id,
@@ -31,4 +31,4 @@ with credit_facility as (
 )
 
 
-select * from credit_facility
+select * from collateral

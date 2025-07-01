@@ -1,4 +1,4 @@
-with credit_facility as (
+with interest_accrual_cycle as (
     select
         id as interest_accrual_cycle_id,
         credit_facility_id,
@@ -61,4 +61,4 @@ with credit_facility as (
 )
 
 
-select * from credit_facility
+select * from interest_accrual_cycle

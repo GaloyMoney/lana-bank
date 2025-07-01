@@ -1,4 +1,4 @@
-with credit_facility as (
+with disbursal as (
     select
         id as disbursal_id,
         credit_facility_id,
@@ -40,4 +40,4 @@ with credit_facility as (
 )
 
 
-select * from credit_facility
+select * from disbursal

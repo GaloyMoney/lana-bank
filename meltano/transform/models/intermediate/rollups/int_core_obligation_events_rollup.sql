@@ -1,4 +1,4 @@
-with credit_facility as (
+with obligation as (
     select
         id as obligation_id,
         credit_facility_id,
@@ -53,4 +53,4 @@ with credit_facility as (
 )
 
 
-select * from credit_facility
+select * from obligation
