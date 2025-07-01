@@ -1,4 +1,5 @@
 {
+  pkgs,
   lib,
   python311,
   fetchPypi,
@@ -6,19 +7,17 @@
   stdenv,
   zlib,
   gcc,
+  ...
 }: let
+  inherit (pkgs) dockerTools buildEnv bash coreutils gitMinimal cacert;
+
   python3WithOverrides = python311.override {
     packageOverrides = self: super:
-    # Apply doCheck = false to all Python packages
-      lib.mapAttrs (
-        name: pkg:
-          if lib.isDerivation pkg && pkg ? overridePythonAttrs
-          then
-            pkg.overridePythonAttrs (old: {
-              doCheck = false;
-            })
-          else pkg
-      )
+      lib.mapAttrs
+      (name: pkg:
+        if lib.isDerivation pkg && pkg ? overridePythonAttrs
+        then pkg.overridePythonAttrs (_: {doCheck = false;})
+        else pkg)
       super;
   };
 
@@ -32,9 +31,7 @@
       hash = "sha256-dwYJzgqa4pYuXR2oadf6jRJV0ZX5r+mpSE8Km9lzDLI=";
     };
 
-    nativeBuildInputs = with python3WithOverrides.pkgs; [
-      hatchling
-    ];
+    nativeBuildInputs = with python3WithOverrides.pkgs; [hatchling];
 
     propagatedBuildInputs = with python3WithOverrides.pkgs; [
       click
@@ -87,32 +84,26 @@
       virtualenv
     ];
 
-    # Skip tests as they require network access and additional setup
     doCheck = false;
-    # Skip python imports check due to complex dependency tree
     pythonImportsCheck = [];
-    # Skip runtime deps check due to optional dependencies
     dontCheckRuntimeDeps = true;
 
-    meta = with lib; {
+    meta = {
       description = "Your DataOps infrastructure, as code";
       homepage = "https://meltano.com/";
-      license = licenses.mit;
-      maintainers = [];
-      platforms = platforms.unix;
+      license = lib.licenses.mit;
+      platforms = lib.platforms.unix;
     };
   };
-in
-  writeShellScriptBin "meltano" ''
-    # Set LD_LIBRARY_PATH to include necessary C++ libraries for Airflow and other tools
+
+  meltano = writeShellScriptBin "meltano" ''
     export LD_LIBRARY_PATH="${lib.makeLibraryPath [
       stdenv.cc.cc.lib
       gcc.cc.lib
       zlib
     ]}:''${LD_LIBRARY_PATH:-}"
 
-    if [[ "$1" == "install" ]] || [[ "$1" == "invoke" ]]; then
-      # Set minimal PYTHONPATH with virtualenv and required dependencies
+    if [[ "$1" == "install" || "$1" == "invoke" ]]; then
       MINIMAL_PYTHONPATH="${python3WithOverrides.pkgs.virtualenv}/lib/python3.11/site-packages"
       MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python3WithOverrides.pkgs.platformdirs}/lib/python3.11/site-packages"
       MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python3WithOverrides.pkgs.distlib}/lib/python3.11/site-packages"
@@ -124,7 +115,68 @@ in
         LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
         ${meltano-unwrapped}/bin/meltano "$@"
     else
-      # For other commands, use meltano normally with library path
       exec env LD_LIBRARY_PATH="$LD_LIBRARY_PATH" ${meltano-unwrapped}/bin/meltano "$@"
     fi
-  ''
+  '';
+
+  meltanoProject = pkgs.runCommand "meltano-project" {} ''
+    mkdir -p $out/workspace
+    cp -R ${./meltano} $out/workspace/meltano
+    chmod -R u+w $out/workspace
+  '';
+
+  meltanoEntrypoint = pkgs.writeShellScriptBin "docker-entrypoint.sh" ''
+    set -euo pipefail
+    cd /workspace/meltano
+
+    # Install plugins only if .meltano/envs/default/plugins isn't populated
+    if ! ${meltano}/bin/meltano --quiet status >/dev/null 2>&1; then
+      echo "→ First run: installing Meltano plugins…"
+      ${meltano}/bin/meltano install
+      echo "→ Now running your Meltano command..."
+    fi
+
+    ${meltano}/bin/meltano "$@"
+  '';
+
+  meltanoImageRoot = buildEnv {
+    name = "meltano-image-root";
+    pathsToLink = ["/bin" "/workspace"];
+    paths = [
+      meltano
+      meltanoEntrypoint
+      bash
+      coreutils
+      gitMinimal
+      meltanoProject
+    ];
+  };
+
+  meltano-image = dockerTools.buildImage {
+    name = "meltano";
+    tag = "latest";
+
+    fromImage = dockerTools.pullImage {
+      imageName = "ubuntu";
+      imageDigest = "sha256:496a9a44971eb4ac7aa9a218867b7eec98bdef452246c037aa206c841b653e08";
+      sha256 = "sha256-LYdoE40tYih0XXJoJ8/b1e/IAkO94Jrs2C8oXWTeUTg=";
+      finalImageTag = "mantic-20240122";
+      finalImageName = "ubuntu";
+    };
+
+    copyToRoot = meltanoImageRoot;
+
+    config = {
+      WorkingDir = "/workspace/meltano";
+      EntryPoint = ["/bin/docker-entrypoint.sh"];
+      Cmd = ["${meltano}/bin/meltano" "ui"];
+
+      Env = [
+        "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
+        "GIT_SSL_CAINFO=${cacert}/etc/ssl/certs/ca-bundle.crt"
+      ];
+    };
+  };
+in {
+  inherit meltano meltano-image;
+}
