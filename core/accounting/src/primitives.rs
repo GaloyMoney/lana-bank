@@ -195,6 +195,10 @@ impl AccountCode {
             return false;
         }
 
+        if parent_sections == child_sections {
+            return false;
+        }
+
         for (i, parent_section) in parent_sections.iter().enumerate() {
             if i >= child_sections.len() {
                 return false;
@@ -1312,10 +1316,10 @@ mod tests {
         }
 
         #[test]
-        fn is_parent_when_sections_equal() {
+        fn not_parent_when_sections_equal() {
             let parent = "10".parse::<AccountCode>().unwrap();
             let child = "10".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent_of(&child.sections), true);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
 
         #[test]
