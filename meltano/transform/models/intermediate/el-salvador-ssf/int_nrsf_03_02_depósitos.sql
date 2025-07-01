@@ -69,19 +69,19 @@ select
     total_collateral_amount_usd as `Monto mínimo`,
     'TODO' as `Código de la cuenta contable`,
     0.0 as `Fondos en compensación`,
-    deposit_account_balance as `Fondos restringidos`,
+    deposit_account_balance_usd as `Fondos restringidos`,
     0.0 as `Transacciones pendientes`,
     '0' as `Negociabilidad del depósito`,
     'BTC' as `Moneda`,
-    deposit_account_balance as `Saldo del depósito en la moneda original`,
+    deposit_account_balance_usd as `Saldo del depósito en la moneda original`,
     latest_recorded_at as `Fecha de la última transacción`,
     0.0 as `Saldo de intereses`,
-    deposit_account_balance as `Saldo total`,
+    deposit_account_balance_usd as `Saldo total`,
     '1' as `Estado`,
     left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de cuenta`,
     last_day(current_date(), month) as `Día de corte`,
     safe_multiply(
-        safe_divide(deposit_account_balance, 100000000.0), (select last_price_usd from btc_price)
+        safe_divide(deposit_account_balance_usd, 100000000.0), (select last_price_usd from btc_price)
     ) as `Saldo de capital`
 from
     final
