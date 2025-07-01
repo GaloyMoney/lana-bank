@@ -17,7 +17,7 @@ deposit_accounts as (
 customers as (
     select *
     from
-        {{ ref('int_customers') }}
+        {{ ref('int_core_customer_events_rollup') }}
 )
 ,
 

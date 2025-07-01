@@ -73,5 +73,5 @@ select
 
     el_salvador_municipality as `distrito_residencia`
 
-from {{ ref('int_customers') }}
+from {{ ref('int_core_customer_events_rollup') }}
 inner join {{ ref('int_customer_identities') }} using (customer_id)

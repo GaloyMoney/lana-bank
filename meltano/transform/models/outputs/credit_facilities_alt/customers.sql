@@ -2,8 +2,6 @@
 
 select
     customer_id,
-    country,
-    ip_country,
 
     first_name,
     last_name,
@@ -26,5 +24,5 @@ select
     questionnaires[safe_offset(0)].second_nationality as second_nationality,
     id_documents[safe_offset(0)].number as passport_number
 
-from {{ ref('int_customers') }}
+from {{ ref('int_core_customer_events_rollup') }}
 inner join {{ ref('int_sumsub_applicants') }} using (customer_id)
