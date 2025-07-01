@@ -35,14 +35,7 @@ impl PolicyRepo {
 mod tests {
     use super::*;
 
-    use audit::{AuditEntryId, AuditInfo};
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
+    use audit::{test_utils::dummy_audit_info, AuditEntryId, AuditInfo};
 
     pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
         let pg_con = std::env::var("PG_CON").unwrap();

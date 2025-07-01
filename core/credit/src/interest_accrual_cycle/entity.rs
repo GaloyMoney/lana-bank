@@ -370,7 +370,7 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
 
 #[cfg(test)]
 mod test {
-    use audit::AuditEntryId;
+    use audit::{AuditEntryId, test_utils::dummy_audit_info};
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
@@ -401,13 +401,6 @@ mod test {
 
     fn default_period() -> InterestPeriod {
         InterestInterval::EndOfDay.period_from(default_started_at())
-    }
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
     }
 
     fn accrual_from(events: Vec<InterestAccrualCycleEvent>) -> InterestAccrualCycle {
