@@ -189,21 +189,23 @@ impl AccountCode {
         position == code.len()
     }
 
-    pub fn is_parent_of(&self, sections: &[AccountCodeSection]) -> bool {
-        if self.sections.is_empty() || sections.is_empty() {
+    pub fn is_parent_of(&self, child_sections: &[AccountCodeSection]) -> bool {
+        let parent_sections = &self.sections;
+        if parent_sections.is_empty() || child_sections.is_empty() {
             return false;
         }
 
-        for (i, parent_section) in self.sections.iter().enumerate() {
-            if i >= sections.len() {
+        for (i, parent_section) in parent_sections.iter().enumerate() {
+            if i >= child_sections.len() {
                 return false;
             }
 
-            if !sections[i].code.starts_with(&parent_section.code) {
+            let child_section = &child_sections[i];
+            if !child_section.code.starts_with(&parent_section.code) {
                 return false;
             }
-            if sections[i].code.len() <= parent_section.code.len()
-                && sections[i].code != parent_section.code
+            if child_section.code.len() <= parent_section.code.len()
+                && child_section.code != parent_section.code
             {
                 return false;
             }
