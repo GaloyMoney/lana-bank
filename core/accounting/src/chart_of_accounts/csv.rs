@@ -79,7 +79,7 @@ impl CsvParser {
                     if let Some(category) = category {
                         if let Some(parent_spec) = specs
                             .iter()
-                            .rposition(|spec| spec.code.is_parent(&sections))
+                            .rposition(|spec| spec.code.is_parent_of(&sections))
                             .map(|parent_idx| &specs[parent_idx])
                         {
                             specs.push(AccountSpec::new_spec(

@@ -189,11 +189,8 @@ impl AccountCode {
         position == code.len()
     }
 
-    pub fn is_parent(&self, sections: &[AccountCodeSection]) -> bool {
-        if self.sections.is_empty() {
-            return false;
-        }
-        if sections.is_empty() {
+    pub fn is_parent_of(&self, sections: &[AccountCodeSection]) -> bool {
+        if self.sections.is_empty() || sections.is_empty() {
             return false;
         }
 
@@ -225,7 +222,7 @@ impl AccountCode {
             return Ok(());
         };
 
-        if parent_code.is_parent(&self.sections) {
+        if parent_code.is_parent_of(&self.sections) {
             Ok(())
         } else {
             Err(AccountCodeError::InvalidParent)
@@ -1263,81 +1260,81 @@ mod tests {
         assert!(matches!(new_spec, Err(AccountCodeError::InvalidParent)));
     }
 
-    mod is_parent {
+    mod is_parent_of {
         use super::*;
 
         #[test]
         fn not_parent_when_child_sections_empty() {
             let parent = "10".parse::<AccountCode>().unwrap();
             let child = AccountCode::new(vec![]);
-            assert_eq!(parent.is_parent(&child.sections), false);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
 
         #[test]
         fn not_parent_when_parent_sections_empty() {
             let parent = AccountCode::new(vec![]);
             let child = "10".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), false);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
 
         #[test]
         fn is_parent_when_prefix_matches_in_first_section() {
             let parent = "1".parse::<AccountCode>().unwrap();
             let child = "11".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), true);
+            assert_eq!(parent.is_parent_of(&child.sections), true);
         }
 
         #[test]
         fn not_parent_when_prefix_does_not_match_in_first_section() {
             let parent = "10".parse::<AccountCode>().unwrap();
             let child = "11".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), false);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
 
         #[test]
         fn is_parent_when_child_has_more_sections_than_parent() {
             let parent = "10".parse::<AccountCode>().unwrap();
             let child = "10.20".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), true);
+            assert_eq!(parent.is_parent_of(&child.sections), true);
 
             let parent = "10.20".parse::<AccountCode>().unwrap();
             let child = "10.20.0201".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), true);
+            assert_eq!(parent.is_parent_of(&child.sections), true);
         }
 
         #[test]
         fn not_parent_when_child_has_more_sections_than_parent() {
             let parent = "10.20".parse::<AccountCode>().unwrap();
             let child = "10".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), false);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
 
         #[test]
         fn is_parent_when_sections_equal() {
             let parent = "10".parse::<AccountCode>().unwrap();
             let child = "10".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), true);
+            assert_eq!(parent.is_parent_of(&child.sections), true);
         }
 
         #[test]
         fn not_parent_when_parent_code_longer_but_prefixed() {
             let parent = "100".parse::<AccountCode>().unwrap();
             let child = "10".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), false);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
 
         #[test]
         fn not_parent_when_parent_code_longer_but_prefixed_in_second_section() {
             let parent = "1.23".parse::<AccountCode>().unwrap();
             let child = "1.2".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), false);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
 
         #[test]
         fn not_parent_when_prefix_mismatch_in_second_section() {
             let parent = "1.23".parse::<AccountCode>().unwrap();
             let child = "1.20".parse::<AccountCode>().unwrap();
-            assert_eq!(parent.is_parent(&child.sections), false);
+            assert_eq!(parent.is_parent_of(&child.sections), false);
         }
     }
 
