@@ -20,6 +20,8 @@ pub enum ObligationError {
     InvalidStatusTransitionToDefaulted,
     #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]
     PaymentAmountGreaterThanOutstandingObligations,
+    #[error("ObligationError - NoNewPaymentAllocationsForPayment")]
+    NoNewPaymentAllocationsForPayment,
 }
 
 es_entity::from_es_entity_error!(ObligationError);
