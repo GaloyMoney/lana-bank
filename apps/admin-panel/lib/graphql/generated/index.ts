@@ -2290,7 +2290,7 @@ export type VisibleNavigationItems = {
 
 export type Wallet = {
   __typename?: 'Wallet';
-  address: Scalars['String']['output'];
+  address?: Maybe<Scalars['String']['output']>;
   id: Scalars['ID']['output'];
   walletId: Scalars['UUID']['output'];
 };

@@ -148,6 +148,10 @@ ymd() {
   )
 
   exec_admin_graphql 'credit-facility-create' "$variables"
+
+  address=$(graphql_output '.data.creditFacilityCreate.creditFacility.wallet.address')
+  [[ "$address" == "null" ]] || exit 1
+
   credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
 
