@@ -144,6 +144,12 @@ impl From<AccountCode> for Vec<AccountCodeSection> {
     }
 }
 
+impl From<&AccountCode> for Vec<AccountCodeSection> {
+    fn from(code: &AccountCode) -> Self {
+        code.sections.clone()
+    }
+}
+
 impl AccountCode {
     pub fn new(section: Vec<AccountCodeSection>) -> Self {
         AccountCode { sections: section }
@@ -291,6 +297,19 @@ impl std::str::FromStr for AccountIdOrCode {
             Ok(AccountIdOrCode::Code(s.parse()?))
         }
     }
+}
+
+pub enum ProposedAccountSpec {
+    WithParent {
+        parent: AccountCode,
+        code: AccountCode,
+        name: AccountName,
+    },
+    NoParent {
+        code: AccountCode,
+        name: AccountName,
+        normal_balance_type: DebitOrCredit,
+    },
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]

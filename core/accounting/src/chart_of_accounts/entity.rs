@@ -99,6 +99,38 @@ impl Chart {
         })
     }
 
+    pub fn create_node(
+        &mut self,
+        proposed_spec: &ProposedAccountSpec,
+        journal_id: CalaJournalId,
+        audit_info: AuditInfo,
+    ) -> Result<Idempotent<NewChartAccountDetails>, ChartOfAccountsError> {
+        let spec = match proposed_spec {
+            ProposedAccountSpec::WithParent { parent, code, name } => {
+                let parent_normal_balance_type = self
+                    .all_accounts
+                    .get(parent)
+                    .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
+                    .ok_or(ChartOfAccountsError::ParentAccountNotFound(
+                        parent.to_string(),
+                    ))?;
+                AccountSpec::try_new(
+                    Some(parent.clone()),
+                    code.into(),
+                    name.clone(),
+                    parent_normal_balance_type,
+                )?
+            }
+            ProposedAccountSpec::NoParent {
+                code,
+                name,
+                normal_balance_type,
+            } => AccountSpec::try_new(None, code.into(), name.clone(), *normal_balance_type)?,
+        };
+
+        Ok(self.create_node_unchecked(&spec, journal_id, audit_info))
+    }
+
     pub fn trial_balance_account_ids_from_new_accounts(
         &self,
         new_account_set_ids: &[CalaAccountSetId],
@@ -485,6 +517,44 @@ mod test {
 
     fn code(s: &str) -> AccountCode {
         s.parse::<AccountCode>().unwrap()
+    }
+
+    #[test]
+    fn errors_for_create_node_if_parent_node_does_not_exist() {
+        let (mut chart, _) = default_chart();
+
+        let res = chart.create_node(
+            &ProposedAccountSpec::WithParent {
+                parent: code("1.9"),
+                code: code("1.9.1"),
+                name: "Cash".parse::<AccountName>().unwrap(),
+            },
+            CalaJournalId::new(),
+            dummy_audit_info(),
+        );
+
+        assert!(matches!(
+            res,
+            Err(ChartOfAccountsError::ParentAccountNotFound(_))
+        ))
+    }
+
+    #[test]
+    fn unchecked_creates_node_if_parent_node_does_not_exist() {
+        let (mut chart, _) = default_chart();
+
+        let res = chart.create_node_unchecked(
+            &AccountSpec::try_new(
+                Some(code("1.9")),
+                vec![section("1"), section("9"), section("1")],
+                "Cash".parse::<AccountName>().unwrap(),
+                DebitOrCredit::Debit,
+            )
+            .unwrap(),
+            CalaJournalId::new(),
+            dummy_audit_info(),
+        );
+        assert!(res.did_execute());
     }
 
     #[test]
