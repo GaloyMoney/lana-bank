@@ -191,23 +191,6 @@ impl Applicants {
 
         let mut db = self.repo.begin_op().await?;
 
-        match self.process_payload(&mut db, payload).await {
-            Ok(_) => (),
-            Err(ApplicantError::UnhandledCallbackType(_)) => (),
-            Err(e) => return Err(e),
-        }
-
-        db.commit().await?;
-
-        Ok(())
-    }
-
-    #[instrument(name = "applicant.process_payload", skip(self, db, payload))]
-    async fn process_payload(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        payload: serde_json::Value,
-    ) -> Result<(), ApplicantError> {
         match serde_json::from_value(payload.clone())? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
@@ -217,7 +200,7 @@ impl Applicants {
             } => {
                 let res = self
                     .customers
-                    .start_kyc(db, external_user_id, applicant_id)
+                    .start_kyc(&mut db, external_user_id, applicant_id)
                     .await;
 
                 match res {
@@ -241,7 +224,7 @@ impl Applicants {
             } => {
                 let res = self
                     .customers
-                    .decline_kyc(db, external_user_id, applicant_id)
+                    .decline_kyc(&mut db, external_user_id, applicant_id)
                     .await;
 
                 match res {
@@ -276,7 +259,7 @@ impl Applicants {
 
                 let res = self
                     .customers
-                    .approve_kyc(db, external_user_id, applicant_id)
+                    .approve_kyc(&mut db, external_user_id, applicant_id)
                     .await;
 
                 match res {
@@ -293,6 +276,9 @@ impl Applicants {
                 )));
             }
         }
+
+        db.commit().await?;
+
         Ok(())
     }
 
