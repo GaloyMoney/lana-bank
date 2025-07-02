@@ -134,7 +134,7 @@ final as(
         customer_id,
         facility_initialized_recorded_at,
         disbursal_initialized_recorded_at,
-        disbursal_concluded_recorded_at,
+        disbursal_settled_recorded_at,
         start_date,
         end_date,
         duration_value,
