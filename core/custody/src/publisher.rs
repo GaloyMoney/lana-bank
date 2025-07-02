@@ -32,13 +32,13 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => None,
-                AddressAllocated { label, address, .. } => {
+                AddressAllocated { address, .. } => {
                     Some(CoreCustodyEvent::WalletAddressAllocated {
                         id: entity.id,
-                        label: label.to_owned(),
                         address: address.to_owned(),
                     })
                 }
+                ExternalWalletAttached { .. } => None,
             })
             .collect::<Vec<_>>();
 

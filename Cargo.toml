@@ -33,6 +33,7 @@ members = [
   "lib/outbox",
   "lib/jwks-utils",
   "lib/kratos-admin",
+  "lib/bitgo",
   "lib/komainu",
   "lib/cloud-storage"
 ]

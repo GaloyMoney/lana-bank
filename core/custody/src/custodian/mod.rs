@@ -3,7 +3,6 @@ mod custodian_config;
 mod entity;
 pub mod error;
 mod repo;
-pub(crate) mod state;
 
 pub use custodian_config::{CustodianConfig, CustodianEncryptionConfig, DeprecatedEncryptionKey};
 #[cfg(feature = "json-schema")]

@@ -14,6 +14,7 @@ mock-custodian = []
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
+bitgo = { path = "../../lib/bitgo" }
 komainu = { path = "../../lib/komainu" }
 
 async-trait = { workspace = true }
