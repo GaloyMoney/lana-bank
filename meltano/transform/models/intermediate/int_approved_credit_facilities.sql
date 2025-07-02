@@ -18,9 +18,9 @@ collateral_deposits as (
 disbursals as (
     select
         credit_facility_id,
-        sum(disbursal_amount_usd) as total_disbursed_usd
-    from {{ ref('int_disbursal_events') }}
-    where approved
+        sum(amount_usd) as total_disbursed_usd
+    from {{ ref('int_core_disbursal_events_rollup') }}
+    where is_settled
     group by credit_facility_id
 ),
 

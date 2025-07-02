@@ -18,14 +18,15 @@ collateral_deposits as (
 disbursals as (
     select
         credit_facility_id,
-        initialized_recorded_at as disbursal_initialized_recorded_at,
-        concluded_recorded_at as disbursal_concluded_recorded_at,
-        min(concluded_recorded_at) over(partition by credit_facility_id) as min_disbursal_concluded_recorded_at,
-        disbursal_amount_usd as total_disbursed_usd,
-        disbursal_amount_usd / sum(disbursal_amount_usd) over (partition by credit_facility_id) as disbursal_ratio,
+        disbursal_created_at as disbursal_initialized_recorded_at,
+        effective as disbursal_settled_recorded_at,
+        min(effective) over(partition by credit_facility_id) as min_disbursal_settled_recorded_at,
+        amount_usd as total_disbursed_usd,
+        amount_usd / sum(amount_usd) over (partition by credit_facility_id) as disbursal_ratio,
         disbursal_id,
         obligation_id,
-    from {{ ref('int_disbursal_events') }}
+    from {{ ref('int_core_disbursal_events_rollup') }}
+    where is_settled
 ),
 
 interest as (
@@ -55,8 +56,8 @@ interest_paid_stats as (
     cf_total_interest_incurred_usd,
     cf_total_interest_paid_usd,
     cf_total_disbursal_paid_usd,
-    timestamp_diff(most_recent_interest_payment_timestamp, disbursal_concluded_recorded_at, day) as disbursal_interest_days,
-    timestamp_diff(most_recent_interest_payment_timestamp, min_disbursal_concluded_recorded_at, day) as credit_facility_interest_days,
+    timestamp_diff(most_recent_interest_payment_timestamp, disbursal_settled_recorded_at, day) as disbursal_interest_days,
+    timestamp_diff(most_recent_interest_payment_timestamp, min_disbursal_settled_recorded_at, day) as credit_facility_interest_days,
   from disbursals
   left join payments using (credit_facility_id)
   left join interest using (credit_facility_id)
@@ -100,9 +101,9 @@ final as(
         most_recent_disbursal_payment_timestamp,
 
         disbursal_initialized_recorded_at,
-        disbursal_concluded_recorded_at,
-        disbursal_concluded_recorded_at as disbursal_approved_recorded_at,
-        disbursal_concluded_recorded_at as disbursal_start_date,
+        disbursal_settled_recorded_at,
+        disbursal_settled_recorded_at as disbursal_approved_recorded_at,
+        disbursal_settled_recorded_at as disbursal_start_date,
         maturity_at as disbursal_end_date,
 
         most_recent_collateral_deposit_at,
