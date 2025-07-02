@@ -19,7 +19,7 @@ jobs:
 
       - name: Start server with logs
         run: |
-          nohup nix develop -c make reset-deps setup-db run-server-with-bootstrap \
+          nohup nix develop -c make reset-deps run-server-with-bootstrap \
             2>&1 | tee server.log &
           echo "PID=$!" > .server.pid
 
