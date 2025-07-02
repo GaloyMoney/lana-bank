@@ -41,6 +41,9 @@ jobs:
   - name: drop-all-relations
     tasks:
       - dbt-bigquery:drop-all-relations
+  - name: generate-es-reports-job
+    tasks:
+      - generate-es-reports:run
 schedules:
   - name: postgres-to-bigquery-dbt
     interval: "*/10 * * * *"
@@ -57,6 +60,9 @@ schedules:
   - name: drop-old-relations-weekly
     interval: "@weekly"
     job: drop-old-relations
+  - name: generate-es-reports-daily
+    interval: "@daily"
+    job: generate-es-reports-job
 plugins:
   extractors:
     - name: tap-postgres
@@ -126,8 +132,5 @@ plugins:
     namespace: generate_es_reports
     pip_url: -e ${MELTANO_PROJECT_ROOT}/utilities/generate-es-reports
     executable: generate-es-reports
-    settings:
-    - name: DBT_BIGQUERY_PROJECT
-      env: DBT_BIGQUERY_PROJECT
-      value: lana-dev-440721
-
+    commands:
+      run: </dev/null
