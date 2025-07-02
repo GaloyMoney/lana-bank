@@ -8,9 +8,9 @@ with approved as (
 collateral_deposits as (
     select
         credit_facility_id,
-        max(updated_recorded_at) as most_recent_collateral_deposit_at,
-        any_value(collateral_new_amount_btc having max updated_recorded_at) as most_recent_collateral_deposit_amount_btc,
-    from {{ ref('int_collateral_events') }}
+        max(collateral_modified_at) as most_recent_collateral_deposit_at,
+        any_value(collateral_amount_btc having max collateral_modified_at) as most_recent_collateral_deposit_amount_btc,
+    from {{ ref('int_core_collateral_events_rollup') }}
     where action = "Add"
     group by credit_facility_id
 ),
