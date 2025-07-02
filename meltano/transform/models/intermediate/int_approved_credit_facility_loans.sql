@@ -31,8 +31,8 @@ disbursals as (
 interest as (
     select
         credit_facility_id,
-        sum(total_interest_posted_usd) as cf_total_interest_incurred_usd
-    from {{ ref('int_interest_accrual_cycle_events') }}
+        sum(posted_total_interest_usd) as cf_total_interest_incurred_usd
+    from {{ ref('int_core_interest_accrual_cycle_events_rollup') }}
     group by credit_facility_id
 ),
 
