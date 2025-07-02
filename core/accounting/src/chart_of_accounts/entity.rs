@@ -50,7 +50,7 @@ pub struct Chart {
 }
 
 impl Chart {
-    pub fn create_node(
+    pub fn create_node_unchecked(
         &mut self,
         spec: &AccountSpec,
         journal_id: CalaJournalId,
@@ -424,7 +424,7 @@ mod test {
             new_account_set: level_1_new_account_set,
             ..
         } = chart
-            .create_node(
+            .create_node_unchecked(
                 &AccountSpec::try_new(
                     None,
                     vec![section("1")],
@@ -440,7 +440,7 @@ mod test {
             new_account_set: level_2_new_account_set,
             ..
         } = chart
-            .create_node(
+            .create_node_unchecked(
                 &AccountSpec::try_new(
                     Some(code("1")),
                     vec![section("1"), section("1")],
@@ -456,7 +456,7 @@ mod test {
             new_account_set: level_3_new_account_set,
             ..
         } = chart
-            .create_node(
+            .create_node_unchecked(
                 &AccountSpec::try_new(
                     Some(code("1.1")),
                     vec![section("1"), section("1"), section("1")],
@@ -510,7 +510,7 @@ mod test {
                 },
             ..
         } = chart
-            .create_node(
+            .create_node_unchecked(
                 &AccountSpec::try_new(
                     Some(code("1")),
                     vec![section("1"), section("2")],
