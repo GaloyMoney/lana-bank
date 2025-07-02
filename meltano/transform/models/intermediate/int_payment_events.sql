@@ -1,34 +1,33 @@
-with initialized as (
+with
+
+credit_facilities as(
     select
-        id as payment_id,
-        recorded_at as initialized_recorded_at,
-
-        json_value(event, "$.credit_facility_id") as credit_facility_id,
-
-        cast(json_value(event, '$.amount') as numeric) / {{ var('cents_per_usd') }} as payment_amount_usd,
-
-
-    from {{ ref('stg_payment_events') }}
-    where event_type = 'initialized'
+        credit_facility_id,
+        customer_id,
+    from {{ ref('int_core_credit_facility_events_rollup') }}
 )
 
-, payment_allocated as (
-    select
-        id as payment_id,
-        recorded_at as payment_allocated_at,
-        coalesce(cast(json_value(event, '$.interest') as numeric), 0) / {{ var('cents_per_usd') }} as interest_amount_usd,
-        coalesce(cast(json_value(event, '$.disbursal') as numeric), 0) / {{ var('cents_per_usd') }} as disbursal_amount_usd,
+, payments as(
+    select * except(audit_entry_ids)
+    from {{ ref('int_core_payment_events_rollup') }}
+)
 
-    from {{ ref('stg_payment_events') }}
-    where event_type = "payment_allocated"
+, payment_allocations as(
+    select
+        payment_id,
+        sum(amount_usd) as allocation_amount_usd,
+        max(effective) as effective,
+        max(payment_allocation_created_at) as payment_allocation_created_at,
+        max(payment_allocation_modified_at) as payment_allocation_modified_at,
+        array_agg(distinct obligation_type) as obligation_type,
+    from {{ ref('int_core_payment_allocation_events_rollup') }}
+    group by payment_id
 )
 
 , final as (
-    select
-        *
-    from initialized
-    left join payment_allocated using (payment_id)
+    select *
+    from payments
+    left join payment_allocations using(payment_id)
 )
-
 
 select * from final

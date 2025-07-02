@@ -39,10 +39,10 @@ interest as (
 payments as (
     select
         credit_facility_id,
-        sum(interest_amount_usd) as cf_total_interest_paid_usd,
-        sum(disbursal_amount_usd) as cf_total_disbursal_paid_usd,
-        max(if(interest_amount_usd > 0, payment_allocated_at, null)) as most_recent_interest_payment_timestamp,
-        max(if(disbursal_amount_usd > 0, payment_allocated_at, null)) as most_recent_disbursal_payment_timestamp
+        sum(interest_usd) as cf_total_interest_paid_usd,
+        sum(disbursal_usd) as cf_total_disbursal_paid_usd,
+        max(if(interest_usd > 0, effective, null)) as most_recent_interest_payment_timestamp,
+        max(if(disbursal_usd > 0, effective, null)) as most_recent_disbursal_payment_timestamp
     from {{ ref('int_payment_events') }}
     group by credit_facility_id
 ),
