@@ -4,12 +4,14 @@ with payment_allocation as (
         payment_id,
         credit_facility_id,
         cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
-        effective,
+        cast(effective as timestamp) as effective,
         obligation_type,
         obligation_allocation_idx,
         account_to_be_debited_id,
         receivable_account_id,
         obligation_id,
+        created_at as payment_allocation_created_at,
+        modified_at as payment_allocation_modified_at,
 
         * except(
             id,
@@ -22,6 +24,8 @@ with payment_allocation as (
             account_to_be_debited_id,
             receivable_account_id,
             obligation_id,
+            created_at,
+            modified_at,
 
             last_sequence,
             _sdc_received_at,

@@ -9,6 +9,8 @@ with collateral as (
         cast(collateral_amount as numeric) as collateral_amount_sats,
         cast(collateral_amount as numeric) / {{ var('sats_per_bitcoin') }} as collateral_amount_btc,
         account_id,
+        created_at as collateral_created_at,
+        modified_at as collateral_modified_at,
 
         * except(
             id,
@@ -17,6 +19,9 @@ with collateral as (
             abs_diff,
             collateral_amount,
             account_id,
+            created_at,
+            modified_at,
+
             last_sequence,
             _sdc_received_at,
             _sdc_batched_at,

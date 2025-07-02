@@ -8,6 +8,8 @@ with withdrawal as (
         is_approval_process_concluded,
         is_confirmed,
         is_cancelled,
+        created_at as withdrawal_created_at,
+        modified_at as withdrawal_modified_at,
 
         * except(
             id,
@@ -17,6 +19,8 @@ with withdrawal as (
             is_approval_process_concluded,
             is_confirmed,
             is_cancelled,
+            created_at,
+            modified_at,
 
             last_sequence,
             _sdc_received_at,

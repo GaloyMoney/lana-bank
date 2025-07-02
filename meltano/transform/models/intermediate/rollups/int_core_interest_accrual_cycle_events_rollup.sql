@@ -5,7 +5,7 @@ with interest_accrual_cycle as (
         obligation_id,
         cast(facility_matures_at as timestamp) as facility_matures_at,
         idx,
-        effective,
+        cast(effective as timestamp) as effective,
         cast(accrued_at as timestamp) as accrued_at,
 
         cast(json_value(period, "$.start") as timestamp) as period_start_at,
@@ -32,6 +32,8 @@ with interest_accrual_cycle as (
         json_value(terms, "$.obligation_overdue_duration_from_due.type") as obligation_overdue_duration_from_due_type,
         cast(json_value(terms, "$.obligation_liquidation_duration_from_due.value") as integer) as obligation_liquidation_duration_from_due_value,
         json_value(terms, "$.obligation_liquidation_duration_from_due.type") as obligation_liquidation_duration_from_due_type,
+        created_at as interest_accrual_cycle_created_at,
+        modified_at as interest_accrual_cycle_modified_at,
 
         * except(
             id,
@@ -46,6 +48,8 @@ with interest_accrual_cycle as (
             effective,
             total,
             is_interest_accruals_posted,
+            created_at,
+            modified_at,
 
             last_sequence,
             _sdc_received_at,

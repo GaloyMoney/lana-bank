@@ -5,7 +5,7 @@ approved_withdrawals as (
         withdrawal_id,
         amount_usd,
         deposit_account_id,
-        modified_at as recorded_at
+        withdrawal_modified_at as recorded_at
     from {{ ref('int_core_withdrawal_events_rollup') }}
     where approved
 )

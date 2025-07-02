@@ -3,7 +3,7 @@ with obligation as (
         id as obligation_id,
         credit_facility_id,
 
-        effective,
+        cast(effective as timestamp) as effective,
         obligation_type,
         cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
         cast(payment_allocation_amount as numeric) / {{ var('cents_per_usd') }} as payment_allocation_amount_usd,
@@ -18,6 +18,8 @@ with obligation as (
         is_overdue_recorded,
         is_defaulted_recorded,
         is_completed,
+        created_at as obligation_created_at,
+        modified_at as obligation_modified_at,
 
         * except(
             id,
@@ -38,6 +40,8 @@ with obligation as (
             is_overdue_recorded,
             is_defaulted_recorded,
             is_completed,
+            created_at,
+            modified_at,
 
             last_sequence,
             _sdc_received_at,

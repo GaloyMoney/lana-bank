@@ -5,7 +5,7 @@ deposits as (
         {# deposit_id, #}
         deposit_account_id,
         amount_usd,
-        modified_at as recorded_at
+        deposit_modified_at as recorded_at
     from {{ ref('int_core_deposit_events_rollup') }}
 )
 ,
@@ -14,8 +14,8 @@ approved_withdrawals as (
     select
         {# withdrawal_id, #}
         deposit_account_id,
-        recorded_at,
-        -amount_usd
+        -amount_usd as amount_usd,
+        recorded_at
     from {{ ref('int_approved_withdrawals') }}
 )
 ,

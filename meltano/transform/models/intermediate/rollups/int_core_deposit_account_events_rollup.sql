@@ -2,10 +2,14 @@ with deposit_account as (
     select
         id as deposit_account_id,
         account_holder_id as customer_id,
+        created_at as deposit_account_created_at,
+        modified_at as deposit_account_modified_at,
 
         * except(
             id,
             account_holder_id,
+            created_at,
+            modified_at,
 
             last_sequence,
             _sdc_received_at,

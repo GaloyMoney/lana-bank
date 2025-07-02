@@ -6,6 +6,8 @@ with payment as (
         cast(interest as numeric) / {{ var('cents_per_usd') }} as interest_usd,
         cast(disbursal as numeric) / {{ var('cents_per_usd') }} as disbursal_usd,
         is_payment_allocated,
+        created_at as payment_created_at,
+        modified_at as payment_modified_at,
 
         * except(
             id,
@@ -14,6 +16,8 @@ with payment as (
             interest,
             disbursal,
             is_payment_allocated,
+            created_at,
+            modified_at,
 
             last_sequence,
             _sdc_received_at,

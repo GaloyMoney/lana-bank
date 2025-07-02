@@ -2,7 +2,7 @@ with disbursal as (
     select
         id as disbursal_id,
         credit_facility_id,
-        effective,
+        cast(effective as timestamp) as effective,
         cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
         approved,
         is_approval_process_concluded,
@@ -11,6 +11,8 @@ with disbursal as (
         cast(due_date as timestamp) as due_date,
         cast(overdue_date as timestamp) as overdue_date,
         cast(liquidation_date as timestamp) as liquidation_date,
+        created_at as disbursal_created_at,
+        modified_at as disbursal_modified_at,
 
         * except(
             id,
@@ -25,6 +27,8 @@ with disbursal as (
             due_date,
             overdue_date,
             liquidation_date,
+            created_at,
+            modified_at,
 
             last_sequence,
             _sdc_received_at,

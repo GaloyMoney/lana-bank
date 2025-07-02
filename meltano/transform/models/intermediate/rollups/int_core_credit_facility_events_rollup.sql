@@ -47,6 +47,8 @@ with credit_facility as (
 
         cast(json_value(terms, "$.obligation_liquidation_duration_from_due.value") as integer) as obligation_liquidation_duration_from_due_value,
         json_value(terms, "$.obligation_liquidation_duration_from_due.type") as obligation_liquidation_duration_from_due_type,
+        created_at as credit_facility_created_at,
+        modified_at as credit_facility_modified_at,
 
         * except(
             id,
@@ -67,6 +69,9 @@ with credit_facility as (
             interest_accrual_cycle_idx,
             interest_period,
             outstanding,
+            created_at,
+            modified_at,
+
             last_sequence,
             _sdc_received_at,
             _sdc_batched_at,
