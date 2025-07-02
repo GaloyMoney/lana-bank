@@ -12,8 +12,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^1.0.38
-        version: 1.0.38
+        specifier: ^1.0.40
+        version: 1.0.40
       '@mermaid-js/mermaid-cli':
         specifier: ^11.6.0
         version: 11.6.0(@types/react@19.1.8)(puppeteer@24.10.0(typescript@5.8.3))
@@ -30,8 +30,8 @@ importers:
         specifier: ^0.12.2
         version: 0.12.2(@apollo/client@3.13.8(@types/react@19.1.8)(graphql-ws@6.0.5(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(@types/react@19.1.8)(graphql@16.11.0)(next@15.3.4(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@faker-js/faker':
-        specifier: ^9.8.0
-        version: 9.8.0
+        specifier: ^9.9.0
+        version: 9.9.0
       '@lana/web':
         specifier: workspace:*
         version: link:../shared-web
@@ -69,8 +69,8 @@ importers:
         specifier: 15.3.4
         version: 15.3.4(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       next-intl:
-        specifier: ^4.3.3
-        version: 4.3.3(next@15.3.4(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
+        specifier: ^4.3.4
+        version: 4.3.4(next@15.3.4(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.8.3)
       react:
         specifier: ^19.1.0
         version: 19.1.0
@@ -148,8 +148,8 @@ importers:
         specifier: ^0.14.0
         version: 0.14.4
       '@types/lodash':
-        specifier: ^4.17.19
-        version: 4.17.19
+        specifier: ^4.17.20
+        version: 4.17.20
       '@types/node':
         specifier: '20'
         version: 20.17.57
@@ -172,11 +172,11 @@ importers:
         specifier: ^1.32.8
         version: 1.32.8
       cypress:
-        specifier: ^14.5.0
-        version: 14.5.0
+        specifier: ^14.5.1
+        version: 14.5.1
       cypress-file-upload:
         specifier: ^5.0.8
-        version: 5.0.8(cypress@14.5.0)
+        version: 5.0.8(cypress@14.5.1)
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
@@ -350,8 +350,8 @@ importers:
         specifier: ^7.12.0
         version: 7.18.0(@typescript-eslint/parser@8.34.1(eslint@8.57.1)(typescript@5.8.3))(eslint@8.57.1)(typescript@5.8.3)
       cypress:
-        specifier: ^14.5.0
-        version: 14.5.0
+        specifier: ^14.5.1
+        version: 14.5.1
       eslint:
         specifier: ^8.57.0
         version: 8.57.1
@@ -532,8 +532,8 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anthropic-ai/claude-code@1.0.38':
-    resolution: {integrity: sha512-hPZbJCt7O8T872wbCXGiwF210DzMBo/k3EVKB6EZQB10b73ZQIEflAWGTC2ZvBcMp79qAR4F6c82V0+Cc6o0sg==}
+  '@anthropic-ai/claude-code@1.0.40':
+    resolution: {integrity: sha512-qC2SFowyHWvvik2ZbNCuE9V6+VXIsk2XB/liFMJxZBk0C8y2Hc6LEqGltKTjaFwkq2+NPcrImE4RZwBPfh2N3A==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -1416,8 +1416,8 @@ packages:
     resolution: {integrity: sha512-d9zaMRSTIKDLhctzH12MtXvJKSSUhaHcjV+2Z+GK+EEY7XKpP5yR4x+N3TAcHTcu963nIr+TMcCb4DBCYX1z6Q==}
     engines: {node: ^12.22.0 || ^14.17.0 || >=16.0.0}
 
-  '@faker-js/faker@9.8.0':
-    resolution: {integrity: sha512-U9wpuSrJC93jZBxx/Qq2wPjCuYISBueyVUGK7qqdmj7r/nxaxwW8AQDCLeRO7wZnjj94sh3p246cAYjUKuqgfg==}
+  '@faker-js/faker@9.9.0':
+    resolution: {integrity: sha512-OEl393iCOoo/z8bMezRlJu+GlRGlsKbUAN7jKB6LhnKoqKve5DXRpalbItIIcwnCjs1k/FOPjFzcA6Qn+H+YbA==}
     engines: {node: '>=18.0.0', npm: '>=9.0.0'}
 
   '@fastify/busboy@3.1.1':
@@ -3259,8 +3259,8 @@ packages:
   '@types/json5@0.0.29':
     resolution: {integrity: sha512-dRLjCWHYg4oaA77cxO64oO+7JwCwnIzkZPdrrC71jQmQtlhM556pwKo5bUzqvZndkVbeFLIIi+9TC40JNF5hNQ==}
 
-  '@types/lodash@4.17.19':
-    resolution: {integrity: sha512-NYqRyg/hIQrYPT9lbOeYc3kIRabJDn/k4qQHIXUpx88CBDww2fD15Sg5kbXlW86zm2XEW4g0QxkTI3/Kfkc7xQ==}
+  '@types/lodash@4.17.20':
+    resolution: {integrity: sha512-H3MHACvFUEiujabxhaI/ImO6gUrd8oOurg7LQtS7mbwIXA/cUqWrvBsaeJ23aZEPk1TAYkurjfMbSELfoCXlGA==}
 
   '@types/mdx@2.0.13':
     resolution: {integrity: sha512-+OWZQfAYyio6YkJb3HLxDrvnx6SWWDbC0zVPfBRzUk0/nqoDyf6dNxQi3eArPe8rJ473nobTMQ/8Zk+LxJ+Yuw==}
@@ -4681,8 +4681,8 @@ packages:
     peerDependencies:
       cypress: '>3.0.0'
 
-  cypress@14.5.0:
-    resolution: {integrity: sha512-1HOnKvWep0LkWuFwPeWkZ0TDl7ivi2/Mz+WNU4dfkeLJaFndS3Ow6TXT7YjuTqLFI2peJKzPKljVUFdymI2K5g==}
+  cypress@14.5.1:
+    resolution: {integrity: sha512-vYBeZKW3UAtxwv5mFuSlOBCYhyO0H86TeDKRJ7TgARyHiREIaiDjeHtqjzrXRFrdz9KnNavqlm+z+hklC7v8XQ==}
     engines: {node: ^18.0.0 || ^20.0.0 || >=22.0.0}
     hasBin: true
 
@@ -6908,8 +6908,8 @@ packages:
     resolution: {integrity: sha512-dBpDMdxv9Irdq66304OLfEmQ9tbNRFnFTuZiLo+bD+r332bBmMJ8GBLXklIXXgxd3+v9+KUnZaUR5PJMa75Gsg==}
     engines: {node: '>= 0.4.0'}
 
-  next-intl@4.3.3:
-    resolution: {integrity: sha512-KUyTgkp9Ud8yS2J4cs/MbjILFHjW6Ws9oAtxgL4a2Zyy4p5/xMUo69yV0psg4hGWn47dBQlbcDDj3HID3EyoDA==}
+  next-intl@4.3.4:
+    resolution: {integrity: sha512-VWLIDlGbnL/o4LnveJTJD1NOYN8lh3ZAGTWw2krhfgg53as3VsS4jzUVnArJdqvwtlpU/2BIDbWTZ7V4o1jFEw==}
     peerDependencies:
       next: ^12.0.0 || ^13.0.0 || ^14.0.0 || ^15.0.0
       react: ^16.8.0 || ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0 || ^19.0.0
@@ -8766,8 +8766,8 @@ packages:
       '@types/react':
         optional: true
 
-  use-intl@4.3.3:
-    resolution: {integrity: sha512-nyaEdN+NhnQW38uMPeB2z74T3+Uxslo9FtBToq3xbv1hxwXpjGfvZHu7BElJaaOaBDv5KQTRuHBbpliP8HZSTA==}
+  use-intl@4.3.4:
+    resolution: {integrity: sha512-sHfiU0QeJ1rirNWRxvCyvlSh9+NczcOzRnPyMeo2rtHXhVnBsvMRjE+UG4eh3lRhCxrvcqei/I0lBxsc59on1w==}
     peerDependencies:
       react: ^17.0.0 || ^18.0.0 || >=19.0.0-rc <19.0.0 || ^19.0.0
 
@@ -9071,7 +9071,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anthropic-ai/claude-code@1.0.38':
+  '@anthropic-ai/claude-code@1.0.40':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -10782,7 +10782,7 @@ snapshots:
 
   '@eslint/js@8.57.1': {}
 
-  '@faker-js/faker@9.8.0': {}
+  '@faker-js/faker@9.9.0': {}
 
   '@fastify/busboy@3.1.1': {}
 
@@ -13117,7 +13117,7 @@ snapshots:
 
   '@types/json5@0.0.29': {}
 
-  '@types/lodash@4.17.19': {}
+  '@types/lodash@4.17.20': {}
 
   '@types/mdx@2.0.13': {}
 
@@ -14827,11 +14827,11 @@ snapshots:
 
   cycle@1.0.3: {}
 
-  cypress-file-upload@5.0.8(cypress@14.5.0):
+  cypress-file-upload@5.0.8(cypress@14.5.1):
     dependencies:
-      cypress: 14.5.0
+      cypress: 14.5.1
 
-  cypress@14.5.0:
+  cypress@14.5.1:
     dependencies:
       '@cypress/request': 3.0.8
       '@cypress/xvfb': 1.2.4(supports-color@8.1.1)
@@ -16299,7 +16299,7 @@ snapshots:
 
   graphql-codegen-typescript-mock-data@5.0.0(graphql@16.11.0)(typescript@5.8.3):
     dependencies:
-      '@faker-js/faker': 9.8.0
+      '@faker-js/faker': 9.9.0
       '@graphql-codegen/plugin-helpers': 5.1.1(graphql@16.11.0)
       '@graphql-tools/utils': 10.8.6(graphql@16.11.0)
       casual: 1.6.2
@@ -17376,13 +17376,13 @@ snapshots:
 
   netmask@2.0.2: {}
 
-  next-intl@4.3.3(next@15.3.4(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.8.3):
+  next-intl@4.3.4(next@15.3.4(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(react@19.1.0)(typescript@5.8.3):
     dependencies:
       '@formatjs/intl-localematcher': 0.5.10
       negotiator: 1.0.0
       next: 15.3.4(@babel/core@7.27.4)(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       react: 19.1.0
-      use-intl: 4.3.3(react@19.1.0)
+      use-intl: 4.3.4(react@19.1.0)
     optionalDependencies:
       typescript: 5.8.3
 
@@ -19552,7 +19552,7 @@ snapshots:
     optionalDependencies:
       '@types/react': 19.1.8
 
-  use-intl@4.3.3(react@19.1.0):
+  use-intl@4.3.4(react@19.1.0):
     dependencies:
       '@formatjs/fast-memoize': 2.2.7
       '@schummar/icu-type-parser': 1.21.5
