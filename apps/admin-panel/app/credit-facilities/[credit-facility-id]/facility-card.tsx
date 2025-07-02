@@ -65,7 +65,7 @@ function FacilityCard({
       ),
     },
     {
-      label: t("details.outstandingInterest"),
+      label: t("details.interestOutstanding"),
       value: (
         <Balance
           amount={creditFacility.balance.interest.outstanding.usdBalance}

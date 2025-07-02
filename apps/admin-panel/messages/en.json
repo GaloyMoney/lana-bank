@@ -515,9 +515,9 @@
         "details": {
           "facilityAmount": "Facility Amount",
           "facilityRemaining": "Facility Remaining",
-          "disbursedOutstanding": "Disbursed and Outstanding",
-          "disbursedOutstandingPayable": "Disbursed and Outstanding Payable",
-          "outstandingInterest": "Outstanding Interest",
+          "disbursedOutstanding": "Disbursed Outstanding",
+          "disbursedOutstandingPayable": "Disbursed Outstanding Payable",
+          "interestOutstanding": "Interest Outstanding",
           "totalOutstanding": "Total Outstanding",
           "totalInterest": "Total Interest",
           "totalDisbursed": "Total Disbursed",
