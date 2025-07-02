@@ -1,52 +1,80 @@
 pub mod error;
 
 use async_trait::async_trait;
-use serde::{Deserialize, Serialize};
 
 use error::CustodianClientError;
 
-use super::state::repo::CustodianStateRepo;
-
 pub struct AddressResponse {
     pub address: String,
-    pub label: String,
+    pub full_response: serde_json::Value,
+}
+
+pub struct WalletResponse {
+    pub external_id: String,
     pub full_response: serde_json::Value,
 }
 
 #[async_trait]
 pub trait CustodianClient: Send {
-    async fn create_address<'a>(
+    async fn initialize_wallet<'a>(
         &self,
         label: &str,
-        state: CustodianStateRepo<'a>,
+    ) -> Result<WalletResponse, CustodianClientError>;
+
+    async fn get_address<'a>(
+        &self,
+        external_wallet_id: &str,
     ) -> Result<AddressResponse, CustodianClientError>;
 }
 
 #[async_trait]
-impl CustodianClient for komainu::KomainuClient {
-    async fn create_address<'a>(
+impl CustodianClient for bitgo::BitgoClient {
+    async fn initialize_wallet<'a>(
         &self,
         label: &str,
-        state: CustodianStateRepo<'a>,
+    ) -> Result<WalletResponse, CustodianClientError> {
+        let (wallet, full_response) = self
+            .generate_wallet(label)
+            .await
+            .map_err(CustodianClientError::client)?;
+
+        Ok(WalletResponse {
+            external_id: wallet.id,
+            full_response,
+        })
+    }
+
+    async fn get_address<'a>(
+        &self,
+        external_wallet_id: &str,
     ) -> Result<AddressResponse, CustodianClientError> {
-        let mut komainu_state: KomainuState = state.load().await?;
-
-        // let address = self.get_wallet_address_by_index(komainu_state.index).await?;
-
-        komainu_state.first_unused_address_index += 1;
-        state.persist(&komainu_state).await?;
+        let (wallet, full_response) = self
+            .get_wallet(external_wallet_id)
+            .await
+            .map_err(CustodianClientError::client)?;
 
         Ok(AddressResponse {
-            address: "bt1qaddress".to_string(),
-            label: label.to_string(),
-            full_response: serde_json::Value::Null,
+            address: wallet.receive_address.address,
+            full_response,
         })
     }
 }
 
-#[derive(Serialize, Deserialize, Default)]
-struct KomainuState {
-    first_unused_address_index: u64,
+#[async_trait]
+impl CustodianClient for komainu::KomainuClient {
+    async fn initialize_wallet<'a>(
+        &self,
+        _label: &str,
+    ) -> Result<WalletResponse, CustodianClientError> {
+        todo!()
+    }
+
+    async fn get_address<'a>(
+        &self,
+        _external_wallet_id: &str,
+    ) -> Result<AddressResponse, CustodianClientError> {
+        todo!()
+    }
 }
 
 #[cfg(feature = "mock-custodian")]

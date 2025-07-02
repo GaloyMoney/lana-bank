@@ -613,6 +613,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "bitgo"
+version = "0.3.707-dev"
+dependencies = [
+ "reqwest",
+ "rust_decimal",
+ "serde",
+ "serde_json",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+]
+
+[[package]]
 name = "bitvec"
 version = "1.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1173,6 +1186,7 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
+ "bitgo",
  "chacha20poly1305",
  "chrono",
  "derive_builder",

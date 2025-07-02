@@ -7,7 +7,6 @@ use crate::primitives::WalletId;
 pub enum CoreCustodyEvent {
     WalletAddressAllocated {
         id: WalletId,
-        label: String,
         address: String,
     },
 }

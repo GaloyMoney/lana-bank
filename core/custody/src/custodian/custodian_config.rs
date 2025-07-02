@@ -4,7 +4,10 @@ use chacha20poly1305::{
 };
 use serde::{Deserialize, Serialize};
 
-use super::{entity::KomainuConfig, error::CustodianError};
+use super::{
+    entity::{BitgoConfig, KomainuConfig},
+    error::CustodianError,
+};
 
 pub type EncryptionKey = chacha20poly1305::Key;
 
@@ -49,6 +52,7 @@ impl From<KomainuConfig> for komainu::KomainuConfig {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
+    Bitgo(BitgoConfig),
 }
 
 #[cfg(feature = "mock-custodian")]
