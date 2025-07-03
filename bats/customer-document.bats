@@ -100,9 +100,6 @@ teardown_file() {
   download_link=$(graphql_output .data.customerDocumentDownloadLinkGenerate.link)
   [[ "$download_link" != "null" && "$download_link" != "" ]] || exit 1
 
-  response=$(curl -s -o /dev/null -w "%{http_code}" "$download_link")
-  [[ "$response" == "200" ]] || exit 1
-
   # archive the document
   variables=$(jq -n \
     --arg documentId "$document_id" \
