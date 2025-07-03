@@ -12,7 +12,7 @@ pub struct ChartOfAccounts {
     name: String,
 
     #[graphql(skip)]
-    pub(super) entity: Arc<DomainChart>,
+    pub(crate) entity: Arc<DomainChart>,
 }
 
 impl From<DomainChart> for ChartOfAccounts {
@@ -61,8 +61,4 @@ pub struct ChartOfAccountsCsvImportInput {
     pub chart_id: UUID,
     pub file: Upload,
 }
-
-#[derive(SimpleObject)]
-pub struct ChartOfAccountsCsvImportPayload {
-    pub chart_of_accounts: ChartOfAccounts,
-}
+crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }

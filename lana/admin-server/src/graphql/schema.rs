@@ -1634,21 +1634,22 @@ impl Mutation {
         input: ChartOfAccountsCsvImportInput,
     ) -> async_graphql::Result<ChartOfAccountsCsvImportPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let ChartOfAccountsCsvImportInput { chart_id, file } = input;
 
-        let mut file = file.value(ctx)?.content;
-
+        let mut file = input.file.value(ctx)?.content;
         let mut data = String::new();
         file.read_to_string(&mut data)?;
-
-        let chart = app
-            .accounting()
-            .import_csv(sub, chart_id.into(), data, TRIAL_BALANCE_STATEMENT_NAME)
-            .await?;
-
-        Ok(ChartOfAccountsCsvImportPayload {
-            chart_of_accounts: ChartOfAccounts::from(chart),
-        })
+        exec_mutation!(
+            ChartOfAccountsCsvImportPayload,
+            ChartOfAccounts,
+            ChartId,
+            ctx,
+            app.accounting().import_csv(
+                sub,
+                input.chart_id.into(),
+                data,
+                TRIAL_BALANCE_STATEMENT_NAME
+            )
+        )
     }
 
     async fn balance_sheet_configure(
