@@ -20,6 +20,7 @@ sim-time = [
 ]
 
 fail-on-warnings = []
+test-dummy = ["core-custody/test-dummy", "core-credit/test-dummy"]
 
 [dependencies]
 rbac-types = { path = "../rbac-types" }

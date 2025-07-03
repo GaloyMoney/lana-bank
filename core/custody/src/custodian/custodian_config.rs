@@ -56,7 +56,7 @@ pub enum CustodianConfig {
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
-    Mock(crate::custodian::entity::MockConfig),
+    Mock,
 }
 
 impl CustodianConfig {

@@ -2,6 +2,8 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum CoreCustodyError {
+    #[error("CustodianError - EsEntityError: {0}")]
+    EsEntityError(es_entity::EsEntityError),
     #[error("CoreCustodyError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("CoreCustodyError - AuditError: {0}")]
@@ -17,3 +19,5 @@ pub enum CoreCustodyError {
     #[error("CoreCustodyError - WalletError: {0}")]
     Wallet(#[from] crate::wallet::error::WalletError),
 }
+
+es_entity::from_es_entity_error!(CoreCustodyError);

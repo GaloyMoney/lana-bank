@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use core_custody::Wallet as DomainWallet;
+pub use lana_app::custody::Wallet as DomainWallet;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

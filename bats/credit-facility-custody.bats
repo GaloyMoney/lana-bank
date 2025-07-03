@@ -34,25 +34,7 @@ wait_for_active() {
   [[ "$num_disbursals" -gt "0" ]]
 }
 
-
-@test "credit-facility-custody: can create custodian" {
-  variables=$(
-    jq -n --arg name "Mock Custodian $((RANDOM % 1000))" \
-    '{
-      input: {
-        mock: {
-          name: $name
-        }
-      }
-    }'
-  )
-
-  exec_admin_graphql 'custodian-create' "$variables"
-  custodian_id=$(graphql_output '.data.custodianCreate.custodian.custodianId')
-  cache_value 'custodian_id' "$custodian_id"
-}
-
-@test "credit-facility-custody: can create" {
+@test "credit-facility-custody: can create with mock custodian" {
   # Setup prerequisites
   customer_id=$(create_customer)
 
@@ -70,13 +52,10 @@ wait_for_active() {
   deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
   [[ "$deposit_account_id" != "null" ]] || exit 1
 
-  custodian_id=$(read_value 'custodian_id')
-  
   facility=100000
   variables=$(
     jq -n \
     --arg customerId "$customer_id" \
-    --arg custodianId "$custodian_id" \
     --arg disbursal_credit_account_id "$deposit_account_id" \
     --argjson facility "$facility" \
     '{
@@ -84,7 +63,7 @@ wait_for_active() {
         customerId: $customerId,
         facility: $facility,
         disbursalCreditAccountId: $disbursal_credit_account_id,
-        custodianId: $custodianId,
+        custodianId: "00000000-0000-0000-0000-000000000000",
         terms: {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",

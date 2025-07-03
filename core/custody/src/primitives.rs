@@ -5,6 +5,17 @@ es_entity::entity_id! {
     WalletId
 }
 
+#[cfg(feature = "test-dummy")]
+impl CustodianId {
+    pub const fn is_mock_custodian(self) -> bool {
+        self.0.is_nil()
+    }
+
+    pub const fn mock_custodian_id() -> Self {
+        Self(uuid::Uuid::nil())
+    }
+}
+
 pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";
 pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";
 

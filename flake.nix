@@ -231,7 +231,7 @@
         version = "0.1.0";
         doCheck = false;
         SQLX_OFFLINE = true;
-        cargoExtraArgs = "--bin write_sdl --features test-dummy";
+        cargoExtraArgs = "--bin write_sdl";
       };
 
       write_customer_sdl = craneLib.buildPackage {

@@ -73,13 +73,38 @@ where
         Ok(custody)
     }
 
+    #[cfg(feature = "test-dummy")]
     #[instrument(
-        name = "core_custody.create_custodian",
-        skip(self, custodian_config),
+        name = "credit_facility.ensure_mock_custodian_in_op",
+        skip(self, db),
         err
     )]
-    pub async fn create_custodian(
+    pub async fn ensure_mock_custodian_in_op(
         &self,
+        db: &mut DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<(), CoreCustodyError> {
+        let mock_custodian = self
+            .find_custodian_by_id(sub, CustodianId::mock_custodian_id())
+            .await;
+
+        match mock_custodian {
+            Err(CoreCustodyError::Custodian(e)) if e.was_not_found() => {
+                let _ = self
+                    .create_custodian_in_op(db, sub, "Mock Custodian", CustodianConfig::Mock)
+                    .await?;
+
+                Ok(())
+            }
+            Err(e) => Err(e),
+            Ok(_) => Ok(()),
+        }
+    }
+
+    #[instrument(name = "core_custody.created_custodian_in_op", skip(self, db), err)]
+    pub async fn create_custodian_in_op(
+        &self,
+        db: &mut DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: impl AsRef<str> + std::fmt::Debug,
         custodian_config: CustodianConfig,
@@ -93,19 +118,47 @@ where
             )
             .await?;
 
+        #[cfg(feature = "test-dummy")]
+        let custodian_id = if custodian_config == CustodianConfig::Mock {
+            CustodianId::mock_custodian_id()
+        } else {
+            CustodianId::new()
+        };
+
+        #[cfg(not(feature = "test-dummy"))]
+        let custodian_id = CustodianId::new();
+
         let new_custodian = NewCustodian::builder()
-            .id(CustodianId::new())
+            .id(custodian_id)
             .name(name.as_ref().to_owned())
             .audit_info(audit_info.clone())
             .encrypted_custodian_config(custodian_config, &self.config.custodian_encryption.key)
             .build()
             .expect("should always build a new custodian");
 
-        let mut op = self.custodians.begin_op().await?;
+        let custodian = self.custodians.create_in_op(db, new_custodian).await?;
 
-        let custodian = self.custodians.create_in_op(&mut op, new_custodian).await?;
+        Ok(custodian)
+    }
 
-        op.commit().await?;
+    #[instrument(
+        name = "core_custody.create_custodian",
+        skip(self, custodian_config),
+        err
+    )]
+    pub async fn create_custodian(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        name: impl AsRef<str> + std::fmt::Debug,
+        custodian_config: CustodianConfig,
+    ) -> Result<Custodian, CoreCustodyError> {
+        let mut db = self.custodians.begin_op().await?;
+
+        let custodian = self
+            .create_custodian_in_op(&mut db, sub, name, custodian_config)
+            .await?;
+
+        db.commit().await?;
 
         Ok(custodian)
     }
@@ -192,7 +245,7 @@ where
         Ok(self.custodians.find_all(ids).await?)
     }
 
-    #[instrument(name = "core_custody.list_custodians", skip(self), err)]
+    #[instrument(name = "core_custody.find_custodian_by_id", skip(self), err)]
     pub async fn find_custodian_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
