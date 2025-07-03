@@ -82,14 +82,14 @@ impl CsvParser {
                             .rposition(|spec| spec.code.is_parent_of(&sections))
                             .map(|parent_idx| &specs[parent_idx])
                         {
-                            specs.push(AccountSpec::new_spec(
+                            specs.push(AccountSpec::try_new(
                                 Some(parent_spec.code.clone()),
                                 sections,
                                 category,
                                 parent_spec.normal_balance_type,
                             )?);
                         } else {
-                            specs.push(AccountSpec::new_spec(
+                            specs.push(AccountSpec::try_new(
                                 None,
                                 sections,
                                 category,

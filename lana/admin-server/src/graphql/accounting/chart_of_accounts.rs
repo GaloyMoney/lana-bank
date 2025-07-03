@@ -85,7 +85,7 @@ impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
             ..
         } = input;
 
-        Ok(Self::new_spec(
+        Ok(Self::try_new(
             parent.map(|v| v.try_into()).transpose()?,
             code.try_into()?,
             name.parse()?,

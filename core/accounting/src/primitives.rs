@@ -303,7 +303,7 @@ pub struct AccountSpec {
 }
 
 impl AccountSpec {
-    pub fn new_spec(
+    pub fn try_new(
         parent: Option<AccountCode>,
         sections: Vec<AccountCodeSection>,
         name: AccountName,
@@ -1257,7 +1257,7 @@ mod tests {
     fn errors_for_new_spec_if_invalid_parent() {
         let parent = "10".parse::<AccountCode>().unwrap();
         let child = "11".parse::<AccountCode>().unwrap();
-        let new_spec = AccountSpec::new_spec(
+        let new_spec = AccountSpec::try_new(
             Some(parent),
             child.sections,
             "spec".parse().unwrap(),
