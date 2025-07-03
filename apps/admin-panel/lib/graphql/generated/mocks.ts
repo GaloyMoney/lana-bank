@@ -383,7 +383,7 @@ export const mockChartOfAccountsCsvImportPayload = (overrides?: Partial<ChartOfA
     relationshipsToOmit.add('ChartOfAccountsCsvImportPayload');
     return {
         __typename: 'ChartOfAccountsCsvImportPayload',
-        success: overrides && overrides.hasOwnProperty('success') ? overrides.success! : generateMockValue.boolean(),
+        chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
     };
 };
 

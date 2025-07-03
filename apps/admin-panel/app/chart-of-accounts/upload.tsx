@@ -19,7 +19,9 @@ import {
 gql`
   mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
     chartOfAccountsCsvImport(input: $input) {
-      success
+      chartOfAccounts {
+        chartId
+      }
     }
   }
 `
@@ -65,7 +67,7 @@ const ChartOfAccountsUpload = ({ chartId }: { chartId: string }) => {
           },
         },
       })
-      if (result.data?.chartOfAccountsCsvImport.success) {
+      if (result.data?.chartOfAccountsCsvImport.chartOfAccounts.chartId) {
         toast.success(t("successDescription"))
         resetUpload()
       } else {

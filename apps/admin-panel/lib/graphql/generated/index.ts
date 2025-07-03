@@ -282,7 +282,7 @@ export type ChartOfAccountsCsvImportInput = {
 
 export type ChartOfAccountsCsvImportPayload = {
   __typename?: 'ChartOfAccountsCsvImportPayload';
-  success: Scalars['Boolean']['output'];
+  chartOfAccounts: ChartOfAccounts;
 };
 
 export type Collateral = {
@@ -2414,7 +2414,7 @@ export type ChartOfAccountsCsvImportMutationVariables = Exact<{
 }>;
 
 
-export type ChartOfAccountsCsvImportMutation = { __typename?: 'Mutation', chartOfAccountsCsvImport: { __typename?: 'ChartOfAccountsCsvImportPayload', success: boolean } };
+export type ChartOfAccountsCsvImportMutation = { __typename?: 'Mutation', chartOfAccountsCsvImport: { __typename?: 'ChartOfAccountsCsvImportPayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', chartId: string } } };
 
 export type GetCommitteeDetailsQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -3813,7 +3813,9 @@ export type ChartOfAccountsQueryResult = Apollo.QueryResult<ChartOfAccountsQuery
 export const ChartOfAccountsCsvImportDocument = gql`
     mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
   chartOfAccountsCsvImport(input: $input) {
-    success
+    chartOfAccounts {
+      chartId
+    }
   }
 }
     `;
