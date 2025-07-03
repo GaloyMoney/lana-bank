@@ -194,7 +194,7 @@ select
     -- Sum of the proportional values ​​of each guarantee[3.6]
     collateral_amount_usd as `valor_garantia_cons`,
 
-    cast(null as string) as `municipio_otorgamiento`,
+    cast(null as string) as `distrito_otorgamiento`,
     reserve as `reserva_referencia`,
     cast(null as string) as `etapa_judicial`,
     cast(null as date) as `fecha_demanda`,
