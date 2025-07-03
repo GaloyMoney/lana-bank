@@ -1,0 +1,12 @@
+mutation LedgerAccountCsvCreate($input: LedgerAccountCsvCreateInput!) {
+  ledgerAccountCsvCreate(input: $input) {
+    accountingCsvDocument {
+      id
+      documentId
+      ledgerAccountId
+      status
+      createdAt
+      filename
+    }
+  }
+}

@@ -1,0 +1,8 @@
+mutation AccountingCsvDownloadLinkGenerate($input: AccountingCsvDownloadLinkGenerateInput!) {
+  accountingCsvDownloadLinkGenerate(input: $input) {
+    link {
+      url
+      csvId
+    }
+  }
+}
