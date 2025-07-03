@@ -76,21 +76,20 @@ async fn seed_chart_of_accounts(
     } = accounting_init_config;
 
     let data = std::fs::read_to_string(chart_of_accounts_seed_path)?;
-    if let Some(new_account_set_ids) = chart_of_accounts
+    let chart = if let (chart, Some(new_account_set_ids)) = chart_of_accounts
         .import_from_csv(&Subject::System, chart_id, data)
         .await?
     {
         trial_balances
             .add_new_chart_accounts_to_trial_balance(
                 TRIAL_BALANCE_STATEMENT_NAME,
-                new_account_set_ids,
+                &new_account_set_ids,
             )
             .await?;
+        chart
     } else {
         return Ok(());
-    }
-
-    let chart = chart_of_accounts.find_by_id(chart_id).await?;
+    };
 
     if let Some(config_path) = credit_config_path {
         credit_module_configure(credit, &chart, config_path)

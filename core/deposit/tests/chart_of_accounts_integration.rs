@@ -57,17 +57,10 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         "#
     .to_string();
     let chart_id = chart.id;
-    accounting
+    let (chart, _) = accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
-        .await?
-        .unwrap();
-    let chart = accounting
-        .chart_of_accounts()
-        .find_by_reference(&chart_ref)
-        .await
-        .unwrap()
-        .unwrap();
+        .await?;
 
     let code = "1".parse::<core_accounting::AccountCode>().unwrap();
     let account_set_id = cala
@@ -127,8 +120,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
-        .await?
-        .unwrap();
+        .await?;
 
     let res = deposit
         .set_chart_of_accounts_integration_config(

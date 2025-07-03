@@ -262,7 +262,7 @@ input ChartOfAccountsCsvImportInput {
 }
 
 type ChartOfAccountsCsvImportPayload {
-	success: Boolean!
+	chartOfAccounts: ChartOfAccounts!
 }
 
 type Collateral {

@@ -79,8 +79,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
-        .await?
-        .unwrap();
+        .await?;
     let chart = accounting
         .chart_of_accounts()
         .find_by_reference(&chart_ref)
@@ -228,8 +227,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     accounting
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
-        .await?
-        .unwrap();
+        .await?;
 
     let res = credit.chart_of_accounts_integrations()
         .set_config(

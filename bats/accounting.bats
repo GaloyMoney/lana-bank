@@ -76,8 +76,8 @@ teardown_file() {
   )
 
   response=$(exec_admin_graphql_upload 'chart-of-accounts-csv-import' "$variables" "$temp_file" "input.file")
-  success=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.success')
-  [[ "$success" == "true" ]] || exit 1
+  payload_chart_id=$(echo "$response" | jq -r '.data.chartOfAccountsCsvImport.chartOfAccounts.chartId')
+  [[ "$payload_chart_id" == "$chart_id" ]] || exit 1
 
   exec_admin_graphql 'chart-of-accounts'
   res=$(graphql_output \

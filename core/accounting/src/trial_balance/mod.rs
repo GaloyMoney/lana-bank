@@ -72,7 +72,7 @@ where
     pub async fn add_new_chart_accounts_to_trial_balance(
         &self,
         name: &str,
-        new_chart_account_set_ids: Vec<CalaAccountSetId>,
+        new_chart_account_set_ids: &Vec<CalaAccountSetId>,
     ) -> Result<(), TrialBalanceError> {
         let trial_balance_id = self
             .trial_balance_ledger
@@ -91,7 +91,7 @@ where
             .await?;
 
         self.trial_balance_ledger
-            .add_members(op, trial_balance_id, new_chart_account_set_ids.into_iter())
+            .add_members(op, trial_balance_id, new_chart_account_set_ids.iter())
             .await?;
 
         Ok(())

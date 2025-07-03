@@ -64,5 +64,5 @@ pub struct ChartOfAccountsCsvImportInput {
 
 #[derive(SimpleObject)]
 pub struct ChartOfAccountsCsvImportPayload {
-    pub success: bool,
+    pub chart_of_accounts: ChartOfAccounts,
 }

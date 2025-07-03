@@ -1,5 +1,7 @@
 mutation ChartOfAccountsCsvImport($input: ChartOfAccountsCsvImportInput!) {
   chartOfAccountsCsvImport(input: $input) {
-    success
+    chartOfAccounts {
+      chartId
+    }
   }
 }

@@ -1641,12 +1641,14 @@ impl Mutation {
         let mut data = String::new();
         file.read_to_string(&mut data)?;
 
-        let res = app
+        let chart = app
             .accounting()
             .import_csv(sub, chart_id.into(), data, TRIAL_BALANCE_STATEMENT_NAME)
             .await?;
 
-        Ok(ChartOfAccountsCsvImportPayload { success: res })
+        Ok(ChartOfAccountsCsvImportPayload {
+            chart_of_accounts: ChartOfAccounts::from(chart),
+        })
     }
 
     async fn balance_sheet_configure(

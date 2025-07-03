@@ -49,6 +49,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
         .await?
+        .1
         .unwrap();
 
     let trial_balance_name = format!("Trial Balance #{:05}", rand::rng().random_range(0..100000));
@@ -81,7 +82,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     accounting
         .trial_balances()
-        .add_new_chart_accounts_to_trial_balance(&trial_balance_name, new_account_set_ids)
+        .add_new_chart_accounts_to_trial_balance(&trial_balance_name, &new_account_set_ids)
         .await?;
 
     let accounts = accounting
