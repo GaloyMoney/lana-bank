@@ -7,6 +7,7 @@ use super::{
         disbursal::CreditFacilityDisbursal, payment_allocation::CreditFacilityPaymentAllocation,
     },
     deposit::Deposit,
+    loader::LanaDataLoader,
     withdrawal::Withdrawal,
 };
 
@@ -55,7 +56,7 @@ pub struct DisbursalEntry {
 #[graphql(complex)]
 pub struct PaymentEntry {
     #[graphql(skip)]
-    pub tx_id: UUID,
+    payment_allocation_id: PaymentAllocationId,
     pub recorded_at: Timestamp,
 }
 
@@ -129,15 +130,14 @@ impl PaymentEntry {
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
 
-        let payment = app
-            .credit()
-            .payments()
-            .find_allocation_by_id(sub, self.tx_id)
-            .await?;
+        let payment_allocation = loader
+            .load_one(self.payment_allocation_id)
+            .await?
+            .expect("payment allocation should exist");
 
-        Ok(CreditFacilityPaymentAllocation::from(payment))
+        Ok(payment_allocation)
     }
 }
 
@@ -170,7 +170,7 @@ impl From<lana_app::deposit::DepositAccountHistoryEntry> for DepositAccountHisto
             }
             lana_app::deposit::DepositAccountHistoryEntry::Payment(entry) => {
                 Self::Payment(PaymentEntry {
-                    tx_id: UUID::from(entry.tx_id),
+                    payment_allocation_id: entry.tx_id.into(),
                     recorded_at: entry.recorded_at.into(),
                 })
             }

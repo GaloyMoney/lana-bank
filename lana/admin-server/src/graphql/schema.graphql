@@ -518,6 +518,7 @@ type CreditFacilityDisbursalExecuted {
 	recordedAt: Timestamp!
 	effective: Date!
 	txId: UUID!
+	disbursal: CreditFacilityDisbursal!
 }
 
 input CreditFacilityDisbursalInitiateInput {
@@ -550,6 +551,7 @@ type CreditFacilityIncrementalPayment {
 	recordedAt: Timestamp!
 	effective: Date!
 	txId: UUID!
+	payment: CreditFacilityPaymentAllocation!
 }
 
 type CreditFacilityInterestAccrued {

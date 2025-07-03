@@ -1,7 +1,9 @@
 use async_graphql::*;
 
-use crate::primitives::*;
 pub use lana_app::primitives::CollateralAction;
+
+use super::{CreditFacilityDisbursal, CreditFacilityPaymentAllocation, LanaDataLoader};
+use crate::primitives::*;
 
 #[derive(async_graphql::Union)]
 pub enum CreditFacilityHistoryEntry {
@@ -14,11 +16,31 @@ pub enum CreditFacilityHistoryEntry {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub tx_id: UUID,
+    #[graphql(skip)]
+    payment_allocation_id: PaymentAllocationId,
+}
+
+#[ComplexObject]
+impl CreditFacilityIncrementalPayment {
+    async fn payment(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+
+        let payment_allocation = loader
+            .load_one(self.payment_allocation_id)
+            .await?
+            .expect("payment allocation should exist");
+
+        Ok(payment_allocation)
+    }
 }
 
 #[derive(SimpleObject)]
@@ -50,11 +72,27 @@ pub struct CreditFacilityCollateralizationUpdated {
 }
 
 #[derive(SimpleObject)]
+#[graphql(complex)]
 pub struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub tx_id: UUID,
+}
+
+#[ComplexObject]
+impl CreditFacilityDisbursalExecuted {
+    async fn disbursal(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityDisbursal> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let disbursal = app
+            .credit()
+            .disbursals()
+            .find_by_concluded_tx_id(sub, self.tx_id)
+            .await?;
+
+        Ok(CreditFacilityDisbursal::from(disbursal))
+    }
 }
 
 #[derive(SimpleObject)]
@@ -98,6 +136,7 @@ impl From<lana_app::credit::IncrementalPayment> for CreditFacilityIncrementalPay
             recorded_at: payment.recorded_at.into(),
             effective: payment.effective.into(),
             tx_id: UUID::from(payment.payment_id),
+            payment_allocation_id: payment.payment_id,
         }
     }
 }
