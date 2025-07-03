@@ -56,10 +56,8 @@ teardown_file() {
     }'
   )
   exec_admin_graphql 'chart-of-accounts-add-node' "$variables"
-
-  exec_admin_graphql 'chart-of-accounts'
   n_children_after=$(graphql_output '
-    .data.chartOfAccounts.children[]
+    .data.chartOfAccountsAddNode.chartOfAccounts.children[]
     | select(.accountCode == "1")
     | .children[]
     | select(.accountCode == "11")

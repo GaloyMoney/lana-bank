@@ -180,7 +180,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
         spec: impl Into<AccountSpec> + std::fmt::Debug,
-    ) -> Result<Option<CalaAccountSetId>, ChartOfAccountsError> {
+    ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
         let id = id.into();
         let spec = spec.into();
         let audit_info = self
@@ -198,7 +198,7 @@ where
             new_account_set,
         }) = chart.create_node(&spec, self.journal_id, audit_info.clone())
         else {
-            return Ok(None);
+            return Ok((chart, None));
         };
         let account_set_id = new_account_set.id;
 
@@ -219,7 +219,8 @@ where
 
         op.commit().await?;
 
-        Ok(chart.trial_balance_account_id_from_new_account(account_set_id))
+        let new_account_set_id = chart.trial_balance_account_id_from_new_account(account_set_id);
+        Ok((chart, new_account_set_id))
     }
 
     #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self), err)]

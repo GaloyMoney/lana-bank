@@ -72,6 +72,7 @@ pub struct ChartOfAccountsAddNodeInput {
     pub name: String,
     pub normal_balance_type: DebitOrCredit,
 }
+crate::mutation_payload! { ChartOfAccountsAddNodePayload, chart_of_accounts: ChartOfAccounts }
 
 impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
     type Error = Box<dyn std::error::Error + Sync + Send>;
@@ -92,9 +93,4 @@ impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
             normal_balance_type,
         )?)
     }
-}
-
-#[derive(SimpleObject)]
-pub struct ChartOfAccountsAddNodePayload {
-    pub success: bool,
 }

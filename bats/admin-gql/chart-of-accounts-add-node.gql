@@ -1,5 +1,25 @@
 mutation ChartOfAccountsAddNode($input: ChartOfAccountsAddNodeInput) {
   chartOfAccountsAddNode(input: $input) {
-    success
+    chartOfAccounts {
+      chartId
+      name
+      children {
+        ...child
+        children {
+          ...child
+          children {
+          ...child
+            children {
+              ...child
+            }
+          }
+        }
+      }
+    }
   }
+}
+
+fragment child on ChartNode {
+  name
+  accountCode
 }

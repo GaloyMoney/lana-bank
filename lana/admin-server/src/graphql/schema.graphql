@@ -265,7 +265,7 @@ input ChartOfAccountsAddNodeInput {
 }
 
 type ChartOfAccountsAddNodePayload {
-	success: Boolean!
+	chartOfAccounts: ChartOfAccounts!
 }
 
 input ChartOfAccountsCsvImportInput {
