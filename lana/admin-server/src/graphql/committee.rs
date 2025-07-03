@@ -4,7 +4,9 @@ use crate::primitives::*;
 
 use super::{access::User, loader::LanaDataLoader};
 
-pub use governance::{Committee as DomainCommittee, committee_cursor::CommitteesByCreatedAtCursor};
+pub use lana_app::governance::{
+    Committee as DomainCommittee, committee_cursor::CommitteesByCreatedAtCursor,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

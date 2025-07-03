@@ -2,13 +2,13 @@ use async_graphql::{Context, Object, types::connection::*};
 
 use std::io::Read;
 
-use document_storage::DocumentsByCreatedAtCursor;
 use lana_app::{
     accounting::csv::AccountingCsvDocumentId,
     accounting_init::constants::{
         BALANCE_SHEET_NAME, PROFIT_AND_LOSS_STATEMENT_NAME, TRIAL_BALANCE_STATEMENT_NAME,
     },
     app::LanaApp,
+    document::DocumentsByCreatedAtCursor,
 };
 
 use crate::primitives::*;

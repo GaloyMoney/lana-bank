@@ -15,6 +15,7 @@ use lana_app::{
     custody::error::CoreCustodyError,
     customer::CustomerDocumentId,
     deposit::error::CoreDepositError,
+    governance::error::GovernanceError,
 };
 
 use crate::primitives::*;
@@ -99,9 +100,9 @@ impl Loader<CustodianId> for LanaLoader {
     }
 }
 
-impl Loader<governance::CommitteeId> for LanaLoader {
+impl Loader<CommitteeId> for LanaLoader {
     type Value = Committee;
-    type Error = Arc<governance::error::GovernanceError>;
+    type Error = Arc<GovernanceError>;
 
     async fn load(
         &self,
@@ -115,9 +116,9 @@ impl Loader<governance::CommitteeId> for LanaLoader {
     }
 }
 
-impl Loader<governance::PolicyId> for LanaLoader {
+impl Loader<PolicyId> for LanaLoader {
     type Value = Policy;
-    type Error = Arc<governance::error::GovernanceError>;
+    type Error = Arc<GovernanceError>;
 
     async fn load(&self, keys: &[PolicyId]) -> Result<HashMap<PolicyId, Policy>, Self::Error> {
         self.app
@@ -128,9 +129,9 @@ impl Loader<governance::PolicyId> for LanaLoader {
     }
 }
 
-impl Loader<governance::ApprovalProcessId> for LanaLoader {
+impl Loader<ApprovalProcessId> for LanaLoader {
     type Value = ApprovalProcess;
-    type Error = Arc<governance::error::GovernanceError>;
+    type Error = Arc<GovernanceError>;
 
     async fn load(
         &self,

@@ -16,7 +16,7 @@ pub mod storage {
 pub mod document {
     pub use document_storage::{
         Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
-        GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
+        DocumentsByCreatedAtCursor, GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
     };
     pub type DocumentStorage = document_storage::DocumentStorage;
 }
@@ -45,7 +45,9 @@ pub mod rbac {
     pub use rbac_types::PermissionSetName;
 }
 pub mod access {
-    pub use core_access::{Role, RoleId, UserId, config, error, permission_set, role, user};
+    pub use core_access::{
+        AuthenticationId, Role, RoleId, UserId, config, error, permission_set, role, user,
+    };
     pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
@@ -79,6 +81,10 @@ pub mod governance {
     pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
     pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
     pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
+    pub use governance::{
+        ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, ApprovalRules, Committee,
+        CommitteeId, Policy, approval_process_cursor, committee_cursor, error, policy_cursor,
+    };
 }
 
 pub mod audit {

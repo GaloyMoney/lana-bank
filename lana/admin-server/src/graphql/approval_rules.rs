@@ -2,23 +2,25 @@ use async_graphql::*;
 
 use super::{committee::Committee, loader::LanaDataLoader};
 
+use lana_app::governance::{ApprovalRules as DomainApprovalRules, CommitteeId};
+
 #[derive(async_graphql::Union)]
 pub(super) enum ApprovalRules {
     System(SystemApproval),
     CommitteeThreshold(CommitteeThreshold),
 }
 
-impl From<governance::ApprovalRules> for ApprovalRules {
-    fn from(rules: governance::ApprovalRules) -> Self {
+impl From<DomainApprovalRules> for ApprovalRules {
+    fn from(rules: DomainApprovalRules) -> Self {
         match rules {
-            governance::ApprovalRules::CommitteeThreshold {
+            DomainApprovalRules::CommitteeThreshold {
                 threshold,
                 committee_id,
             } => ApprovalRules::CommitteeThreshold(CommitteeThreshold {
                 threshold,
                 committee_id,
             }),
-            governance::ApprovalRules::SystemAutoApprove => {
+            DomainApprovalRules::SystemAutoApprove => {
                 ApprovalRules::System(SystemApproval { auto_approve: true })
             }
         }
@@ -35,7 +37,7 @@ pub(super) struct SystemApproval {
 pub(super) struct CommitteeThreshold {
     threshold: usize,
     #[graphql(skip)]
-    committee_id: governance::CommitteeId,
+    committee_id: CommitteeId,
 }
 
 #[ComplexObject]

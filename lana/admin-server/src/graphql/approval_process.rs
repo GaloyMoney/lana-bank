@@ -7,8 +7,9 @@ use super::{
     withdrawal::*,
 };
 
-pub use governance::{
+pub use lana_app::governance::{
     ApprovalProcess as DomainApprovalProcess, ApprovalProcessStatus,
+    ApprovalProcessType as DomainApprovalProcessType,
     approval_process_cursor::ApprovalProcessesByCreatedAtCursor,
 };
 
@@ -176,8 +177,8 @@ pub enum ApprovalProcessType {
     DisbursalApproval,
 }
 
-impl From<&governance::ApprovalProcessType> for ApprovalProcessType {
-    fn from(process_type: &governance::ApprovalProcessType) -> Self {
+impl From<&DomainApprovalProcessType> for ApprovalProcessType {
+    fn from(process_type: &DomainApprovalProcessType) -> Self {
         if process_type == &lana_app::governance::APPROVE_WITHDRAWAL_PROCESS {
             Self::WithdrawalApproval
         } else if process_type == &lana_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {

@@ -1,8 +1,10 @@
 use async_graphql::*;
 
 use crate::primitives::*;
-pub use document_storage::{Document as DomainDocument, DocumentStatus};
-pub use lana_app::accounting::csv::AccountingCsvDocumentId;
+pub use lana_app::{
+    accounting::csv::AccountingCsvDocumentId,
+    document::{Document as DomainDocument, DocumentStatus, GeneratedDocumentDownloadLink},
+};
 use std::sync::Arc;
 
 #[derive(SimpleObject, Clone)]
@@ -50,8 +52,8 @@ pub struct AccountingCsvDownloadLink {
     pub csv_id: UUID,
 }
 
-impl From<document_storage::GeneratedDocumentDownloadLink> for AccountingCsvDownloadLink {
-    fn from(result: document_storage::GeneratedDocumentDownloadLink) -> Self {
+impl From<GeneratedDocumentDownloadLink> for AccountingCsvDownloadLink {
+    fn from(result: GeneratedDocumentDownloadLink) -> Self {
         Self {
             url: result.link,
             csv_id: UUID::from(result.document_id),

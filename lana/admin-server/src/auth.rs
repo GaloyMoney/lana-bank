@@ -4,7 +4,7 @@ use axum::{
 use serde::{Deserialize, Serialize};
 
 use jwks_utils::JwtDecoderState;
-use lana_app::app::LanaApp;
+use lana_app::{access::AuthenticationId, app::LanaApp};
 
 #[derive(Deserialize, Serialize, Debug, Clone)]
 pub struct AuthenticationPayload {
@@ -16,7 +16,7 @@ pub async fn user_id_from_authentication_id(
     Extension(app): Extension<LanaApp>,
     Json(mut payload): Json<AuthenticationPayload>,
 ) -> impl IntoResponse {
-    let authentication_id = match payload.subject.parse::<core_access::AuthenticationId>() {
+    let authentication_id = match payload.subject.parse::<AuthenticationId>() {
         Ok(id) => id,
         Err(e) => {
             println!("Error parsing authentication id: {:?}", e);

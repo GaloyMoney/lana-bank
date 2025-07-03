@@ -2,11 +2,10 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use core_custody::{
-    Custodian as DomainCustodian, CustodianConfig as DomainCustodianConfig,
+pub use lana_app::custody::custodian::{
+    Custodian as DomainCustodian, CustodianConfig as DomainCustodianConfig, CustodiansByNameCursor,
     KomainuConfig as DomainKomainuConfig,
 };
-pub use lana_app::custody::custodian::CustodiansByNameCursor;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

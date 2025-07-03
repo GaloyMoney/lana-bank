@@ -11,11 +11,6 @@ fail-on-warnings = []
 [dependencies]
 lana-app = { path = "../app" }
 
-governance = { path = "../../core/governance" }
-core-access = { path = "../../core/access" }
-core-custody = { path = "../../core/custody" }
-document-storage = { path = "../../core/document-storage" }
-
 audit = { path = "../../lib/audit" }
 tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
 jwks-utils = { path = "../../lib/jwks-utils" }
