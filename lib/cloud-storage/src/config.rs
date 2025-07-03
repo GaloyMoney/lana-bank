@@ -33,7 +33,7 @@ impl StorageConfig {
         })
     }
 
-    pub(super) fn identifier(&self) -> String {
+    pub fn identifier(&self) -> String {
         match self {
             StorageConfig::Gcp(gcp_config) => {
                 format!("gcp:{}:{}", gcp_config.bucket_name, gcp_config.root_folder)

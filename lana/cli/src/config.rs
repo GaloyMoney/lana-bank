@@ -87,7 +87,9 @@ impl Config {
                 config.app.service_account.clone(),
                 config.app.report.dev_disable_auto_create,
             );
-            config.app.storage = StorageConfig::new_gcp_dev_mode(dev_env_name_prefix);
+            if config.app.storage.identifier().contains("gcp") {
+                config.app.storage = StorageConfig::new_gcp_dev_mode(dev_env_name_prefix);
+            }
         } else {
             config.app.report.service_account = Some(config.app.service_account.clone());
         };
