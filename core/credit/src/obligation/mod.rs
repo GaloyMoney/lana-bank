@@ -273,11 +273,7 @@ where
             }
         }
 
-        if new_allocations.is_empty() {
-            Err(ObligationError::NoNewPaymentAllocationsForPayment)
-        } else {
-            Ok(PaymentAllocationResult::new(new_allocations))
-        }
+        Ok(PaymentAllocationResult::new(new_allocations))
     }
 
     pub async fn check_facility_obligations_status_updated(
