@@ -18,7 +18,7 @@ struct ConfigHackCleanup {
 
 impl PdfGenerator {
     /// Create a new PDF generator with optional config file path
-    pub async fn new(config_file: Option<PathBuf>) -> Result<Self, RenderingError> {
+    pub fn new(config_file: Option<PathBuf>) -> Result<Self, RenderingError> {
         if let Some(ref config_path) = config_file {
             if !config_path.exists() {
                 return Err(RenderingError::InvalidTemplateData(format!(
