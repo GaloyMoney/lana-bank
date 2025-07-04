@@ -98,7 +98,7 @@ impl ApplicantDetails {
     /// Get the applicant's full name as "FirstName LastName"
     pub fn full_name(&self) -> Option<String> {
         match (self.first_name(), self.last_name()) {
-            (Some(first), Some(last)) => Some(format!("{} {}", first, last)),
+            (Some(first), Some(last)) => Some(format!("{first} {last}")),
             (Some(first), None) => Some(first.to_string()),
             (None, Some(last)) => Some(last.to_string()),
             (None, None) => None,
@@ -196,7 +196,7 @@ impl SumsubClient {
             Ok(SumsubResponse::Success(_)) => {
                 // Parse the JSON response into our structured format
                 let applicant_details: ApplicantDetails =
-                    serde_json::from_str(&response_text).map_err(|e| ApplicantError::Serde(e))?;
+                    serde_json::from_str(&response_text).map_err(ApplicantError::Serde)?;
                 Ok(applicant_details)
             }
             Ok(SumsubResponse::Error(ApiError { description, code })) => {
@@ -336,7 +336,7 @@ impl SumsubClient {
         level_name: &str,
     ) -> Result<String, ApplicantError> {
         let method = "POST";
-        let url = format!("/resources/applicants?levelName={}", level_name);
+        let url = format!("/resources/applicants?levelName={level_name}");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
         let body = json!({
@@ -388,7 +388,7 @@ impl SumsubClient {
         country_of_birth: &str, // 3-letter country code
     ) -> Result<(), ApplicantError> {
         let method = "PATCH";
-        let url_path = format!("/resources/applicants/{}/fixedInfo", applicant_id);
+        let url_path = format!("/resources/applicants/{applicant_id}/fixedInfo");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
         let body = json!({
@@ -418,7 +418,7 @@ impl SumsubClient {
                     Err(ApplicantError::Sumsub { description, code })
                 }
                 _ => Err(ApplicantError::Sumsub {
-                    description: format!("Failed to update applicant info: {}", response_text),
+                    description: format!("Failed to update applicant info: {response_text}"),
                     code: 500,
                 }),
             }
@@ -435,8 +435,7 @@ impl SumsubClient {
     ) -> Result<(), ApplicantError> {
         let method = "POST";
         let url_path = format!(
-            "/resources/applicants/{}/status/testCompleted",
-            applicant_id
+            "/resources/applicants/{applicant_id}/status/testCompleted"
         );
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
@@ -477,7 +476,7 @@ impl SumsubClient {
                     Err(ApplicantError::Sumsub { description, code })
                 }
                 _ => Err(ApplicantError::Sumsub {
-                    description: format!("Failed to simulate review: {}", response_text),
+                    description: format!("Failed to simulate review: {response_text}"),
                     code: 500,
                 }),
             }
@@ -515,7 +514,7 @@ mod tests {
             .create_permalink(customer_id, "basic-kyc-level")
             .await?;
 
-        println!("Response: {:?}", response);
+        println!("Response: {response:?}");
 
         Ok(())
     }
@@ -549,8 +548,8 @@ mod tests {
         {
             Ok(applicant_id) => {
                 println!("✅ Applicant created successfully!");
-                println!("   Applicant ID: {}", applicant_id);
-                println!("   Customer ID: {}", customer_id);
+                println!("   Applicant ID: {applicant_id}");
+                println!("   Customer ID: {customer_id}");
 
                 // Step 3: Verify applicant exists
                 println!("\n🔍 Step 3: Verifying applicant exists...");
@@ -564,12 +563,12 @@ mod tests {
                         );
                         println!("   Nationality: {}", details.nationality().unwrap_or("N/A"));
                         if let Some(address) = details.primary_address() {
-                            println!("   Address: {}", address);
+                            println!("   Address: {address}");
                         }
                         println!("   Type: {}", details.applicant_type);
                     }
                     Err(e) => {
-                        println!("⚠️ Could not fetch applicant details: {:?}", e);
+                        println!("⚠️ Could not fetch applicant details: {e:?}");
                         return Ok(()); // Don't fail the test, but note the issue
                     }
                 }
@@ -584,7 +583,7 @@ mod tests {
                         println!("✅ Successfully updated applicant information");
                     }
                     Err(e) => {
-                        println!("⚠️ Failed to update applicant info: {:?}", e);
+                        println!("⚠️ Failed to update applicant info: {e:?}");
                         println!("   Continuing with approval test anyway...");
                     }
                 }
@@ -612,16 +611,16 @@ mod tests {
                                 );
                                 println!("   Applicant Type: {}", updated_details.applicant_type);
                             }
-                            Err(e) => println!("⚠️ Could not fetch updated details: {:?}", e),
+                            Err(e) => println!("⚠️ Could not fetch updated details: {e:?}"),
                         }
                     }
                     Err(e) => {
-                        println!("⚠️ Auto-approval simulation failed: {:?}", e);
+                        println!("⚠️ Auto-approval simulation failed: {e:?}");
                     }
                 }
             }
             Err(e) => {
-                println!("⚠️ Failed to create applicant: {:?}", e);
+                println!("⚠️ Failed to create applicant: {e:?}");
                 println!("   This might be due to sandbox limitations or configuration issues");
 
                 // Document the complete workflow
@@ -630,18 +629,18 @@ mod tests {
                 println!("✅ Applicant creation via API: WORKING");
                 println!("✅ Basic info update via API: WORKING");
                 println!("✅ Auto-approval simulation: WORKING");
-                println!("");
+                println!();
                 println!("For complete KYC testing:");
                 println!("1. ✅ Create applicant (automated)");
                 println!("2. ✅ Add basic information (automated)");
                 println!("3. 🤖 Use simulate_review_response() for status testing");
                 println!("4. ✅ Verify final status");
-                println!("");
+                println!();
                 println!(
                     "🔗 Permalink for manual testing: {}",
                     permalink_response.url
                 );
-                println!("🆔 Customer ID for API calls: {}", customer_id);
+                println!("🆔 Customer ID for API calls: {customer_id}");
             }
         }
 
@@ -678,8 +677,8 @@ mod tests {
         {
             Ok(applicant_id) => {
                 println!("✅ Applicant created successfully!");
-                println!("   Applicant ID: {}", applicant_id);
-                println!("   Customer ID: {}", customer_id);
+                println!("   Applicant ID: {applicant_id}");
+                println!("   Customer ID: {customer_id}");
 
                 // Step 3: Verify applicant exists
                 println!("\n🔍 Step 3: Verifying applicant exists...");
@@ -693,12 +692,12 @@ mod tests {
                         );
                         println!("   Nationality: {}", details.nationality().unwrap_or("N/A"));
                         if let Some(address) = details.primary_address() {
-                            println!("   Address: {}", address);
+                            println!("   Address: {address}");
                         }
                         println!("   Type: {}", details.applicant_type);
                     }
                     Err(e) => {
-                        println!("⚠️ Could not fetch applicant details: {:?}", e);
+                        println!("⚠️ Could not fetch applicant details: {e:?}");
                         return Ok(()); // Don't fail the test, but note the issue
                     }
                 }
@@ -713,7 +712,7 @@ mod tests {
                         println!("✅ Successfully updated applicant information");
                     }
                     Err(e) => {
-                        println!("⚠️ Failed to update applicant info: {:?}", e);
+                        println!("⚠️ Failed to update applicant info: {e:?}");
                         println!("   Continuing with rejection test anyway...");
                     }
                 }
@@ -741,16 +740,16 @@ mod tests {
                                 );
                                 println!("   Applicant Type: {}", updated_details.applicant_type);
                             }
-                            Err(e) => println!("⚠️ Could not fetch updated details: {:?}", e),
+                            Err(e) => println!("⚠️ Could not fetch updated details: {e:?}"),
                         }
                     }
                     Err(e) => {
-                        println!("⚠️ Auto-rejection simulation failed: {:?}", e);
+                        println!("⚠️ Auto-rejection simulation failed: {e:?}");
                     }
                 }
             }
             Err(e) => {
-                println!("⚠️ Failed to create applicant: {:?}", e);
+                println!("⚠️ Failed to create applicant: {e:?}");
             }
         }
 
