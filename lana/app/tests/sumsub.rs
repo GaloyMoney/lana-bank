@@ -17,14 +17,14 @@ fn load_config_from_env() -> Option<SumsubConfig> {
 
 fn get_random_credentials() -> (String, String) {
     let random_id = Uuid::new_v4().to_string();
-    let email = format!("test_{}@example.com", random_id);
-    let telegram_id = format!("test_{}_telegram", random_id);
+    let email = format!("test_{random_id}@example.com");
+    let telegram_id = format!("test_{random_id}_telegram");
     (email, telegram_id)
 }
 
 // Function to programmatically "visit" the URL to register the applicant
 async fn _visit_permalink(url: &str) -> anyhow::Result<()> {
-    println!("DEBUG: Programmatically accessing URL: {}", url);
+    println!("DEBUG: Programmatically accessing URL: {url}");
 
     // Create a client with default configuration
     let client = reqwest::Client::builder()
@@ -77,10 +77,10 @@ async fn create_permalink() -> anyhow::Result<()> {
             assert!(!url.is_empty(), "The returned URL should not be empty");
             assert!(url.starts_with("http"), "The URL should start with 'http'");
 
-            println!("DEBUG: Successfully created permalink: {}", url);
+            println!("DEBUG: Successfully created permalink: {url}");
         }
         Err(e) => {
-            panic!("Request failed: {:?}", e);
+            panic!("Request failed: {e:?}");
         }
     }
     Ok(())

@@ -135,33 +135,22 @@ mod tests {
     fn assert_delay_exact(actual: u64, expected: u64) {
         assert_eq!(
             actual, expected,
-            "Expected exactly {}ms, got {}ms",
-            expected, actual
+            "Expected exactly {expected}ms, got {actual}ms"
         );
     }
 
     fn assert_delay_near(actual: u64, expected: u64) {
-        let diff = if actual > expected {
-            actual - expected
-        } else {
-            expected - actual
-        };
+        let diff = actual.abs_diff(expected);
         assert!(
             diff <= TIMING_TOLERANCE_MS,
-            "Expected ~{}ms (±{}ms), got {}ms",
-            expected,
-            TIMING_TOLERANCE_MS,
-            actual
+            "Expected ~{expected}ms (±{TIMING_TOLERANCE_MS}ms), got {actual}ms"
         );
     }
 
     fn assert_delay_in_range(actual: u64, min: u64, max: u64) {
         assert!(
             actual >= min && actual <= max,
-            "Expected delay in range {}-{}ms, got {}ms",
-            min,
-            max,
-            actual
+            "Expected delay in range {min}-{max}ms, got {actual}ms"
         );
     }
 
@@ -220,8 +209,7 @@ mod tests {
             let delay = get_delay_ms(&settings, 1);
             assert!(
                 delay < u64::MAX,
-                "Delay should be reasonable, got {}ms",
-                delay
+                "Delay should be reasonable, got {delay}ms"
             );
         }
     }
@@ -234,12 +222,10 @@ mod tests {
         let time2 = settings.next_attempt_at(5);
 
         let diff_ms = (time1.signed_duration_since(time2))
-            .num_milliseconds()
-            .abs() as u64;
+            .num_milliseconds().unsigned_abs();
         assert!(
             diff_ms <= TIMING_TOLERANCE_MS,
-            "Times should be nearly identical without jitter, diff: {}ms",
-            diff_ms
+            "Times should be nearly identical without jitter, diff: {diff_ms}ms"
         );
     }
 }

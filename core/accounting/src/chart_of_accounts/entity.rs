@@ -610,7 +610,7 @@ mod test {
             .unwrap();
         match second {
             ManualAccountFromChart::IdInChart(id) => assert_eq!(id, ledger_id.into()),
-            other => panic!("expected IdInChart, got {:?}", other),
+            other => panic!("expected IdInChart, got {other:?}"),
         }
     }
 
@@ -651,7 +651,7 @@ mod test {
 
         match err {
             ChartOfAccountsError::CodeNotFoundInChart(c) => assert_eq!(c, bad_code),
-            other => panic!("expected CodeNotFoundInChart, got {:?}", other),
+            other => panic!("expected CodeNotFoundInChart, got {other:?}"),
         }
     }
 
