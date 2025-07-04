@@ -337,31 +337,17 @@ where
 
         let external_wallet = client.initialize_wallet("label").await?;
 
-        let mut wallet_modified = false;
-
         if wallet
             .attach_external_wallet(
                 external_wallet.external_id.clone(),
+                external_wallet.address,
                 external_wallet.full_response,
                 &audit_info,
             )
             .did_execute()
         {
-            wallet_modified = true;
-        };
-
-        let address = client.get_address(&external_wallet.external_id).await?;
-
-        if wallet
-            .allocate_address(address.address, address.full_response, &audit_info)
-            .did_execute()
-        {
-            wallet_modified = true;
-        }
-
-        if wallet_modified {
             self.wallets.update_in_op(db, wallet).await?;
-        }
+        };
 
         Ok(())
     }

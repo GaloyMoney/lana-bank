@@ -4,13 +4,9 @@ use async_trait::async_trait;
 
 use error::CustodianClientError;
 
-pub struct AddressResponse {
-    pub address: String,
-    pub full_response: serde_json::Value,
-}
-
 pub struct WalletResponse {
     pub external_id: String,
+    pub address: String,
     pub full_response: serde_json::Value,
 }
 
@@ -20,11 +16,6 @@ pub trait CustodianClient: Send {
         &self,
         label: &str,
     ) -> Result<WalletResponse, CustodianClientError>;
-
-    async fn get_address<'a>(
-        &self,
-        external_wallet_id: &str,
-    ) -> Result<AddressResponse, CustodianClientError>;
 }
 
 #[async_trait]
@@ -40,20 +31,6 @@ impl CustodianClient for bitgo::BitgoClient {
 
         Ok(WalletResponse {
             external_id: wallet.id,
-            full_response,
-        })
-    }
-
-    async fn get_address<'a>(
-        &self,
-        external_wallet_id: &str,
-    ) -> Result<AddressResponse, CustodianClientError> {
-        let (wallet, full_response) = self
-            .get_wallet(external_wallet_id)
-            .await
-            .map_err(CustodianClientError::client)?;
-
-        Ok(AddressResponse {
             address: wallet.receive_address.address,
             full_response,
         })
@@ -66,13 +43,6 @@ impl CustodianClient for komainu::KomainuClient {
         &self,
         _label: &str,
     ) -> Result<WalletResponse, CustodianClientError> {
-        todo!()
-    }
-
-    async fn get_address<'a>(
-        &self,
-        _external_wallet_id: &str,
-    ) -> Result<AddressResponse, CustodianClientError> {
         todo!()
     }
 }
