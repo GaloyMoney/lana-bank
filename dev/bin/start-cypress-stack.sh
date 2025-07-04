@@ -28,7 +28,7 @@ cleanup() {
     pkill -f "admin-panel.*pnpm.*dev" || true
     
     # Stop podman services
-    make clean-deps-podman || true
+    make clean-deps || true
 }
 
 # Set up trap for cleanup only on interruption, not normal exit
@@ -50,12 +50,12 @@ fi
 
 # Step 1: Start dependencies (databases, auth services, etc.)
 echo "Starting dependencies with podman..."
-make start-deps-podman
+make start-deps
 
 # Add diagnostic info after starting dependencies
 echo "Checking dependency startup status..."
 sleep 5
-podman ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || true
+${ENGINE_DEFAULT:-docker} ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || true
 
 # Step 2: Setup database
 echo "Setting up database..."

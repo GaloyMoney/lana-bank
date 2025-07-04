@@ -4,7 +4,6 @@
 #@   "build_edge_image",
 #@   "public_gar_registry",
 #@   "nodejs_task_image_config",
-#@   "docker_host_pool",
 #@   "edge_image_resource",
 #@   "version_resource",
 #@   "gh_release_resource",
@@ -81,8 +80,8 @@ jobs:
                 nix develop --profile dev-profile --command true
                 cachix push $CACHIX_CACHE_NAME dev-profile
 
-                nix -L develop --command make test-integration-podman
-                nix -L develop --command make test-bats-podman
+                nix -L develop --command make test-in-ci-cargo
+                nix -L develop --command make e2e
 
   - name: check-code
     serial: true
