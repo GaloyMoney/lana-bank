@@ -492,33 +492,27 @@ jobs:
   -  #@ build_app_edge_image("customer-portal")
 
   - name: build-meltano-edge-image
+    serial: true
     plan:
-      - in_parallel:
-          - get: repo
-            trigger: true
-          - get: pipeline-tasks
+      - get: repo
+        trigger: true
       - task: build
         config:
           platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: gcr.io/kaniko-project/executor
-              tag: debug
+          image_resource: #@ nix_task_image_config()
           inputs:
           - name: repo
           outputs:
           - name: image
           run:
-            path: /kaniko/executor
+            path: bash
             args:
-              - --dockerfile=Dockerfile
-              - --context=repo/meltano
-              - --use-new-run
-              - --single-snapshot
-              - --cache=false
-              - --no-push
-              - --tar-path=image/image.tar
+              - -c
+              - |
+                set -eux
+                cd repo
+                nix build .#meltano-image
+                gunzip ./result -c > ../image/image.tar
       - put: meltano-edge-image
         params:
           image: image/image.tar
