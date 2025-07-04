@@ -222,7 +222,8 @@ mod tests {
         let time2 = settings.next_attempt_at(5);
 
         let diff_ms = (time1.signed_duration_since(time2))
-            .num_milliseconds().unsigned_abs();
+            .num_milliseconds()
+            .unsigned_abs();
         assert!(
             diff_ms <= TIMING_TOLERANCE_MS,
             "Times should be nearly identical without jitter, diff: {diff_ms}ms"
