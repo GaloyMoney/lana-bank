@@ -14,8 +14,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    /// Create a new renderer with optional PDF config file path
-    pub async fn new(pdf_config_path: Option<std::path::PathBuf>) -> Result<Self, RenderingError> {
+    pub async fn init(pdf_config_path: Option<std::path::PathBuf>) -> Result<Self, RenderingError> {
         let template_renderer = TemplateRenderer::new();
         let pdf_generator = PdfGenerator::new(pdf_config_path).await?;
 
@@ -84,7 +83,7 @@ mod tests {
         let test_data = TestData::new("test@example.com".to_string());
 
         // Test the rendering library directly
-        let renderer = Renderer::new(pdf_config_file).await?;
+        let renderer = Renderer::init(pdf_config_file).await?;
 
         // Test template content (simulate loading from file)
         let template_content = "# Test Document\n\n- **Name:** {{name}}\n- **Email:** {{email}}";
@@ -113,7 +112,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_pdf_generator() -> Result<(), RenderingError> {
-        let renderer = Renderer::new(None).await?;
+        let renderer = Renderer::init(None).await?;
 
         let markdown = "# Test Document\n\nThis is a test.";
         let pdf_bytes = renderer.markdown_to_pdf(markdown).await?;
@@ -126,7 +125,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_template_renderer() -> Result<(), RenderingError> {
-        let renderer = Renderer::new(None).await?;
+        let renderer = Renderer::init(None).await?;
 
         let template_content = "# Hello {{name}}\n\n- **Email:** {{email}}";
         let test_data = TestData::new("test@example.com".to_string());
@@ -142,7 +141,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_end_to_end_template_to_pdf() -> Result<(), RenderingError> {
-        let renderer = Renderer::new(None).await?;
+        let renderer = Renderer::init(None).await?;
 
         let template_content = "# Loan Agreement\n\n- **Name:** {{name}}\n- **Email:** {{email}}\n\nThis is a test document.";
         let test_data = TestData::new("john.doe@example.com".to_string());
