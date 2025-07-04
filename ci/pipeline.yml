@@ -499,20 +499,26 @@ jobs:
       - task: build
         config:
           platform: linux
-          image_resource: #@ nix_task_image_config()
+          image_resource: #@ nix_flake_cachix_image_config()
           inputs:
           - name: repo
           outputs:
           - name: image
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
           run:
             path: bash
             args:
               - -c
               - |
                 set -eux
-                cd repo
+                pushd repo
+
+                cachix use $CACHIX_CACHE_NAME
+
                 nix build --no-sandbox .#meltano-image
-                cp $(nix eval --raw .#meltano-image.outPath) > ../image/image.tar
+                cp $(nix eval --raw .#meltano-image.outPath) ../image/image.tar
       - put: meltano-edge-image
         params:
           image: image/image.tar
