@@ -151,6 +151,7 @@
     tag = "latest";
 
     copyToRoot = meltanoImageRoot;
+    compressor = "none";
 
     config = {
       WorkingDir = "/workspace/meltano";
