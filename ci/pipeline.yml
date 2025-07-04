@@ -518,10 +518,10 @@ jobs:
                 cachix use $CACHIX_CACHE_NAME
 
                 nix build --no-sandbox .#meltano-image
-                cp $(nix eval --raw .#meltano-image.outPath) ../image/image.tar
+                cp $(nix eval --raw .#meltano-image.outPath) ../image/image.tar.gz
       - put: meltano-edge-image
         params:
-          image: image/image.tar
+          image: image/image.tar.gz
 
 resources:
   - name: repo
