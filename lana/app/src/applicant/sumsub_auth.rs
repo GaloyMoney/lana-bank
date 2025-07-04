@@ -434,9 +434,7 @@ impl SumsubClient {
         review_answer: &str, // "GREEN" or "RED"
     ) -> Result<(), ApplicantError> {
         let method = "POST";
-        let url_path = format!(
-            "/resources/applicants/{applicant_id}/status/testCompleted"
-        );
+        let url_path = format!("/resources/applicants/{applicant_id}/status/testCompleted");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
         let body = if review_answer == "GREEN" {
