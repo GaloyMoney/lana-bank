@@ -299,6 +299,7 @@ impl std::str::FromStr for AccountIdOrCode {
     }
 }
 
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum ProposedAccountSpec {
     WithParent {
         parent: AccountCode,

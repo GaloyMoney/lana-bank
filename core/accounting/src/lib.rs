@@ -301,12 +301,12 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
-        account_spec: AccountSpec,
+        proposed_spec: ProposedAccountSpec,
         trial_balance_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
         let (chart, new_account_set_id) = self
             .chart_of_accounts()
-            .add_node(sub, chart_id, account_spec)
+            .add_node(sub, chart_id, proposed_spec)
             .await?;
         if let Some(new_account_set_id) = new_account_set_id {
             self.trial_balances()
