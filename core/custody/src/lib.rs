@@ -18,7 +18,6 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use custodian::state::repo::CustodianStateRepo;
 pub use custodian::*;
 pub use wallet::*;
 
@@ -332,29 +331,23 @@ where
             .find_by_id_in_tx(db.tx(), &wallet.custodian_id)
             .await?;
 
-        let custodian_id = custodian.id;
-
         let client = custodian
             .custodian_client(self.config.custodian_encryption.key)
             .await?;
-        let address = client
-            .create_address(
-                &format!("Wallet {}", wallet.id),
-                CustodianStateRepo::new(custodian_id, &self.pool),
-            )
-            .await?;
+
+        let external_wallet = client.initialize_wallet("label").await?;
 
         if wallet
-            .allocate_address(
-                address.address,
-                address.label,
-                address.full_response,
+            .attach_external_wallet(
+                external_wallet.external_id.clone(),
+                external_wallet.address,
+                external_wallet.full_response,
                 &audit_info,
             )
             .did_execute()
         {
             self.wallets.update_in_op(db, wallet).await?;
-        }
+        };
 
         Ok(())
     }
