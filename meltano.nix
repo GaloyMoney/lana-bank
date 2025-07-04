@@ -119,32 +119,26 @@
     fi
   '';
 
-  meltanoProject = pkgs.runCommand "meltano-project" {} ''
-    mkdir -p $out/workspace
-    cp -R ${./meltano} $out/workspace/meltano
-    chmod -R u+w $out/workspace
-  '';
+  meltanoProject =
+    pkgs.runCommand "meltano-project" {
+      buildInputs = [meltano pkgs.gitMinimal pkgs.cacert];
+    } ''
+      set -euo pipefail
 
-  meltanoEntrypoint = pkgs.writeShellScriptBin "docker-entrypoint.sh" ''
-    set -euo pipefail
-    cd /workspace/meltano
+      mkdir -p $out/workspace
+      cp -R ${./meltano} $out/workspace/meltano
+      chmod -R u+w $out/workspace/meltano
+      cd $out/workspace/meltano
 
-    if [ ! -f .meltano/.plugins_installed ]; then
-      echo "→ First run: installing Meltano plugins…"
-      ${meltano}/bin/meltano install   # or:  meltano install -y
-      touch .meltano/.plugins_installed
-      echo "→ Plugins installed."
-    fi
-
-    ${meltano}/bin/meltano "$@"
-  '';
+      export HOME=$PWD
+      ${meltano}/bin/meltano install
+    '';
 
   meltanoImageRoot = buildEnv {
     name = "meltano-image-root";
     pathsToLink = ["/bin" "/workspace"];
     paths = [
       meltano
-      meltanoEntrypoint
       bash
       coreutils
       gitMinimal
@@ -165,11 +159,11 @@
     };
 
     copyToRoot = meltanoImageRoot;
+    compressor = "none";
 
     config = {
       WorkingDir = "/workspace/meltano";
-      EntryPoint = ["/bin/docker-entrypoint.sh"];
-      Cmd = ["${meltano}/bin/meltano" "ui"];
+      Cmd = ["${meltano}/bin/meltano"];
 
       Env = [
         "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
