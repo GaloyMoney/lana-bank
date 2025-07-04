@@ -158,7 +158,7 @@ impl IntoEvents<PolicyEvent> for NewPolicy {
 
 #[cfg(test)]
 mod test {
-    use audit::{test_utils::dummy_audit_info, AuditEntryId, AuditInfo};
+    use audit::{dummy::dummy_audit_info, AuditEntryId, AuditInfo};
 
     use super::*;
 

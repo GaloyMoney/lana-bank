@@ -370,7 +370,7 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
 
 #[cfg(test)]
 mod test {
-    use audit::{AuditEntryId, test_utils::dummy_audit_info};
+    use audit::{AuditEntryId, dummy::dummy_audit_info};
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 

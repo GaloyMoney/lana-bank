@@ -141,7 +141,7 @@ mod tests {
 
     use super::*;
 
-    use audit::{AuditEntryId, AuditInfo, test_utils::dummy_audit_info};
+    use audit::{AuditEntryId, AuditInfo, dummy::dummy_audit_info};
 
     fn init_chart_of_events() -> Chart {
         let id = ChartId::new();

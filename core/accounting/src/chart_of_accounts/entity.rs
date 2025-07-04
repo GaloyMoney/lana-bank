@@ -352,7 +352,7 @@ struct AccountDetails {
 
 #[cfg(test)]
 mod test {
-    use audit::{AuditEntryId, AuditInfo, test_utils::dummy_audit_info};
+    use audit::{AuditEntryId, AuditInfo, dummy::dummy_audit_info};
 
     use super::*;
 

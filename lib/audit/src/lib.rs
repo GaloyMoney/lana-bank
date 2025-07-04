@@ -7,7 +7,8 @@ pub mod error;
 mod primitives;
 mod svc_trait;
 
-pub mod test_utils;
+#[cfg(feature = "test-dummy")]
+pub mod dummy;
 
 pub use primitives::*;
 pub use svc_trait::*;

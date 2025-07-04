@@ -2,7 +2,7 @@ use async_trait::async_trait;
 
 use std::fmt;
 
-use audit::{AuditCursor, AuditEntry, AuditInfo, AuditSvc, error::AuditError, test_utils};
+use audit::{AuditCursor, AuditEntry, AuditInfo, AuditSvc, error::AuditError, dummy};
 
 use crate::{PermissionCheck, error::AuthorizationError};
 
@@ -71,7 +71,7 @@ where
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
-        Ok(test_utils::dummy_audit_info())
+        Ok(dummy::dummy_audit_info())
     }
 
     async fn record_entry(
@@ -81,7 +81,7 @@ where
         _action: impl Into<Self::Action> + Send,
         _authorized: bool,
     ) -> Result<AuditInfo, AuditError> {
-        Ok(test_utils::dummy_audit_info())
+        Ok(dummy::dummy_audit_info())
     }
 
     async fn record_system_entry_in_tx(
@@ -90,7 +90,7 @@ where
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
-        Ok(test_utils::dummy_audit_info())
+        Ok(dummy::dummy_audit_info())
     }
 
     async fn record_entry_in_tx(
@@ -101,7 +101,7 @@ where
         _action: impl Into<Self::Action> + Send,
         _authorized: bool,
     ) -> Result<AuditInfo, AuditError> {
-        Ok(test_utils::dummy_audit_info())
+        Ok(dummy::dummy_audit_info())
     }
 
     async fn list(
@@ -154,7 +154,7 @@ where
         _object: impl Into<<Self::Audit as AuditSvc>::Object> + std::fmt::Debug + Send,
         _action: impl Into<<Self::Audit as AuditSvc>::Action> + std::fmt::Debug + Send,
     ) -> Result<AuditInfo, AuthorizationError> {
-        Ok(test_utils::dummy_audit_info())
+        Ok(dummy::dummy_audit_info())
     }
 
     async fn evaluate_permission(
@@ -165,7 +165,7 @@ where
         enforce: bool,
     ) -> Result<Option<AuditInfo>, AuthorizationError> {
         if enforce {
-            Ok(Some(test_utils::dummy_audit_info()))
+            Ok(Some(dummy::dummy_audit_info()))
         } else {
             Ok(None)
         }

@@ -10,7 +10,7 @@ ignored = ["schemars"]
 [features]
 
 fail-on-warnings = []
-test-dummy = [ "dep:es-entity" ]
+test-dummy = [ "dep:es-entity", "audit/test-dummy" ]
 json-schema = ["dep:schemars", "audit/json-schema"]
 
 [dependencies]
