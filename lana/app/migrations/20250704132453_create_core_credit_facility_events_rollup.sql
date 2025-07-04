@@ -23,9 +23,9 @@ CREATE TABLE core_credit_facility_events_rollup (
   collateralization_ratio VARCHAR,
 
   -- Collection rollups
-  ledger_tx_ids UUID[],
-  audit_entry_ids BIGINT[],
   obligation_ids UUID[],
+  audit_entry_ids BIGINT[],
+  ledger_tx_ids UUID[],
   interest_accrual_ids UUID[],
 
   -- Toggle fields
@@ -84,9 +84,9 @@ BEGIN
     new_row.outstanding := (NEW.event -> 'outstanding');
     new_row.price := (NEW.event -> 'price');
     new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
-    new_row.ledger_tx_ids := CASE
-       WHEN NEW.event ? 'ledger_tx_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+    new_row.obligation_ids := CASE
+       WHEN NEW.event ? 'obligation_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -96,9 +96,9 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
-    new_row.obligation_ids := CASE
-       WHEN NEW.event ? 'obligation_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
+    new_row.ledger_tx_ids := CASE
+       WHEN NEW.event ? 'ledger_tx_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -129,9 +129,9 @@ BEGIN
     new_row.outstanding := current_row.outstanding;
     new_row.price := current_row.price;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
-    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.obligation_ids := current_row.obligation_ids;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
     new_row.is_activated := current_row.is_activated;
@@ -148,8 +148,8 @@ BEGIN
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.terms := (NEW.event -> 'terms');
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
@@ -157,8 +157,8 @@ BEGIN
       new_row.is_approval_process_concluded := true;
     WHEN 'activated' THEN
       new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.is_activated := true;
     WHEN 'interest_accrual_cycle_started' THEN
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
@@ -167,9 +167,9 @@ BEGIN
       new_row.interest_accrual_ids := array_append(COALESCE(current_row.interest_accrual_ids, ARRAY[]::UUID[]), (NEW.event ->> 'interest_accrual_id')::UUID);
     WHEN 'interest_accrual_cycle_concluded' THEN
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.obligation_ids := array_append(COALESCE(current_row.obligation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
     WHEN 'collateralization_state_changed' THEN
       new_row.collateral := (NEW.event -> 'collateral');
       new_row.collateralization_state := (NEW.event -> 'collateralization_state');
@@ -205,9 +205,9 @@ BEGIN
     outstanding,
     price,
     collateralization_ratio,
-    ledger_tx_ids,
-    audit_entry_ids,
     obligation_ids,
+    audit_entry_ids,
+    ledger_tx_ids,
     interest_accrual_ids,
     is_approval_process_concluded,
     is_activated,
@@ -234,9 +234,9 @@ BEGIN
     new_row.outstanding,
     new_row.price,
     new_row.collateralization_ratio,
-    new_row.ledger_tx_ids,
-    new_row.audit_entry_ids,
     new_row.obligation_ids,
+    new_row.audit_entry_ids,
+    new_row.ledger_tx_ids,
     new_row.interest_accrual_ids,
     new_row.is_approval_process_concluded,
     new_row.is_activated,
@@ -261,9 +261,9 @@ BEGIN
     outstanding = EXCLUDED.outstanding,
     price = EXCLUDED.price,
     collateralization_ratio = EXCLUDED.collateralization_ratio,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
     obligation_ids = EXCLUDED.obligation_ids,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
     interest_accrual_ids = EXCLUDED.interest_accrual_ids,
     is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
     is_activated = EXCLUDED.is_activated,

@@ -350,7 +350,7 @@ dependencies = [
  "async-trait",
  "chrono",
  "es-entity",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "sqlx",
  "thiserror 2.0.12",
@@ -363,7 +363,7 @@ dependencies = [
  "async-trait",
  "audit",
  "es-entity",
- "schemars",
+ "schemars 1.0.3",
  "sqlx",
  "sqlx-adapter",
  "thiserror 2.0.12",
@@ -746,9 +746,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "54720b82862238fd29f9fdb3ce275a4459b605eea69a7ea4f0e26df0d27564a6"
+checksum = "e63ce59dc13ef8ea1b9b1d7f35a508bdf4eefb73e0f92de293196647e991b243"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -762,9 +762,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "758facf20e43ade84e65ffc1f928442becaca2ff917c9fa9d8f4bf9ba9d5694e"
+checksum = "3682c01dd53e1ab9ba9ea21083603d035b9180095bfc63827e0f933473f9fae8"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -772,9 +772,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5196da793ea48f127b977494c6ea9fa25172b62b5f06973f35d70b15a44efefb"
+checksum = "4de169a80a86184b542f1f087d7be7e4768ae43fe8cc73d4e9b02cffaea2851a"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -808,9 +808,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3f9ff490315987ca22279a73660ad7245a743f44ed19335c01d98264118e8682"
+checksum = "d12ba872c7b57c7719447688d37736d1628e5e978837f90ff18a4a4390c2b155"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -819,7 +819,7 @@ dependencies = [
  "es-entity",
  "rust_decimal",
  "rusty-money",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sqlx",
@@ -830,9 +830,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3cbbe9fc5db95858446ea8c4cf5aa4422b5d78bbbe81cf032d84f50594aeb1e0"
+checksum = "9340f065221340ad0477bb7b99a4cf42fbb5f76200c801c74d45e6b3d0540956"
 dependencies = [
  "anyhow",
  "axum-extra 0.9.6",
@@ -1084,7 +1084,7 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sqlx",
@@ -1115,7 +1115,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sqlx",
@@ -1153,7 +1153,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "serde_with",
@@ -1180,7 +1180,7 @@ dependencies = [
  "hex",
  "komainu",
  "outbox",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sqlx",
@@ -1203,7 +1203,7 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "sqlx",
  "strum",
@@ -1237,7 +1237,7 @@ dependencies = [
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sim-time",
@@ -1272,7 +1272,7 @@ dependencies = [
  "async-graphql",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "thiserror 2.0.12",
 ]
@@ -1287,7 +1287,7 @@ dependencies = [
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
@@ -1487,7 +1487,7 @@ dependencies = [
  "job",
  "lana-events",
  "outbox",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sim-time",
@@ -1609,7 +1609,7 @@ dependencies = [
  "cloud-storage",
  "derive_builder",
  "es-entity",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "sqlx",
  "thiserror 2.0.12",
@@ -1722,7 +1722,7 @@ dependencies = [
  "document-storage",
  "governance",
  "handlebars",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "similar",
@@ -1757,9 +1757,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dd63709ee381c782167cf76c3f7692faed4fa15c16a145b8125cf01675316630"
+checksum = "f4cdbc414d30876a46d4c37139760e65ba03b1b418b41055df4ff9d0161d0e1d"
 dependencies = [
  "async-graphql",
  "async-trait",
@@ -1767,7 +1767,7 @@ dependencies = [
  "chrono",
  "derive_builder",
  "es-entity-macros",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sim-time",
@@ -1778,9 +1778,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1ac9e1c0ba00943fb8372bc2690996f37b8bd2acb6c69df87a43c728c4f4f407"
+checksum = "2ba980a892995028cc4ba3cfd79c6b9bd5c9201d464f9f512f9f986bcdcbf7ad"
 dependencies = [
  "convert_case",
  "darling",
@@ -2196,7 +2196,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "outbox",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "sqlx",
  "strum",
@@ -2674,6 +2674,17 @@ dependencies = [
 ]
 
 [[package]]
+name = "io-uring"
+version = "0.7.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b86e202f00093dcba4275d4636b93ef9dd75d025ae560d2521b45ea28ab49013"
+dependencies = [
+ "bitflags",
+ "cfg-if",
+ "libc",
+]
+
+[[package]]
 name = "ipnet"
 version = "2.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2730,7 +2741,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "rand 0.9.1",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "serde_with",
@@ -2883,7 +2894,7 @@ dependencies = [
  "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "serial_test",
@@ -2940,7 +2951,7 @@ dependencies = [
  "es-entity",
  "governance",
  "job",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "sqlx",
 ]
@@ -3433,7 +3444,7 @@ dependencies = [
  "chrono",
  "es-entity",
  "futures",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "serde_json",
  "sqlx",
@@ -4092,7 +4103,7 @@ dependencies = [
  "es-entity",
  "governance",
  "lana-ids",
- "schemars",
+ "schemars 1.0.3",
  "serde",
  "sqlx",
  "strum",
@@ -4195,9 +4206,9 @@ dependencies = [
 
 [[package]]
 name = "reqwest"
-version = "0.12.20"
+version = "0.12.22"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "eabf4c97d9130e2bf606614eb937e86edac8292eaa6f422f995d7e8de1eb1813"
+checksum = "cbc931937e6ca3a06e3b6c0aa7841849b160a90351d6ab467a8b9b9959767531"
 dependencies = [
  "base64 0.22.1",
  "bytes",
@@ -4508,6 +4519,18 @@ version = "0.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "4cd191f9397d57d581cddd31014772520aa448f65ef991055d7f61582c65165f"
 dependencies = [
+ "dyn-clone",
+ "ref-cast",
+ "serde",
+ "serde_json",
+]
+
+[[package]]
+name = "schemars"
+version = "1.0.3"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "1375ba8ef45a6f15d83fa8748f1079428295d403d6ea991d09ab100155fbc06d"
+dependencies = [
  "chrono",
  "dyn-clone",
  "ref-cast",
@@ -4520,9 +4543,9 @@ dependencies = [
 
 [[package]]
 name = "schemars_derive"
-version = "0.9.0"
+version = "1.0.3"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5016d94c77c6d32f0b8e08b781f7dc8a90c2007d4e77472cc2807bc10a8438fe"
+checksum = "2b13ed22d6d49fe23712e068770b5c4df4a693a2b02eeff8e7ca3135627a24f6"
 dependencies = [
  "proc-macro2",
  "quote",
@@ -4640,16 +4663,17 @@ dependencies = [
 
 [[package]]
 name = "serde_with"
-version = "3.13.0"
+version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bf65a400f8f66fb7b0552869ad70157166676db75ed8181f8104ea91cf9d0b42"
+checksum = "f2c45cd61fefa9db6f254525d46e392b852e0e61d9a1fd36e5bd183450a556d5"
 dependencies = [
  "base64 0.22.1",
  "chrono",
  "hex",
  "indexmap 1.9.3",
  "indexmap 2.9.0",
- "schemars",
+ "schemars 0.9.0",
+ "schemars 1.0.3",
  "serde",
  "serde_derive",
  "serde_json",
@@ -4659,9 +4683,9 @@ dependencies = [
 
 [[package]]
 name = "serde_with_macros"
-version = "3.13.0"
+version = "3.14.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81679d9ed988d5e9a5e6531dc3f2c28efbd639cbd1dfb628df08edea6004da77"
+checksum = "de90945e6565ce0d9a25098082ed4ee4002e047cb59892c318d66821e14bb30f"
 dependencies = [
  "darling",
  "proc-macro2",
@@ -4773,9 +4797,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.6.6"
+version = "0.6.8"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7a45060ea5f4545568b3617c9bc8064b8eb8fd4b774b90fd8dae7b9b6320a810"
+checksum = "df166068a2e8f2abc265a942f047593f671d61e7866303d70e5a6c209d92f160"
 dependencies = [
  "chrono",
  "serde",
@@ -5400,16 +5424,18 @@ checksum = "1f3ccbac311fea05f86f61904b462b55fb3df8837a366dfc601a0161d0532f20"
 
 [[package]]
 name = "tokio"
-version = "1.45.1"
+version = "1.46.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "75ef51a33ef1da925cea3e4eb122833cb377c61439ca401b770f54902b806779"
+checksum = "1140bb80481756a8cbe10541f37433b459c5aa1e727b4c020fbfebdc25bf3ec4"
 dependencies = [
  "backtrace",
  "bytes",
+ "io-uring",
  "libc",
  "mio",
  "parking_lot",
  "pin-project-lite",
+ "slab",
  "socket2",
  "tokio-macros",
  "windows-sys 0.52.0",

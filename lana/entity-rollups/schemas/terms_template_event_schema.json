@@ -100,7 +100,7 @@
           "$ref": "#/$defs/InterestInterval"
         },
         "annual_rate": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
           "type": [
             "string",
             "number"
@@ -110,7 +110,7 @@
           "$ref": "#/$defs/FacilityDuration"
         },
         "initial_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
           "type": [
             "string",
             "number"
@@ -120,14 +120,14 @@
           "$ref": "#/$defs/ObligationDuration"
         },
         "liquidation_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
           "type": [
             "string",
             "number"
           ]
         },
         "margin_call_cvl": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
           "type": [
             "string",
             "number"
@@ -154,7 +154,7 @@
           ]
         },
         "one_time_fee_rate": {
-          "pattern": "^-?[0-9]+(\\.[0-9]+)?([eE][0-9]+)?$",
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
           "type": [
             "string",
             "number"
