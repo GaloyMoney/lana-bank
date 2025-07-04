@@ -1,3 +1,5 @@
+#![allow(clippy::inconsistent_digit_grouping)]
+
 mod entry;
 pub mod error;
 mod repo;

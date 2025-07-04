@@ -1,3 +1,5 @@
+#![allow(clippy::inconsistent_digit_grouping)]
+
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]

@@ -1,3 +1,5 @@
+#![allow(clippy::inconsistent_digit_grouping)]
+
 use core_price::PriceOfOneBTC;
 use rust_decimal::Decimal;
 #[cfg(feature = "json-schema")]
