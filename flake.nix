@@ -43,7 +43,8 @@
           || pkgs.lib.hasInfix "/lib/authz/src/rbac.conf" path
           || pkgs.lib.hasInfix "/.sqlx/" path
           || pkgs.lib.hasInfix "/lana/app/migrations/" path
-          || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path;
+          || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
+          || pkgs.lib.hasInfix "/assets/" path;
       };
 
       # Source filter for entity-rollups that includes templates and workspace dependencies
@@ -304,6 +305,7 @@
           tilt
           procps
           meltano
+          poppler_utils
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run

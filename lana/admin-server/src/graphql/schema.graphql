@@ -1083,6 +1083,8 @@ type Disbursed {
 }
 
 enum DocumentStatus {
+	NEW
+	FAILED
 	ACTIVE
 	ARCHIVED
 	DELETED
@@ -1292,6 +1294,35 @@ type LedgerTransactionEdge {
 	cursor: String!
 }
 
+type LoanAgreement {
+	id: ID!
+	status: LoanAgreementStatus!
+	createdAt: Timestamp!
+}
+
+input LoanAgreementDownloadLinksGenerateInput {
+	loanAgreementId: UUID!
+}
+
+type LoanAgreementDownloadLinksGeneratePayload {
+	loanAgreementId: UUID!
+	link: String!
+}
+
+input LoanAgreementGenerateInput {
+	customerId: UUID!
+}
+
+type LoanAgreementGeneratePayload {
+	loanAgreement: LoanAgreement!
+}
+
+enum LoanAgreementStatus {
+	PENDING
+	COMPLETED
+	FAILED
+}
+
 input ManualTransactionEntryInput {
 	accountRef: String!
 	amount: Decimal!
@@ -1356,6 +1387,8 @@ type Mutation {
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
+	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1569,6 +1602,7 @@ type Query {
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
+	loanAgreement(id: UUID!): LoanAgreement
 }
 
 type RealtimePrice {
