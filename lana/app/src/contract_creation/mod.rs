@@ -37,7 +37,7 @@ impl ContractCreation {
         jobs: &Jobs,
         authz: &Authorization,
     ) -> Result<Self, ContractCreationError> {
-        let renderer = rendering::Renderer::new(config.pdf_config_file).await?;
+        let renderer = rendering::Renderer::init(config.pdf_config_file).await?;
 
         // Initialize the job system for contract creation
         jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
