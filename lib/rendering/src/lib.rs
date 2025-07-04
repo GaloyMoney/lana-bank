@@ -88,7 +88,7 @@ mod tests {
         // Test template content (simulate loading from file)
         let template_content = "# Test Document\n\n- **Name:** {{name}}\n- **Email:** {{email}}";
 
-        let rendered = renderer.render_template_to_markdown(&template_content, &test_data)?;
+        let rendered = renderer.render_template_to_markdown(template_content, &test_data)?;
 
         assert!(rendered.contains("test@example.com"));
         assert!(rendered.contains("Test User"));
