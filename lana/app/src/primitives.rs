@@ -4,7 +4,7 @@ use std::fmt;
 
 pub use core_access::{PermissionSetId, RoleId, UserId};
 pub use core_accounting::{
-    AccountSpec, BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId,
+    BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId, ProposedAccountSpec,
 };
 pub use core_credit::{
     CollateralAction, CollateralId, CreditFacilityId, CreditFacilityStatus, DisbursalId,

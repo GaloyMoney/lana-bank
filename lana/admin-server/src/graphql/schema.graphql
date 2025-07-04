@@ -258,10 +258,7 @@ type ChartOfAccounts {
 
 input ChartOfAccountsAddNodeInput {
 	chartId: UUID!
-	parent: AccountCode
-	code: AccountCode!
-	name: String!
-	normalBalanceType: DebitOrCredit!
+	proposedSpec: ChartOfAccountsProposedSpecInput!
 }
 
 type ChartOfAccountsAddNodePayload {
@@ -275,6 +272,13 @@ input ChartOfAccountsCsvImportInput {
 
 type ChartOfAccountsCsvImportPayload {
 	chartOfAccounts: ChartOfAccounts!
+}
+
+input ChartOfAccountsProposedSpecInput {
+	parent: AccountCode
+	code: AccountCode!
+	name: String!
+	normalBalanceType: DebitOrCredit!
 }
 
 enum CollateralAction {

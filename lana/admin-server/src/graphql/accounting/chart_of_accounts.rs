@@ -67,30 +67,43 @@ crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: C
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddNodeInput {
     pub chart_id: UUID,
+    pub proposed_spec: ChartOfAccountsProposedSpecInput,
+}
+crate::mutation_payload! { ChartOfAccountsAddNodePayload, chart_of_accounts: ChartOfAccounts }
+
+#[derive(InputObject)]
+pub struct ChartOfAccountsProposedSpecInput {
     pub parent: Option<AccountCode>,
     pub code: AccountCode,
     pub name: String,
     pub normal_balance_type: DebitOrCredit,
 }
-crate::mutation_payload! { ChartOfAccountsAddNodePayload, chart_of_accounts: ChartOfAccounts }
 
-impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
+impl TryFrom<ChartOfAccountsProposedSpecInput> for ProposedAccountSpec {
     type Error = Box<dyn std::error::Error + Sync + Send>;
 
-    fn try_from(input: ChartOfAccountsAddNodeInput) -> Result<Self, Self::Error> {
-        let ChartOfAccountsAddNodeInput {
+    fn try_from(input: ChartOfAccountsProposedSpecInput) -> Result<Self, Self::Error> {
+        let ChartOfAccountsProposedSpecInput {
             parent,
             code,
             name,
             normal_balance_type,
-            ..
         } = input;
 
-        Ok(Self::try_new(
-            parent.map(|v| v.try_into()).transpose()?,
-            code.try_into()?,
-            name.parse()?,
-            normal_balance_type,
-        )?)
+        let code = code.try_into()?;
+        let name = name.parse()?;
+        if let Some(parent) = parent {
+            Ok(ProposedAccountSpec::WithParent {
+                parent: parent.try_into()?,
+                code,
+                name,
+            })
+        } else {
+            Ok(ProposedAccountSpec::NoParent {
+                code,
+                name,
+                normal_balance_type,
+            })
+        }
     }
 }
