@@ -386,7 +386,7 @@ export const mockChartOfAccountsAddNodePayload = (overrides?: Partial<ChartOfAcc
     relationshipsToOmit.add('ChartOfAccountsAddNodePayload');
     return {
         __typename: 'ChartOfAccountsAddNodePayload',
-        success: overrides && overrides.hasOwnProperty('success') ? overrides.success! : generateMockValue.boolean(),
+        chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
     };
 };
 

@@ -285,7 +285,7 @@ export type ChartOfAccountsAddNodeInput = {
 
 export type ChartOfAccountsAddNodePayload = {
   __typename?: 'ChartOfAccountsAddNodePayload';
-  success: Scalars['Boolean']['output'];
+  chartOfAccounts: ChartOfAccounts;
 };
 
 export type ChartOfAccountsCsvImportInput = {
