@@ -111,7 +111,7 @@ where
         let mut document = document_option.ok_or_else(|| {
             Box::new(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
-                format!("Document with ID {} not found", document_id),
+                format!("Document with ID {document_id} not found"),
             )) as Box<dyn std::error::Error>
         })?;
 
