@@ -754,8 +754,7 @@ export type CustodianConnection = {
 };
 
 export type CustodianCreateInput =
-  { komainu: KomainuConfig; mock?: never; }
-  |  { komainu?: never; mock: MockConfig; };
+  { komainu: KomainuConfig; };
 
 export type CustodianCreatePayload = {
   __typename?: 'CustodianCreatePayload';
@@ -1288,10 +1287,6 @@ export type ManualTransactionExecuteInput = {
 export type ManualTransactionExecutePayload = {
   __typename?: 'ManualTransactionExecutePayload';
   transaction: LedgerTransaction;
-};
-
-export type MockConfig = {
-  name: Scalars['String']['input'];
 };
 
 export type Mutation = {
