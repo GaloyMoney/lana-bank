@@ -73,7 +73,7 @@ impl ContractCreation {
             )
             .await?;
 
-        let filename = format!("loan_agreement_{:?}.pdf", customer_id);
+        let filename = format!("loan_agreement_{customer_id}.pdf");
 
         let mut db = self.document_storage.begin_op().await?;
         let document = self

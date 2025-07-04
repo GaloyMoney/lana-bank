@@ -71,7 +71,7 @@ pub struct GenerateLoanAgreementJobRunner {
 
 impl GenerateLoanAgreementJobRunner {
     async fn load_template(&self, template_name: &str) -> Result<String, ContractCreationError> {
-        let template_path = self.template_dir.join(format!("{}.md.hbs", template_name));
+        let template_path = self.template_dir.join(format!("{template_name}.md.hbs"));
 
         if !template_path.exists() {
             return Err(ContractCreationError::TemplateNotFound(
@@ -124,7 +124,7 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
         let mut document = document_option.ok_or_else(|| {
             Box::new(std::io::Error::new(
                 std::io::ErrorKind::NotFound,
-                format!("Document with ID {} not found", document_id),
+                format!("Document with ID {document_id} not found"),
             )) as Box<dyn std::error::Error>
         })?;
 
