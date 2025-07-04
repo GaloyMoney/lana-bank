@@ -343,9 +343,9 @@ impl Display for CoreAccessObject {
         let discriminant = CoreAccessObjectDiscriminants::from(self);
         use CoreAccessObject::*;
         match self {
-            User(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Role(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            PermissionSet(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            User(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Role(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            PermissionSet(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

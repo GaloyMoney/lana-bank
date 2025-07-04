@@ -24,7 +24,7 @@ impl BfxClient {
     }
 
     pub async fn btc_usd_tick(&self) -> Result<BtcUsdTick, BfxClientError> {
-        let url = format!("{}ticker/tBTCUSD", BASE_URL);
+        let url = format!("{BASE_URL}ticker/tBTCUSD");
         let response = self
             .client
             .get(&url)

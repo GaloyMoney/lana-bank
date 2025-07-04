@@ -15,8 +15,8 @@ pub async fn create_customer(
     app: &LanaApp,
     suffix: &str,
 ) -> anyhow::Result<(CustomerId, DepositAccountId)> {
-    let customer_email = format!("customer{}@example.com", suffix);
-    let telegram = format!("customer{}", suffix);
+    let customer_email = format!("customer{suffix}@example.com");
+    let telegram = format!("customer{suffix}");
     let customer_type = CustomerType::Individual;
 
     match app

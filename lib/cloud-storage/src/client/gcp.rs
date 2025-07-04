@@ -24,7 +24,7 @@ pub struct GcpConfig {
 impl GcpConfig {
     pub fn new_dev_mode(name_prefix: String) -> GcpConfig {
         Self {
-            bucket_name: format!("{}-lana-documents", name_prefix),
+            bucket_name: format!("{name_prefix}-lana-documents"),
             root_folder: name_prefix,
         }
     }

@@ -175,11 +175,11 @@ impl std::fmt::Display for CoreCreditObject {
         let discriminant = CoreCreditObjectDiscriminants::from(self);
         use CoreCreditObject::*;
         match self {
-            CreditFacility(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Disbursal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Obligation(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            TermsTemplate(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            CreditFacility(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Disbursal(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Obligation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            TermsTemplate(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

@@ -79,8 +79,7 @@ impl Config {
         config.app.notification.email.password = smtp_password;
         if let Some(dev_env_name_prefix) = dev_env_name_prefix {
             eprintln!(
-                "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={}",
-                dev_env_name_prefix
+                "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={dev_env_name_prefix}"
             );
             config.app.report = ReportConfig::new_dev_mode(
                 dev_env_name_prefix.clone(),

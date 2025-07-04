@@ -1773,11 +1773,9 @@ impl CreditLedger {
             fee_income_account_id,
         } = account_ids;
 
-        let collateral_reference = &format!("credit-facility-collateral:{}", credit_facility_id);
-        let collateral_name = &format!(
-            "Credit Facility Collateral Account for {}",
-            credit_facility_id
-        );
+        let collateral_reference = &format!("credit-facility-collateral:{credit_facility_id}");
+        let collateral_name =
+            &format!("Credit Facility Collateral Account for {credit_facility_id}");
         self.create_account_in_op(
             op,
             collateral_account_id,
@@ -1788,11 +1786,9 @@ impl CreditLedger {
         )
         .await?;
 
-        let facility_reference = &format!("credit-facility-obs-facility:{}", credit_facility_id);
-        let facility_name = &format!(
-            "Off-Balance-Sheet Facility Account for Credit Facility {}",
-            credit_facility_id
-        );
+        let facility_reference = &format!("credit-facility-obs-facility:{credit_facility_id}");
+        let facility_name =
+            &format!("Off-Balance-Sheet Facility Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
             facility_account_id,
@@ -1804,10 +1800,9 @@ impl CreditLedger {
         .await?;
 
         let in_liquidation_reference =
-            &format!("credit-facility-obs-in-liquidation:{}", credit_facility_id);
+            &format!("credit-facility-obs-in-liquidation:{credit_facility_id}");
         let in_liquidation_name = &format!(
-            "Off-Balance-Sheet In-Liquidation Account for Credit Facility {}",
-            credit_facility_id
+            "Off-Balance-Sheet In-Liquidation Account for Credit Facility {credit_facility_id}"
         );
         self.create_account_in_op(
             op,
@@ -1819,13 +1814,10 @@ impl CreditLedger {
         )
         .await?;
 
-        let disbursed_receivable_not_yet_due_reference = &format!(
-            "credit-facility-disbursed-not-yet-due-receivable:{}",
-            credit_facility_id
-        );
+        let disbursed_receivable_not_yet_due_reference =
+            &format!("credit-facility-disbursed-not-yet-due-receivable:{credit_facility_id}");
         let disbursed_receivable_not_yet_due_name = &format!(
-            "Disbursed Receivable Not Yet Due Account for Credit Facility {}",
-            credit_facility_id
+            "Disbursed Receivable Not Yet Due Account for Credit Facility {credit_facility_id}"
         );
         self.create_account_in_op(
             op,
@@ -1837,14 +1829,10 @@ impl CreditLedger {
         )
         .await?;
 
-        let disbursed_receivable_due_reference = &format!(
-            "credit-facility-disbursed-due-receivable:{}",
-            credit_facility_id
-        );
-        let disbursed_receivable_due_name = &format!(
-            "Disbursed Receivable Due Account for Credit Facility {}",
-            credit_facility_id
-        );
+        let disbursed_receivable_due_reference =
+            &format!("credit-facility-disbursed-due-receivable:{credit_facility_id}");
+        let disbursed_receivable_due_name =
+            &format!("Disbursed Receivable Due Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
             disbursed_receivable_due_account_id,
@@ -1855,13 +1843,10 @@ impl CreditLedger {
         )
         .await?;
 
-        let disbursed_receivable_overdue_reference = &format!(
-            "credit-facility-disbursed-overdue-receivable:{}",
-            credit_facility_id
-        );
+        let disbursed_receivable_overdue_reference =
+            &format!("credit-facility-disbursed-overdue-receivable:{credit_facility_id}");
         let disbursed_receivable_overdue_name = &format!(
-            "Disbursed Receivable Overdue Account for Credit Facility {}",
-            credit_facility_id
+            "Disbursed Receivable Overdue Account for Credit Facility {credit_facility_id}"
         );
         self.create_account_in_op(
             op,
@@ -1877,11 +1862,9 @@ impl CreditLedger {
         .await?;
 
         let disbursed_defaulted_reference =
-            &format!("credit-facility-disbursed-defaulted:{}", credit_facility_id);
-        let disbursed_defaulted_name = &format!(
-            "Disbursed Defaulted Account for Credit Facility {}",
-            credit_facility_id
-        );
+            &format!("credit-facility-disbursed-defaulted:{credit_facility_id}");
+        let disbursed_defaulted_name =
+            &format!("Disbursed Defaulted Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
             disbursed_defaulted_account_id,
@@ -1892,13 +1875,10 @@ impl CreditLedger {
         )
         .await?;
 
-        let interest_receivable_not_yet_due_reference = &format!(
-            "credit-facility-interest-not-yet-due-receivable:{}",
-            credit_facility_id
-        );
+        let interest_receivable_not_yet_due_reference =
+            &format!("credit-facility-interest-not-yet-due-receivable:{credit_facility_id}");
         let interest_receivable_not_yet_due_name = &format!(
-            "Interest Receivable Not Yet Due Account for Credit Facility {}",
-            credit_facility_id
+            "Interest Receivable Not Yet Due Account for Credit Facility {credit_facility_id}"
         );
         self.create_account_in_op(
             op,
@@ -1910,14 +1890,10 @@ impl CreditLedger {
         )
         .await?;
 
-        let interest_receivable_due_reference = &format!(
-            "credit-facility-interest-due-receivable:{}",
-            credit_facility_id
-        );
-        let interest_receivable_due_name = &format!(
-            "Interest Receivable Due Account for Credit Facility {}",
-            credit_facility_id
-        );
+        let interest_receivable_due_reference =
+            &format!("credit-facility-interest-due-receivable:{credit_facility_id}");
+        let interest_receivable_due_name =
+            &format!("Interest Receivable Due Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
             interest_receivable_due_account_id,
@@ -1928,13 +1904,10 @@ impl CreditLedger {
         )
         .await?;
 
-        let interest_receivable_overdue_reference = &format!(
-            "credit-facility-interest-overdue-receivable:{}",
-            credit_facility_id
-        );
+        let interest_receivable_overdue_reference =
+            &format!("credit-facility-interest-overdue-receivable:{credit_facility_id}");
         let interest_receivable_overdue_name = &format!(
-            "Interest Receivable Overdue Account for Credit Facility {}",
-            credit_facility_id
+            "Interest Receivable Overdue Account for Credit Facility {credit_facility_id}"
         );
         self.create_account_in_op(
             op,
@@ -1947,11 +1920,9 @@ impl CreditLedger {
         .await?;
 
         let interest_defaulted_reference =
-            &format!("credit-facility-interest-defaulted:{}", credit_facility_id);
-        let interest_defaulted_name = &format!(
-            "Interest Defaulted Account for Credit Facility {}",
-            credit_facility_id
-        );
+            &format!("credit-facility-interest-defaulted:{credit_facility_id}");
+        let interest_defaulted_name =
+            &format!("Interest Defaulted Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
             interest_defaulted_account_id,
@@ -1963,11 +1934,9 @@ impl CreditLedger {
         .await?;
 
         let interest_income_reference =
-            &format!("credit-facility-interest-income:{}", credit_facility_id);
-        let interest_income_name = &format!(
-            "Interest Income Account for Credit Facility {}",
-            credit_facility_id
-        );
+            &format!("credit-facility-interest-income:{credit_facility_id}");
+        let interest_income_name =
+            &format!("Interest Income Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
             interest_income_account_id,
@@ -1978,11 +1947,9 @@ impl CreditLedger {
         )
         .await?;
 
-        let fee_income_reference = &format!("credit-facility-fee-income:{}", credit_facility_id);
-        let fee_income_name = &format!(
-            "Fee Income Account for Credit Facility {}",
-            credit_facility_id
-        );
+        let fee_income_reference = &format!("credit-facility-fee-income:{credit_facility_id}");
+        let fee_income_name =
+            &format!("Fee Income Account for Credit Facility {credit_facility_id}");
         self.create_account_in_op(
             op,
             fee_income_account_id,

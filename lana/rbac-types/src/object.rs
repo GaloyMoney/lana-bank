@@ -147,9 +147,9 @@ impl Display for AppObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = AppObjectDiscriminants::from(self);
         match self {
-            Self::Applicant(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Self::Report(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Self::Audit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Applicant(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Self::Report(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Self::Audit(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

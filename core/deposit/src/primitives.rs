@@ -88,10 +88,10 @@ impl Display for CoreDepositObject {
         let discriminant = CoreDepositObjectDiscriminants::from(self);
         use CoreDepositObject::*;
         match self {
-            DepositAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Deposit(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Withdrawal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            DepositAccount(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Deposit(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Withdrawal(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            ChartOfAccountsIntegrationConfig(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

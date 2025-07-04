@@ -135,11 +135,11 @@ impl AccountCode {
     }
 
     pub(super) fn account_set_external_id(&self, chart_id: ChartId) -> String {
-        format!("{}.{}", chart_id, self)
+        format!("{chart_id}.{self}")
     }
 
     pub(super) fn manual_account_external_id(&self, chart_id: ChartId) -> String {
-        format!("{}.{}.manual", chart_id, self)
+        format!("{chart_id}.{self}.manual")
     }
 
     pub fn len_sections(&self) -> usize {
@@ -233,7 +233,7 @@ impl std::fmt::Display for AccountCode {
         write!(f, "{}", self.sections[0])?;
 
         for section in &self.sections[1..] {
-            write!(f, ".{}", section)?;
+            write!(f, ".{section}")?;
         }
 
         Ok(())
@@ -458,18 +458,18 @@ impl Display for CoreAccountingObject {
         let discriminant = CoreAccountingObjectDiscriminants::from(self);
         use CoreAccountingObject::*;
         match self {
-            Chart(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Journal(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            LedgerAccount(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            LedgerTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            TransactionTemplate(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ManualTransaction(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ProfitAndLoss(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ProfitAndLossConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            BalanceSheet(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            BalanceSheetConfiguration(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            AccountingCsv(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            TrialBalance(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Chart(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Journal(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            LedgerAccount(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            LedgerTransaction(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            TransactionTemplate(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            ManualTransaction(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            ProfitAndLoss(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            ProfitAndLossConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            BalanceSheet(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            BalanceSheetConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            AccountingCsv(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            TrialBalance(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

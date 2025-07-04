@@ -93,7 +93,7 @@ impl CsvParser {
                         ));
                     }
                 }
-                Err(e) => eprintln!("Error reading record: {}", e),
+                Err(e) => eprintln!("Error reading record: {e}"),
             }
         }
 

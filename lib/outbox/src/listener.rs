@@ -129,7 +129,7 @@ where
                 repo.load_next_page(last_sequence, buffer_size)
                     .await
                     .map_err(|e| {
-                        eprintln!("Outbox listener - error loading next page: {:?}", e);
+                        eprintln!("Outbox listener - error loading next page: {e:?}");
                         e
                     })
             }));

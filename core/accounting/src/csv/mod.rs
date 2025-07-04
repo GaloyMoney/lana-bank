@@ -81,7 +81,7 @@ where
             .document_storage
             .create_in_op(
                 audit_info.clone(),
-                format!("ledger-account-{}.csv", ledger_account_id),
+                format!("ledger-account-{ledger_account_id}.csv"),
                 "text/csv",
                 ReferenceId::from(uuid::Uuid::from(ledger_account_id)),
                 LEDGER_ACCOUNT_CSV,

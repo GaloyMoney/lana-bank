@@ -979,7 +979,7 @@ impl Mutation {
         let chart = loader
             .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
@@ -1198,7 +1198,7 @@ impl Mutation {
         let chart = loader
             .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let CreditModuleConfigureInput {
             chart_of_account_facility_omnibus_parent_code,
@@ -1660,7 +1660,7 @@ impl Mutation {
         let chart = loader
             .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)
@@ -1699,7 +1699,7 @@ impl Mutation {
         let chart = loader
             .load_one(CHART_REF)
             .await?
-            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {:?}", CHART_REF));
+            .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
         let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig::builder()
             .chart_of_accounts_id(chart.id)

@@ -230,7 +230,7 @@ impl Chart {
                         ManualAccountFromChart::NewAccount((
                             account_set_id,
                             NewAccount::builder()
-                                .name(format!("{} Manual", code))
+                                .name(format!("{code} Manual"))
                                 .id(id)
                                 .code(code.manual_account_external_id(self.id))
                                 .external_id(code.manual_account_external_id(self.id))

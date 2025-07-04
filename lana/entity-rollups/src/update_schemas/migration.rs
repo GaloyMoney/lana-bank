@@ -334,19 +334,19 @@ pub fn generate_rollup_migrations(
                         for (i, part) in parts.iter().enumerate() {
                             if i == parts.len() - 1 && !is_json_op {
                                 // Last part with ->> for text extraction
-                                result.push_str(&format!(" ->> '{}'", part));
+                                result.push_str(&format!(" ->> '{part}'"));
                             } else {
                                 // Non-last parts or JSON extraction with ->
-                                result.push_str(&format!(" -> '{}'", part));
+                                result.push_str(&format!(" -> '{part}'"));
                             }
                         }
                         out.write(&result)?;
                     } else {
                         // Single field
                         if is_json_op {
-                            out.write(&format!("NEW.event -> '{}'", path_str))?;
+                            out.write(&format!("NEW.event -> '{path_str}'"))?;
                         } else {
-                            out.write(&format!("NEW.event ->> '{}'", path_str))?;
+                            out.write(&format!("NEW.event ->> '{path_str}'"))?;
                         }
                     }
                 }
@@ -375,7 +375,7 @@ pub fn generate_rollup_migrations(
                         let result = format!("NEW.event -> '{}' ? '{}'", parts[0], parts[1]);
                         out.write(&result)?;
                     } else {
-                        let result = format!("NEW.event ? '{}'", path_str);
+                        let result = format!("NEW.event ? '{path_str}'");
                         out.write(&result)?;
                     }
                 }
@@ -453,8 +453,8 @@ pub fn generate_rollup_migrations(
             schema_info.table_prefix,
             to_snake_case(&entity_base)
         );
-        let rollup_table_name = format!("{}_events_rollup", table_base);
-        let events_table_name = format!("{}_events", table_base);
+        let rollup_table_name = format!("{table_base}_events_rollup");
+        let events_table_name = format!("{table_base}_events");
 
         // Check if we have a previous schema to compare with
         if let Some(ref previous_schema) = schema_change.previous_schema {
@@ -531,14 +531,12 @@ pub fn generate_rollup_migrations(
 
             // Create current table structure comment
             let table_structure_comment = format!(
-                "-- Current table structure after migration:\n/*\n{}\n*/\n",
-                table_structure_content
+                "-- Current table structure after migration:\n/*\n{table_structure_content}\n*/\n"
             );
 
             // Combine templates
             let migration_content = format!(
-                "{}\n{}\n\n{}\n",
-                table_structure_comment, alter_content, trigger_function_content
+                "{table_structure_comment}\n{alter_content}\n\n{trigger_function_content}\n"
             );
 
             // Generate timestamp for migration filename
@@ -546,7 +544,7 @@ pub fn generate_rollup_migrations(
                 .format("%Y%m%d%H%M%S")
                 .to_string();
             migration_counter += 1;
-            let migration_filename = format!("{}_update_{}.sql", timestamp, rollup_table_name);
+            let migration_filename = format!("{timestamp}_update_{rollup_table_name}.sql");
             let migration_path = migrations_dir.join(migration_filename);
 
             fs::write(&migration_path, migration_content)?;
@@ -579,8 +577,7 @@ pub fn generate_rollup_migrations(
 
             // Combine all parts into one migration
             let migration_content = format!(
-                "{}\n\n{}\n\n{}\n",
-                table_content, trigger_function_content, trigger_creation_content
+                "{table_content}\n\n{trigger_function_content}\n\n{trigger_creation_content}\n"
             );
 
             // Generate timestamp for migration filename
@@ -588,7 +585,7 @@ pub fn generate_rollup_migrations(
                 .format("%Y%m%d%H%M%S")
                 .to_string();
             migration_counter += 1;
-            let migration_filename = format!("{}_create_{}.sql", timestamp, rollup_table_name);
+            let migration_filename = format!("{timestamp}_create_{rollup_table_name}.sql");
             let migration_path = migrations_dir.join(migration_filename);
 
             fs::write(&migration_path, migration_content)?;
@@ -754,7 +751,7 @@ fn extract_fields_and_events_from_schema(
                 sql_type = if is_jsonb_array {
                     "JSONB".to_string()
                 } else {
-                    format!("{}[]", item_type)
+                    format!("{item_type}[]")
                 };
                 // Calculate element cast type for arrays
                 let element_cast_type = get_cast_type(&item_type);

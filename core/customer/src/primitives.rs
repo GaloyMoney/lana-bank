@@ -131,8 +131,8 @@ impl Display for CustomerObject {
         let discriminant = CustomerObjectDiscriminants::from(self);
         use CustomerObject::*;
         match self {
-            Customer(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            CustomerDocument(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Customer(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            CustomerDocument(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

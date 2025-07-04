@@ -8,7 +8,7 @@ pub async fn sumsub_callback(
     Json(payload): Json<serde_json::Value>,
 ) -> impl IntoResponse {
     // Log the received HTTP method and JSON payload
-    println!("Received kyc callback with payload: {:?}", payload);
+    println!("Received kyc callback with payload: {payload:?}");
 
     match app.applicants().handle_callback(payload).await {
         Ok(()) => {
@@ -16,7 +16,7 @@ pub async fn sumsub_callback(
             axum::Json("{}").into_response()
         }
         Err(err) => {
-            eprintln!("Failed to handle KYC callback: {:?}", err);
+            eprintln!("Failed to handle KYC callback: {err:?}");
             axum::http::StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

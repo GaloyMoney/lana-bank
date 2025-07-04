@@ -67,7 +67,7 @@ pub async fn execute(
 }
 
 fn path_to_report(report: &str, day: &str) -> String {
-    format!("reports/{}/{}.xml", day, report)
+    format!("reports/{day}/{report}.xml")
 }
 
 pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
@@ -83,7 +83,7 @@ pub fn convert_to_xml_data(rows: Vec<QueryRow>) -> Vec<u8> {
                 serde_json::Value::String(s) => s,
                 _ => String::new(),
             };
-            xml.push_str(&format!("<{}>{}</{}>\n", key, v, key));
+            xml.push_str(&format!("<{key}>{v}</{key}>\n"));
         }
         xml.push_str("</row>\n");
     }

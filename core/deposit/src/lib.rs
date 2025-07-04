@@ -176,8 +176,8 @@ where
     ) -> Result<DepositAccount, CoreDepositError> {
         let holder_id = holder_id.into();
 
-        let name = &format!("Deposit Account {}", holder_id);
-        let reference = &format!("deposit-customer-account:{}", holder_id);
+        let name = &format!("Deposit Account {holder_id}");
+        let reference = &format!("deposit-customer-account:{holder_id}");
         let audit_info = self
             .authz
             .enforce_permission(

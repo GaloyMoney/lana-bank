@@ -80,10 +80,10 @@ impl Report {
     pub fn last_error(&self) -> Option<String> {
         for e in self.events.iter_all().rev() {
             if let ReportEvent::UploadFailed { error, .. } = e {
-                return Some(format!("UploadFailed: {}", error));
+                return Some(format!("UploadFailed: {error}"));
             }
             if let ReportEvent::UploadFailed { error, .. } = e {
-                return Some(format!("FiledUploadFailed: {}", error));
+                return Some(format!("FiledUploadFailed: {error}"));
             }
         }
         None

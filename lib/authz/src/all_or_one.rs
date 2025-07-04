@@ -15,7 +15,7 @@ where
         match s {
             "*" => Ok(AllOrOne::All),
             _ => {
-                let id = T::from_str(s).map_err(|e| format!("Invalid ID: {}", e))?;
+                let id = T::from_str(s).map_err(|e| format!("Invalid ID: {e}"))?;
                 Ok(AllOrOne::ById(id))
             }
         }
@@ -29,7 +29,7 @@ where
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         match self {
             AllOrOne::All => write!(f, "*"),
-            AllOrOne::ById(id) => write!(f, "{}", id),
+            AllOrOne::ById(id) => write!(f, "{id}"),
         }
     }
 }

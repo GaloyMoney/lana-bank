@@ -312,9 +312,9 @@ impl Display for GovernanceObject {
         let discriminant = GovernanceObjectDiscriminants::from(self);
         use GovernanceObject::*;
         match self {
-            Committee(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Policy(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            ApprovalProcess(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Committee(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Policy(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            ApprovalProcess(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

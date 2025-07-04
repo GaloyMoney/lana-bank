@@ -170,8 +170,8 @@ impl core::fmt::Display for CoreCustodyObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = CoreCustodyObjectDiscriminants::from(self);
         match self {
-            Self::Custodian(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
-            Self::Wallet(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Custodian(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            Self::Wallet(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

@@ -20,7 +20,7 @@ impl ReportConfig {
         dev_disable_auto_create: bool,
     ) -> ReportConfig {
         Self {
-            dbt_output_dataset: format!("dbt_{}", name_prefix),
+            dbt_output_dataset: format!("dbt_{name_prefix}"),
             dev_disable_auto_create,
             service_account: Some(service_account),
         }

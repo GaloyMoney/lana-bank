@@ -107,7 +107,7 @@ pub fn process_schemas_with_changes(
         processed_changes.push(change.clone());
 
         // Write the new schema
-        fs::write(&filepath, format!("{}\n", new_schema_pretty))?;
+        fs::write(&filepath, format!("{new_schema_pretty}\n"))?;
     }
 
     if has_breaking_changes {
@@ -160,14 +160,14 @@ impl<'a> SchemaContext<'a> {
         // Extract definitions from root level
         if let Some(Value::Object(defs)) = schema.get("definitions") {
             for (name, def) in defs {
-                definitions.insert(format!("#/definitions/{}", name), def);
+                definitions.insert(format!("#/definitions/{name}"), def);
             }
         }
 
         // Also check for $defs (draft 2019-09+)
         if let Some(Value::Object(defs)) = schema.get("$defs") {
             for (name, def) in defs {
-                definitions.insert(format!("#/$defs/{}", name), def);
+                definitions.insert(format!("#/$defs/{name}"), def);
             }
         }
 

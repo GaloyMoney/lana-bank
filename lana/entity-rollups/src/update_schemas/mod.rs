@@ -66,7 +66,7 @@ fn delete_related_migration_files(
     // e.g., UserEvent -> core_user_events_rollup
     let entity_base = schema.name.replace("Event", "");
     let table_base = format!("{}_{}", schema.table_prefix, to_snake_case(&entity_base));
-    let rollup_table_name = format!("{}_events_rollup", table_base);
+    let rollup_table_name = format!("{table_base}_events_rollup");
 
     // Read directory and find matching migration files
     let entries = std::fs::read_dir(migrations_dir)?;

@@ -19,7 +19,7 @@ pub async fn user_id_from_authentication_id(
     let authentication_id = match payload.subject.parse::<AuthenticationId>() {
         Ok(id) => id,
         Err(e) => {
-            println!("Error parsing authentication id: {:?}", e);
+            println!("Error parsing authentication id: {e:?}");
             return StatusCode::BAD_REQUEST.into_response();
         }
     };
@@ -44,11 +44,11 @@ pub async fn user_id_from_authentication_id(
             Json(payload).into_response()
         }
         Err(e) if e.was_not_found() => {
-            println!("User not found: {:?}", authentication_id);
+            println!("User not found: {authentication_id:?}");
             StatusCode::NOT_FOUND.into_response()
         }
         Err(error) => {
-            println!("Error finding user: {:?}", error);
+            println!("Error finding user: {error:?}");
             StatusCode::INTERNAL_SERVER_ERROR.into_response()
         }
     }

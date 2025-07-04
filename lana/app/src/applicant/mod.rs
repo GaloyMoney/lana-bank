@@ -268,8 +268,7 @@ impl Applicants {
                     Ok(_) => {} // Level is valid, continue
                     Err(_) => {
                         return Err(ApplicantError::UnhandledCallbackType(format!(
-                            "Sumsub level {level_name} not implemented",
-                            level_name = level_name
+                            "Sumsub level {level_name} not implemented"
                         )));
                     }
                 };
@@ -306,10 +305,7 @@ impl Applicants {
 
         let customer = self.customers.find_by_id(sub, customer_id).await?;
         let customer = customer.ok_or_else(|| {
-            ApplicantError::CustomerIdNotFound(format!(
-                "Customer with ID {} not found",
-                customer_id
-            ))
+            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
         })?;
 
         let level: SumsubVerificationLevel = customer.customer_type.into();

@@ -104,7 +104,7 @@ impl std::fmt::Display for DashboardModuleObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = DashboardModuleObjectDiscriminants::from(self);
         match self {
-            Self::Dashboard(obj_ref) => write!(f, "{}/{}", discriminant, obj_ref),
+            Self::Dashboard(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }

@@ -62,27 +62,27 @@ impl EntryParams {
     }
 
     fn account_id_param_name(n: usize) -> String {
-        format!("entry_{}_account_id", n)
+        format!("entry_{n}_account_id")
     }
 
     fn currency_param_name(n: usize) -> String {
-        format!("entry_{}_currency", n)
+        format!("entry_{n}_currency")
     }
 
     fn amount_param_name(n: usize) -> String {
-        format!("entry_{}_amount", n)
+        format!("entry_{n}_amount")
     }
 
     fn description_param_name(n: usize) -> String {
-        format!("entry_{}_description", n)
+        format!("entry_{n}_description")
     }
 
     fn direction_param_name(n: usize) -> String {
-        format!("entry_{}_direction", n)
+        format!("entry_{n}_direction")
     }
 
     fn layer_param_name(n: usize) -> String {
-        format!("entry_{}_layer", n)
+        format!("entry_{n}_layer")
     }
 }
 
@@ -192,7 +192,7 @@ impl ManualTransactionTemplate {
                     .currency(format!("params.{}", EntryParams::currency_param_name(i)))
                     .layer(format!("params.{}", EntryParams::layer_param_name(i)))
                     .direction(format!("params.{}", EntryParams::direction_param_name(i)))
-                    .description(format!("params.entry_{}_description", i))
+                    .description(format!("params.entry_{i}_description"))
                     .build()
                     .expect("Couldn't build entry"),
             );

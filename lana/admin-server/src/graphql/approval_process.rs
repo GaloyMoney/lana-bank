@@ -186,7 +186,7 @@ impl From<&DomainApprovalProcessType> for ApprovalProcessType {
         } else if process_type == &lana_app::governance::APPROVE_DISBURSAL_PROCESS {
             Self::DisbursalApproval
         } else {
-            panic!("Unknown approval process type: {:?}", process_type);
+            panic!("Unknown approval process type: {process_type:?}");
         }
     }
 }

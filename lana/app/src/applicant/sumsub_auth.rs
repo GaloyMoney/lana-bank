@@ -95,10 +95,7 @@ impl SumsubClient {
         external_user_id: CustomerId,
     ) -> Result<String, ApplicantError> {
         let method = "GET";
-        let url = format!(
-            "/resources/applicants/-;externalUserId={}/one",
-            external_user_id
-        );
+        let url = format!("/resources/applicants/-;externalUserId={external_user_id}/one");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
 
         let headers = self.get_headers(method, &url, None)?;
@@ -185,7 +182,7 @@ impl SumsubClient {
             })?;
 
         // Use the correct API endpoint for existing applicants
-        let url_path = format!("/resources/applicants/{}/kyt/txns/-/data", applicant_id);
+        let url_path = format!("/resources/applicants/{applicant_id}/kyt/txns/-/data");
         let tx_id = tx_id.into();
 
         // Current timestamp for the request
@@ -236,7 +233,7 @@ impl SumsubClient {
                     Err(ApplicantError::Sumsub { description, code })
                 }
                 _ => Err(ApplicantError::Sumsub {
-                    description: format!("Failed to post transaction: {}", response_text),
+                    description: format!("Failed to post transaction: {response_text}"),
                     code: 500,
                 }),
             }
