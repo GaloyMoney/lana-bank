@@ -73,7 +73,7 @@ where
         Ok(custody)
     }
 
-    #[cfg(feature = "test-dummy")]
+    #[cfg(feature = "mock-custodian")]
     #[instrument(
         name = "credit_facility.ensure_mock_custodian_in_op",
         skip(self, db),
@@ -118,14 +118,14 @@ where
             )
             .await?;
 
-        #[cfg(feature = "test-dummy")]
+        #[cfg(feature = "mock-custodian")]
         let custodian_id = if custodian_config == CustodianConfig::Mock {
             CustodianId::mock_custodian_id()
         } else {
             CustodianId::new()
         };
 
-        #[cfg(not(feature = "test-dummy"))]
+        #[cfg(not(feature = "mock-custodian"))]
         let custodian_id = CustodianId::new();
 
         let new_custodian = NewCustodian::builder()

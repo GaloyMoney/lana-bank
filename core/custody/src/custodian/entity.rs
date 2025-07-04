@@ -105,7 +105,7 @@ impl Custodian {
         Ok(())
     }
 
-    #[cfg(not(feature = "test-dummy"))]
+    #[cfg(not(feature = "mock-custodian"))]
     pub async fn custodian_client(
         self,
         key: EncryptionKey,
@@ -117,7 +117,7 @@ impl Custodian {
         }
     }
 
-    #[cfg(feature = "test-dummy")]
+    #[cfg(feature = "mock-custodian")]
     pub async fn custodian_client(
         self,
         key: EncryptionKey,

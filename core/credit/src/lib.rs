@@ -414,7 +414,7 @@ where
         let wallet_id = if let Some(custodian_id) = custodian_id {
             let custodian_id = custodian_id.into();
 
-            #[cfg(feature = "test-dummy")]
+            #[cfg(feature = "mock-custodian")]
             if custodian_id.is_mock_custodian() {
                 self.custody
                     .ensure_mock_custodian_in_op(&mut db, sub)

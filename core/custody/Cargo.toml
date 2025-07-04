@@ -8,7 +8,7 @@ edition = "2024"
 fail-on-warnings = []
 graphql = ["es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
-test-dummy = []
+mock-custodian = []
 
 [dependencies]
 audit = { path = "../../lib/audit" }

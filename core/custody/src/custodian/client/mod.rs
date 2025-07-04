@@ -49,7 +49,7 @@ struct KomainuState {
     first_unused_address_index: u64,
 }
 
-#[cfg(feature = "test-dummy")]
+#[cfg(feature = "mock-custodian")]
 pub mod mock {
     use async_trait::async_trait;
 

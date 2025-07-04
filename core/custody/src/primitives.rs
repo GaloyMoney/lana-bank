@@ -5,7 +5,7 @@ es_entity::entity_id! {
     WalletId
 }
 
-#[cfg(feature = "test-dummy")]
+#[cfg(feature = "mock-custodian")]
 impl CustodianId {
     pub const fn is_mock_custodian(self) -> bool {
         self.0.is_nil()

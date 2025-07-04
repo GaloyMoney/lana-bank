@@ -82,7 +82,7 @@
           pname = "lana-cli";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
-          cargoExtraArgs = "-p lana-cli --features sim-time,test-dummy";
+          cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian";
         };
 
       # Function to build static lana-cli (musl target for containers)
