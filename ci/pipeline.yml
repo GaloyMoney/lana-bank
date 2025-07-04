@@ -511,8 +511,8 @@ jobs:
               - |
                 set -eux
                 cd repo
-                nix build .#meltano-image
-                gunzip ./result -c > ../image/image.tar
+                nix build --no-sandbox .#meltano-image
+                cp $(nix eval --raw .#meltano-image.outPath) > ../image/image.tar
       - put: meltano-edge-image
         params:
           image: image/image.tar
