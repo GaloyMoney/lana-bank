@@ -73,7 +73,15 @@ wait_for_loan_agreement_completion() {
   temp_pdf="/tmp/loan_agreement_${loan_agreement_id}.pdf"
   temp_txt="/tmp/loan_agreement_${loan_agreement_id}.txt"
   
-  curl -s -o "$temp_pdf" "$download_link" || exit 1
+  # Handle file:// URLs by copying the file directly
+  if [[ "$download_link" =~ ^file:// ]]; then
+    # Remove file:// prefix and copy the file
+    file_path="${download_link#file://}"
+    cp "$file_path" "$temp_pdf" || exit 1
+  else
+    # Use curl for HTTP/HTTPS URLs
+    curl -s -o "$temp_pdf" "$download_link" || exit 1
+  fi
   
   [[ -f "$temp_pdf" ]] || exit 1
   file_size=$(stat -f%z "$temp_pdf" 2>/dev/null || stat -c%s "$temp_pdf" 2>/dev/null)
