@@ -5,7 +5,7 @@ use crate::primitives::WalletId;
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
 pub enum CoreCustodyEvent {
-    WalletAddressAllocated {
+    WalletAttached {
         id: WalletId,
         address: String,
     },

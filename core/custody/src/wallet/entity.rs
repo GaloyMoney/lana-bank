@@ -17,10 +17,6 @@ pub enum WalletEvent {
     },
     ExternalWalletAttached {
         external_id: String,
-        custodian_response: serde_json::Value,
-        audit_info: AuditInfo,
-    },
-    AddressAllocated {
         address: String,
         custodian_response: serde_json::Value,
         audit_info: AuditInfo,
@@ -40,6 +36,7 @@ impl Wallet {
     pub fn attach_external_wallet(
         &mut self,
         external_id: String,
+        address: String,
         custodian_response: serde_json::Value,
         audit_info: &AuditInfo,
     ) -> Idempotent<()> {
@@ -50,25 +47,6 @@ impl Wallet {
 
         self.events.push(WalletEvent::ExternalWalletAttached {
             external_id,
-            custodian_response,
-            audit_info: audit_info.clone(),
-        });
-
-        Idempotent::Executed(())
-    }
-
-    pub fn allocate_address(
-        &mut self,
-        address: String,
-        custodian_response: serde_json::Value,
-        audit_info: &AuditInfo,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            WalletEvent::AddressAllocated { address: existing, .. } if existing == &address
-        );
-
-        self.events.push(WalletEvent::AddressAllocated {
             address,
             custodian_response,
             audit_info: audit_info.clone(),
@@ -79,7 +57,7 @@ impl Wallet {
 
     pub fn address(&self) -> Option<&str> {
         self.events.iter_all().find_map(|e| match e {
-            WalletEvent::AddressAllocated { address, .. } => Some(address.as_str()),
+            WalletEvent::ExternalWalletAttached { address, .. } => Some(address.as_str()),
             _ => None,
         })
     }
