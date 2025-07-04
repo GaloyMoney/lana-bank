@@ -46,7 +46,7 @@ impl PdfGenerator {
 
         // Generate the PDF
         let result = markdown2pdf::parse(markdown.to_string(), &temp_file_name.to_string_lossy())
-            .map_err(|e| RenderingError::PdfGeneration(format!("PDF generation failed: {}", e)));
+            .map_err(|e| RenderingError::PdfGeneration(format!("PDF generation failed: {e}")));
 
         // Clean up the config hack
         if let Some(cleanup_info) = cleanup_info {
@@ -95,7 +95,7 @@ impl PdfGenerator {
         let backup_file = if home_config_file.exists() {
             let backup_path = Path::new(&home_dir).join("markdown2pdfrc.toml.backup");
             fs::copy(&home_config_file, &backup_path).map_err(|e| {
-                RenderingError::PdfGeneration(format!("Failed to backup existing config: {}", e))
+                RenderingError::PdfGeneration(format!("Failed to backup existing config: {e}"))
             })?;
             Some(backup_path)
         } else {
@@ -104,7 +104,7 @@ impl PdfGenerator {
 
         // Copy our config file to the home directory
         fs::copy(config_file, &home_config_file).map_err(|e| {
-            RenderingError::PdfGeneration(format!("Failed to copy config file to home: {}", e))
+            RenderingError::PdfGeneration(format!("Failed to copy config file to home: {e}"))
         })?;
 
         Ok(ConfigHackCleanup {

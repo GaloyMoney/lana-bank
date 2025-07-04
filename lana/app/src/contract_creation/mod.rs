@@ -238,7 +238,7 @@ mod tests {
         config.pdf_config_file = pdf_config_file;
 
         // Verify that config can be used to create a renderer
-        let renderer = rendering::Renderer::new(config.pdf_config_file)
+        let renderer = rendering::Renderer::init(config.pdf_config_file)
             .await
             .map_err(|e| error::ContractCreationError::Rendering(e))?;
 
