@@ -709,7 +709,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
 
 #[cfg(test)]
 mod test {
-    use audit::{AuditEntryId, AuditInfo};
+    use audit::{AuditEntryId, AuditInfo, test_utils::dummy_audit_info};
     use rust_decimal_macros::dec;
 
     use crate::{
@@ -734,13 +734,6 @@ mod test {
             .initial_cvl(dec!(140))
             .build()
             .expect("should build a valid term")
-    }
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
     }
 
     fn default_facility() -> UsdCents {

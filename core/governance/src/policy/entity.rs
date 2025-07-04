@@ -158,16 +158,9 @@ impl IntoEvents<PolicyEvent> for NewPolicy {
 
 #[cfg(test)]
 mod test {
-    use audit::{AuditEntryId, AuditInfo};
+    use audit::{test_utils::dummy_audit_info, AuditEntryId, AuditInfo};
 
     use super::*;
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     fn init_events() -> EntityEvents<PolicyEvent> {
         EntityEvents::init(
