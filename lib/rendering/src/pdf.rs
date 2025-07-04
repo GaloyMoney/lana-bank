@@ -27,10 +27,7 @@ impl PdfGenerator {
 
     /// Generate a PDF from markdown content
     /// Returns the PDF as bytes that can be written to a file or uploaded
-    pub async fn generate_pdf_from_markdown(
-        &self,
-        markdown: &str,
-    ) -> Result<Vec<u8>, RenderingError> {
+    pub fn generate_pdf_from_markdown(&self, markdown: &str) -> Result<Vec<u8>, RenderingError> {
         let temp_dir = std::env::temp_dir();
         let temp_file_name = temp_dir.join(format!("{}.pdf", Uuid::new_v4()));
 

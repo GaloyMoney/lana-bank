@@ -34,8 +34,7 @@ impl Renderer {
         let rendered_markdown = self.template_renderer.render(template_content, data)?;
         let pdf_bytes = self
             .pdf_generator
-            .generate_pdf_from_markdown(&rendered_markdown)
-            .await?;
+            .generate_pdf_from_markdown(&rendered_markdown)?;
         Ok(pdf_bytes)
     }
 
@@ -50,9 +49,7 @@ impl Renderer {
 
     /// Generate PDF from markdown string
     pub async fn markdown_to_pdf(&self, markdown: &str) -> Result<Vec<u8>, RenderingError> {
-        self.pdf_generator
-            .generate_pdf_from_markdown(markdown)
-            .await
+        self.pdf_generator.generate_pdf_from_markdown(markdown)
     }
 }
 
