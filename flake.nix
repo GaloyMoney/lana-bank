@@ -245,7 +245,7 @@
         cargoExtraArgs = "--bin write_customer_sdl";
       };
 
-      meltano = pkgs.callPackage ./meltano.nix {};
+      meltanoPkgs = pkgs.callPackage ./meltano.nix {};
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
@@ -303,7 +303,7 @@
           curl
           tilt
           procps
-          meltano
+          meltanoPkgs.meltano
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -337,7 +337,8 @@
           entity-rollups = entity-rollups;
           write_sdl = write_sdl;
           write_customer_sdl = write_customer_sdl;
-          inherit meltano;
+          meltano = meltanoPkgs.meltano;
+          meltano-image = meltanoPkgs.meltano-image;
         };
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};

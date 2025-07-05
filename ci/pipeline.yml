@@ -492,33 +492,33 @@ jobs:
   -  #@ build_app_edge_image("customer-portal")
 
   - name: build-meltano-edge-image
+    serial: true
     plan:
-      - in_parallel:
-          - get: repo
-            trigger: true
-          - get: pipeline-tasks
+      - get: repo
+        trigger: true
       - task: build
         config:
           platform: linux
-          image_resource:
-            type: registry-image
-            source:
-              repository: gcr.io/kaniko-project/executor
-              tag: debug
+          image_resource: #@ nix_flake_cachix_image_config()
           inputs:
           - name: repo
           outputs:
           - name: image
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
           run:
-            path: /kaniko/executor
+            path: bash
             args:
-              - --dockerfile=Dockerfile
-              - --context=repo/meltano
-              - --use-new-run
-              - --single-snapshot
-              - --cache=false
-              - --no-push
-              - --tar-path=image/image.tar
+              - -c
+              - |
+                set -eux
+                pushd repo
+
+                cachix use $CACHIX_CACHE_NAME
+
+                nix build --no-sandbox .#meltano-image
+                cp $(nix eval --raw .#meltano-image.outPath) ../image/image.tar
       - put: meltano-edge-image
         params:
           image: image/image.tar
