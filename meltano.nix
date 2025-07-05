@@ -119,30 +119,61 @@
     fi
   '';
 
+  srcRoot = toString ./meltano;
+  ignoreRE = builtins.match;
+  relPath = p: lib.removePrefix srcRoot (toString p);
+
+  meltanoSrc = lib.cleanSourceWith {
+    src = ./meltano;
+
+    filter = path: _type: let
+      p = relPath path;
+    in
+      ! (
+        ignoreRE "^(/\\.git(/|$))" p
+        != null
+        || ignoreRE "^(/venv(/|$))" p != null
+        || ignoreRE "^(/\\.meltano(/|$))" p != null
+        || ignoreRE "^(/\\.env$)" p != null
+        || ignoreRE "^(/ui\\.cfg$)" p != null
+        || ignoreRE "^(/output(/|$))" p != null
+        || ignoreRE "^(/transform/(target|dbt_modules|logs)(/|$))" p != null
+      );
+  };
+
   meltanoProject =
     pkgs.runCommand "meltano-project" {
       buildInputs = [meltano pkgs.gitMinimal pkgs.cacert];
     } ''
       set -euo pipefail
-
       mkdir -p $out/workspace
-      cp -R ${./meltano} $out/workspace/meltano
+      cp -R ${meltanoSrc} $out/workspace/meltano
       chmod -R u+w $out/workspace/meltano
-      cd $out/workspace/meltano
 
-      export HOME=$PWD
-      ${meltano}/bin/meltano install
+      cd $out/workspace/meltano
+      meltano install
+      touch .meltano/installed # marker to indicate installation from within the image
     '';
+
+  meltanoEntrypoint = writeShellScriptBin "meltano-entrypoint.sh" ''
+    #!/usr/bin/env bash
+    set -euo pipefail
+    cd /workspace/meltano
+
+    if [[ ! -f /workspace/meltano/.meltano/installed ]]; then
+      meltano install
+    fi
+
+    exec "$@"
+  '';
 
   meltanoImageRoot = buildEnv {
     name = "meltano-image-root";
     pathsToLink = ["/bin" "/workspace"];
     paths = [
       meltano
-      bash
-      coreutils
-      gitMinimal
       meltanoProject
+      meltanoEntrypoint
     ];
   };
 
@@ -150,12 +181,20 @@
     name = "meltano";
     tag = "latest";
 
+    fromImage = dockerTools.pullImage {
+      imageName = "ubuntu";
+      imageDigest = "sha256:496a9a44971eb4ac7aa9a218867b7eec98bdef452246c037aa206c841b653e08";
+      sha256 = "sha256-LYdoE40tYih0XXJoJ8/b1e/IAkO94Jrs2C8oXWTeUTg=";
+      finalImageTag = "mantic-20240122";
+      finalImageName = "ubuntu";
+    };
+
     copyToRoot = meltanoImageRoot;
     compressor = "none";
 
     config = {
       WorkingDir = "/workspace/meltano";
-      Cmd = ["${meltano}/bin/meltano"];
+      Entrypoint = ["${meltanoEntrypoint}/bin/meltano-entrypoint.sh"];
 
       Env = [
         "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
