@@ -778,7 +778,6 @@ type CustodianEdge {
 
 type Customer {
 	id: ID!
-	customerId: UUID!
 	status: AccountStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
