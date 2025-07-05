@@ -42,8 +42,8 @@ services:
     ports: [ 1025:1025, 1080:1080 ]
 
   airflow-scheduler:
-    # image: us.gcr.io/galoyorg/meltano@sha256:668dda28e070e6ef9940fa874fb535f9b6b41dcf209c456f11a15360273293a1
-    image: meltano:latest # nix build .#meltano-image && docker load < result
+    image: us.gcr.io/galoyorg/meltano:edge
+    # image: meltano:latest # nix build .#meltano-image && docker load < result
     command: meltano invoke airflow scheduler
     volumes:
       - "./meltano/meltano.yml:/workspace/meltano/meltano.yml"
@@ -58,8 +58,8 @@ services:
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
 
   airflow-webserver:
-    # image: us.gcr.io/galoyorg/meltano@sha256:668dda28e070e6ef9940fa874fb535f9b6b41dcf209c456f11a15360273293a1
-    image: meltano:latest # nix build .#meltano-image && docker load < result
+    image: us.gcr.io/galoyorg/meltano:edge
+    # image: meltano:latest # nix build .#meltano-image && docker load < result
     command: meltano invoke airflow webserver
     ports: [8080:8080]
     volumes:
