@@ -191,7 +191,7 @@ impl Applicants {
 
         let mut db = self.repo.begin_op().await?;
 
-        match serde_json::from_value(payload.clone())? {
+        let result = match serde_json::from_value(payload)? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
@@ -204,11 +204,9 @@ impl Applicants {
                     .await;
 
                 match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
-                        return Ok(());
-                    }
-                    Err(e) => return Err(e.into()),
+                    Ok(_) => Ok(()),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => Ok(()),
+                    Err(e) => Err(e.into()),
                 }
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -228,11 +226,9 @@ impl Applicants {
                     .await;
 
                 match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
-                        return Ok(());
-                    }
-                    Err(e) => return Err(e.into()),
+                    Ok(_) => Ok(()),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => Ok(()),
+                    Err(e) => Err(e.into()),
                 }
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -263,23 +259,25 @@ impl Applicants {
                     .await;
 
                 match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
-                        return Ok(());
-                    }
-                    Err(e) => return Err(e.into()),
+                    Ok(_) => Ok(()),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => Ok(()),
+                    Err(e) => Err(e.into()),
                 }
             }
-            SumsubCallbackPayload::Unknown => {
-                return Err(ApplicantError::UnhandledCallbackType(format!(
-                    "callback event not processed for payload {payload}",
-                )));
+            SumsubCallbackPayload::Unknown => Err(ApplicantError::UnhandledCallbackType(format!(
+                "callback event not processed",
+            ))),
+        };
+
+        match result {
+            Ok(_) => {
+                db.commit().await?;
+                Ok(())
             }
+            // if UnhandledCallbackType, we return Ok(()) to not get sumsub to retry
+            Err(ApplicantError::UnhandledCallbackType(_)) => Ok(()),
+            Err(e) => Err(e),
         }
-
-        db.commit().await?;
-
-        Ok(())
     }
 
     #[instrument(name = "applicant.create_permalink", skip(self))]
