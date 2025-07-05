@@ -37,7 +37,7 @@
     "clsx": "^2.1.1",
     "embla-carousel-react": "^8.6.0",
     "lucide-react": "^0.525.0",
-    "next": "15.3.4",
+    "next": "15.3.5",
     "next-intl": "^4.3.4",
     "react": "^19.1.0",
     "react-apexcharts": "^1.5.0",
@@ -46,10 +46,10 @@
     "react-dropzone": "^14.3.8",
     "react-icons": "^5.5.0",
     "react-number-format": "^5.4.4",
-    "react-qr-code": "^2.0.16",
+    "react-qr-code": "^2.0.17",
     "sonner": "^2.0.6",
     "tailwind-merge": "^3.3.1",
-    "zod": "^3.25.71"
+    "zod": "^3.25.73"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.0.1",
@@ -78,7 +78,7 @@
     "cypress": "^14.5.1",
     "cypress-file-upload": "^5.0.8",
     "eslint": "^8.57.0",
-    "eslint-config-next": "15.3.4",
+    "eslint-config-next": "15.3.5",
     "eslint-config-prettier": "^10.1.5",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.1",
