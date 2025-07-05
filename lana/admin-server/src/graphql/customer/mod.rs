@@ -19,7 +19,6 @@ pub use error::*;
 #[graphql(complex)]
 pub struct Customer {
     id: ID,
-    customer_id: UUID,
     status: AccountStatus,
     level: KycLevel,
     created_at: Timestamp,
@@ -33,7 +32,6 @@ impl From<DomainCustomer> for Customer {
     fn from(customer: DomainCustomer) -> Self {
         Customer {
             id: customer.id.to_global_id(),
-            customer_id: UUID::from(customer.id),
             status: customer.status,
             level: customer.level,
             created_at: customer.created_at().into(),
@@ -67,7 +65,7 @@ impl Customer {
             .deposits()
             .list_accounts_by_created_at_for_account_holder(
                 sub,
-                self.customer_id,
+                self.entity.id,
                 Default::default(),
                 ListDirection::Descending,
             )
