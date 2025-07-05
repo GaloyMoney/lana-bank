@@ -175,7 +175,7 @@ mod tests {
 
         {
             chart
-                .create_node(
+                .create_node_unchecked(
                     &AccountSpec {
                         parent: None,
                         code: AccountCode::new(vec!["1".parse().unwrap()]),
@@ -187,7 +187,7 @@ mod tests {
                 )
                 .unwrap();
             chart
-                .create_node(
+                .create_node_unchecked(
                     &AccountSpec {
                         parent: Some(AccountCode::new(vec!["1".parse().unwrap()])),
                         code: AccountCode::new(vec!["11".parse().unwrap()]),
@@ -199,7 +199,7 @@ mod tests {
                 )
                 .unwrap();
             chart
-                .create_node(
+                .create_node_unchecked(
                     &AccountSpec {
                         parent: Some(AccountCode::new(vec!["11".parse().unwrap()])),
                         code: AccountCode::new(
@@ -213,7 +213,7 @@ mod tests {
                 )
                 .unwrap();
             chart
-                .create_node(
+                .create_node_unchecked(
                     &AccountSpec {
                         parent: Some(AccountCode::new(
                             ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),

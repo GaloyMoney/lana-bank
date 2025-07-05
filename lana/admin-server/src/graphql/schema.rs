@@ -1666,7 +1666,7 @@ impl Mutation {
             app.accounting().add_node(
                 sub,
                 input.chart_id.into(),
-                input.try_into()?,
+                input.proposed_spec.try_into()?,
                 TRIAL_BALANCE_STATEMENT_NAME,
             )
         )

@@ -277,10 +277,7 @@ export type ChartOfAccounts = {
 
 export type ChartOfAccountsAddNodeInput = {
   chartId: Scalars['UUID']['input'];
-  code: Scalars['AccountCode']['input'];
-  name: Scalars['String']['input'];
-  normalBalanceType: DebitOrCredit;
-  parent?: InputMaybe<Scalars['AccountCode']['input']>;
+  proposedSpec: ChartOfAccountsProposedSpecInput;
 };
 
 export type ChartOfAccountsAddNodePayload = {
@@ -296,6 +293,13 @@ export type ChartOfAccountsCsvImportInput = {
 export type ChartOfAccountsCsvImportPayload = {
   __typename?: 'ChartOfAccountsCsvImportPayload';
   chartOfAccounts: ChartOfAccounts;
+};
+
+export type ChartOfAccountsProposedSpecInput = {
+  code: Scalars['AccountCode']['input'];
+  name: Scalars['String']['input'];
+  normalBalanceType: DebitOrCredit;
+  parent?: InputMaybe<Scalars['AccountCode']['input']>;
 };
 
 export enum CollateralAction {

@@ -48,10 +48,12 @@ teardown_file() {
     '{
       input: {
         chartId: $id,
-        parent: "11.01",
-        code: $code,
-        name: $name,
-        normalBalanceType: "DEBIT",
+        proposedSpec: {
+          parent: "11.01",
+          code: $code,
+          name: $name,
+          normalBalanceType: "DEBIT",
+        }
       }
     }'
   )
