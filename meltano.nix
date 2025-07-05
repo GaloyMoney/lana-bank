@@ -152,20 +152,7 @@
 
       cd $out/workspace/meltano
       meltano install
-      touch .meltano/installed # marker to indicate installation from within the image
     '';
-
-  meltanoEntrypoint = writeShellScriptBin "meltano-entrypoint.sh" ''
-    #!/usr/bin/env bash
-    set -euo pipefail
-    cd /workspace/meltano
-
-    if [[ ! -f /workspace/meltano/.meltano/installed ]]; then
-      meltano install
-    fi
-
-    exec "$@"
-  '';
 
   meltanoImageRoot = buildEnv {
     name = "meltano-image-root";
@@ -173,7 +160,6 @@
     paths = [
       meltano
       meltanoProject
-      meltanoEntrypoint
     ];
   };
 
@@ -194,7 +180,7 @@
 
     config = {
       WorkingDir = "/workspace/meltano";
-      Entrypoint = ["${meltanoEntrypoint}/bin/meltano-entrypoint.sh"];
+      Cmd = ["${meltano}/bin/meltano"];
 
       Env = [
         "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
