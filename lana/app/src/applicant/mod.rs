@@ -191,7 +191,7 @@ impl Applicants {
 
         let mut db = self.repo.begin_op().await?;
 
-        let result = match serde_json::from_value(payload)? {
+        let result = match serde_json::from_value(payload.clone())? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
@@ -265,7 +265,7 @@ impl Applicants {
                 }
             }
             SumsubCallbackPayload::Unknown => Err(ApplicantError::UnhandledCallbackType(format!(
-                "callback event not processed",
+                "callback event not processed for payload {payload}",
             ))),
         };
 
