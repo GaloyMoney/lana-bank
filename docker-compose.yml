@@ -54,6 +54,12 @@ services:
       - "./meltano/plugins:/workspace/meltano/plugins"
       - "./meltano/transform:/workspace/meltano/transform"
       - "./meltano/utilities:/workspace/meltano/utilities"
+    healthcheck:
+      test: ["CMD", "airflow-scheduler-healthcheck"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
     depends_on: { airflow-pg: { condition: service_healthy } }
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor

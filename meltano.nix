@@ -9,7 +9,7 @@
   gcc,
   ...
 }: let
-  inherit (pkgs) dockerTools buildEnv bash coreutils gitMinimal cacert;
+  inherit (pkgs) dockerTools buildEnv bash coreutils gitMinimal cacert postgresql;
 
   python3WithOverrides = python311.override {
     packageOverrides = self: super:
@@ -119,6 +119,18 @@
     fi
   '';
 
+  airflow-scheduler-healthcheck = writeShellScriptBin "airflow-scheduler-healthcheck" ''
+    set -euo pipefail
+    DB_CONN="''${AIRFLOW__DATABASE__SQL_ALCHEMY_CONN//+psycopg2/}"
+    if psql "''${DB_CONN}" -t -c "SELECT (EXTRACT(EPOCH FROM (NOW() - latest_heartbeat)) < 60) FROM job WHERE job_type='SchedulerJob' ORDER BY latest_heartbeat DESC LIMIT 1;" | grep -q 't'; then
+      echo "Scheduler is healthy"
+      exit 0
+    else
+      echo "Scheduler heartbeat is stale"
+      exit 1
+    fi
+  '';
+
   srcRoot = toString ./meltano;
   ignoreRE = builtins.match;
   relPath = p: lib.removePrefix srcRoot (toString p);
@@ -160,6 +172,8 @@
     paths = [
       meltano
       meltanoProject
+      airflow-scheduler-healthcheck
+      postgresql
     ];
   };
 
@@ -186,9 +200,10 @@
         "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
         "GIT_SSL_CAINFO=${cacert}/etc/ssl/certs/ca-bundle.crt"
         "GOOGLE_APPLICATION_CREDENTIALS=/workspace/meltano/keyfile.json"
+        "PATH=/bin:/usr/bin:/usr/local/bin"
       ];
     };
   };
 in {
-  inherit meltano meltano-image;
+  inherit meltano meltano-image airflow-scheduler-healthcheck;
 }
