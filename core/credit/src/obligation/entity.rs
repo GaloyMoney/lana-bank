@@ -593,6 +593,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
 }
 
 #[derive(Debug, Builder)]
+#[builder(build_fn(validate = "Self::validate"))]
 pub struct NewObligation {
     #[builder(setter(into))]
     pub(crate) id: ObligationId,
@@ -620,6 +621,15 @@ pub struct NewObligation {
     effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub audit_info: AuditInfo,
+}
+
+impl NewObligationBuilder {
+    fn validate(&self) -> Result<(), String> {
+        match self.amount {
+            Some(amount) if amount.is_zero() => Err("Obligation amount cannot be zero".to_string()),
+            _ => Ok(()),
+        }
+    }
 }
 
 impl NewObligation {
@@ -733,6 +743,15 @@ mod test {
             effective: Utc::now().date_naive(),
             audit_info: dummy_audit_info(),
         }]
+    }
+
+    #[test]
+    fn builder_errors_for_zero_amount() {
+        let res = NewObligation::builder().amount(UsdCents::ZERO).build();
+        assert!(matches!(
+            res,
+            Err(NewObligationBuilderError::ValidationError(_))
+        ));
     }
 
     #[test]
