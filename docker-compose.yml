@@ -46,13 +46,15 @@ services:
     # image: meltano:latest # nix build .#meltano-image && docker load < result
     command: meltano invoke airflow scheduler
     volumes:
+      - "meltano-metadata:/workspace/meltano/.meltano:rw"
+      - "./meltano/keyfile.json:/workspace/meltano/keyfile.json:ro"
       - "./meltano/meltano.yml:/workspace/meltano/meltano.yml"
       - "./meltano/extract:/workspace/meltano/extract"
       - "./meltano/orchestrate:/workspace/meltano/orchestrate"
       - "./meltano/plugins:/workspace/meltano/plugins"
       - "./meltano/transform:/workspace/meltano/transform"
       - "./meltano/utilities:/workspace/meltano/utilities"
-    depends_on: [airflow-pg]
+    depends_on: { airflow-pg: { condition: service_healthy } }
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
@@ -63,13 +65,17 @@ services:
     command: meltano invoke airflow webserver
     ports: [8080:8080]
     volumes:
+      - "meltano-metadata:/workspace/meltano/.meltano:rw"
+      - "./meltano/keyfile.json:/workspace/meltano/keyfile.json:ro"
       - "./meltano/meltano.yml:/workspace/meltano/meltano.yml"
       - "./meltano/extract:/workspace/meltano/extract"
       - "./meltano/orchestrate:/workspace/meltano/orchestrate"
       - "./meltano/plugins:/workspace/meltano/plugins"
       - "./meltano/transform:/workspace/meltano/transform"
       - "./meltano/utilities:/workspace/meltano/utilities"
-    depends_on: [airflow-pg]
+    depends_on: 
+      airflow-pg: { condition: service_healthy }
+      airflow-scheduler: { condition: service_healthy }
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
@@ -95,3 +101,12 @@ services:
     ports: [5436:5432]
     environment:
       [POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg]
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U user -d pg"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+volumes:
+  meltano-metadata: {} # Meltano shared caching layer
