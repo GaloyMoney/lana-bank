@@ -195,19 +195,11 @@ impl SumsubClient {
         let headers = self.get_headers(method, &url, None)?;
         let response = self.client.get(&full_url).headers(headers).send().await?;
 
-        let response_text = response.text().await?;
-
-        match serde_json::from_str::<SumsubResponse<serde_json::Value>>(&response_text) {
-            Ok(SumsubResponse::Success(_)) => {
-                // Parse the JSON response into our structured format
-                let applicant_details: ApplicantDetails =
-                    serde_json::from_str(&response_text).map_err(ApplicantError::Serde)?;
-                Ok(applicant_details)
-            }
-            Ok(SumsubResponse::Error(ApiError { description, code })) => {
+        match response.json::<SumsubResponse<ApplicantDetails>>().await? {
+            SumsubResponse::Success(applicant_details) => Ok(applicant_details),
+            SumsubResponse::Error(ApiError { description, code }) => {
                 Err(ApplicantError::Sumsub { description, code })
             }
-            Err(e) => Err(ApplicantError::Serde(e)),
         }
     }
 
