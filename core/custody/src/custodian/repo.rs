@@ -43,22 +43,23 @@ impl CustodianRepo {
         headers: &http::HeaderMap,
         payload: &serde_json::Value,
     ) -> Result<(), CustodianError> {
-        let headers = headers
-            .iter()
-            .map(|(name, value)| (name.as_str(), value.to_str().unwrap_or("<unreadable>")))
-            .collect::<Vec<_>>();
+        let headers = serde_json::to_value(
+            headers
+                .iter()
+                .map(|(name, value)| (name.as_str(), value.to_str().unwrap_or("<unreadable>")))
+                .collect::<Vec<_>>(),
+        )
+        .expect("valid JSON");
 
         sqlx::query!(
             r#"
-              INSERT INTO core_custodian_webhook_notifications (custodian_id, notification)
-              VALUES ($1, $2)
+              INSERT INTO core_custodian_webhook_notifications (custodian_id, uri, headers, payload)
+              VALUES ($1, $2, $3, $4)
             "#,
             custodian_id as Option<CustodianId>,
-            serde_json::json!({
-                "uri": uri.to_string(),
-                "headers": headers,
-                "payload": payload
-            })
+            uri.to_string(),
+            headers,
+            payload
         )
         .execute(&self.pool)
         .await?;

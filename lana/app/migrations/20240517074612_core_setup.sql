@@ -240,7 +240,9 @@ CREATE TABLE core_custodian_events (
 
 CREATE TABLE core_custodian_webhook_notifications (
   custodian_id UUID NULL REFERENCES core_custodians(id),
-  notification JSONB NOT NULL,
+  uri VARCHAR NOT NULL,
+  headers JSONB NOT NULL,
+  payload JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
