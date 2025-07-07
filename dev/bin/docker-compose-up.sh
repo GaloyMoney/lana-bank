@@ -22,8 +22,11 @@ FILES=(-f "$BASE")
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
 # ── Pull images first (prevents concurrent map writes) ─────────────────────────
-echo "Pulling Docker images..."
-"$ENGINE" compose "${FILES[@]}" pull
+# Only pull in CI to avoid slow re-pulls during local development
+if [[ "${CI:-false}" == "true" ]]; then
+  echo "Pulling Docker images..."
+  "$ENGINE" compose "${FILES[@]}" pull
+fi
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
