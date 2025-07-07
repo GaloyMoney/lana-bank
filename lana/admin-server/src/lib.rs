@@ -6,8 +6,8 @@ pub mod graphql;
 mod primitives;
 
 mod auth;
+mod custodian_webhooks;
 mod sumsub;
-mod webhooks;
 
 use async_graphql::*;
 use async_graphql_axum::{GraphQLRequest, GraphQLResponse};
@@ -45,7 +45,7 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
             get(playground).post(axum::routing::post(graphql_handler)),
         )
         .merge(auth::auth_routes())
-        .merge(webhooks::webhook_routes())
+        .merge(custodian_webhooks::webhook_routes())
         .merge(sumsub::sumsub_routes())
         .with_state(JwtDecoderState {
             decoder: jwks_decoder,
