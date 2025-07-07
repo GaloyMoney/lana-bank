@@ -63,7 +63,6 @@ clean-deps:
 
 start-deps:
 	./dev/bin/docker-compose-up.sh
-	wait4x postgresql $${PG_CON}
 
 # Rust backend
 setup-db:
