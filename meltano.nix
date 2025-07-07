@@ -11,15 +11,21 @@
 }: let
   inherit (pkgs) dockerTools buildEnv bash coreutils gitMinimal cacert postgresql;
 
-  python3WithOverrides = python311.override {
-    packageOverrides = self: super:
-      lib.mapAttrs
-      (name: pkg:
-        if lib.isDerivation pkg && pkg ? overridePythonAttrs
-        then pkg.overridePythonAttrs (_: {doCheck = false;})
-        else pkg)
-      super;
-  };
+  python3WithOverrides =
+    (python311.override {
+      packageOverrides = self: super:
+        lib.mapAttrs
+        (name: pkg:
+          if lib.isDerivation pkg && pkg ? overridePythonAttrs
+          then pkg.overridePythonAttrs (_: {doCheck = false;})
+          else pkg)
+        super;
+    })
+  .withPackages
+    (ps:
+      with ps; [
+        virtualenv
+      ]);
 
   meltano-unwrapped = python3WithOverrides.pkgs.buildPythonApplication rec {
     pname = "meltano";
