@@ -349,34 +349,22 @@
               export LANA_CONFIG="$(pwd)/bats/lana.yml"
               export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
 
-              # Container Engine Auto-detection for podman compatibility
-              if command -v podman >/dev/null 2>&1 && ! command -v docker >/dev/null 2>&1; then
-                # Only podman available - use podman
+              # clear any previous setting
+              unset DOCKER_HOST
+
+              # Auto-detect engine: prefer podman if (docker missing || PREFER_PODMAN=1)
+              podman_ok=false; command -v podman &>/dev/null && podman_ok=true
+              docker_ok=false; command -v docker &>/dev/null && docker_ok=true
+              if "$podman_ok" && { ! "$docker_ok" || [[ "''${PREFER_PODMAN:-}" == "1" ]]; }; then
                 export ENGINE_DEFAULT=podman
-                PODMAN_SOCKET="$(./dev/bin/podman-get-socket.sh)"
-                if [[ "$PODMAN_SOCKET" != "NO_SOCKET" ]]; then
-                  export DOCKER_HOST="$PODMAN_SOCKET"
-                else
-                  unset DOCKER_HOST || true
-                fi
-              elif command -v podman >/dev/null 2>&1 && command -v docker >/dev/null 2>&1; then
-                # Both available - prefer docker unless PREFER_PODMAN is set
-                if [[ "''${PREFER_PODMAN:-}" == "1" ]]; then
-                  export ENGINE_DEFAULT=podman
-                  PODMAN_SOCKET="$(./dev/bin/podman-get-socket.sh)"
-                  if [[ "$PODMAN_SOCKET" != "NO_SOCKET" ]]; then
-                    export DOCKER_HOST="$PODMAN_SOCKET"
-                  else
-                    unset DOCKER_HOST || true
-                  fi
-                else
-                  export ENGINE_DEFAULT=docker
-                  unset DOCKER_HOST || true
+
+                # wire up podman socket if available
+                socket="$(./dev/bin/podman-get-socket.sh)"
+                if [[ "$socket" != "NO_SOCKET" ]]; then
+                  export DOCKER_HOST="$socket"
                 fi
               else
-                # Default to docker
                 export ENGINE_DEFAULT=docker
-                unset DOCKER_HOST || true
               fi
             '';
           });
