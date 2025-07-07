@@ -76,6 +76,31 @@ class TapSumsubApi(Tap):
         return [stream_class(tap=self) for stream_class in STREAM_TYPES]
 
     @property
+    def postgres_host(self):
+        """Get Postgres host from config or environment."""
+        return self.config.get('host') or os.getenv('TAP_POSTGRES_HOST')
+
+    @property
+    def postgres_port(self):
+        """Get Postgres port from config or environment."""
+        return self.config.get('port') or os.getenv('TAP_POSTGRES_PORT', 5432)
+
+    @property
+    def postgres_user(self):
+        """Get Postgres user from config or environment."""
+        return self.config.get('user') or os.getenv('TAP_POSTGRES_USER')
+
+    @property
+    def postgres_password(self):
+        """Get Postgres password from config or environment."""
+        return self.config.get('password') or os.getenv('TAP_POSTGRES_PASSWORD')
+
+    @property
+    def postgres_database(self):
+        """Get Postgres database from config or environment."""
+        return self.config.get('database') or os.getenv('TAP_POSTGRES_DATABASE')
+
+    @property
     def sumsub_key(self):
         """Get Sumsub key from config or environment."""
         return self.config.get('key') or os.getenv('SUMSUB_KEY')

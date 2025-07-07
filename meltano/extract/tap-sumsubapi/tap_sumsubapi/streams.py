@@ -48,11 +48,11 @@ class ApplicantStream(Stream):
         super().__init__(tap)
         self.postgres_client = PostgresClient(
             {
-                "host": tap.config["host"],
-                "port": tap.config.get("port", 5432),
-                "database": tap.config["database"],
-                "user": tap.config["user"],
-                "password": tap.config["password"],
+                "host": tap.postgres_host,
+                "port": tap.postgres_port,
+                "database": tap.postgres_database,
+                "user": tap.postgres_user,
+                "password": tap.postgres_password,
                 "sslmode": tap.config.get("sslmode", "prefer"),
             }
         )

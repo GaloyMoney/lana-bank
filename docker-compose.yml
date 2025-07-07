@@ -60,13 +60,15 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
+      TAP_POSTGRES_HOST: core-pg
+      TAP_POSTGRES_PORT: 5432
       TARGET_BIGQUERY_CREDENTIALS_JSON: ${TARGET_BIGQUERY_CREDENTIALS_JSON}
       TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET}
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
-      TAP_POSTGRES_HOST: core-pg
-      TAP_POSTGRES_PORT: 5432
+      SUMSUB_KEY: ${SUMSUB_KEY}
+      SUMSUB_SECRET: ${SUMSUB_SECRET}
 
   airflow-webserver:
     image: us.gcr.io/galoyorg/meltano:edge
