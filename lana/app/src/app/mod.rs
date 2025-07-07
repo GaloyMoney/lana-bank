@@ -64,11 +64,15 @@ impl LanaApp {
         let outbox = Outbox::init(&pool).await?;
         let authz = Authorization::init(&pool, &audit).await?;
 
-        let mut access_config = config.access;
-        access_config.action_descriptions = rbac_types::LanaAction::action_descriptions();
-        access_config.predefined_roles = seed::PREDEFINED_ROLES;
-
-        let access = Access::init(&pool, access_config, &authz, &outbox).await?;
+        let access = Access::init(
+            &pool,
+            config.access,
+            rbac_types::LanaAction::action_descriptions(),
+            seed::PREDEFINED_ROLES,
+            &authz,
+            &outbox,
+        )
+        .await?;
 
         let mut jobs = Jobs::new(&pool, config.job_execution);
 

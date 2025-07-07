@@ -542,7 +542,7 @@ where
         Ok(approval_processes)
     }
 
-    #[instrument(name = "governance.find_all_committees", skip(self), err)]
+    #[instrument(name = "governance.find_all_approval_processes", skip(self), err)]
     pub async fn find_all_approval_processes<T: From<ApprovalProcess>>(
         &self,
         ids: &[ApprovalProcessId],

@@ -27,11 +27,17 @@ pub async fn init_access(
 
     let config = AccessConfig {
         superuser_email: Some(superuser_email.clone()),
-        action_descriptions: rbac_types::LanaAction::action_descriptions(),
-        predefined_roles: seed::PREDEFINED_ROLES,
     };
 
-    let access = Access::init(pool, config, authz, &outbox).await?;
+    let access = Access::init(
+        pool,
+        config,
+        rbac_types::LanaAction::action_descriptions(),
+        seed::PREDEFINED_ROLES,
+        authz,
+        &outbox,
+    )
+    .await?;
 
     let superuser = access
         .users()

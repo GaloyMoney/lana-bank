@@ -85,7 +85,7 @@ impl Jobs {
         Ok(())
     }
 
-    #[instrument(name = "lana.jobs.create_and_spawn", skip(self, db, config))]
+    #[instrument(name = "lana.jobs.create_and_spawn_in_op", skip(self, db, config))]
     pub async fn create_and_spawn_in_op<C: JobConfig>(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -105,7 +105,7 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "lana.jobs.create_and_spawn_at", skip(self, db, config))]
+    #[instrument(name = "lana.jobs.create_and_spawn_at_in_op", skip(self, db, config))]
     pub async fn create_and_spawn_at_in_op<C: JobConfig>(
         &self,
         db: &mut es_entity::DbOp<'_>,

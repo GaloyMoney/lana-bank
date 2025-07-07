@@ -259,7 +259,7 @@ impl JobExecutor {
         Ok(())
     }
 
-    #[instrument(name = "job.execute", skip_all,
+    #[instrument(name = "job.execute_job", skip_all,
         fields(job_id, job_type, attempt, error, error.level, error.message, conclusion),
     err)]
     async fn execute_job(

@@ -161,7 +161,7 @@ where
         &self.trial_balances
     }
 
-    #[instrument(name = "core_accounting.find_ledger_account_by_code", skip(self), err)]
+    #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
     pub async fn find_ledger_account_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

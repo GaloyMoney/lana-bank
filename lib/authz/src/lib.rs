@@ -213,7 +213,7 @@ where
         Ok(true)
     }
 
-    async fn inspect_permission(
+    async fn check_permission(
         &self,
         sub: &Audit::Subject,
         object: impl Into<Audit::Object> + std::fmt::Debug,
@@ -255,7 +255,7 @@ where
         let object = object.into();
         let action = action.into();
 
-        let result = self.inspect_permission(sub, object, action).await;
+        let result = self.check_permission(sub, object, action).await;
         match result {
             Ok(()) => Ok(self.audit.record_entry(sub, object, action, true).await?),
             Err(AuthorizationError::NotAuthorized) => {
@@ -266,7 +266,7 @@ where
         }
     }
 
-    #[instrument(name = "authz.inspect_permission", skip(self))]
+    #[instrument(name = "authz.evaluate_permission", skip(self))]
     async fn evaluate_permission(
         &self,
         sub: &<Self::Audit as AuditSvc>::Subject,
@@ -280,7 +280,7 @@ where
         if enforce {
             Ok(Some(self.enforce_permission(sub, object, action).await?))
         } else {
-            self.inspect_permission(sub, object, action)
+            self.check_permission(sub, object, action)
                 .await
                 .map(|_| None)
         }
