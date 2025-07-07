@@ -359,7 +359,7 @@
                 export ENGINE_DEFAULT=podman
 
                 # wire up podman socket if available
-                socket="$(./dev/bin/podman-get-socket.sh)"
+                socket="$($(pwd)/dev/bin/podman-get-socket.sh)"
                 if [[ "$socket" != "NO_SOCKET" ]]; then
                   export DOCKER_HOST="$socket"
                 fi
