@@ -25,6 +25,18 @@ FILES=(-f "$BASE")
 echo "Pulling Docker images..."
 "$ENGINE" compose "${FILES[@]}" pull
 
+# ── Load environment variables ─────────────────────────────────────────────────
+export TARGET_BIGQUERY_CREDENTIALS_JSON="$(echo $TF_VAR_sa_creds | base64 -d)"
+echo $TARGET_BIGQUERY_CREDENTIALS_JSON > meltano/keyfile.json
+export TARGET_BIGQUERY_DATASET="${TF_VAR_name_prefix}_dataset"
+
+export DBT_BIGQUERY_DATASET="dbt_${TF_VAR_name_prefix}"
+export DBT_BIGQUERY_PROJECT="$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
+export DOCS_BUCKET_NAME="${TF_VAR_name_prefix}-lana-documents"
+
+export TARGET_BIGQUERY_LOCATION="US"
+export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
+
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
 "$ENGINE" compose "${FILES[@]}" up -d "$@"

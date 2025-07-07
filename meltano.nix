@@ -131,6 +131,49 @@
     fi
   '';
 
+  meltanoEntrypoint = writeShellScriptBin "meltano-entrypoint" ''
+    set -euo pipefail
+    ln -sf /usr/bin/sh /bin/sh
+
+    echo "Starting Meltano entrypoint..."
+
+    # Check if /meltano directory exists (indicating a volume mount)
+    if [ -d "/meltano" ]; then
+        echo "Volume mount detected at /meltano - setting up fresh environment..."
+
+        # Remove existing workspace content except .meltano (to preserve any existing plugins)
+        cd /workspace/meltano
+        find . -maxdepth 1 -not -name '.meltano' -not -name 'keyfile.json' -not -name '.' -not -name '..' -exec rm -rf {} +
+
+        # Copy all content from mounted volume (excluding .meltano if it exists)
+        echo "Copying files from volume mount..."
+        cd /meltano
+        find . -maxdepth 1 -not -name '.meltano' -not -name 'keyfile.json' -not -name '.' -not -name '..' -exec cp -r {} /workspace/meltano/ \;
+
+        # Go back to workspace and ensure permissions
+        cd /workspace/meltano
+        find . -type d -name "__pycache__" -exec rm -rf {} + 2>/dev/null || true
+        find . -name "*.pyc" -delete 2>/dev/null || true
+        find . -name "*.pyo" -delete 2>/dev/null || true
+        find . -not -name 'keyfile.json' -exec chmod u+w {} +
+
+        # Fresh install of all plugins
+        echo "Running fresh meltano install..."
+        ${meltano}/bin/meltano install
+
+        echo "Volume mount setup complete"
+    else
+        echo "No volume mount detected - using pre-built image with installed plugins"
+    fi
+
+    # Change to meltano workspace
+    cd /workspace/meltano
+
+    # Execute the original command
+    echo "Executing command: $*"
+    exec "$@"
+  '';
+
   srcRoot = toString ./meltano;
   ignoreRE = builtins.match;
   relPath = p: lib.removePrefix srcRoot (toString p);
@@ -172,8 +215,10 @@
     paths = [
       meltano
       meltanoProject
+      meltanoEntrypoint
       airflow-scheduler-healthcheck
       postgresql
+      bash
     ];
   };
 
@@ -194,16 +239,17 @@
 
     config = {
       WorkingDir = "/workspace/meltano";
-      Cmd = ["${meltano}/bin/meltano"];
+      Entrypoint = ["${meltanoEntrypoint}/bin/meltano-entrypoint"];
 
       Env = [
         "SSL_CERT_FILE=${cacert}/etc/ssl/certs/ca-bundle.crt"
         "GIT_SSL_CAINFO=${cacert}/etc/ssl/certs/ca-bundle.crt"
         "GOOGLE_APPLICATION_CREDENTIALS=/workspace/meltano/keyfile.json"
-        "PATH=/bin:/usr/bin:/usr/local/bin"
+        "DBT_BIGQUERY_KEYFILE=/workspace/meltano/keyfile.json"
+        "TARGET_BIGQUERY_LOCATION=US"
       ];
     };
   };
 in {
-  inherit meltano meltano-image airflow-scheduler-healthcheck;
+  inherit meltano meltano-image;
 }

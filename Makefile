@@ -226,6 +226,9 @@ bq-drop-old-run:
 bq-drop-all-run:
 	meltano run drop-all-relations
 
+create-airflow-admin:
+	meltano invoke airflow users create -e admin@galoy.io -f Admin -l Galoy -u admin -p admin --role Admin
+
 # misc
 sumsub-webhook-test: # add https://xxx.ngrok-free.app/sumsub/callback to test integration with sumsub
 	ngrok http 5253
