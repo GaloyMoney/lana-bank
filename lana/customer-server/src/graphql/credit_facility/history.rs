@@ -19,7 +19,7 @@ pub struct CreditFacilityIncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: UUID,
+    pub tx_id: Option<UUID>,
 }
 
 #[derive(SimpleObject)]
@@ -28,7 +28,7 @@ pub struct CreditFacilityCollateralUpdated {
     pub recorded_at: Timestamp,
     pub effective: Date,
     pub action: CollateralAction,
-    pub tx_id: UUID,
+    pub tx_id: Option<UUID>,
 }
 
 #[derive(SimpleObject)]
@@ -36,7 +36,7 @@ pub struct CreditFacilityApproved {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: UUID,
+    pub tx_id: Option<UUID>,
 }
 
 #[derive(SimpleObject)]
@@ -55,7 +55,7 @@ pub struct CreditFacilityDisbursalExecuted {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: UUID,
+    pub tx_id: Option<UUID>,
 }
 
 #[derive(SimpleObject)]
@@ -109,7 +109,7 @@ impl From<lana_app::credit::IncrementalPayment> for CreditFacilityIncrementalPay
             cents: payment.cents,
             recorded_at: payment.recorded_at.into(),
             effective: payment.effective.into(),
-            tx_id: UUID::from(payment.payment_id),
+            tx_id: Some(UUID::from(payment.payment_id)),
         }
     }
 }
@@ -121,7 +121,7 @@ impl From<lana_app::credit::CollateralUpdated> for CreditFacilityCollateralUpdat
             recorded_at: collateral.recorded_at.into(),
             effective: collateral.effective.into(),
             action: collateral.action,
-            tx_id: UUID::from(collateral.tx_id),
+            tx_id: Some(UUID::from(collateral.tx_id)),
         }
     }
 }
@@ -132,7 +132,7 @@ impl From<lana_app::credit::CreditFacilityApproved> for CreditFacilityApproved {
             cents: origination.cents,
             recorded_at: origination.recorded_at.into(),
             effective: origination.effective.into(),
-            tx_id: UUID::from(origination.tx_id),
+            tx_id: Some(UUID::from(origination.tx_id)),
         }
     }
 }
@@ -157,7 +157,7 @@ impl From<lana_app::credit::DisbursalExecuted> for CreditFacilityDisbursalExecut
             cents: disbursal.cents,
             recorded_at: disbursal.recorded_at.into(),
             effective: disbursal.effective.into(),
-            tx_id: UUID::from(disbursal.tx_id),
+            tx_id: Some(UUID::from(disbursal.tx_id)),
         }
     }
 }
