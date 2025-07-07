@@ -617,11 +617,9 @@ name = "bitgo"
 version = "0.3.707-dev"
 dependencies = [
  "reqwest",
- "rust_decimal",
  "serde",
  "serde_json",
  "thiserror 2.0.12",
- "tokio",
  "tracing",
 ]
 

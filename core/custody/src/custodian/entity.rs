@@ -35,6 +35,8 @@ impl core::fmt::Debug for KomainuConfig {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct BitgoConfig {
     pub long_lived_token: String,
+    pub enterprise_id: String,
+    pub express_endpoint: String,
     pub passphrase: String,
     pub testing_instance: bool,
 }
@@ -134,10 +136,8 @@ impl Custodian {
             CustodianConfig::Komainu(config) => {
                 Ok(Box::new(komainu::KomainuClient::new(config.into())))
             }
-            CustodianConfig::Bitgo(_config) => Ok(Box::new(
-                bitgo::BitgoClient::init()
-                    .await
-                    .map_err(CustodianClientError::client)?,
+            CustodianConfig::Bitgo(config) => Ok(Box::new(
+                bitgo::BitgoClient::new(config.into()).map_err(CustodianClientError::client)?,
             )),
         }
     }
@@ -151,7 +151,9 @@ impl Custodian {
             CustodianConfig::Komainu(config) => {
                 Ok(Box::new(komainu::KomainuClient::new(config.into())))
             }
-            CustodianConfig::Bitgo(_config) => todo!(),
+            CustodianConfig::Bitgo(config) => Ok(Box::new(
+                bitgo::BitgoClient::new(config.into()).map_err(CustodianClientError::client)?,
+            )),
             CustodianConfig::Mock => Ok(Box::new(super::client::mock::CustodianMock)),
         }
     }
