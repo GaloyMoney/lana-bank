@@ -1,9 +1,3 @@
-pub use config::*;
-use error::ApplicantError;
-
-use repo::ApplicantRepo;
-pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse, SumsubClient};
-
 mod config;
 pub mod error;
 mod repo;
@@ -23,6 +17,13 @@ use crate::{
     outbox::Outbox,
     primitives::Subject,
 };
+
+pub use config::*;
+use error::ApplicantError;
+use sumsub_auth::*;
+
+use repo::ApplicantRepo;
+pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
 
 use async_graphql::*;
 
@@ -191,7 +192,23 @@ impl Applicants {
 
         let mut db = self.repo.begin_op().await?;
 
-        let result = match serde_json::from_value(payload.clone())? {
+        match self.process_payload(&mut db, payload).await {
+            Ok(_) => (),
+            Err(ApplicantError::UnhandledCallbackType(_)) => (),
+            Err(e) => return Err(e),
+        }
+
+        db.commit().await?;
+
+        Ok(())
+    }
+
+    async fn process_payload(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        payload: serde_json::Value,
+    ) -> Result<(), ApplicantError> {
+        match serde_json::from_value(payload.clone())? {
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
@@ -200,13 +217,15 @@ impl Applicants {
             } => {
                 let res = self
                     .customers
-                    .start_kyc(&mut db, external_user_id, applicant_id)
+                    .start_kyc(db, external_user_id, applicant_id)
                     .await;
 
                 match res {
-                    Ok(_) => Ok(()),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => Ok(()),
-                    Err(e) => Err(e.into()),
+                    Ok(_) => (),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        return Ok(());
+                    }
+                    Err(e) => return Err(e.into()),
                 }
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -222,13 +241,15 @@ impl Applicants {
             } => {
                 let res = self
                     .customers
-                    .decline_kyc(&mut db, external_user_id, applicant_id)
+                    .decline_kyc(db, external_user_id, applicant_id)
                     .await;
 
                 match res {
-                    Ok(_) => Ok(()),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => Ok(()),
-                    Err(e) => Err(e.into()),
+                    Ok(_) => (),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        return Ok(());
+                    }
+                    Err(e) => return Err(e.into()),
                 }
             }
             SumsubCallbackPayload::ApplicantReviewed {
@@ -255,29 +276,24 @@ impl Applicants {
 
                 let res = self
                     .customers
-                    .approve_kyc(&mut db, external_user_id, applicant_id)
+                    .approve_kyc(db, external_user_id, applicant_id)
                     .await;
 
                 match res {
-                    Ok(_) => Ok(()),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => Ok(()),
-                    Err(e) => Err(e.into()),
+                    Ok(_) => (),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        return Ok(());
+                    }
+                    Err(e) => return Err(e.into()),
                 }
             }
-            SumsubCallbackPayload::Unknown => Err(ApplicantError::UnhandledCallbackType(format!(
-                "callback event not processed for payload {payload}",
-            ))),
-        };
-
-        match result {
-            Ok(_) => {
-                db.commit().await?;
-                Ok(())
+            SumsubCallbackPayload::Unknown => {
+                return Err(ApplicantError::UnhandledCallbackType(format!(
+                    "callback event not processed for payload {payload}",
+                )));
             }
-            // if UnhandledCallbackType, we return Ok(()) to not get sumsub to retry
-            Err(ApplicantError::UnhandledCallbackType(_)) => Ok(()),
-            Err(e) => Err(e),
         }
+        Ok(())
     }
 
     #[instrument(name = "applicant.create_permalink", skip(self))]
