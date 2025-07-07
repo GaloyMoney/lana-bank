@@ -9,47 +9,7 @@ use es_entity::*;
 use crate::primitives::CustodianId;
 
 use super::client::{CustodianClient, error::CustodianClientError};
-use super::{custodian_config::*, error::*};
-
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct KomainuConfig {
-    pub api_key: String,
-    pub api_secret: String,
-    pub testing_instance: bool,
-    pub secret_key: String,
-}
-
-impl core::fmt::Debug for KomainuConfig {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("KomainuConfig")
-            .field("api_key", &self.api_key)
-            .field("api_secret", &"<redacted>")
-            .field("testing_instance", &self.testing_instance)
-            .field("secret_key", &"<redacted>")
-            .finish()
-    }
-}
-
-#[derive(Clone, PartialEq, Eq, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct BitgoConfig {
-    pub long_lived_token: String,
-    pub enterprise_id: String,
-    pub express_endpoint: String,
-    pub passphrase: String,
-    pub testing_instance: bool,
-}
-
-impl core::fmt::Debug for BitgoConfig {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        f.debug_struct("KomainuConfig")
-            .field("long_lived_token", &"<redacted>")
-            .field("passphrase", &"<redacted>")
-            .field("testing_instance", &self.testing_instance)
-            .finish()
-    }
-}
+use super::{config::*, error::*};
 
 #[derive(EsEvent, Clone, Debug, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

@@ -1,13 +1,16 @@
+mod bitgo;
+mod komainu;
+
 use chacha20poly1305::{
     ChaCha20Poly1305,
     aead::{Aead, AeadCore, KeyInit, OsRng},
 };
 use serde::{Deserialize, Serialize};
 
-use super::{
-    entity::{BitgoConfig, KomainuConfig},
-    error::CustodianError,
-};
+pub use bitgo::BitgoConfig;
+pub use komainu::KomainuConfig;
+
+use super::error::CustodianError;
 
 pub type EncryptionKey = chacha20poly1305::Key;
 
@@ -32,31 +35,6 @@ pub struct CustodianEncryptionConfig {
 pub struct DeprecatedEncryptionKey {
     pub nonce: String,
     pub key: String,
-}
-
-impl From<KomainuConfig> for komainu::KomainuConfig {
-    fn from(config: KomainuConfig) -> Self {
-        Self {
-            api_user: config.api_key,
-            api_secret: config.api_secret,
-            secret_key: komainu::KomainuSecretKey::Plain {
-                dem: config.secret_key,
-            },
-            komainu_test: config.testing_instance,
-        }
-    }
-}
-
-impl From<BitgoConfig> for bitgo::BitgoConfig {
-    fn from(config: BitgoConfig) -> Self {
-        Self {
-            long_lived_token: config.long_lived_token,
-            enterprise_id: config.enterprise_id,
-            express_endpoint: config.express_endpoint,
-            passphrase: config.passphrase,
-            bitgo_test: config.testing_instance,
-        }
-    }
 }
 
 #[cfg(not(feature = "mock-custodian"))]
