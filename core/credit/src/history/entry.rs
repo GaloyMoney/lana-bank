@@ -55,6 +55,14 @@ pub struct InterestAccrualsPosted {
     pub tx_id: LedgerTxId,
 }
 
+#[derive(Debug, serde::Deserialize, serde::Serialize)]
+pub struct ObligationMovedToLiquidation {
+    pub cents: UsdCents,
+    pub recorded_at: DateTime<Utc>,
+    pub effective: chrono::NaiveDate,
+    pub tx_id: LedgerTxId,
+}
+
 /// Represents an entry in Credit Facility history as it is stored in a database.
 /// The entries contain no running sums; if needed, they have to be calculated
 /// during replaying.
@@ -67,4 +75,5 @@ pub enum CreditFacilityHistoryEntry {
     Payment(IncrementalPayment),
     Disbursal(DisbursalExecuted),
     Interest(InterestAccrualsPosted),
+    ReservedForLiquidation(ObligationMovedToLiquidation),
 }

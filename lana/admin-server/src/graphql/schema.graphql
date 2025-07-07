@@ -556,7 +556,7 @@ type CreditFacilityEdge {
 	cursor: String!
 }
 
-union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued
+union CreditFacilityHistoryEntry = CreditFacilityIncrementalPayment | CreditFacilityCollateralUpdated | CreditFacilityApproved | CreditFacilityCollateralizationUpdated | CreditFacilityDisbursalExecuted | CreditFacilityInterestAccrued | CreditFacilityLiquidationAmountReserved
 
 type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
@@ -571,6 +571,13 @@ type CreditFacilityInterestAccrued {
 	effective: Date!
 	txId: UUID!
 	days: Int!
+}
+
+type CreditFacilityLiquidationAmountReserved {
+	cents: UsdCents!
+	recordedAt: Timestamp!
+	effective: Date!
+	txId: UUID!
 }
 
 input CreditFacilityPartialPaymentInput {
