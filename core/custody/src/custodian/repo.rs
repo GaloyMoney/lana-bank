@@ -10,7 +10,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Custodian",
     err = "CustodianError",
-    columns(name(ty = "String", list_by)),
+    columns(name(ty = "String", list_by), provider(ty = "String", find_by)),
     tbl_prefix = "core"
 )]
 pub(crate) struct CustodianRepo {
@@ -34,6 +34,36 @@ impl CustodianRepo {
         }
 
         Ok(custodians)
+    }
+
+    pub async fn persist_webhook_notification(
+        &self,
+        custodian_id: Option<CustodianId>,
+        uri: &http::Uri,
+        headers: &http::HeaderMap,
+        payload: &serde_json::Value,
+    ) -> Result<(), CustodianError> {
+        let headers = headers
+            .iter()
+            .map(|(name, value)| (name.as_str(), value.to_str().unwrap_or("<unreadable>")))
+            .collect::<Vec<_>>();
+
+        sqlx::query!(
+            r#"
+              INSERT INTO core_custodian_webhook_notifications (custodian_id, notification)
+              VALUES ($1, $2)
+            "#,
+            custodian_id as Option<CustodianId>,
+            serde_json::json!({
+                "uri": uri.to_string(),
+                "headers": headers,
+                "payload": payload
+            })
+        )
+        .execute(&self.pool)
+        .await?;
+
+        Ok(())
     }
 
     pub async fn update_config_in_op(

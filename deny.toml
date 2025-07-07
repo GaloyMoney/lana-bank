@@ -151,6 +151,11 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
+crate = "bitgo"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
 crate = "cloud-storage"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []

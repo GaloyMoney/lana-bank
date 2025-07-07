@@ -48,7 +48,9 @@ impl From<KomainuConfig> for komainu::KomainuConfig {
 }
 
 #[cfg(not(feature = "mock-custodian"))]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
@@ -56,10 +58,13 @@ pub enum CustodianConfig {
 }
 
 #[cfg(feature = "mock-custodian")]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize)]
+#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, strum::EnumDiscriminants)]
+#[strum_discriminants(derive(strum::Display))]
+#[strum_discriminants(strum(serialize_all = "kebab-case"))]
 #[serde(tag = "type", rename_all = "snake_case")]
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
+    Bitgo(BitgoConfig),
     Mock,
 }
 

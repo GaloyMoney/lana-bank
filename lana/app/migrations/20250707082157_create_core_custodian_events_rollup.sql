@@ -6,6 +6,7 @@ CREATE TABLE core_custodian_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   name VARCHAR,
+  provider VARCHAR,
   encrypted_custodian_config JSONB,
 
   -- Collection rollups
@@ -47,6 +48,7 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.name := (NEW.event ->> 'name');
+    new_row.provider := (NEW.event ->> 'provider');
     new_row.encrypted_custodian_config := (NEW.event -> 'encrypted_custodian_config');
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
@@ -57,6 +59,7 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.name := current_row.name;
+    new_row.provider := current_row.provider;
     new_row.encrypted_custodian_config := current_row.encrypted_custodian_config;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
   END IF;
@@ -65,6 +68,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.name := (NEW.event ->> 'name');
+      new_row.provider := (NEW.event ->> 'provider');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'config_updated' THEN
       new_row.encrypted_custodian_config := (NEW.event -> 'encrypted_custodian_config');
@@ -77,6 +81,7 @@ BEGIN
     created_at,
     modified_at,
     name,
+    provider,
     encrypted_custodian_config,
     audit_entry_ids
   )
@@ -86,6 +91,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.name,
+    new_row.provider,
     new_row.encrypted_custodian_config,
     new_row.audit_entry_ids
   )
@@ -93,6 +99,7 @@ BEGIN
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
     name = EXCLUDED.name,
+    provider = EXCLUDED.provider,
     encrypted_custodian_config = EXCLUDED.encrypted_custodian_config,
     audit_entry_ids = EXCLUDED.audit_entry_ids;
 

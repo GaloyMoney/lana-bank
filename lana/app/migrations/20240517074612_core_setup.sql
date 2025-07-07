@@ -225,6 +225,7 @@ CREATE TABLE core_credit_facility_events (
 CREATE TABLE core_custodians (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,
+  provider VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -237,11 +238,10 @@ CREATE TABLE core_custodian_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_custodian_states (
-  id UUID PRIMARY KEY REFERENCES core_custodians(id),
-  state JSONB NOT NULL,
-  created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
-  modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
+CREATE TABLE core_custodian_webhook_notifications (
+  custodian_id UUID NULL REFERENCES core_custodians(id),
+  notification JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE core_wallets (

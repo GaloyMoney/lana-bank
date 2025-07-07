@@ -52,6 +52,9 @@
         "name": {
           "type": "string"
         },
+        "provider": {
+          "type": "string"
+        },
         "type": {
           "const": "initialized",
           "type": "string"
@@ -61,6 +64,7 @@
         "type",
         "id",
         "name",
+        "provider",
         "audit_info"
       ],
       "type": "object"

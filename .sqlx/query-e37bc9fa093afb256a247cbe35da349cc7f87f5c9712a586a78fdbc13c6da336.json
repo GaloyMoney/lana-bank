@@ -1,16 +1,17 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_custodians (id, name, created_at) VALUES ($1, $2, $3)",
+  "query": "INSERT INTO core_custodians (id, name, provider, created_at) VALUES ($1, $2, $3, $4)",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
         "Uuid",
         "Varchar",
+        "Varchar",
         "Timestamptz"
       ]
     },
     "nullable": []
   },
-  "hash": "38d2059170ef8276e62fc5ab7502ca9575f8fb470aa12f1a0e1902fdf034a8a7"
+  "hash": "e37bc9fa093afb256a247cbe35da349cc7f87f5c9712a586a78fdbc13c6da336"
 }

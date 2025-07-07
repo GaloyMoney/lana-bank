@@ -9,11 +9,13 @@ mod primitives;
 mod publisher;
 pub mod wallet;
 
+use strum::IntoDiscriminant as _;
+use tracing::instrument;
+
 use es_entity::DbOp;
 pub use event::CoreCustodyEvent;
 use outbox::{Outbox, OutboxEventMarker};
 pub use publisher::CustodyPublisher;
-use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -130,8 +132,9 @@ where
         let new_custodian = NewCustodian::builder()
             .id(custodian_id)
             .name(name.as_ref().to_owned())
-            .audit_info(audit_info.clone())
+            .provider(custodian_config.discriminant().to_string())
             .encrypted_custodian_config(custodian_config, &self.config.custodian_encryption.key)
+            .audit_info(audit_info.clone())
             .build()
             .expect("should always build a new custodian");
 
@@ -309,6 +312,36 @@ where
             .await?;
 
         Ok(wallet)
+    }
+
+    pub async fn handle_webhook(
+        &self,
+        provider: String,
+        uri: &http::Uri,
+        headers: &http::HeaderMap,
+        payload: serde_json::Value,
+    ) -> Result<(), CoreCustodyError> {
+        let custodian = self.custodians.find_by_provider(provider).await;
+
+        let custodian_id = match custodian {
+            Err(ref e) if e.was_not_found() => None,
+            Ok(ref custodian) => Some(custodian.id),
+            Err(e) => return Err(e.into()),
+        };
+
+        self.custodians
+            .persist_webhook_notification(custodian_id, uri, headers, &payload)
+            .await?;
+
+        if let Ok(custodian) = custodian {
+            custodian
+                .custodian_client(self.config.custodian_encryption.key)
+                .await?
+                .process_webhook(payload)
+                .await?;
+        }
+
+        Ok(())
     }
 
     async fn generate_wallet_address_in_op(

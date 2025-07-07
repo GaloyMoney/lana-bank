@@ -57,6 +57,7 @@ pub enum CustodianEvent {
     Initialized {
         id: CustodianId,
         name: String,
+        provider: String,
         audit_info: AuditInfo,
     },
     ConfigUpdated {
@@ -71,6 +72,7 @@ pub struct Custodian {
     pub id: CustodianId,
     encrypted_custodian_config: EncryptedCustodianConfig,
     pub name: String,
+    pub(super) provider: String,
     events: EntityEvents<CustodianEvent>,
 }
 
@@ -149,6 +151,7 @@ impl Custodian {
             CustodianConfig::Komainu(config) => {
                 Ok(Box::new(komainu::KomainuClient::new(config.into())))
             }
+            CustodianConfig::Bitgo(_config) => todo!(),
             CustodianConfig::Mock => Ok(Box::new(super::client::mock::CustodianMock)),
         }
     }
@@ -160,8 +163,13 @@ impl TryFromEvents<CustodianEvent> for Custodian {
 
         for event in events.iter_all() {
             match event {
-                CustodianEvent::Initialized { id, name, .. } => {
-                    builder = builder.id(*id).name(name.clone())
+                CustodianEvent::Initialized {
+                    id, name, provider, ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .name(name.clone())
+                        .provider(provider.clone())
                 }
                 CustodianEvent::ConfigUpdated {
                     encrypted_custodian_config,
@@ -183,6 +191,7 @@ pub struct NewCustodian {
     #[builder(setter(into))]
     pub(super) id: CustodianId,
     pub(super) name: String,
+    pub(super) provider: String,
     #[builder(setter(custom))]
     pub(super) encrypted_custodian_config: EncryptedCustodianConfig,
     pub(super) audit_info: AuditInfo,
@@ -213,6 +222,7 @@ impl IntoEvents<CustodianEvent> for NewCustodian {
                 CustodianEvent::Initialized {
                     id: self.id,
                     name: self.name,
+                    provider: self.provider,
                     audit_info: self.audit_info.clone(),
                 },
                 CustodianEvent::ConfigUpdated {

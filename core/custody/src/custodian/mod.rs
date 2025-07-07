@@ -4,7 +4,10 @@ mod entity;
 pub mod error;
 mod repo;
 
-pub use custodian_config::{CustodianConfig, CustodianEncryptionConfig, DeprecatedEncryptionKey};
+pub use custodian_config::{
+    CustodianConfig, CustodianConfigDiscriminants, CustodianEncryptionConfig,
+    DeprecatedEncryptionKey,
+};
 #[cfg(feature = "json-schema")]
 pub use entity::CustodianEvent;
 pub use entity::{Custodian, KomainuConfig, NewCustodian};
