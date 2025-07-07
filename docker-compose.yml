@@ -56,6 +56,7 @@ services:
       retries: 5
       start_period: 30s
     depends_on: { airflow-pg: { condition: service_healthy } }
+    links: [ core-pg ]
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
@@ -64,6 +65,8 @@ services:
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
+      TAP_POSTGRES_HOST: core-pg
+      TAP_POSTGRES_PORT: 5432
 
   airflow-webserver:
     image: us.gcr.io/galoyorg/meltano:edge
@@ -80,11 +83,6 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
-      TARGET_BIGQUERY_CREDENTIALS_JSON: ${TARGET_BIGQUERY_CREDENTIALS_JSON}
-      TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET}
-      DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
-      DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
-      DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
 
   #! Databases
   core-pg:
