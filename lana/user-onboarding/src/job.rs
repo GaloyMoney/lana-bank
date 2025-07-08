@@ -116,9 +116,9 @@ where
 {
     async fn run(
         &self,
-        current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let state = current_job
+        let mut state = current_job
             .execution_state::<UserOnboardingJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
@@ -133,6 +133,10 @@ where
                     .update_authentication_id_for_user(*id, authentication_id)
                     .await?;
             }
+            
+            // CRITICAL: Update sequence after processing each event
+            state.sequence = message.sequence;
+            current_job.update_execution_state(state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
