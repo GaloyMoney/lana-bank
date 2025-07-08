@@ -97,6 +97,12 @@ pub(crate) struct InterestAccrualCycleData {
 }
 
 #[derive(Debug, Clone)]
+pub(crate) struct NewInterestAccrualCycleData {
+    pub(crate) id: InterestAccrualCycleId,
+    pub(crate) first_accrual_end_date: DateTime<Utc>,
+}
+
+#[derive(Debug, Clone)]
 pub(crate) struct InterestAccrualData {
     pub(crate) interest: UsdCents,
     pub(crate) period: InterestPeriod,

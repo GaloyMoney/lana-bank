@@ -9,8 +9,9 @@ use job::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
-    credit_facility::CreditFacilities, interest_accruals, ledger::*, obligation::Obligations,
+    CompletedAccrualCycle, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
+    NewInterestAccrualCycleData, credit_facility::CreditFacilities, interest_accruals, ledger::*,
+    obligation::Obligations,
 };
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -152,7 +153,10 @@ where
             )
             .await?;
 
-        let (obligation, new_cycle_data) = self
+        let CompletedAccrualCycle {
+            facility_accrual_cycle_data,
+            new_cycle_data,
+        } = self
             .credit_facilities
             .complete_interest_cycle_and_maybe_start_new_cycle(
                 &mut db,
@@ -161,7 +165,12 @@ where
             )
             .await?;
 
-        if let Some((new_accrual_cycle_id, first_accrual_end_date)) = new_cycle_data {
+        if let Some(new_cycle_data) = new_cycle_data {
+            let NewInterestAccrualCycleData {
+                id: new_accrual_cycle_id,
+                first_accrual_end_date,
+            } = new_cycle_data;
+
             self.jobs
                 .create_and_spawn_at_in_op(
                     &mut db,
@@ -180,13 +189,9 @@ where
             );
         };
 
-        if let Some(obligation) = obligation {
-            self.ledger
-                .record_interest_accrual_cycle(db, obligation)
-                .await?;
-        } else {
-            db.commit().await?;
-        }
+        self.ledger
+            .record_interest_accrual_cycle(db, facility_accrual_cycle_data)
+            .await?;
 
         return Ok(JobCompletion::Complete);
     }

@@ -10,8 +10,16 @@ use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditObject, CreditFacilityActivation, CreditLedger, InterestPeriod,
-    Obligation, Obligations, Price, event::CoreCreditEvent, primitives::*,
+    Price,
+    event::CoreCreditEvent,
+    interest_accrual_cycle::NewInterestAccrualCycleData,
+    ledger::{
+        CreditFacilityActivation, CreditFacilityInterestAccrual,
+        CreditFacilityInterestAccrualCycle, CreditLedger,
+    },
+    obligation::Obligations,
+    primitives::*,
+    terms::InterestPeriod,
 };
 
 pub use entity::CreditFacility;
@@ -76,7 +84,7 @@ pub(super) enum CompletionOutcome {
 
 #[derive(Clone)]
 pub(super) struct ConfirmedAccrual {
-    pub(super) accrual: super::CreditFacilityInterestAccrual,
+    pub(super) accrual: CreditFacilityInterestAccrual,
     pub(super) next_period: Option<InterestPeriod>,
     pub(super) accrual_idx: InterestAccrualCycleIdx,
     pub(super) accrued_count: usize,
@@ -228,12 +236,8 @@ where
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
         let confirmed_accrual = {
-            let balances = self
-                .ledger
-                .get_credit_facility_balance(credit_facility.account_ids)
-                .await?;
-
             let account_ids = credit_facility.account_ids;
+            let balances = self.ledger.get_credit_facility_balance(account_ids).await?;
 
             let accrual = credit_facility
                 .interest_accrual_cycle_in_progress_mut()
@@ -289,31 +293,21 @@ where
         db: &mut es_entity::DbOp<'_>,
         id: CreditFacilityId,
         audit_info: &audit::AuditInfo,
-    ) -> Result<
-        (
-            Option<Obligation>,
-            Option<(InterestAccrualCycleId, chrono::DateTime<chrono::Utc>)>,
-        ),
-        CreditFacilityError,
-    > {
+    ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
-        let new_obligation = if let es_entity::Idempotent::Executed(new_obligation) =
+        let (accrual_cycle_data, new_obligation) = if let es_entity::Idempotent::Executed(res) =
             credit_facility.record_interest_accrual_cycle(audit_info.clone())?
         {
-            new_obligation
+            res
         } else {
             unreachable!("Should not be possible");
         };
 
-        let obligation = if let Some(new_obligation) = new_obligation {
-            Some(
-                self.obligations
-                    .create_with_jobs_in_op(db, new_obligation)
-                    .await?,
-            )
-        } else {
-            None
+        if let Some(new_obligation) = new_obligation {
+            self.obligations
+                .create_with_jobs_in_op(db, new_obligation)
+                .await?;
         };
 
         let res = credit_facility.start_interest_accrual_cycle(audit_info.clone())?;
@@ -325,10 +319,16 @@ where
                 .expect("First accrual cycle not found")
                 .id;
 
-            (new_accrual_cycle_id, periods.accrual.end)
+            NewInterestAccrualCycleData {
+                id: new_accrual_cycle_id,
+                first_accrual_end_date: periods.accrual.end,
+            }
         });
 
-        Ok((obligation, new_cycle_data))
+        Ok(CompletedAccrualCycle {
+            facility_accrual_cycle_data: (accrual_cycle_data, credit_facility.account_ids).into(),
+            new_cycle_data,
+        })
     }
 
     pub async fn find_by_id_without_audit(
@@ -620,4 +620,9 @@ where
             .await?;
         Ok(balances.any_outstanding_or_defaulted())
     }
+}
+
+pub(crate) struct CompletedAccrualCycle {
+    pub(crate) facility_accrual_cycle_data: CreditFacilityInterestAccrualCycle,
+    pub(crate) new_cycle_data: Option<NewInterestAccrualCycleData>,
 }

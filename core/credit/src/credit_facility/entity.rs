@@ -136,6 +136,29 @@ impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInt
     }
 }
 
+impl From<(InterestAccrualCycleData, CreditFacilityAccountIds)>
+    for CreditFacilityInterestAccrualCycle
+{
+    fn from(data: (InterestAccrualCycleData, CreditFacilityAccountIds)) -> Self {
+        let (
+            InterestAccrualCycleData {
+                interest,
+                effective,
+                tx_ref,
+                tx_id,
+            },
+            credit_facility_account_ids,
+        ) = data;
+        Self {
+            interest,
+            effective,
+            tx_ref,
+            tx_id,
+            credit_facility_account_ids,
+        }
+    }
+}
+
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacility {
@@ -390,7 +413,8 @@ impl CreditFacility {
     pub(crate) fn record_interest_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<Idempotent<Option<NewObligation>>, CreditFacilityError> {
+    ) -> Result<Idempotent<(InterestAccrualCycleData, Option<NewObligation>)>, CreditFacilityError>
+    {
         let accrual_cycle_data = self
             .interest_accrual_cycle_in_progress()
             .expect("accrual not found")
@@ -421,7 +445,7 @@ impl CreditFacility {
                 audit_info: audit_info.clone(),
             });
 
-        Ok(Idempotent::Executed(new_obligation))
+        Ok(Idempotent::Executed((accrual_cycle_data, new_obligation)))
     }
 
     pub fn interest_accrual_cycle_in_progress(&self) -> Option<&InterestAccrualCycle> {
