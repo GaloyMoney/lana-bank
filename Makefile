@@ -5,18 +5,6 @@ dev-up:
 dev-down:
 	cd dev && tilt down
 
-# ── Podman Setup ──────────────────────────────────────────────────────────────────
-# These targets handle podman setup in an OS-aware manner:
-# - Linux: Configures /etc/containers policy and registries
-# - macOS: Uses default podman configuration (no additional setup needed)
-podman-setup: podman-check podman-service-start
-
-podman-check:
-	@echo "--- Checking for Podman ---"
-	@command -v podman >/dev/null 2>&1 || { echo "Error: podman not found. Please install podman first."; exit 1; }
-	@command -v podman-compose >/dev/null 2>&1 || { echo "Error: podman-compose not found. Please install podman-compose first."; exit 1; }
-	@echo "--- Podman binaries found ---"
-
 podman-service-start:
 	@./dev/bin/podman-service-start.sh
 
