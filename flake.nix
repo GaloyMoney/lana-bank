@@ -363,6 +363,7 @@
                 [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
               else
                 export ENGINE_DEFAULT=docker
+                unset DOCKER_HOST
               fi
             '';
           });
