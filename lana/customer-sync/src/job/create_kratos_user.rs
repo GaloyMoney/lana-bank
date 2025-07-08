@@ -141,7 +141,6 @@ where
                 self.handle_create_kratos_user(message.as_ref()).await?;
             }
             
-            // CRITICAL: Update sequence after processing each event
             state.sequence = message.sequence;
             current_job.update_execution_state(state).await?;
         }

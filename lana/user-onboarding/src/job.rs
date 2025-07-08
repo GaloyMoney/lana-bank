@@ -134,7 +134,6 @@ where
                     .await?;
             }
             
-            // CRITICAL: Update sequence after processing each event
             state.sequence = message.sequence;
             current_job.update_execution_state(state).await?;
         }
