@@ -21,6 +21,9 @@ jobs:
           nix develop -c make reset-deps
           nix develop -c make sqlx-prepare
           git diff --exit-code .sqlx
+        env:
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          TF_VAR_name_prefix: "gha"
 
       # todo: move in a nix based check code
       - name: flake.nix formatting

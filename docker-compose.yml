@@ -55,8 +55,9 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    depends_on: { airflow-pg: { condition: service_healthy } }
-    links: [ core-pg ]
+    depends_on:
+      airflow-pg: { condition: service_healthy }
+      core-pg: { condition: service_started }
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
