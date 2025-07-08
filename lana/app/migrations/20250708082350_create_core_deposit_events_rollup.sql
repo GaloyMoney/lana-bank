@@ -5,7 +5,7 @@ CREATE TABLE core_deposit_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  amount JSONB,
+  amount BIGINT,
   deposit_account_id UUID,
   ledger_tx_id UUID,
   reference VARCHAR,
@@ -48,7 +48,7 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.amount := (NEW.event -> 'amount');
+    new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.reference := (NEW.event ->> 'reference');
@@ -70,7 +70,7 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.amount := (NEW.event -> 'amount');
+      new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.reference := (NEW.event ->> 'reference');

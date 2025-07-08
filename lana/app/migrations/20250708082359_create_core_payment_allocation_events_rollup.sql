@@ -6,13 +6,13 @@ CREATE TABLE core_payment_allocation_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_to_be_debited_id UUID,
-  amount JSONB,
+  amount BIGINT,
   credit_facility_id UUID,
   effective VARCHAR,
   ledger_tx_id UUID,
   obligation_allocation_idx INTEGER,
   obligation_id UUID,
-  obligation_type JSONB,
+  obligation_type VARCHAR,
   payment_id UUID,
   receivable_account_id UUID,
 
@@ -55,13 +55,13 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_to_be_debited_id := (NEW.event ->> 'account_to_be_debited_id')::UUID;
-    new_row.amount := (NEW.event -> 'amount');
+    new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.obligation_allocation_idx := (NEW.event ->> 'obligation_allocation_idx')::INTEGER;
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
-    new_row.obligation_type := (NEW.event -> 'obligation_type');
+    new_row.obligation_type := (NEW.event ->> 'obligation_type');
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
     new_row.audit_entry_ids := CASE
@@ -89,13 +89,13 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_to_be_debited_id := (NEW.event ->> 'account_to_be_debited_id')::UUID;
-      new_row.amount := (NEW.event -> 'amount');
+      new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.obligation_allocation_idx := (NEW.event ->> 'obligation_allocation_idx')::INTEGER;
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
-      new_row.obligation_type := (NEW.event -> 'obligation_type');
+      new_row.obligation_type := (NEW.event ->> 'obligation_type');
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);

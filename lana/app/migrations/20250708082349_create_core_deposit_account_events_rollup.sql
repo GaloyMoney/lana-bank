@@ -10,7 +10,7 @@ CREATE TABLE core_deposit_account_events_rollup (
   ledger_account_id UUID,
   name VARCHAR,
   reference VARCHAR,
-  status JSONB,
+  status VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[]
@@ -55,7 +55,7 @@ BEGIN
     new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
-    new_row.status := (NEW.event -> 'status');
+    new_row.status := (NEW.event ->> 'status');
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
@@ -81,10 +81,10 @@ BEGIN
       new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
-      new_row.status := (NEW.event -> 'status');
+      new_row.status := (NEW.event ->> 'status');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'account_status_updated' THEN
-      new_row.status := (NEW.event -> 'status');
+      new_row.status := (NEW.event ->> 'status');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
   END CASE;
 

@@ -8,7 +8,7 @@ CREATE TABLE core_liquidation_process_events_rollup (
   credit_facility_id UUID,
   effective VARCHAR,
   in_liquidation_account_id UUID,
-  initial_amount JSONB,
+  initial_amount BIGINT,
   ledger_tx_id UUID,
   obligation_id UUID,
 
@@ -56,7 +56,7 @@ BEGIN
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
-    new_row.initial_amount := (NEW.event -> 'initial_amount');
+    new_row.initial_amount := (NEW.event ->> 'initial_amount')::BIGINT;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     new_row.audit_entry_ids := CASE
@@ -84,7 +84,7 @@ BEGIN
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
-      new_row.initial_amount := (NEW.event -> 'initial_amount');
+      new_row.initial_amount := (NEW.event ->> 'initial_amount')::BIGINT;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);

@@ -5,10 +5,10 @@ CREATE TABLE core_payment_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  amount JSONB,
+  amount BIGINT,
   credit_facility_id UUID,
-  disbursal JSONB,
-  interest JSONB,
+  disbursal BIGINT,
+  interest BIGINT,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -51,10 +51,10 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.amount := (NEW.event -> 'amount');
+    new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    new_row.disbursal := (NEW.event -> 'disbursal');
-    new_row.interest := (NEW.event -> 'interest');
+    new_row.disbursal := (NEW.event ->> 'disbursal')::BIGINT;
+    new_row.interest := (NEW.event ->> 'interest')::BIGINT;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
@@ -75,12 +75,12 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.amount := (NEW.event -> 'amount');
+      new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'payment_allocated' THEN
-      new_row.disbursal := (NEW.event -> 'disbursal');
-      new_row.interest := (NEW.event -> 'interest');
+      new_row.disbursal := (NEW.event ->> 'disbursal')::BIGINT;
+      new_row.interest := (NEW.event ->> 'interest')::BIGINT;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_payment_allocated := true;
   END CASE;

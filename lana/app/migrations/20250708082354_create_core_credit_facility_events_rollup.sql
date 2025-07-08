@@ -6,7 +6,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_ids JSONB,
-  amount JSONB,
+  amount BIGINT,
   approval_process_id UUID,
   collateral_id UUID,
   customer_id UUID,
@@ -16,8 +16,8 @@ CREATE TABLE core_credit_facility_events_rollup (
   activated_at TIMESTAMPTZ,
   interest_accrual_cycle_idx INTEGER,
   interest_period JSONB,
-  collateral JSONB,
-  collateralization_state JSONB,
+  collateral BIGINT,
+  collateralization_state VARCHAR,
   outstanding JSONB,
   price JSONB,
   collateralization_ratio VARCHAR,
@@ -69,7 +69,7 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_ids := (NEW.event -> 'account_ids');
-    new_row.amount := (NEW.event -> 'amount');
+    new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
@@ -79,8 +79,8 @@ BEGIN
     new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
     new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
     new_row.interest_period := (NEW.event -> 'interest_period');
-    new_row.collateral := (NEW.event -> 'collateral');
-    new_row.collateralization_state := (NEW.event -> 'collateralization_state');
+    new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
+    new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
     new_row.outstanding := (NEW.event -> 'outstanding');
     new_row.price := (NEW.event -> 'price');
     new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
@@ -142,7 +142,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_ids := (NEW.event -> 'account_ids');
-      new_row.amount := (NEW.event -> 'amount');
+      new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
@@ -171,8 +171,8 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
     WHEN 'collateralization_state_changed' THEN
-      new_row.collateral := (NEW.event -> 'collateral');
-      new_row.collateralization_state := (NEW.event -> 'collateralization_state');
+      new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
+      new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
       new_row.outstanding := (NEW.event -> 'outstanding');
       new_row.price := (NEW.event -> 'price');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);

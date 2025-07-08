@@ -14,8 +14,8 @@ CREATE TABLE core_approval_process_events_rollup (
   -- Collection rollups
   deny_reasons VARCHAR[],
   denier_ids UUID[],
-  audit_entry_ids BIGINT[],
   approver_ids UUID[],
+  audit_entry_ids BIGINT[],
 
   -- Toggle fields
   is_concluded BOOLEAN DEFAULT false
@@ -72,16 +72,16 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
     new_row.approver_ids := CASE
        WHEN NEW.event ? 'approver_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'approver_ids'))
        ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.audit_entry_ids := CASE
+       WHEN NEW.event ? 'audit_entry_ids' THEN
+         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
+       ELSE ARRAY[]::BIGINT[]
      END
 ;
     new_row.is_concluded := false;
@@ -94,8 +94,8 @@ BEGIN
     new_row.approved := current_row.approved;
     new_row.deny_reasons := current_row.deny_reasons;
     new_row.denier_ids := current_row.denier_ids;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.approver_ids := current_row.approver_ids;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.is_concluded := current_row.is_concluded;
   END IF;
 
@@ -108,8 +108,8 @@ BEGIN
       new_row.target_ref := (NEW.event ->> 'target_ref');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'approved' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.approver_ids := array_append(COALESCE(current_row.approver_ids, ARRAY[]::UUID[]), (NEW.event ->> 'approver_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'denied' THEN
       new_row.deny_reasons := array_append(COALESCE(current_row.deny_reasons, ARRAY[]::VARCHAR[]), (NEW.event ->> 'reason'));
       new_row.denier_ids := array_append(COALESCE(current_row.denier_ids, ARRAY[]::UUID[]), (NEW.event ->> 'denier_id')::UUID);
@@ -132,8 +132,8 @@ BEGIN
     approved,
     deny_reasons,
     denier_ids,
-    audit_entry_ids,
     approver_ids,
+    audit_entry_ids,
     is_concluded
   )
   VALUES (
@@ -148,8 +148,8 @@ BEGIN
     new_row.approved,
     new_row.deny_reasons,
     new_row.denier_ids,
-    new_row.audit_entry_ids,
     new_row.approver_ids,
+    new_row.audit_entry_ids,
     new_row.is_concluded
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -162,8 +162,8 @@ BEGIN
     approved = EXCLUDED.approved,
     deny_reasons = EXCLUDED.deny_reasons,
     denier_ids = EXCLUDED.denier_ids,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
     approver_ids = EXCLUDED.approver_ids,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
     is_concluded = EXCLUDED.is_concluded;
 
   RETURN NEW;

@@ -8,9 +8,9 @@ CREATE TABLE core_collateral_events_rollup (
   account_id UUID,
   credit_facility_id UUID,
   wallet_id UUID,
-  abs_diff JSONB,
-  action JSONB,
-  collateral_amount JSONB,
+  abs_diff BIGINT,
+  action VARCHAR,
+  collateral_amount BIGINT,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -54,9 +54,9 @@ BEGIN
     new_row.account_id := (NEW.event ->> 'account_id')::UUID;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
-    new_row.abs_diff := (NEW.event -> 'abs_diff');
-    new_row.action := (NEW.event -> 'action');
-    new_row.collateral_amount := (NEW.event -> 'collateral_amount');
+    new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
+    new_row.action := (NEW.event ->> 'action');
+    new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
@@ -88,9 +88,9 @@ BEGIN
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
     WHEN 'updated' THEN
-      new_row.abs_diff := (NEW.event -> 'abs_diff');
-      new_row.action := (NEW.event -> 'action');
-      new_row.collateral_amount := (NEW.event -> 'collateral_amount');
+      new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
+      new_row.action := (NEW.event ->> 'action');
+      new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;

@@ -10,10 +10,10 @@ CREATE TABLE core_chart_events_rollup (
   code JSONB,
 
   -- Collection rollups
-  node_specs JSONB,
+  manual_ledger_account_ids UUID[],
   audit_entry_ids BIGINT[],
-  ledger_account_set_ids UUID[],
-  manual_ledger_account_ids UUID[]
+  node_specs JSONB,
+  ledger_account_set_ids UUID[]
 
 );
 
@@ -53,10 +53,10 @@ BEGIN
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
     new_row.code := (NEW.event -> 'code');
-    new_row.node_specs := CASE
-       WHEN NEW.event ? 'node_specs' THEN
-         (NEW.event -> 'node_specs')
-       ELSE '[]'::JSONB
+    new_row.manual_ledger_account_ids := CASE
+       WHEN NEW.event ? 'manual_ledger_account_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'manual_ledger_account_ids'))
+       ELSE ARRAY[]::UUID[]
      END
 ;
     new_row.audit_entry_ids := CASE
@@ -65,15 +65,15 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
+    new_row.node_specs := CASE
+       WHEN NEW.event ? 'node_specs' THEN
+         (NEW.event -> 'node_specs')
+       ELSE '[]'::JSONB
+     END
+;
     new_row.ledger_account_set_ids := CASE
        WHEN NEW.event ? 'ledger_account_set_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_account_set_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
-    new_row.manual_ledger_account_ids := CASE
-       WHEN NEW.event ? 'manual_ledger_account_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'manual_ledger_account_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -82,10 +82,10 @@ BEGIN
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
     new_row.code := current_row.code;
-    new_row.node_specs := current_row.node_specs;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
     new_row.manual_ledger_account_ids := current_row.manual_ledger_account_ids;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.node_specs := current_row.node_specs;
+    new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -95,13 +95,13 @@ BEGIN
       new_row.reference := (NEW.event ->> 'reference');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'node_added' THEN
-      new_row.node_specs := COALESCE(current_row.node_specs, '[]'::JSONB) || jsonb_build_array(NEW.event -> 'spec');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.node_specs := COALESCE(current_row.node_specs, '[]'::JSONB) || jsonb_build_array(NEW.event -> 'spec');
       new_row.ledger_account_set_ids := array_append(COALESCE(current_row.ledger_account_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_set_id')::UUID);
     WHEN 'manual_transaction_account_added' THEN
       new_row.code := (NEW.event -> 'code');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.manual_ledger_account_ids := array_append(COALESCE(current_row.manual_ledger_account_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_id')::UUID);
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -112,10 +112,10 @@ BEGIN
     name,
     reference,
     code,
-    node_specs,
+    manual_ledger_account_ids,
     audit_entry_ids,
-    ledger_account_set_ids,
-    manual_ledger_account_ids
+    node_specs,
+    ledger_account_set_ids
   )
   VALUES (
     new_row.id,
@@ -125,10 +125,10 @@ BEGIN
     new_row.name,
     new_row.reference,
     new_row.code,
-    new_row.node_specs,
+    new_row.manual_ledger_account_ids,
     new_row.audit_entry_ids,
-    new_row.ledger_account_set_ids,
-    new_row.manual_ledger_account_ids
+    new_row.node_specs,
+    new_row.ledger_account_set_ids
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
@@ -136,10 +136,10 @@ BEGIN
     name = EXCLUDED.name,
     reference = EXCLUDED.reference,
     code = EXCLUDED.code,
-    node_specs = EXCLUDED.node_specs,
+    manual_ledger_account_ids = EXCLUDED.manual_ledger_account_ids,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
-    ledger_account_set_ids = EXCLUDED.ledger_account_set_ids,
-    manual_ledger_account_ids = EXCLUDED.manual_ledger_account_ids;
+    node_specs = EXCLUDED.node_specs,
+    ledger_account_set_ids = EXCLUDED.ledger_account_set_ids;
 
   RETURN NEW;
 END;

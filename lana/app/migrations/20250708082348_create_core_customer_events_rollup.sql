@@ -5,13 +5,13 @@ CREATE TABLE core_customer_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  customer_type JSONB,
+  customer_type VARCHAR,
   email VARCHAR,
   telegram_id VARCHAR,
   authentication_id UUID,
   applicant_id VARCHAR,
-  level JSONB,
-  status JSONB,
+  level VARCHAR,
+  status VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -54,13 +54,13 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.customer_type := (NEW.event -> 'customer_type');
+    new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
     new_row.telegram_id := (NEW.event ->> 'telegram_id');
     new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
-    new_row.level := (NEW.event -> 'level');
-    new_row.status := (NEW.event -> 'status');
+    new_row.level := (NEW.event ->> 'level');
+    new_row.status := (NEW.event ->> 'status');
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
@@ -84,7 +84,7 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.customer_type := (NEW.event -> 'customer_type');
+      new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.email := (NEW.event ->> 'email');
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -95,14 +95,14 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'kyc_approved' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
-      new_row.level := (NEW.event -> 'level');
+      new_row.level := (NEW.event ->> 'level');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_kyc_approved := true;
     WHEN 'kyc_declined' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'account_status_updated' THEN
-      new_row.status := (NEW.event -> 'status');
+      new_row.status := (NEW.event ->> 'status');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'telegram_id_updated' THEN
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
