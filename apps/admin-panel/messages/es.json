@@ -473,7 +473,8 @@
           "approved": "Facilidad aprobada",
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
-          "interestAccrued": "Interés acumulado"
+          "interestAccrued": "Interés acumulado",
+          "liquidationAmountReserved": "Importe de liquidación reservado"
         },
         "messages": {
           "unknownType": "Tipo de entrada desconocido",
