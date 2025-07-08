@@ -14,7 +14,7 @@ use std::path::Path;
 use super::db::*;
 use admin_server::AdminServerConfig;
 use customer_server::CustomerServerConfig;
-use lana_app::{app::AppConfig, report::ReportConfig, storage::config::StorageConfig};
+use lana_app::{app::AppConfig, storage::config::StorageConfig};
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Config {
@@ -81,17 +81,10 @@ impl Config {
             eprintln!(
                 "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={dev_env_name_prefix}"
             );
-            config.app.report = ReportConfig::new_dev_mode(
-                dev_env_name_prefix.clone(),
-                config.app.service_account.clone(),
-                config.app.report.dev_disable_auto_create,
-            );
             if config.app.storage.identifier().contains("gcp") {
                 config.app.storage = StorageConfig::new_gcp_dev_mode(dev_env_name_prefix);
             }
-        } else {
-            config.app.report.service_account = Some(config.app.service_account.clone());
-        };
+        }
 
         let key_bytes = hex::decode(encryption_key)?;
         if key_bytes.len() != 32 {

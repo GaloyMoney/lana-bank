@@ -21,7 +21,6 @@ mod price;
 mod primitives;
 mod profit_and_loss_config;
 mod public_id;
-mod report;
 mod sumsub;
 mod terms;
 mod terms_template;
