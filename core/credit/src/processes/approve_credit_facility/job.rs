@@ -71,7 +71,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_APPROVE_JOB: JobType = JobType::new("credit-facility");
+const CREDIT_FACILITY_APPROVE_JOB: JobType = JobType::new("credit-facility-approval");
 impl<Perms, E> JobInitializer for CreditFacilityApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,

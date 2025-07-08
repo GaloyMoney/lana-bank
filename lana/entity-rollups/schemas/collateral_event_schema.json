@@ -87,7 +87,7 @@
           "type": "string"
         },
         "type": {
-          "const": "updated",
+          "const": "updated_manually",
           "type": "string"
         }
       },
@@ -98,6 +98,35 @@
         "abs_diff",
         "action",
         "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "abs_diff": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "action": {
+          "$ref": "#/$defs/CollateralAction"
+        },
+        "collateral_amount": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "updated_by_custodian",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "collateral_amount",
+        "abs_diff",
+        "action"
       ],
       "type": "object"
     }

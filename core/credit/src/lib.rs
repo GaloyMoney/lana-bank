@@ -32,6 +32,8 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
+use jobs::webhook_notifications::WebhookNotificationsInit;
+use jobs::webhook_notifications::WebhookNotificationsJobConfig;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
@@ -296,7 +298,7 @@ where
         )
         .await?;
 
-        Ok(Self {
+        let credit = Self {
             authz: authz.clone(),
             customer: customer.clone(),
             facilities: credit_facilities,
@@ -317,7 +319,15 @@ where
             chart_of_accounts_integrations,
             terms_templates,
             public_ids: public_ids.clone(),
-        })
+        };
+
+        jobs.add_initializer_and_spawn_unique(
+            WebhookNotificationsInit::new(outbox, &credit),
+            WebhookNotificationsJobConfig::<Perms, E>::new(),
+        )
+        .await?;
+
+        Ok(credit)
     }
 
     pub fn obligations(&self) -> &Obligations<Perms, E> {
@@ -386,8 +396,8 @@ where
         ))
     }
 
-    #[instrument(name = "credit_facility.initiate", skip(self), err)]
-    pub async fn initiate(
+    #[instrument(name = "credit_facility.create", skip(self), err)]
+    pub async fn create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
@@ -401,11 +411,7 @@ where
             .await?
             .expect("audit info missing");
 
-        let customer = self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerNotFound)?;
+        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
 
         if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
@@ -429,7 +435,7 @@ where
 
             let wallet = self
                 .custody
-                .create_new_wallet_in_op(&mut db, sub, custodian_id)
+                .create_wallet_in_op(&mut db, audit_info.clone(), custodian_id)
                 .await?;
 
             Some(wallet.id)
@@ -554,11 +560,7 @@ where
             .await?;
 
         let customer_id = facility.customer_id;
-        let customer = self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerNotFound)?;
+        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
         }
@@ -657,8 +659,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit_facility.update_collateral", skip(self), err)]
-    pub async fn update_collateral(
+    #[instrument(name = "credit_facility.update_collateral_manually", skip(self), err)]
+    pub async fn update_collateral_manually(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
@@ -701,6 +703,42 @@ where
             .await?;
 
         Ok(credit_facility)
+    }
+
+    pub async fn update_collateral_by_custodian(
+        &self,
+        external_wallet_id: impl AsRef<str>,
+        amount: Satoshis,
+    ) -> Result<(), CoreCreditError> {
+        let credit_facility = self
+            .facilities
+            .find_by_external_wallet(external_wallet_id)
+            .await?;
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let effective = time::now().date_naive();
+
+        let collateral_update = if let Some(collateral_update) = self
+            .collaterals
+            .record_collateral_update_by_custodian_in_op(
+                &mut db,
+                credit_facility.collateral_id,
+                amount,
+                effective,
+            )
+            .await?
+        {
+            collateral_update
+        } else {
+            return Ok(());
+        };
+
+        self.ledger
+            .update_credit_facility_collateral(db, collateral_update, credit_facility.account_ids)
+            .await?;
+
+        Ok(())
     }
 
     pub async fn subject_can_record_payment(

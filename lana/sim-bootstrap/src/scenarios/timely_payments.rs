@@ -18,7 +18,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
     let cf = app
         .credit()
-        .initiate(
+        .create(
             &sub,
             customer_id,
             deposit_account_id,
@@ -33,7 +33,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
         match &msg.payload {
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
                 app.credit()
-                    .update_collateral(
+                    .update_collateral_manually(
                         &sub,
                         cf.id,
                         Satoshis::try_from_btc(dec!(230))?,

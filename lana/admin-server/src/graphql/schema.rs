@@ -1471,7 +1471,7 @@ impl Mutation {
             CreditFacilityCreatePayload,
             CreditFacility,
             ctx,
-            app.credit().initiate(
+            app.credit().create(
                 sub,
                 customer_id,
                 disbursal_credit_account_id,
@@ -1498,7 +1498,7 @@ impl Mutation {
             CreditFacility,
             ctx,
             app.credit()
-                .update_collateral(sub, credit_facility_id, collateral, effective)
+                .update_collateral_manually(sub, credit_facility_id, collateral, effective)
         )
     }
 

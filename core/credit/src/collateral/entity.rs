@@ -26,12 +26,18 @@ pub enum CollateralEvent {
         credit_facility_id: CreditFacilityId,
         wallet_id: Option<WalletId>,
     },
-    Updated {
+    UpdatedManually {
         ledger_tx_id: LedgerTxId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
         audit_info: AuditInfo,
+    },
+    UpdatedByCustodian {
+        ledger_tx_id: LedgerTxId,
+        collateral_amount: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
     },
 }
 
@@ -53,6 +59,38 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn record_collateral_update_by_custodian(
+        &mut self,
+        new_amount: Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Idempotent<CollateralUpdate> {
+        let current = self.amount;
+
+        let (abs_diff, action) = match new_amount.cmp(&current) {
+            Ordering::Less => (current - new_amount, CollateralAction::Remove),
+            Ordering::Greater => (new_amount - current, CollateralAction::Add),
+            Ordering::Equal => return Idempotent::Ignored,
+        };
+
+        let tx_id = LedgerTxId::new();
+
+        self.events.push(CollateralEvent::UpdatedByCustodian {
+            ledger_tx_id: tx_id,
+            abs_diff,
+            collateral_amount: new_amount,
+            action,
+        });
+
+        self.amount = new_amount;
+
+        Idempotent::Executed(CollateralUpdate {
+            tx_id,
+            abs_diff,
+            action,
+            effective,
+        })
+    }
+
     pub fn record_collateral_update(
         &mut self,
         new_amount: Satoshis,
@@ -69,7 +107,7 @@ impl Collateral {
 
         let tx_id = LedgerTxId::new();
 
-        self.events.push(CollateralEvent::Updated {
+        self.events.push(CollateralEvent::UpdatedManually {
             ledger_tx_id: tx_id,
             abs_diff,
             collateral_amount: new_amount,
@@ -123,7 +161,11 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         .wallet_id(*wallet_id)
                         .credit_facility_id(*credit_facility_id)
                 }
-                CollateralEvent::Updated {
+                CollateralEvent::UpdatedManually {
+                    collateral_amount: new_value,
+                    ..
+                }
+                | CollateralEvent::UpdatedByCustodian {
                     collateral_amount: new_value,
                     ..
                 } => {

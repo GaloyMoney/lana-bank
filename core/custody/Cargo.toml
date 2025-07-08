@@ -16,8 +16,10 @@ authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 bitgo = { path = "../../lib/bitgo" }
 komainu = { path = "../../lib/komainu" }
+core-money = { path = "../money" }
 
 async-trait = { workspace = true }
+bytes = { workspace = true }
 chrono = { workspace = true }
 derive_builder = { workspace = true }
 es-entity = { workspace = true }
@@ -32,3 +34,5 @@ hex = { workspace = true }
 schemars = { workspace = true, optional = true }
 uuid = { workspace = true }
 http = { workspace = true }
+hmac = { workspace = true }
+sha2 = { workspace = true }

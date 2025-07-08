@@ -3,7 +3,9 @@ use sqlx::PgPool;
 use es_entity::*;
 use outbox::OutboxEventMarker;
 
-use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::CollateralId};
+use crate::{
+    CreditFacilityPublisher, collateral::WalletId, event::CoreCreditEvent, primitives::CollateralId,
+};
 
 use super::{entity::*, error::*};
 
@@ -11,6 +13,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Collateral",
     err = "CollateralError",
+    columns(wallet_id(ty = "Option<WalletId>", update(persist = false))),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

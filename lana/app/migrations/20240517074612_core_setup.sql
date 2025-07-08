@@ -208,8 +208,24 @@ CREATE TABLE core_user_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_wallets (
+  id UUID PRIMARY KEY,
+  external_wallet_id VARCHAR NULL ,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_wallet_events (
+  id UUID NOT NULL REFERENCES core_wallets(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_collaterals (
   id UUID PRIMARY KEY,
+  wallet_id UUID NULL REFERENCES core_wallets(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -226,6 +242,7 @@ CREATE TABLE core_credit_facilities (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
+  collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL,
@@ -264,20 +281,6 @@ CREATE TABLE core_custodian_webhook_notifications (
   headers JSONB NOT NULL,
   payload JSONB NOT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
-);
-
-CREATE TABLE core_wallets (
-  id UUID PRIMARY KEY,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE core_wallet_events (
-  id UUID NOT NULL REFERENCES core_wallets(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
 );
 
 CREATE TABLE core_obligations (
@@ -449,6 +452,7 @@ CREATE TYPE JobExecutionState AS ENUM ('pending', 'running');
 
 CREATE TABLE job_executions (
   id UUID REFERENCES jobs(id) NOT NULL UNIQUE,
+  job_type VARCHAR NOT NULL,
   attempt_index INT NOT NULL DEFAULT 1,
   state JobExecutionState NOT NULL DEFAULT 'pending',
   execution_state_json JSONB,
