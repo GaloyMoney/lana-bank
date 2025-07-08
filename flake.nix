@@ -347,27 +347,27 @@
           // {
             inherit nativeBuildInputs;
             shellHook = ''
-              export LANA_CONFIG="$(pwd)/bats/lana.yml"
-              export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
+                export LANA_CONFIG="$(pwd)/bats/lana.yml"
+                export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
 
-                          # Container engine setup
-            # Clear DOCKER_HOST at the start to avoid stale values
-            unset DOCKER_HOST
-            
-            if command -v podman &>/dev/null && { ! command -v docker &>/dev/null || [[ "''${PREFER_PODMAN:-}" == "1" ]]; }; then
-              export ENGINE_DEFAULT=podman
+                            # Container engine setup
+              # Clear DOCKER_HOST at the start to avoid stale values
+              unset DOCKER_HOST
 
-              # Let existing scripts handle podman setup
-              if [[ "''${CI:-false}" == "true" ]] && [[ -f "$(pwd)/dev/bin/podman-service-start.sh" ]]; then
-                "$(pwd)/dev/bin/podman-service-start.sh" >/dev/null 2>&1 || true
+              if command -v podman &>/dev/null && { ! command -v docker &>/dev/null || [[ "''${PREFER_PODMAN:-}" == "1" ]]; }; then
+                export ENGINE_DEFAULT=podman
+
+                # Let existing scripts handle podman setup
+                if [[ "''${CI:-false}" == "true" ]] && [[ -f "$(pwd)/dev/bin/podman-service-start.sh" ]]; then
+                  "$(pwd)/dev/bin/podman-service-start.sh" >/dev/null 2>&1 || true
+                fi
+
+                # Set socket if available (for both CI and local)
+                socket="$($(pwd)/dev/bin/podman-get-socket.sh 2>/dev/null || echo NO_SOCKET)"
+                [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
+              else
+                export ENGINE_DEFAULT=docker
               fi
-
-              # Set socket if available (for both CI and local)
-              socket="$($(pwd)/dev/bin/podman-get-socket.sh 2>/dev/null || echo NO_SOCKET)"
-              [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
-            else
-              export ENGINE_DEFAULT=docker
-            fi
             '';
           });
 
