@@ -66,8 +66,8 @@ pub enum InterestAccrualCycleEvent {
         audit_info: AuditInfo,
     },
     InterestAccrualsPosted {
-        ledger_tx_id: Option<LedgerTxId>,
-        tx_ref: Option<String>,
+        ledger_tx_id: LedgerTxId,
+        tx_ref: String,
         obligation_id: Option<ObligationId>,
         total: UsdCents,
         effective: chrono::NaiveDate,
@@ -285,8 +285,8 @@ impl InterestAccrualCycle {
         if interest.is_zero() {
             self.events
                 .push(InterestAccrualCycleEvent::InterestAccrualsPosted {
-                    ledger_tx_id: None,
-                    tx_ref: None,
+                    ledger_tx_id: tx_id,
+                    tx_ref: tx_ref.to_string(),
                     obligation_id: None,
                     total: interest,
                     effective,
@@ -336,8 +336,8 @@ impl InterestAccrualCycle {
 
         self.events
             .push(InterestAccrualCycleEvent::InterestAccrualsPosted {
-                ledger_tx_id: Some(tx_id),
-                tx_ref: Some(tx_ref.to_string()),
+                ledger_tx_id: tx_id,
+                tx_ref: tx_ref.to_string(),
                 obligation_id: Some(new_obligation.id),
                 total: interest,
                 effective,

@@ -69,7 +69,7 @@ pub enum CoreCreditEvent {
     },
     AccrualPosted {
         credit_facility_id: CreditFacilityId,
-        ledger_tx_id: Option<LedgerTxId>,
+        ledger_tx_id: LedgerTxId,
         amount: UsdCents,
         period: InterestPeriod,
         recorded_at: DateTime<Utc>,
