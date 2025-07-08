@@ -26,3 +26,5 @@ gh_repository: lana-bank
 
 folder_registry_image: lana-bank
 folder_registry_image_static: lana-bank-static
+
+gcp_creds: ((lana-dev-gcp-creds.creds_json))
