@@ -566,6 +566,14 @@ where
     }
 
     #[instrument(name = "credit.credit_facility.balance", skip(self), err)]
+    pub async fn find_by_external_wallet(
+        &self,
+        external_wallet_id: impl AsRef<str> + std::fmt::Debug,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        self.repo.find_by_external_wallet(external_wallet_id).await
+    }
+
+    #[instrument(name = "credit.credit_facility.balance", skip(self), err)]
     pub async fn balance(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

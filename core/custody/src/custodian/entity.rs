@@ -2,6 +2,7 @@ use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 use audit::AuditInfo;
 use es_entity::*;
@@ -88,6 +89,7 @@ impl Custodian {
     }
 
     #[cfg(not(feature = "mock-custodian"))]
+    #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id), err)]
     pub async fn custodian_client(
         self,
         key: EncryptionKey,
@@ -103,6 +105,7 @@ impl Custodian {
     }
 
     #[cfg(feature = "mock-custodian")]
+    #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id), err)]
     pub async fn custodian_client(
         self,
         key: EncryptionKey,

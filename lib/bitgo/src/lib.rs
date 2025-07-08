@@ -1,13 +1,15 @@
 mod config;
 mod error;
-mod response;
+mod wire;
 
-use reqwest::{Client, Url};
+use hmac::{Hmac, Mac as _};
+use reqwest::{header::HeaderMap, Client, Url};
 use serde_json::{json, Value};
+use sha2::Sha256;
 
 pub use config::BitgoConfig;
 pub use error::*;
-pub use response::*;
+pub use wire::*;
 
 #[derive(Debug, Clone)]
 pub struct BitgoClient {
@@ -17,6 +19,7 @@ pub struct BitgoClient {
     passphrase: String,
     enterprise_id: String,
     coin: String,
+    webhook_secret: Vec<u8>,
 }
 
 impl BitgoClient {
@@ -34,7 +37,27 @@ impl BitgoClient {
             passphrase: config.passphrase,
             enterprise_id: config.enterprise_id,
             coin: coin.to_owned(),
+            webhook_secret: config.webhook_secret,
         })
+    }
+
+    pub fn validate_webhook_notification(
+        &self,
+        headers: &HeaderMap,
+        payload: &[u8],
+    ) -> Result<Notification, BitgoError> {
+        let signature = headers
+            .get("x-signature-sha256")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| hex::decode(s).ok())
+            .ok_or(BitgoError::MissingWebhookSignature)?;
+
+        let mut mac =
+            Hmac::<Sha256>::new_from_slice(&self.webhook_secret).expect("valid length of secret");
+        mac.update(payload);
+        mac.verify_slice(&signature)?;
+
+        Ok(serde_json::from_slice::<Notification>(payload)?)
     }
 
     #[tracing::instrument(name = "bitgo.generate_wallet", skip(self), err)]
@@ -57,7 +80,7 @@ impl BitgoClient {
             }));
 
         let response: Value = request.send().await?.json().await?;
-        let wallet = serde_json::from_value(response.clone()).unwrap();
+        let wallet = serde_json::from_value(response.clone())?;
 
         Ok((wallet, response))
     }
@@ -75,8 +98,22 @@ impl BitgoClient {
             .bearer_auth(&self.long_lived_token);
 
         let response: Value = request.send().await?.json().await?;
-        let wallet = serde_json::from_value(response.clone()).unwrap();
+        let wallet = serde_json::from_value(response.clone())?;
 
         Ok((wallet, response))
+    }
+
+    pub async fn get_transfer(&self, id: &str, wallet: &str) -> Result<Transfer, BitgoError> {
+        let url = self
+            .endpoint
+            .join(&format!("wallet/{wallet}/transfer/{id}"))
+            .expect("valid URL");
+
+        let request = self
+            .http_client
+            .get(url)
+            .bearer_auth(&self.long_lived_token);
+
+        Ok(request.send().await?.json().await?)
     }
 }

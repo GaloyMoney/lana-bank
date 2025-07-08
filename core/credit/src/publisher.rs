@@ -111,7 +111,7 @@ where
         use CollateralEvent::*;
         let events = new_events
             .filter_map(|event| match &event.event {
-                Updated {
+                UpdatedViaManualInput {
                     abs_diff,
                     action,
                     ledger_tx_id,

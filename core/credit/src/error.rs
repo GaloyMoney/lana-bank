@@ -50,8 +50,6 @@ pub enum CoreCreditError {
     SubjectIsNotCustomer,
     #[error("CoreCreditError - CustomerIsNotActive")]
     CustomerNotActive,
-    #[error("CoreCreditError - CustomerNotFound")]
-    CustomerNotFound,
     #[error("CoreCreditError - DisbursalBuilderError: {0}")]
     DisbursalBuilderError(#[from] super::NewDisbursalBuilderError),
     #[error("CoreCreditError - PublicIdError: {0}")]

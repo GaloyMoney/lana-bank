@@ -1,6 +1,7 @@
 use axum::{
     Extension, Router,
-    extract::{Json, Path},
+    body::Bytes,
+    extract::{DefaultBodyLimit, Path},
     http::{HeaderMap, Uri},
     routing::post,
 };
@@ -13,14 +14,16 @@ async fn handle_webhook(
     Path(provider): Path<String>,
     headers: HeaderMap,
     uri: Uri,
-    Json(payload): Json<serde_json::Value>,
+    payload: Bytes,
 ) {
-    app.custody()
-        .handle_webhook(provider, &uri, &headers, payload)
+    app.credit()
+        .handle_webhook(provider, uri, headers, payload)
         .await
         .unwrap_or(())
 }
 
 pub fn webhook_routes() -> Router<JwtDecoderState> {
-    Router::new().route("/{provider}/webhook", post(handle_webhook))
+    Router::new()
+        .route("/{provider}/webhook", post(handle_webhook))
+        .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
 }

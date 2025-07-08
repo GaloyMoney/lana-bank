@@ -42,6 +42,7 @@ where
     config: CustodyConfig,
     wallets: WalletRepo<E>,
     pool: sqlx::PgPool,
+    outbox: Outbox<E>,
 }
 
 impl<Perms, E> CoreCustody<Perms, E>
@@ -63,6 +64,7 @@ where
             config,
             wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
             pool: pool.clone(),
+            outbox: outbox.clone(),
         };
 
         if let Some(deprecated_encryption_key) = custody.config.deprecated_encryption_key.as_ref() {
@@ -280,43 +282,36 @@ where
             .await?)
     }
 
-    pub async fn create_new_wallet_in_op(
+    #[instrument(name = "custody.create_wallet_in_op", skip(self, db), err)]
+    pub async fn create_wallet_in_op(
         &self,
         db: &mut DbOp<'_>,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: audit::AuditInfo,
         custodian_id: CustodianId,
     ) -> Result<Wallet, CoreCustodyError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreCustodyObject::custodian(custodian_id),
-                CoreCustodyAction::CUSTODIAN_CREATE_WALLET,
-            )
-            .await?;
-
         let new_wallet = NewWallet::builder()
             .id(WalletId::new())
             .custodian_id(custodian_id)
-            .audit_info(audit_info)
+            .audit_info(audit_info.clone())
             .build()
             .expect("all fields for new wallet provided");
 
         let mut wallet = self.wallets.create_in_op(db, new_wallet).await?;
 
-        self.generate_wallet_address_in_op(db, sub, &mut wallet)
+        self.generate_wallet_address_in_op(db, audit_info, &mut wallet)
             .await?;
 
         Ok(wallet)
     }
 
-    pub async fn handle_webhook(
+    #[instrument(name = "custody.process_webhook", skip(self), err)]
+    pub async fn process_webhook(
         &self,
         provider: String,
-        uri: &http::Uri,
-        headers: &http::HeaderMap,
-        payload: serde_json::Value,
-    ) -> Result<(), CoreCustodyError> {
+        uri: http::Uri,
+        headers: http::HeaderMap,
+        payload: bytes::Bytes,
+    ) -> Result<Option<CustodianNotification>, CoreCustodyError> {
         let custodian = self.custodians.find_by_provider(provider).await;
 
         let custodian_id = match custodian {
@@ -326,35 +321,27 @@ where
         };
 
         self.custodians
-            .persist_webhook_notification(custodian_id, uri, headers, &payload)
+            .persist_webhook_notification(custodian_id, &uri, &headers, &payload)
             .await?;
 
-        if let Ok(custodian) = custodian {
-            custodian
-                .custodian_client(self.config.encryption.key)
-                .await?
-                .process_webhook(payload)
-                .await?;
-        }
-
-        Ok(())
+        Ok(custodian?
+            .custodian_client(self.config.encryption.key)
+            .await?
+            .process_webhook(&headers, payload)
+            .await?)
     }
 
+    #[instrument(
+        name = "custody.generate_wallet_address_in_op",
+        skip(self, db, wallet),
+        err
+    )]
     async fn generate_wallet_address_in_op(
         &self,
         db: &mut DbOp<'_>,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: audit::AuditInfo,
         wallet: &mut Wallet,
     ) -> Result<(), CoreCustodyError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreCustodyObject::wallet(wallet.id),
-                CoreCustodyAction::WALLET_GENERATE_ADDRESS,
-            )
-            .await?;
-
         let custodian = self
             .custodians
             .find_by_id_in_tx(db.tx(), &wallet.custodian_id)
@@ -394,6 +381,7 @@ where
             wallets: self.wallets.clone(),
             pool: self.pool.clone(),
             config: self.config.clone(),
+            outbox: self.outbox.clone(),
         }
     }
 }

@@ -177,6 +177,7 @@ where
         }
     }
 
+    #[instrument(name = "customer.find_by_id_without_audit", skip(self), err)]
     pub async fn find_by_id_without_audit(
         &self,
         id: impl Into<CustomerId> + std::fmt::Debug,

@@ -1520,6 +1520,7 @@ export const mockKomainuConfig = (overrides?: Partial<KomainuConfig>, _relations
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         secretKey: overrides && overrides.hasOwnProperty('secretKey') ? overrides.secretKey! : faker.lorem.word(),
         testingInstance: overrides && overrides.hasOwnProperty('testingInstance') ? overrides.testingInstance! : faker.datatype.boolean(),
+        webhookSecret: overrides && overrides.hasOwnProperty('webhookSecret') ? overrides.webhookSecret! : faker.lorem.word(),
     };
 };
 

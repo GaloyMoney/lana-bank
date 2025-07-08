@@ -26,7 +26,14 @@ pub enum CollateralEvent {
         credit_facility_id: CreditFacilityId,
         wallet_id: Option<WalletId>,
     },
-    Updated {
+    UpdatedViaManualInput {
+        ledger_tx_id: LedgerTxId,
+        collateral_amount: Satoshis,
+        abs_diff: Satoshis,
+        action: CollateralAction,
+        audit_info: AuditInfo,
+    },
+    UpdatedViaCustodianSync {
         ledger_tx_id: LedgerTxId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
@@ -53,7 +60,7 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn record_collateral_update(
+    pub fn record_collateral_update_via_custodian_sync(
         &mut self,
         new_amount: Satoshis,
         effective: chrono::NaiveDate,
@@ -69,7 +76,41 @@ impl Collateral {
 
         let tx_id = LedgerTxId::new();
 
-        self.events.push(CollateralEvent::Updated {
+        self.events.push(CollateralEvent::UpdatedViaCustodianSync {
+            ledger_tx_id: tx_id,
+            abs_diff,
+            collateral_amount: new_amount,
+            action,
+            audit_info: audit_info.clone(),
+        });
+
+        self.amount = new_amount;
+
+        Idempotent::Executed(CollateralUpdate {
+            tx_id,
+            abs_diff,
+            action,
+            effective,
+        })
+    }
+
+    pub fn record_collateral_update_via_manual_input(
+        &mut self,
+        new_amount: Satoshis,
+        effective: chrono::NaiveDate,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<CollateralUpdate> {
+        let current = self.amount;
+
+        let (abs_diff, action) = match new_amount.cmp(&current) {
+            Ordering::Less => (current - new_amount, CollateralAction::Remove),
+            Ordering::Greater => (new_amount - current, CollateralAction::Add),
+            Ordering::Equal => return Idempotent::Ignored,
+        };
+
+        let tx_id = LedgerTxId::new();
+
+        self.events.push(CollateralEvent::UpdatedViaManualInput {
             ledger_tx_id: tx_id,
             abs_diff,
             collateral_amount: new_amount,
@@ -123,7 +164,11 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         .wallet_id(*wallet_id)
                         .credit_facility_id(*credit_facility_id)
                 }
-                CollateralEvent::Updated {
+                CollateralEvent::UpdatedViaManualInput {
+                    collateral_amount: new_value,
+                    ..
+                }
+                | CollateralEvent::UpdatedViaCustodianSync {
                     collateral_amount: new_value,
                     ..
                 } => {

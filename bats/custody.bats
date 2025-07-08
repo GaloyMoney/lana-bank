@@ -16,7 +16,7 @@ teardown_file() {
   api_key="test-api-key-$(date +%s)"
   api_secret="test-api-secret-$(date +%s)"
   secret_key="test-secret-key-$(date +%s)"
-  
+  webhook_secret="test-webhook-secret-$(date +%s)"
 
   variables=$(
     jq -n \
@@ -24,6 +24,7 @@ teardown_file() {
     --arg apiKey "$api_key" \
     --arg apiSecret "$api_secret" \
     --arg secretKey "$secret_key" \
+    --arg webhookSecret "$webhook_secret" \
     '{
       input: {
         komainu: {
@@ -31,7 +32,8 @@ teardown_file() {
           apiKey: $apiKey,
           apiSecret: $apiSecret,
           testingInstance: true,
-          secretKey: $secretKey
+          secretKey: $secretKey,
+          webhookSecret: $webhookSecret
         }
       }
     }'
@@ -51,6 +53,7 @@ teardown_file() {
   new_api_key="updated-api-key-$(date +%s)"
   new_api_secret="updated-api-secret-$(date +%s)"
   new_secret_key="updated-secret-key-$(date +%s)"
+  new_webhook_secret="updated-webhook-secret-$(date +%s)"
   
   variables=$(
     jq -n \
@@ -59,6 +62,7 @@ teardown_file() {
     --arg apiKey "$new_api_key" \
     --arg apiSecret "$new_api_secret" \
     --arg secretKey "$new_secret_key" \
+    --arg webhookSecret "$new_webhook_secret" \
     '{
       input: {
         custodianId: $custodianId,
@@ -68,7 +72,8 @@ teardown_file() {
             apiKey: $apiKey,
             apiSecret: $apiSecret,
             testingInstance: false,
-            secretKey: $secretKey
+            secretKey: $secretKey,
+            webhookSecret: $webhookSecret
           }
         }
       }

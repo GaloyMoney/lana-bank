@@ -1498,7 +1498,7 @@ impl Mutation {
             CreditFacility,
             ctx,
             app.credit()
-                .update_collateral(sub, credit_facility_id, collateral, effective)
+                .update_collateral_manually(sub, credit_facility_id, collateral, effective)
         )
     }
 

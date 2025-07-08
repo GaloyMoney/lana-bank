@@ -574,12 +574,14 @@ checksums:
     Custodians/create/fields/apiKey: ce825fec5b3e1f8e27c45b1a63619985
     Custodians/create/fields/apiSecret: 2389c3c60f6a5e14d7dac4de596a30a1
     Custodians/create/fields/secretKey: cf7d6cd9a5f099133e76d0400150d919
+    Custodians/create/fields/webhookSecret: 4192bd2bf1ad29dde720223c3e560cce
     Custodians/create/fields/testingInstance: 45ba24fdcad1a9047ae34f0c91d66f70
     Custodians/create/placeholders/selectType: 3da3d6949ee679103818e2f9619e3aeb
     Custodians/create/placeholders/name: a31fc77b55b9d702289a720b1ad5e594
     Custodians/create/placeholders/apiKey: cf3406112804cb6e464e4bfe29694785
     Custodians/create/placeholders/apiSecret: 8a6d75b941ab25c70e9d431bbcacf147
     Custodians/create/placeholders/secretKey: 5f5ba076004497d81cb47a907c3c4cf3
+    Custodians/create/placeholders/webhookSecret: 79609623f695ad8e4dec292e514356d7
     Custodians/create/buttons/create: a8e359b8fcfb691a7c1bf2eb7129938b
     Custodians/create/success: a6348d2405bc7dfa8597367278236a8b
     Deposits/title: 9518ad41e01682ba217001a93932bc1c

@@ -3,6 +3,25 @@ use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize)]
+pub struct Notification {
+    pub event_type: EventType,
+    pub entity: EntityType,
+    pub entity_id: String,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum EventType {
+    BalanceUpdated,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum EntityType {
+    Wallet,
+}
+
+#[derive(Clone, Debug, Deserialize)]
 pub struct Wallet {
     pub id: String,
     pub name: String,

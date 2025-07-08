@@ -87,7 +87,40 @@
           "type": "string"
         },
         "type": {
-          "const": "updated",
+          "const": "updated_via_manual_input",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "collateral_amount",
+        "abs_diff",
+        "action",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "abs_diff": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "action": {
+          "$ref": "#/$defs/CollateralAction"
+        },
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "collateral_amount": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "updated_via_custodian_sync",
           "type": "string"
         }
       },

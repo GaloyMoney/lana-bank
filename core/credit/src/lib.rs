@@ -22,11 +22,12 @@ mod terms;
 mod terms_template;
 mod time;
 
-use audit::{AuditInfo, AuditSvc};
+use audit::{AuditInfo, AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
+    CustodianNotification,
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
@@ -182,7 +183,7 @@ where
             governance,
         )
         .await;
-        let collaterals = Collaterals::new(pool, authz, &publisher);
+        let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
         let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
         let payments = Payments::new(pool, authz, &obligations, &publisher);
         let history_repo = HistoryRepo::new(pool);
@@ -401,11 +402,7 @@ where
             .await?
             .expect("audit info missing");
 
-        let customer = self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerNotFound)?;
+        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
 
         if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
@@ -429,7 +426,7 @@ where
 
             let wallet = self
                 .custody
-                .create_new_wallet_in_op(&mut db, sub, custodian_id)
+                .create_wallet_in_op(&mut db, audit_info.clone(), custodian_id)
                 .await?;
 
             Some(wallet.id)
@@ -554,11 +551,7 @@ where
             .await?;
 
         let customer_id = facility.customer_id;
-        let customer = self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerNotFound)?;
+        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
         }
@@ -657,8 +650,39 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit.update_collateral", skip(self), err)]
-    pub async fn update_collateral(
+    #[instrument(name = "credit.handle_webhook", skip(self), err)]
+    pub async fn handle_webhook(
+        &self,
+        provider: String,
+        uri: http::Uri,
+        headers: http::HeaderMap,
+        payload: bytes::Bytes,
+    ) -> Result<(), CoreCreditError> {
+        if let Some(notification) = self
+            .custody
+            .process_webhook(provider, uri, headers, payload)
+            .await?
+        {
+            match notification {
+                CustodianNotification::WalletBalanceChanged {
+                    external_wallet_id,
+                    amount,
+                } => {
+                    self.update_collateral_by_custodian(
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        external_wallet_id,
+                        amount,
+                    )
+                    .await
+                }
+            }
+        } else {
+            Ok(())
+        }
+    }
+
+    #[instrument(name = "credit.update_collateral_manually", skip(self), err)]
+    pub async fn update_collateral_manually(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
@@ -682,7 +706,7 @@ where
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
-            .record_manual_collateral_update_in_op(
+            .record_collateral_update_via_manual_input_in_op(
                 &mut db,
                 credit_facility.collateral_id,
                 updated_collateral,
@@ -701,6 +725,36 @@ where
             .await?;
 
         Ok(credit_facility)
+    }
+
+    #[instrument(name = "credit.update_collateral_by_custodian", skip(self), err)]
+    pub(crate) async fn update_collateral_by_custodian(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        external_wallet_id: impl AsRef<str> + std::fmt::Debug,
+        amount: Satoshis,
+    ) -> Result<(), CoreCreditError> {
+        let audit_info = self
+            .subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let credit_facility = self
+            .facilities
+            .find_by_external_wallet(external_wallet_id)
+            .await?;
+
+        let effective = time::now().date_naive();
+        self.collaterals
+            .record_collateral_update_via_custodian_sync(
+                &credit_facility,
+                amount,
+                effective,
+                &audit_info,
+            )
+            .await?;
+
+        Ok(())
     }
 
     pub async fn subject_can_record_payment(
@@ -810,7 +864,7 @@ where
 
             CompletionOutcome::Completed((facility, completion)) => {
                 self.collaterals
-                    .record_manual_collateral_update_in_op(
+                    .record_collateral_update_via_manual_input_in_op(
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,

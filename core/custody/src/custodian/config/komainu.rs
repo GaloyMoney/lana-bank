@@ -6,6 +6,7 @@ pub struct KomainuConfig {
     pub api_secret: String,
     pub testing_instance: bool,
     pub secret_key: String,
+    pub webhook_secret: String,
 }
 
 impl From<KomainuConfig> for komainu::KomainuConfig {
@@ -17,6 +18,7 @@ impl From<KomainuConfig> for komainu::KomainuConfig {
                 dem: config.secret_key,
             },
             komainu_test: config.testing_instance,
+            webhook_secret: config.webhook_secret.into_bytes(),
         }
     }
 }
@@ -28,6 +30,7 @@ impl core::fmt::Debug for KomainuConfig {
             .field("api_secret", &"<redacted>")
             .field("testing_instance", &self.testing_instance)
             .field("secret_key", &"<redacted>")
+            .field("webhook_secret", &"<redacted>")
             .finish()
     }
 }

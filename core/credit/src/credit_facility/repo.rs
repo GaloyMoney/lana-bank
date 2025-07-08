@@ -21,6 +21,7 @@ use super::{entity::*, error::CreditFacilityError};
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
+        collateral_id(ty = "CollateralId", update(persist = false)),
         collateralization_ratio(
             ty = "Option<Decimal>",
             list_by,
@@ -84,6 +85,24 @@ where
         self.publisher
             .publish_facility(db, entity, new_events)
             .await
+    }
+
+    pub async fn find_by_external_wallet(
+        &self,
+        external_wallet_id: impl AsRef<str>,
+    ) -> Result<CreditFacility, CreditFacilityError> {
+        Ok(es_query!(
+            "core",
+            self.pool(),
+            r#"
+                SELECT cf.id FROM core_credit_facilities cf
+                LEFT JOIN core_collaterals co ON cf.collateral_id = co.id
+                LEFT JOIN core_wallets wa ON co.wallet_id = wa.id
+                WHERE wa.external_wallet_id = $1"#,
+            external_wallet_id.as_ref()
+        )
+        .fetch_one()
+        .await?)
     }
 }
 

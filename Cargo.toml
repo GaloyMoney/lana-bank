@@ -139,6 +139,7 @@ tempfile = "3.10.0"
 p256 = "0.13.2"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 markdown2pdf = { version = "0.1.5", features = ["rustls-tls"], default-features = false }
+bytes = "1.10"
 
 [profile.release]
 lto = true 

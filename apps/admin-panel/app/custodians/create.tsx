@@ -66,6 +66,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     apiSecret: "",
     testingInstance: false,
     secretKey: "",
+    webhookSecret: "",
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -77,6 +78,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       apiSecret: "",
       testingInstance: false,
       secretKey: "",
+      webhookSecret: "",
     })
     setError(null)
   }
@@ -225,6 +227,22 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   required
                   disabled={loading}
                   data-testid="custodian-secret-key-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="webhookSecret" required>
+                  {t("fields.webhookSecret")}
+                </Label>
+                <Input
+                  id="webhookSecret"
+                  name="webhookSecret"
+                  type="password"
+                  value={komainuConfig.webhookSecret}
+                  onChange={handleInputChange}
+                  placeholder={t("placeholders.webhookSecret")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-webhook-secret-input"
                 />
               </div>
 

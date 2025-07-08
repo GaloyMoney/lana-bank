@@ -92,7 +92,7 @@ wait_for_active() {
   [[ "$address" == "bt1qaddressmock" ]] || exit 1
 }
 
-@test "credit-facility-custody: cannot update collateral with a custodian" {
+@test "credit-facility-custody: cannot update manually collateral with a custodian" {
   credit_facility_id=$(read_value 'credit_facility_id')
 
   variables=$(
@@ -110,4 +110,29 @@ wait_for_active() {
   exec_admin_graphql 'credit-facility-collateral-update' "$variables"
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "ManualUpdateError" ]] || exit 1
+}
+
+@test "credit-facility-custody: can update collateral by a custodian" {
+  credit_facility_id=$(read_value 'credit_facility_id')
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  [[ "$collateral" -eq 0 ]] || exit 1
+
+  # external wallet ID 123 is hard coded in mock custodian
+  curl -s -X POST --json '{"wallet": "123", "balance": 1000}' http://localhost:5253/mock/webhook
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  [[ "$collateral" -eq 1000 ]] || exit 1
 }

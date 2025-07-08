@@ -6,11 +6,13 @@ use std::sync::Arc;
 use std::time::{Duration, Instant};
 
 use base64::{prelude::BASE64_STANDARD, Engine as _};
+use hmac::{Hmac, Mac as _};
 use p256::{
     ecdsa::{signature::Signer as _, Signature, SigningKey},
     pkcs8::DecodePrivateKey as _,
     SecretKey,
 };
+use reqwest::header::HeaderMap;
 use reqwest::{
     header::{HeaderValue, CONTENT_TYPE},
     Client, Method, RequestBuilder, Url,
@@ -21,8 +23,8 @@ use tokio::sync::Mutex;
 
 pub use config::{KomainuConfig, KomainuSecretKey};
 pub use error::KomainuError;
+pub use wire::{EntityType, EventType, Notification, Request, Transaction, Wallet};
 use wire::{Fallible, GetToken, GetTokenResponse, Many};
-pub use wire::{Request, Transaction, Wallet};
 
 #[derive(Clone)]
 pub struct KomainuClient {
@@ -31,6 +33,7 @@ pub struct KomainuClient {
     signing_key: SigningKey,
     host: Url,
     get_token_request: GetToken,
+    webhook_secret: Vec<u8>,
 }
 
 impl KomainuClient {
@@ -61,7 +64,36 @@ impl KomainuClient {
             signing_key,
             get_token_request,
             host: host.parse().expect("valid host"),
+            webhook_secret: config.webhook_secret,
         }
+    }
+
+    pub fn validate_webhook_notification(
+        &self,
+        headers: &HeaderMap,
+        payload: &[u8],
+    ) -> Result<Notification, KomainuError> {
+        // https://docs.komainu.io/apispec/#section/Notifications/Webhook-validation
+
+        let signature = headers
+            .get("x-komainu-signature")
+            .and_then(|v| v.to_str().ok())
+            .and_then(|s| hex::decode(s).ok())
+            .ok_or(KomainuError::MissingWebhookHeaders)?;
+
+        let timestamp = headers
+            .get("x-komainu-timestamp")
+            .and_then(|v| v.to_str().ok())
+            .ok_or(KomainuError::MissingWebhookHeaders)?;
+
+        let mut mac =
+            Hmac::<Sha256>::new_from_slice(&self.webhook_secret).expect("valid length of secret");
+        mac.update(timestamp.as_bytes());
+        mac.update(b".");
+        mac.update(payload);
+        mac.verify_slice(&signature)?;
+
+        Ok(serde_json::from_slice::<Notification>(payload).unwrap())
     }
 
     #[tracing::instrument(name = "komainu.get_request", skip(self))]

@@ -1183,6 +1183,7 @@ input KomainuConfig {
 	apiSecret: String!
 	testingInstance: Boolean!
 	secretKey: String!
+	webhookSecret: String!
 }
 
 enum KycLevel {

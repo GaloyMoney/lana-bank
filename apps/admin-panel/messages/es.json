@@ -997,6 +997,7 @@
         "apiKey": "Clave API",
         "apiSecret": "Secreto API",
         "secretKey": "Clave Secreta",
+        "webhookSecret": "Secreto del webhook",
         "testingInstance": "Usar Entorno de Pruebas"
       },
       "placeholders": {
@@ -1004,7 +1005,8 @@
         "name": "Ingrese un nombre de visualización para este custodio",
         "apiKey": "Ingrese su clave API",
         "apiSecret": "Ingrese su secreto API",
-        "secretKey": "Ingrese su clave secreta"
+        "secretKey": "Ingrese su clave secreta",
+        "webhookSecret": "Introduce tu secreto del webhook"
       },
       "buttons": {
         "create": "Agregar Custodio"
