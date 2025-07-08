@@ -145,6 +145,12 @@ gql`
           days
           effective
         }
+        ... on CreditFacilityLiquidationAmountReserved {
+          cents
+          recordedAt
+          txId
+          effective
+        }
       }
     }
   }
