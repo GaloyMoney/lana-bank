@@ -71,6 +71,57 @@ pub struct ApplicantInfo {
     pub id_docs: Option<Vec<IdDocument>>,
 }
 
+impl ApplicantInfo {
+    /// Get the applicant's first name
+    pub fn first_name(&self) -> Option<&str> {
+        self.first_name.as_deref()
+    }
+
+    /// Get the applicant's last name
+    pub fn last_name(&self) -> Option<&str> {
+        self.last_name.as_deref()
+    }
+
+    /// Get the applicant's full name as "FirstName LastName"
+    pub fn full_name(&self) -> Option<String> {
+        match (self.first_name(), self.last_name()) {
+            (Some(first), Some(last)) => Some(format!("{first} {last}")),
+            (Some(first), None) => Some(first.to_string()),
+            (None, Some(last)) => Some(last.to_string()),
+            (None, None) => None,
+        }
+    }
+
+    /// Get the primary address (first in the list)
+    pub fn primary_address(&self) -> Option<&str> {
+        self.addresses
+            .as_ref()?
+            .first()?
+            .formatted_address
+            .as_deref()
+    }
+
+    /// Get nationality from country field or from identity documents
+    pub fn nationality(&self) -> Option<&str> {
+        // First try the country field in info
+        if let Some(ref country) = self.country {
+            return Some(country);
+        }
+
+        // If not found, try to get it from passport documents
+        if let Some(ref id_docs) = self.id_docs {
+            for doc in id_docs {
+                if doc.doc_type == "PASSPORT" {
+                    if let Some(ref country) = doc.country {
+                        return Some(country);
+                    }
+                }
+            }
+        }
+        None
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Address {
     #[serde(rename = "formattedAddress")]
@@ -82,63 +133,6 @@ pub struct IdDocument {
     #[serde(rename = "idDocType")]
     pub doc_type: String,
     pub country: Option<String>,
-}
-
-impl ApplicantDetails {
-    /// Get the applicant's first name from info
-    #[allow(dead_code)]
-    pub fn first_name(&self) -> Option<&str> {
-        self.info.first_name.as_deref()
-    }
-
-    /// Get the applicant's last name from info
-    #[allow(dead_code)]
-    pub fn last_name(&self) -> Option<&str> {
-        self.info.last_name.as_deref()
-    }
-
-    /// Get the applicant's full name as "FirstName LastName"
-    #[allow(dead_code)]
-    pub fn full_name(&self) -> Option<String> {
-        match (self.first_name(), self.last_name()) {
-            (Some(first), Some(last)) => Some(format!("{first} {last}")),
-            (Some(first), None) => Some(first.to_string()),
-            (None, Some(last)) => Some(last.to_string()),
-            (None, None) => None,
-        }
-    }
-
-    /// Get the primary address (first in the list)
-    #[allow(dead_code)]
-    pub fn primary_address(&self) -> Option<&str> {
-        self.info
-            .addresses
-            .as_ref()?
-            .first()?
-            .formatted_address
-            .as_deref()
-    }
-
-    /// Get nationality from country field or from identity documents
-    #[allow(dead_code)]
-    pub fn nationality(&self) -> Option<&str> {
-        // First try the country field in info
-        if let Some(ref country) = self.info.country {
-            return Some(country);
-        }
-
-        // If not found, try to get it from passport documents
-        if let Some(ref id_docs) = self.info.id_docs {
-            for doc in id_docs {
-                if doc.doc_type == "PASSPORT" {
-                    if let Some(ref country) = doc.country {
-                        return Some(country);
-                    }
-                }
-            }
-        }
-        None
-    }
 }
 
 impl SumsubClient {

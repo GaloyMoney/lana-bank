@@ -23,7 +23,7 @@ use error::ApplicantError;
 use sumsub_auth::*;
 
 use repo::ApplicantRepo;
-pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
+pub use sumsub_auth::{AccessTokenResponse, ApplicantInfo, PermalinkResponse};
 
 use async_graphql::*;
 
@@ -314,5 +314,28 @@ impl Applicants {
         self.sumsub_client
             .create_permalink(customer_id, &level.to_string())
             .await
+    }
+
+    #[instrument(name = "applicant.get_applicant_info", skip(self))]
+    pub async fn get_applicant_info(
+        &self,
+        sub: &Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<ApplicantInfo, ApplicantError> {
+        let customer_id: CustomerId = customer_id.into();
+
+        // Verify the customer exists and the subject has access
+        let customer = self.customers.find_by_id(sub, customer_id).await?;
+        customer.ok_or_else(|| {
+            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
+        })?;
+
+        // Get applicant details from Sumsub
+        let applicant_details = self
+            .sumsub_client
+            .get_applicant_details(customer_id)
+            .await?;
+
+        Ok(applicant_details.info)
     }
 }

@@ -6,6 +6,7 @@ use document_storage::{DocumentId, DocumentStorage};
 use job::*;
 
 use super::{LoanAgreementData, error::ContractCreationError};
+use crate::applicant::Applicants;
 use crate::customer::{CustomerId, Customers};
 
 #[derive(Clone, Serialize, Deserialize)]
@@ -19,6 +20,7 @@ impl JobConfig for GenerateLoanAgreementConfig {
 
 pub struct GenerateLoanAgreementJobInitializer {
     customers: Customers,
+    applicants: Applicants,
     document_storage: DocumentStorage,
     template_dir: PathBuf,
     renderer: rendering::Renderer,
@@ -27,12 +29,14 @@ pub struct GenerateLoanAgreementJobInitializer {
 impl GenerateLoanAgreementJobInitializer {
     pub fn new(
         customers: &Customers,
+        applicants: &Applicants,
         document_storage: &DocumentStorage,
         template_dir: PathBuf,
         renderer: rendering::Renderer,
     ) -> Self {
         Self {
             customers: customers.clone(),
+            applicants: applicants.clone(),
             document_storage: document_storage.clone(),
             template_dir,
             renderer,
@@ -54,6 +58,7 @@ impl JobInitializer for GenerateLoanAgreementJobInitializer {
         Ok(Box::new(GenerateLoanAgreementJobRunner {
             config: job.config()?,
             customers: self.customers.clone(),
+            applicants: self.applicants.clone(),
             document_storage: self.document_storage.clone(),
             template_dir: self.template_dir.clone(),
             renderer: self.renderer.clone(),
@@ -64,6 +69,7 @@ impl JobInitializer for GenerateLoanAgreementJobInitializer {
 pub struct GenerateLoanAgreementJobRunner {
     config: GenerateLoanAgreementConfig,
     customers: Customers,
+    applicants: Applicants,
     document_storage: DocumentStorage,
     template_dir: PathBuf,
     renderer: rendering::Renderer,
@@ -109,7 +115,31 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
             .find_by_id_without_audit(self.config.customer_id)
             .await?;
 
-        let loan_data = LoanAgreementData::new(customer.email.clone());
+        // Ensure customer has applicant information - required for contract generation
+        if customer.applicant_id.is_none() {
+            return Err(Box::new(ContractCreationError::MissingApplicantData));
+        }
+
+        // Get applicant information from Sumsub
+        let applicant_info = self
+            .applicants
+            .get_applicant_info(&crate::primitives::Subject::System, self.config.customer_id)
+            .await?;
+
+        let full_name = applicant_info
+            .full_name()
+            .unwrap_or_else(|| "N/A".to_string());
+        let address = applicant_info.primary_address().map(|s| s.to_string());
+        let country = applicant_info.nationality().map(|s| s.to_string());
+
+        let loan_data = LoanAgreementData::new(
+            customer.email.clone(),
+            customer.telegram_id.clone(),
+            self.config.customer_id,
+            full_name,
+            address,
+            country,
+        );
 
         // Generate the PDF bytes
         let pdf_bytes = self

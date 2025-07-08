@@ -143,6 +143,7 @@ impl LanaApp {
         let contract_creation = ContractCreation::init(
             config.contract_creation,
             &customers,
+            &applicants,
             &documents,
             &jobs,
             &authz,

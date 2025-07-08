@@ -1,7 +1,9 @@
+use crate::applicant::Applicants;
 use crate::authorization::Authorization;
 use crate::customer::Customers;
 use ::job::{JobId, Jobs};
 use authz::PermissionCheck;
+use chrono;
 use core_credit::CustomerId;
 use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
@@ -33,6 +35,7 @@ impl ContractCreation {
     pub async fn init(
         config: ContractCreationConfig,
         customers: &Customers,
+        applicants: &Applicants,
         document_storage: &DocumentStorage,
         jobs: &Jobs,
         authz: &Authorization,
@@ -42,6 +45,7 @@ impl ContractCreation {
         // Initialize the job system for contract creation
         jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
             customers,
+            applicants,
             document_storage,
             config.template_dir.clone(),
             renderer.clone(),
@@ -184,11 +188,34 @@ impl From<DocumentStatus> for SimpleLoanAgreementStatus {
 #[derive(serde::Serialize)]
 pub struct LoanAgreementData {
     pub email: String,
+    pub full_name: String,
+    pub address: Option<String>,
+    pub country: Option<String>,
+    pub customer_id: String,
+    pub telegram_id: String,
+    pub date: String,
 }
 
 impl LoanAgreementData {
-    pub fn new(email: String) -> Self {
-        Self { email }
+    pub fn new(
+        email: String,
+        telegram_id: String,
+        customer_id: CustomerId,
+        full_name: String,
+        address: Option<String>,
+        country: Option<String>,
+    ) -> Self {
+        let date = chrono::Utc::now().format("%Y-%m-%d").to_string();
+
+        Self {
+            email,
+            full_name,
+            address,
+            country,
+            customer_id: customer_id.to_string(),
+            telegram_id,
+            date,
+        }
     }
 }
 
