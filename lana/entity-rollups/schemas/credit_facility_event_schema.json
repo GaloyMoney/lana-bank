@@ -457,11 +457,17 @@
         },
         "ledger_tx_id": {
           "format": "uuid",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "obligation_id": {
           "format": "uuid",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "type": {
           "const": "interest_accrual_cycle_concluded",
@@ -471,8 +477,6 @@
       "required": [
         "type",
         "interest_accrual_cycle_idx",
-        "ledger_tx_id",
-        "obligation_id",
         "audit_info"
       ],
       "type": "object"

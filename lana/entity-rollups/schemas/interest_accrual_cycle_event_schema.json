@@ -337,7 +337,10 @@
         },
         "obligation_id": {
           "format": "uuid",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "total": {
           "$ref": "#/$defs/UsdCents"
@@ -354,7 +357,6 @@
         "type",
         "ledger_tx_id",
         "tx_ref",
-        "obligation_id",
         "total",
         "effective",
         "audit_info"
