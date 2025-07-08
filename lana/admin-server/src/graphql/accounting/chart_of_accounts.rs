@@ -67,27 +67,23 @@ crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: C
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddNodeInput {
     pub chart_id: UUID,
-    pub proposed_spec: ChartOfAccountsProposedSpecInput,
-}
-crate::mutation_payload! { ChartOfAccountsAddNodePayload, chart_of_accounts: ChartOfAccounts }
-
-#[derive(InputObject)]
-pub struct ChartOfAccountsProposedSpecInput {
     pub parent: Option<AccountCode>,
     pub code: AccountCode,
     pub name: String,
     pub normal_balance_type: DebitOrCredit,
 }
+crate::mutation_payload! { ChartOfAccountsAddNodePayload, chart_of_accounts: ChartOfAccounts }
 
-impl TryFrom<ChartOfAccountsProposedSpecInput> for ProposedAccountSpec {
+impl TryFrom<ChartOfAccountsAddNodeInput> for ProposedAccountSpec {
     type Error = Box<dyn std::error::Error + Sync + Send>;
 
-    fn try_from(input: ChartOfAccountsProposedSpecInput) -> Result<Self, Self::Error> {
-        let ChartOfAccountsProposedSpecInput {
+    fn try_from(input: ChartOfAccountsAddNodeInput) -> Result<Self, Self::Error> {
+        let ChartOfAccountsAddNodeInput {
             parent,
             code,
             name,
             normal_balance_type,
+            ..
         } = input;
 
         let code = code.try_into()?;
