@@ -1,33 +1,6 @@
-with loans_and_credit_facilities as (
-
-/* TODO:
-    SELECT customer_id, approved_recorded_at, end_date,
-        accrual_interval, accrual_cycle_interval, annual_rate,
-    loan_id AS reference_id,
-    most_recent_interest_payment_timestamp,
-    most_recent_principal_payment_timestamp
-        AS most_recent_capital_payment_timestamp,
-    principal AS loan_amount,
-    principal
-        + total_interest_incurred_usd
-        - total_interest_paid_usd
-        - total_principal_paid
-        AS remaining_balance,
-    principal
-        - total_principal_paid
-        AS remaining_capital_balance,
-    total_interest_incurred_usd
-        - total_interest_paid_usd
-        AS remaining_interest_balance,
-
-    FROM { ref('int_approved_loans') }
-
-    WHERE NOT matured
-
-    UNION ALL
-    */
-
+with credit_facility_loans as (
     select
+        credit_facility_id,
         customer_id,
         disbursal_approved_recorded_at,
         disbursal_end_date,
@@ -38,8 +11,7 @@ with loans_and_credit_facilities as (
         annual_rate,
         disbursal_id as reference_id,
         most_recent_interest_payment_timestamp,
-        most_recent_disbursal_payment_timestamp
-            as most_recent_capital_payment_timestamp,
+        most_recent_disbursal_payment_timestamp as most_recent_capital_payment_timestamp,
         collateral_amount_usd,
         total_disbursed_usd as loan_amount_usd,
         total_disbursed_usd
@@ -53,23 +25,47 @@ with loans_and_credit_facilities as (
         interest_incurred_usd
             - interest_paid_usd
                 as remaining_interest_balance_usd,
-        cast(null as int64) as capital_overdue_days,
-        cast(null as int64) as interest_overdue_days,
-        cast(null as date) as capital_overdue_date,
-        cast(null as date) as interest_overdue_date,
-        cast(null as numeric) as guarantee_value,
 
     from {{ ref('int_approved_credit_facility_loans') }}
 
     where not matured
-
 ),
 
-overdue_days as (
+capital_overdue as (
     select
-        *,
-        coalesce(greatest(capital_overdue_days, interest_overdue_days), 0) as payment_overdue_days
-    from loans_and_credit_facilities
+        credit_facility_id,
+        min(overdue_date) as capital_overdue_date,
+        max(overdue_days) as capital_overdue_days,
+    from {{ ref('int_core_obligation_events_rollup') }}
+    where overdue_days > 0 and obligation_type = 'Disbursal'
+    group by credit_facility_id
+),
+
+interest_overdue as (
+    select
+        credit_facility_id,
+        min(overdue_date) as interest_overdue_date,
+        max(overdue_days) as interest_overdue_days,
+    from {{ ref('int_core_obligation_events_rollup') }}
+    where overdue_days > 0 and obligation_type = 'Interest'
+    group by credit_facility_id
+),
+
+loans_with_overdue_days as (
+    select
+        cfl.*,
+        capital_overdue_date,
+        interest_overdue_date,
+        coalesce(capital_overdue_days, 0) as capital_overdue_days,
+        coalesce(interest_overdue_days, 0) as interest_overdue_days,
+        greatest(
+            coalesce(capital_overdue_days, 0),
+            coalesce(interest_overdue_days, 0)
+        ) as payment_overdue_days
+
+    from credit_facility_loans as cfl
+    left join capital_overdue using(credit_facility_id)
+    left join interest_overdue using(credit_facility_id)
 ),
 
 risk_category as (
@@ -78,7 +74,7 @@ risk_category as (
         greatest(0, remaining_balance_usd - collateral_amount_usd) as net_risk,
         r.category as risk_category_ref,
         r.reserve_percentage,
-    from overdue_days as od
+    from loans_with_overdue_days as od
     left join {{ ref('static_ncb_022_porcentaje_reservas_saneamiento') }} as r on od.payment_overdue_days between r.consumer_calendar_ge_days and r.consumer_calendar_le_days
 ),
 
