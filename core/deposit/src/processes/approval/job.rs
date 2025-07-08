@@ -149,6 +149,6 @@ where
             }
         }
 
-        Ok(JobCompletion::RescheduleAt(chrono::Utc::now()))
+        Ok(JobCompletion::RescheduleNow)
     }
 }
