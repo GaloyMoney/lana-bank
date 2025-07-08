@@ -17,8 +17,8 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, contract_creation::*, credit_config::*,
     credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
-    document::*, job::*, loader::*, policy::*, price::*, profit_and_loss_config::*, report::*,
-    sumsub::*, terms_template::*, withdrawal::*,
+    document::*, loader::*, policy::*, price::*, profit_and_loss_config::*, report::*, sumsub::*,
+    terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
