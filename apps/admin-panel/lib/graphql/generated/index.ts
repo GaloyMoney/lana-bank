@@ -1130,22 +1130,6 @@ export enum InterestInterval {
   EndOfMonth = 'END_OF_MONTH'
 }
 
-export type Job = {
-  __typename?: 'Job';
-  createdAt: Scalars['Timestamp']['output'];
-  id: Scalars['ID']['output'];
-  jobId: Scalars['UUID']['output'];
-  jobType: Scalars['String']['output'];
-  lastError?: Maybe<Scalars['String']['output']>;
-  status: JobStatus;
-};
-
-export enum JobStatus {
-  Completed = 'COMPLETED',
-  Errored = 'ERRORED',
-  Running = 'RUNNING'
-}
-
 export type JournalEntry = {
   __typename?: 'JournalEntry';
   amount: JournalEntryAmount;
@@ -1738,7 +1722,6 @@ export type Query = {
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
-  job?: Maybe<Job>;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
   ledgerAccountByCode?: Maybe<LedgerAccount>;
@@ -1868,11 +1851,6 @@ export type QueryDisbursalArgs = {
 export type QueryDisbursalsArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
-};
-
-
-export type QueryJobArgs = {
-  id: Scalars['UUID']['input'];
 };
 
 

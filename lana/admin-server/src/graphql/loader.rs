@@ -22,7 +22,7 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, job::*, policy::*, terms_template::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, terms_template::*,
     withdrawal::*,
 };
 
@@ -402,14 +402,5 @@ impl Loader<AccountingCsvDocumentId> for LanaLoader {
             .find_all_documents::<AccountingCsvDocument>(keys)
             .await
             .map_err(Arc::new)
-    }
-}
-
-impl Loader<JobId> for LanaLoader {
-    type Value = Job;
-    type Error = Arc<lana_app::job::error::JobError>;
-
-    async fn load(&self, keys: &[JobId]) -> Result<HashMap<JobId, Job>, Self::Error> {
-        self.app.jobs().find_all(keys).await.map_err(Arc::new)
     }
 }

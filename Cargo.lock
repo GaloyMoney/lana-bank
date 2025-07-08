@@ -2748,7 +2748,6 @@ name = "job"
 version = "0.3.718-dev"
 dependencies = [
  "anyhow",
- "async-graphql",
  "async-trait",
  "chrono",
  "derive_builder",

@@ -17,7 +17,7 @@ use sqlx::PgPool;
 use tokio::sync::RwLock;
 use tracing::instrument;
 
-use std::{collections::HashMap, sync::Arc};
+use std::sync::Arc;
 
 pub use config::*;
 pub use current::*;
@@ -126,24 +126,9 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "lana.jobs.find_by_id", skip(self))]
-    pub async fn find_by_id(
-        &self,
-        id: impl Into<JobId> + std::fmt::Debug,
-    ) -> Result<Option<Job>, JobError> {
-        let id = id.into();
-        match self.repo.find_by_id(id).await {
-            Ok(job) => Ok(Some(job)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
-    }
-
-    pub async fn find_all<T: From<Job>>(
-        &self,
-        ids: &[JobId],
-    ) -> Result<HashMap<JobId, T>, JobError> {
-        self.repo.find_all(ids).await
+    #[instrument(name = "cala_server.jobs.find", skip(self))]
+    pub async fn find(&self, id: JobId) -> Result<Job, JobError> {
+        self.repo.find_by_id(id).await
     }
 
     pub async fn start_poll(&mut self) -> Result<(), JobError> {

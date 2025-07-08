@@ -1126,21 +1126,6 @@ enum InterestInterval {
 	END_OF_DAY
 }
 
-type Job {
-	id: ID!
-	jobId: UUID!
-	jobType: String!
-	status: JobStatus!
-	lastError: String
-	createdAt: Timestamp!
-}
-
-enum JobStatus {
-	RUNNING
-	COMPLETED
-	ERRORED
-}
-
 type JournalEntry {
 	id: ID!
 	entryId: UUID!
@@ -1569,7 +1554,6 @@ type Query {
 	realtimePrice: RealtimePrice!
 	report(id: UUID!): Report
 	reports: [Report!]!
-	job(id: UUID!): Job
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
 	creditConfig: CreditModuleConfig
