@@ -412,7 +412,7 @@ type CreditFacilityApproved {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	effective: Date!
-	txId: UUID
+	txId: UUID!
 }
 
 type CreditFacilityBalance {
@@ -439,7 +439,7 @@ type CreditFacilityCollateralUpdated {
 	recordedAt: Timestamp!
 	effective: Date!
 	action: CollateralAction!
-	txId: UUID
+	txId: UUID!
 }
 
 type CreditFacilityCollateralizationUpdated {
@@ -530,7 +530,7 @@ type CreditFacilityDisbursalExecuted {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	effective: Date!
-	txId: UUID
+	txId: UUID!
 }
 
 input CreditFacilityDisbursalInitiateInput {
@@ -562,7 +562,7 @@ type CreditFacilityIncrementalPayment {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	effective: Date!
-	txId: UUID
+	txId: UUID!
 }
 
 type CreditFacilityInterestAccrued {
