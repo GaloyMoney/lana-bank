@@ -1377,8 +1377,6 @@ type Mutation {
 	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
-	reportCreate: ReportCreatePayload!
-	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	chartOfAccountsAddNode(input: ChartOfAccountsAddNodeInput!): ChartOfAccountsAddNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
@@ -1480,6 +1478,8 @@ enum PermissionSetName {
 	DEPOSIT_WRITER
 	GOVERNANCE_VIEWER
 	GOVERNANCE_WRITER
+	REPORT_VIEWER
+	REPORT_WRITER
 }
 
 type Policy {
@@ -1599,8 +1599,6 @@ type Query {
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
-	report(id: UUID!): Report
-	reports: [Report!]!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
 	creditConfig: CreditModuleConfig
@@ -1609,6 +1607,7 @@ type Query {
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
 	accountEntryCsv(ledgerAccountId: UUID!): AccountingCsvDocument
+	reportRuns(first: Int!, after: String): ReportRunConnection!
 }
 
 type RealtimePrice {
@@ -1616,33 +1615,74 @@ type RealtimePrice {
 }
 
 type Report {
+	id: ID!
 	reportId: UUID!
+	externalId: String!
+	name: String!
+	norm: String!
 	createdAt: Timestamp!
-	lastError: String
-	progress: ReportProgress!
+	runId: UUID!
+	files: [ReportFile!]!
+	reportRun: ReportRun!
 }
 
-type ReportCreatePayload {
-	report: Report!
+type ReportFile {
+	extension: String!
+	pathInBucket: String!
 }
 
-type ReportDownloadLink {
-	reportName: String!
-	url: String!
+type ReportRun {
+	id: ID!
+	reportRunId: UUID!
+	externalId: String!
+	createdAt: Timestamp!
+	executionDate: Timestamp
+	state: ReportRunState
+	runType: ReportRunType
+	startDate: Timestamp
+	endDate: Timestamp
+	reports: [Report!]!
 }
 
-input ReportDownloadLinksGenerateInput {
-	reportId: UUID!
+type ReportRunConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ReportRunEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [ReportRun!]!
 }
 
-type ReportDownloadLinksGeneratePayload {
-	reportId: UUID!
-	links: [ReportDownloadLink!]!
+"""
+An edge in a connection.
+"""
+type ReportRunEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: ReportRun!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
-enum ReportProgress {
+enum ReportRunState {
+	QUEUED
 	RUNNING
-	COMPLETE
+	SUCCESS
+	FAILED
+}
+
+enum ReportRunType {
+	SCHEDULED
+	MANUAL
 }
 
 type Role {

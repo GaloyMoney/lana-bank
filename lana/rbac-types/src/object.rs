@@ -9,6 +9,7 @@ use core_credit::CoreCreditObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
+use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
 use governance::GovernanceObject;
 
@@ -25,6 +26,7 @@ pub enum LanaObject {
     Credit(CoreCreditObject),
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
+    Report(ReportObject),
 }
 
 impl From<AppObject> for LanaObject {
@@ -73,6 +75,12 @@ impl From<CoreCreditObject> for LanaObject {
     }
 }
 
+impl From<ReportObject> for LanaObject {
+    fn from(object: ReportObject) -> Self {
+        LanaObject::Report(object)
+    }
+}
+
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
@@ -87,6 +95,7 @@ impl Display for LanaObject {
             Credit(object) => object.fmt(f),
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
+            Report(object) => object.fmt(f),
         }
     }
 }
@@ -111,6 +120,7 @@ impl FromStr for LanaObject {
                     .parse::<DashboardModuleObject>()
                     .map_err(|_| "could not parse DashboardModuleObject")?,
             ),
+            Report => LanaObject::from(object.parse::<ReportObject>()?),
         };
         Ok(res)
     }

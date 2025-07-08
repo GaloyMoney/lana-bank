@@ -15,6 +15,7 @@ core-custody = { path = "../../core/custody" }
 core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }
 core-deposit = { path = "../../core/deposit" }
+core-report = { path = "../../core/report" }
 outbox = { path = "../../lib/outbox" }
 
 serde = { workspace = true }

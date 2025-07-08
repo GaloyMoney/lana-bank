@@ -401,6 +401,38 @@ CREATE TABLE core_document_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_reports (
+  id UUID PRIMARY KEY,
+  external_id VARCHAR NOT NULL UNIQUE,
+  run_id UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE INDEX idx_core_reports_run_id ON core_reports(run_id);
+
+CREATE TABLE core_report_events (
+  id UUID NOT NULL REFERENCES core_reports(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
+CREATE TABLE core_report_runs (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_report_run_events (
+  id UUID NOT NULL REFERENCES core_report_runs(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE reports (
   id UUID PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL

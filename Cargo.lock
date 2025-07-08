@@ -1421,6 +1421,28 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-report"
+version = "0.3.728-dev"
+dependencies = [
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "cloud-storage",
+ "derive_builder",
+ "es-entity",
+ "job",
+ "outbox",
+ "reqwest",
+ "schemars 1.0.4",
+ "serde",
+ "sqlx",
+ "strum 0.27.2",
+ "thiserror 2.0.12",
+ "tracing",
+]
+
+[[package]]
 name = "cpufeatures"
 version = "0.2.17"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -2102,9 +2124,9 @@ checksum = "1d674e81391d1e1ab681a28d99df07927c6d4aa5b027d7da16ba32d1d21ecd99"
 
 [[package]]
 name = "flate2"
-version = "1.1.1"
+version = "1.1.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "7ced92e76e966ca2fd84c8f7aa01a4aea65b0eb6648d72f7c8f3e2764a67fece"
+checksum = "4a3d7db9596fecd151c5f638c0ee5d5bd487b6e0ea232e5dc96d5250f6f94b1d"
 dependencies = [
  "crc32fast",
  "miniz_oxide",
@@ -2285,60 +2307,6 @@ dependencies = [
  "pin-project-lite",
  "pin-utils",
  "slab",
-]
-
-[[package]]
-name = "gcp-bigquery-client"
-version = "0.23.0"
-source = "git+https://github.com/bodymindarts/gcp-bigquery-client.git?branch=feat--webpki#53c05e5a797c5f002eadc2c4c8e7743445196fc7"
-dependencies = [
- "async-stream",
- "async-trait",
- "dyn-clone",
- "flate2",
- "hyper",
- "hyper-util",
- "log",
- "prost",
- "prost-types",
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "time 0.3.41",
- "tokio",
- "tokio-stream",
- "tonic",
- "tonic-build",
- "url",
- "yup-oauth2",
-]
-
-[[package]]
-name = "gcp_auth"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbf67f30198e045a039264c01fb44659ce82402d7771c50938beb41a5ac87733"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "chrono",
- "home",
- "http",
- "http-body-util",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "ring",
- "rustls-pemfile",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tokio",
- "tracing",
- "tracing-futures",
- "url",
 ]
 
 [[package]]
@@ -3176,7 +3144,6 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
- "base64 0.22.1",
  "cala-ledger",
  "chrono",
  "cloud-storage",
@@ -3189,14 +3156,12 @@ dependencies = [
  "core-deposit",
  "core-money",
  "core-price",
+ "core-report",
  "customer-sync",
  "dashboard",
  "deposit-sync",
- "derive_builder",
  "document-storage",
  "es-entity",
- "gcp-bigquery-client",
- "gcp_auth",
  "governance",
  "handlebars",
  "job",
@@ -3208,7 +3173,6 @@ dependencies = [
  "rand 0.9.2",
  "rbac-types",
  "rendering",
- "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
  "schemars 1.0.4",
@@ -3254,6 +3218,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-report",
  "governance",
  "outbox",
  "serde",
@@ -3707,15 +3672,6 @@ checksum = "071dfc062690e90b734c0b2273ce72ad0ffa95f0c74596bc250dcfd960262841"
 dependencies = [
  "autocfg",
  "libm",
-]
-
-[[package]]
-name = "num_threads"
-version = "0.1.7"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5c7398b9c8b70908f6371f47ed36737907c87c52af34c268fed0bf0ceb92ead9"
-dependencies = [
- "libc",
 ]
 
 [[package]]
@@ -4252,8 +4208,6 @@ dependencies = [
  "prettyplease",
  "prost",
  "prost-types",
- "pulldown-cmark",
- "pulldown-cmark-to-cmark",
  "regex",
  "syn 2.0.104",
  "tempfile",
@@ -4378,26 +4332,6 @@ dependencies = [
  "sqlx",
  "thiserror 2.0.12",
  "tracing",
-]
-
-[[package]]
-name = "pulldown-cmark"
-version = "0.12.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "f86ba2052aebccc42cbbb3ed234b8b13ce76f75c3551a303cb2bcffcff12bb14"
-dependencies = [
- "bitflags",
- "memchr",
- "unicase",
-]
-
-[[package]]
-name = "pulldown-cmark-to-cmark"
-version = "20.0.1"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6c0f333311d2d8fda65bcf76af35054e9f38e253332a0289746156a59656988b"
-dependencies = [
- "pulldown-cmark",
 ]
 
 [[package]]
@@ -4555,6 +4489,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-report",
  "dashboard",
  "es-entity",
  "governance",
@@ -4958,15 +4893,6 @@ dependencies = [
  "rustls-webpki",
  "subtle",
  "zeroize",
-]
-
-[[package]]
-name = "rustls-pemfile"
-version = "2.2.0"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dce314e5fee3f39953d46bb63bb8a46d40c2f8fb7cc5a3b6cab2bde9721d6e50"
-dependencies = [
- "rustls-pki-types",
 ]
 
 [[package]]
@@ -6087,9 +6013,7 @@ checksum = "8a7619e19bc266e0f9c5e6686659d394bc57973859340060a69221e57dbc0c40"
 dependencies = [
  "deranged",
  "itoa 1.0.15",
- "libc",
  "num-conv",
- "num_threads",
  "powerfmt",
  "serde",
  "time-core",
@@ -6309,16 +6233,13 @@ dependencies = [
  "percent-encoding",
  "pin-project",
  "prost",
- "rustls-pemfile",
  "socket2",
  "tokio",
- "tokio-rustls",
  "tokio-stream",
  "tower 0.4.13",
  "tower-layer",
  "tower-service",
  "tracing",
- "webpki-roots 0.26.11",
 ]
 
 [[package]]
@@ -7335,32 +7256,6 @@ dependencies = [
  "quote",
  "syn 2.0.104",
  "synstructure",
-]
-
-[[package]]
-name = "yup-oauth2"
-version = "11.0.0"
-source = "git+https://github.com/bodymindarts/yup-oauth2.git?branch=feat--webpki#82e5b3165cb2d098aca88e8b99406d77fce05604"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "futures",
- "http",
- "http-body-util",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "log",
- "percent-encoding",
- "rustls",
- "rustls-pemfile",
- "seahash",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "time 0.3.41",
- "tokio",
- "url",
 ]
 
 [[package]]
