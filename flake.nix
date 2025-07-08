@@ -350,13 +350,21 @@
                 export LANA_CONFIG="$(pwd)/bats/lana.yml"
                 export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
 
-                            # Container engine setup
+              # Container engine setup
               # Clear DOCKER_HOST at the start to avoid stale values
               unset DOCKER_HOST
 
-              if command -v podman &>/dev/null && { ! command -v docker &>/dev/null || [[ "''${PREFER_PODMAN:-}" == "1" ]]; }; then
+              # Use ENGINE_DEFAULT if already set, otherwise auto-detect
+              if [[ -n "''${ENGINE_DEFAULT:-}" ]]; then
+                echo "Using pre-configured engine: $ENGINE_DEFAULT"
+              elif command -v podman &>/dev/null && ! command -v docker &>/dev/null; then
                 export ENGINE_DEFAULT=podman
+              else
+                export ENGINE_DEFAULT=docker
+              fi
 
+              # Set up podman socket if using podman
+              if [[ "$ENGINE_DEFAULT" == "podman" ]]; then
                 # Let existing scripts handle podman setup
                 if [[ "''${CI:-false}" == "true" ]] && [[ -f "$(pwd)/dev/bin/podman-service-start.sh" ]]; then
                   "$(pwd)/dev/bin/podman-service-start.sh" >/dev/null 2>&1 || true
@@ -365,8 +373,6 @@
                 # Set socket if available (for both CI and local)
                 socket="$($(pwd)/dev/bin/podman-get-socket.sh 2>/dev/null || echo NO_SOCKET)"
                 [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
-              else
-                export ENGINE_DEFAULT=docker
               fi
             '';
           });

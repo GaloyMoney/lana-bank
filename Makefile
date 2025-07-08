@@ -10,7 +10,7 @@ podman-service-start:
 
 # ── Container Management ──────────────────────────────────────────────────────────
 # The ENGINE_DEFAULT and DOCKER_HOST environment variables are automatically set based on
-# available container engines. To force use of podman, set PREFER_PODMAN=1 in your environment.
+# available container engines. To force use of podman, set ENGINE_DEFAULT=podman in your environment.
 # The podman-* targets below are Linux-only and used for manual podman service setup.
 
 
