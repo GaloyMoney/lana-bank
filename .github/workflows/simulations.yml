@@ -22,11 +22,16 @@ jobs:
           nohup nix develop -c make reset-deps run-server-with-bootstrap \
             2>&1 | tee server.log &
           echo "PID=$!" > .server.pid
+        env:
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          TF_VAR_name_prefix: "gha"
+          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
 
       - name: Wait for healthy server
         run: |
-          nix develop -c wait4x http http://localhost:5253/health --timeout 15m
-          
+          nix develop -c wait4x http http://localhost:5253/health --timeout 30m
+
       - name: Check no panics
         run: |
           if grep -q "panicked" server.log; then
