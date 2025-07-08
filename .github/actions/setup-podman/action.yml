@@ -1,36 +1,30 @@
-name: "setup-podman"
+# DEPRECATED: This action is no longer needed
+#
+# Podman setup is now handled automatically by the Nix development shell.
+# The flake.nix already includes podman and podman-compose as dependencies,
+# and the devShell hook automatically configures podman sockets and environment variables.
+#
+# This approach is more robust and follows the same pattern used in Concourse CI.
+#
+# To use podman in workflows:
+# 1. Use ./.github/actions/setup-nix 
+# 2. Set ENGINE_DEFAULT=podman and CI=true environment variables
+# 3. Run commands via `nix develop -c <command>`
+#
+# The Nix shell will automatically:
+# - Provide podman and podman-compose binaries
+# - Configure podman sockets in CI environments
+# - Set appropriate environment variables
+# - Handle both Linux and macOS correctly
 
-description: "Composite action to install and configure podman for use in GitHub Actions"
-
+name: "setup-podman (DEPRECATED)"
+description: "This action is deprecated. Use setup-nix instead which includes podman setup."
 runs:
   using: "composite"
   steps:
-    - name: Install podman
+    - name: Deprecation Warning
       run: |
-        sudo apt-get update
-        sudo apt-get install -y podman podman-compose
-      shell: bash
-      
-    - name: Configure podman
-      run: |
-        # Enable cgroup v2 delegation for rootless podman
-        sudo mkdir -p /etc/systemd/system/user@.service.d
-        echo '[Service]
-        Delegate=cpu cpuset io memory pids' | sudo tee /etc/systemd/system/user@.service.d/delegate.conf
-        sudo systemctl daemon-reload
-        
-        # Set up subuid/subgid for rootless containers
-        sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER
-        
-        # Configure containers
-        mkdir -p ~/.config/containers
-        echo 'unqualified-search-registries = ["docker.io"]' > ~/.config/containers/registries.conf
-        echo '{"default":[{"type":"insecureAcceptAnything"}]}' > ~/.config/containers/policy.json
-        
-        # Start podman service
-        systemctl --user start podman.socket || true
-        
-        # Test podman
-        podman version
-        podman info
+        echo "::warning::This action is deprecated. Podman setup is now handled by Nix."
+        echo "Please use ./.github/actions/setup-nix instead."
+        exit 1
       shell: bash 

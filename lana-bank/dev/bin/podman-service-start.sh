@@ -1,6 +1,21 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
+# Podman Service Setup Script
+#
+# This script configures and starts Podman service for development and CI environments.
+# It is automatically called by the Nix development shell when ENGINE_DEFAULT=podman
+# and CI=true, providing the same setup used in Concourse CI.
+#
+# The script handles:
+# - Linux-specific podman configuration (policy.json, registries.conf)
+# - Subuid/subgid setup for rootless containers  
+# - Podman socket creation and management
+# - Environment variable exports (CONTAINER_HOST)
+#
+# This approach ensures consistency between local development, GitHub Actions,
+# and Concourse CI environments.
+
 echo "--- Configuring Podman ---"
 
 # Ensure we're working with a clean environment

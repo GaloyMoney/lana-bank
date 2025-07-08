@@ -14,7 +14,7 @@ jobs:
       NETLIFY_TOKEN_PRESENT: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-podman
+      # Nix setup already includes podman and handles socket configuration
       - uses: ./.github/actions/setup-nix
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
@@ -22,10 +22,13 @@ jobs:
           free_disk_space: false
       - uses: ./.github/actions/cache-pnpm 
       - run: nix develop -c make build-for-tests
+        env:
+          CI: true  # Ensures podman service starts automatically in Nix shell
       - name: Start services for Cypress tests
         run: nix develop -c make start-cypress-stack
         env:
           ENGINE_DEFAULT: podman
+          CI: true  # Ensures podman service starts automatically in Nix shell
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -33,6 +36,8 @@ jobs:
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
       - run: nix develop -c make test-cypress-in-ci
+        env:
+          CI: true  # Ensures podman service starts automatically in Nix shell
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots
