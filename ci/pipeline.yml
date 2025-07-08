@@ -82,7 +82,6 @@ jobs:
                 nix develop --profile dev-profile --command true
                 cachix push $CACHIX_CACHE_NAME dev-profile
 
-                make 
                 nix -L develop --command make test-in-ci-cargo
                 nix -L develop --command make e2e
 
