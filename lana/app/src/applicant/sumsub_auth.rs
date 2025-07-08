@@ -122,6 +122,38 @@ impl ApplicantInfo {
     }
 }
 
+impl ApplicantDetails {
+    /// Get the applicant's first name by delegating to info
+    #[allow(dead_code)]
+    pub fn first_name(&self) -> Option<&str> {
+        self.info.first_name()
+    }
+
+    /// Get the applicant's last name by delegating to info
+    #[allow(dead_code)]
+    pub fn last_name(&self) -> Option<&str> {
+        self.info.last_name()
+    }
+
+    /// Get the applicant's full name by delegating to info
+    #[allow(dead_code)]
+    pub fn full_name(&self) -> Option<String> {
+        self.info.full_name()
+    }
+
+    /// Get the primary address by delegating to info
+    #[allow(dead_code)]
+    pub fn primary_address(&self) -> Option<&str> {
+        self.info.primary_address()
+    }
+
+    /// Get nationality by delegating to info
+    #[allow(dead_code)]
+    pub fn nationality(&self) -> Option<&str> {
+        self.info.nationality()
+    }
+}
+
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Address {
     #[serde(rename = "formattedAddress")]

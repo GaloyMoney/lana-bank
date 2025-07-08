@@ -115,22 +115,25 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
             .find_by_id_without_audit(self.config.customer_id)
             .await?;
 
-        // Ensure customer has applicant information - required for contract generation
-        if customer.applicant_id.is_none() {
-            return Err(Box::new(ContractCreationError::MissingApplicantData));
-        }
-
-        // Get applicant information from Sumsub
-        let applicant_info = self
-            .applicants
-            .get_applicant_info(&crate::primitives::Subject::System, self.config.customer_id)
-            .await?;
-
-        let full_name = applicant_info
-            .full_name()
-            .unwrap_or_else(|| "N/A".to_string());
-        let address = applicant_info.primary_address().map(|s| s.to_string());
-        let country = applicant_info.nationality().map(|s| s.to_string());
+        // Get applicant information from Sumsub if available
+        let (full_name, address, country) = if customer.applicant_id.is_some() {
+            match self
+                .applicants
+                .get_applicant_info(&crate::primitives::Subject::System, self.config.customer_id)
+                .await
+            {
+                Ok(applicant_info) => (
+                    applicant_info
+                        .full_name()
+                        .unwrap_or_else(|| "N/A".to_string()),
+                    applicant_info.primary_address().map(|s| s.to_string()),
+                    applicant_info.nationality().map(|s| s.to_string()),
+                ),
+                Err(_) => ("N/A".to_string(), None, None), // Fallback if applicant info is not available
+            }
+        } else {
+            ("N/A".to_string(), None, None)
+        };
 
         let loan_data = LoanAgreementData::new(
             customer.email.clone(),

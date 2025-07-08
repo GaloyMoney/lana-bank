@@ -22,6 +22,4 @@ pub enum ContractCreationError {
     Database(#[from] sqlx::Error),
     #[error("Document not found error")]
     NotFound,
-    #[error("Customer has no applicant information - contract generation requires applicant data")]
-    MissingApplicantData,
 }
