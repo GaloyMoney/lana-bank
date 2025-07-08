@@ -8,8 +8,6 @@ edition = "2024"
 ignored = ["es-entity"]
 
 [features]
-sim-time = [ "dep:sim-time", "es-entity/sim-time" ]
-
 fail-on-warnings = []
 
 [dependencies]
@@ -21,9 +19,7 @@ audit = { path = "../../lib/audit" }
 kratos-admin = { path = "../../lib/kratos-admin" }
 
 es-entity = { workspace = true, features = ["graphql"] }
-sim-time = { workspace = true, optional = true }
 serde = { workspace = true }
-chrono = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }

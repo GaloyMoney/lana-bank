@@ -4,15 +4,7 @@ version = "0.3.718-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
-[package.metadata.cargo-machete]
-ignored = ["es-entity"]
-
 [features]
-sim-time = [
-  "dep:sim-time",
-  "es-entity/sim-time"
-]
-
 fail-on-warnings = []
 
 [dependencies]
@@ -27,12 +19,8 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 kratos-admin = { path = "../../lib/kratos-admin" }
 
-es-entity = { workspace = true, features = ["graphql"] }
-sim-time = { workspace = true, optional = true }
-
 tracing = { workspace = true }
 serde = { workspace = true }
-chrono = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }

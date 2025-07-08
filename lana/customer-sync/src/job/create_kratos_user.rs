@@ -140,9 +140,9 @@ where
             if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
                 self.handle_create_kratos_user(message.as_ref()).await?;
             }
-            
+
             state.sequence = message.sequence;
-            current_job.update_execution_state(state).await?;
+            current_job.update_execution_state(state.clone()).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)

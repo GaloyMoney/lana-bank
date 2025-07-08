@@ -133,9 +133,9 @@ where
                     .update_authentication_id_for_user(*id, authentication_id)
                     .await?;
             }
-            
+
             state.sequence = message.sequence;
-            current_job.update_execution_state(state).await?;
+            current_job.update_execution_state(state.clone()).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)

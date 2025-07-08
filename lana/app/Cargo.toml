@@ -12,9 +12,6 @@ sim-time = [
   "dep:sim-time",
   "es-entity/sim-time",
   "core-credit/sim-time",
-  "dashboard/sim-time",
-  "user-onboarding/sim-time",
-  "customer-sync/sim-time",
   "core-deposit/sim-time",
   "job/sim-time",
 ]

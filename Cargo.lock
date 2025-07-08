@@ -1436,17 +1436,14 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
- "chrono",
  "core-customer",
  "core-deposit",
- "es-entity",
  "futures",
  "governance",
  "job",
  "kratos-admin",
  "outbox",
  "serde",
- "sim-time",
  "thiserror 2.0.12",
  "tracing",
 ]
@@ -1503,7 +1500,6 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "serde_json",
- "sim-time",
  "sqlx",
  "strum 0.27.1",
  "thiserror 2.0.12",
@@ -5955,7 +5951,6 @@ version = "0.3.718-dev"
 dependencies = [
  "async-trait",
  "audit",
- "chrono",
  "core-access",
  "es-entity",
  "futures",
@@ -5963,7 +5958,6 @@ dependencies = [
  "kratos-admin",
  "outbox",
  "serde",
- "sim-time",
  "thiserror 2.0.12",
 ]
 
