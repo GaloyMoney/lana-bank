@@ -7,20 +7,20 @@ CREATE TABLE core_document_events_rollup (
   -- Flattened fields from the event JSON
   content_type VARCHAR,
   document_type VARCHAR,
+  error VARCHAR,
   original_filename VARCHAR,
   path_in_storage VARCHAR,
   reference_id UUID,
   sanitized_filename VARCHAR,
   storage_identifier VARCHAR,
-  error VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
 
   -- Toggle fields
-  is_file_uploaded BOOLEAN DEFAULT false,
+  is_archived BOOLEAN DEFAULT false,
   is_deleted BOOLEAN DEFAULT false,
-  is_archived BOOLEAN DEFAULT false
+  is_file_uploaded BOOLEAN DEFAULT false
 
 );
 
@@ -57,42 +57,43 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.content_type := (NEW.event ->> 'content_type');
-    new_row.document_type := (NEW.event ->> 'document_type');
-    new_row.original_filename := (NEW.event ->> 'original_filename');
-    new_row.path_in_storage := (NEW.event ->> 'path_in_storage');
-    new_row.reference_id := (NEW.event ->> 'reference_id')::UUID;
-    new_row.sanitized_filename := (NEW.event ->> 'sanitized_filename');
-    new_row.storage_identifier := (NEW.event ->> 'storage_identifier');
-    new_row.error := (NEW.event ->> 'error');
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
        ELSE ARRAY[]::BIGINT[]
      END
 ;
-    new_row.is_file_uploaded := false;
-    new_row.is_deleted := false;
+    new_row.content_type := (NEW.event ->> 'content_type');
+    new_row.document_type := (NEW.event ->> 'document_type');
+    new_row.error := (NEW.event ->> 'error');
     new_row.is_archived := false;
+    new_row.is_deleted := false;
+    new_row.is_file_uploaded := false;
+    new_row.original_filename := (NEW.event ->> 'original_filename');
+    new_row.path_in_storage := (NEW.event ->> 'path_in_storage');
+    new_row.reference_id := (NEW.event ->> 'reference_id')::UUID;
+    new_row.sanitized_filename := (NEW.event ->> 'sanitized_filename');
+    new_row.storage_identifier := (NEW.event ->> 'storage_identifier');
   ELSE
     -- Default all fields to current values
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.content_type := current_row.content_type;
     new_row.document_type := current_row.document_type;
+    new_row.error := current_row.error;
+    new_row.is_archived := current_row.is_archived;
+    new_row.is_deleted := current_row.is_deleted;
+    new_row.is_file_uploaded := current_row.is_file_uploaded;
     new_row.original_filename := current_row.original_filename;
     new_row.path_in_storage := current_row.path_in_storage;
     new_row.reference_id := current_row.reference_id;
     new_row.sanitized_filename := current_row.sanitized_filename;
     new_row.storage_identifier := current_row.storage_identifier;
-    new_row.error := current_row.error;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.is_file_uploaded := current_row.is_file_uploaded;
-    new_row.is_deleted := current_row.is_deleted;
-    new_row.is_archived := current_row.is_archived;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.content_type := (NEW.event ->> 'content_type');
       new_row.document_type := (NEW.event ->> 'document_type');
       new_row.original_filename := (NEW.event ->> 'original_filename');
@@ -100,7 +101,6 @@ BEGIN
       new_row.reference_id := (NEW.event ->> 'reference_id')::UUID;
       new_row.sanitized_filename := (NEW.event ->> 'sanitized_filename');
       new_row.storage_identifier := (NEW.event ->> 'storage_identifier');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'file_uploaded' THEN
       new_row.is_file_uploaded := true;
     WHEN 'upload_failed' THEN
@@ -120,52 +120,52 @@ BEGIN
     last_sequence,
     created_at,
     modified_at,
+    audit_entry_ids,
     content_type,
     document_type,
+    error,
+    is_archived,
+    is_deleted,
+    is_file_uploaded,
     original_filename,
     path_in_storage,
     reference_id,
     sanitized_filename,
-    storage_identifier,
-    error,
-    audit_entry_ids,
-    is_file_uploaded,
-    is_deleted,
-    is_archived
+    storage_identifier
   )
   VALUES (
     new_row.id,
     new_row.last_sequence,
     new_row.created_at,
     new_row.modified_at,
+    new_row.audit_entry_ids,
     new_row.content_type,
     new_row.document_type,
+    new_row.error,
+    new_row.is_archived,
+    new_row.is_deleted,
+    new_row.is_file_uploaded,
     new_row.original_filename,
     new_row.path_in_storage,
     new_row.reference_id,
     new_row.sanitized_filename,
-    new_row.storage_identifier,
-    new_row.error,
-    new_row.audit_entry_ids,
-    new_row.is_file_uploaded,
-    new_row.is_deleted,
-    new_row.is_archived
+    new_row.storage_identifier
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
     content_type = EXCLUDED.content_type,
     document_type = EXCLUDED.document_type,
+    error = EXCLUDED.error,
+    is_archived = EXCLUDED.is_archived,
+    is_deleted = EXCLUDED.is_deleted,
+    is_file_uploaded = EXCLUDED.is_file_uploaded,
     original_filename = EXCLUDED.original_filename,
     path_in_storage = EXCLUDED.path_in_storage,
     reference_id = EXCLUDED.reference_id,
     sanitized_filename = EXCLUDED.sanitized_filename,
-    storage_identifier = EXCLUDED.storage_identifier,
-    error = EXCLUDED.error,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    is_file_uploaded = EXCLUDED.is_file_uploaded,
-    is_deleted = EXCLUDED.is_deleted,
-    is_archived = EXCLUDED.is_archived;
+    storage_identifier = EXCLUDED.storage_identifier;
 
   RETURN NEW;
 END;

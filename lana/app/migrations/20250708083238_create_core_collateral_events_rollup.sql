@@ -5,12 +5,12 @@ CREATE TABLE core_collateral_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  account_id UUID,
-  credit_facility_id UUID,
-  wallet_id UUID,
   abs_diff BIGINT,
+  account_id UUID,
   action VARCHAR,
   collateral_amount BIGINT,
+  credit_facility_id UUID,
+  wallet_id UUID,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -51,34 +51,34 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.account_id := (NEW.event ->> 'account_id')::UUID;
-    new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
     new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
+    new_row.account_id := (NEW.event ->> 'account_id')::UUID;
     new_row.action := (NEW.event ->> 'action');
-    new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
        ELSE ARRAY[]::BIGINT[]
      END
 ;
+    new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
+    new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
+    new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
   ELSE
     -- Default all fields to current values
-    new_row.account_id := current_row.account_id;
-    new_row.credit_facility_id := current_row.credit_facility_id;
-    new_row.wallet_id := current_row.wallet_id;
     new_row.abs_diff := current_row.abs_diff;
+    new_row.account_id := current_row.account_id;
     new_row.action := current_row.action;
-    new_row.collateral_amount := current_row.collateral_amount;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.collateral_amount := current_row.collateral_amount;
+    new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.wallet_id := current_row.wallet_id;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -90,8 +90,8 @@ BEGIN
     WHEN 'updated' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.action := (NEW.event ->> 'action');
-      new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;
 
@@ -100,40 +100,40 @@ BEGIN
     last_sequence,
     created_at,
     modified_at,
-    account_id,
-    credit_facility_id,
-    wallet_id,
     abs_diff,
+    account_id,
     action,
-    collateral_amount,
     audit_entry_ids,
-    ledger_tx_ids
+    collateral_amount,
+    credit_facility_id,
+    ledger_tx_ids,
+    wallet_id
   )
   VALUES (
     new_row.id,
     new_row.last_sequence,
     new_row.created_at,
     new_row.modified_at,
-    new_row.account_id,
-    new_row.credit_facility_id,
-    new_row.wallet_id,
     new_row.abs_diff,
+    new_row.account_id,
     new_row.action,
-    new_row.collateral_amount,
     new_row.audit_entry_ids,
-    new_row.ledger_tx_ids
+    new_row.collateral_amount,
+    new_row.credit_facility_id,
+    new_row.ledger_tx_ids,
+    new_row.wallet_id
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
-    account_id = EXCLUDED.account_id,
-    credit_facility_id = EXCLUDED.credit_facility_id,
-    wallet_id = EXCLUDED.wallet_id,
     abs_diff = EXCLUDED.abs_diff,
+    account_id = EXCLUDED.account_id,
     action = EXCLUDED.action,
-    collateral_amount = EXCLUDED.collateral_amount,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids;
+    collateral_amount = EXCLUDED.collateral_amount,
+    credit_facility_id = EXCLUDED.credit_facility_id,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
+    wallet_id = EXCLUDED.wallet_id;
 
   RETURN NEW;
 END;

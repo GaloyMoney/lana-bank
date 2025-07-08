@@ -6,17 +6,17 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_ids JSONB,
+  accrued_at TIMESTAMPTZ,
+  amount BIGINT,
+  effective VARCHAR,
   facility_id UUID,
   facility_matures_at TIMESTAMPTZ,
   idx INTEGER,
+  obligation_id UUID,
   period JSONB,
   terms JSONB,
-  accrued_at TIMESTAMPTZ,
-  amount BIGINT,
-  tx_ref VARCHAR,
-  effective VARCHAR,
-  obligation_id UUID,
   total BIGINT,
+  tx_ref VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -61,73 +61,73 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_ids := (NEW.event -> 'account_ids');
-    new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
-    new_row.facility_matures_at := (NEW.event ->> 'facility_matures_at')::TIMESTAMPTZ;
-    new_row.idx := (NEW.event ->> 'idx')::INTEGER;
-    new_row.period := (NEW.event -> 'period');
-    new_row.terms := (NEW.event -> 'terms');
     new_row.accrued_at := (NEW.event ->> 'accrued_at')::TIMESTAMPTZ;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.tx_ref := (NEW.event ->> 'tx_ref');
-    new_row.effective := (NEW.event ->> 'effective');
-    new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
-    new_row.total := (NEW.event ->> 'total')::BIGINT;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
        ELSE ARRAY[]::BIGINT[]
      END
 ;
+    new_row.effective := (NEW.event ->> 'effective');
+    new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
+    new_row.facility_matures_at := (NEW.event ->> 'facility_matures_at')::TIMESTAMPTZ;
+    new_row.idx := (NEW.event ->> 'idx')::INTEGER;
+    new_row.is_interest_accruals_posted := false;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.is_interest_accruals_posted := false;
+    new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
+    new_row.period := (NEW.event -> 'period');
+    new_row.terms := (NEW.event -> 'terms');
+    new_row.total := (NEW.event ->> 'total')::BIGINT;
+    new_row.tx_ref := (NEW.event ->> 'tx_ref');
   ELSE
     -- Default all fields to current values
     new_row.account_ids := current_row.account_ids;
+    new_row.accrued_at := current_row.accrued_at;
+    new_row.amount := current_row.amount;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.effective := current_row.effective;
     new_row.facility_id := current_row.facility_id;
     new_row.facility_matures_at := current_row.facility_matures_at;
     new_row.idx := current_row.idx;
+    new_row.is_interest_accruals_posted := current_row.is_interest_accruals_posted;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.obligation_id := current_row.obligation_id;
     new_row.period := current_row.period;
     new_row.terms := current_row.terms;
-    new_row.accrued_at := current_row.accrued_at;
-    new_row.amount := current_row.amount;
-    new_row.tx_ref := current_row.tx_ref;
-    new_row.effective := current_row.effective;
-    new_row.obligation_id := current_row.obligation_id;
     new_row.total := current_row.total;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.is_interest_accruals_posted := current_row.is_interest_accruals_posted;
+    new_row.tx_ref := current_row.tx_ref;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_ids := (NEW.event -> 'account_ids');
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
       new_row.facility_matures_at := (NEW.event ->> 'facility_matures_at')::TIMESTAMPTZ;
       new_row.idx := (NEW.event ->> 'idx')::INTEGER;
       new_row.period := (NEW.event -> 'period');
       new_row.terms := (NEW.event -> 'terms');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'interest_accrued' THEN
       new_row.accrued_at := (NEW.event ->> 'accrued_at')::TIMESTAMPTZ;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.tx_ref := (NEW.event ->> 'tx_ref');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-    WHEN 'interest_accruals_posted' THEN
       new_row.tx_ref := (NEW.event ->> 'tx_ref');
+    WHEN 'interest_accruals_posted' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.effective := (NEW.event ->> 'effective');
+      new_row.is_interest_accruals_posted := true;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
       new_row.total := (NEW.event ->> 'total')::BIGINT;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.is_interest_accruals_posted := true;
+      new_row.tx_ref := (NEW.event ->> 'tx_ref');
   END CASE;
 
   INSERT INTO core_interest_accrual_cycle_events_rollup (
@@ -136,20 +136,20 @@ BEGIN
     created_at,
     modified_at,
     account_ids,
+    accrued_at,
+    amount,
+    audit_entry_ids,
+    effective,
     facility_id,
     facility_matures_at,
     idx,
+    is_interest_accruals_posted,
+    ledger_tx_ids,
+    obligation_id,
     period,
     terms,
-    accrued_at,
-    amount,
-    tx_ref,
-    effective,
-    obligation_id,
     total,
-    audit_entry_ids,
-    ledger_tx_ids,
-    is_interest_accruals_posted
+    tx_ref
   )
   VALUES (
     new_row.id,
@@ -157,39 +157,39 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_ids,
+    new_row.accrued_at,
+    new_row.amount,
+    new_row.audit_entry_ids,
+    new_row.effective,
     new_row.facility_id,
     new_row.facility_matures_at,
     new_row.idx,
+    new_row.is_interest_accruals_posted,
+    new_row.ledger_tx_ids,
+    new_row.obligation_id,
     new_row.period,
     new_row.terms,
-    new_row.accrued_at,
-    new_row.amount,
-    new_row.tx_ref,
-    new_row.effective,
-    new_row.obligation_id,
     new_row.total,
-    new_row.audit_entry_ids,
-    new_row.ledger_tx_ids,
-    new_row.is_interest_accruals_posted
+    new_row.tx_ref
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
     account_ids = EXCLUDED.account_ids,
+    accrued_at = EXCLUDED.accrued_at,
+    amount = EXCLUDED.amount,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
+    effective = EXCLUDED.effective,
     facility_id = EXCLUDED.facility_id,
     facility_matures_at = EXCLUDED.facility_matures_at,
     idx = EXCLUDED.idx,
+    is_interest_accruals_posted = EXCLUDED.is_interest_accruals_posted,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
+    obligation_id = EXCLUDED.obligation_id,
     period = EXCLUDED.period,
     terms = EXCLUDED.terms,
-    accrued_at = EXCLUDED.accrued_at,
-    amount = EXCLUDED.amount,
-    tx_ref = EXCLUDED.tx_ref,
-    effective = EXCLUDED.effective,
-    obligation_id = EXCLUDED.obligation_id,
     total = EXCLUDED.total,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    is_interest_accruals_posted = EXCLUDED.is_interest_accruals_posted;
+    tx_ref = EXCLUDED.tx_ref;
 
   RETURN NEW;
 END;

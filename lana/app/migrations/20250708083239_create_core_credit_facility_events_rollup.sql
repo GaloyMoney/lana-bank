@@ -6,31 +6,31 @@ CREATE TABLE core_credit_facility_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_ids JSONB,
+  activated_at TIMESTAMPTZ,
   amount BIGINT,
   approval_process_id UUID,
+  approved BOOLEAN,
+  collateral BIGINT,
   collateral_id UUID,
+  collateralization_ratio VARCHAR,
+  collateralization_state VARCHAR,
   customer_id UUID,
   disbursal_credit_account_id UUID,
-  terms JSONB,
-  approved BOOLEAN,
-  activated_at TIMESTAMPTZ,
   interest_accrual_cycle_idx INTEGER,
   interest_period JSONB,
-  collateral BIGINT,
-  collateralization_state VARCHAR,
   outstanding JSONB,
   price JSONB,
-  collateralization_ratio VARCHAR,
+  terms JSONB,
 
   -- Collection rollups
-  obligation_ids UUID[],
   audit_entry_ids BIGINT[],
-  ledger_tx_ids UUID[],
   interest_accrual_ids UUID[],
+  ledger_tx_ids UUID[],
+  obligation_ids UUID[],
 
   -- Toggle fields
-  is_approval_process_concluded BOOLEAN DEFAULT false,
   is_activated BOOLEAN DEFAULT false,
+  is_approval_process_concluded BOOLEAN DEFAULT false,
   is_completed BOOLEAN DEFAULT false
 
 );
@@ -69,73 +69,73 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_ids := (NEW.event -> 'account_ids');
+    new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
-    new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
-    new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
-    new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
-    new_row.terms := (NEW.event -> 'terms');
     new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-    new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
-    new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
-    new_row.interest_period := (NEW.event -> 'interest_period');
-    new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
-    new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
-    new_row.outstanding := (NEW.event -> 'outstanding');
-    new_row.price := (NEW.event -> 'price');
-    new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
-    new_row.obligation_ids := CASE
-       WHEN NEW.event ? 'obligation_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
        ELSE ARRAY[]::BIGINT[]
      END
 ;
-    new_row.ledger_tx_ids := CASE
-       WHEN NEW.event ? 'ledger_tx_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
+    new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
+    new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
+    new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
+    new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
+    new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
+    new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
+    new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
     new_row.interest_accrual_ids := CASE
        WHEN NEW.event ? 'interest_accrual_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'interest_accrual_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.is_approval_process_concluded := false;
+    new_row.interest_period := (NEW.event -> 'interest_period');
     new_row.is_activated := false;
+    new_row.is_approval_process_concluded := false;
     new_row.is_completed := false;
+    new_row.ledger_tx_ids := CASE
+       WHEN NEW.event ? 'ledger_tx_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.obligation_ids := CASE
+       WHEN NEW.event ? 'obligation_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.outstanding := (NEW.event -> 'outstanding');
+    new_row.price := (NEW.event -> 'price');
+    new_row.terms := (NEW.event -> 'terms');
   ELSE
     -- Default all fields to current values
     new_row.account_ids := current_row.account_ids;
+    new_row.activated_at := current_row.activated_at;
     new_row.amount := current_row.amount;
     new_row.approval_process_id := current_row.approval_process_id;
+    new_row.approved := current_row.approved;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.collateral := current_row.collateral;
     new_row.collateral_id := current_row.collateral_id;
+    new_row.collateralization_ratio := current_row.collateralization_ratio;
+    new_row.collateralization_state := current_row.collateralization_state;
     new_row.customer_id := current_row.customer_id;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
-    new_row.terms := current_row.terms;
-    new_row.approved := current_row.approved;
-    new_row.activated_at := current_row.activated_at;
     new_row.interest_accrual_cycle_idx := current_row.interest_accrual_cycle_idx;
+    new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.interest_period := current_row.interest_period;
-    new_row.collateral := current_row.collateral;
-    new_row.collateralization_state := current_row.collateralization_state;
+    new_row.is_activated := current_row.is_activated;
+    new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
+    new_row.is_completed := current_row.is_completed;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.obligation_ids := current_row.obligation_ids;
     new_row.outstanding := current_row.outstanding;
     new_row.price := current_row.price;
-    new_row.collateralization_ratio := current_row.collateralization_ratio;
-    new_row.obligation_ids := current_row.obligation_ids;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.interest_accrual_ids := current_row.interest_accrual_ids;
-    new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
-    new_row.is_activated := current_row.is_activated;
-    new_row.is_completed := current_row.is_completed;
+    new_row.terms := current_row.terms;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -144,12 +144,12 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
-      new_row.terms := (NEW.event -> 'terms');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.terms := (NEW.event -> 'terms');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
@@ -158,27 +158,27 @@ BEGIN
     WHEN 'activated' THEN
       new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.is_activated := true;
-    WHEN 'interest_accrual_cycle_started' THEN
-      new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
-      new_row.interest_period := (NEW.event -> 'interest_period');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.interest_accrual_ids := array_append(COALESCE(current_row.interest_accrual_ids, ARRAY[]::UUID[]), (NEW.event ->> 'interest_accrual_id')::UUID);
-    WHEN 'interest_accrual_cycle_concluded' THEN
-      new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
-      new_row.obligation_ids := array_append(COALESCE(current_row.obligation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_id')::UUID);
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+    WHEN 'interest_accrual_cycle_started' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
+      new_row.interest_accrual_ids := array_append(COALESCE(current_row.interest_accrual_ids, ARRAY[]::UUID[]), (NEW.event ->> 'interest_accrual_id')::UUID);
+      new_row.interest_period := (NEW.event -> 'interest_period');
+    WHEN 'interest_accrual_cycle_concluded' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.obligation_ids := array_append(COALESCE(current_row.obligation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_id')::UUID);
     WHEN 'collateralization_state_changed' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
       new_row.outstanding := (NEW.event -> 'outstanding');
       new_row.price := (NEW.event -> 'price');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'collateralization_ratio_changed' THEN
-      new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
     WHEN 'completed' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_completed := true;
@@ -190,28 +190,28 @@ BEGIN
     created_at,
     modified_at,
     account_ids,
+    activated_at,
     amount,
     approval_process_id,
+    approved,
+    audit_entry_ids,
+    collateral,
     collateral_id,
+    collateralization_ratio,
+    collateralization_state,
     customer_id,
     disbursal_credit_account_id,
-    terms,
-    approved,
-    activated_at,
     interest_accrual_cycle_idx,
+    interest_accrual_ids,
     interest_period,
-    collateral,
-    collateralization_state,
+    is_activated,
+    is_approval_process_concluded,
+    is_completed,
+    ledger_tx_ids,
+    obligation_ids,
     outstanding,
     price,
-    collateralization_ratio,
-    obligation_ids,
-    audit_entry_ids,
-    ledger_tx_ids,
-    interest_accrual_ids,
-    is_approval_process_concluded,
-    is_activated,
-    is_completed
+    terms
   )
   VALUES (
     new_row.id,
@@ -219,55 +219,55 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_ids,
+    new_row.activated_at,
     new_row.amount,
     new_row.approval_process_id,
+    new_row.approved,
+    new_row.audit_entry_ids,
+    new_row.collateral,
     new_row.collateral_id,
+    new_row.collateralization_ratio,
+    new_row.collateralization_state,
     new_row.customer_id,
     new_row.disbursal_credit_account_id,
-    new_row.terms,
-    new_row.approved,
-    new_row.activated_at,
     new_row.interest_accrual_cycle_idx,
+    new_row.interest_accrual_ids,
     new_row.interest_period,
-    new_row.collateral,
-    new_row.collateralization_state,
+    new_row.is_activated,
+    new_row.is_approval_process_concluded,
+    new_row.is_completed,
+    new_row.ledger_tx_ids,
+    new_row.obligation_ids,
     new_row.outstanding,
     new_row.price,
-    new_row.collateralization_ratio,
-    new_row.obligation_ids,
-    new_row.audit_entry_ids,
-    new_row.ledger_tx_ids,
-    new_row.interest_accrual_ids,
-    new_row.is_approval_process_concluded,
-    new_row.is_activated,
-    new_row.is_completed
+    new_row.terms
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
     account_ids = EXCLUDED.account_ids,
+    activated_at = EXCLUDED.activated_at,
     amount = EXCLUDED.amount,
     approval_process_id = EXCLUDED.approval_process_id,
+    approved = EXCLUDED.approved,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
+    collateral = EXCLUDED.collateral,
     collateral_id = EXCLUDED.collateral_id,
+    collateralization_ratio = EXCLUDED.collateralization_ratio,
+    collateralization_state = EXCLUDED.collateralization_state,
     customer_id = EXCLUDED.customer_id,
     disbursal_credit_account_id = EXCLUDED.disbursal_credit_account_id,
-    terms = EXCLUDED.terms,
-    approved = EXCLUDED.approved,
-    activated_at = EXCLUDED.activated_at,
     interest_accrual_cycle_idx = EXCLUDED.interest_accrual_cycle_idx,
+    interest_accrual_ids = EXCLUDED.interest_accrual_ids,
     interest_period = EXCLUDED.interest_period,
-    collateral = EXCLUDED.collateral,
-    collateralization_state = EXCLUDED.collateralization_state,
+    is_activated = EXCLUDED.is_activated,
+    is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
+    is_completed = EXCLUDED.is_completed,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
+    obligation_ids = EXCLUDED.obligation_ids,
     outstanding = EXCLUDED.outstanding,
     price = EXCLUDED.price,
-    collateralization_ratio = EXCLUDED.collateralization_ratio,
-    obligation_ids = EXCLUDED.obligation_ids,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    interest_accrual_ids = EXCLUDED.interest_accrual_ids,
-    is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
-    is_activated = EXCLUDED.is_activated,
-    is_completed = EXCLUDED.is_completed;
+    terms = EXCLUDED.terms;
 
   RETURN NEW;
 END;

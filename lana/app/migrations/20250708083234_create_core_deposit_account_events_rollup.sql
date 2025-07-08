@@ -51,41 +51,41 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
-    new_row.description := (NEW.event ->> 'description');
-    new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
-    new_row.name := (NEW.event ->> 'name');
-    new_row.reference := (NEW.event ->> 'reference');
-    new_row.status := (NEW.event ->> 'status');
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
        ELSE ARRAY[]::BIGINT[]
      END
 ;
+    new_row.description := (NEW.event ->> 'description');
+    new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
+    new_row.name := (NEW.event ->> 'name');
+    new_row.reference := (NEW.event ->> 'reference');
+    new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
     new_row.account_holder_id := current_row.account_holder_id;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.description := current_row.description;
     new_row.ledger_account_id := current_row.ledger_account_id;
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
     new_row.status := current_row.status;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.description := (NEW.event ->> 'description');
       new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
       new_row.status := (NEW.event ->> 'status');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'account_status_updated' THEN
-      new_row.status := (NEW.event ->> 'status');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.status := (NEW.event ->> 'status');
   END CASE;
 
   INSERT INTO core_deposit_account_events_rollup (
@@ -94,12 +94,12 @@ BEGIN
     created_at,
     modified_at,
     account_holder_id,
+    audit_entry_ids,
     description,
     ledger_account_id,
     name,
     reference,
-    status,
-    audit_entry_ids
+    status
   )
   VALUES (
     new_row.id,
@@ -107,23 +107,23 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_holder_id,
+    new_row.audit_entry_ids,
     new_row.description,
     new_row.ledger_account_id,
     new_row.name,
     new_row.reference,
-    new_row.status,
-    new_row.audit_entry_ids
+    new_row.status
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
     account_holder_id = EXCLUDED.account_holder_id,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
     description = EXCLUDED.description,
     ledger_account_id = EXCLUDED.ledger_account_id,
     name = EXCLUDED.name,
     reference = EXCLUDED.reference,
-    status = EXCLUDED.status,
-    audit_entry_ids = EXCLUDED.audit_entry_ids;
+    status = EXCLUDED.status;
 
   RETURN NEW;
 END;

@@ -46,7 +46,6 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.name := (NEW.event ->> 'name');
     new_row.audit_entry_ids := CASE
        WHEN NEW.event ? 'audit_entry_ids' THEN
          ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
@@ -59,18 +58,19 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
+    new_row.name := (NEW.event ->> 'name');
   ELSE
     -- Default all fields to current values
-    new_row.name := current_row.name;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.member_ids := current_row.member_ids;
+    new_row.name := current_row.name;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.name := (NEW.event ->> 'name');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.name := (NEW.event ->> 'name');
     WHEN 'member_added' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.member_ids := array_append(COALESCE(current_row.member_ids, ARRAY[]::UUID[]), (NEW.event ->> 'member_id')::UUID);
@@ -84,25 +84,25 @@ BEGIN
     last_sequence,
     created_at,
     modified_at,
-    name,
     audit_entry_ids,
-    member_ids
+    member_ids,
+    name
   )
   VALUES (
     new_row.id,
     new_row.last_sequence,
     new_row.created_at,
     new_row.modified_at,
-    new_row.name,
     new_row.audit_entry_ids,
-    new_row.member_ids
+    new_row.member_ids,
+    new_row.name
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
-    name = EXCLUDED.name,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
-    member_ids = EXCLUDED.member_ids;
+    member_ids = EXCLUDED.member_ids,
+    name = EXCLUDED.name;
 
   RETURN NEW;
 END;

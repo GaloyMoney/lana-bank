@@ -5,17 +5,17 @@ CREATE TABLE core_approval_process_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
+  approved BOOLEAN,
   policy_id UUID,
   process_type VARCHAR,
   rules JSONB,
   target_ref VARCHAR,
-  approved BOOLEAN,
 
   -- Collection rollups
-  deny_reasons VARCHAR[],
-  denier_ids UUID[],
   approver_ids UUID[],
   audit_entry_ids BIGINT[],
+  denier_ids UUID[],
+  deny_reasons VARCHAR[],
 
   -- Toggle fields
   is_concluded BOOLEAN DEFAULT false
@@ -55,23 +55,7 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.policy_id := (NEW.event ->> 'policy_id')::UUID;
-    new_row.process_type := (NEW.event ->> 'process_type');
-    new_row.rules := (NEW.event -> 'rules');
-    new_row.target_ref := (NEW.event ->> 'target_ref');
     new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-    new_row.deny_reasons := CASE
-       WHEN NEW.event ? 'deny_reasons' THEN
-         ARRAY(SELECT value::text FROM jsonb_array_elements_text(NEW.event -> 'deny_reasons'))
-       ELSE ARRAY[]::VARCHAR[]
-     END
-;
-    new_row.denier_ids := CASE
-       WHEN NEW.event ? 'denier_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'denier_ids'))
-       ELSE ARRAY[]::UUID[]
-     END
-;
     new_row.approver_ids := CASE
        WHEN NEW.event ? 'approver_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'approver_ids'))
@@ -84,36 +68,52 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
+    new_row.denier_ids := CASE
+       WHEN NEW.event ? 'denier_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'denier_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
+    new_row.deny_reasons := CASE
+       WHEN NEW.event ? 'deny_reasons' THEN
+         ARRAY(SELECT value::text FROM jsonb_array_elements_text(NEW.event -> 'deny_reasons'))
+       ELSE ARRAY[]::VARCHAR[]
+     END
+;
     new_row.is_concluded := false;
+    new_row.policy_id := (NEW.event ->> 'policy_id')::UUID;
+    new_row.process_type := (NEW.event ->> 'process_type');
+    new_row.rules := (NEW.event -> 'rules');
+    new_row.target_ref := (NEW.event ->> 'target_ref');
   ELSE
     -- Default all fields to current values
+    new_row.approved := current_row.approved;
+    new_row.approver_ids := current_row.approver_ids;
+    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.denier_ids := current_row.denier_ids;
+    new_row.deny_reasons := current_row.deny_reasons;
+    new_row.is_concluded := current_row.is_concluded;
     new_row.policy_id := current_row.policy_id;
     new_row.process_type := current_row.process_type;
     new_row.rules := current_row.rules;
     new_row.target_ref := current_row.target_ref;
-    new_row.approved := current_row.approved;
-    new_row.deny_reasons := current_row.deny_reasons;
-    new_row.denier_ids := current_row.denier_ids;
-    new_row.approver_ids := current_row.approver_ids;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.is_concluded := current_row.is_concluded;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.policy_id := (NEW.event ->> 'policy_id')::UUID;
       new_row.process_type := (NEW.event ->> 'process_type');
       new_row.rules := (NEW.event -> 'rules');
       new_row.target_ref := (NEW.event ->> 'target_ref');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'approved' THEN
       new_row.approver_ids := array_append(COALESCE(current_row.approver_ids, ARRAY[]::UUID[]), (NEW.event ->> 'approver_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
     WHEN 'denied' THEN
-      new_row.deny_reasons := array_append(COALESCE(current_row.deny_reasons, ARRAY[]::VARCHAR[]), (NEW.event ->> 'reason'));
-      new_row.denier_ids := array_append(COALESCE(current_row.denier_ids, ARRAY[]::UUID[]), (NEW.event ->> 'denier_id')::UUID);
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.denier_ids := array_append(COALESCE(current_row.denier_ids, ARRAY[]::UUID[]), (NEW.event ->> 'denier_id')::UUID);
+      new_row.deny_reasons := array_append(COALESCE(current_row.deny_reasons, ARRAY[]::VARCHAR[]), (NEW.event ->> 'reason'));
     WHEN 'concluded' THEN
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -125,46 +125,46 @@ BEGIN
     last_sequence,
     created_at,
     modified_at,
+    approved,
+    approver_ids,
+    audit_entry_ids,
+    denier_ids,
+    deny_reasons,
+    is_concluded,
     policy_id,
     process_type,
     rules,
-    target_ref,
-    approved,
-    deny_reasons,
-    denier_ids,
-    approver_ids,
-    audit_entry_ids,
-    is_concluded
+    target_ref
   )
   VALUES (
     new_row.id,
     new_row.last_sequence,
     new_row.created_at,
     new_row.modified_at,
+    new_row.approved,
+    new_row.approver_ids,
+    new_row.audit_entry_ids,
+    new_row.denier_ids,
+    new_row.deny_reasons,
+    new_row.is_concluded,
     new_row.policy_id,
     new_row.process_type,
     new_row.rules,
-    new_row.target_ref,
-    new_row.approved,
-    new_row.deny_reasons,
-    new_row.denier_ids,
-    new_row.approver_ids,
-    new_row.audit_entry_ids,
-    new_row.is_concluded
+    new_row.target_ref
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
     modified_at = EXCLUDED.modified_at,
+    approved = EXCLUDED.approved,
+    approver_ids = EXCLUDED.approver_ids,
+    audit_entry_ids = EXCLUDED.audit_entry_ids,
+    denier_ids = EXCLUDED.denier_ids,
+    deny_reasons = EXCLUDED.deny_reasons,
+    is_concluded = EXCLUDED.is_concluded,
     policy_id = EXCLUDED.policy_id,
     process_type = EXCLUDED.process_type,
     rules = EXCLUDED.rules,
-    target_ref = EXCLUDED.target_ref,
-    approved = EXCLUDED.approved,
-    deny_reasons = EXCLUDED.deny_reasons,
-    denier_ids = EXCLUDED.denier_ids,
-    approver_ids = EXCLUDED.approver_ids,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    is_concluded = EXCLUDED.is_concluded;
+    target_ref = EXCLUDED.target_ref;
 
   RETURN NEW;
 END;
