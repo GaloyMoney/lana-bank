@@ -375,6 +375,20 @@ CREATE TABLE core_document_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_reports (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_report_events (
+  id UUID NOT NULL REFERENCES core_reports(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE reports (
   id UUID PRIMARY KEY,
   created_at TIMESTAMPTZ NOT NULL

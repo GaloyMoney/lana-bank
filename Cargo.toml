@@ -25,6 +25,7 @@ members = [
   "core/credit",
   "core/custody",
   "core/document-storage",
+  "core/report",
 
   "lib/authz",
   "lib/audit",
