@@ -37,7 +37,7 @@ active_cf as(
     select
         active_cf.credit_facility_id,
         active_cf.customer_id,
-        active_cf.activated_at,
+        active_cf.credit_facility_activated_at,
         active_cf.facility_amount_usd,
         total_disbursed_usd,
         number_disbursals,
@@ -45,7 +45,7 @@ active_cf as(
             credit_facility_id,
             customer_id,
             facility_amount_usd,
-            activated_at
+            credit_facility_activated_at
         )
     from active_cf
     left join disbursals using(credit_facility_id)
