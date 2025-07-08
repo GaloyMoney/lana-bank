@@ -25,6 +25,7 @@ jobs:
       - name: Start services for Cypress tests
         run: nix develop -c make start-cypress-stack
         env:
+          PREFER_PODMAN: "1"
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}

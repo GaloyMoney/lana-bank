@@ -36,20 +36,8 @@ trap cleanup INT TERM
 
 echo "Starting Cypress test stack..."
 
-# Ensure proper podman setup for CI environment
-echo "Setting up podman environment..."
-export ENGINE_DEFAULT=podman
-
-# Setup podman if not already configured
-if [ "$(uname)" = "Linux" ] && [ "${CI:-}${CI_MODE:-}" = "true" ]; then
-    echo "CI environment detected, setting up podman..."
-    make podman-setup
-else
-    echo "Development environment, skipping podman setup"
-fi
-
 # Step 1: Start dependencies (databases, auth services, etc.)
-echo "Starting dependencies with podman..."
+echo "Starting dependencies..."
 make start-deps
 
 # Add diagnostic info after starting dependencies
