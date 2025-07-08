@@ -42,7 +42,7 @@ services:
     ports: [ 1025:1025, 1080:1080 ]
 
   airflow-scheduler:
-    image: us.gcr.io/galoyorg/meltano:edge
+    image: us.gcr.io/galoyorg/meltano@sha256:5225338eee4c283c917cb64b892baa457fd1dcfa9e929cb10b071bd823730c83
     # image: meltano:latest # nix build .#meltano-image && docker load < result
     command: meltano invoke airflow scheduler
     volumes:
@@ -71,7 +71,7 @@ services:
       SUMSUB_SECRET: ${SUMSUB_SECRET}
 
   airflow-webserver:
-    image: us.gcr.io/galoyorg/meltano:edge
+    image: us.gcr.io/galoyorg/meltano@sha256:5225338eee4c283c917cb64b892baa457fd1dcfa9e929cb10b071bd823730c83
     # image: meltano:latest # nix build .#meltano-image && docker load < result
     command: meltano invoke airflow webserver
     ports: [8080:8080]
