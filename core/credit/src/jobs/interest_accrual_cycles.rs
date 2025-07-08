@@ -180,9 +180,13 @@ where
             );
         };
 
-        self.ledger
-            .record_interest_accrual_cycle(db, obligation)
-            .await?;
+        if let Some(obligation) = obligation {
+            self.ledger
+                .record_interest_accrual_cycle(db, obligation)
+                .await?;
+        } else {
+            db.commit().await?;
+        }
 
         return Ok(JobCompletion::Complete);
     }

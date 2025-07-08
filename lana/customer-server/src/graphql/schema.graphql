@@ -107,7 +107,7 @@ type CreditFacilityInterestAccrued {
 	cents: UsdCents!
 	recordedAt: Timestamp!
 	effective: Date!
-	txId: UUID!
+	txId: UUID
 	days: Int!
 }
 

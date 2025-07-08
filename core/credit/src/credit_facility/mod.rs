@@ -291,7 +291,7 @@ where
         audit_info: &audit::AuditInfo,
     ) -> Result<
         (
-            Obligation,
+            Option<Obligation>,
             Option<(InterestAccrualCycleId, chrono::DateTime<chrono::Utc>)>,
         ),
         CreditFacilityError,
@@ -306,10 +306,15 @@ where
             unreachable!("Should not be possible");
         };
 
-        let obligation = self
-            .obligations
-            .create_with_jobs_in_op(db, new_obligation)
-            .await?;
+        let obligation = if let Some(new_obligation) = new_obligation {
+            Some(
+                self.obligations
+                    .create_with_jobs_in_op(db, new_obligation)
+                    .await?,
+            )
+        } else {
+            None
+        };
 
         let res = credit_facility.start_interest_accrual_cycle(audit_info.clone())?;
         self.repo.update_in_op(db, &mut credit_facility).await?;

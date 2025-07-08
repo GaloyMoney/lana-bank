@@ -54,8 +54,8 @@ pub enum CreditFacilityEvent {
     },
     InterestAccrualCycleConcluded {
         interest_accrual_cycle_idx: InterestAccrualCycleIdx,
-        ledger_tx_id: LedgerTxId,
-        obligation_id: ObligationId,
+        ledger_tx_id: Option<LedgerTxId>,
+        obligation_id: Option<ObligationId>,
         audit_info: AuditInfo,
     },
     CollateralizationStateChanged {
@@ -390,7 +390,7 @@ impl CreditFacility {
     pub(crate) fn record_interest_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<Idempotent<NewObligation>, CreditFacilityError> {
+    ) -> Result<Idempotent<Option<NewObligation>>, CreditFacilityError> {
         let accrual_cycle_data = self
             .interest_accrual_cycle_in_progress()
             .expect("accrual not found")
@@ -412,11 +412,12 @@ impl CreditFacility {
                 },
             )
         };
+
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleConcluded {
                 interest_accrual_cycle_idx: idx,
-                obligation_id: new_obligation.id,
-                ledger_tx_id: accrual_cycle_data.tx_id,
+                obligation_id: new_obligation.as_ref().map(|o| o.id),
+                ledger_tx_id: new_obligation.as_ref().map(|o| o.tx_id),
                 audit_info: audit_info.clone(),
             });
 

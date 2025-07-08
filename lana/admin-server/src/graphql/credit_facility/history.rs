@@ -63,7 +63,7 @@ pub struct CreditFacilityInterestAccrued {
     pub cents: UsdCents,
     pub recorded_at: Timestamp,
     pub effective: Date,
-    pub tx_id: UUID,
+    pub tx_id: Option<UUID>,
     pub days: u32,
 }
 
@@ -168,7 +168,7 @@ impl From<lana_app::credit::InterestAccrualsPosted> for CreditFacilityInterestAc
             cents: interest.cents,
             recorded_at: interest.recorded_at.into(),
             effective: interest.effective.into(),
-            tx_id: UUID::from(interest.tx_id),
+            tx_id: interest.tx_id.map(UUID::from),
             days: interest.days,
         }
     }

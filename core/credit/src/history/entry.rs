@@ -52,7 +52,7 @@ pub struct InterestAccrualsPosted {
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
     pub days: u32,
-    pub tx_id: LedgerTxId,
+    pub tx_id: Option<LedgerTxId>,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]
