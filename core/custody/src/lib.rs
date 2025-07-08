@@ -42,6 +42,7 @@ where
     config: CustodyConfig,
     wallets: WalletRepo<E>,
     pool: sqlx::PgPool,
+    outbox: Outbox<E>,
 }
 
 impl<Perms, E> CoreCustody<Perms, E>
@@ -63,6 +64,7 @@ where
             config,
             wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
             pool: pool.clone(),
+            outbox: outbox.clone(),
         };
 
         if let Some(deprecated_encryption_key) = custody.config.deprecated_encryption_key.as_ref() {
@@ -313,9 +315,9 @@ where
     pub async fn handle_webhook(
         &self,
         provider: String,
-        uri: &http::Uri,
-        headers: &http::HeaderMap,
-        payload: serde_json::Value,
+        uri: http::Uri,
+        headers: http::HeaderMap,
+        payload: &[u8],
     ) -> Result<(), CoreCustodyError> {
         let custodian = self.custodians.find_by_provider(provider).await;
 
@@ -325,16 +327,40 @@ where
             Err(e) => return Err(e.into()),
         };
 
+        let json_payload = serde_json::from_slice(payload).unwrap_or_default();
+
         self.custodians
-            .persist_webhook_notification(custodian_id, uri, headers, &payload)
+            .persist_webhook_notification(custodian_id, &uri, &headers, &json_payload)
             .await?;
 
         if let Ok(custodian) = custodian {
-            custodian
+            if let Some(notification) = custodian
                 .custodian_client(self.config.encryption.key)
                 .await?
-                .process_webhook(payload)
-                .await?;
+                .process_webhook(&headers, payload)
+                .await?
+            {
+                match notification {
+                    CustodianNotification::WalletBalanceChanged {
+                        external_wallet_id,
+                        amount,
+                    } => {
+                        let mut db = self.custodians.begin_op().await.unwrap();
+                        self.outbox
+                            .publish_persisted(
+                                db.tx(),
+                                CoreCustodyEvent::WalletBalanceChanged {
+                                    external_wallet_id,
+                                    amount,
+                                },
+                            )
+                            .await
+                            .unwrap();
+
+                        db.commit().await.unwrap();
+                    }
+                }
+            }
         }
 
         Ok(())
@@ -394,6 +420,7 @@ where
             wallets: self.wallets.clone(),
             pool: self.pool.clone(),
             config: self.config.clone(),
+            outbox: self.outbox.clone(),
         }
     }
 }

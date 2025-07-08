@@ -28,6 +28,8 @@ pub enum WalletEvent {
 pub struct Wallet {
     pub id: WalletId,
     pub custodian_id: CustodianId,
+    #[builder(setter(into, strip_option), default)]
+    pub external_wallet_id: Option<String>,
 
     events: EntityEvents<WalletEvent>,
 }
@@ -44,6 +46,8 @@ impl Wallet {
             self.events.iter_all(),
             WalletEvent::ExternalWalletAttached { external_id: existing, .. } if existing == &external_id
         );
+
+        self.external_wallet_id = Some(external_id.clone());
 
         self.events.push(WalletEvent::ExternalWalletAttached {
             external_id,
@@ -67,11 +71,15 @@ impl TryFromEvents<WalletEvent> for Wallet {
     fn try_from_events(events: EntityEvents<WalletEvent>) -> Result<Self, EsEntityError> {
         let mut builder = WalletBuilder::default();
         for event in events.iter_all() {
-            if let WalletEvent::Initialized {
-                id, custodian_id, ..
-            } = event
-            {
-                builder = builder.id(*id).custodian_id(*custodian_id);
+            match event {
+                WalletEvent::Initialized {
+                    id, custodian_id, ..
+                } => {
+                    builder = builder.id(*id).custodian_id(*custodian_id);
+                }
+                WalletEvent::ExternalWalletAttached { external_id, .. } => {
+                    builder = builder.external_wallet_id(external_id.to_owned());
+                }
             }
         }
         builder.events(events).build()
@@ -84,6 +92,8 @@ pub struct NewWallet {
     pub(super) id: WalletId,
     #[builder(setter(into))]
     pub(super) custodian_id: CustodianId,
+    #[builder(setter(into, strip_option), default)]
+    pub(super) external_wallet_id: Option<String>,
     pub(super) audit_info: AuditInfo,
 }
 

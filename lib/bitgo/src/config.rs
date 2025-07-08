@@ -7,4 +7,5 @@ pub struct BitgoConfig {
     pub express_endpoint: String,
     pub passphrase: String,
     pub bitgo_test: bool,
+    pub webhook_secret: Vec<u8>,
 }

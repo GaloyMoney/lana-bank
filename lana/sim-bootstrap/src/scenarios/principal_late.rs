@@ -33,7 +33,7 @@ pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Res
         match &msg.payload {
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
                 app.credit()
-                    .update_collateral(
+                    .update_collateral_manually(
                         &sub,
                         cf.id,
                         Satoshis::try_from_btc(dec!(230))?,
