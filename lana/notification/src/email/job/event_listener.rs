@@ -77,7 +77,7 @@ impl JobRunner for EmailEventListenerRunner {
             }
             state.sequence = message.sequence;
             current_job
-                .update_execution_state_in_tx(db.tx(), &state)
+                .update_execution_state_in_op(db.tx(), &state)
                 .await?;
             db.commit().await?;
         }

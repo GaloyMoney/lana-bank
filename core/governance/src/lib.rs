@@ -88,7 +88,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
@@ -354,7 +354,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 &mut db,
                 GovernanceObject::approval_process(process.id),
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,

@@ -140,11 +140,11 @@ where
         db: &mut es_entity::DbOp<'_>,
         id: CreditFacilityId,
     ) -> Result<ActivationOutcome, CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id_in_tx(db.tx(), id).await?;
+        let mut credit_facility = self.repo.find_by_id_in_op(db.tx(), id).await?;
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
@@ -188,7 +188,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CoreCreditObject::credit_facility(credit_facility.id),
                 CoreCreditAction::CREDIT_FACILITY_CONCLUDE_APPROVAL_PROCESS,
@@ -218,7 +218,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
@@ -383,7 +383,7 @@ where
             let audit_info = self
                 .authz
                 .audit()
-                .record_system_entry_in_tx(
+                .record_system_entry_in_op(
                     db.tx(),
                     CoreCreditObject::all_credit_facilities(),
                     CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
@@ -430,7 +430,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,

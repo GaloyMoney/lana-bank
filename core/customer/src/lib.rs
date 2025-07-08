@@ -264,7 +264,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CustomerObject::customer(customer_id),
                 CoreCustomerAction::CUSTOMER_START_KYC,
@@ -290,7 +290,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CustomerObject::customer(customer_id),
                 CoreCustomerAction::CUSTOMER_APPROVE_KYC,
@@ -321,7 +321,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CustomerObject::customer(customer_id),
                 CoreCustomerAction::CUSTOMER_DECLINE_KYC,

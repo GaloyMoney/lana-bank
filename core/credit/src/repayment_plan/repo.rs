@@ -21,7 +21,7 @@ impl RepaymentPlanRepo {
         Ok(self.pool.begin().await?)
     }
 
-    pub async fn persist_in_tx(
+    pub async fn persist_in_op(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         credit_facility_id: CreditFacilityId,

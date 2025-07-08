@@ -75,10 +75,10 @@ impl JobRunner for DashboardProjectionJobRunner {
             if let Some(payload) = &message.payload {
                 if state.dashboard.process_event(message.recorded_at, payload) {
                     let mut db = self.repo.begin().await?;
-                    self.repo.persist_in_tx(&mut db, &state.dashboard).await?;
+                    self.repo.persist_in_op(&mut db, &state.dashboard).await?;
                     state.sequence = message.sequence;
                     current_job
-                        .update_execution_state_in_tx(&mut db, &state)
+                        .update_execution_state_in_op(&mut db, &state)
                         .await?;
                     db.commit().await?;
                 }

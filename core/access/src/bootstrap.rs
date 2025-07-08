@@ -120,7 +120,7 @@ where
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CoreAccessObject::all_users(),
                 CoreAccessAction::ROLE_CREATE,

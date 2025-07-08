@@ -97,11 +97,11 @@ where
 
                 let mut repayment_plan = self.repo.load(id).await?;
                 repayment_plan.process_event(state.sequence, event);
-                self.repo.persist_in_tx(&mut db, id, repayment_plan).await?;
+                self.repo.persist_in_op(&mut db, id, repayment_plan).await?;
 
                 state.sequence = message.sequence;
                 current_job
-                    .update_execution_state_in_tx(&mut db, &state)
+                    .update_execution_state_in_op(&mut db, &state)
                     .await?;
 
                 db.commit().await?;

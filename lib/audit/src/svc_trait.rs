@@ -64,7 +64,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         Ok(AuditInfo::from((record.id, sub)))
     }
 
-    async fn record_system_entry_in_tx(
+    async fn record_system_entry_in_op(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         object: impl Into<Self::Object> + Send,
@@ -74,11 +74,11 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         let object = object.into();
         let action = action.into();
 
-        self.record_entry_in_tx(tx, &subject, object, action, true)
+        self.record_entry_in_op(tx, &subject, object, action, true)
             .await
     }
 
-    async fn record_entry_in_tx(
+    async fn record_entry_in_op(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         subject: &Self::Subject,

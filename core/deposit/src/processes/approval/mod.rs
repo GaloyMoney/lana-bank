@@ -104,7 +104,7 @@ where
         let mut db = self.repo.begin_op().await?;
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),

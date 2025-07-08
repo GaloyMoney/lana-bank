@@ -97,11 +97,11 @@ where
 
                 let mut history = self.repo.load(id).await?;
                 history.process_event(event);
-                self.repo.persist_in_tx(&mut db, id, history).await?;
+                self.repo.persist_in_op(&mut db, id, history).await?;
 
                 state.sequence = message.sequence;
                 current_job
-                    .update_execution_state_in_tx(&mut db, &state)
+                    .update_execution_state_in_op(&mut db, &state)
                     .await?;
 
                 db.commit().await?;

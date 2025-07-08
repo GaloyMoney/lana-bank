@@ -37,7 +37,7 @@ impl CurrentJob {
         }
     }
 
-    pub async fn update_execution_state_in_tx<T: Serialize>(
+    pub async fn update_execution_state_in_op<T: Serialize>(
         &mut self,
         db: &mut Transaction<'_, Postgres>,
         execution_state: &T,

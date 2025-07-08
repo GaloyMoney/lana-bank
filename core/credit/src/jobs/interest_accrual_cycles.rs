@@ -145,7 +145,7 @@ where
         let mut db = self.credit_facilities.begin_op().await?;
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(
+            .record_system_entry_in_op(
                 db.tx(),
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,

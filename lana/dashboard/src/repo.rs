@@ -18,7 +18,7 @@ impl DashboardRepo {
         Ok(self.pool.begin().await?)
     }
 
-    pub async fn persist_in_tx(
+    pub async fn persist_in_op(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         values: &DashboardValues,

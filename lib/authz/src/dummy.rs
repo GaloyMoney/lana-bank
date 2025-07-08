@@ -84,7 +84,7 @@ where
         Ok(dummy_audit_info())
     }
 
-    async fn record_system_entry_in_tx(
+    async fn record_system_entry_in_op(
         &self,
         _tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         _object: impl Into<Self::Object> + Send,
@@ -93,7 +93,7 @@ where
         Ok(dummy_audit_info())
     }
 
-    async fn record_entry_in_tx(
+    async fn record_entry_in_op(
         &self,
         _tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
         _subject: &Self::Subject,
