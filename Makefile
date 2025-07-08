@@ -9,7 +9,7 @@ dev-down:
 # These targets handle podman setup in an OS-aware manner:
 # - Linux: Configures /etc/containers policy and registries
 # - macOS: Uses default podman configuration (no additional setup needed)
-podman-setup: podman-check podman-configure podman-service-start
+podman-setup: podman-check podman-service-start
 
 podman-check:
 	@echo "--- Checking for Podman ---"
@@ -17,35 +17,8 @@ podman-check:
 	@command -v podman-compose >/dev/null 2>&1 || { echo "Error: podman-compose not found. Please install podman-compose first."; exit 1; }
 	@echo "--- Podman binaries found ---"
 
-podman-configure:
-	@./dev/bin/podman-configure.sh
-
 podman-service-start:
 	@./dev/bin/podman-service-start.sh
-
-podman-service-stop:
-	@echo "--- Stopping Podman service ---"
-	@pkill -f "podman system service" || echo "No podman service to stop"
-	@echo "--- Podman service stopped ---"
-
-podman-debug:
-	@echo "--- Podman Debug Information ---"
-	@echo "OS: $$(uname)"
-	@echo "Podman version:"
-	@podman version || echo "Podman not found"
-	@echo "Docker version:"
-	@docker version || echo "Docker not found"
-	@echo "Podman info:"
-	@podman info || echo "Podman info failed"
-	@echo "Socket status:"
-	@ls -la /run/podman/podman.sock 2>/dev/null || echo "System socket not found at /run/podman/podman.sock"
-	@ls -la $${XDG_RUNTIME_DIR:-/run/user/$$(id -u)}/podman/podman.sock 2>/dev/null || echo "User socket not found"
-	@echo "Dynamic socket detection result:"
-	@./dev/bin/podman-get-socket.sh || echo "Socket detection failed"
-	@echo "Running podman processes:"
-	@ps aux | grep podman || echo "No podman processes found"
-	@echo "DOCKER_HOST: $${DOCKER_HOST:-not set}"
-	@echo "--- End Debug Information ---"
 
 # ── Container Management ──────────────────────────────────────────────────────────
 # The ENGINE_DEFAULT and DOCKER_HOST environment variables are automatically set based on
