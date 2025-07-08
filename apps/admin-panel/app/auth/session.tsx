@@ -7,6 +7,7 @@ import {
   createContext,
   useContext,
   useMemo,
+  useRef,
 } from "react"
 import { usePathname, useRouter } from "next/navigation"
 import dynamic from "next/dynamic"
@@ -29,6 +30,8 @@ import { env } from "@/env"
 const AuthenticatedStore = createContext({
   // eslint-disable-next-line no-empty-function
   logoutInAuthState: () => {},
+  // eslint-disable-next-line no-empty-function
+  resetInactivityTimer: () => {},
 })
 
 type Props = {
@@ -43,6 +46,9 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
   const [isAuthSetInLocalStorage, setIsAuthSetInLocalStorage] = useState(false)
   const [isAuthenticated, setIsAuthenticated] = useState<boolean | null>(null)
 
+  const SESSION_TIMEOUT = 5 * 60 * 1000 // 5 minutes
+  const inactivityTimerRef = useRef<NodeJS.Timeout | null>(null)
+
   const logoutInAuthState = useMemo(
     () => () => {
       setIsAuthSetInLocalStorage(false)
@@ -50,9 +56,29 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
       if (typeof window !== "undefined") {
         localStorage.removeItem("isAuthenticated")
       }
+
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current)
+        inactivityTimerRef.current = null
+      }
     },
     [setIsAuthSetInLocalStorage, setIsAuthenticated],
   )
+
+  const resetInactivityTimer = useCallback(() => {
+    if (inactivityTimerRef.current) {
+      clearTimeout(inactivityTimerRef.current)
+    }
+
+    if (isAuthenticated) {
+      inactivityTimerRef.current = setTimeout(async () => {
+        console.log("Session expired due to inactivity")
+        await logoutUser()
+        logoutInAuthState()
+        router.push("/auth/login?reason=session_timeout")
+      }, SESSION_TIMEOUT)
+    }
+  }, [isAuthenticated, logoutInAuthState, router, SESSION_TIMEOUT])
 
   useEffect(() => {
     if (typeof window !== "undefined") {
@@ -83,6 +109,32 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
     })()
   }, [pathName, router, stopAppLoadingAnimation])
 
+  // Set up event listeners to track user activity
+  useEffect(() => {
+    if (!isAuthenticated) return
+
+    const activityEvents = ["mousedown", "mousemove", "keypress", "scroll", "touchstart"]
+
+    const handleUserActivity = () => {
+      resetInactivityTimer()
+    }
+
+    activityEvents.forEach((event) => {
+      window.addEventListener(event, handleUserActivity)
+    })
+
+    resetInactivityTimer()
+
+    return () => {
+      if (inactivityTimerRef.current) {
+        clearTimeout(inactivityTimerRef.current)
+      }
+      activityEvents.forEach((event) => {
+        window.removeEventListener(event, handleUserActivity)
+      })
+    }
+  }, [isAuthenticated, resetInactivityTimer])
+
   const appVersion = env.NEXT_PUBLIC_APP_VERSION
   const client = useMemo(() => {
     return makeClient({
@@ -102,7 +154,7 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
   return (
     <BreadcrumbProvider>
       <ApolloProvider client={client}>
-        <AuthenticatedStore.Provider value={{ logoutInAuthState }}>
+        <AuthenticatedStore.Provider value={{ logoutInAuthState, resetInactivityTimer }}>
           <Toast />
           {Stack}
         </AuthenticatedStore.Provider>
