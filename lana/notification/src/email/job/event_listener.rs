@@ -50,7 +50,7 @@ impl JobInitializer for EmailEventListenerInit {
 }
 
 #[derive(Default, Serialize, Deserialize)]
-struct EmailEventListenerData {
+struct EmailEventListenerJobData {
     sequence: outbox::EventSequence,
 }
 
@@ -66,7 +66,7 @@ impl JobRunner for EmailEventListenerRunner {
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<EmailEventListenerData>()?
+            .execution_state::<EmailEventListenerJobData>()?
             .unwrap_or_default();
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;

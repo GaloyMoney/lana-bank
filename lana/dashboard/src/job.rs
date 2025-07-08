@@ -85,7 +85,6 @@ impl JobRunner for DashboardProjectionJobRunner {
             }
         }
 
-        let now = crate::time::now();
-        Ok(JobCompletion::RescheduleAt(now))
+        Ok(JobCompletion::RescheduleNow)
     }
 }

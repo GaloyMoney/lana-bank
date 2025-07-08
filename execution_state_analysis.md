@@ -32,7 +32,7 @@ Most jobs that use execution state are event-driven jobs that process streams of
 - `CreditFacilityApprovalJobData`: Stores `outbox::EventSequence`
 - `DashboardProjectionJobData`: Stores `outbox::EventSequence` + `DashboardValues` 
 - `CreditFacilityCollateralizationFromEventsData`: Stores `outbox::EventSequence`
-- `EmailEventListenerData`: Stores `outbox::EventSequence`
+- `EmailEventListenerJobData`: Stores `outbox::EventSequence`
 
 **Code Pattern**:
 ```rust
