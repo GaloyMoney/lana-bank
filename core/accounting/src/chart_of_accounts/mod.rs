@@ -12,8 +12,8 @@ use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountIdOrCode, CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction,
-    CoreAccountingObject, LedgerAccountId, ProposedAccountSpec,
+    AccountIdOrCode, AccountSpec, CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction,
+    CoreAccountingObject, LedgerAccountId,
 };
 
 pub(super) use csv::{CsvParseError, CsvParser};
@@ -179,10 +179,10 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
-        proposed_spec: impl Into<ProposedAccountSpec> + std::fmt::Debug,
+        spec: impl Into<AccountSpec> + std::fmt::Debug,
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
         let id = id.into();
-        let proposed_spec = proposed_spec.into();
+        let spec = spec.into();
         let audit_info = self
             .authz
             .enforce_permission(
@@ -196,7 +196,7 @@ where
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id,
             new_account_set,
-        }) = chart.create_node(&proposed_spec, self.journal_id, audit_info.clone())?
+        }) = chart.create_node(&spec, self.journal_id, audit_info.clone())?
         else {
             return Ok((chart, None));
         };

@@ -74,7 +74,7 @@ pub struct ChartOfAccountsAddNodeInput {
 }
 crate::mutation_payload! { ChartOfAccountsAddNodePayload, chart_of_accounts: ChartOfAccounts }
 
-impl TryFrom<ChartOfAccountsAddNodeInput> for ProposedAccountSpec {
+impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
     type Error = Box<dyn std::error::Error + Sync + Send>;
 
     fn try_from(input: ChartOfAccountsAddNodeInput) -> Result<Self, Self::Error> {
@@ -86,20 +86,11 @@ impl TryFrom<ChartOfAccountsAddNodeInput> for ProposedAccountSpec {
             ..
         } = input;
 
-        let code = code.try_into()?;
-        let name = name.parse()?;
-        if let Some(parent) = parent {
-            Ok(ProposedAccountSpec::WithParent {
-                parent: parent.try_into()?,
-                code,
-                name,
-            })
-        } else {
-            Ok(ProposedAccountSpec::NoParent {
-                code,
-                name,
-                normal_balance_type,
-            })
-        }
+        Ok(Self::try_new(
+            parent.map(|v| v.try_into()).transpose()?,
+            code.try_into()?,
+            name.parse()?,
+            normal_balance_type,
+        )?)
     }
 }

@@ -101,34 +101,32 @@ impl Chart {
 
     pub fn create_node(
         &mut self,
-        proposed_spec: &ProposedAccountSpec,
+        spec: &AccountSpec,
         journal_id: CalaJournalId,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<NewChartAccountDetails>, ChartOfAccountsError> {
-        let spec = match proposed_spec {
-            ProposedAccountSpec::WithParent { parent, code, name } => {
-                let parent_normal_balance_type = self
-                    .all_accounts
-                    .get(parent)
-                    .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
-                    .ok_or(ChartOfAccountsError::ParentAccountNotFound(
-                        parent.to_string(),
-                    ))?;
-                AccountSpec::try_new(
-                    Some(parent.clone()),
-                    code.into(),
-                    name.clone(),
-                    parent_normal_balance_type,
-                )?
-            }
-            ProposedAccountSpec::NoParent {
-                code,
-                name,
-                normal_balance_type,
-            } => AccountSpec::try_new(None, code.into(), name.clone(), *normal_balance_type)?,
-        };
+        let AccountSpec {
+            code, name, parent, ..
+        } = spec;
 
-        Ok(self.create_node_unchecked(&spec, journal_id, audit_info))
+        let mut checked_spec = spec.clone();
+        if let Some(parent) = parent {
+            let parent_normal_balance_type = self
+                .all_accounts
+                .get(parent)
+                .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
+                .ok_or(ChartOfAccountsError::ParentAccountNotFound(
+                    parent.to_string(),
+                ))?;
+            checked_spec = AccountSpec::try_new(
+                Some(parent.clone()),
+                code.into(),
+                name.clone(),
+                parent_normal_balance_type,
+            )?;
+        }
+
+        Ok(self.create_node_unchecked(&checked_spec, journal_id, audit_info))
     }
 
     pub fn trial_balance_account_ids_from_new_accounts(
@@ -524,10 +522,11 @@ mod test {
         let (mut chart, _) = default_chart();
 
         let res = chart.create_node(
-            &ProposedAccountSpec::WithParent {
-                parent: code("1.9"),
+            &AccountSpec {
+                parent: Some(code("1.9")),
                 code: code("1.9.1"),
                 name: "Cash".parse::<AccountName>().unwrap(),
+                normal_balance_type: DebitOrCredit::Debit,
             },
             CalaJournalId::new(),
             dummy_audit_info(),

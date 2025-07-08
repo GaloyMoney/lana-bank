@@ -300,20 +300,6 @@ impl std::str::FromStr for AccountIdOrCode {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum ProposedAccountSpec {
-    WithParent {
-        parent: AccountCode,
-        code: AccountCode,
-        name: AccountName,
-    },
-    NoParent {
-        code: AccountCode,
-        name: AccountName,
-        normal_balance_type: DebitOrCredit,
-    },
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct AccountSpec {
     pub parent: Option<AccountCode>,
