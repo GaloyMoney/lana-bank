@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM reports WHERE id = $1) SELECT i.id AS \"entity_id: ReportId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN report_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_reports WHERE id = $1) SELECT i.id AS \"entity_id: ReportId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_report_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "717fb5929ac8f3dbb0cfac9bb4a3f0450a6ec1fd500539e5805aefe973b7c3d1"
+  "hash": "d00a5230265f87015cffd5c04becbb1ee7310b1e4f477655722fabc63e1ce6b7"
 }

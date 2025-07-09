@@ -1219,6 +1219,13 @@ enum KycLevel {
 	ADVANCED
 }
 
+type LastRun {
+	runType: RunType!
+	runStartedAt: Timestamp
+	status: String!
+	logs: String
+}
+
 enum Layer {
 	SETTLED
 	PENDING
@@ -1413,6 +1420,7 @@ type Mutation {
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
+	reportGenerate: ReportGeneratePayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1506,6 +1514,8 @@ enum PermissionSetName {
 	DEPOSIT_WRITER
 	GOVERNANCE_VIEWER
 	GOVERNANCE_WRITER
+	REPORT_VIEWER
+	REPORT_WRITER
 }
 
 type Policy {
@@ -1633,10 +1643,24 @@ type Query {
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
+	reportGenerationStatus: ReportGenerationStatusPayload!
 }
 
 type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
+}
+
+type ReportGeneratePayload {
+	runId: String!
+}
+
+type ReportGenerationStatusPayload {
+	running: Boolean!
+	runType: RunType
+	runStartedAt: Timestamp
+	logs: String
+	lastRun: LastRun
+	error: String
 }
 
 type Role {
@@ -1701,6 +1725,11 @@ input RoleRemovePermissionSetsInput {
 
 type RoleRemovePermissionSetsPayload {
 	role: Role!
+}
+
+enum RunType {
+	SCHEDULED
+	API_TRIGGERED
 }
 
 scalar Satoshis

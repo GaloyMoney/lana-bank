@@ -52,4 +52,6 @@ pub enum ApplicationError {
     CustodyError(#[from] crate::custody::error::CoreCustodyError),
     #[error("ApplicationError - ContractCreationError: {0}")]
     ContractCreationError(#[from] crate::contract_creation::ContractCreationError),
+    #[error("ApplicationError - ReportError: {0}")]
+    ReportError(#[from] crate::report::error::ReportError),
 }

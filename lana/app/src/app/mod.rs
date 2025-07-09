@@ -28,6 +28,7 @@ use crate::{
     price::Price,
     primitives::Subject,
     public_id::PublicIds,
+    report::Reports,
     storage::Storage,
     user_onboarding::UserOnboarding,
 };
@@ -54,6 +55,7 @@ pub struct LanaApp {
     dashboard: Dashboard,
     public_ids: PublicIds,
     contract_creation: ContractCreation,
+    reports: Reports,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
 }
@@ -80,6 +82,7 @@ impl LanaApp {
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
+        let reports = Reports::init(&pool, &authz, config.airflow, &outbox).await?;
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = DocumentStorage::new(&pool, &storage);
@@ -183,6 +186,7 @@ impl LanaApp {
             dashboard,
             public_ids,
             contract_creation,
+            reports,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
         })
@@ -194,6 +198,10 @@ impl LanaApp {
 
     pub fn governance(&self) -> &Governance {
         &self.governance
+    }
+
+    pub fn reports(&self) -> &Reports {
+        &self.reports
     }
 
     pub fn customers(&self) -> &Customers {

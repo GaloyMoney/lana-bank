@@ -18,7 +18,7 @@ use super::{
     balance_sheet_config::*, committee::*, contract_creation::*, credit_config::*,
     credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
     document::*, loader::*, policy::*, price::*, profit_and_loss_config::*, public_id::*,
-    sumsub::*, terms_template::*, withdrawal::*,
+    report::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -871,6 +871,15 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let agreement = app.contract_creation().find_by_id(sub, id).await?;
         Ok(agreement.map(LoanAgreement::from))
+    }
+
+    async fn report_generation_status(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<ReportGenerationStatusPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let response = app.reports().get_generation_status(sub).await?;
+        Ok(ReportGenerationStatusPayload::from(response))
     }
 }
 
@@ -1923,5 +1932,14 @@ impl Mutation {
             .generate_document_download_link(sub, input.loan_agreement_id)
             .await?;
         Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
+    }
+
+    pub async fn report_generate(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<ReportGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let response = app.reports().generate_todays_report(sub).await?;
+        Ok(ReportGeneratePayload::from(response))
     }
 }

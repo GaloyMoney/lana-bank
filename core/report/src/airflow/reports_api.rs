@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -5,8 +6,43 @@ use super::config::AirflowConfig;
 use crate::error::ReportError;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct HealthResponse {
+pub struct ReportGenerateResponse {
+    pub run_id: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RunType {
+    Scheduled,
+    ApiTriggered,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LastRun {
+    pub run_type: RunType,
+    pub run_started_at: Option<DateTime<Utc>>,
     pub status: String,
+    pub logs: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct DagRunStatusResponse {
+    pub running: bool,
+    pub run_type: Option<RunType>,
+    pub run_started_at: Option<DateTime<Utc>>,
+    pub logs: Option<String>,
+    pub last_run: Option<LastRun>,
+    pub error: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct TaskInstanceInfo {
+    pub task_id: String,
+    pub state: String,
+    pub start_date: Option<DateTime<Utc>>,
+    pub end_date: Option<DateTime<Utc>>,
+    pub duration: Option<f64>,
+    pub log_url: Option<String>,
 }
 
 #[derive(Clone)]
@@ -17,28 +53,80 @@ pub struct ReportsApiClient {
 
 impl ReportsApiClient {
     pub fn new(config: AirflowConfig) -> Self {
-        let base_url = format!("http://{}:{}", config.host, config.port);
-
         Self {
             client: Client::new(),
-            base_url,
+            base_url: config.uri,
         }
     }
 
-    #[tracing::instrument(name = "reports_api.health_check", skip(self))]
-    pub async fn health_check(&self) -> Result<HealthResponse, ReportError> {
-        let url = format!("{}/api/v1/health", self.base_url);
+    #[tracing::instrument(name = "reports_api.get_report_dates", skip(self))]
+    pub async fn get_report_dates(&self) -> Result<Vec<String>, ReportError> {
+        let url = format!("{}/api/v1/reports/dates", self.base_url);
 
         let response = self.client.get(&url).send().await?;
 
         if response.status().is_success() {
-            let health: HealthResponse = response.json().await?;
-            Ok(health)
+            let dates: Vec<String> = response.json().await?;
+            Ok(dates)
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
             Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
-                "Health check failed with status {}: {}", status, text
+                "Failed to get report dates with status {status}: {text}"
+            ))))
+        }
+    }
+
+    #[tracing::instrument(name = "reports_api.get_reports_by_date", skip(self))]
+    pub async fn get_reports_by_date(&self, date: &str) -> Result<Vec<String>, ReportError> {
+        let url = format!("{}/api/v1/reports/date/{}", self.base_url, date);
+
+        let response = self.client.get(&url).send().await?;
+
+        if response.status().is_success() {
+            let report_uris: Vec<String> = response.json().await?;
+            Ok(report_uris)
+        } else {
+            let status = response.status();
+            let text = response.text().await.unwrap_or_default();
+            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+                "Failed to get reports for date {date} with status {status}: {text}"
+            ))))
+        }
+    }
+
+    #[tracing::instrument(name = "reports_api.generate_todays_report", skip(self))]
+    pub async fn generate_todays_report(&self) -> Result<ReportGenerateResponse, ReportError> {
+        let url = format!("{}/api/v1/reports/generate", self.base_url);
+
+        let response = self.client.post(&url).send().await?;
+
+        if response.status().is_success() {
+            let generate_response: ReportGenerateResponse = response.json().await?;
+            Ok(generate_response)
+        } else {
+            let status = response.status();
+            let text = response.text().await.unwrap_or_default();
+            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+                "Failed to generate reports with status {status}: {text}"
+            ))))
+        }
+    }
+
+    #[tracing::instrument(name = "reports_api.get_generation_status", skip(self))]
+    pub async fn get_generation_status(&self) -> Result<DagRunStatusResponse, ReportError> {
+        let url = format!("{}/api/v1/reports/status", self.base_url);
+
+        let response = self.client.get(&url).send().await?;
+
+        if response.status().is_success() {
+            let status_response: DagRunStatusResponse = response.json().await?;
+            Ok(status_response)
+        } else {
+            let status = response.status();
+            let text = response.text().await.unwrap_or_default();
+            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+                "Failed to get generation status with status {status}: {text}"
             ))))
         }
     }

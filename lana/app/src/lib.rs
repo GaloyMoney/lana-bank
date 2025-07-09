@@ -173,3 +173,13 @@ pub mod public_id {
 }
 
 pub mod contract_creation;
+
+pub mod report {
+    pub use core_report::{
+        AirflowConfig, CoreReportAction, CoreReportEvent, DagRunStatusResponse, LastRun, Report,
+        ReportError, ReportGenerateResponse, ReportId, ReportObject, ReportsApiClient, RunType,
+        error,
+    };
+    pub type Reports =
+        core_report::Reports<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
