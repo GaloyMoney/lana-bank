@@ -25,6 +25,7 @@ members = [
   "core/credit",
   "core/custody",
   "core/document-storage",
+  "core/public-ref",
 
   "lib/authz",
   "lib/audit",
@@ -35,8 +36,7 @@ members = [
   "lib/kratos-admin",
   "lib/bitgo",
   "lib/komainu",
-  "lib/cloud-storage"
-]
+  "lib/cloud-storage"]
 
 [workspace.dependencies]
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }

@@ -128,6 +128,20 @@ CREATE TABLE core_customer_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_public_refs (
+  id UUID PRIMARY KEY,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_public_ref_events (
+  id UUID NOT NULL REFERENCES core_public_refs(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_terms_templates (
   id UUID PRIMARY KEY,
   name VARCHAR NOT NULL UNIQUE,

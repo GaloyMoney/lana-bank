@@ -3937,6 +3937,21 @@ dependencies = [
 ]
 
 [[package]]
+name = "public-ref"
+version = "0.3.721-dev"
+dependencies = [
+ "async-graphql",
+ "audit",
+ "derive_builder",
+ "es-entity",
+ "schemars 1.0.4",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.12",
+ "tracing",
+]
+
+[[package]]
 name = "pulldown-cmark"
 version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
