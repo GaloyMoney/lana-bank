@@ -27,14 +27,11 @@
           nodejs = super.nodejs_20;
         })
         (import rust-overlay)
-        (self: super: let
-          patchFasteners = pkgSet: pkgSet // {
-            fasteners = pkgSet.fasteners.overridePythonAttrs (_: {
-              disabledTests = [ "test_interprocess_lock" ];
-            });
+        (self: super: {
+          python311Packages = super.python311Packages // {
+            fasteners   = super.python311Packages.fasteners  .overridePythonAttrs (_: { doCheck = false; });
+            portalocker = super.python311Packages.portalocker.overridePythonAttrs (_: { doCheck = false; });
           };
-        in {
-          python311Packages = patchFasteners super.python311Packages;
         })
       ];
       pkgs = import nixpkgs {
