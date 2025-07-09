@@ -130,6 +130,7 @@ CREATE TABLE core_customer_events (
 
 CREATE TABLE core_public_refs (
   id UUID PRIMARY KEY,
+  reference VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

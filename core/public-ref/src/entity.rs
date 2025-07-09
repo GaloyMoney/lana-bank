@@ -12,13 +12,19 @@ use crate::primitives::*;
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "PublicRefId")]
 pub enum PublicRefEvent {
-    Initialized { id: PublicRefId },
+    Initialized {
+        id: PublicRefId,
+        reference: Ref,
+        target_type: RefTargetType,
+    },
 }
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct PublicRef {
     pub id: PublicRefId,
+    pub reference: Ref,
+    pub target_type: RefTargetType,
     events: EntityEvents<PublicRefEvent>,
 }
 
@@ -34,8 +40,15 @@ impl TryFromEvents<PublicRefEvent> for PublicRef {
 
         for event in events.iter_all() {
             match event {
-                PublicRefEvent::Initialized { id } => {
-                    builder = builder.id(*id);
+                PublicRefEvent::Initialized {
+                    id,
+                    reference,
+                    target_type: target,
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .reference(reference.clone())
+                        .target_type(target.clone());
                 }
             }
         }
@@ -49,6 +62,10 @@ impl TryFromEvents<PublicRefEvent> for PublicRef {
 pub struct NewPublicRef {
     #[builder(setter(into))]
     pub(super) id: PublicRefId,
+    #[builder(setter(into))]
+    pub(super) reference: Ref,
+    #[builder(setter(into))]
+    pub(super) target_type: RefTargetType,
 }
 
 impl NewPublicRef {
@@ -59,6 +76,13 @@ impl NewPublicRef {
 
 impl IntoEvents<PublicRefEvent> for NewPublicRef {
     fn into_events(self) -> EntityEvents<PublicRefEvent> {
-        EntityEvents::init(self.id, [PublicRefEvent::Initialized { id: self.id }])
+        EntityEvents::init(
+            self.id,
+            [PublicRefEvent::Initialized {
+                id: self.id,
+                reference: self.reference,
+                target_type: self.target_type,
+            }],
+        )
     }
 }

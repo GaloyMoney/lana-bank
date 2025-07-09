@@ -17,6 +17,7 @@ use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
 use outbox::{Outbox, OutboxEventMarker};
+use public_ref::PublicRefService;
 
 pub use entity::Customer;
 use entity::*;
@@ -43,6 +44,7 @@ where
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
     document_storage: DocumentStorage,
+    public_ref_service: PublicRefService,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -56,6 +58,7 @@ where
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
             document_storage: self.document_storage.clone(),
+            public_ref_service: self.public_ref_service.clone(),
         }
     }
 }
@@ -72,6 +75,7 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         document_storage: DocumentStorage,
+        public_ref_service: PublicRefService,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
         let repo = CustomerRepo::new(pool, &publisher);
@@ -80,6 +84,7 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             document_storage,
+            public_ref_service,
         }
     }
 

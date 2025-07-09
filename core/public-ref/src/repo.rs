@@ -7,7 +7,12 @@ use crate::primitives::*;
 use super::{entity::*, error::*};
 
 #[derive(EsRepo)]
-#[es_repo(entity = "PublicRef", err = "PublicRefError", tbl_prefix = "core")]
+#[es_repo(
+    entity = "PublicRef",
+    err = "PublicRefError",
+    columns(reference(ty = "Ref"),),
+    tbl_prefix = "core"
+)]
 pub struct PublicRefRepo {
     pool: PgPool,
 }

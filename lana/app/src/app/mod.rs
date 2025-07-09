@@ -81,6 +81,7 @@ impl LanaApp {
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = DocumentStorage::new(&pool, &storage);
+        let public_ref_service = public_ref::PublicRefService::new(&pool);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =
@@ -104,7 +105,7 @@ impl LanaApp {
 
         StatementsInit::statements(&accounting).await?;
 
-        let customers = Customers::new(&pool, &authz, &outbox, documents.clone());
+        let customers = Customers::new(&pool, &authz, &outbox, documents.clone(), public_ref_service.clone());
         let deposits = Deposits::init(
             &pool,
             &authz,

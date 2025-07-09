@@ -44,11 +44,15 @@ impl PublicRefService {
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
+        reference: impl Into<Ref> + std::fmt::Debug,
+        target_type: impl Into<RefTargetType> + std::fmt::Debug,
     ) -> Result<PublicRef, PublicRefError> {
         let public_ref_id = PublicRefId::new();
 
         let new_public_ref = NewPublicRef::builder()
             .id(public_ref_id)
+            .reference(reference)
+            .target_type(target_type)
             .build()
             .expect("Could not build public ref");
 

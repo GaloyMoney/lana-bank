@@ -25,6 +25,7 @@ authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 cloud-storage = { path = "../../lib/cloud-storage" }
+public-ref = { path = "../public-ref" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
