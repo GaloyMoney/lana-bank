@@ -867,6 +867,22 @@ impl Mutation {
         Ok(SumsubPermalinkCreatePayload { url: permalink.url })
     }
 
+    #[cfg(feature = "sumsub-testing")]
+    /// ⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
+    /// This method is behind a compilation flag and should only be used in test environments.
+    pub async fn sumsub_test_applicant_create(
+        &self,
+        ctx: &Context<'_>,
+        input: SumsubTestApplicantCreateInput,
+    ) -> async_graphql::Result<SumsubTestApplicantCreatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let applicant_id = app
+            .applicants()
+            .create_complete_test_applicant(sub, input.customer_id)
+            .await?;
+        Ok(SumsubTestApplicantCreatePayload { applicant_id })
+    }
+
     async fn user_create(
         &self,
         ctx: &Context<'_>,

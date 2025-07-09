@@ -1337,6 +1337,11 @@ export type Mutation = {
   roleCreate: RoleCreatePayload;
   roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
+  /**
+   * ⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
+   * This method is behind a compilation flag and should only be used in test environments.
+   */
+  sumsubTestApplicantCreate: SumsubTestApplicantCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
   userCreate: UserCreatePayload;
@@ -1521,6 +1526,11 @@ export type MutationRoleRemovePermissionSetsArgs = {
 
 export type MutationSumsubPermalinkCreateArgs = {
   input: SumsubPermalinkCreateInput;
+};
+
+
+export type MutationSumsubTestApplicantCreateArgs = {
+  input: SumsubTestApplicantCreateInput;
 };
 
 
@@ -2090,6 +2100,15 @@ export type SumsubPermalinkCreateInput = {
 export type SumsubPermalinkCreatePayload = {
   __typename?: 'SumsubPermalinkCreatePayload';
   url: Scalars['String']['output'];
+};
+
+export type SumsubTestApplicantCreateInput = {
+  customerId: Scalars['UUID']['input'];
+};
+
+export type SumsubTestApplicantCreatePayload = {
+  __typename?: 'SumsubTestApplicantCreatePayload';
+  applicantId: Scalars['String']['output'];
 };
 
 export type System = {

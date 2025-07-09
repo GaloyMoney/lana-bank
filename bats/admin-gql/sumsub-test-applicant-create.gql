@@ -1,0 +1,5 @@
+mutation sumsubTestApplicantCreate($input: SumsubTestApplicantCreateInput!) {
+  sumsubTestApplicantCreate(input: $input) {
+    applicantId
+  }
+} 

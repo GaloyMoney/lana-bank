@@ -12,6 +12,7 @@ sim-time = [
 ]
 sim-bootstrap = ["dep:sim-bootstrap"]
 mock-custodian = ["admin-server/mock-custodian"]
+sumsub-testing = ["lana-app/sumsub-testing", "admin-server/sumsub-testing"]
 
 fail-on-warnings = []
 

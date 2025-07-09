@@ -1,8 +1,14 @@
 mod config;
 pub mod error;
 mod repo;
-mod sumsub_auth;
+pub(crate) mod sumsub_auth;
 mod tx_export;
+
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub(crate) mod sumsub_testing_utils;
+
+#[cfg(test)]
+mod tests;
 
 use core_customer;
 use job::Jobs;
@@ -20,10 +26,13 @@ use crate::{
 
 pub use config::*;
 use error::ApplicantError;
-use sumsub_auth::*;
+use sumsub_auth::SumsubClient;
 
 use repo::ApplicantRepo;
-pub use sumsub_auth::{AccessTokenResponse, PermalinkResponse};
+pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
+
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub use sumsub_auth::SumsubClient as PublicSumsubClient;
 
 use async_graphql::*;
 
@@ -314,5 +323,197 @@ impl Applicants {
         self.sumsub_client
             .create_permalink(customer_id, &level.to_string())
             .await
+    }
+
+    #[instrument(name = "applicant.get_applicant_info", skip(self))]
+    pub async fn get_applicant_info(
+        &self,
+        sub: &Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<ApplicantInfo, ApplicantError> {
+        let customer_id: CustomerId = customer_id.into();
+
+        // Verify the customer exists and the subject has access
+        let customer = self.customers.find_by_id(sub, customer_id).await?;
+        customer.ok_or_else(|| {
+            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
+        })?;
+
+        // Get applicant details from Sumsub
+        let applicant_details = self
+            .sumsub_client
+            .get_applicant_details(customer_id)
+            .await?;
+
+        Ok(applicant_details.info)
+    }
+
+    /// Creates a complete test applicant with documents and approval for testing purposes
+    /// This method executes the full KYC flow automatically using predefined test data
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[instrument(name = "applicant.create_complete_test_applicant", skip(self))]
+    pub async fn create_complete_test_applicant(
+        &self,
+        sub: &Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<String, ApplicantError> {
+        let customer_id: CustomerId = customer_id.into();
+
+        // Verify the customer exists and the subject has access
+        let customer = self.customers.find_by_id(sub, customer_id).await?;
+        let customer = customer.ok_or_else(|| {
+            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
+        })?;
+
+        tracing::info!(
+            customer_id = %customer_id,
+            "Creating complete test applicant with full KYC flow"
+        );
+
+        let level: SumsubVerificationLevel = customer.customer_type.into();
+
+        // Step 1: Create applicant via API
+        let applicant_id = self
+            .sumsub_client
+            .create_applicant(customer_id, &level.to_string())
+            .await?;
+
+        tracing::info!(applicant_id = %applicant_id, "Applicant created");
+
+        // Step 2: Update applicant personal information
+        self.sumsub_client
+            .update_applicant_info(
+                &applicant_id,
+                sumsub_testing_utils::TEST_FIRST_NAME,
+                sumsub_testing_utils::TEST_LAST_NAME,
+                sumsub_testing_utils::TEST_DATE_OF_BIRTH,
+                sumsub_testing_utils::TEST_COUNTRY_CODE,
+            )
+            .await?;
+
+        tracing::info!("Applicant personal info updated");
+
+        // Step 3: Upload passport documents (front and back)
+        let passport_image = sumsub_testing_utils::load_test_document(
+            sumsub_testing_utils::PASSPORT_FILENAME,
+            sumsub_testing_utils::GERMAN_PASSPORT_URL,
+            "German passport image",
+        )
+        .await
+        .map_err(|e| ApplicantError::Sumsub {
+            description: format!("Failed to load passport image: {e}"),
+            code: 500,
+        })?;
+
+        self.sumsub_client
+            .upload_document(
+                &applicant_id,
+                sumsub_auth::DOC_TYPE_PASSPORT,
+                sumsub_auth::DOC_SUBTYPE_FRONT_SIDE,
+                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                passport_image.clone(),
+                sumsub_testing_utils::PASSPORT_FILENAME,
+            )
+            .await?;
+
+        // Brief delay to avoid rate limiting
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+        self.sumsub_client
+            .upload_document(
+                &applicant_id,
+                sumsub_auth::DOC_TYPE_PASSPORT,
+                sumsub_auth::DOC_SUBTYPE_BACK_SIDE,
+                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                passport_image.clone(),
+                sumsub_testing_utils::PASSPORT_FILENAME,
+            )
+            .await?;
+
+        tracing::info!("Passport documents uploaded");
+
+        // Brief delay to avoid rate limiting
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+        // Step 4: Upload selfie
+        self.sumsub_client
+            .upload_document(
+                &applicant_id,
+                sumsub_auth::DOC_TYPE_SELFIE,
+                "",
+                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                passport_image, // Reuse passport image as selfie for testing
+                sumsub_testing_utils::PASSPORT_FILENAME,
+            )
+            .await?;
+
+        tracing::info!("Selfie uploaded");
+
+        // Brief delay to avoid rate limiting
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+        // Step 5: Upload proof of residence
+        let poa_image = sumsub_testing_utils::load_test_document(
+            sumsub_testing_utils::POA_FILENAME,
+            sumsub_testing_utils::POA_DOCUMENT_URL,
+            "Proof of residence document",
+        )
+        .await
+        .map_err(|e| ApplicantError::Sumsub {
+            description: format!("Failed to load proof of residence image: {e}"),
+            code: 500,
+        })?;
+
+        self.sumsub_client
+            .upload_document(
+                &applicant_id,
+                sumsub_auth::DOC_TYPE_UTILITY_BILL,
+                "",
+                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                poa_image,
+                sumsub_testing_utils::POA_FILENAME,
+            )
+            .await?;
+
+        tracing::info!("Proof of residence uploaded");
+
+        // Brief delay to avoid rate limiting
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+        // Step 6: Submit questionnaire
+        self.sumsub_client
+            .submit_questionnaire_direct(&applicant_id, sumsub_testing_utils::TEST_QUESTIONNAIRE_ID)
+            .await?;
+
+        tracing::info!("Questionnaire submitted");
+
+        // Brief delay to avoid rate limiting
+        tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
+
+        // Step 7: Request review
+        self.sumsub_client.request_check(&applicant_id).await?;
+
+        tracing::info!("Review requested");
+
+        // Brief delay for processing
+        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+
+        // Step 8: Simulate approval (GREEN)
+        self.sumsub_client
+            .simulate_review_response(&applicant_id, sumsub_auth::REVIEW_ANSWER_GREEN)
+            .await?;
+
+        tracing::info!("Approval simulated");
+
+        // Brief delay for processing
+        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
+
+        tracing::info!(
+            applicant_id = %applicant_id,
+            customer_id = %customer_id,
+            "Complete test applicant created and approved successfully"
+        );
+
+        Ok(applicant_id)
     }
 }

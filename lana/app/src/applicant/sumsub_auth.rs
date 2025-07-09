@@ -3,6 +3,7 @@ use reqwest::{
     Client as ReqwestClient,
     header::{HeaderMap, HeaderValue},
 };
+
 use serde::{Deserialize, Serialize};
 use serde_json::json;
 use sha2::Sha256;
@@ -14,6 +15,34 @@ use super::SumsubConfig;
 use super::error::ApplicantError;
 
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
+
+// Document types (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_TYPE_PASSPORT: &str = "PASSPORT";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_TYPE_SELFIE: &str = "SELFIE";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_TYPE_UTILITY_BILL: &str = "UTILITY_BILL";
+
+// Document subtypes (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_SUBTYPE_FRONT_SIDE: &str = "FRONT_SIDE";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_SUBTYPE_BACK_SIDE: &str = "BACK_SIDE";
+
+// Review answers (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const REVIEW_ANSWER_GREEN: &str = "GREEN";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const REVIEW_ANSWER_RED: &str = "RED";
+
+// Questionnaire defaults (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
+const DEFAULT_QUESTIONNAIRE_SECTION: &str = "testSumsubQuestionar";
+#[cfg(any(test, feature = "sumsub-testing"))]
+const DEFAULT_QUESTIONNAIRE_ITEM: &str = "test";
+#[cfg(any(test, feature = "sumsub-testing"))]
+const DEFAULT_QUESTIONNAIRE_VALUE: &str = "0";
 
 #[derive(Clone, Debug)]
 pub struct SumsubClient {
@@ -36,14 +65,6 @@ enum SumsubResponse<T> {
 }
 
 #[derive(Deserialize, Debug)]
-#[serde(rename_all = "camelCase")]
-pub struct AccessTokenResponse {
-    #[serde(rename = "userId")]
-    pub customer_id: String,
-    pub token: String,
-}
-
-#[derive(Deserialize, Debug)]
 pub struct PermalinkResponse {
     pub url: String,
 }
@@ -55,6 +76,8 @@ pub struct ApplicantDetails {
     pub customer_id: CustomerId,
     #[serde(default)]
     pub info: ApplicantInfo,
+    #[serde(rename = "fixedInfo", default)]
+    pub fixed_info: ApplicantInfo,
     #[serde(rename = "type")]
     pub applicant_type: String,
 }
@@ -66,10 +89,72 @@ pub struct ApplicantInfo {
     #[serde(rename = "lastName")]
     pub last_name: Option<String>,
     pub country: Option<String>,
+    #[serde(rename = "countryOfBirth")]
+    pub country_of_birth: Option<String>,
+    pub dob: Option<String>,
     pub addresses: Option<Vec<Address>>,
     #[serde(rename = "idDocs")]
     pub id_docs: Option<Vec<IdDocument>>,
 }
+
+impl ApplicantInfo {
+    /// Get the applicant's first name
+    pub fn first_name(&self) -> Option<&str> {
+        self.first_name.as_deref()
+    }
+
+    /// Get the applicant's last name
+    pub fn last_name(&self) -> Option<&str> {
+        self.last_name.as_deref()
+    }
+
+    /// Get the applicant's full name as "FirstName LastName"
+    pub fn full_name(&self) -> Option<String> {
+        match (self.first_name(), self.last_name()) {
+            (Some(first), Some(last)) => Some(format!("{first} {last}")),
+            (Some(first), None) => Some(first.to_string()),
+            (None, Some(last)) => Some(last.to_string()),
+            (None, None) => None,
+        }
+    }
+
+    /// Get the primary address (first in the list)
+    pub fn primary_address(&self) -> Option<&str> {
+        self.addresses
+            .as_ref()?
+            .first()?
+            .formatted_address
+            .as_deref()
+    }
+
+    /// Get nationality from country field or from identity documents
+    pub fn nationality(&self) -> Option<&str> {
+        // First try the country field in info
+        if let Some(ref country) = self.country {
+            return Some(country);
+        }
+
+        // Try country_of_birth from fixedInfo
+        if let Some(ref country_of_birth) = self.country_of_birth {
+            return Some(country_of_birth);
+        }
+
+        // If not found, try to get it from passport documents
+        if let Some(ref id_docs) = self.id_docs {
+            for doc in id_docs {
+                if doc.doc_type == "PASSPORT" {
+                    if let Some(ref country) = doc.country {
+                        return Some(country);
+                    }
+                }
+            }
+        }
+        None
+    }
+}
+
+// Note: ApplicantDetails delegation methods removed for simplicity.
+// Users can directly access methods via: applicant.info.first_name(), etc.
 
 #[derive(Debug, Deserialize, Serialize)]
 pub struct Address {
@@ -84,63 +169,6 @@ pub struct IdDocument {
     pub country: Option<String>,
 }
 
-impl ApplicantDetails {
-    /// Get the applicant's first name from info
-    #[allow(dead_code)]
-    pub fn first_name(&self) -> Option<&str> {
-        self.info.first_name.as_deref()
-    }
-
-    /// Get the applicant's last name from info
-    #[allow(dead_code)]
-    pub fn last_name(&self) -> Option<&str> {
-        self.info.last_name.as_deref()
-    }
-
-    /// Get the applicant's full name as "FirstName LastName"
-    #[allow(dead_code)]
-    pub fn full_name(&self) -> Option<String> {
-        match (self.first_name(), self.last_name()) {
-            (Some(first), Some(last)) => Some(format!("{first} {last}")),
-            (Some(first), None) => Some(first.to_string()),
-            (None, Some(last)) => Some(last.to_string()),
-            (None, None) => None,
-        }
-    }
-
-    /// Get the primary address (first in the list)
-    #[allow(dead_code)]
-    pub fn primary_address(&self) -> Option<&str> {
-        self.info
-            .addresses
-            .as_ref()?
-            .first()?
-            .formatted_address
-            .as_deref()
-    }
-
-    /// Get nationality from country field or from identity documents
-    #[allow(dead_code)]
-    pub fn nationality(&self) -> Option<&str> {
-        // First try the country field in info
-        if let Some(ref country) = self.info.country {
-            return Some(country);
-        }
-
-        // If not found, try to get it from passport documents
-        if let Some(ref id_docs) = self.info.id_docs {
-            for doc in id_docs {
-                if doc.doc_type == "PASSPORT" {
-                    if let Some(ref country) = doc.country {
-                        return Some(country);
-                    }
-                }
-            }
-        }
-        None
-    }
-}
-
 impl SumsubClient {
     pub fn new(config: &SumsubConfig) -> Self {
         Self {
@@ -150,6 +178,86 @@ impl SumsubClient {
                 .expect("should always build SumsubClient"),
             sumsub_key: config.sumsub_key.clone(),
             sumsub_secret: config.sumsub_secret.clone(),
+        }
+    }
+
+    /// Helper to create document metadata JSON
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    fn create_document_metadata(
+        doc_type: &str,
+        doc_sub_type: &str,
+        country: Option<&str>,
+    ) -> String {
+        let mut json_obj = json!({ "idDocType": doc_type });
+
+        if !doc_sub_type.is_empty() {
+            json_obj["idDocSubType"] = json!(doc_sub_type);
+        }
+
+        if let Some(country_code) = country {
+            json_obj["country"] = json!(country_code);
+        }
+
+        json_obj.to_string()
+    }
+
+    /// Helper to handle Sumsub API response errors
+    fn handle_sumsub_error(response_text: &str, fallback_message: &str) -> ApplicantError {
+        match serde_json::from_str::<SumsubResponse<serde_json::Value>>(response_text) {
+            Ok(SumsubResponse::Error(ApiError { description, code })) => {
+                ApplicantError::Sumsub { description, code }
+            }
+            _ => ApplicantError::Sumsub {
+                description: format!("{fallback_message}: {response_text}"),
+                code: 500,
+            },
+        }
+    }
+
+    /// Helper to handle API responses consistently
+    async fn handle_api_response<T>(
+        response: reqwest::Response,
+        success_message: Option<&str>,
+        error_message: &str,
+    ) -> Result<T, ApplicantError>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        if response.status().is_success() {
+            if let Some(msg) = success_message {
+                println!("{msg}");
+            }
+            let parsed: SumsubResponse<T> = response.json().await?;
+            match parsed {
+                SumsubResponse::Success(data) => Ok(data),
+                SumsubResponse::Error(ApiError { description, code }) => {
+                    Err(ApplicantError::Sumsub { description, code })
+                }
+            }
+        } else {
+            let status_code = response.status().as_u16();
+            let response_text = response.text().await?;
+            println!("{error_message}: {response_text}");
+            Err(ApplicantError::Sumsub {
+                description: format!("{error_message}: {response_text}"),
+                code: status_code,
+            })
+        }
+    }
+
+    /// Helper for simple success/error responses (no data returned)
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    async fn handle_simple_response(
+        response: reqwest::Response,
+        success_message: &str,
+        error_message: &str,
+    ) -> Result<(), ApplicantError> {
+        if response.status().is_success() {
+            println!("{success_message}");
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            Err(Self::handle_sumsub_error(&response_text, error_message))
         }
     }
 
@@ -175,12 +283,7 @@ impl SumsubClient {
             .send()
             .await?;
 
-        match response.json().await? {
-            SumsubResponse::Success(PermalinkResponse { url }) => Ok(PermalinkResponse { url }),
-            SumsubResponse::Error(ApiError { description, code }) => {
-                Err(ApplicantError::Sumsub { description, code })
-            }
-        }
+        Self::handle_api_response(response, None, "Failed to create permalink").await
     }
 
     /// Get parsed applicant details with structured data
@@ -195,12 +298,7 @@ impl SumsubClient {
         let headers = self.get_headers(method, &url, None)?;
         let response = self.client.get(&full_url).headers(headers).send().await?;
 
-        match response.json::<SumsubResponse<ApplicantDetails>>().await? {
-            SumsubResponse::Success(applicant_details) => Ok(applicant_details),
-            SumsubResponse::Error(ApiError { description, code }) => {
-                Err(ApplicantError::Sumsub { description, code })
-            }
-        }
+        Self::handle_api_response(response, None, "Failed to get applicant details").await
     }
 
     fn get_headers(
@@ -272,6 +370,13 @@ impl SumsubClient {
         let now = chrono::Utc::now();
         let date_format = now.format("%Y-%m-%d %H:%M:%S+0000").to_string();
 
+        // Map direction to Sumsub's expected values: "incoming" -> "in", "outgoing" -> "out"
+        let sumsub_direction = match direction {
+            "incoming" => "in",
+            "outgoing" => "out",
+            other => other, // Pass through if already in correct format
+        };
+
         // Build the request body
         let body = json!({
             "txnId": tx_id,
@@ -279,7 +384,7 @@ impl SumsubClient {
             "txnDate": date_format,
             "info": {
                 "type": tx_type,
-                "direction": direction,
+                "direction": sumsub_direction,
                 "amount": amount,
                 "currencyCode": currency_code,
                 "currencyType": "fiat",
@@ -309,25 +414,19 @@ impl SumsubClient {
         if response.status().is_success() {
             Ok(())
         } else {
-            // Extract error details if available
             let response_text = response.text().await?;
-            match serde_json::from_str::<SumsubResponse<serde_json::Value>>(&response_text) {
-                Ok(SumsubResponse::Error(ApiError { description, code })) => {
-                    Err(ApplicantError::Sumsub { description, code })
-                }
-                _ => Err(ApplicantError::Sumsub {
-                    description: format!("Failed to post transaction: {response_text}"),
-                    code: 500,
-                }),
-            }
+            Err(Self::handle_sumsub_error(
+                &response_text,
+                "Failed to post transaction",
+            ))
         }
     }
 
     /// Creates an applicant directly via API for testing purposes
     /// This is useful for sandbox testing where you want to create an applicant
     /// without requiring a user to visit the permalink URL
-    #[cfg(test)]
-    pub(crate) async fn create_applicant(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn create_applicant(
         &self,
         external_user_id: CustomerId,
         level_name: &str,
@@ -375,8 +474,8 @@ impl SumsubClient {
 
     /// Updates the fixedInfo for an applicant with basic personal data
     /// This is required before simulating approval as Sumsub needs some basic information
-    #[cfg(test)]
-    pub(crate) async fn update_applicant_info(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn update_applicant_info(
         &self,
         applicant_id: &str,
         first_name: &str,
@@ -406,26 +505,157 @@ impl SumsubClient {
             .send()
             .await?;
 
-        if response.status().is_success() {
-            Ok(())
-        } else {
-            let response_text = response.text().await?;
-            match serde_json::from_str::<SumsubResponse<serde_json::Value>>(&response_text) {
-                Ok(SumsubResponse::Error(ApiError { description, code })) => {
-                    Err(ApplicantError::Sumsub { description, code })
-                }
-                _ => Err(ApplicantError::Sumsub {
-                    description: format!("Failed to update applicant info: {response_text}"),
-                    code: 500,
-                }),
-            }
-        }
+        Self::handle_simple_response(
+            response,
+            "Applicant info updated",
+            "Failed to update applicant info",
+        )
+        .await
+    }
+
+    /// Uploads a document image for an applicant
+    /// This method handles the multipart form data upload required for document images
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn upload_document(
+        &self,
+        applicant_id: &str,
+        doc_type: &str,        // e.g., "PASSPORT", "SELFIE", "ID_CARD"
+        doc_sub_type: &str,    // e.g., "FRONT_SIDE", "BACK_SIDE", or empty for single-sided docs
+        country: Option<&str>, // 3-letter country code (e.g., "USA", "DEU") - required for most docs
+        image_data: Vec<u8>,   // Image file data
+        filename: &str,        // e.g., "passport.jpg"
+    ) -> Result<(), ApplicantError> {
+        // Use manual multipart construction directly for reliable HMAC signature calculation
+        self.upload_document_with_manual_multipart(
+            applicant_id,
+            doc_type,
+            doc_sub_type,
+            country,
+            image_data,
+            filename,
+        )
+        .await
+    }
+
+    /// Uploads document with manual multipart body construction for proper HMAC signature calculation
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    async fn upload_document_with_manual_multipart(
+        &self,
+        applicant_id: &str,
+        doc_type: &str,
+        doc_sub_type: &str,
+        country: Option<&str>,
+        image_data: Vec<u8>,
+        filename: &str,
+    ) -> Result<(), ApplicantError> {
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/info/idDoc");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let metadata = Self::create_document_metadata(doc_type, doc_sub_type, country);
+
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+
+        // Manually construct multipart body for signature calculation
+        let boundary = format!("----formdata-reqwest-{timestamp}");
+        let mut body = Vec::new();
+
+        // Add metadata field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(b"Content-Disposition: form-data; name=\"metadata\"\r\n\r\n");
+        body.extend_from_slice(metadata.as_bytes());
+        body.extend_from_slice(b"\r\n");
+
+        // Add file field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            format!(
+                "Content-Disposition: form-data; name=\"content\"; filename=\"{filename}\"\r\n"
+            )
+            .as_bytes(),
+        );
+        body.extend_from_slice(b"Content-Type: application/octet-stream\r\n\r\n");
+        body.extend_from_slice(&image_data);
+        body.extend_from_slice(b"\r\n");
+
+        // Add closing boundary
+        body.extend_from_slice(format!("--{boundary}--\r\n").as_bytes());
+
+        // Calculate signature with the manual multipart body
+        let signature = {
+            type HmacSha256 = Hmac<Sha256>;
+            let mut mac = HmacSha256::new_from_slice(self.sumsub_secret.as_bytes())
+                .expect("HMAC can take key of any size");
+            mac.update(timestamp.to_string().as_bytes());
+            mac.update(method.as_bytes());
+            mac.update(url_path.as_bytes());
+            mac.update(&body);
+            hex::encode(mac.finalize().into_bytes())
+        };
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Accept", HeaderValue::from_static("application/json"));
+        headers.insert(
+            "Content-Type",
+            HeaderValue::from_str(&format!("multipart/form-data; boundary={boundary}"))?,
+        );
+        headers.insert(
+            "X-App-Token",
+            HeaderValue::from_str(&self.sumsub_key).expect("Invalid sumsub key"),
+        );
+        headers.insert(
+            "X-App-Access-Ts",
+            HeaderValue::from_str(&timestamp.to_string()).expect("Invalid timestamp"),
+        );
+        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        Self::handle_simple_response(
+            response,
+            &format!("Document uploaded successfully: {doc_type} {doc_sub_type}"),
+            "Document upload failed",
+        )
+        .await
+    }
+
+    /// Requests a check/review for an applicant
+    /// This moves the applicant to "pending" status for review
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn request_check(&self, applicant_id: &str) -> Result<(), ApplicantError> {
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/status/pending");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let body = json!({}).to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        Self::handle_simple_response(
+            response,
+            "Review requested successfully",
+            "Failed to request check",
+        )
+        .await
     }
 
     /// Simulates a review response in sandbox mode (GREEN for approved, RED for rejected)
     /// This is only available in sandbox environments for testing purposes
-    #[cfg(test)]
-    pub(crate) async fn simulate_review_response(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn simulate_review_response(
         &self,
         applicant_id: &str,
         review_answer: &str, // "GREEN" or "RED"
@@ -434,14 +664,14 @@ impl SumsubClient {
         let url_path = format!("/resources/applicants/{applicant_id}/status/testCompleted");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
-        let body = if review_answer == "GREEN" {
+        let body = if review_answer == REVIEW_ANSWER_GREEN {
             json!({
-                "reviewAnswer": "GREEN",
+                "reviewAnswer": REVIEW_ANSWER_GREEN,
                 "rejectLabels": []
             })
         } else {
             json!({
-                "reviewAnswer": "RED",
+                "reviewAnswer": REVIEW_ANSWER_RED,
                 "rejectLabels": ["UNSATISFACTORY_PHOTOS"],
                 "reviewRejectType": "RETRY",
                 "clientComment": "Test rejection for automated testing",
@@ -477,461 +707,123 @@ impl SumsubClient {
             }
         }
     }
+
+    /// Submits a questionnaire directly to an applicant
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn submit_questionnaire_direct(
+        &self,
+        applicant_id: &str,
+        questionnaire_id: &str,
+    ) -> Result<(), ApplicantError> {
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/questionnaires");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        // Create a basic questionnaire submission based on the v1_onboarding questionnaire
+        let body = json!({
+            "id": questionnaire_id,
+            "sections": {
+                DEFAULT_QUESTIONNAIRE_SECTION: {
+                    "items": {
+                        DEFAULT_QUESTIONNAIRE_ITEM: {
+                            "value": DEFAULT_QUESTIONNAIRE_VALUE
+                        }
+                    }
+                }
+            }
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            println!("Questionnaire submitted successfully");
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            println!("Questionnaire submission response: {response_text}");
+
+            // Try alternative approach: add questionnaire data directly to applicant info
+            self.update_applicant_questionnaire(applicant_id, questionnaire_id)
+                .await
+        }
+    }
+
+    /// Alternative approach: Update applicant with questionnaire data
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    async fn update_applicant_questionnaire(
+        &self,
+        applicant_id: &str,
+        questionnaire_id: &str,
+    ) -> Result<(), ApplicantError> {
+        let method = "PATCH";
+        let url_path =
+            format!("/resources/applicants/{applicant_id}/questionnaires/{questionnaire_id}");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let body = json!({
+            "sections": {
+                DEFAULT_QUESTIONNAIRE_SECTION: {
+                    "items": {
+                        DEFAULT_QUESTIONNAIRE_ITEM: {
+                            "value": DEFAULT_QUESTIONNAIRE_VALUE
+                        }
+                    }
+                }
+            }
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .patch(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            println!("Questionnaire updated successfully (alternative approach)");
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            Err(Self::handle_sumsub_error(
+                &response_text,
+                "Failed to submit questionnaire via both methods",
+            ))
+        }
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    use crate::primitives::CustomerId;
-
-    fn load_config_from_env() -> Option<SumsubConfig> {
-        let sumsub_key = std::env::var("SUMSUB_KEY").ok()?;
-        let sumsub_secret = std::env::var("SUMSUB_SECRET").ok()?;
-
-        Some(SumsubConfig {
-            sumsub_key,
-            sumsub_secret,
-        })
-    }
-
-    #[tokio::test]
-    async fn create_permalink() -> anyhow::Result<()> {
-        let sumsub_config = load_config_from_env();
-        if sumsub_config.is_none() {
-            println!("not running the test");
-            return Ok(());
-        }
-
-        let sumsub_client = SumsubClient::new(&sumsub_config.unwrap());
-        let customer_id = CustomerId::new();
-
-        let response = sumsub_client
-            .create_permalink(customer_id, "basic-kyc-level")
-            .await?;
-
-        println!("Response: {response:?}");
-
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_applicant_auto_approval() -> anyhow::Result<()> {
-        let sumsub_config = load_config_from_env();
-        if sumsub_config.is_none() {
-            println!("not running the test");
-            return Ok(());
-        }
-
-        let sumsub_client = SumsubClient::new(&sumsub_config.unwrap());
-        let customer_id = CustomerId::new();
-
-        println!("🚀 Testing Sumsub Auto-Approval (GREEN)");
-        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-        // Step 1: Create a permalink for reference
-        println!("📝 Step 1: Creating KYC permalink for reference...");
-        let permalink_response = sumsub_client
-            .create_permalink(customer_id, "basic-kyc-level")
-            .await?;
-        println!("✅ Permalink created: {}", permalink_response.url);
-
-        // Step 2: Create an applicant directly via API
-        println!("\n🆔 Step 2: Creating applicant directly via API...");
-        match sumsub_client
-            .create_applicant(customer_id, "basic-kyc-level")
-            .await
-        {
-            Ok(applicant_id) => {
-                println!("✅ Applicant created successfully!");
-                println!("   Applicant ID: {applicant_id}");
-                println!("   Customer ID: {customer_id}");
-
-                // Step 3: Verify applicant exists
-                println!("\n🔍 Step 3: Verifying applicant exists...");
-                match sumsub_client.get_applicant_details(customer_id).await {
-                    Ok(details) => {
-                        println!("✅ Applicant found in system");
-                        println!("   ID: {}", details.id);
-                        println!(
-                            "   Full Name: {}",
-                            details.full_name().unwrap_or("N/A".to_string())
-                        );
-                        println!("   Nationality: {}", details.nationality().unwrap_or("N/A"));
-                        if let Some(address) = details.primary_address() {
-                            println!("   Address: {address}");
-                        }
-                        println!("   Type: {}", details.applicant_type);
-                    }
-                    Err(e) => {
-                        println!("⚠️ Could not fetch applicant details: {e:?}");
-                        return Ok(()); // Don't fail the test, but note the issue
-                    }
-                }
-
-                // Step 4: Provide basic applicant information (required for approval)
-                println!("\n📋 Step 4: Providing basic applicant information...");
-                match sumsub_client
-                    .update_applicant_info(&applicant_id, "John", "TestUser", "1990-01-01", "DEU")
-                    .await
-                {
-                    Ok(_) => {
-                        println!("✅ Successfully updated applicant information");
-                    }
-                    Err(e) => {
-                        println!("⚠️ Failed to update applicant info: {e:?}");
-                        println!("   Continuing with approval test anyway...");
-                    }
-                }
-
-                // Step 5: Test auto-approval (GREEN)
-                println!("\n✨ Step 5: Testing auto-approval (GREEN status)...");
-                match sumsub_client
-                    .simulate_review_response(&applicant_id, "GREEN")
-                    .await
-                {
-                    Ok(_) => {
-                        println!("✅ Successfully simulated GREEN (approved) status");
-
-                        // Give the system a moment to process
-                        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-
-                        // Step 6: Verify the approval worked
-                        println!("\n🔍 Step 6: Verifying approval status...");
-                        match sumsub_client.get_applicant_details(customer_id).await {
-                            Ok(updated_details) => {
-                                println!("🎉 Updated applicant details after GREEN approval:");
-                                println!(
-                                    "   Full Name: {}",
-                                    updated_details.full_name().unwrap_or("N/A".to_string())
-                                );
-                                println!("   Applicant Type: {}", updated_details.applicant_type);
-                            }
-                            Err(e) => println!("⚠️ Could not fetch updated details: {e:?}"),
-                        }
-                    }
-                    Err(e) => {
-                        println!("⚠️ Auto-approval simulation failed: {e:?}");
-                    }
-                }
-            }
-            Err(e) => {
-                println!("⚠️ Failed to create applicant: {e:?}");
-                println!("   This might be due to sandbox limitations or configuration issues");
-
-                // Document the complete workflow
-                println!("\n📚 Complete Workflow Documentation");
-                println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-                println!("✅ Applicant creation via API: WORKING");
-                println!("✅ Basic info update via API: WORKING");
-                println!("✅ Auto-approval simulation: WORKING");
-                println!();
-                println!("For complete KYC testing:");
-                println!("1. ✅ Create applicant (automated)");
-                println!("2. ✅ Add basic information (automated)");
-                println!("3. 🤖 Use simulate_review_response() for status testing");
-                println!("4. ✅ Verify final status");
-                println!();
-                println!(
-                    "🔗 Permalink for manual testing: {}",
-                    permalink_response.url
-                );
-                println!("🆔 Customer ID for API calls: {customer_id}");
-            }
-        }
-
-        println!("\n🎯 Auto-approval test completed!");
-        Ok(())
-    }
-
-    #[tokio::test]
-    async fn test_applicant_auto_rejection() -> anyhow::Result<()> {
-        let sumsub_config = load_config_from_env();
-        if sumsub_config.is_none() {
-            println!("not running the test");
-            return Ok(());
-        }
-
-        let sumsub_client = SumsubClient::new(&sumsub_config.unwrap());
-        let customer_id = CustomerId::new();
-
-        println!("🚀 Testing Sumsub Auto-Rejection (RED)");
-        println!("━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━");
-
-        // Step 1: Create a permalink for reference
-        println!("📝 Step 1: Creating KYC permalink for reference...");
-        let permalink_response = sumsub_client
-            .create_permalink(customer_id, "basic-kyc-level")
-            .await?;
-        println!("✅ Permalink created: {}", permalink_response.url);
-
-        // Step 2: Create an applicant directly via API
-        println!("\n🆔 Step 2: Creating applicant directly via API...");
-        match sumsub_client
-            .create_applicant(customer_id, "basic-kyc-level")
-            .await
-        {
-            Ok(applicant_id) => {
-                println!("✅ Applicant created successfully!");
-                println!("   Applicant ID: {applicant_id}");
-                println!("   Customer ID: {customer_id}");
-
-                // Step 3: Verify applicant exists
-                println!("\n🔍 Step 3: Verifying applicant exists...");
-                match sumsub_client.get_applicant_details(customer_id).await {
-                    Ok(details) => {
-                        println!("✅ Applicant found in system");
-                        println!("   ID: {}", details.id);
-                        println!(
-                            "   Full Name: {}",
-                            details.full_name().unwrap_or("N/A".to_string())
-                        );
-                        println!("   Nationality: {}", details.nationality().unwrap_or("N/A"));
-                        if let Some(address) = details.primary_address() {
-                            println!("   Address: {address}");
-                        }
-                        println!("   Type: {}", details.applicant_type);
-                    }
-                    Err(e) => {
-                        println!("⚠️ Could not fetch applicant details: {e:?}");
-                        return Ok(()); // Don't fail the test, but note the issue
-                    }
-                }
-
-                // Step 4: Provide basic applicant information (for consistency)
-                println!("\n📋 Step 4: Providing basic applicant information...");
-                match sumsub_client
-                    .update_applicant_info(&applicant_id, "Jane", "TestReject", "1985-06-15", "DEU")
-                    .await
-                {
-                    Ok(_) => {
-                        println!("✅ Successfully updated applicant information");
-                    }
-                    Err(e) => {
-                        println!("⚠️ Failed to update applicant info: {e:?}");
-                        println!("   Continuing with rejection test anyway...");
-                    }
-                }
-
-                // Step 5: Test auto-rejection (RED)
-                println!("\n🔴 Step 5: Testing auto-rejection (RED status)...");
-                match sumsub_client
-                    .simulate_review_response(&applicant_id, "RED")
-                    .await
-                {
-                    Ok(_) => {
-                        println!("✅ Successfully simulated RED (rejected) status");
-
-                        // Give the system a moment to process
-                        tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;
-
-                        // Step 6: Verify the rejection worked
-                        println!("\n🔍 Step 6: Verifying rejection status...");
-                        match sumsub_client.get_applicant_details(customer_id).await {
-                            Ok(updated_details) => {
-                                println!("🔍 Updated applicant details after RED rejection:");
-                                println!(
-                                    "   Full Name: {}",
-                                    updated_details.full_name().unwrap_or("N/A".to_string())
-                                );
-                                println!("   Applicant Type: {}", updated_details.applicant_type);
-                            }
-                            Err(e) => println!("⚠️ Could not fetch updated details: {e:?}"),
-                        }
-                    }
-                    Err(e) => {
-                        println!("⚠️ Auto-rejection simulation failed: {e:?}");
-                    }
-                }
-            }
-            Err(e) => {
-                println!("⚠️ Failed to create applicant: {e:?}");
-            }
-        }
-
-        println!("\n🎯 Auto-rejection test completed!");
-        Ok(())
-    }
 
     #[test]
-    fn test_parse_sumsub_json() {
-        // Sample JSON response from user's message
-        let json_data = r#"{
-          "id": "68640f360a2c53f472902421",
-          "createdAt": "2025-07-01 16:39:18",
-          "key": "RLZHTGNLRLYEJL",
-          "clientId": "galoy.io",
-          "inspectionId": "68640f360a2c53f472902421",
-          "externalUserId": "6107522e-11e6-4b03-9056-516dfbbee36a",
-          "info": {
-            "firstName": "John",
-            "firstNameEn": "John",
-            "lastName": "Mock-Doe",
-            "lastNameEn": "Mock-Doe",
-            "dob": "2006-01-02",
-            "country": "USA",
-            "addresses": [
-              {
-                "street": "HEIDESTRASSE 19",
-                "streetEn": "HEIDESTRASSE 19",
-                "town": "KÖLN",
-                "townEn": "KOELN",
-                "postCode": "51247",
-                "country": "DEU",
-                "formattedAddress": "HEIDESTRASSE 19, KÖLN, Germany, 51247"
-              }
-            ],
-            "idDocs": [
-              {
-                "idDocType": "PASSPORT",
-                "country": "USA",
-                "firstName": "John",
-                "firstNameEn": "John",
-                "lastName": "Mock-Doe",
-                "lastNameEn": "Mock-Doe",
-                "validUntil": "2026-06-22",
-                "number": "Mock-JY7HTPU0WS",
-                "dob": "2006-01-02",
-                "mrzLine1": "P<BLRLEANEN<<GEORGIA<<<<<<<<<<<<<<<<<<<<<<<<",
-                "mrzLine2": "U2HZWN97A1BLR0704113F3309276<<<<<<<<<<<<<<08"
-              },
-              {
-                "idDocType": "UTILITY_BILL",
-                "country": "DEU",
-                "firstName": "FREYA",
-                "firstNameEn": "FREYA",
-                "lastName": "KRAUSE",
-                "lastNameEn": "KRAUSE",
-                "issuedDate": "2024-10-10",
-                "address": {
-                  "street": "HEIDESTRASSE 19",
-                  "streetEn": "HEIDESTRASSE 19",
-                  "town": "KÖLN",
-                  "townEn": "KOELN",
-                  "postCode": "51247",
-                  "country": "DEU",
-                  "formattedAddress": "HEIDESTRASSE 19, KÖLN, Germany, 51247"
-                }
-              }
-            ]
-          },
-          "applicantPlatform": "Web",
-          "ipCountry": "USA",
-          "agreement": {
-            "items": [
-              {
-                "id": "b6062bf1-9012-4c7f-90b2-6fdbe418fcfe",
-                "acceptedAt": "2025-07-01 16:39:51",
-                "source": "WebSDK",
-                "type": "onboarding",
-                "recordIds": [
-                  "685045c5f26d8087f1be98e9"
-                ]
-              }
-            ]
-          },
-          "requiredIdDocs": {
-            "docSets": [
-              {
-                "idDocSetType": "IDENTITY",
-                "types": [
-                  "PASSPORT"
-                ],
-                "subTypes": [
-                  "FRONT_SIDE",
-                  "BACK_SIDE"
-                ],
-                "videoRequired": "disabled",
-                "nfcVerificationSettings": {
-                  "mode": "disabled"
-                }
-              },
-              {
-                "idDocSetType": "SELFIE",
-                "types": [
-                  "SELFIE"
-                ],
-                "videoRequired": "passiveLiveness"
-              },
-              {
-                "idDocSetType": "QUESTIONNAIRE",
-                "questionnaireDefId": "volcano_onboarding"
-              },
-              {
-                "idDocSetType": "PROOF_OF_RESIDENCE",
-                "types": [
-                  "UTILITY_BILL"
-                ],
-                "poaStepSettingsId": "66743f85149c42396e20ab80",
-                "captureMode": "manualOnly"
-              }
-            ]
-          },
-          "review": {
-            "reviewId": "nmzFB",
-            "attemptId": "SOhHs",
-            "attemptCnt": 1,
-            "elapsedSincePendingMs": 933,
-            "elapsedSinceQueuedMs": 933,
-            "reprocessing": true,
-            "levelName": "basic-kyc-level",
-            "levelAutoCheckMode": null,
-            "createDate": "2025-07-01 16:40:28+0000",
-            "reviewDate": "2025-07-01 16:40:28+0000",
-            "reviewResult": {
-              "reviewAnswer": "GREEN"
-            },
-            "reviewStatus": "completed",
-            "priority": 0
-          },
-          "lang": "en",
-          "type": "individual",
-          "questionnaires": [
-            {
-              "id": "onboarding",
-              "sections": {
-                "testSumsubQuestionar": {
-                  "items": {
-                    "test": {
-                      "value": "0"
-                    }
-                  }
-                }
-              }
-            }
-          ]
-        }"#;
+    fn test_applicant_info_methods() {
+        let applicant_info = ApplicantInfo {
+            first_name: Some("John".to_string()),
+            last_name: Some("Doe".to_string()),
+            country: Some("USA".to_string()),
+            country_of_birth: None,
+            dob: None,
+            addresses: None,
+            id_docs: None,
+        };
 
-        // Parse the JSON into our struct
-        let applicant_details: ApplicantDetails =
-            serde_json::from_str(json_data).expect("Failed to parse JSON");
-
-        // Verify the parsing worked correctly
-        assert_eq!(applicant_details.id, "68640f360a2c53f472902421");
-        assert_eq!(
-            applicant_details.customer_id.to_string(),
-            "6107522e-11e6-4b03-9056-516dfbbee36a"
-        );
-        assert_eq!(applicant_details.applicant_type, "individual");
-
-        // Test helper methods
-        assert_eq!(applicant_details.first_name(), Some("John"));
-        assert_eq!(applicant_details.last_name(), Some("Mock-Doe"));
-        assert_eq!(
-            applicant_details.full_name(),
-            Some("John Mock-Doe".to_string())
-        );
-        assert_eq!(applicant_details.nationality(), Some("USA"));
-        assert_eq!(
-            applicant_details.primary_address(),
-            Some("HEIDESTRASSE 19, KÖLN, Germany, 51247")
-        );
-
-        // Test document types
-        let id_docs = applicant_details.info.id_docs.as_ref().unwrap();
-        assert_eq!(id_docs.len(), 2);
-        assert_eq!(id_docs[0].doc_type, "PASSPORT");
-        assert_eq!(id_docs[0].country, Some("USA".to_string()));
-        assert_eq!(id_docs[1].doc_type, "UTILITY_BILL");
-        assert_eq!(id_docs[1].country, Some("DEU".to_string()));
+        assert_eq!(applicant_info.first_name(), Some("John"));
+        assert_eq!(applicant_info.last_name(), Some("Doe"));
+        assert_eq!(applicant_info.full_name(), Some("John Doe".to_string()));
+        assert_eq!(applicant_info.nationality(), Some("USA"));
     }
 }

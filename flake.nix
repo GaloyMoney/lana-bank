@@ -63,16 +63,7 @@
           || pkgs.lib.hasInfix "/lib/authz/src/rbac.conf" path
           || pkgs.lib.hasInfix "/.sqlx/" path
           || pkgs.lib.hasInfix "/lana/app/migrations/" path
-          || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path;
-      };
-
-      # Source filter for entity-rollups that includes templates and workspace dependencies
-      entityRollupsSource = pkgs.lib.cleanSourceWith {
-        src = ./.;
-        filter = path: type:
-          craneLib.filterCargoSources path type
-          || pkgs.lib.hasInfix "/lib/authz/src/rbac.conf" path
-          || pkgs.lib.hasInfix "/.sqlx/" path
+          || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
           || pkgs.lib.hasInfix "/lana/entity-rollups/src/templates/" path;
       };
 
@@ -86,7 +77,7 @@
           version = "0.0.0";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
-          cargoExtraArgs = "--features sim-time";
+          cargoExtraArgs = "--features sim-time,sumsub-testing";
         };
 
       # Function to build lana-cli for a specific profile
@@ -107,7 +98,7 @@
             if self ? lastModified
             then toString self.lastModified
             else "315532800";
-          cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian";
+          cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian,sumsub-testing";
         };
 
       # Function to build static lana-cli (musl target for containers)
@@ -243,7 +234,7 @@
       };
 
       entity-rollups = craneLib.buildPackage {
-        src = entityRollupsSource;
+        src = rustSource;
         cargoToml = ./Cargo.toml;
         cargoArtifacts = debugCargoArtifacts;
         pname = "entity-rollups";
@@ -261,7 +252,7 @@
         version = "0.1.0";
         doCheck = false;
         SQLX_OFFLINE = true;
-        cargoExtraArgs = "--bin write_sdl";
+        cargoExtraArgs = "--bin write_sdl --features sumsub-testing";
       };
 
       write_customer_sdl = craneLib.buildPackage {
