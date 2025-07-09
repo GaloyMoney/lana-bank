@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_customers (id, email, telegram_id, status, created_at) VALUES ($1, $2, $3, $4, $5)",
+  "query": "INSERT INTO core_customers (id, email, telegram_id, status, public_ref, created_at) VALUES ($1, $2, $3, $4, $5, $6)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -9,10 +9,11 @@
         "Varchar",
         "Varchar",
         "Varchar",
+        "Varchar",
         "Timestamptz"
       ]
     },
     "nullable": []
   },
-  "hash": "5b3471e831c9f16e7ada531e625973936c7187c10369e1a0ab28e7223f971fc7"
+  "hash": "5a7bd2f7235ffbe2705ab3c81f1c397c25024e237b303e1f54146ef0eaaeefb4"
 }
