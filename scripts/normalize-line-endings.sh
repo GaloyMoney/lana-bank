@@ -2,6 +2,7 @@
 
 # Script to normalize line endings in the repository
 # This should be run once after setting up .editorconfig and .gitattributes
+# For checking line endings in CI/CD, use: make check-line-endings
 
 set -e
 
@@ -62,4 +63,5 @@ echo "2. Run 'git commit -m \"Normalize line endings\"' to commit"
 echo "3. Consider running formatters:"
 echo "   - Rust: 'cargo fmt'"
 echo "   - TypeScript/JavaScript: 'pnpm run format' (in frontend apps)"
-echo "4. Add this script to your CI/CD to prevent future inconsistencies"
+echo ""
+echo "💡 To check line endings in CI/CD, use: make check-line-endings"

@@ -40,7 +40,10 @@ run-server:
 run-server-with-bootstrap:
 	cargo run --all-features --bin lana-cli -- --config ./bats/lana.yml | tee .e2e-logs
 
-check-code: check-code-rust-cargo check-code-apps check-code-tf
+check-code: check-line-endings check-code-rust-cargo check-code-apps check-code-tf
+
+check-line-endings:
+	./scripts/check-line-endings.sh
 
 check-code-tf:
 	tofu fmt -recursive .
