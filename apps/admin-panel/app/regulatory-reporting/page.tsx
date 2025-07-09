@@ -119,16 +119,20 @@ const RegulatoryReportingPage: React.FC = () => {
   useEffect(() => {
     let intervalId: NodeJS.Timeout | null = null
 
+    // Only set up interval if we have a selected report that's running
     if (selectedReportDetails?.progress === ReportProgress.Running) {
       intervalId = setInterval(() => {
         refetchReports()
       }, REFETCH_INTERVAL)
     }
 
+    // Cleanup function: clear interval on unmount or when dependencies change
     return () => {
-      if (intervalId) clearInterval(intervalId)
+      if (intervalId) {
+        clearInterval(intervalId)
+      }
     }
-  }, [selectedReportDetails, refetchReports])
+  }, [selectedReportDetails?.progress, selectedReportDetails?.reportId, refetchReports])
 
   const handleGenerateLinks = useCallback(async () => {
     if (!selectedReport) return

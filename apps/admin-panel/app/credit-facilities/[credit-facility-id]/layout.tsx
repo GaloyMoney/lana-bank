@@ -151,32 +151,48 @@ export default function CreditFacilityLayout({
   }, [data?.creditFacility, setFacility])
 
   useEffect(() => {
+    let timer: ReturnType<typeof setInterval> | null = null
+
     if (
       data?.creditFacility?.status === CreditFacilityStatus.PendingApproval &&
       data?.creditFacility?.approvalProcess?.status === ApprovalProcessStatus.Approved
     ) {
-      const timer = setInterval(() => {
-        client.query({
-          query: GetCreditFacilityLayoutDetailsDocument,
-          variables: { id: creditFacilityId },
-          fetchPolicy: "network-only",
-        })
-        client.query({
-          query: GetCreditFacilityHistoryDocument,
-          variables: { id: creditFacilityId },
-          fetchPolicy: "network-only",
-        })
-        client.query({
-          query: GetCreditFacilityRepaymentPlanDocument,
-          variables: { id: creditFacilityId },
-          fetchPolicy: "network-only",
+      timer = setInterval(() => {
+        // Use Promise.all to batch the queries and handle errors properly
+        Promise.all([
+          client.query({
+            query: GetCreditFacilityLayoutDetailsDocument,
+            variables: { id: creditFacilityId },
+            fetchPolicy: "network-only",
+          }),
+          client.query({
+            query: GetCreditFacilityHistoryDocument,
+            variables: { id: creditFacilityId },
+            fetchPolicy: "network-only",
+          }),
+          client.query({
+            query: GetCreditFacilityRepaymentPlanDocument,
+            variables: { id: creditFacilityId },
+            fetchPolicy: "network-only",
+          }),
+        ]).catch((error) => {
+          console.error("Error refreshing credit facility data:", error)
         })
       }, 3000)
-
-      return () => clearInterval(timer)
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.creditFacility?.status, data?.creditFacility?.approvalProcess?.status])
+
+    // Always return cleanup function to prevent memory leaks
+    return () => {
+      if (timer) {
+        clearInterval(timer)
+      }
+    }
+  }, [
+    data?.creditFacility?.status,
+    data?.creditFacility?.approvalProcess?.status,
+    creditFacilityId,
+    client,
+  ])
 
   useEffect(() => {
     if (data?.creditFacility) {
