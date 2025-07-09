@@ -15,6 +15,12 @@ use crate::{
     storage::Storage,
 };
 
+pub use core_report::{
+    AirflowConfig, CoreReportAction, CoreReportEvent, HealthResponse, NewReport as CoreNewReport,
+    Report as CoreReport, ReportId as CoreReportId, ReportObject, ReportsApiClient, error as core_error,
+};
+pub type CoreReports = core_report::Reports<crate::authorization::Authorization, lana_events::LanaEvent>;
+
 pub use config::*;
 pub use entity::*;
 use error::*;
