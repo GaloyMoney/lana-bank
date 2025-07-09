@@ -9,6 +9,7 @@ use core_credit::CoreCreditObject;
 use core_custody::CoreCustodyObject;
 use core_customer::{CustomerId, CustomerObject};
 use core_deposit::CoreDepositObject;
+use core_report::ReportObject;
 use dashboard::DashboardModuleObject;
 use governance::GovernanceObject;
 
@@ -70,6 +71,15 @@ impl From<CoreCustodyObject> for LanaObject {
 impl From<CoreCreditObject> for LanaObject {
     fn from(object: CoreCreditObject) -> Self {
         LanaObject::Credit(object)
+    }
+}
+
+impl From<ReportObject> for LanaObject {
+    fn from(object: ReportObject) -> Self {
+        match object {
+            ReportObject::Report(AllOrOne::All) => LanaObject::App(AppObject::all_reports()),
+            ReportObject::Report(AllOrOne::ById(id)) => LanaObject::App(AppObject::report(ReportId::from(uuid::Uuid::from(id)))),
+        }
     }
 }
 

@@ -50,4 +50,6 @@ pub enum ApplicationError {
     ApplicantError(#[from] crate::applicant::error::ApplicantError),
     #[error("ApplicationError - CustodyError: {0}")]
     CustodyError(#[from] crate::custody::error::CoreCustodyError),
+    #[error("ApplicationError - ReportError: {0}")]
+    ReportError(#[from] crate::report::error::ReportError),
 }

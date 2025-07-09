@@ -170,3 +170,12 @@ pub mod terms {
 pub mod public_id {
     pub use public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
 }
+
+pub mod report {
+    pub use core_report::{
+        AirflowConfig, CoreReportAction, CoreReportEvent, HealthResponse, Report, ReportError,
+        ReportId, ReportObject, ReportsApiClient, error,
+    };
+    pub type Reports =
+        core_report::Reports<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
