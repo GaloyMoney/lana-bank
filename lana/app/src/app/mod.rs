@@ -12,7 +12,7 @@ use crate::{
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
-    authorization::{seed, AppAction, AppObject, AuditAction, Authorization},
+    authorization::{AppAction, AppObject, AuditAction, Authorization, seed},
     credit::Credit,
     custody::Custody,
     customer::Customers,
