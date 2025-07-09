@@ -706,6 +706,7 @@ checksums:
     AuditLogs/table/emptyMessage: b3ef7a5a76768db254c867944b84b04c
     ChartOfAccounts/title: 785b8862f83c931ce85f5939e38be7c0
     ChartOfAccounts/description: d386b72a014828c82a6218385dd8c27a
+    ChartOfAccounts/addNode: 180a55852a8b0f21e53512e344808a0a
     ChartOfAccounts/upload/dragAndDrop: 4d24050d9792d5ee1d1229553a1a5cbe
     ChartOfAccounts/upload/dropHere: c396eb3e3cdc8788750150ca38725495
     ChartOfAccounts/upload/csvOnly: a7964b2b0e8676b4cd9e20c5a724a736
@@ -716,6 +717,24 @@ checksums:
     ChartOfAccounts/upload/uploading: a318ac63eb5403166dae52e92478fd18
     ChartOfAccounts/upload/reset: c19c53a05e21c7f3b395247809a14b51
     ChartOfAccounts/upload/upload: 4a6c84aa16db0f4e5697f49b45257bc7
+    ChartOfAccounts/AddNodeDialog/title: 9e9632273b9382bb58000eb4b87fcb6d
+    ChartOfAccounts/AddNodeDialog/description: 5130577ab0b6bd8d4dffe6ada8602ef4
+    ChartOfAccounts/AddNodeDialog/success: 6f0d0977e6b083f6fe8024b5479fe489
+    ChartOfAccounts/AddNodeDialog/validating: 53e19393c8139790da4d3337f4b981ab
+    ChartOfAccounts/AddNodeDialog/parentNotFound: c57cb0d4271badd3baea973cae31c566
+    ChartOfAccounts/AddNodeDialog/fields/code: 9218742c297d337fdc0f5f5dd985294d
+    ChartOfAccounts/AddNodeDialog/fields/name: 5a4c82f1bc517348b64c107345f94f65
+    ChartOfAccounts/AddNodeDialog/fields/parent: 955587051f628785f1fafe0ca8b68ee9
+    ChartOfAccounts/AddNodeDialog/fields/normalBalanceType: f1799262ce7320432b25a80767a5e8a7
+    ChartOfAccounts/AddNodeDialog/placeholders/code: ca52fd8d7fef091dfc71f793b0c39385
+    ChartOfAccounts/AddNodeDialog/placeholders/name: 8aa8588619db68c29ae184ec7e268aba
+    ChartOfAccounts/AddNodeDialog/placeholders/parent: 6f771967eadabae3b82b1a12a7ab9353
+    ChartOfAccounts/AddNodeDialog/placeholders/normalBalanceType: d5680178923a96e1a6f9a91d2f12162b
+    ChartOfAccounts/AddNodeDialog/balanceTypes/debit: 1b35db901aa1aeed8ee79aec6d807731
+    ChartOfAccounts/AddNodeDialog/balanceTypes/credit: 2d447a71ec815a039f175e94fbb12a56
+    ChartOfAccounts/AddNodeDialog/errors/noData: 3971eb9d292ce36fef0d69c871c1b31a
+    ChartOfAccounts/AddNodeDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    ChartOfAccounts/AddNodeDialog/buttons/submit: 180a55852a8b0f21e53512e344808a0a
     ChartOfAccounts/copied: e5fa151fba7800f5e76e25a1c6fe61e0
     BalanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3

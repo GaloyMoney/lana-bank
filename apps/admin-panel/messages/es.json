@@ -1261,6 +1261,7 @@
   "ChartOfAccounts": {
     "title": "Plan de Cuentas",
     "description": "Una lista estructurada de todas las cuentas utilizadas para categorizar y seguir los registros financieros.",
+    "addNode": "Agregar Cuenta",
     "upload": {
       "dragAndDrop": "Arrastra y suelta tu archivo CSV aquí",
       "dropHere": "Suelta tu archivo aquí",
@@ -1272,6 +1273,36 @@
       "uploading": "Subiendo y procesando tu plan de cuentas...",
       "reset": "Reiniciar",
       "upload": "Subir"
+    },
+    "AddNodeDialog": {
+      "title": "Agregar Nueva Cuenta",
+      "description": "Crear una nueva cuenta en el plan de cuentas",
+      "success": "Cuenta agregada exitosamente",
+      "validating": "Validando",
+      "parentNotFound": "Cuenta padre no encontrada",
+      "fields": {
+        "code": "Código de Cuenta",
+        "name": "Nombre de Cuenta",
+        "parent": "Código de Cuenta Padre",
+        "normalBalanceType": "Tipo de Saldo Normal"
+      },
+      "placeholders": {
+        "code": "ej., 1001",
+        "name": "ej., Efectivo y Equivalentes de Efectivo",
+        "parent": "ej., 1000",
+        "normalBalanceType": "Seleccionar tipo de saldo"
+      },
+      "balanceTypes": {
+        "debit": "Débito",
+        "credit": "Crédito"
+      },
+      "errors": {
+        "noData": "No se recibieron datos del servidor",
+        "unknown": "Ocurrió un error desconocido"
+      },
+      "buttons": {
+        "submit": "Agregar Cuenta"
+      }
     },
     "copied": "Código de cuenta copiado: \"{code}\""
   },

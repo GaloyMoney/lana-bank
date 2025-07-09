@@ -1261,6 +1261,7 @@
   "ChartOfAccounts": {
     "title": "Chart Of Accounts",
     "description": "A structured list of all accounts used to categorize and track financial records.",
+    "addNode": "Add Account",
     "upload": {
       "dragAndDrop": "Drag and drop your CSV file here",
       "dropHere": "Drop your file here",
@@ -1272,6 +1273,36 @@
       "uploading": "Uploading and processing your chart of accounts...",
       "reset": "Reset",
       "upload": "Upload"
+    },
+    "AddNodeDialog": {
+      "title": "Add New Account",
+      "description": "Create a new account in the chart of accounts",
+      "success": "Account added successfully",
+      "validating": "Validating",
+      "parentNotFound": "Parent account not found",
+      "fields": {
+        "code": "Account Code",
+        "name": "Account Name",
+        "parent": "Parent Account Code",
+        "normalBalanceType": "Normal Balance Type"
+      },
+      "placeholders": {
+        "code": "e.g., 1001",
+        "name": "e.g., Cash and Cash Equivalents",
+        "parent": "e.g., 1000",
+        "normalBalanceType": "Select balance type"
+      },
+      "balanceTypes": {
+        "debit": "Debit",
+        "credit": "Credit"
+      },
+      "errors": {
+        "noData": "No data returned from server",
+        "unknown": "An unknown error occurred"
+      },
+      "buttons": {
+        "submit": "Add Account"
+      }
     },
     "copied": "Copied Account Code: \"{code}\""
   },

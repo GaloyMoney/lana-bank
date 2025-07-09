@@ -2417,6 +2417,24 @@ export type UsdLedgerBalanceRangeFragmentFragment = { __typename?: 'UsdLedgerAcc
 
 export type BtcLedgerBalanceRangeFragmentFragment = { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } };
 
+export type ValidateParentAccountCodeQueryVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type ValidateParentAccountCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string } | null };
+
+export type ChartOfAccountsAddNodeMutationVariables = Exact<{
+  input: ChartOfAccountsAddNodeInput;
+}>;
+
+
+export type ChartOfAccountsAddNodeMutation = { __typename?: 'Mutation', chartOfAccountsAddNode: { __typename?: 'ChartOfAccountsAddNodePayload', chartOfAccounts: { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> } } };
+
+export type ChartAccountBaseFragment = { __typename?: 'ChartNode', name: string, accountCode: any };
+
+export type ChartOfAccountsFieldsFragment = { __typename?: 'ChartOfAccounts', id: string, chartId: string, name: string, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any, children: Array<{ __typename?: 'ChartNode', name: string, accountCode: any }> }> }> }> }> }> };
+
 export type ChartOfAccountsQueryVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -3087,6 +3105,37 @@ export const BtcLedgerBalanceRangeFragmentFragmentDoc = gql`
   }
 }
     ${BtcBalanceFragmentFragmentDoc}`;
+export const ChartAccountBaseFragmentDoc = gql`
+    fragment ChartAccountBase on ChartNode {
+  name
+  accountCode
+}
+    `;
+export const ChartOfAccountsFieldsFragmentDoc = gql`
+    fragment ChartOfAccountsFields on ChartOfAccounts {
+  id
+  chartId
+  name
+  children {
+    ...ChartAccountBase
+    children {
+      ...ChartAccountBase
+      children {
+        ...ChartAccountBase
+        children {
+          ...ChartAccountBase
+          children {
+            ...ChartAccountBase
+            children {
+              ...ChartAccountBase
+            }
+          }
+        }
+      }
+    }
+  }
+}
+    ${ChartAccountBaseFragmentDoc}`;
 export const PermissionSetFieldsFragmentDoc = gql`
     fragment PermissionSetFields on PermissionSet {
   id
@@ -3764,39 +3813,90 @@ export type BalanceSheetQueryHookResult = ReturnType<typeof useBalanceSheetQuery
 export type BalanceSheetLazyQueryHookResult = ReturnType<typeof useBalanceSheetLazyQuery>;
 export type BalanceSheetSuspenseQueryHookResult = ReturnType<typeof useBalanceSheetSuspenseQuery>;
 export type BalanceSheetQueryResult = Apollo.QueryResult<BalanceSheetQuery, BalanceSheetQueryVariables>;
-export const ChartOfAccountsDocument = gql`
-    query ChartOfAccounts {
-  chartOfAccounts {
+export const ValidateParentAccountCodeDocument = gql`
+    query ValidateParentAccountCode($code: String!) {
+  ledgerAccountByCode(code: $code) {
     id
-    chartId
+    code
     name
-    children {
-      name
-      accountCode
-      children {
-        name
-        accountCode
-        children {
-          name
-          accountCode
-          children {
-            name
-            accountCode
-            children {
-              name
-              accountCode
-              children {
-                name
-                accountCode
-              }
-            }
-          }
-        }
-      }
-    }
   }
 }
     `;
+
+/**
+ * __useValidateParentAccountCodeQuery__
+ *
+ * To run a query within a React component, call `useValidateParentAccountCodeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useValidateParentAccountCodeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useValidateParentAccountCodeQuery({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useValidateParentAccountCodeQuery(baseOptions: Apollo.QueryHookOptions<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables> & ({ variables: ValidateParentAccountCodeQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>(ValidateParentAccountCodeDocument, options);
+      }
+export function useValidateParentAccountCodeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>(ValidateParentAccountCodeDocument, options);
+        }
+export function useValidateParentAccountCodeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>(ValidateParentAccountCodeDocument, options);
+        }
+export type ValidateParentAccountCodeQueryHookResult = ReturnType<typeof useValidateParentAccountCodeQuery>;
+export type ValidateParentAccountCodeLazyQueryHookResult = ReturnType<typeof useValidateParentAccountCodeLazyQuery>;
+export type ValidateParentAccountCodeSuspenseQueryHookResult = ReturnType<typeof useValidateParentAccountCodeSuspenseQuery>;
+export type ValidateParentAccountCodeQueryResult = Apollo.QueryResult<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>;
+export const ChartOfAccountsAddNodeDocument = gql`
+    mutation ChartOfAccountsAddNode($input: ChartOfAccountsAddNodeInput!) {
+  chartOfAccountsAddNode(input: $input) {
+    chartOfAccounts {
+      ...ChartOfAccountsFields
+    }
+  }
+}
+    ${ChartOfAccountsFieldsFragmentDoc}`;
+export type ChartOfAccountsAddNodeMutationFn = Apollo.MutationFunction<ChartOfAccountsAddNodeMutation, ChartOfAccountsAddNodeMutationVariables>;
+
+/**
+ * __useChartOfAccountsAddNodeMutation__
+ *
+ * To run a mutation, you first call `useChartOfAccountsAddNodeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useChartOfAccountsAddNodeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [chartOfAccountsAddNodeMutation, { data, loading, error }] = useChartOfAccountsAddNodeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useChartOfAccountsAddNodeMutation(baseOptions?: Apollo.MutationHookOptions<ChartOfAccountsAddNodeMutation, ChartOfAccountsAddNodeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ChartOfAccountsAddNodeMutation, ChartOfAccountsAddNodeMutationVariables>(ChartOfAccountsAddNodeDocument, options);
+      }
+export type ChartOfAccountsAddNodeMutationHookResult = ReturnType<typeof useChartOfAccountsAddNodeMutation>;
+export type ChartOfAccountsAddNodeMutationResult = Apollo.MutationResult<ChartOfAccountsAddNodeMutation>;
+export type ChartOfAccountsAddNodeMutationOptions = Apollo.BaseMutationOptions<ChartOfAccountsAddNodeMutation, ChartOfAccountsAddNodeMutationVariables>;
+export const ChartOfAccountsDocument = gql`
+    query ChartOfAccounts {
+  chartOfAccounts {
+    ...ChartOfAccountsFields
+  }
+}
+    ${ChartOfAccountsFieldsFragmentDoc}`;
 
 /**
  * __useChartOfAccountsQuery__

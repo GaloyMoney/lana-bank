@@ -4,10 +4,11 @@ import React, { useState, useCallback, MouseEventHandler } from "react"
 import { ApolloError, gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
-import { IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
+import { IoAddSharp, IoCaretDownSharp, IoCaretForwardSharp } from "react-icons/io5"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 import { Table, TableBody, TableCell, TableRow } from "@lana/web/ui/table"
+import { Button } from "@lana/web/ui/button"
 
 import {
   Card,
@@ -24,6 +25,7 @@ import { toast } from "sonner"
 import { useRouter } from "next/navigation"
 
 import ChartOfAccountsUpload from "./upload"
+import { AddChartNodeDialog } from "./add-node"
 
 import {
   useChartOfAccountsQuery,
@@ -32,35 +34,38 @@ import {
 } from "@/lib/graphql/generated"
 
 gql`
-  query ChartOfAccounts {
-    chartOfAccounts {
-      id
-      chartId
-      name
+  fragment ChartAccountBase on ChartNode {
+    name
+    accountCode
+  }
+
+  fragment ChartOfAccountsFields on ChartOfAccounts {
+    id
+    chartId
+    name
+    children {
+      ...ChartAccountBase
       children {
-        name
-        accountCode
+        ...ChartAccountBase
         children {
-          name
-          accountCode
+          ...ChartAccountBase
           children {
-            name
-            accountCode
+            ...ChartAccountBase
             children {
-              name
-              accountCode
+              ...ChartAccountBase
               children {
-                name
-                accountCode
-                children {
-                  name
-                  accountCode
-                }
+                ...ChartAccountBase
               }
             }
           }
         }
       }
+    }
+  }
+
+  query ChartOfAccounts {
+    chartOfAccounts {
+      ...ChartOfAccountsFields
     }
   }
 `
@@ -111,9 +116,9 @@ const getIndentClass = (accountCode: string): string => {
     case 2:
       return "pl-12"
     case 3:
-      return "pl-18"
-    case 4:
       return "pl-24"
+    case 4:
+      return "pl-32"
     default:
       return `pl-[${Math.min(level * 8, 56)}]`
   }
@@ -151,12 +156,13 @@ interface AccountRowProps {
   hasDots: boolean
   isExpanded: boolean
   toggleExpand: () => void
+  onAddChild: (parentCode: string) => void
 }
 
 const AccountRow = React.memo<AccountRowProps>(
-  ({ account, hasDots, isExpanded, toggleExpand }) => {
+  ({ account, hasDots, isExpanded, toggleExpand, onAddChild }) => {
     const t = useTranslations("ChartOfAccounts")
-
+    const [isHovered, setIsHovered] = useState(false)
     const router = useRouter()
 
     const onClick: MouseEventHandler<HTMLTableRowElement> = (e) => {
@@ -165,8 +171,19 @@ const AccountRow = React.memo<AccountRowProps>(
       router.push(`/ledger-account/${account.accountCode}`)
     }
 
+    const handleAddChild = (e: React.MouseEvent) => {
+      e.preventDefault()
+      e.stopPropagation()
+      onAddChild(account.accountCode)
+    }
+
     return (
-      <TableRow className="cursor-pointer" onClick={onClick}>
+      <TableRow
+        className="cursor-pointer group"
+        onClick={onClick}
+        onMouseEnter={() => setIsHovered(true)}
+        onMouseLeave={() => setIsHovered(false)}
+      >
         <TableCell
           className={`${getIndentClass(account.accountCode)} flex justify-between`}
         >
@@ -206,7 +223,20 @@ const AccountRow = React.memo<AccountRowProps>(
             </div>
             <span className={getTextClass(account.accountCode)}>{account.name}</span>
           </div>
-          <div className="font-mono text-xs text-gray-500">{account.accountCode}</div>
+          <div className="flex items-center gap-2">
+            <Button
+              size="sm"
+              variant="ghost"
+              className={`h-6 w-6 p-0 transition-opacity ${
+                isHovered ? "opacity-100" : "opacity-0"
+              }`}
+              onClick={handleAddChild}
+              data-testid={`add-child-${account.accountCode}`}
+            >
+              <IoAddSharp className="h-3 w-3" />
+            </Button>
+            <div className="font-mono text-xs text-gray-500">{account.accountCode}</div>
+          </div>
         </TableCell>
       </TableRow>
     )
@@ -218,12 +248,14 @@ interface ChartOfAccountsViewProps {
   data?: ChartOfAccountsQuery | null
   loading: boolean
   error?: ApolloError
+  onAddChild: (parentCode: string) => void
 }
 
 const ChartOfAccountsView: React.FC<ChartOfAccountsViewProps> = ({
   data,
   loading,
   error,
+  onAddChild,
 }) => {
   const [expandedAccounts, setExpandedAccounts] = useState<Record<string, boolean>>({})
 
@@ -270,6 +302,7 @@ const ChartOfAccountsView: React.FC<ChartOfAccountsViewProps> = ({
           hasDots={dotChildrenExist}
           isExpanded={isExpanded}
           toggleExpand={() => toggleExpand(current.accountCode)}
+          onAddChild={onAddChild}
         />,
       )
 
@@ -307,6 +340,9 @@ const ChartOfAccountsView: React.FC<ChartOfAccountsViewProps> = ({
 
 const ChartOfAccountsPage: React.FC = () => {
   const t = useTranslations("ChartOfAccounts")
+  const [openAddNodeDialog, setOpenAddNodeDialog] = useState(false)
+  const [parentCodeForNewNode, setParentCodeForNewNode] = useState<string | undefined>()
+
   const {
     data: newChartData,
     loading: newChartLoading,
@@ -315,27 +351,65 @@ const ChartOfAccountsPage: React.FC = () => {
     fetchPolicy: "cache-and-network",
   })
 
+  const chartId = newChartData?.chartOfAccounts?.chartId
+
+  const handleAddChild = (parentCode: string) => {
+    setParentCodeForNewNode(parentCode)
+    setOpenAddNodeDialog(true)
+  }
+
+  const handleOpenAddNode = () => {
+    setParentCodeForNewNode(undefined)
+    setOpenAddNodeDialog(true)
+  }
+
   return (
-    <Card className="mb-10">
-      <CardHeader>
-        <CardTitle>{t("title")}</CardTitle>
-        <CardDescription>{t("description")}</CardDescription>
-      </CardHeader>
-      <CardContent>
-        {newChartData?.chartOfAccounts?.children &&
-          newChartData.chartOfAccounts.children.length > 0 && (
-            <ChartOfAccountsView
-              data={newChartData}
-              loading={newChartLoading}
-              error={newChartError}
-            />
+    <>
+      <Card className="mb-10">
+        <CardHeader>
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-1.5">
+              <CardTitle>{t("title")}</CardTitle>
+              <CardDescription>{t("description")}</CardDescription>
+            </div>
+            {chartId && (
+              <Button
+                variant="outline"
+                onClick={handleOpenAddNode}
+                data-testid="add-chart-node-button"
+              >
+                {t("addNode")}
+              </Button>
+            )}
+          </div>
+        </CardHeader>
+        <CardContent>
+          {chartId && (
+            <>
+              {newChartData.chartOfAccounts.children.length > 0 ? (
+                <ChartOfAccountsView
+                  data={newChartData}
+                  loading={newChartLoading}
+                  error={newChartError}
+                  onAddChild={handleAddChild}
+                />
+              ) : (
+                <ChartOfAccountsUpload chartId={chartId} />
+              )}
+            </>
           )}
-        {newChartData?.chartOfAccounts?.chartId &&
-          newChartData.chartOfAccounts.children.length === 0 && (
-            <ChartOfAccountsUpload chartId={newChartData?.chartOfAccounts?.chartId} />
-          )}
-      </CardContent>
-    </Card>
+        </CardContent>
+      </Card>
+
+      {chartId && (
+        <AddChartNodeDialog
+          openAddNodeDialog={openAddNodeDialog}
+          setOpenAddNodeDialog={setOpenAddNodeDialog}
+          chartId={chartId}
+          parentCode={parentCodeForNewNode}
+        />
+      )}
+    </>
   )
 }
 
