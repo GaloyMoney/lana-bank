@@ -1342,8 +1342,6 @@ type Mutation {
 	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
-	reportCreate: ReportCreatePayload!
-	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	chartOfAccountsAddNode(input: ChartOfAccountsAddNodeInput!): ChartOfAccountsAddNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
@@ -1559,8 +1557,6 @@ type Query {
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
-	report(id: UUID!): Report
-	reports: [Report!]!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
 	creditConfig: CreditModuleConfig
@@ -1572,36 +1568,6 @@ type Query {
 
 type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
-}
-
-type Report {
-	reportId: UUID!
-	createdAt: Timestamp!
-	lastError: String
-	progress: ReportProgress!
-}
-
-type ReportCreatePayload {
-	report: Report!
-}
-
-type ReportDownloadLink {
-	reportName: String!
-	url: String!
-}
-
-input ReportDownloadLinksGenerateInput {
-	reportId: UUID!
-}
-
-type ReportDownloadLinksGeneratePayload {
-	reportId: UUID!
-	links: [ReportDownloadLink!]!
-}
-
-enum ReportProgress {
-	RUNNING
-	COMPLETE
 }
 
 type Role {

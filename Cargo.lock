@@ -2905,7 +2905,6 @@ dependencies = [
  "core-deposit",
  "core-money",
  "core-price",
- "core-report",
  "customer-sync",
  "dashboard",
  "derive_builder",
