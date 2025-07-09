@@ -27,12 +27,6 @@
           nodejs = super.nodejs_20;
         })
         (import rust-overlay)
-        (self: super: {
-          python311Packages = super.python311Packages // {
-            fasteners   = super.python311Packages.fasteners  .overridePythonAttrs (_: { doCheck = false; });
-            portalocker = super.python311Packages.portalocker.overridePythonAttrs (_: { doCheck = false; });
-          };
-        })
       ];
       pkgs = import nixpkgs {
         inherit system overlays;

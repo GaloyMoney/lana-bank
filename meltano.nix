@@ -11,7 +11,16 @@
 }: let
   inherit (pkgs) dockerTools buildEnv bash coreutils gitMinimal cacert postgresql;
 
-  meltano-unwrapped = pkgs.python311Packages.buildPythonApplication rec {
+  python3WithOverrides = (python311.override {
+    packageOverrides = self: super: {
+      fasteners   = builtins.trace ">>> fasteners: disabling tests" (
+        super.fasteners  .overridePythonAttrs (_: { doCheck = false; })
+      );
+      portalocker = super.portalocker.overridePythonAttrs (_: { doCheck = false; });
+    };
+  }).withPackages (ps: [ ps.virtualenv ]);
+
+  meltano-unwrapped = python3WithOverrides.pkgs.buildPythonApplication rec {
     pname = "meltano";
     version = "3.7.8";
     pyproject = true;
@@ -21,9 +30,9 @@
       hash = "sha256-dwYJzgqa4pYuXR2oadf6jRJV0ZX5r+mpSE8Km9lzDLI=";
     };
 
-    nativeBuildInputs = with pkgs.python311Packages; [hatchling];
+    nativeBuildInputs = with python3WithOverrides.pkgs; [hatchling];
 
-    propagatedBuildInputs = with pkgs.python311Packages; [
+    propagatedBuildInputs = with python3WithOverrides.pkgs; [
       click
       pyyaml
       requests
@@ -41,6 +50,7 @@
       watchdog
       click-default-group
       fasteners
+      portalocker
       croniter
       pathvalidate
       click-didyoumean
@@ -94,13 +104,13 @@
     ]}:''${LD_LIBRARY_PATH:-}"
 
     if [[ "$1" == "install" || "$1" == "invoke" ]]; then
-      MINIMAL_PYTHONPATH="${pkgs.python311Packages.virtualenv}/lib/python3.11/site-packages"
-      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${pkgs.python311Packages.platformdirs}/lib/python3.11/site-packages"
-      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${pkgs.python311Packages.distlib}/lib/python3.11/site-packages"
-      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${pkgs.python311Packages.filelock}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="${python3WithOverrides.pkgs.virtualenv}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python3WithOverrides.pkgs.platformdirs}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python3WithOverrides.pkgs.distlib}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python3WithOverrides.pkgs.filelock}/lib/python3.11/site-packages"
 
       exec env -u PYTHONHOME -u NIX_PYTHONPATH \
-        PATH="${python311}/bin:$PATH" \
+        PATH="${python3WithOverrides}/bin:$PATH" \
         PYTHONPATH="$MINIMAL_PYTHONPATH" \
         LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
         ${meltano-unwrapped}/bin/meltano "$@"
