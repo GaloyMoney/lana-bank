@@ -12,7 +12,7 @@ use crate::{
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
-    authorization::{AppAction, AppObject, AuditAction, Authorization, seed},
+    authorization::{seed, AppAction, AppObject, AuditAction, Authorization},
     credit::Credit,
     custody::Custody,
     customer::Customers,
@@ -81,7 +81,7 @@ impl LanaApp {
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = DocumentStorage::new(&pool, &storage);
-        let public_ref_service = public_ref::PublicRefService::new(&pool);
+        let public_ref_service = public_ref::PublicRefs::new(&pool);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =
@@ -105,7 +105,13 @@ impl LanaApp {
 
         StatementsInit::statements(&accounting).await?;
 
-        let customers = Customers::new(&pool, &authz, &outbox, documents.clone(), public_ref_service.clone());
+        let customers = Customers::new(
+            &pool,
+            &authz,
+            &outbox,
+            documents.clone(),
+            public_ref_service.clone(),
+        );
         let deposits = Deposits::init(
             &pool,
             &authz,

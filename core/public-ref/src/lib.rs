@@ -18,11 +18,11 @@ pub mod event_schema {
     pub use crate::entity::PublicRefEvent;
 }
 
-pub struct PublicRefService {
+pub struct PublicRefs {
     repo: PublicRefRepo,
 }
 
-impl Clone for PublicRefService {
+impl Clone for PublicRefs {
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
@@ -30,24 +30,22 @@ impl Clone for PublicRefService {
     }
 }
 
-impl PublicRefService {
+impl PublicRefs {
     pub fn new(pool: &sqlx::PgPool) -> Self {
         let repo = PublicRefRepo::new(pool);
         Self { repo }
-    }
-
-    pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, sqlx::Error> {
-        self.repo.begin_op().await
     }
 
     #[instrument(name = "public_ref_service.create_in_op", skip(self, db), err)]
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        reference: impl Into<Ref> + std::fmt::Debug,
         target_type: impl Into<RefTargetType> + std::fmt::Debug,
+        public_ref_id: impl Into<PublicRefId> + std::fmt::Debug,
     ) -> Result<PublicRef, PublicRefError> {
-        let public_ref_id = PublicRefId::new();
+        let public_ref_id = public_ref_id.into();
+        let counter = self.repo.next_counter().await?;
+        let reference = Ref::new(counter.to_string());
 
         let new_public_ref = NewPublicRef::builder()
             .id(public_ref_id)

@@ -116,6 +116,7 @@ CREATE TABLE core_customers (
   email VARCHAR NOT NULL UNIQUE,
   telegram_id VARCHAR NOT NULL UNIQUE,
   status VARCHAR NOT NULL,
+  public_ref VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -142,6 +143,8 @@ CREATE TABLE core_public_ref_events (
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
+
+CREATE SEQUENCE core_public_ref_counter;
 
 CREATE TABLE core_terms_templates (
   id UUID PRIMARY KEY,

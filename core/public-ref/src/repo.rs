@@ -29,4 +29,12 @@ impl PublicRefRepo {
     pub(super) fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
     }
+
+    pub async fn next_counter(&self) -> Result<i64, PublicRefError> {
+        let result = sqlx::query!("SELECT nextval('core_public_ref_counter') as counter")
+            .fetch_one(&self.pool)
+            .await?;
+
+        Ok(result.counter.unwrap_or(0))
+    }
 }

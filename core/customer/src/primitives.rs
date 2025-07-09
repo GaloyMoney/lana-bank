@@ -3,16 +3,17 @@ use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::{action_description::*, AllOrOne};
+pub use public_ref::Ref;
 
 es_entity::entity_id! {
+    AuthenticationId,
     CustomerId,
     CustomerDocumentId;
 
     CustomerId => document_storage::ReferenceId,
+    CustomerId => public_ref::PublicRefId,
     CustomerDocumentId => document_storage::DocumentId
 }
-
-es_entity::entity_id! { AuthenticationId }
 
 #[derive(Debug, Deserialize, Clone, Copy, Serialize, Eq, PartialEq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -96,6 +97,9 @@ pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 
 pub const PERMISSION_SET_CUSTOMER_VIEWER: &str = "customer_viewer";
 pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
+
+pub const CUSTOMER_REF_TARGET: public_ref::RefTargetType =
+    public_ref::RefTargetType::new("customer");
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

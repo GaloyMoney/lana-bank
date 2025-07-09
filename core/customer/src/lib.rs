@@ -17,7 +17,7 @@ use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
 use outbox::{Outbox, OutboxEventMarker};
-use public_ref::PublicRefService;
+use public_ref::PublicRefs;
 
 pub use entity::Customer;
 use entity::*;
@@ -44,7 +44,7 @@ where
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
     document_storage: DocumentStorage,
-    public_ref_service: PublicRefService,
+    public_refs: PublicRefs,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -58,7 +58,7 @@ where
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
             document_storage: self.document_storage.clone(),
-            public_ref_service: self.public_ref_service.clone(),
+            public_refs: self.public_refs.clone(),
         }
     }
 }
@@ -75,7 +75,7 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         document_storage: DocumentStorage,
-        public_ref_service: PublicRefService,
+        public_ref_service: PublicRefs,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
         let repo = CustomerRepo::new(pool, &publisher);
@@ -84,7 +84,7 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             document_storage,
-            public_ref_service,
+            public_refs: public_ref_service,
         }
     }
 
@@ -117,19 +117,25 @@ where
             .await?
             .expect("audit info missing");
 
-        let email = email.into();
-        let telegram_id = telegram_id.into();
+        let customer_id = CustomerId::new();
+
+        let mut db = self.repo.begin_op().await?;
+
+        let public_ref = self
+            .public_refs
+            .create_in_op(&mut db, CUSTOMER_REF_TARGET, customer_id)
+            .await?;
 
         let new_customer = NewCustomer::builder()
-            .id(CustomerId::new())
-            .email(email.clone())
-            .telegram_id(telegram_id)
+            .id(customer_id)
+            .email(email.into())
+            .telegram_id(telegram_id.into())
             .customer_type(customer_type)
+            .public_ref(public_ref.reference)
             .audit_info(audit_info)
             .build()
             .expect("Could not build customer");
 
-        let mut db = self.repo.begin_op().await?;
         let customer = self.repo.create_in_op(&mut db, new_customer).await?;
 
         db.commit().await?;
