@@ -1279,6 +1279,7 @@
       "description": "Create a new account in the chart of accounts",
       "success": "Account added successfully",
       "validating": "Validating",
+      "codeExists": "Account code already exists",
       "parentNotFound": "Parent account not found",
       "fields": {
         "code": "Account Code",

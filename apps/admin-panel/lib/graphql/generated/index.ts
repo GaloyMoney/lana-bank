@@ -2417,12 +2417,12 @@ export type UsdLedgerBalanceRangeFragmentFragment = { __typename?: 'UsdLedgerAcc
 
 export type BtcLedgerBalanceRangeFragmentFragment = { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } };
 
-export type ValidateParentAccountCodeQueryVariables = Exact<{
+export type ValidateAccountCodeQueryVariables = Exact<{
   code: Scalars['String']['input'];
 }>;
 
 
-export type ValidateParentAccountCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string } | null };
+export type ValidateAccountCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, code?: any | null, name: string } | null };
 
 export type ChartOfAccountsAddNodeMutationVariables = Exact<{
   input: ChartOfAccountsAddNodeInput;
@@ -3813,8 +3813,8 @@ export type BalanceSheetQueryHookResult = ReturnType<typeof useBalanceSheetQuery
 export type BalanceSheetLazyQueryHookResult = ReturnType<typeof useBalanceSheetLazyQuery>;
 export type BalanceSheetSuspenseQueryHookResult = ReturnType<typeof useBalanceSheetSuspenseQuery>;
 export type BalanceSheetQueryResult = Apollo.QueryResult<BalanceSheetQuery, BalanceSheetQueryVariables>;
-export const ValidateParentAccountCodeDocument = gql`
-    query ValidateParentAccountCode($code: String!) {
+export const ValidateAccountCodeDocument = gql`
+    query ValidateAccountCode($code: String!) {
   ledgerAccountByCode(code: $code) {
     id
     code
@@ -3824,37 +3824,37 @@ export const ValidateParentAccountCodeDocument = gql`
     `;
 
 /**
- * __useValidateParentAccountCodeQuery__
+ * __useValidateAccountCodeQuery__
  *
- * To run a query within a React component, call `useValidateParentAccountCodeQuery` and pass it any options that fit your needs.
- * When your component renders, `useValidateParentAccountCodeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useValidateAccountCodeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useValidateAccountCodeQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useValidateParentAccountCodeQuery({
+ * const { data, loading, error } = useValidateAccountCodeQuery({
  *   variables: {
  *      code: // value for 'code'
  *   },
  * });
  */
-export function useValidateParentAccountCodeQuery(baseOptions: Apollo.QueryHookOptions<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables> & ({ variables: ValidateParentAccountCodeQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+export function useValidateAccountCodeQuery(baseOptions: Apollo.QueryHookOptions<ValidateAccountCodeQuery, ValidateAccountCodeQueryVariables> & ({ variables: ValidateAccountCodeQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>(ValidateParentAccountCodeDocument, options);
+        return Apollo.useQuery<ValidateAccountCodeQuery, ValidateAccountCodeQueryVariables>(ValidateAccountCodeDocument, options);
       }
-export function useValidateParentAccountCodeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>) {
+export function useValidateAccountCodeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ValidateAccountCodeQuery, ValidateAccountCodeQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>(ValidateParentAccountCodeDocument, options);
+          return Apollo.useLazyQuery<ValidateAccountCodeQuery, ValidateAccountCodeQueryVariables>(ValidateAccountCodeDocument, options);
         }
-export function useValidateParentAccountCodeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>) {
+export function useValidateAccountCodeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ValidateAccountCodeQuery, ValidateAccountCodeQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>(ValidateParentAccountCodeDocument, options);
+          return Apollo.useSuspenseQuery<ValidateAccountCodeQuery, ValidateAccountCodeQueryVariables>(ValidateAccountCodeDocument, options);
         }
-export type ValidateParentAccountCodeQueryHookResult = ReturnType<typeof useValidateParentAccountCodeQuery>;
-export type ValidateParentAccountCodeLazyQueryHookResult = ReturnType<typeof useValidateParentAccountCodeLazyQuery>;
-export type ValidateParentAccountCodeSuspenseQueryHookResult = ReturnType<typeof useValidateParentAccountCodeSuspenseQuery>;
-export type ValidateParentAccountCodeQueryResult = Apollo.QueryResult<ValidateParentAccountCodeQuery, ValidateParentAccountCodeQueryVariables>;
+export type ValidateAccountCodeQueryHookResult = ReturnType<typeof useValidateAccountCodeQuery>;
+export type ValidateAccountCodeLazyQueryHookResult = ReturnType<typeof useValidateAccountCodeLazyQuery>;
+export type ValidateAccountCodeSuspenseQueryHookResult = ReturnType<typeof useValidateAccountCodeSuspenseQuery>;
+export type ValidateAccountCodeQueryResult = Apollo.QueryResult<ValidateAccountCodeQuery, ValidateAccountCodeQueryVariables>;
 export const ChartOfAccountsAddNodeDocument = gql`
     mutation ChartOfAccountsAddNode($input: ChartOfAccountsAddNodeInput!) {
   chartOfAccountsAddNode(input: $input) {

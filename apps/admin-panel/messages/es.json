@@ -1279,6 +1279,7 @@
       "description": "Crear una nueva cuenta en el plan de cuentas",
       "success": "Cuenta agregada exitosamente",
       "validating": "Validando",
+      "codeExists": "El código de cuenta ya existe",
       "parentNotFound": "Cuenta padre no encontrada",
       "fields": {
         "code": "Código de Cuenta",
