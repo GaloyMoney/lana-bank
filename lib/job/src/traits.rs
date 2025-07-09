@@ -85,10 +85,11 @@ impl RetrySettings {
     }
 
     fn apply_jitter(&self, backoff_ms: u64, max_ms: u64) -> u64 {
-        use rand::{Rng, rng};
+        use rand::Rng;
 
         let jitter_amount = backoff_ms * self.backoff_jitter_pct as u64 / 100;
-        let jitter = rng().random_range(-(jitter_amount as i64)..=(jitter_amount as i64));
+        let mut rng = rand::thread_rng();
+        let jitter = rng.gen_range(-(jitter_amount as i64)..=(jitter_amount as i64));
 
         let jittered = (backoff_ms as i64 + jitter).max(0) as u64;
         jittered.min(max_ms)
