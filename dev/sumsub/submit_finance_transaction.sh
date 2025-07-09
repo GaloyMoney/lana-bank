@@ -92,7 +92,7 @@ SIGNATURE=$(echo -n "$TS$METHOD$URL_PATH$BODY" | \
   openssl dgst -sha256 -hmac "$SUMSUB_SECRET" -binary | \
   xxd -p | tr -d '\n')
 
-echo "Generated transaction ID: $TXN_ID" 
+echo "Generated transaction ID: $TXN_ID"
 echo "Generated external user ID: $EXTERNAL_USER_ID"
 echo "Making request to SumSub API..."
 

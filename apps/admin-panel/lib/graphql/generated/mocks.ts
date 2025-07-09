@@ -1,9 +1,9 @@
 /* eslint-disable */
 // @ts-nocheck
-import { 
-  UsdCents, 
-  Satoshis, 
-  SignedUsdCents, 
+import {
+  UsdCents,
+  Satoshis,
+  SignedUsdCents,
   SignedSatoshis,
 } from 'types';
 

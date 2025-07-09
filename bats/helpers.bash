@@ -225,14 +225,14 @@ getEmailCode() {
   local container_name="${COMPOSE_PROJECT_NAME}-kratos-admin-pg-1"
 
   local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
-  
+
   # Try podman exec first (for containerized environments like GitHub Actions)
   local result=""
-  
+
   if command -v podman >/dev/null 2>&1; then
     result=$(podman exec "${container_name}" psql -U dbuser -d default -t -c "${query}" 2>/dev/null || echo "")
   fi
-  
+
   # If we got a result from container exec, extract the code
   if [[ -n "$result" ]]; then
     local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
@@ -241,7 +241,7 @@ getEmailCode() {
       return 0
     fi
   fi
-  
+
   # Fallback to direct connection (for development environments)
   local KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
   result=$(psql $KRATOS_PG_CON -t -c "${query}" 2>/dev/null || echo "")

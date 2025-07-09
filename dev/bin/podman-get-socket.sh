@@ -26,4 +26,4 @@ elif [ -S "$USER_SOCKET" ] && CONTAINER_HOST="unix://$USER_SOCKET" timeout 3s po
 else
     # Default fallback (will likely fail, but provides a reasonable default)
     echo "unix://$SYSTEM_SOCKET"
-fi 
+fi

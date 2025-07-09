@@ -20,7 +20,7 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
           free_disk_space: false
-      - uses: ./.github/actions/cache-pnpm 
+      - uses: ./.github/actions/cache-pnpm
       - run: nix develop -c make build-for-tests
       - name: Start services for Cypress tests
         run: nix develop -c make start-cypress-stack

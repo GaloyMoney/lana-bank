@@ -76,7 +76,7 @@ impl CustodianRepo {
             r#"
             UPDATE core_custodian_events
             SET event = jsonb_set(event, '{encrypted_custodian_config}', 'null'::jsonb, false)
-            WHERE id = $1 
+            WHERE id = $1
               AND event_type = 'config_updated'
               AND event->'encrypted_custodian_config' IS NOT NULL;
             "#,

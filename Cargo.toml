@@ -143,4 +143,4 @@ pkcs8 = { version = "0.10.2", features = ["encryption"] }
 # The kratos-admin library now uses direct HTTP calls with reqwest instead of ory-kratos-client.
 
 [profile.release]
-lto = true 
+lto = true

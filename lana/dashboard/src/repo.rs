@@ -41,7 +41,7 @@ impl DashboardRepo {
 
     pub async fn load(&self) -> Result<DashboardValues, DashboardError> {
         let row = sqlx::query!(
-            r#" 
+            r#"
             SELECT dashboard_json
             FROM dashboards
             WHERE id = $1

@@ -1,0 +1,39 @@
+# Rust formatting configuration
+# See https://rust-lang.github.io/rustfmt/ for all options
+
+# Line ending style (Unix = LF)
+newline_style = "Unix"
+
+# Edition for Rust language features
+edition = "2021"
+
+# Maximum width of each line
+max_width = 100
+
+# Hard tabs will not be converted to spaces
+hard_tabs = false
+
+# Number of spaces per tab
+tab_spaces = 4
+
+# Remove trailing whitespace
+trim_trailing_whitespace = true
+
+# Format code in fn main
+format_code_in_doc_comments = true
+
+# Format string literals
+format_strings = true
+
+# Merge multiple derives into a single one
+merge_derives = true
+
+# Reorder imports
+reorder_imports = true
+
+# Reorder modules
+reorder_modules = true
+
+# Remove blank lines at start or end of a block
+blank_lines_upper_bound = 1
+blank_lines_lower_bound = 0

@@ -10,7 +10,7 @@ runs:
         sudo apt-get update
         sudo apt-get install -y podman podman-compose
       shell: bash
-      
+
     - name: Configure podman
       run: |
         # Enable cgroup v2 delegation for rootless podman
@@ -18,19 +18,19 @@ runs:
         echo '[Service]
         Delegate=cpu cpuset io memory pids' | sudo tee /etc/systemd/system/user@.service.d/delegate.conf
         sudo systemctl daemon-reload
-        
+
         # Set up subuid/subgid for rootless containers
         sudo usermod --add-subuids 100000-165535 --add-subgids 100000-165535 $USER
-        
+
         # Configure containers
         mkdir -p ~/.config/containers
         echo 'unqualified-search-registries = ["docker.io"]' > ~/.config/containers/registries.conf
         echo '{"default":[{"type":"insecureAcceptAnything"}]}' > ~/.config/containers/policy.json
-        
+
         # Start podman service
         systemctl --user start podman.socket || true
-        
+
         # Test podman
         podman version
         podman info
-      shell: bash 
+      shell: bash

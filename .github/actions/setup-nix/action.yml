@@ -43,4 +43,4 @@ runs:
       if: inputs.google_credentials != ''
       uses: google-github-actions/auth@v2
       with:
-        credentials_json: ${{ inputs.google_credentials }} 
+        credentials_json: ${{ inputs.google_credentials }}

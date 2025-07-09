@@ -24,7 +24,7 @@ def get_storage_client():
         raise RuntimeError(
             "GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the path of a valid service account JSON file."
         )
-    
+
     project_id = os.getenv("DBT_BIGQUERY_PROJECT")
     credentials = service_account.Credentials.from_service_account_file(keyfile)
     return storage.Client(project=project_id, credentials=credentials)
@@ -34,7 +34,7 @@ def get_bucket():
     bucket_name = os.getenv("DOCS_BUCKET_NAME")
     if not bucket_name:
         raise RuntimeError("DOCS_BUCKET_NAME environment variable must be set")
-    
+
     storage_client = get_storage_client()
     return storage_client.bucket(bucket_name)
 
@@ -44,16 +44,16 @@ def parse_report_blob(blob_name):
     parts = blob_name.split('/')
     if len(parts) != 4 or parts[0] != 'reports':
         return None
-    
+
     try:
         report_date = parts[1]  # 2025-06-29
         report_category = parts[2]  # nrsf_03
         report_file = parts[3]  # funcionarios_y_empleados.txt
         report_name = report_file.rsplit('.', 1)[0]  # funcionarios_y_empleados
-        
+
         # Validate date format
         datetime.strptime(report_date, '%Y-%m-%d')
-        
+
         return {
             'date': report_date,
             'report_name': report_name,
@@ -69,7 +69,7 @@ def parse_report_blob(blob_name):
 def get_available_dates():
     """
     Return all dates for which reports are available
-    
+
     Response format: Array<String>
     [
         "2024-01-15",
@@ -104,10 +104,10 @@ def get_available_dates():
 def get_reports_by_date(date):
     """
     Return URIs of all reports for a given date
-    
+
     Args:
         date: Date in YYYY-MM-DD format (e.g., "2024-01-15")
-    
+
     Response format: Array<String>
     [
         "reports/2025-06-29/nrsf_03/funcionarios_y_empleados.txt",
@@ -175,26 +175,26 @@ def get_utc_now():
 def ensure_dag_is_available():
     """Ensure the DAG exists and is unpaused"""
     from airflow.models import DagModel
-    
+
     session = settings.Session()
     try:
         # Check if DAG exists in DagModel
         dag_model = session.query(DagModel).filter(
             DagModel.dag_id == GENERATE_REPORTS_DAG_ID
         ).first()
-        
+
         if not dag_model:
             logger.error(f"DAG {GENERATE_REPORTS_DAG_ID} not found in DagModel")
             raise ValueError(f"DAG {GENERATE_REPORTS_DAG_ID} not found")
-        
+
         # Unpause the DAG if it's paused
         if dag_model.is_paused:
             logger.info(f"Unpausing DAG {GENERATE_REPORTS_DAG_ID}")
             dag_model.is_paused = False
             session.commit()
-        
+
         return True
-        
+
     except Exception as e:
         session.rollback()
         logger.error(f"Error ensuring DAG availability: {str(e)}")
@@ -332,7 +332,7 @@ def generate_reports():
     except Exception as e:
         logger.error(f"Error in generate_reports endpoint: {str(e)}")
         return jsonify({
-            'status': 'ERROR', 
+            'status': 'ERROR',
             'error': str(e)
         }), 500
 

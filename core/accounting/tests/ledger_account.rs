@@ -86,7 +86,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
     let cala = CalaLedger::init(cala_config).await?;
     let authz = authz::dummy::DummyPerms::<action::DummyAction, object::DummyObject>::new();
     let journal_id = helpers::init_journal(&cala).await?;
-    
+
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::new(&pool, JobExecutorConfig::default());
@@ -172,7 +172,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     cala.account_sets()
         .create(NewAccountSet::builder().id(module_specific_account_set_id).name("Internal").journal_id(journal_id).build().unwrap())
         .await?;
-    
+
     cala.account_sets().add_member( module_specific_account_set_id, AccountSetMemberId::AccountSet(child.id.into())).await?;
 
     let module_specific_account = accounting.find_ledger_account_by_id(&DummySubject, &chart_ref, module_specific_account_set_id).await?.unwrap();

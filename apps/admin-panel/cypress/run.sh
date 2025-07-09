@@ -20,7 +20,7 @@ cookie_jar() {
 login_superadmin_browser() {
   ADMIN_URL="http://admin.localhost:4455"
   email="admin@galoy.io"
-  
+
   echo "--- Starting superadmin browser login process ---"
 
   common_headers=(

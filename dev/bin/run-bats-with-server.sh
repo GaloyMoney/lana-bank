@@ -17,4 +17,4 @@ start_server
 trap 'echo "--- Stopping Lana server ---"; stop_server' EXIT
 
 echo "--- Running BATS tests ---"
-bats -t bats 
+bats -t bats

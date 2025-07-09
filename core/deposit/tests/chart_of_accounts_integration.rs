@@ -109,7 +109,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let import = r#"
         2,Other Omnibus Parent
         1,Other Individual Deposit Accounts
-        7,Other Government Entity Deposit 
+        7,Other Government Entity Deposit
         3,Other Private Company Deposit Accounts
         4,Other Bank Deposit Accounts
         5,Other Financial Institution Deposit Accounts

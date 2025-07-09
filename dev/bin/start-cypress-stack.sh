@@ -9,24 +9,24 @@ ADMIN_PANEL_PID_FILE=".admin-panel.pid"
 # Cleanup function
 cleanup() {
     echo "Cleaning up..."
-    
+
     # Kill background processes
     if [[ -f "$CORE_PID_FILE" ]]; then
         CORE_PID=$(cat "$CORE_PID_FILE")
         kill "$CORE_PID" 2>/dev/null || true
         rm -f "$CORE_PID_FILE"
     fi
-    
+
     if [[ -f "$ADMIN_PANEL_PID_FILE" ]]; then
         ADMIN_PANEL_PID=$(cat "$ADMIN_PANEL_PID_FILE")
         kill "$ADMIN_PANEL_PID" 2>/dev/null || true
         rm -f "$ADMIN_PANEL_PID_FILE"
     fi
-    
+
     # Kill any remaining processes
     pkill -f "lana-cli" || true
     pkill -f "admin-panel.*pnpm.*dev" || true
-    
+
     # Stop podman services
     make clean-deps || true
 }

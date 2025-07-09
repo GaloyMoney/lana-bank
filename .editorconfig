@@ -1,0 +1,70 @@
+# EditorConfig is awesome: https://EditorConfig.org
+
+# top-most EditorConfig file
+root = true
+
+# All files
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+indent_size = 2
+
+# Rust files
+[*.rs]
+indent_size = 4
+
+# TOML files (Cargo.toml, etc.)
+[*.toml]
+indent_size = 4
+
+# Python files
+[*.py]
+indent_size = 4
+
+# Shell scripts
+[*.{sh,bash}]
+indent_size = 2
+
+# Markdown files (preserve trailing whitespace for line breaks)
+[*.md]
+trim_trailing_whitespace = false
+
+# YAML files
+[*.{yml,yaml}]
+indent_size = 2
+
+# JSON files
+[*.json]
+indent_size = 2
+
+# SQL files
+[*.sql]
+indent_size = 2
+
+# GraphQL files
+[*.gql]
+indent_size = 2
+
+# Docker files
+[Dockerfile*]
+indent_size = 2
+
+# Makefile (requires tabs)
+[Makefile]
+indent_style = tab
+
+# Lock files (don't format these)
+[*.lock]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[pnpm-lock.yaml]
+insert_final_newline = false
+trim_trailing_whitespace = false
+
+[Cargo.lock]
+insert_final_newline = false
+trim_trailing_whitespace = false

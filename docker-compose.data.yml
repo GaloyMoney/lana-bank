@@ -38,7 +38,7 @@ services:
       - "meltano-metadata:/workspace/meltano/.meltano:rw"
       - "./meltano:/meltano:ro"
       - "./meltano/keyfile.json:/workspace/meltano/keyfile.json:ro"
-    depends_on: 
+    depends_on:
       airflow-pg: { condition: service_healthy }
       airflow-scheduler: { condition: service_healthy }
     environment:

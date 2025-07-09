@@ -8,7 +8,7 @@ edition = "2024"
 fail-on-warnings = []
 json-schema = [
   "core-access/json-schema",
-  "governance/json-schema", 
+  "governance/json-schema",
   "core-custody/json-schema",
   "core-customer/json-schema",
   "document-storage/json-schema",
