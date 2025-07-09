@@ -23,7 +23,7 @@ use error::ApplicantError;
 use sumsub_auth::*;
 
 use repo::ApplicantRepo;
-pub use sumsub_auth::{AccessTokenResponse, ApplicantInfo, PermalinkResponse};
+pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
 
 use async_graphql::*;
 

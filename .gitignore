@@ -35,6 +35,7 @@ i18n.cache
 dev/parsed_events/
 docs/slidev/
 docs/output/
+artefacts/
 
 dev/dag/output/*
 result
