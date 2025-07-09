@@ -303,6 +303,10 @@ impl JobExecutor {
                 let op = repo.begin_op().await?;
                 Self::complete_job(op, id, repo).await?;
             }
+            JobCompletion::CompleteWithOp(op) => {
+                span.record("conclusion", "CompleteWithOp");
+                Self::complete_job(op, id, repo).await?;
+            }
             JobCompletion::RescheduleNow => {
                 span.record("conclusion", "RescheduleNow");
                 let op = repo.begin_op().await?;
