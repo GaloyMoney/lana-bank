@@ -212,6 +212,10 @@ impl CreditFacility {
         self.terms.one_time_fee_rate.apply(self.amount)
     }
 
+    pub fn has_structuring_fee(&self) -> bool {
+        !self.structuring_fee().is_zero()
+    }
+
     pub(crate) fn is_approval_process_concluded(&self) -> bool {
         for event in self.events.iter_all() {
             match event {
