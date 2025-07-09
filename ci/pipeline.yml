@@ -67,7 +67,6 @@ jobs:
             CACHIX_CACHE_NAME: lana-bank-ci
             CI: true
             ENGINE_DEFAULT: podman
-            PREFER_PODMAN: "1"
             TF_VAR_sa_creds: #@ data.values.gcp_creds
             TF_VAR_name_prefix: gha
           run:
