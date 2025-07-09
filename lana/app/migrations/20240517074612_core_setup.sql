@@ -110,25 +110,6 @@ CREATE TABLE core_withdrawal_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_customers (
-  id UUID PRIMARY KEY,
-  authentication_id UUID UNIQUE DEFAULT NULL,
-  email VARCHAR NOT NULL UNIQUE,
-  telegram_id VARCHAR NOT NULL UNIQUE,
-  status VARCHAR NOT NULL,
-  public_ref VARCHAR NOT NULL UNIQUE,
-  created_at TIMESTAMPTZ NOT NULL
-);
-
-CREATE TABLE core_customer_events (
-  id UUID NOT NULL REFERENCES core_customers(id),
-  sequence INT NOT NULL,
-  event_type VARCHAR NOT NULL,
-  event JSONB NOT NULL,
-  recorded_at TIMESTAMPTZ NOT NULL,
-  UNIQUE(id, sequence)
-);
-
 CREATE TABLE core_public_refs (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
@@ -145,6 +126,25 @@ CREATE TABLE core_public_ref_events (
 );
 
 CREATE SEQUENCE core_public_ref_counter;
+
+CREATE TABLE core_customers (
+  id UUID PRIMARY KEY,
+  authentication_id UUID UNIQUE DEFAULT NULL,
+  email VARCHAR NOT NULL UNIQUE,
+  telegram_id VARCHAR NOT NULL UNIQUE,
+  status VARCHAR NOT NULL,
+  public_ref VARCHAR NOT NULL REFERENCES core_public_refs(reference),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_customer_events (
+  id UUID NOT NULL REFERENCES core_customers(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
 
 CREATE TABLE core_terms_templates (
   id UUID PRIMARY KEY,
