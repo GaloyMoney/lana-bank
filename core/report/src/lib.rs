@@ -60,21 +60,24 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn init(
+    pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
         airflow_config: AirflowConfig,
         outbox: &Outbox<E>,
-    ) -> Self {
+    ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
         let repo = ReportRepo::new(pool, &publisher);
         let airflow_client = ReportsApiClient::new(airflow_config);
-        
-        Self {
+
+        let hz = airflow_client.health_check().await?;
+        println!("====> Airflow health check: {}", hz.status);
+
+        Ok(Self {
             authz: authz.clone(),
             repo,
             airflow_client,
-        }
+        })
     }
 
     #[instrument(name = "reports.create_report", skip(self), err)]
@@ -112,11 +115,7 @@ where
     ) -> Result<Option<Report>, ReportError> {
         let id = id.into();
         self.authz
-            .enforce_permission(
-                sub,
-                ReportObject::report(id),
-                CoreReportAction::REPORT_READ,
-            )
+            .enforce_permission(sub, ReportObject::report(id), CoreReportAction::REPORT_READ)
             .await?;
 
         match self.repo.find_by_id(id).await {
@@ -139,3 +138,4 @@ where
         self.airflow_client.health_check().await
     }
 }
+
