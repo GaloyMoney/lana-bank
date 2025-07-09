@@ -30,16 +30,10 @@
         (self: super: let
           patchFasteners = pkgSet: pkgSet // {
             fasteners = pkgSet.fasteners.overridePythonAttrs (_: {
-              # skip all of Fasteners’ tests
-              doCheck = false;
-              # —or if you want only to skip the hanging test, use:
-              # disabledTests = [ "test_interprocess_lock" ];
+              disabledTests = [ "test_interprocess_lock" ];
             });
           };
         in {
-          # override both aliases so that whichever your .nix uses,
-          # fasteners is patched
-          python3Packages   = patchFasteners super.python3Packages;
           python311Packages = patchFasteners super.python311Packages;
         })
       ];
