@@ -16,6 +16,40 @@ use super::error::ApplicantError;
 
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 
+// Document types (test-only constants)
+#[cfg(test)]
+const DOC_TYPE_PASSPORT: &str = "PASSPORT";
+#[cfg(test)]
+const DOC_TYPE_SELFIE: &str = "SELFIE";
+#[cfg(test)]
+const DOC_TYPE_UTILITY_BILL: &str = "UTILITY_BILL";
+
+// Document subtypes (test-only constants)
+#[cfg(test)]
+const DOC_SUBTYPE_FRONT_SIDE: &str = "FRONT_SIDE";
+#[cfg(test)]
+const DOC_SUBTYPE_BACK_SIDE: &str = "BACK_SIDE";
+
+// Review answers (test-only constants)
+#[cfg(test)]
+const REVIEW_ANSWER_GREEN: &str = "GREEN";
+#[cfg(test)]
+const REVIEW_ANSWER_RED: &str = "RED";
+
+// Questionnaire defaults (test-only constants)
+#[cfg(test)]
+const DEFAULT_QUESTIONNAIRE_SECTION: &str = "testSumsubQuestionar";
+#[cfg(test)]
+const DEFAULT_QUESTIONNAIRE_ITEM: &str = "test";
+#[cfg(test)]
+const DEFAULT_QUESTIONNAIRE_VALUE: &str = "0";
+
+// Test document URLs (test-only constants)
+#[cfg(test)]
+const GERMAN_PASSPORT_URL: &str = "https://sumsub.com/files/29346237-germany-passport.jpg";
+#[cfg(test)]
+const POA_DOCUMENT_URL: &str = "https://sumsub.com/files/62349849-poa-krause-green.jpg";
+
 #[derive(Clone, Debug)]
 pub struct SumsubClient {
     client: ReqwestClient,
@@ -176,6 +210,53 @@ impl SumsubClient {
         }
     }
 
+    /// Helper to handle API responses consistently
+    async fn handle_api_response<T>(
+        response: reqwest::Response,
+        success_message: Option<&str>,
+        error_message: &str,
+    ) -> Result<T, ApplicantError>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        if response.status().is_success() {
+            if let Some(msg) = success_message {
+                println!("✅ {msg}");
+            }
+            let parsed: SumsubResponse<T> = response.json().await?;
+            match parsed {
+                SumsubResponse::Success(data) => Ok(data),
+                SumsubResponse::Error(ApiError { description, code }) => {
+                    Err(ApplicantError::Sumsub { description, code })
+                }
+            }
+        } else {
+            let status_code = response.status().as_u16();
+            let response_text = response.text().await?;
+            println!("❌ {error_message}: {response_text}");
+            Err(ApplicantError::Sumsub {
+                description: format!("{error_message}: {response_text}"),
+                code: status_code,
+            })
+        }
+    }
+
+    /// Helper for simple success/error responses (no data returned)
+    #[cfg(test)]
+    async fn handle_simple_response(
+        response: reqwest::Response,
+        success_message: &str,
+        error_message: &str,
+    ) -> Result<(), ApplicantError> {
+        if response.status().is_success() {
+            println!("✅ {success_message}");
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            Err(Self::handle_sumsub_error(&response_text, error_message))
+        }
+    }
+
     pub async fn create_permalink(
         &self,
         external_user_id: CustomerId,
@@ -198,12 +279,7 @@ impl SumsubClient {
             .send()
             .await?;
 
-        match response.json().await? {
-            SumsubResponse::Success(PermalinkResponse { url }) => Ok(PermalinkResponse { url }),
-            SumsubResponse::Error(ApiError { description, code }) => {
-                Err(ApplicantError::Sumsub { description, code })
-            }
-        }
+        Self::handle_api_response(response, None, "Failed to create permalink").await
     }
 
     /// Get parsed applicant details with structured data
@@ -218,12 +294,7 @@ impl SumsubClient {
         let headers = self.get_headers(method, &url, None)?;
         let response = self.client.get(&full_url).headers(headers).send().await?;
 
-        match response.json::<SumsubResponse<ApplicantDetails>>().await? {
-            SumsubResponse::Success(applicant_details) => Ok(applicant_details),
-            SumsubResponse::Error(ApiError { description, code }) => {
-                Err(ApplicantError::Sumsub { description, code })
-            }
-        }
+        Self::handle_api_response(response, None, "Failed to get applicant details").await
     }
 
     fn get_headers(
@@ -430,15 +501,12 @@ impl SumsubClient {
             .send()
             .await?;
 
-        if response.status().is_success() {
-            Ok(())
-        } else {
-            let response_text = response.text().await?;
-            Err(Self::handle_sumsub_error(
-                &response_text,
-                "Failed to update applicant info",
-            ))
-        }
+        Self::handle_simple_response(
+            response,
+            "Applicant info updated",
+            "Failed to update applicant info",
+        )
+        .await
     }
 
     /// Uploads a document image for an applicant
@@ -546,18 +614,12 @@ impl SumsubClient {
             .send()
             .await?;
 
-        if response.status().is_success() {
-            println!("✅ Document uploaded successfully: {doc_type} {doc_sub_type}");
-            Ok(())
-        } else {
-            let status_code = response.status().as_u16();
-            let response_text = response.text().await?;
-            println!("❌ Document upload failed: {response_text}");
-            Err(ApplicantError::Sumsub {
-                description: format!("Failed to upload document: {response_text}"),
-                code: status_code,
-            })
-        }
+        Self::handle_simple_response(
+            response,
+            &format!("Document uploaded successfully: {doc_type} {doc_sub_type}"),
+            "Document upload failed",
+        )
+        .await
     }
 
     /// Requests a check/review for an applicant
@@ -579,21 +641,12 @@ impl SumsubClient {
             .send()
             .await?;
 
-        if response.status().is_success() {
-            println!("✅ Review requested successfully");
-            Ok(())
-        } else {
-            let response_text = response.text().await?;
-            match serde_json::from_str::<SumsubResponse<serde_json::Value>>(&response_text) {
-                Ok(SumsubResponse::Error(ApiError { description, code })) => {
-                    Err(ApplicantError::Sumsub { description, code })
-                }
-                _ => Err(ApplicantError::Sumsub {
-                    description: format!("Failed to request check: {response_text}"),
-                    code: 500,
-                }),
-            }
-        }
+        Self::handle_simple_response(
+            response,
+            "Review requested successfully",
+            "Failed to request check",
+        )
+        .await
     }
 
     /// Simulates a review response in sandbox mode (GREEN for approved, RED for rejected)
@@ -608,14 +661,14 @@ impl SumsubClient {
         let url_path = format!("/resources/applicants/{applicant_id}/status/testCompleted");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
-        let body = if review_answer == "GREEN" {
+        let body = if review_answer == REVIEW_ANSWER_GREEN {
             json!({
-                "reviewAnswer": "GREEN",
+                "reviewAnswer": REVIEW_ANSWER_GREEN,
                 "rejectLabels": []
             })
         } else {
             json!({
-                "reviewAnswer": "RED",
+                "reviewAnswer": REVIEW_ANSWER_RED,
                 "rejectLabels": ["UNSATISFACTORY_PHOTOS"],
                 "reviewRejectType": "RETRY",
                 "clientComment": "Test rejection for automated testing",
@@ -667,10 +720,10 @@ impl SumsubClient {
         let body = json!({
             "id": questionnaire_id,
             "sections": {
-                "testSumsubQuestionar": {
+                DEFAULT_QUESTIONNAIRE_SECTION: {
                     "items": {
-                        "test": {
-                            "value": "0"
+                        DEFAULT_QUESTIONNAIRE_ITEM: {
+                            "value": DEFAULT_QUESTIONNAIRE_VALUE
                         }
                     }
                 }
@@ -715,10 +768,10 @@ impl SumsubClient {
 
         let body = json!({
             "sections": {
-                "testSumsubQuestionar": {
+                DEFAULT_QUESTIONNAIRE_SECTION: {
                     "items": {
-                        "test": {
-                            "value": "0"
+                        DEFAULT_QUESTIONNAIRE_ITEM: {
+                            "value": DEFAULT_QUESTIONNAIRE_VALUE
                         }
                     }
                 }
@@ -754,10 +807,30 @@ mod tests {
     use super::*;
     use crate::primitives::CustomerId;
 
-    /// Load real passport image for testing, downloading if not present locally
-    async fn load_german_passport_image() -> Result<Vec<u8>, std::io::Error> {
+    // Test configuration constants
+    const TEST_LEVEL_NAME: &str = "basic-kyc-level";
+    const TEST_FIRST_NAME: &str = "John";
+    const TEST_LAST_NAME: &str = "Mock-Doe";
+    const TEST_DATE_OF_BIRTH: &str = "1990-01-01";
+    const TEST_COUNTRY_CODE: &str = "DEU";
+    const TEST_QUESTIONNAIRE_ID: &str = "volcano_onboarding";
+    const TEST_CURRENCY: &str = "USD";
+    const TEST_TX_TYPE: &str = "deposit";
+    const TEST_TX_DIRECTION: &str = "incoming";
+    const TEST_TX_AMOUNT: f64 = 1000.0;
+
+    // Test artifact filenames
+    const PASSPORT_FILENAME: &str = "german_passport.jpg";
+    const POA_FILENAME: &str = "poa_krause_green.jpg";
+
+    /// Generic function to load test documents, downloading if not present locally
+    async fn load_test_document(
+        filename: &str,
+        download_url: &str,
+        description: &str,
+    ) -> Result<Vec<u8>, std::io::Error> {
         let artefacts_dir = "artefacts";
-        let image_path = format!("{}/german_passport.jpg", artefacts_dir);
+        let image_path = format!("{}/{}", artefacts_dir, filename);
 
         // Check if file already exists locally
         if std::path::Path::new(&image_path).exists() {
@@ -765,13 +838,13 @@ mod tests {
         }
 
         // File doesn't exist, download it
-        println!("📥 Downloading German passport image for testing...");
+        println!("📥 Downloading {} for testing...", description);
 
         // Create directory if it doesn't exist
         std::fs::create_dir_all(artefacts_dir)?;
 
         // Download the image
-        let image_data = reqwest::get("https://sumsub.com/files/29346237-germany-passport.jpg")
+        let image_data = reqwest::get(download_url)
             .await
             .map_err(|e| {
                 std::io::Error::new(std::io::ErrorKind::Other, format!("Download failed: {}", e))
@@ -787,53 +860,29 @@ mod tests {
 
         // Save to local file
         std::fs::write(&image_path, &image_data)?;
-        println!(
-            "✅ German passport image downloaded and saved to {}",
-            image_path
-        );
+        println!("✅ {} downloaded and saved to {}", description, image_path);
 
         Ok(image_data.to_vec())
     }
 
+    /// Load real passport image for testing, downloading if not present locally
+    async fn load_german_passport_image() -> Result<Vec<u8>, std::io::Error> {
+        load_test_document(
+            PASSPORT_FILENAME,
+            GERMAN_PASSPORT_URL,
+            "German passport image",
+        )
+        .await
+    }
+
     /// Load proof of residence document for testing, downloading if not present locally
     async fn load_proof_of_residence_image() -> Result<Vec<u8>, std::io::Error> {
-        let artefacts_dir = "artefacts";
-        let image_path = format!("{}/poa_krause_green.jpg", artefacts_dir);
-
-        // Check if file already exists locally
-        if std::path::Path::new(&image_path).exists() {
-            return std::fs::read(&image_path);
-        }
-
-        // File doesn't exist, download it
-        println!("📥 Downloading proof of residence document for testing...");
-
-        // Create directory if it doesn't exist
-        std::fs::create_dir_all(artefacts_dir)?;
-
-        // Download the image
-        let image_data = reqwest::get("https://sumsub.com/files/62349849-poa-krause-green.jpg")
-            .await
-            .map_err(|e| {
-                std::io::Error::new(std::io::ErrorKind::Other, format!("Download failed: {}", e))
-            })?
-            .bytes()
-            .await
-            .map_err(|e| {
-                std::io::Error::new(
-                    std::io::ErrorKind::Other,
-                    format!("Failed to read bytes: {}", e),
-                )
-            })?;
-
-        // Save to local file
-        std::fs::write(&image_path, &image_data)?;
-        println!(
-            "✅ Proof of residence document downloaded and saved to {}",
-            image_path
-        );
-
-        Ok(image_data.to_vec())
+        load_test_document(
+            POA_FILENAME,
+            POA_DOCUMENT_URL,
+            "Proof of residence document",
+        )
+        .await
     }
 
     fn load_config_from_env() -> Option<SumsubConfig> {
@@ -858,7 +907,7 @@ mod tests {
         let customer_id = CustomerId::new();
 
         let response = sumsub_client
-            .create_permalink(customer_id, "basic-kyc-level")
+            .create_permalink(customer_id, TEST_LEVEL_NAME)
             .await?;
 
         println!("Response: {response:?}");
@@ -883,14 +932,14 @@ mod tests {
         // Step 1: Create a permalink for reference
         println!("📝 Step 1: Creating KYC permalink for reference...");
         let permalink_response = sumsub_client
-            .create_permalink(customer_id, "basic-kyc-level")
+            .create_permalink(customer_id, TEST_LEVEL_NAME)
             .await?;
         println!("✅ Permalink created: {}", permalink_response.url);
 
         // Step 2: Create an applicant directly via API
         println!("\n🆔 Step 2: Creating applicant directly via API...");
         match sumsub_client
-            .create_applicant(customer_id, "basic-kyc-level")
+            .create_applicant(customer_id, TEST_LEVEL_NAME)
             .await
         {
             Ok(applicant_id) => {
@@ -926,7 +975,13 @@ mod tests {
                 // Step 4: Provide basic applicant information (required for approval)
                 println!("\n📋 Step 4: Providing basic applicant information...");
                 match sumsub_client
-                    .update_applicant_info(&applicant_id, "John", "TestUser", "1990-01-01", "DEU")
+                    .update_applicant_info(
+                        &applicant_id,
+                        TEST_FIRST_NAME,
+                        TEST_LAST_NAME,
+                        TEST_DATE_OF_BIRTH,
+                        TEST_COUNTRY_CODE,
+                    )
                     .await
                 {
                     Ok(_) => {
@@ -941,7 +996,7 @@ mod tests {
                 // Step 5: Test auto-approval (GREEN)
                 println!("\n✨ Step 5: Testing auto-approval (GREEN status)...");
                 match sumsub_client
-                    .simulate_review_response(&applicant_id, "GREEN")
+                    .simulate_review_response(&applicant_id, REVIEW_ANSWER_GREEN)
                     .await
                 {
                     Ok(_) => {
@@ -1018,14 +1073,14 @@ mod tests {
         // Step 1: Create permalink (for reference and manual testing fallback)
         println!("📝 Step 1: Creating KYC permalink...");
         let permalink_response = sumsub_client
-            .create_permalink(customer_id, "basic-kyc-level")
+            .create_permalink(customer_id, TEST_LEVEL_NAME)
             .await?;
         println!("✅ Permalink: {}", permalink_response.url);
 
         // Step 2: Create applicant via API
         println!("\n🆔 Step 2: Creating applicant via API...");
         let applicant_id = match sumsub_client
-            .create_applicant(customer_id, "basic-kyc-level")
+            .create_applicant(customer_id, TEST_LEVEL_NAME)
             .await
         {
             Ok(id) => {
@@ -1042,7 +1097,13 @@ mod tests {
         // Step 3: Update applicant personal information
         println!("\n📋 Step 3: Adding personal information...");
         match sumsub_client
-            .update_applicant_info(&applicant_id, "Alice", "TestComplete", "1988-12-25", "USA")
+            .update_applicant_info(
+                &applicant_id,
+                TEST_FIRST_NAME,
+                TEST_LAST_NAME,
+                TEST_DATE_OF_BIRTH,
+                TEST_COUNTRY_CODE,
+            )
             .await
         {
             Ok(_) => println!("✅ Personal info updated"),
@@ -1058,11 +1119,11 @@ mod tests {
         match sumsub_client
             .upload_document(
                 &applicant_id,
-                "PASSPORT",
-                "FRONT_SIDE",
+                DOC_TYPE_PASSPORT,
+                DOC_SUBTYPE_FRONT_SIDE,
                 Some("DEU"), // German passport
                 passport_image.clone(),
-                "german_passport_front.jpg",
+                PASSPORT_FILENAME,
             )
             .await
         {
@@ -1079,11 +1140,11 @@ mod tests {
         match sumsub_client
             .upload_document(
                 &applicant_id,
-                "PASSPORT",
-                "BACK_SIDE",
+                DOC_TYPE_PASSPORT,
+                DOC_SUBTYPE_BACK_SIDE,
                 Some("DEU"), // German passport
                 passport_image,
-                "german_passport_back.jpg",
+                PASSPORT_FILENAME,
             )
             .await
         {
@@ -1108,11 +1169,11 @@ mod tests {
             match sumsub_client
                 .upload_document(
                     &applicant_id,
-                    "SELFIE",
+                    DOC_TYPE_SELFIE,
                     "",
                     Some("DEU"),
                     selfie_image.clone(),
-                    "selfie.jpg",
+                    PASSPORT_FILENAME,
                 )
                 .await
             {
@@ -1158,11 +1219,11 @@ mod tests {
         match sumsub_client
             .upload_document(
                 &applicant_id,
-                "UTILITY_BILL",
+                DOC_TYPE_UTILITY_BILL,
                 "",
                 Some("DEU"), // German utility bill
                 poa_image,
-                "poa_krause_green.jpg",
+                POA_FILENAME,
             )
             .await
         {
@@ -1176,7 +1237,7 @@ mod tests {
         // Step 8: Submit questionnaire
         println!("\n📋 Step 8: Submitting questionnaire...");
         match sumsub_client
-            .submit_questionnaire_direct(&applicant_id, "volcano_onboarding")
+            .submit_questionnaire_direct(&applicant_id, TEST_QUESTIONNAIRE_ID)
             .await
         {
             Ok(_) => println!("✅ Questionnaire submitted"),
@@ -1200,7 +1261,7 @@ mod tests {
         // Step 10: Simulate approval (sandbox only)
         println!("\n✨ Step 10: Simulating approval...");
         match sumsub_client
-            .simulate_review_response(&applicant_id, "GREEN")
+            .simulate_review_response(&applicant_id, REVIEW_ANSWER_GREEN)
             .await
         {
             Ok(_) => println!("✅ Approval simulated"),
@@ -1311,10 +1372,10 @@ mod tests {
             .submit_finance_transaction(
                 customer_id,
                 unique_tx_id,
-                "deposit",
-                "incoming",
-                1000.0,
-                "USD",
+                TEST_TX_TYPE,
+                TEST_TX_DIRECTION,
+                TEST_TX_AMOUNT,
+                TEST_CURRENCY,
             )
             .await
         {
