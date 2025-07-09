@@ -27,7 +27,7 @@ impl ReportsApiClient {
 
     #[tracing::instrument(name = "reports_api.health_check", skip(self))]
     pub async fn health_check(&self) -> Result<HealthResponse, ReportError> {
-        let url = format!("{}/api/v1/health", self.base_url);
+        let url = format!("{}/api/v1/reports/health", self.base_url);
 
         let response = self.client.get(&url).send().await?;
 
@@ -38,7 +38,8 @@ impl ReportsApiClient {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
             Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
-                "Health check failed with status {}: {}", status, text
+                "Health check failed with status {}: {}",
+                status, text
             ))))
         }
     }

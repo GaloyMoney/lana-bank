@@ -8,6 +8,7 @@ use core_credit::CoreCreditAction;
 use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
+use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use governance::GovernanceAction;
 
@@ -250,6 +251,17 @@ impl AuditAction {
 }
 
 impl_trivial_action!(AuditAction, Audit);
+
+impl From<CoreReportAction> for LanaAction {
+    fn from(action: CoreReportAction) -> Self {
+        match action {
+            CoreReportAction::REPORT_CREATE => LanaAction::App(AppAction::Report(ReportAction::Create)),
+            CoreReportAction::REPORT_READ => LanaAction::App(AppAction::Report(ReportAction::Read)),
+            CoreReportAction::REPORT_LIST => LanaAction::App(AppAction::Report(ReportAction::List)),
+            CoreReportAction::REPORT_UPDATE => LanaAction::App(AppAction::Report(ReportAction::Upload)),
+        }
+    }
+}
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]

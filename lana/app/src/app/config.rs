@@ -6,7 +6,7 @@ use crate::{
     access::config::AccessConfig, applicant::SumsubConfig, credit::CreditConfig,
     custody::CustodyConfig, custody::CustodyConfig, customer_sync::CustomerSyncConfig,
     customer_sync::CustomerSyncConfig, job::JobsConfig, notification::NotificationConfig,
-    notification::NotificationConfig, service_account::ServiceAccountConfig,
+    notification::NotificationConfig, report::AirflowConfig, service_account::ServiceAccountConfig,
     service_account::ServiceAccountConfig, storage::config::StorageConfig,
     user_onboarding::UserOnboardingConfig,
 };
@@ -35,6 +35,8 @@ pub struct AppConfig {
     pub custody: CustodyConfig,
     #[serde(default)]
     pub notification: NotificationConfig,
+    #[serde(default)]
+    pub airflow: AirflowConfig,
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
