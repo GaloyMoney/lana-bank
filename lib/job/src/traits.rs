@@ -62,12 +62,7 @@ impl RetrySettings {
         }
     }
 
-    pub(super) fn next_attempt_at(&self, attempt: u32) -> DateTime<Utc> {
-        let backoff_ms = self.calculate_backoff(attempt);
-        crate::time::now() + std::time::Duration::from_millis(backoff_ms)
-    }
-
-    fn calculate_backoff(&self, attempt: u32) -> u64 {
+    pub(super) fn calculate_backoff(&self, attempt: u32) -> u64 {
         // Calculate base exponential backoff with overflow protection
         let safe_attempt = attempt.saturating_sub(1).min(30);
         let base_ms = self.min_backoff.as_millis() as u64;
@@ -84,12 +79,16 @@ impl RetrySettings {
         }
     }
 
+    pub(super) fn next_attempt_at(&self, attempt: u32) -> DateTime<Utc> {
+        let backoff_ms = self.calculate_backoff(attempt);
+        crate::time::now() + std::time::Duration::from_millis(backoff_ms)
+    }
+
     fn apply_jitter(&self, backoff_ms: u64, max_ms: u64) -> u64 {
         use rand::Rng;
 
         let jitter_amount = backoff_ms * self.backoff_jitter_pct as u64 / 100;
-        let mut rng = rand::thread_rng();
-        let jitter = rng.gen_range(-(jitter_amount as i64)..=(jitter_amount as i64));
+        let jitter = rand::thread_rng().gen_range(-(jitter_amount as i64)..=(jitter_amount as i64));
 
         let jittered = (backoff_ms as i64 + jitter).max(0) as u64;
         jittered.min(max_ms)
@@ -196,10 +195,12 @@ mod tests {
     #[test]
     fn jitter_adds_randomness() {
         let settings = test_settings(20);
-        let delay = get_delay_ms(&settings, 1);
+        
+        // Test the calculate_backoff function directly to avoid timing issues
+        let backoff_ms = settings.calculate_backoff(1);
 
         // Base: 100ms, 20% jitter: 80-120ms range
-        assert_delay_in_range(delay, 80, 120);
+        assert_delay_in_range(backoff_ms, 80, 120);
     }
 
     #[test]
@@ -207,10 +208,10 @@ mod tests {
         let settings = test_settings(20);
 
         for _ in 0..10 {
-            let delay = get_delay_ms(&settings, 1);
+            let backoff_ms = settings.calculate_backoff(1);
             assert!(
-                delay < u64::MAX,
-                "Delay should be reasonable, got {delay}ms"
+                backoff_ms < u64::MAX,
+                "Delay should be reasonable, got {backoff_ms}ms"
             );
         }
     }
