@@ -78,7 +78,9 @@ impl From<ReportObject> for LanaObject {
     fn from(object: ReportObject) -> Self {
         match object {
             ReportObject::Report(AllOrOne::All) => LanaObject::App(AppObject::all_reports()),
-            ReportObject::Report(AllOrOne::ById(id)) => LanaObject::App(AppObject::report(ReportId::from(uuid::Uuid::from(id)))),
+            ReportObject::Report(AllOrOne::ById(id)) => {
+                LanaObject::App(AppObject::report(ReportId::from(uuid::Uuid::from(id))))
+            }
         }
     }
 }

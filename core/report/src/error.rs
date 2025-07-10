@@ -17,4 +17,3 @@ pub enum ReportError {
 }
 
 es_entity::from_es_entity_error!(ReportError);
-

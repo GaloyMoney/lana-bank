@@ -38,12 +38,12 @@ where
     ) -> Result<(), ReportError> {
         use ReportEvent::*;
         let publish_events = new_events
-            .filter_map(|event| match &event.event {
-                Initialized { .. } => Some(CoreReportEvent::ReportCreated {
+            .map(|event| match &event.event {
+                Initialized { .. } => CoreReportEvent::ReportCreated {
                     id: entity.id,
                     name: entity.name.clone(),
                     date: entity.date,
-                }),
+                },
             })
             .collect::<Vec<_>>();
         self.outbox
