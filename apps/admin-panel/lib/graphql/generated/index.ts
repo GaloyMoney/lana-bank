@@ -1697,6 +1697,17 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
   profitAndLossConfig: ProfitAndLossStatementModuleConfig;
 };
 
+export type PublicRef = {
+  __typename?: 'PublicRef';
+  id: Scalars['ID']['output'];
+  publicRefId: Scalars['UUID']['output'];
+  reference: Scalars['String']['output'];
+  target?: Maybe<PublicRefTarget>;
+  targetType: Scalars['String']['output'];
+};
+
+export type PublicRefTarget = Customer;
+
 export type Query = {
   __typename?: 'Query';
   accountingCsvsForLedgerAccountId: AccountingCsvDocumentConnection;
@@ -1733,6 +1744,7 @@ export type Query = {
   policy?: Maybe<Policy>;
   profitAndLossStatement: ProfitAndLossStatement;
   profitAndLossStatementConfig?: Maybe<ProfitAndLossStatementModuleConfig>;
+  publicRefLookup?: Maybe<PublicRef>;
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;
@@ -1902,6 +1914,11 @@ export type QueryPolicyArgs = {
 export type QueryProfitAndLossStatementArgs = {
   from: Scalars['Date']['input'];
   until?: InputMaybe<Scalars['Date']['input']>;
+};
+
+
+export type QueryPublicRefLookupArgs = {
+  reference: Scalars['String']['input'];
 };
 
 

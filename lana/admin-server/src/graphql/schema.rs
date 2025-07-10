@@ -17,7 +17,8 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, custody::*,
     customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*,
-    price::*, profit_and_loss_config::*, report::*, sumsub::*, terms_template::*, withdrawal::*,
+    price::*, profit_and_loss_config::*, public_ref::*, report::*, sumsub::*, terms_template::*,
+    withdrawal::*,
 };
 
 pub struct Query;
@@ -775,6 +776,26 @@ impl Query {
                 .csvs()
                 .list_for_ledger_account_id_paginated(sub, ledger_account_id, query)
         )
+    }
+
+    async fn public_ref_lookup(
+        &self,
+        ctx: &Context<'_>,
+        reference: String,
+    ) -> async_graphql::Result<Option<PublicRef>> {
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
+
+        // Find the public ref by reference
+        if let Ok(public_ref) = app
+            .public_refs()
+            .find_by_reference(lana_app::public_ref::Ref::new(reference))
+            .await
+        {
+            let public_ref_gql = PublicRef::from(public_ref);
+            Ok(Some(public_ref_gql))
+        } else {
+            Ok(None)
+        }
     }
 }
 

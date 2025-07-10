@@ -1512,6 +1512,16 @@ type ProfitAndLossStatementModuleConfigurePayload {
 	profitAndLossConfig: ProfitAndLossStatementModuleConfig!
 }
 
+type PublicRef {
+	id: ID!
+	publicRefId: UUID!
+	reference: String!
+	targetType: String!
+	target: PublicRefTarget
+}
+
+union PublicRefTarget = Customer
+
 type Query {
 	me: Subject!
 	dashboard: Dashboard!
@@ -1560,6 +1570,7 @@ type Query {
 	balanceSheetConfig: BalanceSheetModuleConfig
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
+	publicRefLookup(reference: String!): PublicRef
 }
 
 type RealtimePrice {

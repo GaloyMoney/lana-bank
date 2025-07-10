@@ -6,6 +6,7 @@ pub mod error;
 mod primitives;
 mod repo;
 
+use std::collections::HashMap;
 use tracing::instrument;
 
 pub use entity::{NewPublicRef, PublicRef};
@@ -56,5 +57,29 @@ impl PublicRefs {
 
         let public_ref = self.repo.create_in_op(db, new_public_ref).await?;
         Ok(public_ref)
+    }
+
+    #[instrument(name = "public_ref_service.find_by_reference", skip(self), err)]
+    pub async fn find_by_reference(
+        &self,
+        reference: impl Into<Ref> + std::fmt::Debug,
+    ) -> Result<PublicRef, PublicRefError> {
+        self.repo.find_by_reference(reference.into()).await
+    }
+
+    #[instrument(name = "public_ref_service.find_by_id", skip(self), err)]
+    pub async fn find_by_id(
+        &self,
+        id: impl Into<PublicRefId> + std::fmt::Debug,
+    ) -> Result<PublicRef, PublicRefError> {
+        self.repo.find_by_id(id.into()).await
+    }
+
+    #[instrument(name = "public_ref_service.find_all", skip(self), err)]
+    pub async fn find_all<T: From<PublicRef>>(
+        &self,
+        ids: &[PublicRefId],
+    ) -> Result<HashMap<PublicRefId, T>, PublicRefError> {
+        self.repo.find_all(ids).await
     }
 }

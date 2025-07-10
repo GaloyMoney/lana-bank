@@ -167,3 +167,10 @@ pub mod terms {
         ObligationDuration, OneTimeFeeRatePct, TermValues,
     };
 }
+
+pub mod public_ref {
+    pub use public_ref::{
+        PublicRef, PublicRefId, PublicRefsByCreatedAtCursor, Ref, RefTargetType, error,
+    };
+    pub type PublicRefs = public_ref::PublicRefs;
+}

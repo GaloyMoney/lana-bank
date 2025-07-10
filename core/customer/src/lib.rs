@@ -205,6 +205,31 @@ where
         }
     }
 
+    #[instrument(name = "customer.find_by_public_ref", skip(self), err)]
+    pub async fn find_by_public_ref(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_ref: impl Into<String> + std::fmt::Debug,
+    ) -> Result<Option<Customer>, CustomerError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CustomerObject::all_customers(),
+                CoreCustomerAction::CUSTOMER_READ,
+            )
+            .await?;
+
+        match self
+            .repo
+            .find_by_public_ref(public_ref::Ref::new(public_ref.into()))
+            .await
+        {
+            Ok(customer) => Ok(Some(customer)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     #[instrument(name = "customer.list", skip(self), err)]
     pub async fn list(
         &self,

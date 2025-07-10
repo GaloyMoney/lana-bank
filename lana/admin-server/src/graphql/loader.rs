@@ -22,8 +22,8 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, policy::*, terms_template::*,
-    withdrawal::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, public_ref::*,
+    terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -402,5 +402,22 @@ impl Loader<AccountingCsvDocumentId> for LanaLoader {
             .find_all_documents::<AccountingCsvDocument>(keys)
             .await
             .map_err(Arc::new)
+    }
+}
+
+impl Loader<Ref> for LanaLoader {
+    type Value = PublicRef;
+    type Error = Arc<lana_app::public_ref::error::PublicRefError>;
+
+    async fn load(&self, keys: &[Ref]) -> Result<HashMap<Ref, PublicRef>, Self::Error> {
+        // We need to implement find_all_by_reference in the public_refs service
+        // For now, we'll load them one by one (not ideal for performance but works)
+        let mut result = HashMap::new();
+        for key in keys {
+            if let Ok(public_ref) = self.app.public_refs().find_by_reference(key.clone()).await {
+                result.insert(key.clone(), public_ref.into());
+            }
+        }
+        Ok(result)
     }
 }
