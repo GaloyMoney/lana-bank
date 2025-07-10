@@ -131,7 +131,7 @@ where
             .email(email.into())
             .telegram_id(telegram_id.into())
             .customer_type(customer_type)
-            .public_ref(public_ref.reference)
+            .public_ref(public_ref.id)
             .audit_info(audit_info)
             .build()
             .expect("Could not build customer");

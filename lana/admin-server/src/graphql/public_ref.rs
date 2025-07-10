@@ -8,7 +8,7 @@ use crate::{graphql::customer::Customer, primitives::*};
 #[graphql(complex)]
 pub struct PublicRef {
     pub id: ID,
-    pub public_ref_id: UUID,
+    pub target_id: UUID,
     pub reference: String,
     pub target_type: String,
     #[graphql(skip)]
@@ -20,8 +20,8 @@ impl From<lana_app::public_ref::PublicRef> for PublicRef {
     fn from(public_ref: lana_app::public_ref::PublicRef) -> Self {
         PublicRef {
             id: public_ref.id.to_global_id(),
-            public_ref_id: UUID::from(public_ref.id),
-            reference: public_ref.reference.to_string(),
+            target_id: UUID::from(public_ref.target_id),
+            reference: public_ref.id.to_string(),
             target_type: public_ref.target_type.to_string(),
             entity: Arc::new(public_ref),
         }
@@ -39,9 +39,9 @@ impl PublicRef {
         // Check the target type and fetch the appropriate entity
         match self.target_type.as_str() {
             "customer" => {
-                // Since the public_ref_id is an alias of the customer id use that to call the GQL
+                // Since the target_id is the customer id use that to call the GQL
                 // data loader to lookup the customer
-                let customer_id = CustomerId::from(self.public_ref_id);
+                let customer_id = CustomerId::from(self.target_id);
                 let loader = ctx.data_unchecked::<async_graphql::dataloader::DataLoader<crate::graphql::loader::LanaLoader>>();
 
                 if let Ok(Some(customer)) = loader.load_one(customer_id).await {

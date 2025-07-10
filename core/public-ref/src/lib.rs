@@ -42,15 +42,15 @@ impl PublicRefs {
         &self,
         db: &mut es_entity::DbOp<'_>,
         target_type: impl Into<RefTargetType> + std::fmt::Debug,
-        public_ref_id: impl Into<PublicRefId> + std::fmt::Debug,
+        target_id: impl Into<RefTargetId> + std::fmt::Debug,
     ) -> Result<PublicRef, PublicRefError> {
-        let public_ref_id = public_ref_id.into();
+        let target_id = target_id.into();
         let counter = self.repo.next_counter().await?;
-        let reference = Ref::new(counter.to_string());
+        let reference = Ref::from_counter(counter);
 
         let new_public_ref = NewPublicRef::builder()
-            .id(public_ref_id)
-            .reference(reference)
+            .id(reference)
+            .target_id(target_id)
             .target_type(target_type)
             .build()
             .expect("Could not build public ref");
@@ -64,22 +64,22 @@ impl PublicRefs {
         &self,
         reference: impl Into<Ref> + std::fmt::Debug,
     ) -> Result<PublicRef, PublicRefError> {
-        self.repo.find_by_reference(reference.into()).await
+        self.repo.find_by_id(reference.into()).await
     }
 
     #[instrument(name = "public_ref_service.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        id: impl Into<PublicRefId> + std::fmt::Debug,
+        reference: impl Into<Ref> + std::fmt::Debug,
     ) -> Result<PublicRef, PublicRefError> {
-        self.repo.find_by_id(id.into()).await
+        self.repo.find_by_id(reference.into()).await
     }
 
     #[instrument(name = "public_ref_service.find_all", skip(self), err)]
     pub async fn find_all<T: From<PublicRef>>(
         &self,
-        ids: &[PublicRefId],
-    ) -> Result<HashMap<PublicRefId, T>, PublicRefError> {
-        self.repo.find_all(ids).await
+        references: &[Ref],
+    ) -> Result<HashMap<Ref, T>, PublicRefError> {
+        self.repo.find_all(references).await
     }
 }

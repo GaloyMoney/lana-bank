@@ -9,8 +9,9 @@ use super::{entity::*, error::*};
 #[derive(EsRepo)]
 #[es_repo(
     entity = "PublicRef",
+    id = "Ref",
     err = "PublicRefError",
-    columns(reference(ty = "Ref"),),
+    columns(target_id(ty = "RefTargetId"),),
     tbl_prefix = "core"
 )]
 pub struct PublicRefRepo {

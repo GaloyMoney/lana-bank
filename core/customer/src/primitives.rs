@@ -11,7 +11,7 @@ es_entity::entity_id! {
     CustomerDocumentId;
 
     CustomerId => document_storage::ReferenceId,
-    CustomerId => public_ref::PublicRefId,
+    CustomerId => public_ref::RefTargetId,
     CustomerDocumentId => document_storage::DocumentId
 }
 

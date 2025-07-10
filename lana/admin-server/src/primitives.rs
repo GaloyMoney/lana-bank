@@ -12,7 +12,7 @@ pub use lana_app::{
         SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId,
         WithdrawalId,
     },
-    public_ref::{PublicRefId, Ref},
+    public_ref::Ref,
     terms::CollateralizationState,
 };
 
@@ -133,7 +133,7 @@ impl_to_global_id! {
     DepositAccountId,
     LedgerTransactionId,
     PaymentAllocationId,
-    PublicRefId
+    Ref
 }
 
 use cala_ledger::EntryId;

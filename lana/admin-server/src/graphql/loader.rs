@@ -414,8 +414,8 @@ impl Loader<Ref> for LanaLoader {
         // For now, we'll load them one by one (not ideal for performance but works)
         let mut result = HashMap::new();
         for key in keys {
-            if let Ok(public_ref) = self.app.public_refs().find_by_reference(key.clone()).await {
-                result.insert(key.clone(), public_ref.into());
+            if let Ok(public_ref) = self.app.public_refs().find_by_reference(*key).await {
+                result.insert(*key, public_ref.into());
             }
         }
         Ok(result)
