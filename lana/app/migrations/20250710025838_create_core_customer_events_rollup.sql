@@ -10,6 +10,7 @@ CREATE TABLE core_customer_events_rollup (
   customer_type VARCHAR,
   email VARCHAR,
   level VARCHAR,
+  public_ref VARCHAR,
   status VARCHAR,
   telegram_id VARCHAR,
 
@@ -66,6 +67,7 @@ BEGIN
     new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
     new_row.level := (NEW.event ->> 'level');
+    new_row.public_ref := (NEW.event ->> 'public_ref');
     new_row.status := (NEW.event ->> 'status');
     new_row.telegram_id := (NEW.event ->> 'telegram_id');
   ELSE
@@ -77,6 +79,7 @@ BEGIN
     new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
     new_row.level := current_row.level;
+    new_row.public_ref := current_row.public_ref;
     new_row.status := current_row.status;
     new_row.telegram_id := current_row.telegram_id;
   END IF;
@@ -87,6 +90,7 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.email := (NEW.event ->> 'email');
+      new_row.public_ref := (NEW.event ->> 'public_ref');
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
     WHEN 'authentication_id_updated' THEN
       new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
@@ -124,6 +128,7 @@ BEGIN
     email,
     is_kyc_approved,
     level,
+    public_ref,
     status,
     telegram_id
   )
@@ -139,6 +144,7 @@ BEGIN
     new_row.email,
     new_row.is_kyc_approved,
     new_row.level,
+    new_row.public_ref,
     new_row.status,
     new_row.telegram_id
   )
@@ -152,6 +158,7 @@ BEGIN
     email = EXCLUDED.email,
     is_kyc_approved = EXCLUDED.is_kyc_approved,
     level = EXCLUDED.level,
+    public_ref = EXCLUDED.public_ref,
     status = EXCLUDED.status,
     telegram_id = EXCLUDED.telegram_id;
 
