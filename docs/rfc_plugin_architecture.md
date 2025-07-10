@@ -43,31 +43,30 @@ The system would be divided into two primary components: the **Core Engine** and
 
 ```mermaid
 graph TD
-    subgraph Rust Core Banking Engine
+    subgraph "Rust Core Banking Engine"
         A[Transaction Processing]
         B[Account Management]
-        C[Core Ledger (Cala)]
+        C[Core Ledger - Cala]
         D[Cryptographic Operations]
         E[State Management]
     end
 
-    subgraph Secure IPC / JSON-RPC API
-        direction LR
-        G(<b>Hooks</b><br/><i>(Events from Core)</i><br/>- transaction_initiated<br/>- account_opened<br/>- obligation_overdue)
-        H(<b>Methods</b><br/><i>(Calls to Core)</i><br/>- get_customer_details<br/>- get_loan_terms<br/>- update_risk_score)
+    subgraph "Secure IPC / JSON-RPC API"
+        G[Hooks - Events from Core<br/>transaction_initiated<br/>account_opened<br/>obligation_overdue]
+        H[Methods - Calls to Core<br/>get_customer_details<br/>get_loan_terms<br/>update_risk_score]
     end
 
-    subgraph Python Plugins (Isolated, Sandboxed Processes)
-        I[<b>Compliance Plugin</b><br/><i>• Jurisdiction Rules</i>]
-        J[<b>Fraud Detection Plugin</b><br/><i>• ML Models</i>]
-        K[<b>Custodian Connector</b><br/><i>• BitGo, Komainu, etc.</i>]
-        L[<b>Notification Plugin</b><br/><i>• Email, SMS, Slack</i>]
+    subgraph "Python Plugins - Isolated Processes"
+        I[Compliance Plugin<br/>Jurisdiction Rules]
+        J[Fraud Detection Plugin<br/>ML Models]
+        K[Custodian Connector<br/>BitGo, Komainu, etc.]
+        L[Notification Plugin<br/>Email, SMS, Slack]
     end
-    
-    Rust_Core_Banking_Engine -.->|Emits Hooks| G
-    H -.->|Executes Commands| Rust_Core_Banking_Engine
-    G --> Plugins
-    Plugins --> H
+
+    A & B & C & D & E -.->|Emits Hooks| G
+    H -.->|Executes Commands| A & B & C & D & E
+    G --> I & J & K & L
+    I & J & K & L --> H
 ```
 
 -   **The Core Engine (Rust)**: Remains the authoritative source of truth. Its responsibilities are focused on performance-critical operations: managing the ledger, ensuring data integrity, and executing the fundamental state changes of the system.
