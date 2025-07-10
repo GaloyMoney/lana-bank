@@ -300,6 +300,11 @@ crate = "document-storage"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
+[[licenses.clarify]]
+crate = "public-ref"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
 [licenses.private]
 # If true, ignores workspace crates that aren't published, or are only
 # published to private registries.
@@ -400,7 +405,10 @@ unknown-git = "warn"
 # if not specified. If it is specified but empty, no registries are allowed.
 allow-registry = ["https://github.com/rust-lang/crates.io-index"]
 # List of URLs for allowed Git repositories
-allow-git = []
+allow-git = [
+    "https://github.com/bodymindarts/yup-oauth2.git",
+    "https://github.com/bodymindarts/gcp-bigquery-client.git",
+]
 
 [sources.allow-org]
 # github.com organizations to allow git sources for
