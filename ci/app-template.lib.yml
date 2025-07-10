@@ -20,6 +20,7 @@ source:
 type: registry-image
 source:
   repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
+  tag: latest-x86_64-linux
 #@ end
 
 #@ def build_app_edge_image_name(app):
