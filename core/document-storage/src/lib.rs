@@ -12,9 +12,7 @@ use es_entity::ListDirection;
 use std::collections::HashMap;
 use tracing::instrument;
 
-pub use entity::{
-    Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument, UploadStatus,
-};
+pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
 pub use primitives::*;
 pub use repo::{document_cursor::DocumentsByCreatedAtCursor, DocumentRepo};

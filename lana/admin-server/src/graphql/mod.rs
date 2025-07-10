@@ -5,6 +5,7 @@ mod audit;
 mod authenticated_subject;
 mod balance_sheet_config;
 mod committee;
+mod contract_creation;
 mod credit_config;
 mod credit_facility;
 mod custody;

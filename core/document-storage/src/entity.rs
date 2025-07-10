@@ -18,16 +18,11 @@ pub struct GeneratedDocumentDownloadLink {
 #[derive(Debug, Clone, Copy, PartialEq, Eq)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum DocumentStatus {
+    New,
+    Failed,
     Active,
     Archived,
     Deleted,
-}
-
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
-pub enum UploadStatus {
-    Pending,
-    Completed,
-    Failed,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -97,17 +92,6 @@ impl Document {
         self.events.push(DocumentEvent::UploadFailed { error });
     }
 
-    pub fn upload_status(&self) -> UploadStatus {
-        for e in self.events.iter_all().rev() {
-            match e {
-                DocumentEvent::FileUploaded { .. } => return UploadStatus::Completed,
-                DocumentEvent::UploadFailed { .. } => return UploadStatus::Failed,
-                _ => {}
-            }
-        }
-        UploadStatus::Pending
-    }
-
     pub fn storage_path(&self) -> &str {
         &self.path_in_storage
     }
@@ -159,13 +143,13 @@ impl TryFromEvents<DocumentEvent> for Document {
                         .content_type(content_type.clone())
                         .path_in_storage(path_in_storage.clone())
                         .reference_id(*reference_id)
-                        .status(DocumentStatus::Active);
+                        .status(DocumentStatus::New);
                 }
                 DocumentEvent::FileUploaded { .. } => {
-                    // FileUploaded event doesn't modify any fields now
+                    builder = builder.status(DocumentStatus::Active);
                 }
                 DocumentEvent::UploadFailed { .. } => {
-                    // UploadFailed event doesn't modify any fields
+                    builder = builder.status(DocumentStatus::Failed);
                 }
                 DocumentEvent::DownloadLinkGenerated { .. } => {
                     // DownloadLinkGenerated event doesn't modify any fields

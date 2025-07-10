@@ -24,6 +24,7 @@ import DenialDialog from "@/app/actions/deny"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { removeUnderscore } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
+import { useLoanAgreement } from "@/hooks/use-loan-agreement"
 
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
@@ -43,6 +44,12 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
+
+  const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
+
+  const handleGenerateLoanAgreement = () => {
+    generateLoanAgreementPdf(creditFacilityDetails.customer.customerId)
+  }
 
   const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
     (plan) => plan.repaymentType === CreditFacilityRepaymentType.Interest,
@@ -97,6 +104,14 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         data-testid="loan-terms-button"
       >
         {t("buttons.loanTerms")}
+      </Button>
+      <Button
+        variant="outline"
+        onClick={handleGenerateLoanAgreement}
+        loading={isGenerating}
+        data-testid="loan-agreement-button"
+      >
+        {t("buttons.loanAgreement")}
       </Button>
       {creditFacilityDetails.subjectCanUpdateCollateral && (
         <Button
