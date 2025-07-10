@@ -25,9 +25,9 @@ pub struct Nonce(pub(super) Vec<u8>);
 pub type EncryptedCustodianConfig = (ConfigCypher, Nonce);
 
 #[derive(Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-#[serde(into = "RawCustodianEncryptionConfig")]
-#[serde(try_from = "RawCustodianEncryptionConfig")]
-pub struct CustodianEncryptionConfig {
+#[serde(into = "RawEncryptionConfig")]
+#[serde(try_from = "RawEncryptionConfig")]
+pub struct EncryptionConfig {
     pub key: EncryptionKey,
 }
 
@@ -114,21 +114,21 @@ impl CustodianConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, PartialEq, Eq, Default)]
-struct RawCustodianEncryptionConfig {
+struct RawEncryptionConfig {
     pub key: String,
 }
-impl From<CustodianEncryptionConfig> for RawCustodianEncryptionConfig {
-    fn from(config: CustodianEncryptionConfig) -> Self {
+impl From<EncryptionConfig> for RawEncryptionConfig {
+    fn from(config: EncryptionConfig) -> Self {
         Self {
             key: hex::encode(config.key),
         }
     }
 }
 
-impl TryFrom<RawCustodianEncryptionConfig> for CustodianEncryptionConfig {
+impl TryFrom<RawEncryptionConfig> for EncryptionConfig {
     type Error = CustodianError;
 
-    fn try_from(raw: RawCustodianEncryptionConfig) -> Result<Self, Self::Error> {
+    fn try_from(raw: RawEncryptionConfig) -> Result<Self, Self::Error> {
         let key_vec = hex::decode(raw.key)?;
         let key_bytes = key_vec.as_slice();
         Ok(Self {
@@ -137,12 +137,9 @@ impl TryFrom<RawCustodianEncryptionConfig> for CustodianEncryptionConfig {
     }
 }
 
-impl std::fmt::Debug for CustodianEncryptionConfig {
+impl std::fmt::Debug for EncryptionConfig {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "CustodianEncryptionConfig {{ key: *******Redacted******* }}"
-        )
+        write!(f, "EncryptionConfig {{ key: *******Redacted******* }}")
     }
 }
 
@@ -171,10 +168,10 @@ mod tests {
     #[test]
     fn serialize_deserialize() {
         let key = gen_encryption_key();
-        let custodian_encryption_config = CustodianEncryptionConfig { key };
-        let serialized = serde_json::to_string(&custodian_encryption_config).unwrap();
-        let deserialized: CustodianEncryptionConfig = serde_json::from_str(&serialized).unwrap();
+        let encryption_config = EncryptionConfig { key };
+        let serialized = serde_json::to_string(&encryption_config).unwrap();
+        let deserialized: EncryptionConfig = serde_json::from_str(&serialized).unwrap();
         assert_eq!(deserialized.key, key);
-        assert_eq!(custodian_encryption_config, deserialized)
+        assert_eq!(encryption_config, deserialized)
     }
 }

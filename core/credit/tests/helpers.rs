@@ -1,5 +1,5 @@
 use cala_ledger::CalaLedger;
-use core_custody::{CustodianEncryptionConfig, CustodyConfig};
+use core_custody::{CustodyConfig, EncryptionConfig};
 
 pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
     let pg_con = std::env::var("PG_CON").unwrap();
@@ -9,7 +9,7 @@ pub async fn init_pool() -> anyhow::Result<sqlx::PgPool> {
 
 pub fn custody_config() -> CustodyConfig {
     CustodyConfig {
-        custodian_encryption: CustodianEncryptionConfig {
+        encryption: EncryptionConfig {
             key: [1u8; 32].into(),
         },
         deprecated_encryption_key: None,

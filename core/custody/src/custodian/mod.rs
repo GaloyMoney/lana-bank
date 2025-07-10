@@ -5,8 +5,8 @@ pub mod error;
 mod repo;
 
 pub use config::{
-    BitgoConfig, CustodianConfig, CustodianConfigDiscriminants, CustodianEncryptionConfig,
-    DeprecatedEncryptionKey, KomainuConfig,
+    BitgoConfig, CustodianConfig, CustodianConfigDiscriminants, DeprecatedEncryptionKey,
+    EncryptionConfig, KomainuConfig,
 };
 #[cfg(feature = "json-schema")]
 pub use entity::CustodianEvent;

@@ -45,7 +45,7 @@ pub struct EnvSecrets {
     pub sa_creds_base64: Option<String>,
     pub smtp_username: String,
     pub smtp_password: String,
-    pub custodian_encryption_key: String,
+    pub encryption_key: String,
 }
 
 impl Config {
@@ -58,7 +58,7 @@ impl Config {
             sa_creds_base64,
             smtp_username,
             smtp_password,
-            custodian_encryption_key,
+            encryption_key,
         }: EnvSecrets,
         dev_env_name_prefix: Option<String>,
     ) -> anyhow::Result<Self> {
@@ -93,7 +93,7 @@ impl Config {
             config.app.report.service_account = Some(config.app.service_account.clone());
         };
 
-        let key_bytes = hex::decode(custodian_encryption_key)?;
+        let key_bytes = hex::decode(encryption_key)?;
         if key_bytes.len() != 32 {
             return Err(anyhow::anyhow!(
                 "Custodian encryption key must be 32 bytes, got {}",
@@ -101,7 +101,7 @@ impl Config {
             ));
         }
 
-        config.app.custody.custodian_encryption.key =
+        config.app.custody.encryption.key =
             chacha20poly1305::Key::clone_from_slice(key_bytes.as_ref());
 
         Ok(config)

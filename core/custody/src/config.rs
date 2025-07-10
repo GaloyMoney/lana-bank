@@ -1,11 +1,11 @@
 use serde::{Deserialize, Serialize};
 
-use super::{CustodianEncryptionConfig, DeprecatedEncryptionKey};
+use super::{DeprecatedEncryptionKey, EncryptionConfig};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CustodyConfig {
     #[serde(default)]
-    pub custodian_encryption: CustodianEncryptionConfig,
+    pub encryption: EncryptionConfig,
 
     #[serde(default)]
     pub deprecated_encryption_key: Option<DeprecatedEncryptionKey>,

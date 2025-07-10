@@ -133,7 +133,7 @@ where
             .id(custodian_id)
             .name(name.as_ref().to_owned())
             .provider(custodian_config.discriminant().to_string())
-            .encrypted_custodian_config(custodian_config, &self.config.custodian_encryption.key)
+            .encrypted_custodian_config(custodian_config, &self.config.encryption.key)
             .audit_info(audit_info.clone())
             .build()
             .expect("should always build a new custodian");
@@ -182,11 +182,7 @@ where
             .await?;
         let mut custodian = self.custodians.find_by_id(id).await?;
 
-        custodian.update_custodian_config(
-            config,
-            &self.config.custodian_encryption.key,
-            audit_info,
-        );
+        custodian.update_custodian_config(config, &self.config.encryption.key, audit_info);
 
         let mut op = self.custodians.begin_op().await?;
         self.custodians
@@ -216,7 +212,7 @@ where
 
         for custodian in custodians.iter_mut() {
             custodian.rotate_encryption_key(
-                &self.config.custodian_encryption.key,
+                &self.config.encryption.key,
                 deprecated_encryption_key,
                 &audit_info,
             )?;
@@ -335,7 +331,7 @@ where
 
         if let Ok(custodian) = custodian {
             custodian
-                .custodian_client(self.config.custodian_encryption.key)
+                .custodian_client(self.config.encryption.key)
                 .await?
                 .process_webhook(payload)
                 .await?;
@@ -365,7 +361,7 @@ where
             .await?;
 
         let client = custodian
-            .custodian_client(self.config.custodian_encryption.key)
+            .custodian_client(self.config.encryption.key)
             .await?;
 
         let external_wallet = client.initialize_wallet("label").await?;

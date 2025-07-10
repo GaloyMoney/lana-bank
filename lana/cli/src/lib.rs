@@ -46,8 +46,8 @@ struct Cli {
     smtp_password: String,
     #[clap(env = "DEV_ENV_NAME_PREFIX")]
     dev_env_name_prefix: Option<String>,
-    #[clap(long, env = "CUSTODIAN_ENCRYPTION_KEY", default_value = "")]
-    custodian_encryption_key: String,
+    #[clap(long, env = "ENCRYPTION_KEY", default_value = "")]
+    encryption_key: String,
 }
 
 #[derive(Subcommand)]
@@ -79,7 +79,7 @@ pub async fn run() -> anyhow::Result<()> {
                     sa_creds_base64,
                     smtp_username: cli.smtp_username,
                     smtp_password: cli.smtp_password,
-                    custodian_encryption_key: cli.custodian_encryption_key,
+                    encryption_key: cli.encryption_key,
                 },
                 cli.dev_env_name_prefix,
             )?;
