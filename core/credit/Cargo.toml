@@ -43,7 +43,6 @@ rust_decimal = { workspace = true }
 rust_decimal_macros = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
-http = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
