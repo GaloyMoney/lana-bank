@@ -721,6 +721,7 @@ checksums:
     ChartOfAccounts/AddNodeDialog/description: 5130577ab0b6bd8d4dffe6ada8602ef4
     ChartOfAccounts/AddNodeDialog/success: 6f0d0977e6b083f6fe8024b5479fe489
     ChartOfAccounts/AddNodeDialog/validating: 53e19393c8139790da4d3337f4b981ab
+    ChartOfAccounts/AddNodeDialog/codeExists: f9096984cc99dab1762567b870989aa2
     ChartOfAccounts/AddNodeDialog/parentNotFound: c57cb0d4271badd3baea973cae31c566
     ChartOfAccounts/AddNodeDialog/fields/code: 9218742c297d337fdc0f5f5dd985294d
     ChartOfAccounts/AddNodeDialog/fields/name: 5a4c82f1bc517348b64c107345f94f65

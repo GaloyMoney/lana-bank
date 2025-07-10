@@ -28,11 +28,11 @@ import { useModalNavigation } from "@/hooks/use-modal-navigation"
 import {
   useChartOfAccountsAddNodeMutation,
   DebitOrCredit,
-  useValidateParentAccountCodeLazyQuery,
+  useValidateAccountCodeLazyQuery,
 } from "@/lib/graphql/generated"
 
 gql`
-  query ValidateParentAccountCode($code: String!) {
+  query ValidateAccountCode($code: String!) {
     ledgerAccountByCode(code: $code) {
       id
       code
@@ -56,6 +56,10 @@ type AddChartNodeDialogProps = {
   parentCode?: string
 }
 
+const validateAccountCodeInput = (value: string): string => {
+  return value.replace(/[^0-9.]/g, "")
+}
+
 export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
   setOpenAddNodeDialog,
   openAddNodeDialog,
@@ -73,6 +77,8 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
   const [parentAccountName, setParentAccountName] = useState<string | null>(null)
   const [isValidatingParent, setIsValidatingParent] = useState(false)
   const [validationKey, setValidationKey] = useState(0)
+  const [codeExists, setCodeExists] = useState(false)
+  const [codeValidationKey, setCodeValidationKey] = useState(0)
 
   const handleCloseDialog = () => {
     setOpenAddNodeDialog(false)
@@ -83,7 +89,7 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
     closeModal: handleCloseDialog,
   })
 
-  const [validateParentCode] = useValidateParentAccountCodeLazyQuery({})
+  const [validateAccountCode] = useValidateAccountCodeLazyQuery()
 
   useEffect(() => {
     if (openAddNodeDialog) {
@@ -94,6 +100,8 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
         setCode(parentCode + ".")
       }
       setValidationKey((prev) => prev + 1)
+      setCodeExists(false)
+      setCodeValidationKey((prev) => prev + 1)
     }
   }, [openAddNodeDialog, parentCode])
 
@@ -108,7 +116,7 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
     setParentAccountName(null)
 
     const timer = setTimeout(async () => {
-      const result = await validateParentCode({
+      const result = await validateAccountCode({
         variables: { code: parent.trim() },
         fetchPolicy: "network-only",
       })
@@ -126,9 +134,24 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
     return () => clearTimeout(timer)
   }, [parent, validationKey])
 
-  const validateAccountCodeInput = (value: string): string => {
-    return value.replace(/[^0-9.]/g, "")
-  }
+  useEffect(() => {
+    if (!code.trim()) {
+      setCodeExists(false)
+      return
+    }
+    setCodeExists(false)
+    const timer = setTimeout(async () => {
+      const result = await validateAccountCode({
+        variables: { code: code.trim() },
+        fetchPolicy: "network-only",
+      })
+      if (result.data?.ledgerAccountByCode) {
+        setCodeExists(true)
+      }
+    }, 1000)
+
+    return () => clearTimeout(timer)
+  }, [code, codeValidationKey])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -164,6 +187,7 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
     setName("")
     setNormalBalanceType("")
     setError(null)
+    setCodeExists(false)
     reset()
   }
 
@@ -210,6 +234,9 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
               value={code}
               onChange={(e) => setCode(validateAccountCodeInput(e.target.value))}
             />
+            {codeExists && (
+              <p className="text-sm text-destructive mt-1">{t("codeExists")}</p>
+            )}
           </div>
           <div className="flex gap-2 w-full">
             <div className="w-full">
@@ -253,7 +280,7 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
           <DialogFooter>
             <Button
               type="submit"
-              disabled={loading || isNavigating}
+              disabled={loading || isNavigating || codeExists}
               data-testid="chart-node-submit-button"
             >
               {t("buttons.submit")}
