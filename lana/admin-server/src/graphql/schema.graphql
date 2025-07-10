@@ -792,6 +792,7 @@ type Customer {
 	customerType: CustomerType!
 	email: String!
 	telegramId: String!
+	publicRef: String!
 	applicantId: String
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!

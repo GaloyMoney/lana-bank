@@ -803,6 +803,7 @@ export type Customer = {
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   level: KycLevel;
+  publicRef: Scalars['String']['output'];
   status: AccountStatus;
   subjectCanCreateCreditFacility: Scalars['Boolean']['output'];
   telegramId: Scalars['String']['output'];

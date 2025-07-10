@@ -1048,6 +1048,7 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         level: overrides && overrides.hasOwnProperty('level') ? overrides.level! : mockEnums.kycLevel(),
+        publicRef: overrides && overrides.hasOwnProperty('publicRef') ? overrides.publicRef! : faker.lorem.word(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.accountStatus(),
         subjectCanCreateCreditFacility: overrides && overrides.hasOwnProperty('subjectCanCreateCreditFacility') ? overrides.subjectCanCreateCreditFacility! : faker.datatype.boolean(),
         telegramId: overrides && overrides.hasOwnProperty('telegramId') ? overrides.telegramId! : generateMockValue.telegramId(),

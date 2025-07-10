@@ -15,6 +15,10 @@ impl Ref {
     pub fn new(reference: impl Into<String>) -> Self {
         Ref(reference.into())
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 impl From<String> for Ref {
@@ -22,7 +26,6 @@ impl From<String> for Ref {
         Ref::new(reference)
     }
 }
-
 
 impl std::fmt::Display for Ref {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {

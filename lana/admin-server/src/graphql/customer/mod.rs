@@ -53,6 +53,10 @@ impl Customer {
         &self.entity.telegram_id
     }
 
+    async fn public_ref(&self) -> &str {
+        self.entity.public_ref.as_str()
+    }
+
     async fn applicant_id(&self) -> Option<&str> {
         self.entity.applicant_id.as_deref()
     }
