@@ -53,4 +53,3 @@ where
         self.publisher.publish(db, entity, new_events).await
     }
 }
-

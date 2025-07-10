@@ -138,4 +138,3 @@ where
         self.airflow_client.health_check().await
     }
 }
-

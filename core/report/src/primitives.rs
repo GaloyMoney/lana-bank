@@ -154,4 +154,3 @@ impl From<ReportEntityAction> for CoreReportAction {
         CoreReportAction::Report(action)
     }
 }
-

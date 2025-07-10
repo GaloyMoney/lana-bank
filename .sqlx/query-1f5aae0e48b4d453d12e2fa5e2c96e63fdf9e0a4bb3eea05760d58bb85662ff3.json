@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM reports WHERE (COALESCE(id < $2, true)) ORDER BY id DESC LIMIT $1) SELECT i.id AS \"entity_id: ReportId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN report_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_reports WHERE (COALESCE(id > $2, true)) ORDER BY id ASC LIMIT $1) SELECT i.id AS \"entity_id: ReportId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_report_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -37,5 +37,5 @@
       false
     ]
   },
-  "hash": "a26e659ffa3e055026569c9e9fdce14177f7afe2a3cd5acafd885a20ba5c537e"
+  "hash": "1f5aae0e48b4d453d12e2fa5e2c96e63fdf9e0a4bb3eea05760d58bb85662ff3"
 }
