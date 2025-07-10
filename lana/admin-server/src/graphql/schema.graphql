@@ -1514,7 +1514,7 @@ type ProfitAndLossStatementModuleConfigurePayload {
 
 type PublicRef {
 	id: ID!
-	publicRefId: UUID!
+	targetId: UUID!
 	reference: String!
 	targetType: String!
 	target: PublicRefTarget

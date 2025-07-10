@@ -111,13 +111,13 @@ CREATE TABLE core_withdrawal_events (
 );
 
 CREATE TABLE core_public_refs (
-  id BIGINT PRIMARY KEY,
+  id VARCHAR PRIMARY KEY,
   target_id UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
 CREATE TABLE core_public_ref_events (
-  id BIGINT NOT NULL REFERENCES core_public_refs(id),
+  id VARCHAR NOT NULL REFERENCES core_public_refs(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -133,7 +133,7 @@ CREATE TABLE core_customers (
   email VARCHAR NOT NULL UNIQUE,
   telegram_id VARCHAR NOT NULL UNIQUE,
   status VARCHAR NOT NULL,
-  public_ref BIGINT NOT NULL REFERENCES core_public_refs(id),
+  public_ref VARCHAR NOT NULL REFERENCES core_public_refs(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

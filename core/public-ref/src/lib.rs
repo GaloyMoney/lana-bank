@@ -45,8 +45,7 @@ impl PublicRefs {
         target_id: impl Into<RefTargetId> + std::fmt::Debug,
     ) -> Result<PublicRef, PublicRefError> {
         let target_id = target_id.into();
-        let counter = self.repo.next_counter().await?;
-        let reference = Ref::from_counter(counter);
+        let reference = self.repo.next_counter().await?;
 
         let new_public_ref = NewPublicRef::builder()
             .id(reference)
@@ -59,20 +58,24 @@ impl PublicRefs {
         Ok(public_ref)
     }
 
-    #[instrument(name = "public_ref_service.find_by_reference", skip(self), err)]
-    pub async fn find_by_reference(
+    #[instrument(name = "public_ref_service.find_by_id", skip(self), err)]
+    pub async fn find_by_ref(
         &self,
         reference: impl Into<Ref> + std::fmt::Debug,
     ) -> Result<PublicRef, PublicRefError> {
         self.repo.find_by_id(reference.into()).await
     }
 
-    #[instrument(name = "public_ref_service.find_by_id", skip(self), err)]
-    pub async fn find_by_id(
+    #[instrument(name = "public_ref_service.find_by_ref_optional", skip(self), err)]
+    pub async fn find_by_ref_optional(
         &self,
         reference: impl Into<Ref> + std::fmt::Debug,
-    ) -> Result<PublicRef, PublicRefError> {
-        self.repo.find_by_id(reference.into()).await
+    ) -> Result<Option<PublicRef>, PublicRefError> {
+        match self.repo.find_by_id(reference.into()).await {
+            Ok(public_ref) => Ok(Some(public_ref)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
     }
 
     #[instrument(name = "public_ref_service.find_all", skip(self), err)]

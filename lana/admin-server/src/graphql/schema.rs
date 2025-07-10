@@ -1,4 +1,4 @@
-use async_graphql::{Context, Object, types::connection::*};
+use async_graphql::{types::connection::*, Context, Object};
 
 use std::io::Read;
 
@@ -784,17 +784,19 @@ impl Query {
         reference: String,
     ) -> async_graphql::Result<Option<PublicRef>> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-
-        // Find the public ref by reference
-        if let Ok(public_ref) = app
+        let public_ref = app
             .public_refs()
-            .find_by_reference(lana_app::public_ref::Ref::new(reference))
-            .await
-        {
-            let public_ref_gql = PublicRef::from(public_ref);
-            Ok(Some(public_ref_gql))
-        } else {
-            Ok(None)
+            .find_by_ref_optional(lana_app::public_ref::Ref::new(reference))
+            .await?;
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        match public_ref {
+            Some(pr) => {
+                let ref_id = pr.id.clone();
+                let gql_ref = PublicRef::from(pr);
+                loader.feed_one(ref_id, gql_ref.clone()).await;
+                Ok(Some(gql_ref))
+            }
+            None => Ok(None),
         }
     }
 }

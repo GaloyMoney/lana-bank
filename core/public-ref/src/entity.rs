@@ -46,7 +46,7 @@ impl TryFromEvents<PublicRefEvent> for PublicRef {
                     target_type,
                 } => {
                     builder = builder
-                        .id(*id)
+                        .id(id.clone())
                         .target_id(*target_id)
                         .target_type(target_type.clone());
                 }
@@ -77,7 +77,7 @@ impl NewPublicRef {
 impl IntoEvents<PublicRefEvent> for NewPublicRef {
     fn into_events(self) -> EntityEvents<PublicRefEvent> {
         EntityEvents::init(
-            self.id,
+            self.id.clone(),
             [PublicRefEvent::Initialized {
                 id: self.id,
                 target_id: self.target_id,

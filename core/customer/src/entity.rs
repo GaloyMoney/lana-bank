@@ -216,7 +216,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .email(email.clone())
                         .telegram_id(telegram_id.clone())
                         .customer_type(*customer_type)
-                        .public_ref(*public_ref)
+                        .public_ref(public_ref.clone())
                         .level(KycLevel::NotKyced);
                 }
                 CustomerEvent::AuthenticationIdUpdated { authentication_id } => {

@@ -1700,9 +1700,9 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
 export type PublicRef = {
   __typename?: 'PublicRef';
   id: Scalars['ID']['output'];
-  publicRefId: Scalars['UUID']['output'];
   reference: Scalars['String']['output'];
   target?: Maybe<PublicRefTarget>;
+  targetId: Scalars['UUID']['output'];
   targetType: Scalars['String']['output'];
 };
 

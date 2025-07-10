@@ -1874,9 +1874,9 @@ export const mockPublicRef = (overrides?: Partial<PublicRef>, _relationshipsToOm
     return {
         __typename: 'PublicRef',
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        publicRefId: overrides && overrides.hasOwnProperty('publicRefId') ? overrides.publicRefId! : generateMockValue.uuid(),
         reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
         target: overrides && overrides.hasOwnProperty('target') ? overrides.target! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
+        targetId: overrides && overrides.hasOwnProperty('targetId') ? overrides.targetId! : generateMockValue.uuid(),
         targetType: overrides && overrides.hasOwnProperty('targetType') ? overrides.targetType! : faker.lorem.word(),
     };
 };

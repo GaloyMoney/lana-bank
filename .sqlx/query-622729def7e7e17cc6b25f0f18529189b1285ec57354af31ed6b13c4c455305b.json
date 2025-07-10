@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM core_public_refs WHERE (COALESCE((created_at, id) < ($3, $2), $2 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $1) SELECT i.id AS \"entity_id: PublicRefId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_ref_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_public_refs WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: Ref\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_ref_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: PublicRefId",
-        "type_info": "Uuid"
+        "name": "entity_id: Ref",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 1,
@@ -27,7 +27,7 @@
     "parameters": {
       "Left": [
         "Int8",
-        "Uuid",
+        "Text",
         "Timestamptz"
       ]
     },
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "25a72c59ab33012d37791ea18b39e404508f4c6cc08c742d433a958bc84462ca"
+  "hash": "622729def7e7e17cc6b25f0f18529189b1285ec57354af31ed6b13c4c455305b"
 }
