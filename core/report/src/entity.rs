@@ -17,7 +17,7 @@ pub enum ReportEvent {
     Initialized {
         id: ReportId,
         date: DateTime<Utc>,
-        name: String,
+        path_in_bucket: String,
         audit_info: AuditInfo,
     },
 }
@@ -27,13 +27,17 @@ pub enum ReportEvent {
 pub struct Report {
     pub id: ReportId,
     pub date: DateTime<Utc>,
-    pub name: String,
+    pub path_in_bucket: String,
     events: EntityEvents<ReportEvent>,
 }
 
 impl core::fmt::Display for Report {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "Report({}): {}/{}", self.id, self.date, self.name)
+        write!(
+            f,
+            "Report({}): {}/{}",
+            self.id, self.date, self.path_in_bucket
+        )
     }
 }
 
@@ -43,8 +47,16 @@ impl TryFromEvents<ReportEvent> for Report {
 
         for event in events.iter_all() {
             match event {
-                ReportEvent::Initialized { id, date, name, .. } => {
-                    builder = builder.id(*id).date(*date).name(name.clone());
+                ReportEvent::Initialized {
+                    id,
+                    date,
+                    path_in_bucket,
+                    ..
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .date(*date)
+                        .path_in_bucket(path_in_bucket.clone());
                 }
             }
         }
@@ -60,7 +72,7 @@ pub struct NewReport {
     #[builder(setter(into))]
     pub(super) date: DateTime<Utc>,
     #[builder(setter(into))]
-    pub(super) name: String,
+    pub(super) path_in_bucket: String,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -77,7 +89,7 @@ impl IntoEvents<ReportEvent> for NewReport {
             [ReportEvent::Initialized {
                 id: self.id,
                 date: self.date,
-                name: self.name,
+                path_in_bucket: self.path_in_bucket,
                 audit_info: self.audit_info,
             }],
         )

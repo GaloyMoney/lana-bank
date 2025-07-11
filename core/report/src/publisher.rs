@@ -41,7 +41,7 @@ where
             .map(|event| match &event.event {
                 Initialized { .. } => CoreReportEvent::ReportCreated {
                     id: entity.id,
-                    name: entity.name.clone(),
+                    path_in_bucket: entity.path_in_bucket.clone(),
                     date: entity.date,
                 },
             })

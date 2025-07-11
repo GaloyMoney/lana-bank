@@ -7,7 +7,7 @@ use crate::primitives::ReportId;
 pub enum CoreReportEvent {
     ReportCreated {
         id: ReportId,
-        name: String,
+        path_in_bucket: String,
         date: chrono::DateTime<chrono::Utc>,
     },
 }

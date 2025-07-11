@@ -45,7 +45,6 @@ pub struct TaskInstanceInfo {
     pub log_url: Option<String>,
 }
 
-
 #[derive(Clone)]
 pub struct ReportsApiClient {
     client: Client,
@@ -131,5 +130,4 @@ impl ReportsApiClient {
             ))))
         }
     }
-
 }

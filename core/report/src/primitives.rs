@@ -66,7 +66,8 @@ pub enum CoreReportAction {
 
 impl CoreReportAction {
     pub const REPORT_GENERATE: Self = CoreReportAction::Report(ReportEntityAction::Generate);
-    pub const REPORT_GENERATION_STATUS_READ: Self = CoreReportAction::Report(ReportEntityAction::GenerationStatusRead);
+    pub const REPORT_GENERATION_STATUS_READ: Self =
+        CoreReportAction::Report(ReportEntityAction::GenerationStatusRead);
 
     pub fn entities() -> Vec<(
         CoreReportActionDiscriminants,
