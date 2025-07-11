@@ -151,7 +151,7 @@
     "placeholders": {
       "searchNavigation": "Search navigation...",
       "searchActions": "Search actions...",
-      "whatDoYouNeed": "What do you need?",
+      "whatDoYouNeed": "Search anything or enter ID...",
       "searchPublicId": "Search by Public ID..."
     },
     "noResults": "No results found.",

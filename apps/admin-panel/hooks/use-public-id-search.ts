@@ -16,6 +16,14 @@ gql`
         customerId
         email
       }
+      ... on DepositAccount {
+        id
+        customer {
+          id
+          customerId
+          email
+        }
+      }
     }
   }
 `

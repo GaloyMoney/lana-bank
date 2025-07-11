@@ -2624,7 +2624,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
 
 export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -3063,7 +3063,7 @@ export type SearchPublicIdTargetQueryVariables = Exact<{
 }>;
 
 
-export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?: { __typename: 'Customer', id: string, customerId: string, email: string } | { __typename: 'DepositAccount' } | null };
+export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?: { __typename: 'Customer', id: string, customerId: string, email: string } | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string } } | null };
 
 export const UsdBalanceFragmentFragmentDoc = gql`
     fragment UsdBalanceFragment on UsdLedgerAccountBalance {
@@ -4855,6 +4855,7 @@ export const GetCustomerBasicDetailsDocument = gql`
     publicId
     depositAccount {
       id
+      publicId
       depositAccountId
       balance {
         settled
@@ -7702,6 +7703,14 @@ export const SearchPublicIdTargetDocument = gql`
       id
       customerId
       email
+    }
+    ... on DepositAccount {
+      id
+      customer {
+        id
+        customerId
+        email
+      }
     }
   }
 }
