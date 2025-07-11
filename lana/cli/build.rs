@@ -11,6 +11,8 @@ fn main() {
         "sim-time",
         #[cfg(feature = "sim-bootstrap")]
         "sim-bootstrap",
+        #[cfg(feature = "mock-custodian")]
+        "mock-custodian",
         #[cfg(feature = "fail-on-warnings")]
         "fail-on-warnings",
     ];
