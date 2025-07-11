@@ -70,10 +70,9 @@ impl ReportsApiClient {
             let dates = date_strings
                 .into_iter()
                 .map(|date_str| {
-                    NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
-                        .map_err(|e| ReportError::ApiError(format!(
-                            "Failed to parse date '{}': {}", date_str, e
-                        )))
+                    NaiveDate::parse_from_str(&date_str, "%Y-%m-%d").map_err(|e| {
+                        ReportError::ApiError(format!("Failed to parse date '{date_str}': {e}"))
+                    })
                 })
                 .collect::<Result<Vec<_>, _>>()?;
             Ok(dates)
@@ -87,8 +86,9 @@ impl ReportsApiClient {
     }
 
     #[tracing::instrument(name = "reports_api.get_reports_by_date", skip(self))]
-    pub async fn get_reports_by_date(&self, date: &str) -> Result<Vec<String>, ReportError> {
-        let url = format!("{}/api/v1/reports/date/{}", self.base_url, date);
+    pub async fn get_reports_by_date(&self, date: NaiveDate) -> Result<Vec<String>, ReportError> {
+        let date_str = date.format("%Y-%m-%d").to_string();
+        let url = format!("{}/api/v1/reports/date/{}", self.base_url, date_str);
 
         let response = self.client.get(&url).send().await?;
 
@@ -99,7 +99,7 @@ impl ReportsApiClient {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
             Err(ReportError::ApiError(format!(
-                "Failed to get reports for date {date} with status {status}: {text}"
+                "Failed to get reports for date {date_str} with status {status}: {text}"
             )))
         }
     }
