@@ -50,7 +50,7 @@ pub struct Chart {
 }
 
 impl Chart {
-    pub fn create_node_unchecked(
+    pub(super) fn create_node_without_verifying_parent(
         &mut self,
         spec: &AccountSpec,
         journal_id: CalaJournalId,
@@ -99,7 +99,7 @@ impl Chart {
         })
     }
 
-    pub fn create_node(
+    pub(super) fn create_node(
         &mut self,
         spec: &AccountSpec,
         journal_id: CalaJournalId,
@@ -126,10 +126,10 @@ impl Chart {
             )?;
         }
 
-        Ok(self.create_node_unchecked(&checked_spec, journal_id, audit_info))
+        Ok(self.create_node_without_verifying_parent(&checked_spec, journal_id, audit_info))
     }
 
-    pub fn trial_balance_account_ids_from_new_accounts(
+    pub(super) fn trial_balance_account_ids_from_new_accounts(
         &self,
         new_account_set_ids: &[CalaAccountSetId],
     ) -> impl Iterator<Item = CalaAccountSetId> {
@@ -151,7 +151,7 @@ impl Chart {
             )
     }
 
-    pub fn trial_balance_account_id_from_new_account(
+    pub(super) fn trial_balance_account_id_from_new_account(
         &self,
         new_account_set_id: CalaAccountSetId,
     ) -> Option<CalaAccountSetId> {
@@ -454,7 +454,7 @@ mod test {
             new_account_set: level_1_new_account_set,
             ..
         } = chart
-            .create_node_unchecked(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     None,
                     vec![section("1")],
@@ -470,7 +470,7 @@ mod test {
             new_account_set: level_2_new_account_set,
             ..
         } = chart
-            .create_node_unchecked(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     Some(code("1")),
                     vec![section("1"), section("1")],
@@ -486,7 +486,7 @@ mod test {
             new_account_set: level_3_new_account_set,
             ..
         } = chart
-            .create_node_unchecked(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     Some(code("1.1")),
                     vec![section("1"), section("1"), section("1")],
@@ -542,7 +542,7 @@ mod test {
     fn unchecked_creates_node_if_parent_node_does_not_exist() {
         let (mut chart, _) = default_chart();
 
-        let res = chart.create_node_unchecked(
+        let res = chart.create_node_without_verifying_parent(
             &AccountSpec::try_new(
                 Some(code("1.9")),
                 vec![section("1"), section("9"), section("1")],
@@ -579,7 +579,7 @@ mod test {
                 },
             ..
         } = chart
-            .create_node_unchecked(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     Some(code("1")),
                     vec![section("1"), section("2")],
