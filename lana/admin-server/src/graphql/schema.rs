@@ -793,7 +793,7 @@ impl Query {
                 .customer(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::Customer),
-            _ => unimplemented!(),
+            _ => unreachable!(),
         };
         Ok(res)
     }
