@@ -15,6 +15,7 @@ audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
+cloud-storage = { path = "../../lib/cloud-storage" }
 
 es-entity = { workspace = true }
 strum = { workspace = true }

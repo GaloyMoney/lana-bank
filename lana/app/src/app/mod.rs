@@ -80,9 +80,10 @@ impl LanaApp {
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
-        let reports = Reports::init(&pool, &authz, config.airflow, &outbox, &jobs).await?;
-        let price = Price::new();
         let storage = Storage::new(&config.storage);
+        let reports =
+            Reports::init(&pool, &authz, config.airflow, &outbox, &jobs, &storage).await?;
+        let price = Price::new();
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
 
