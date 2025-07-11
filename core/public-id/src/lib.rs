@@ -9,14 +9,14 @@ mod repo;
 use std::collections::HashMap;
 use tracing::instrument;
 
-pub use entity::{NewPublicId, PublicId};
+pub use entity::{NewPublicIdEntity, PublicIdEntity};
 pub use error::*;
 pub use primitives::*;
 pub use repo::PublicIdRepo;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
-    pub use crate::entity::PublicIdEvent;
+    pub use crate::entity::PublicIdEntityEvent;
 }
 
 pub struct PublicIds {
@@ -43,11 +43,11 @@ impl PublicIds {
         db: &mut es_entity::DbOp<'_>,
         target_type: impl Into<IdTargetType> + std::fmt::Debug,
         target_id: impl Into<PublicIdTargetId> + std::fmt::Debug,
-    ) -> Result<PublicId, PublicIdError> {
+    ) -> Result<PublicIdEntity, PublicIdError> {
         let target_id = target_id.into();
         let reference = self.repo.next_counter().await?;
 
-        let new_public_id = NewPublicId::builder()
+        let new_public_id = NewPublicIdEntity::builder()
             .id(reference)
             .target_id(target_id)
             .target_type(target_type)
@@ -62,7 +62,7 @@ impl PublicIds {
     pub async fn find_by_id(
         &self,
         id: impl Into<Id> + std::fmt::Debug,
-    ) -> Result<PublicId, PublicIdError> {
+    ) -> Result<PublicIdEntity, PublicIdError> {
         self.repo.find_by_id(id.into()).await
     }
 
@@ -70,7 +70,7 @@ impl PublicIds {
     pub async fn find_by_id_optional(
         &self,
         id: impl Into<Id> + std::fmt::Debug,
-    ) -> Result<Option<PublicId>, PublicIdError> {
+    ) -> Result<Option<PublicIdEntity>, PublicIdError> {
         match self.repo.find_by_id(id.into()).await {
             Ok(public_id) => Ok(Some(public_id)),
             Err(e) if e.was_not_found() => Ok(None),
@@ -79,7 +79,7 @@ impl PublicIds {
     }
 
     #[instrument(name = "public_id_service.find_all", skip(self), err)]
-    pub async fn find_all<T: From<PublicId>>(
+    pub async fn find_all<T: From<PublicIdEntity>>(
         &self,
         ids: &[Id],
     ) -> Result<HashMap<Id, T>, PublicIdError> {
@@ -88,11 +88,11 @@ impl PublicIds {
 }
 
 // Temporary aliases for compatibility during migration
-pub use entity::PublicIdEvent as PublicRefEvent;
+pub use entity::PublicIdEntityEvent as PublicRefEvent;
+pub use Id as Ref;
 pub use IdTargetType as RefTargetType;
-pub use NewPublicId as NewPublicRef;
-pub use PublicId as PublicRef;
+pub use NewPublicIdEntity as NewPublicRef;
+pub use PublicIdEntity as PublicRef;
 pub use PublicIdError as PublicRefError;
 pub use PublicIdTargetId as RefTargetId;
 pub use PublicIds as PublicRefs;
-pub use Id as Ref;

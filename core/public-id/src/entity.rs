@@ -11,7 +11,7 @@ use crate::primitives::*;
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "Id")]
-pub enum PublicIdEvent {
+pub enum PublicIdEntityEvent {
     Initialized {
         id: Id,
         target_id: PublicIdTargetId,
@@ -21,26 +21,26 @@ pub enum PublicIdEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct PublicId {
+pub struct PublicIdEntity {
     pub id: Id,
     pub target_id: PublicIdTargetId,
     pub target_type: IdTargetType,
-    events: EntityEvents<PublicIdEvent>,
+    events: EntityEvents<PublicIdEntityEvent>,
 }
 
-impl core::fmt::Display for PublicId {
+impl core::fmt::Display for PublicIdEntity {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "PublicId: {}", self.id)
     }
 }
 
-impl TryFromEvents<PublicIdEvent> for PublicId {
-    fn try_from_events(events: EntityEvents<PublicIdEvent>) -> Result<Self, EsEntityError> {
-        let mut builder = PublicIdBuilder::default();
+impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
+    fn try_from_events(events: EntityEvents<PublicIdEntityEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = PublicIdEntityBuilder::default();
 
         for event in events.iter_all() {
             match event {
-                PublicIdEvent::Initialized {
+                PublicIdEntityEvent::Initialized {
                     id,
                     target_id,
                     target_type,
@@ -59,7 +59,7 @@ impl TryFromEvents<PublicIdEvent> for PublicId {
 
 #[derive(Debug, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct NewPublicId {
+pub struct NewPublicIdEntity {
     #[builder(setter(into))]
     pub(super) id: Id,
     #[builder(setter(into))]
@@ -68,17 +68,17 @@ pub struct NewPublicId {
     pub(super) target_type: IdTargetType,
 }
 
-impl NewPublicId {
-    pub fn builder() -> NewPublicIdBuilder {
-        NewPublicIdBuilder::default()
+impl NewPublicIdEntity {
+    pub fn builder() -> NewPublicIdEntityBuilder {
+        NewPublicIdEntityBuilder::default()
     }
 }
 
-impl IntoEvents<PublicIdEvent> for NewPublicId {
-    fn into_events(self) -> EntityEvents<PublicIdEvent> {
+impl IntoEvents<PublicIdEntityEvent> for NewPublicIdEntity {
+    fn into_events(self) -> EntityEvents<PublicIdEntityEvent> {
         EntityEvents::init(
             self.id.clone(),
-            [PublicIdEvent::Initialized {
+            [PublicIdEntityEvent::Initialized {
                 id: self.id,
                 target_id: self.target_id,
                 target_type: self.target_type,
