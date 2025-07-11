@@ -191,6 +191,32 @@ impl CreditFacilityRepaymentPlan {
 
                 existing_obligations.push(entry);
             }
+            CoreCreditEvent::AccrualPosted {
+                amount,
+                effective,
+                recorded_at,
+                ..
+            } if amount.is_zero() => {
+                let data = ObligationDataForEntry {
+                    id: None,
+                    status: RepaymentStatus::Paid,
+
+                    initial: UsdCents::ZERO,
+                    outstanding: UsdCents::ZERO,
+
+                    due_at: *recorded_at,
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: *recorded_at,
+                    effective: *effective,
+                };
+
+                let effective = EffectiveDate::from(*effective);
+                self.last_interest_accrual_at = Some(effective.end_of_day());
+                let entry = CreditFacilityRepaymentPlanEntry::Interest(data);
+
+                existing_obligations.push(entry);
+            }
             CoreCreditEvent::FacilityRepaymentRecorded {
                 obligation_id,
                 amount,
