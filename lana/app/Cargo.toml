@@ -56,7 +56,6 @@ async-graphql = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true }
 reqwest = { workspace = true }
-derive_builder = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
 sqlx = { workspace = true }
@@ -70,7 +69,6 @@ base64 = { workspace = true }
 hex = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
-gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }
 schemars = { workspace = true }
 

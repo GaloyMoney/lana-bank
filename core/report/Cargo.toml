@@ -7,7 +7,7 @@ edition = "2024"
 [features]
 default = []
 fail-on-warnings = []
-graphql = ["es-entity/graphql", "dep:async-graphql"]
+graphql = ["es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
 
 [dependencies]
@@ -25,7 +25,5 @@ thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
 reqwest = { workspace = true }
-tokio = { workspace = true }
 async-trait = { workspace = true }
-async-graphql = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }

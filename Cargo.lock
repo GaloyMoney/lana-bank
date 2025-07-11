@@ -943,10 +943,8 @@ checksum = "c469d952047f47f91b68d1cba3f10d63c11d73e4636f24f08daf0278abf01c4d"
 dependencies = [
  "android-tzdata",
  "iana-time-zone",
- "js-sys",
  "num-traits",
  "serde",
- "wasm-bindgen",
  "windows-link",
 ]
 
@@ -1314,7 +1312,6 @@ dependencies = [
 name = "core-report"
 version = "0.3.728-dev"
 dependencies = [
- "async-graphql",
  "async-trait",
  "audit",
  "authz",
@@ -1329,7 +1326,6 @@ dependencies = [
  "sqlx",
  "strum 0.27.1",
  "thiserror 2.0.12",
- "tokio",
  "tracing",
 ]
 
@@ -2065,33 +2061,6 @@ dependencies = [
  "tonic-build",
  "url",
  "yup-oauth2",
-]
-
-[[package]]
-name = "gcp_auth"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbf67f30198e045a039264c01fb44659ce82402d7771c50938beb41a5ac87733"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "chrono",
- "home",
- "http",
- "http-body-util",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "ring",
- "rustls-pemfile",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tokio",
- "tracing",
- "tracing-futures",
- "url",
 ]
 
 [[package]]
@@ -2910,12 +2879,10 @@ dependencies = [
  "core-report",
  "customer-sync",
  "dashboard",
- "derive_builder",
  "document-storage",
  "es-entity",
  "futures",
  "gcp-bigquery-client",
- "gcp_auth",
  "governance",
  "hex",
  "hmac",
