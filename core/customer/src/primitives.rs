@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::{action_description::*, AllOrOne};
-pub use public_id::Id;
+pub use public_id::PublicId;
 
 es_entity::entity_id! {
     AuthenticationId,

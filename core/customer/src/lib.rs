@@ -44,7 +44,7 @@ where
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
     document_storage: DocumentStorage,
-    public_refs: PublicRefs,
+    public_ids: PublicRefs,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -58,7 +58,7 @@ where
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
             document_storage: self.document_storage.clone(),
-            public_refs: self.public_refs.clone(),
+            public_ids: self.public_ids.clone(),
         }
     }
 }
@@ -84,7 +84,7 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             document_storage,
-            public_refs: public_ref_service,
+            public_ids: public_ref_service,
         }
     }
 
@@ -121,8 +121,8 @@ where
 
         let mut db = self.repo.begin_op().await?;
 
-        let public_ref = self
-            .public_refs
+        let public_id = self
+            .public_ids
             .create_in_op(&mut db, CUSTOMER_REF_TARGET, customer_id)
             .await?;
 
@@ -131,7 +131,7 @@ where
             .email(email.into())
             .telegram_id(telegram_id.into())
             .customer_type(customer_type)
-            .public_ref(public_ref.id)
+            .public_id(public_id.id)
             .audit_info(audit_info)
             .build()
             .expect("Could not build customer");
@@ -206,10 +206,10 @@ where
     }
 
     #[instrument(name = "customer.find_by_public_ref", skip(self), err)]
-    pub async fn find_by_public_ref(
+    pub async fn find_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        public_ref: impl Into<String> + std::fmt::Debug,
+        public_id: impl Into<String> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         self.authz
             .enforce_permission(
@@ -221,7 +221,7 @@ where
 
         match self
             .repo
-            .find_by_public_ref(public_id::Id::new(public_ref.into()))
+            .find_by_public_id(public_id::PublicId::new(public_id.into()))
             .await
         {
             Ok(customer) => Ok(Some(customer)),

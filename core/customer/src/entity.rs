@@ -19,7 +19,7 @@ pub enum CustomerEvent {
         email: String,
         telegram_id: String,
         customer_type: CustomerType,
-        public_ref: Id,
+        public_id: PublicId,
         audit_info: AuditInfo,
     },
     AuthenticationIdUpdated {
@@ -66,7 +66,7 @@ pub struct Customer {
     pub customer_type: CustomerType,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
-    pub public_ref: Id,
+    pub public_id: PublicId,
     events: EntityEvents<CustomerEvent>,
 }
 
@@ -208,7 +208,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     email,
                     telegram_id,
                     customer_type,
-                    public_ref,
+                    public_id,
                     ..
                 } => {
                     builder = builder
@@ -216,7 +216,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .email(email.clone())
                         .telegram_id(telegram_id.clone())
                         .customer_type(*customer_type)
-                        .public_ref(public_ref.clone())
+                        .public_id(public_id.clone())
                         .level(KycLevel::NotKyced);
                 }
                 CustomerEvent::AuthenticationIdUpdated { authentication_id } => {
@@ -262,7 +262,7 @@ pub struct NewCustomer {
     #[builder(setter(skip), default)]
     pub(super) status: AccountStatus,
     #[builder(setter(into))]
-    pub(super) public_ref: Id,
+    pub(super) public_id: PublicId,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -281,7 +281,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 email: self.email,
                 telegram_id: self.telegram_id,
                 customer_type: self.customer_type,
-                public_ref: self.public_ref,
+                public_id: self.public_id,
                 audit_info: self.audit_info,
             }],
         )

@@ -10,10 +10,10 @@ use crate::primitives::*;
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "Id")]
+#[es_event(id = "PublicId")]
 pub enum PublicIdEntityEvent {
     Initialized {
-        id: Id,
+        id: PublicId,
         target_id: PublicIdTargetId,
         target_type: IdTargetType,
     },
@@ -22,7 +22,7 @@ pub enum PublicIdEntityEvent {
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct PublicIdEntity {
-    pub id: Id,
+    pub id: PublicId,
     pub target_id: PublicIdTargetId,
     pub target_type: IdTargetType,
     events: EntityEvents<PublicIdEntityEvent>,
@@ -61,7 +61,7 @@ impl TryFromEvents<PublicIdEntityEvent> for PublicIdEntity {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct NewPublicIdEntity {
     #[builder(setter(into))]
-    pub(super) id: Id,
+    pub(super) id: PublicId,
     #[builder(setter(into))]
     pub(super) target_id: PublicIdTargetId,
     #[builder(setter(into))]

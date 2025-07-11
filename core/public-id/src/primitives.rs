@@ -9,11 +9,11 @@ es_entity::entity_id! {
 #[sqlx(transparent)]
 #[serde(transparent)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub struct Id(String);
+pub struct PublicId(String);
 
-impl Id {
+impl PublicId {
     pub fn new(id: impl Into<String>) -> Self {
-        Id(id.into())
+        PublicId(id.into())
     }
 
     pub fn as_str(&self) -> &str {
@@ -21,13 +21,13 @@ impl Id {
     }
 }
 
-impl From<String> for Id {
+impl From<String> for PublicId {
     fn from(id: String) -> Self {
-        Id::new(id)
+        PublicId::new(id)
     }
 }
 
-impl std::fmt::Display for Id {
+impl std::fmt::Display for PublicId {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }

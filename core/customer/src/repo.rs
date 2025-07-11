@@ -17,7 +17,7 @@ use super::{entity::*, error::*};
         authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
         telegram_id(ty = "String", list_by),
         status(ty = "AccountStatus", list_for),
-        public_ref(ty = "Id", list_by)
+        public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish"
@@ -118,8 +118,8 @@ impl From<(CustomersSortBy, &Customer)> for customer_cursor::CustomersCursor {
             CustomersSortBy::AuthenticationId => {
                 customer_cursor::CustomersByAuthenticationIdCursor::from(customer).into()
             }
-            CustomersSortBy::PublicRef => {
-                customer_cursor::CustomersByPublicRefCursor::from(customer).into()
+            CustomersSortBy::PublicId => {
+                customer_cursor::CustomersByPublicIdCursor::from(customer).into()
             }
         }
     }

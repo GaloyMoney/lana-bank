@@ -61,7 +61,7 @@ impl PublicIds {
     #[instrument(name = "public_id_service.find_by_id", skip(self), err)]
     pub async fn find_by_id(
         &self,
-        id: impl Into<Id> + std::fmt::Debug,
+        id: impl Into<PublicId> + std::fmt::Debug,
     ) -> Result<PublicIdEntity, PublicIdError> {
         self.repo.find_by_id(id.into()).await
     }
@@ -69,7 +69,7 @@ impl PublicIds {
     #[instrument(name = "public_id_service.find_by_id_optional", skip(self), err)]
     pub async fn find_by_id_optional(
         &self,
-        id: impl Into<Id> + std::fmt::Debug,
+        id: impl Into<PublicId> + std::fmt::Debug,
     ) -> Result<Option<PublicIdEntity>, PublicIdError> {
         match self.repo.find_by_id(id.into()).await {
             Ok(public_id) => Ok(Some(public_id)),
@@ -81,18 +81,18 @@ impl PublicIds {
     #[instrument(name = "public_id_service.find_all", skip(self), err)]
     pub async fn find_all<T: From<PublicIdEntity>>(
         &self,
-        ids: &[Id],
-    ) -> Result<HashMap<Id, T>, PublicIdError> {
+        ids: &[PublicId],
+    ) -> Result<HashMap<PublicId, T>, PublicIdError> {
         self.repo.find_all(ids).await
     }
 }
 
 // Temporary aliases for compatibility during migration
-pub use entity::PublicIdEntityEvent as PublicRefEvent;
-pub use Id as Ref;
 pub use IdTargetType as RefTargetType;
 pub use NewPublicIdEntity as NewPublicRef;
+pub use PublicId as Ref;
 pub use PublicIdEntity as PublicRef;
 pub use PublicIdError as PublicRefError;
 pub use PublicIdTargetId as RefTargetId;
 pub use PublicIds as PublicRefs;
+pub use entity::PublicIdEntityEvent as PublicRefEvent;
