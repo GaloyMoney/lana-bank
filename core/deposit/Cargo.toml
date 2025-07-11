@@ -16,6 +16,7 @@ core-money = { path = "../money" }
 governance = { path = "../governance" }
 core-customer = { path = "../customer" }
 core-accounting = { path = "../accounting" }
+public-id = { path = "../public-id" }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }

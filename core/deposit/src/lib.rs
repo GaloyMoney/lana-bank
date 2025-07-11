@@ -26,6 +26,7 @@ use core_accounting::Chart;
 use governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
+use public_id::PublicIds;
 
 pub use account::DepositAccount;
 use account::*;
@@ -68,6 +69,7 @@ where
     authz: Perms,
     governance: Governance<Perms, E>,
     outbox: Outbox<E>,
+    public_ids: PublicIds,
 }
 
 impl<Perms, E> Clone for CoreDeposit<Perms, E>
@@ -86,6 +88,7 @@ where
             governance: self.governance.clone(),
             approve_withdrawal: self.approve_withdrawal.clone(),
             outbox: self.outbox.clone(),
+            public_ids: self.public_ids.clone(),
         }
     }
 }
@@ -108,6 +111,7 @@ where
         jobs: &Jobs,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
+        public_ids: &PublicIds,
     ) -> Result<Self, CoreDepositError> {
         let publisher = DepositPublisher::new(outbox);
         let accounts = DepositAccountRepo::new(pool, &publisher);
@@ -141,6 +145,7 @@ where
             cala: cala.clone(),
             approve_withdrawal,
             ledger,
+            public_ids: public_ids.clone(),
         };
         Ok(res)
     }
@@ -188,6 +193,14 @@ where
             .await?;
 
         let account_id = DepositAccountId::new();
+
+        let mut op = self.accounts.begin_op().await?;
+
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, DEPOSIT_ACCOUNT_REF_TARGET, account_id)
+            .await?;
+
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
@@ -195,11 +208,11 @@ where
             .name(name.to_string())
             .description(name.to_string())
             .active(active)
+            .public_id(public_id.id)
             .audit_info(audit_info.clone())
             .build()
             .expect("Could not build new account");
 
-        let mut op = self.accounts.begin_op().await?;
         let account = self.accounts.create_in_op(&mut op, new_account).await?;
 
         self.ledger

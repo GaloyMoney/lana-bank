@@ -5,6 +5,7 @@ use authz::{AllOrOne, action_description::*};
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
 pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
+pub use public_id::PublicId;
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,
@@ -20,6 +21,7 @@ es_entity::entity_id! {
 
     DepositAccountHolderId => core_customer::CustomerId,
     DepositAccountId => CalaAccountId,
+    DepositAccountId => public_id::PublicIdTargetId,
     DepositId => CalaTransactionId,
     WithdrawalId => CalaTransactionId,
     WithdrawalId => ApprovalProcessId
@@ -36,6 +38,9 @@ pub type WithdrawalAllOrOne = AllOrOne<WithdrawalId>;
 
 pub const PERMISSION_SET_DEPOSIT_VIEWER: &str = "deposit_viewer";
 pub const PERMISSION_SET_DEPOSIT_WRITER: &str = "deposit_writer";
+
+pub const DEPOSIT_ACCOUNT_REF_TARGET: public_id::PublicIdTargetType =
+    public_id::PublicIdTargetType::new("deposit_account");
 
 #[derive(Debug, Clone)]
 pub struct LedgerOmnibusAccountIds {

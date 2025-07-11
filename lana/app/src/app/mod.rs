@@ -122,6 +122,7 @@ impl LanaApp {
             &jobs,
             &cala,
             journal_init.journal_id,
+            &public_ids,
         )
         .await?;
         let customer_sync =

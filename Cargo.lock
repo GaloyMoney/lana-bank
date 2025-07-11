@@ -1249,6 +1249,7 @@ dependencies = [
  "governance",
  "job",
  "outbox",
+ "public-id",
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",

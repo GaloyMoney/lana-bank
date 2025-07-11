@@ -9,6 +9,7 @@ CREATE TABLE core_deposit_account_events_rollup (
   description VARCHAR,
   ledger_account_id UUID,
   name VARCHAR,
+  public_id VARCHAR,
   reference VARCHAR,
   status VARCHAR,
 
@@ -60,6 +61,7 @@ BEGIN
     new_row.description := (NEW.event ->> 'description');
     new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
     new_row.name := (NEW.event ->> 'name');
+    new_row.public_id := (NEW.event ->> 'public_id');
     new_row.reference := (NEW.event ->> 'reference');
     new_row.status := (NEW.event ->> 'status');
   ELSE
@@ -69,6 +71,7 @@ BEGIN
     new_row.description := current_row.description;
     new_row.ledger_account_id := current_row.ledger_account_id;
     new_row.name := current_row.name;
+    new_row.public_id := current_row.public_id;
     new_row.reference := current_row.reference;
     new_row.status := current_row.status;
   END IF;
@@ -81,6 +84,7 @@ BEGIN
       new_row.description := (NEW.event ->> 'description');
       new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
       new_row.name := (NEW.event ->> 'name');
+      new_row.public_id := (NEW.event ->> 'public_id');
       new_row.reference := (NEW.event ->> 'reference');
       new_row.status := (NEW.event ->> 'status');
     WHEN 'account_status_updated' THEN
@@ -98,6 +102,7 @@ BEGIN
     description,
     ledger_account_id,
     name,
+    public_id,
     reference,
     status
   )
@@ -111,6 +116,7 @@ BEGIN
     new_row.description,
     new_row.ledger_account_id,
     new_row.name,
+    new_row.public_id,
     new_row.reference,
     new_row.status
   )
@@ -122,6 +128,7 @@ BEGIN
     description = EXCLUDED.description,
     ledger_account_id = EXCLUDED.ledger_account_id,
     name = EXCLUDED.name,
+    public_id = EXCLUDED.public_id,
     reference = EXCLUDED.reference,
     status = EXCLUDED.status;
 

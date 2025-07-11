@@ -5,7 +5,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreDepositEvent,
-    primitives::{DepositAccountHolderId, DepositAccountId},
+    primitives::{DepositAccountHolderId, DepositAccountId, PublicId},
     publisher::DepositPublisher,
 };
 
@@ -15,7 +15,10 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "DepositAccount",
     err = "DepositAccountError",
-    columns(account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false))),
+    columns(
+        account_holder_id(ty = "DepositAccountHolderId", list_for, update(persist = false)),
+        public_id(ty = "PublicId", list_by)
+    ),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

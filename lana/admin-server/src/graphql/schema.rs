@@ -190,6 +190,19 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
     }
+
+    async fn deposit_account(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<DepositAccount>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            DepositAccount,
+            ctx,
+            app.deposits().find_account_by_id(sub, id)
+        )
+    }
     async fn deposits(
         &self,
         ctx: &Context<'_>,
@@ -793,6 +806,10 @@ impl Query {
                 .customer(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::Customer),
+            "deposit_account" => self
+                .deposit_account(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::DepositAccount),
             _ => unreachable!(),
         };
         Ok(res)

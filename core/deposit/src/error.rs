@@ -40,6 +40,8 @@ pub enum CoreDepositError {
     WithdrawalBuilderError(#[from] super::NewWithdrawalBuilderError),
     #[error("CoreDepositError - DepositBuilderError: {0}")]
     DepositBuilderError(#[from] super::NewDepositBuilderError),
+    #[error("CoreDepositError - PublicIdError: {0}")]
+    PublicIdError(#[from] public_id::PublicIdError),
 }
 
 impl CoreDepositError {
