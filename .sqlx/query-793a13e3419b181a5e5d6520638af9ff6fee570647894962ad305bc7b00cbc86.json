@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_public_ids WHERE target_id = $1) SELECT i.id AS \"entity_id: Id\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_id_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_public_ids WHERE id = $1) SELECT i.id AS \"entity_id: PublicId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_id_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: Id",
+        "name": "entity_id: PublicId",
         "type_info": "Varchar"
       },
       {
@@ -26,7 +26,7 @@
     ],
     "parameters": {
       "Left": [
-        "Uuid"
+        "Text"
       ]
     },
     "nullable": [
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "df86444f565fa9f30d9d160076bc49cbb29b053b042e175a5fb4aa7e1ba64b72"
+  "hash": "793a13e3419b181a5e5d6520638af9ff6fee570647894962ad305bc7b00cbc86"
 }

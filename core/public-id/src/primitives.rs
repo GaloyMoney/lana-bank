@@ -11,6 +11,9 @@ es_entity::entity_id! {
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 pub struct PublicId(String);
 
+#[cfg(feature = "graphql")]
+async_graphql::scalar!(PublicId);
+
 impl PublicId {
     pub fn new(id: impl Into<String>) -> Self {
         PublicId(id.into())
@@ -37,15 +40,15 @@ impl std::fmt::Display for PublicId {
 #[sqlx(transparent)]
 #[serde(transparent)]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
-pub struct IdTargetType(Cow<'static, str>);
+pub struct PublicIdTargetType(Cow<'static, str>);
 
-impl IdTargetType {
+impl PublicIdTargetType {
     pub const fn new(target: &'static str) -> Self {
-        IdTargetType(Cow::Borrowed(target))
+        PublicIdTargetType(Cow::Borrowed(target))
     }
 }
 
-impl std::fmt::Display for IdTargetType {
+impl std::fmt::Display for PublicIdTargetType {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}", self.0)
     }

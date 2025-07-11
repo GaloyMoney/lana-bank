@@ -17,7 +17,7 @@ use super::{
     access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
     balance_sheet_config::*, committee::*, credit_config::*, credit_facility::*, custody::*,
     customer::*, dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, policy::*,
-    price::*, profit_and_loss_config::*, public_ref::*, report::*, sumsub::*, terms_template::*,
+    price::*, profit_and_loss_config::*, report::*, sumsub::*, terms_template::*,
     withdrawal::*,
 };
 
@@ -778,20 +778,20 @@ impl Query {
         )
     }
 
-    async fn public_ref_lookup(
+    async fn public_id_lookup(
         &self,
         ctx: &Context<'_>,
         reference: String,
-    ) -> async_graphql::Result<Option<PublicRef>> {
+    ) -> async_graphql::Result<Option<super::public_id::PublicId>> {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
-        let public_ref = app.public_refs().find_by_id_optional(reference).await?;
+        let public_id_entity = app.public_ids().find_by_id_optional(reference).await?;
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        match public_ref {
-            Some(pr) => {
-                let ref_id = pr.id.clone();
-                let gql_ref = PublicRef::from(pr);
-                loader.feed_one(ref_id, gql_ref.clone()).await;
-                Ok(Some(gql_ref))
+        match public_id_entity {
+            Some(entity) => {
+                let id = entity.id.clone();
+                let gql_id = super::public_id::PublicId::from(entity);
+                loader.feed_one(id, gql_id.clone()).await;
+                Ok(Some(gql_id))
             }
             None => Ok(None),
         }

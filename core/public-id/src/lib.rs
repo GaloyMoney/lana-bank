@@ -41,7 +41,7 @@ impl PublicIds {
     pub async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        target_type: impl Into<IdTargetType> + std::fmt::Debug,
+        target_type: impl Into<PublicIdTargetType> + std::fmt::Debug,
         target_id: impl Into<PublicIdTargetId> + std::fmt::Debug,
     ) -> Result<PublicIdEntity, PublicIdError> {
         let target_id = target_id.into();
@@ -86,13 +86,3 @@ impl PublicIds {
         self.repo.find_all(ids).await
     }
 }
-
-// Temporary aliases for compatibility during migration
-pub use IdTargetType as RefTargetType;
-pub use NewPublicIdEntity as NewPublicRef;
-pub use PublicId as Ref;
-pub use PublicIdEntity as PublicRef;
-pub use PublicIdError as PublicRefError;
-pub use PublicIdTargetId as RefTargetId;
-pub use PublicIds as PublicRefs;
-pub use entity::PublicIdEntityEvent as PublicRefEvent;

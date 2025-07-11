@@ -1,12 +1,12 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_customers WHERE public_ref = $1) SELECT i.id AS \"entity_id: CustomerId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_public_ids WHERE (COALESCE(id > $2, true)) ORDER BY id ASC LIMIT $1) SELECT i.id AS \"entity_id: PublicId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_id_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: CustomerId",
-        "type_info": "Uuid"
+        "name": "entity_id: PublicId",
+        "type_info": "Varchar"
       },
       {
         "ordinal": 1,
@@ -26,6 +26,7 @@
     ],
     "parameters": {
       "Left": [
+        "Int8",
         "Text"
       ]
     },
@@ -36,5 +37,5 @@
       false
     ]
   },
-  "hash": "f4696cc06456fb13aaa809c01033e2a8ad923d18ee2aaa5bf2ba75fb06567d8d"
+  "hash": "cd9ff7102b00286d807880eabcc47dc9407aefe0ff6839e50fea37c6ae5b9e72"
 }

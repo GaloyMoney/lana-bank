@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM core_public_ids WHERE (COALESCE((created_at, id) < ($3, $2), $2 IS NULL)) ORDER BY created_at DESC, id DESC LIMIT $1) SELECT i.id AS \"entity_id: Id\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_id_events e ON i.id = e.id ORDER BY i.created_at desc, i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_public_ids WHERE (COALESCE(id < $2, true)) ORDER BY id DESC LIMIT $1) SELECT i.id AS \"entity_id: PublicId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_id_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: Id",
+        "name": "entity_id: PublicId",
         "type_info": "Varchar"
       },
       {
@@ -27,8 +27,7 @@
     "parameters": {
       "Left": [
         "Int8",
-        "Text",
-        "Timestamptz"
+        "Text"
       ]
     },
     "nullable": [
@@ -38,5 +37,5 @@
       false
     ]
   },
-  "hash": "f1f6544d65ef28e78c97e0976dd8508c443592d214b481582162df8fbf4b415f"
+  "hash": "af77b8c06b4653a00c16aa812489a4a7834b34db9f727b9bfd1941523ec54dd1"
 }

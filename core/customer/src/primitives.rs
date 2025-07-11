@@ -11,7 +11,7 @@ es_entity::entity_id! {
     CustomerDocumentId;
 
     CustomerId => document_storage::ReferenceId,
-    CustomerId => public_id::RefTargetId,
+    CustomerId => public_id::PublicIdTargetId,
     CustomerDocumentId => document_storage::DocumentId
 }
 
@@ -98,7 +98,8 @@ pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 pub const PERMISSION_SET_CUSTOMER_VIEWER: &str = "customer_viewer";
 pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
 
-pub const CUSTOMER_REF_TARGET: public_id::RefTargetType = public_id::RefTargetType::new("customer");
+pub const CUSTOMER_REF_TARGET: public_id::PublicIdTargetType =
+    public_id::PublicIdTargetType::new("customer");
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

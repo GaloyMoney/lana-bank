@@ -15,7 +15,7 @@ pub enum PublicIdEntityEvent {
     Initialized {
         id: PublicId,
         target_id: PublicIdTargetId,
-        target_type: IdTargetType,
+        target_type: PublicIdTargetType,
     },
 }
 
@@ -24,7 +24,7 @@ pub enum PublicIdEntityEvent {
 pub struct PublicIdEntity {
     pub id: PublicId,
     pub target_id: PublicIdTargetId,
-    pub target_type: IdTargetType,
+    pub target_type: PublicIdTargetType,
     events: EntityEvents<PublicIdEntityEvent>,
 }
 
@@ -65,7 +65,7 @@ pub struct NewPublicIdEntity {
     #[builder(setter(into))]
     pub(super) target_id: PublicIdTargetId,
     #[builder(setter(into))]
-    pub(super) target_type: IdTargetType,
+    pub(super) target_type: PublicIdTargetType,
 }
 
 impl NewPublicIdEntity {

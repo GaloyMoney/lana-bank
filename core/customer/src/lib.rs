@@ -17,7 +17,7 @@ use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
 use outbox::{Outbox, OutboxEventMarker};
-use public_id::PublicRefs;
+use public_id::PublicIds;
 
 pub use entity::Customer;
 use entity::*;
@@ -44,7 +44,7 @@ where
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
     document_storage: DocumentStorage,
-    public_ids: PublicRefs,
+    public_ids: PublicIds,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -75,7 +75,7 @@ where
         authz: &Perms,
         outbox: &Outbox<E>,
         document_storage: DocumentStorage,
-        public_ref_service: PublicRefs,
+        public_id_service: PublicIds,
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
         let repo = CustomerRepo::new(pool, &publisher);
@@ -84,7 +84,7 @@ where
             authz: authz.clone(),
             outbox: outbox.clone(),
             document_storage,
-            public_ids: public_ref_service,
+            public_ids: public_id_service,
         }
     }
 
@@ -205,7 +205,7 @@ where
         }
     }
 
-    #[instrument(name = "customer.find_by_public_ref", skip(self), err)]
+    #[instrument(name = "customer.find_by_public_id", skip(self), err)]
     pub async fn find_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
