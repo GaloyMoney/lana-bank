@@ -78,8 +78,8 @@ where
         let airflow_client = ReportsApiClient::new(airflow_config.clone());
 
         jobs.add_initializer_and_spawn_unique(
-            SyncReportsJobInit::new(airflow_client.clone()),
-            SyncReportsJobConfig,
+            SyncReportsJobInit::new(airflow_client.clone(), repo.clone(), authz.clone()),
+            SyncReportsJobConfig::new(),
         )
         .await?;
 
