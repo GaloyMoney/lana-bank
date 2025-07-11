@@ -255,13 +255,11 @@ impl_trivial_action!(AuditAction, Audit);
 impl From<CoreReportAction> for LanaAction {
     fn from(action: CoreReportAction) -> Self {
         match action {
-            CoreReportAction::REPORT_CREATE => {
-                LanaAction::App(AppAction::Report(ReportAction::Create))
+            CoreReportAction::REPORT_GENERATE => {
+                LanaAction::App(AppAction::Report(ReportAction::Generate))
             }
-            CoreReportAction::REPORT_READ => LanaAction::App(AppAction::Report(ReportAction::Read)),
-            CoreReportAction::REPORT_LIST => LanaAction::App(AppAction::Report(ReportAction::List)),
-            CoreReportAction::REPORT_UPDATE => {
-                LanaAction::App(AppAction::Report(ReportAction::Upload))
+            CoreReportAction::REPORT_GENERATION_STATUS_READ => {
+                LanaAction::App(AppAction::Report(ReportAction::GenerationStatusRead))
             }
         }
     }
@@ -270,11 +268,8 @@ impl From<CoreReportAction> for LanaAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ReportAction {
-    Read,
-    List,
-    Create,
-    Upload,
-    GenerateDownloadLink,
+    Generate,
+    GenerationStatusRead,
 }
 
 impl ReportAction {
@@ -283,19 +278,11 @@ impl ReportAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Read => ActionDescription::new(
+                Self::Generate => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Self::GenerationStatusRead => ActionDescription::new(
                     variant,
                     &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
                 ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::Upload => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::GenerateDownloadLink => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER])
-                }
             };
             res.push(action_description);
         }
@@ -324,8 +311,8 @@ mod test {
     fn action_serialization() -> anyhow::Result<()> {
         // Report
         test_to_and_from_string(
-            LanaAction::App(AppAction::Report(ReportAction::List)),
-            "app:report:list",
+            LanaAction::App(AppAction::Report(ReportAction::Generate)),
+            "app:report:generate",
         )?;
         Ok(())
     }
