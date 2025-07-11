@@ -495,6 +495,13 @@
           "effectiveRate": "Tasa efectiva"
         }
       },
+      "WalletDialog": {
+        "title": "Detalles de la cartera",
+        "details": {
+          "walletId": "ID de la cartera",
+          "address": "Dirección de la cartera"
+        }
+      },
       "CollateralCard": {
         "title": "Garantía",
         "details": {
@@ -539,6 +546,7 @@
         },
         "buttons": {
           "loanTerms": "Términos del Préstamo",
+          "walletDetails": "Detalles de la cartera",
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
           "deny": "Rechazar"
@@ -980,15 +988,15 @@
       "title": "Agregar Nuevo Custodio",
       "description": "Agregar un nuevo proveedor de servicios de custodia para gestionar activos digitales",
       "fields": {
-        "type": "Tipo de Proveedor",
-        "name": "Nombre de Visualización",
+        "type": "Proveedor",
+        "name": "Nombre",
         "apiKey": "Clave API",
         "apiSecret": "Secreto API",
         "secretKey": "Clave Secreta",
         "testingInstance": "Usar Entorno de Pruebas"
       },
       "placeholders": {
-        "selectType": "Seleccione un tipo de proveedor",
+        "selectType": "Seleccionar un proveedor",
         "name": "Ingrese un nombre de visualización para este custodio",
         "apiKey": "Ingrese su clave API",
         "apiSecret": "Ingrese su secreto API",

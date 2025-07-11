@@ -94,6 +94,11 @@ gql`
       customerType
       email
     }
+    wallet {
+      id
+      walletId
+      address
+    }
     approvalProcess {
       id
       deniedReason

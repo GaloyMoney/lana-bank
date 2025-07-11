@@ -307,6 +307,9 @@ checksums:
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/dateCreated: ee01a6e3f6a547bee9fe53f7ccdcb2cc
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/structuringFeeRate: 6884eb8153e27f57dfff956ff8efa511
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/effectiveRate: 7dd8de3c81e63d553bf906f47f584518
+    CreditFacilities/CreditFacilityDetails/WalletDialog/title: ffdfb4ea0c46005fe1ab5851154b84ce
+    CreditFacilities/CreditFacilityDetails/WalletDialog/details/walletId: 2d0dc6c64e1accbe23cb502e294ed287
+    CreditFacilities/CreditFacilityDetails/WalletDialog/details/address: f2610eb9cd14c93aa34d09018765bb26
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -337,6 +340,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/monthlyPayment: 5d0ad4eae4d1d2cfa2b3b097c2139844
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/noMonthlyPaymentAvailable: 3571c074ce377c24810128d5ee89fb5e
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanTerms: 1ebf872e0d722fc8651f5f7108208fc3
+    CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/walletDetails: ffdfb4ea0c46005fe1ab5851154b84ce
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
@@ -561,13 +565,13 @@ checksums:
     Custodians/table/headers/created: 6045b4ff97fb7dca19ebadfa2e34a700
     Custodians/create/title: e3d5cb402056e75b9ec8c7c433d1a525
     Custodians/create/description: 678856d71938585c8d723a87f1f309e1
-    Custodians/create/fields/type: 7849722fb81a2891eba3a2678135d314
-    Custodians/create/fields/name: 5b5f99a8bf61d1b1c5a0383feb909fae
+    Custodians/create/fields/type: d7bb643922dba7960bfb99ec1d746bdd
+    Custodians/create/fields/name: 9368b5a047572b6051f334af5aa76819
     Custodians/create/fields/apiKey: ce825fec5b3e1f8e27c45b1a63619985
     Custodians/create/fields/apiSecret: 2389c3c60f6a5e14d7dac4de596a30a1
     Custodians/create/fields/secretKey: cf7d6cd9a5f099133e76d0400150d919
     Custodians/create/fields/testingInstance: 45ba24fdcad1a9047ae34f0c91d66f70
-    Custodians/create/placeholders/selectType: 9d995b61d345d6a04ae2ea7ee95d2a2c
+    Custodians/create/placeholders/selectType: 3da3d6949ee679103818e2f9619e3aeb
     Custodians/create/placeholders/name: a31fc77b55b9d702289a720b1ad5e594
     Custodians/create/placeholders/apiKey: cf3406112804cb6e464e4bfe29694785
     Custodians/create/placeholders/apiSecret: 8a6d75b941ab25c70e9d431bbcacf147

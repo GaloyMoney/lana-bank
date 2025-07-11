@@ -495,6 +495,13 @@
           "effectiveRate": "Effective Rate"
         }
       },
+      "WalletDialog": {
+        "title": "Wallet Details",
+        "details": {
+          "walletId": "Wallet ID",
+          "address": "Wallet Address"
+        }
+      },
       "CollateralCard": {
         "title": "Collateral",
         "details": {
@@ -539,6 +546,7 @@
         },
         "buttons": {
           "loanTerms": "Loan Terms",
+          "walletDetails": "Wallet Details",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
           "deny": "Deny"

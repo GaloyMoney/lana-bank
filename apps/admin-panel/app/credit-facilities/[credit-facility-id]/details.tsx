@@ -12,6 +12,7 @@ import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 import { CollateralizationStateLabel } from "../label"
 
 import { CreditFacilityTermsDialog } from "./terms-dialog"
+import { CreditFacilityWalletDialog } from "./wallet-dialog"
 
 import {
   ApprovalProcessStatus,
@@ -43,6 +44,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
+  const [openWalletDialog, setOpenWalletDialog] = React.useState(false)
 
   const monthlyPaymentAmount = creditFacilityDetails.repaymentPlan.find(
     (plan) => plan.repaymentType === CreditFacilityRepaymentType.Interest,
@@ -127,6 +129,15 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
             </Button>
           </>
         )}
+      {creditFacilityDetails?.wallet && (
+        <Button
+          variant="outline"
+          onClick={() => setOpenWalletDialog(true)}
+          data-testid="wallet-details-button"
+        >
+          {t("buttons.walletDetails")}
+        </Button>
+      )}
     </>
   )
 
@@ -145,6 +156,13 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         openTermsDialog={openTermsDialog}
         setOpenTermsDialog={setOpenTermsDialog}
       />
+      {creditFacilityDetails.wallet && (
+        <CreditFacilityWalletDialog
+          wallet={creditFacilityDetails.wallet}
+          openWalletDialog={openWalletDialog}
+          setOpenWalletDialog={setOpenWalletDialog}
+        />
+      )}
 
       <CreditFacilityCollateralUpdateDialog
         creditFacilityId={creditFacilityId}
