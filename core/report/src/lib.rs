@@ -70,9 +70,6 @@ where
         let repo = ReportRepo::new(pool, &publisher);
         let airflow_client = ReportsApiClient::new(airflow_config);
 
-        let hz = airflow_client.health_check().await?;
-        println!("====> Airflow health check: {}", hz.status);
-
         Ok(Self {
             authz: authz.clone(),
             repo,
@@ -133,8 +130,13 @@ where
         self.repo.find_all(ids).await
     }
 
-    #[instrument(name = "reports.health_check", skip(self), err)]
-    pub async fn health_check(&self) -> Result<HealthResponse, ReportError> {
-        self.airflow_client.health_check().await
+    #[instrument(name = "reports.generate_todays_report", skip(self), err)]
+    pub async fn generate_todays_report(&self) -> Result<ReportGenerateResponse, ReportError> {
+        self.airflow_client.generate_todays_report().await
+    }
+
+    #[instrument(name = "reports.get_generation_status", skip(self), err)]
+    pub async fn get_generation_status(&self) -> Result<DagRunStatusResponse, ReportError> {
+        self.airflow_client.get_generation_status().await
     }
 }

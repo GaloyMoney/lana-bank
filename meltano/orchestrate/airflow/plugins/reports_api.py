@@ -314,60 +314,68 @@ def generate_reports():
         return jsonify({"error": str(e)}), 500
 
 
-@reports_bp.route("/reports/status/<run_id>", methods=["GET"])
-def get_run_status(run_id):
+@reports_bp.route("/reports/status", methods=["GET"])
+def get_current_run_status():
     """
-    Get the status of a specific DAG run with details and logs
+    Get the status of currently running DAG or return running: false if nothing is running
 
-    Response format:
+    Response format when something is running:
     {
+        "running": true,
         "run_id": "manual_20250628_100000",
         "state": "running|success|failed|queued",
-        "start_time": "2025-06-28T10:00:00Z",
-        "end_time": "2025-06-28T11:00:00Z" or null,
+        "start_date": "2025-06-28T10:00:00Z",
+        "end_date": "2025-06-28T11:00:00Z" or null,
         "execution_date": "2025-06-28T10:00:00Z",
-        "conf": {...},
-        "task_instances": [
-            {
-                "task_id": "task_name",
-                "state": "success|failed|running|queued",
-                "start_date": "2025-06-28T10:00:00Z",
-                "end_date": "2025-06-28T11:00:00Z" or null,
-                "duration": 3600.0 or null,
-                "log": "task log content" or null
-            }
-        ]
+        "dag_id": "dag_id",
+        "task_instances": [...]
+    }
+
+    Response format when nothing is running:
+    {
+        "running": false,
+        "run_id": null,
+        "state": null,
+        "start_date": null,
+        "end_date": null,
+        "execution_date": null,
+        "dag_id": null,
+        "task_instances": null
     }
     """
     try:
+        # Check if there's a running DAG run
+        running_dag_run = get_running_dag_run()
+
+        if not running_dag_run:
+            # Nothing is running
+            return jsonify({
+                "running": False,
+                "run_id": None,
+                "state": None,
+                "start_date": None,
+                "end_date": None,
+                "execution_date": None,
+                "dag_id": None,
+                "task_instances": None
+            })
+
+        # Something is running, get the full details
         from airflow.models import TaskInstance
-        from airflow.utils.log.log_reader import TaskLogReader
 
         session = settings.Session()
         try:
-            # Get the specific DAG run
-            dag_run = (
-                session.query(DagRun)
-                .filter(
-                    DagRun.dag_id == GENERATE_REPORTS_DAG_ID, DagRun.run_id == run_id
-                )
-                .first()
-            )
-
-            if not dag_run:
-                return jsonify({"error": f"DAG run with ID {run_id} not found"}), 404
-
             # Get all task instances for this DAG run
             task_instances = (
                 session.query(TaskInstance)
                 .filter(
                     TaskInstance.dag_id == GENERATE_REPORTS_DAG_ID,
-                    TaskInstance.run_id == run_id,
+                    TaskInstance.run_id == running_dag_run.run_id,
                 )
                 .all()
             )
 
-            # Format task instance information with logs
+            # Format task instance information
             task_info = []
             for ti in task_instances:
                 task_data = {
@@ -376,59 +384,27 @@ def get_run_status(run_id):
                     "start_date": format_datetime_for_json(ti.start_date),
                     "end_date": format_datetime_for_json(ti.end_date),
                     "duration": ti.duration,
-                    "log": None,
+                    "log_url": None,  # Simplified - not including logs in this endpoint
                 }
-
-                # Try to get task logs
-                try:
-                    if ti.state in [
-                        State.RUNNING,
-                        State.SUCCESS,
-                        State.FAILED,
-                        State.UP_FOR_RETRY,
-                    ]:
-                        from airflow.utils.log.file_task_handler import FileTaskHandler
-                        from airflow.configuration import conf
-
-                        # Get log file path
-                        log_base_path = conf.get("logging", "base_log_folder")
-                        log_file_path = f"{log_base_path}/{ti.dag_id}/{ti.task_id}/{ti.execution_date.strftime('%Y-%m-%d')}/{ti.try_number}.log"
-
-                        # Read log file if it exists
-                        if os.path.exists(log_file_path):
-                            with open(log_file_path, "r") as log_file:
-                                log_content = log_file.read()
-                                # Limit log size to prevent huge responses
-                                if len(log_content) > 10000:  # 10KB limit
-                                    log_content = (
-                                        log_content[-10000:] + "\n... (truncated)"
-                                    )
-                                task_data["log"] = log_content
-                except Exception as log_error:
-                    logger.warning(
-                        f"Could not read log for task {ti.task_id}: {str(log_error)}"
-                    )
-                    task_data["log"] = f"Log unavailable: {str(log_error)}"
-
                 task_info.append(task_data)
 
-            return jsonify(
-                {
-                    "run_id": dag_run.run_id,
-                    "state": dag_run.state,
-                    "start_time": format_datetime_for_json(dag_run.start_date),
-                    "end_time": format_datetime_for_json(dag_run.end_date),
-                    "execution_date": format_datetime_for_json(dag_run.execution_date),
-                    "conf": dag_run.conf,
-                    "task_instances": task_info,
-                }
-            )
+            return jsonify({
+                "running": True,
+                "run_id": running_dag_run.run_id,
+                "state": running_dag_run.state,
+                "start_date": format_datetime_for_json(running_dag_run.start_date),
+                "end_date": format_datetime_for_json(running_dag_run.end_date),
+                "execution_date": format_datetime_for_json(running_dag_run.execution_date),
+                "dag_id": running_dag_run.dag_id,
+                "task_instances": task_info
+            })
 
         finally:
             session.close()
+
     except Exception as e:
-        logger.error(f"Error in get_run_status endpoint: {str(e)}")
-        return jsonify({"error": f"Error getting DAG run status: {str(e)}"}), 500
+        logger.error(f"Error in get_current_run_status endpoint: {str(e)}")
+        return jsonify({"error": f"Error getting current run status: {str(e)}"}), 500
 
 
 class ReportsApiPlugin(AirflowPlugin):

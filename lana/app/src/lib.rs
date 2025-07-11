@@ -173,8 +173,8 @@ pub mod public_id {
 
 pub mod report {
     pub use core_report::{
-        AirflowConfig, CoreReportAction, CoreReportEvent, HealthResponse, Report, ReportError,
-        ReportId, ReportObject, ReportsApiClient, error,
+        AirflowConfig, CoreReportAction, CoreReportEvent, DagRunStatusResponse, Report,
+        ReportError, ReportGenerateResponse, ReportId, ReportObject, ReportsApiClient, error,
     };
     pub type Reports =
         core_report::Reports<crate::authorization::Authorization, lana_events::LanaEvent>;
