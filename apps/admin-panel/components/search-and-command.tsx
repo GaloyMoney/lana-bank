@@ -27,14 +27,14 @@ export function SearchAndCommand({ onOpenCommandPalette }: SearchAndCommandProps
   }, [])
 
   return (
-    <div className="relative">
+    <div className="relative flex-1 max-w-xs">
       <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
       <Input
         type="text"
         placeholder={t("placeholders.whatDoYouNeed")}
         readOnly
         onClick={onOpenCommandPalette}
-        className="pl-10 pr-16 w-64 cursor-pointer"
+        className="pl-10 pr-16 w-full cursor-pointer"
       />
       <kbd className="absolute right-3 top-1/2 -translate-y-1/2 pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground">
         <span className="text-xs">{isMac ? "⌘" : "Ctrl"}</span>

@@ -1,7 +1,7 @@
 "use client"
 
 import React, { useEffect, useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
+import { usePathname } from "next/navigation"
 import { useTranslations } from "next-intl"
 
 import {
@@ -20,11 +20,8 @@ import {
   Command,
   CommandDialog,
   CommandEmpty,
-  CommandGroup,
   CommandInput,
-  CommandItem,
   CommandList,
-  CommandSeparator,
 } from "@lana/web/ui/command"
 
 import { CreateCustomerDialog } from "./customers/create"
@@ -55,7 +52,9 @@ import {
   WithdrawalStatus,
 } from "@/lib/graphql/generated"
 
-import { useNavItems } from "@/components/app-sidebar/nav-items"
+import { usePublicIdSearch } from "@/hooks/use-public-id-search"
+import { SearchResults } from "@/components/command-menu/search-results"
+import { MenuSections, groups } from "@/components/command-menu/menu-sections"
 
 const isItemAllowedOnCurrentPath = (
   allowedPaths: (string | RegExp)[],
@@ -76,37 +75,14 @@ type ApprovalAction = {
   action: "approve" | "deny" | null
 }
 
-type groups = "main" | "navigation" | "actions"
-
 interface CommandMenuProps {
   open?: boolean
   onOpenChange?: (open: boolean) => void
 }
 
 const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = {}) => {
-  const router = useRouter()
   const pathName = usePathname()
-
   const t = useTranslations("CommandMenu")
-
-  const {
-    navDashboardItems,
-    navLoansItems,
-    navCustomersItems,
-    navTransactionItems,
-    navAdminItems,
-    navFinanceItems,
-  } = useNavItems()
-
-  // Combine all nav items
-  const allNavItems = [
-    ...navDashboardItems,
-    ...navLoansItems,
-    ...navCustomersItems,
-    ...navTransactionItems,
-    ...navAdminItems,
-    ...navFinanceItems,
-  ]
 
   const [internalOpen, setInternalOpen] = useState(false)
   const open = controlledOpen !== undefined ? controlledOpen : internalOpen
@@ -116,6 +92,9 @@ const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = 
       onOpenChange(newValue)
     } else {
       setInternalOpen(value)
+    }
+    if (typeof value === "boolean" && !value) {
+      search.clearSearch()
     }
   }
   const [pages, setPages] = useState<groups>("main")
@@ -143,6 +122,7 @@ const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = 
     action: null,
   })
 
+  const search = usePublicIdSearch()
   const getActiveEntity = () => {
     if (facility) return facility
     if (withdraw) return withdraw
@@ -165,6 +145,7 @@ const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = 
       if (e.key === "k" && (e.metaKey || e.ctrlKey)) {
         e.preventDefault()
         setPages("main")
+        search.clearSearch()
         setOpen((open) => !open)
       }
       if (e.shiftKey && e.key === "N") {
@@ -404,92 +385,33 @@ const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = 
                   ? t("placeholders.searchActions")
                   : t("placeholders.whatDoYouNeed")
             }
+            value={search.searchTerm}
+            onValueChange={search.handleSearchInputChange}
           />
           <CommandList>
-            <CommandEmpty>{t("noResults")}</CommandEmpty>
-            {pages === "main" ? (
+            {search.isSearchMode && search.isSearching && (
+              <CommandEmpty>{t("searching")}</CommandEmpty>
+            )}
+            {search.isSearchMode && search.showNoResults && (
+              <CommandEmpty>{t("noResults")}</CommandEmpty>
+            )}
+            {search.isSearchMode && search.searchResults && (
+              <SearchResults
+                results={search.searchResults}
+                isSearching={search.isSearching}
+                showNoResults={search.showNoResults}
+                onResultSelect={() => setOpen(false)}
+              />
+            )}
+            {!search.isSearchMode && (
               <>
-                {availableItems.length > 0 && (
-                  <>
-                    <CommandSeparator />
-                    <CommandGroup
-                      heading={
-                        <KeyboardControlHeading
-                          heading={t("headings.availableActions")}
-                          combination="Shift + A"
-                        />
-                      }
-                    >
-                      {availableItems.map((item) => (
-                        <CommandItem
-                          key={item.label}
-                          disabled={item.condition && !item.condition()}
-                          onSelect={() => {
-                            item.action()
-                          }}
-                        >
-                          <item.icon className="mr-2 h-4 w-4" />
-                          {item.label}
-                        </CommandItem>
-                      ))}
-                    </CommandGroup>
-                  </>
-                )}
-                <CommandSeparator />
-                <CommandGroup
-                  heading={
-                    <KeyboardControlHeading
-                      heading={t("headings.navigation")}
-                      combination="Shift + N"
-                    />
-                  }
-                >
-                  {allNavItems.map((item) => (
-                    <CommandItem
-                      key={item.url}
-                      onSelect={() => {
-                        router.push(item.url)
-                        setOpen(false)
-                      }}
-                      className="flex items-center gap-2"
-                    >
-                      <item.icon className="h-4 w-4" />
-                      <span>{item.title}</span>
-                    </CommandItem>
-                  ))}
-                </CommandGroup>
+                <CommandEmpty>{t("noResults")}</CommandEmpty>
+                <MenuSections
+                  currentPage={pages}
+                  availableItems={availableItems}
+                  onClose={() => setOpen(false)}
+                />
               </>
-            ) : pages === "actions" ? (
-              <CommandGroup heading={t("headings.availableActions")}>
-                {availableItems.map((item) => (
-                  <CommandItem
-                    key={item.label}
-                    disabled={item.condition && !item.condition()}
-                    onSelect={() => {
-                      item.action()
-                    }}
-                  >
-                    <item.icon className="mr-2 h-4 w-4" />
-                    {item.label}
-                  </CommandItem>
-                ))}
-              </CommandGroup>
-            ) : (
-              <CommandGroup heading={t("headings.navigation")}>
-                {allNavItems.map((item) => (
-                  <CommandItem
-                    key={item.url}
-                    onSelect={() => {
-                      setOpen(false)
-                      router.push(item.url)
-                    }}
-                    className="flex items-center gap-2"
-                  >
-                    <item.icon className="h-4 w-4" />
-                    <span>{item.title}</span>
-                  </CommandItem>
-                ))}
-              </CommandGroup>
             )}
           </CommandList>
         </Command>
@@ -631,20 +553,3 @@ const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = 
 }
 
 export { CommandMenu }
-
-function KeyboardControlHeading({
-  heading,
-  combination,
-}: {
-  heading: string
-  combination: string
-}) {
-  return (
-    <div className="flex items-center justify-between">
-      <span>{heading}</span>
-      <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
-        <span className="text-xs">{combination}</span>
-      </kbd>
-    </div>
-  )
-}

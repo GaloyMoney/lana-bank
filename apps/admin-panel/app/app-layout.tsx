@@ -31,7 +31,7 @@ export const AppLayout = ({ children }: Readonly<{ children: React.ReactNode }>)
                   <SidebarTrigger className="md:hidden" />
                   <DynamicBreadcrumb />
                 </div>
-                <div className="flex items-center gap-2">
+                <div className="flex items-center gap-2 flex-1 justify-end">
                   <SearchAndCommand onOpenCommandPalette={openCommandMenu} />
                   <CreateButton />
                 </div>

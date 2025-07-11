@@ -18,6 +18,12 @@ const entityStyles: Record<
     border: "border-green-300",
     hover: "hover:bg-green-200",
   },
+  DepositAccount: {
+    bg: "bg-blue-100",
+    text: "text-blue-800",
+    border: "border-blue-300",
+    hover: "hover:bg-blue-200",
+  },
 }
 
 export interface PublicIdBadgeProps {

@@ -303,9 +303,7 @@ const CreateButton = () => {
             )}
           </Tooltip>
         </TooltipProvider>
-      ) : (
-        <div className="invisible w-[88px] h-[36px]" aria-hidden="true" />
-      )}
+      ) : null}
 
       <CreateCustomerDialog
         setOpenCreateCustomerDialog={setCreateCustomer}

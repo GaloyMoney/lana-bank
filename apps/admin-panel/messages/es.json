@@ -155,9 +155,11 @@
       "searchPublicId": "Buscar por ID público..."
     },
     "noResults": "No se encontraron resultados.",
+    "searching": "Buscando...",
     "headings": {
       "availableActions": "Acciones Disponibles",
-      "navigation": "Navegación"
+      "navigation": "Navegación",
+      "searchResults": "Resultados de Búsqueda"
     },
     "actions": {
       "createDeposit": "Crear Depósito",
