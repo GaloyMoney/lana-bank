@@ -1,6 +1,5 @@
 use sqlx::PgPool;
 
-pub use es_entity::Sort;
 use es_entity::*;
 use outbox::OutboxEventMarker;
 
