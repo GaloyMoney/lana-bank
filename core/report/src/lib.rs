@@ -5,6 +5,7 @@ pub mod airflow;
 pub mod entity;
 pub mod error;
 pub mod event;
+pub mod jobs;
 pub mod primitives;
 pub mod publisher;
 pub mod repo;
@@ -13,12 +14,14 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub use airflow::*;
 pub use entity::*;
 pub use error::*;
 pub use event::*;
+pub use jobs::*;
 pub use primitives::*;
 pub use publisher::ReportPublisher;
 pub use repo::ReportRepo;
@@ -64,10 +67,17 @@ where
         authz: &Perms,
         airflow_config: AirflowConfig,
         outbox: &Outbox<E>,
+        jobs: &Jobs,
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
         let repo = ReportRepo::new(pool, &publisher);
-        let airflow_client = ReportsApiClient::new(airflow_config);
+        let airflow_client = ReportsApiClient::new(airflow_config.clone());
+
+        jobs.add_initializer_and_spawn_unique(
+            ReportDatesJobInit::new(airflow_client.clone()),
+            ReportDatesJobConfig,
+        )
+        .await?;
 
         Ok(Self {
             authz: authz.clone(),

@@ -14,6 +14,8 @@ pub enum ReportError {
     AuditError(#[from] audit::error::AuditError),
     #[error("ReportError - Reqwest: {0}")]
     Reqwest(#[from] reqwest::Error),
+    #[error("ReportError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
 }
 
 es_entity::from_es_entity_error!(ReportError);
