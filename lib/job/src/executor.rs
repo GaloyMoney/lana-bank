@@ -77,12 +77,28 @@ impl JobExecutor {
         let running_jobs = Arc::clone(&self.running_jobs);
         let registry = Arc::clone(&self.registry);
         let jobs = self.jobs.clone();
+
+        // Spawn keep_alive thread
+        let keep_alive_jobs = Arc::clone(&running_jobs);
+        let keep_alive_repo = jobs.clone();
+        let keep_alive_pg_interval = pg_interval;
+        tokio::spawn(async move {
+            loop {
+                let _ = Self::keep_alive_jobs(
+                    &keep_alive_jobs,
+                    &keep_alive_repo,
+                    keep_alive_pg_interval,
+                )
+                .await;
+                // Run keep_alive every 2 poll cycles (was alternating before)
+                crate::time::sleep(poll_interval * 2).await;
+            }
+        });
+
         let handle = tokio::spawn(async move {
-            let mut keep_alive = false;
             loop {
                 let _ = Self::poll_jobs(
                     &registry,
-                    &mut keep_alive,
                     max_concurrency,
                     min_concurrency,
                     pg_interval,
@@ -97,7 +113,56 @@ impl JobExecutor {
         Ok(())
     }
 
-    #[allow(clippy::too_many_arguments)]
+    #[instrument(
+        name = "job.keep_alive_jobs",
+        skip(running_jobs, jobs),
+        fields(n_jobs_running),
+        err
+    )]
+    async fn keep_alive_jobs(
+        running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
+        jobs: &JobRepo,
+        pg_interval: PgInterval,
+    ) -> Result<(), JobError> {
+        let span = Span::current();
+        let now = crate::time::now();
+        let running_jobs_read = running_jobs.read().await;
+        let n_jobs_running = running_jobs_read.len();
+        span.record("n_jobs_running", n_jobs_running);
+
+        if n_jobs_running > 0 {
+            let ids = running_jobs_read.keys().cloned().collect::<Vec<_>>();
+            sqlx::query!(
+                r#"
+                UPDATE job_executions
+                SET reschedule_after = $2::timestamptz + $3::interval
+                WHERE id = ANY($1)
+                "#,
+                &ids as &[JobId],
+                now,
+                pg_interval
+            )
+            .fetch_all(jobs.pool())
+            .await?;
+        }
+        drop(running_jobs_read);
+
+        // mark 'lost' jobs as 'pending'
+        sqlx::query!(
+            r#"
+            UPDATE job_executions
+            SET state = 'pending', attempt_index = attempt_index + 1
+            WHERE state = 'running' AND reschedule_after < $1::timestamptz + $2::interval
+            "#,
+            now,
+            pg_interval
+        )
+        .fetch_all(jobs.pool())
+        .await?;
+
+        Ok(())
+    }
+
     #[instrument(
         name = "job.poll_jobs",
         skip(registry, running_jobs, jobs),
@@ -106,7 +171,6 @@ impl JobExecutor {
     )]
     async fn poll_jobs(
         registry: &Arc<RwLock<JobRegistry>>,
-        keep_alive: &mut bool,
         max_concurrency: usize,
         min_concurrency: usize,
         pg_interval: PgInterval,
@@ -114,42 +178,13 @@ impl JobExecutor {
         jobs: &JobRepo,
     ) -> Result<(), JobError> {
         let span = Span::current();
-        span.record("keep_alive", *keep_alive);
         let now = crate::time::now();
         let n_jobs_running = {
             let running_jobs = running_jobs.read().await;
             let n_jobs_running = running_jobs.len();
             span.record("n_jobs_running", n_jobs_running);
-            if *keep_alive {
-                let ids = running_jobs.keys().cloned().collect::<Vec<_>>();
-                sqlx::query!(
-                    r#"
-                    UPDATE job_executions
-                    SET reschedule_after = $2::timestamptz + $3::interval
-                    WHERE id = ANY($1)
-                    "#,
-                    &ids as &[JobId],
-                    now,
-                    pg_interval
-                )
-                .fetch_all(jobs.pool())
-                .await?;
-                // mark 'lost' jobs as 'pending'
-                sqlx::query!(
-                    r#"
-                    UPDATE job_executions
-                    SET state = 'pending', attempt_index = attempt_index + 1
-                    WHERE state = 'running' AND reschedule_after < $1::timestamptz + $2::interval
-                    "#,
-                    now,
-                    pg_interval
-                )
-                .fetch_all(jobs.pool())
-                .await?;
-            }
             n_jobs_running
         };
-        *keep_alive = !*keep_alive;
 
         if n_jobs_running > min_concurrency {
             span.record("n_jobs_to_poll", 0);
