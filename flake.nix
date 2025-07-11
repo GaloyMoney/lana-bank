@@ -30,15 +30,20 @@
         (self: super: {
           python311 = super.python311.override {
             packageOverrides = pySelf: pySuper: let
+              pkgsToPatch = [
+                "fasteners"
+                "portalocker"
+                "debugpy"
+              ];
+
+              lib = super.lib;
+
               disableTests = pkg: pkg.overrideAttrs (_: {
                 doCheck        = false;
                 doInstallCheck = false;
               });
-            in {
-              fasteners   = disableTests pySuper.fasteners;
-              portalocker = disableTests pySuper.portalocker;
-              debugpy     = disableTests pySuper.debugpy;
-            };
+            in
+              lib.genAttrs pkgsToPatch (name: disableTests pySuper.${name});
           };
         })
       ];
