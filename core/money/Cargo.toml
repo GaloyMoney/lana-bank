@@ -5,6 +5,7 @@ license = "FSL-1.1-ALv2"
 edition = "2024"
 
 [features]
+fail-on-warnings = []
 json-schema = ["schemars"]
 graphql = ["async-graphql"]
 
