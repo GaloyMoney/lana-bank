@@ -51,6 +51,10 @@ impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
 
 #[ComplexObject]
 impl DepositAccount {
+    async fn public_id(&self) -> &PublicId {
+        &self.entity.public_id
+    }
+
     async fn deposits(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Deposit>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let deposits = app

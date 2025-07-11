@@ -972,6 +972,7 @@ export type DepositAccount = {
   deposits: Array<Deposit>;
   history: DepositAccountHistoryEntryConnection;
   id: Scalars['ID']['output'];
+  publicId: Scalars['PublicId']['output'];
   withdrawals: Array<Withdrawal>;
 };
 
@@ -1699,7 +1700,7 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
   profitAndLossConfig: ProfitAndLossStatementModuleConfig;
 };
 
-export type PublicIdTarget = Customer;
+export type PublicIdTarget = Customer | DepositAccount;
 
 export type Query = {
   __typename?: 'Query';
@@ -1722,6 +1723,7 @@ export type Query = {
   customers: CustomerConnection;
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
+  depositAccount?: Maybe<DepositAccount>;
   depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
@@ -1838,6 +1840,11 @@ export type QueryCustomersArgs = {
 
 
 export type QueryDepositArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDepositAccountArgs = {
   id: Scalars['UUID']['input'];
 };
 

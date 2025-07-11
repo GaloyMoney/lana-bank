@@ -22,6 +22,7 @@ pub enum DepositAccountEvent {
         name: String,
         description: String,
         status: AccountStatus,
+        public_id: PublicId,
         audit_info: AuditInfo,
     },
     AccountStatusUpdated {
@@ -39,6 +40,7 @@ pub struct DepositAccount {
     pub name: String,
     pub description: String,
     pub status: AccountStatus,
+    pub public_id: PublicId,
 
     events: EntityEvents<DepositAccountEvent>,
 }
@@ -78,6 +80,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     name,
                     description,
                     status,
+                    public_id,
                     ..
                 } => {
                     builder = builder
@@ -87,6 +90,7 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                         .name(name.to_string())
                         .description(description.to_string())
                         .status(*status)
+                        .public_id(public_id.clone())
                 }
                 DepositAccountEvent::AccountStatusUpdated { status, .. } => {
                     builder = builder.status(*status);
@@ -108,6 +112,7 @@ pub struct NewDepositAccount {
     pub(super) description: String,
     pub(super) active: bool,
     #[builder(setter(into))]
+    pub(super) public_id: PublicId,
     pub audit_info: AuditInfo,
 }
 
@@ -133,6 +138,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 } else {
                     AccountStatus::Inactive
                 },
+                public_id: self.public_id,
                 audit_info: self.audit_info,
             }],
         )

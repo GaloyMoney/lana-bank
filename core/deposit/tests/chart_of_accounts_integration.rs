@@ -26,6 +26,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let jobs = job::Jobs::new(&pool, job::JobExecutorConfig::default());
 
     let journal_id = helpers::init_journal(&cala).await?;
+    let public_ids = public_id::PublicIds::new(&pool);
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -35,6 +36,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &jobs,
         &cala,
         journal_id,
+        &public_ids,
     )
     .await?;
 

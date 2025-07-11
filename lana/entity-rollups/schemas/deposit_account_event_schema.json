@@ -52,6 +52,9 @@
         "name": {
           "type": "string"
         },
+        "public_id": {
+          "type": "string"
+        },
         "reference": {
           "type": "string"
         },
@@ -72,6 +75,7 @@
         "name",
         "description",
         "status",
+        "public_id",
         "audit_info"
       ],
       "type": "object"

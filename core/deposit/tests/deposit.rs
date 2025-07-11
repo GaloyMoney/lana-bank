@@ -23,6 +23,7 @@ async fn deposit() -> anyhow::Result<()> {
     let jobs = job::Jobs::new(&pool, job::JobExecutorConfig::default());
 
     let journal_id = helpers::init_journal(&cala).await?;
+    let public_ids = public_id::PublicIds::new(&pool);
 
     let deposit = CoreDeposit::init(
         &pool,
@@ -32,6 +33,7 @@ async fn deposit() -> anyhow::Result<()> {
         &jobs,
         &cala,
         journal_id,
+        &public_ids,
     )
     .await?;
 
