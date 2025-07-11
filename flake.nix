@@ -37,6 +37,7 @@
             in {
               fasteners   = disableTests pySuper.fasteners;
               portalocker = disableTests pySuper.portalocker;
+              debugpy     = disableTests pySuper.debugpy;
             };
           };
         })
