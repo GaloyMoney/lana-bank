@@ -28,6 +28,7 @@ pub enum LanaAction {
     Deposit(CoreDepositAction),
     Credit(CoreCreditAction),
     Custody(CoreCustodyAction),
+    Report(CoreReportAction),
 }
 
 impl LanaAction {
@@ -62,6 +63,7 @@ impl LanaAction {
                 Deposit => flatten(module, CoreDepositAction::entities()),
                 Credit => flatten(module, CoreCreditAction::entities()),
                 Custody => flatten(module, CoreCustodyAction::entities()),
+                Report => flatten(module, CoreReportAction::entities()),
             };
 
             result.extend(actions);
@@ -116,6 +118,11 @@ impl From<CoreCustodyAction> for LanaAction {
         LanaAction::Custody(action)
     }
 }
+impl From<CoreReportAction> for LanaAction {
+    fn from(action: CoreReportAction) -> Self {
+        LanaAction::Report(action)
+    }
+}
 
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -131,6 +138,7 @@ impl Display for LanaAction {
             Deposit(action) => action.fmt(f),
             Credit(action) => action.fmt(f),
             Custody(action) => action.fmt(f),
+            Report(action) => action.fmt(f),
         }
     }
 }
@@ -151,6 +159,7 @@ impl FromStr for LanaAction {
             Deposit => LanaAction::from(action.parse::<CoreDepositAction>()?),
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
+            Report => LanaAction::from(action.parse::<CoreReportAction>()?),
         };
         Ok(res)
     }
@@ -252,18 +261,6 @@ impl AuditAction {
 
 impl_trivial_action!(AuditAction, Audit);
 
-impl From<CoreReportAction> for LanaAction {
-    fn from(action: CoreReportAction) -> Self {
-        match action {
-            CoreReportAction::REPORT_GENERATE => {
-                LanaAction::App(AppAction::Report(ReportAction::Generate))
-            }
-            CoreReportAction::REPORT_GENERATION_STATUS_READ => {
-                LanaAction::App(AppAction::Report(ReportAction::GenerationStatusRead))
-            }
-        }
-    }
-}
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]

@@ -37,6 +37,8 @@ pub enum PermissionSetName {
     DepositWriter,
     GovernanceViewer,
     GovernanceWriter,
+    ReportViewer,
+    ReportWriter,
 }
 
 impl std::str::FromStr for PermissionSetName {
@@ -70,6 +72,10 @@ impl std::str::FromStr for PermissionSetName {
 
             governance::PERMISSION_SET_GOVERNANCE_VIEWER => Ok(GovernanceViewer),
             governance::PERMISSION_SET_GOVERNANCE_WRITER => Ok(GovernanceWriter),
+
+            core_report::PERMISSION_SET_REPORT_VIEWER => Ok(ReportViewer),
+            core_report::PERMISSION_SET_REPORT_WRITER => Ok(ReportWriter),
+
             _ => Err(strum::ParseError::VariantNotFound),
         }
     }

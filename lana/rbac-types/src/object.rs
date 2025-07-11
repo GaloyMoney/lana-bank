@@ -26,6 +26,7 @@ pub enum LanaObject {
     Credit(CoreCreditObject),
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
+    Report(ReportObject),
 }
 
 impl From<AppObject> for LanaObject {
@@ -76,12 +77,7 @@ impl From<CoreCreditObject> for LanaObject {
 
 impl From<ReportObject> for LanaObject {
     fn from(object: ReportObject) -> Self {
-        match object {
-            ReportObject::Report(AllOrOne::All) => LanaObject::App(AppObject::all_reports()),
-            ReportObject::Report(AllOrOne::ById(id)) => {
-                LanaObject::App(AppObject::report(ReportId::from(uuid::Uuid::from(id))))
-            }
-        }
+        LanaObject::Report(object)
     }
 }
 
@@ -99,6 +95,7 @@ impl Display for LanaObject {
             Credit(object) => object.fmt(f),
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
+            Report(object) => object.fmt(f),
         }
     }
 }
@@ -123,6 +120,7 @@ impl FromStr for LanaObject {
                     .parse::<DashboardModuleObject>()
                     .map_err(|_| "could not parse DashboardModuleObject")?,
             ),
+            Report => LanaObject::from(object.parse::<ReportObject>()?),
         };
         Ok(res)
     }
