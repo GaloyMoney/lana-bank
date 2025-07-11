@@ -59,7 +59,7 @@ impl JobRunner for SyncReportsJobRunner {
             Ok(dates) => {
                 println!("Successfully synced reports");
                 for date in &dates {
-                    println!("Available report date: {date}");
+                    println!("Available report date: {}", date.format("%Y-%m-%d"));
                 }
                 println!("Total reports synced: {}", dates.len());
                 Ok(JobCompletion::RescheduleNow)
