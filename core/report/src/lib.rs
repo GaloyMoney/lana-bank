@@ -27,6 +27,7 @@ pub use airflow::{
 };
 pub use entity::{Report, ReportEvent};
 pub use error::ReportError;
+pub use repo::report_cursor::ReportsByCreatedAtCursor;
 pub use event::CoreReportEvent;
 pub use primitives::*;
 
@@ -120,5 +121,54 @@ where
             .await?;
 
         self.airflow_client.get_generation_status().await
+    }
+
+    #[instrument(name = "reports.find_report_by_id", skip(self), err)]
+    pub async fn find_report_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ReportId> + std::fmt::Debug,
+    ) -> Result<Option<Report>, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+
+        match self.repo.find_by_id(id.into()).await {
+            Ok(report) => Ok(Some(report)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    #[instrument(name = "reports.list_reports", skip(self), err)]
+    pub async fn list_reports(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<ReportsByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<Report, ReportsByCreatedAtCursor>, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+
+        Ok(self
+            .repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    #[instrument(name = "reports.find_all_reports", skip(self), err)]
+    pub async fn find_all_reports(
+        &self,
+        ids: &[ReportId],
+    ) -> Result<std::collections::HashMap<ReportId, Report>, ReportError> {
+        self.repo.find_all(ids).await
     }
 }
