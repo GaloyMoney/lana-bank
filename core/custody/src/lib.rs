@@ -282,31 +282,23 @@ where
             .await?)
     }
 
-    pub async fn create_new_wallet_in_op(
+    #[instrument(name = "custody.create_wallet_in_op", skip(self, db), err)]
+    pub async fn create_wallet_in_op(
         &self,
         db: &mut DbOp<'_>,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: audit::AuditInfo,
         custodian_id: CustodianId,
     ) -> Result<Wallet, CoreCustodyError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreCustodyObject::custodian(custodian_id),
-                CoreCustodyAction::CUSTODIAN_CREATE_WALLET,
-            )
-            .await?;
-
         let new_wallet = NewWallet::builder()
             .id(WalletId::new())
             .custodian_id(custodian_id)
-            .audit_info(audit_info)
+            .audit_info(audit_info.clone())
             .build()
             .expect("all fields for new wallet provided");
 
         let mut wallet = self.wallets.create_in_op(db, new_wallet).await?;
 
-        self.generate_wallet_address_in_op(db, sub, &mut wallet)
+        self.generate_wallet_address_in_op(db, audit_info, &mut wallet)
             .await?;
 
         Ok(wallet)
@@ -366,21 +358,17 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "custody.generate_wallet_address_in_op",
+        skip(self, db, wallet),
+        err
+    )]
     async fn generate_wallet_address_in_op(
         &self,
         db: &mut DbOp<'_>,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        audit_info: audit::AuditInfo,
         wallet: &mut Wallet,
     ) -> Result<(), CoreCustodyError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreCustodyObject::wallet(wallet.id),
-                CoreCustodyAction::WALLET_GENERATE_ADDRESS,
-            )
-            .await?;
-
         let custodian = self
             .custodians
             .find_by_id_in_tx(db.tx(), &wallet.custodian_id)

@@ -390,8 +390,8 @@ where
         ))
     }
 
-    #[instrument(name = "credit_facility.initiate", skip(self), err)]
-    pub async fn initiate(
+    #[instrument(name = "credit_facility.create", skip(self), err)]
+    pub async fn create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
@@ -405,11 +405,7 @@ where
             .await?
             .expect("audit info missing");
 
-        let customer = self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerNotFound)?;
+        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
 
         if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
@@ -433,7 +429,7 @@ where
 
             let wallet = self
                 .custody
-                .create_new_wallet_in_op(&mut db, sub, custodian_id)
+                .create_wallet_in_op(&mut db, audit_info.clone(), custodian_id)
                 .await?;
 
             Some(wallet.id)
@@ -552,11 +548,7 @@ where
             .await?;
 
         let customer_id = facility.customer_id;
-        let customer = self
-            .customer
-            .find_by_id(sub, customer_id)
-            .await?
-            .ok_or(CoreCreditError::CustomerNotFound)?;
+        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         if self.config.customer_active_check_enabled && customer.status.is_inactive() {
             return Err(CoreCreditError::CustomerNotActive);
         }
