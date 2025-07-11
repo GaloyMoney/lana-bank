@@ -30,7 +30,7 @@ use core_custody::{
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
-use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
+use core_governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use tracing::instrument;

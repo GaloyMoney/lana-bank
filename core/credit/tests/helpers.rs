@@ -34,7 +34,7 @@ pub mod action {
     use core_credit::CoreCreditAction;
     use core_custody::CoreCustodyAction;
     use core_customer::CoreCustomerAction;
-    use governance::GovernanceAction;
+    use core_governance::GovernanceAction;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
     pub struct DummyAction;
@@ -90,7 +90,7 @@ pub mod object {
     use core_credit::CoreCreditObject;
     use core_custody::CoreCustodyObject;
     use core_customer::CustomerObject;
-    use governance::GovernanceObject;
+    use core_governance::GovernanceObject;
 
     #[derive(Clone, Copy, Debug, PartialEq)]
     pub struct DummyObject;
@@ -146,7 +146,7 @@ pub mod event {
     use core_credit::CoreCreditEvent;
     use core_custody::CoreCustodyEvent;
     use core_customer::CoreCustomerEvent;
-    use governance::GovernanceEvent;
+    use core_governance::GovernanceEvent;
 
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(tag = "module")]

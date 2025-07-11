@@ -9,7 +9,7 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-governance = { path = "../../core/governance" }
+core-governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
 core-custody = { path = "../../core/custody" }
 core-customer = { path = "../../core/customer" }

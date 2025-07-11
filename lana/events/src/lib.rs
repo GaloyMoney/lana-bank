@@ -8,7 +8,7 @@ pub use core_credit::{CollateralAction, CoreCreditEvent, ObligationStatus, Oblig
 pub use core_custody::CoreCustodyEvent;
 pub use core_customer::CoreCustomerEvent;
 pub use core_deposit::CoreDepositEvent;
-pub use governance::GovernanceEvent;
+pub use core_governance::GovernanceEvent;
 pub use outbox::OutboxEventMarker;
 
 #[derive(Debug, Serialize, Deserialize)]

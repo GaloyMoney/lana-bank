@@ -9,7 +9,7 @@ use core_custody::CoreCustodyAction;
 use core_customer::CoreCustomerAction;
 use core_deposit::CoreDepositAction;
 use dashboard::DashboardModuleAction;
-use governance::GovernanceAction;
+use core_governance::GovernanceAction;
 
 pub const PERMISSION_SET_APP_VIEWER: &str = "app_viewer";
 pub const PERMISSION_SET_APP_WRITER: &str = "app_writer";

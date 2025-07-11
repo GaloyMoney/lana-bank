@@ -17,7 +17,7 @@ core-money = { path = "../money" }
 core-price = { path = "../price" }
 core-customer = { path = "../customer" }
 core-custody = { path = "../custody" }
-governance = { path = "../governance" }
+core-governance = { path = "../governance" }
 core-accounting = { path = "../accounting" }
 
 audit = { path = "../../lib/audit" }
@@ -25,7 +25,7 @@ authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 cloud-storage = { path = "../../lib/cloud-storage" }
-public-id = { path = "../public-id" }
+core-public-id = { path = "../public-id" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
@@ -49,7 +49,7 @@ sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
-document-storage = { path = "../document-storage" }
+core-document-storage = { path = "../document-storage" }
 authz = { path = "../../lib/authz", features = ["test-dummy"] }
 tokio = { workspace = true }
 anyhow = { workspace = true }

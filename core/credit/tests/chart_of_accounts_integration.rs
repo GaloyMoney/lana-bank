@@ -8,7 +8,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 
 use core_accounting::CoreAccounting;
 use core_credit::*;
-use document_storage::DocumentStorage;
+use core_document_storage::DocumentStorage;
 use helpers::{action, event, object};
 
 #[tokio::test]

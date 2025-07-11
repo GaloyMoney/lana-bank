@@ -19,7 +19,7 @@ use std::collections::HashMap;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
-use document_storage::DocumentStorage;
+use core_document_storage::DocumentStorage;
 use job::Jobs;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;

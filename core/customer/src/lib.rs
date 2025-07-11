@@ -13,11 +13,11 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use document_storage::{
+use core_document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
 use outbox::{Outbox, OutboxEventMarker};
-use public_id::PublicIds;
+use core_public_id::PublicIds;
 
 pub use entity::Customer;
 use entity::*;
@@ -221,7 +221,7 @@ where
 
         match self
             .repo
-            .find_by_public_id(public_id::PublicId::new(public_id.into()))
+            .find_by_public_id(core_public_id::PublicId::new(public_id.into()))
             .await
         {
             Ok(customer) => Ok(Some(customer)),

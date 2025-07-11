@@ -1,4 +1,4 @@
-use document_storage::DocumentId;
+use core_document_storage::DocumentId;
 use serde::{Deserialize, Serialize};
 
 es_entity::entity_id! {

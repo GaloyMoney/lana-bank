@@ -4,7 +4,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use governance::{
+use core_governance::{
     ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, Governance, GovernanceAction,
     GovernanceEvent, GovernanceObject,
 };

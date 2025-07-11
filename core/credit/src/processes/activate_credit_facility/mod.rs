@@ -5,7 +5,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use core_governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
 use crate::{

@@ -8,10 +8,10 @@ edition = "2024"
 fail-on-warnings = []
 json-schema = [
   "core-access/json-schema",
-  "governance/json-schema", 
+  "core-governance/json-schema", 
   "core-custody/json-schema",
   "core-customer/json-schema",
-  "document-storage/json-schema",
+  "core-document-storage/json-schema",
   "core-deposit/json-schema",
   "core-credit/json-schema",
   "core-accounting/json-schema"
@@ -23,13 +23,13 @@ path = "src/main.rs"
 
 [dependencies]
 core-access = { path = "../../core/access" }
-governance = { path = "../../core/governance" }
+core-governance = { path = "../../core/governance" }
 core-custody = { path = "../../core/custody" }
 core-customer = { path = "../../core/customer", default-features = false }
 core-deposit = { path = "../../core/deposit" }
 core-credit = { path = "../../core/credit" }
 core-accounting = { path = "../../core/accounting" }
-document-storage = { path = "../../core/document-storage" }
+core-document-storage = { path = "../../core/document-storage" }
 
 clap = { workspace = true }
 schemars = { workspace = true }

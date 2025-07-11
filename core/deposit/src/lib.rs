@@ -23,7 +23,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_accounting::Chart;
-use governance::{Governance, GovernanceEvent};
+use core_governance::{Governance, GovernanceEvent};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 

@@ -1,5 +1,5 @@
 [package]
-name = "document-storage"
+name = "core-document-storage"
 version = "0.3.728-dev"
 edition = "2021"
 license = "FSL-1.1-ALv2"

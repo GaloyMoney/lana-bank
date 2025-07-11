@@ -14,7 +14,7 @@ pub mod storage {
 }
 
 pub mod document {
-    pub use document_storage::{
+    pub use core_document_storage::{
         Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
         DocumentsByCreatedAtCursor, GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
     };
@@ -81,7 +81,7 @@ pub mod governance {
     pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
     pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
     pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
-    pub use governance::{
+    pub use core_governance::{
         ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, ApprovalRules, Committee,
         CommitteeId, Policy, approval_process_cursor, committee_cursor, error, policy_cursor,
     };
@@ -169,5 +169,5 @@ pub mod terms {
 }
 
 pub mod public_id {
-    pub use public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
+    pub use core_public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
 }
