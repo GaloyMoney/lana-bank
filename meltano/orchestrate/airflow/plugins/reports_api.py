@@ -1,414 +1,207 @@
-from airflow.plugins_manager import AirflowPlugin
-from flask import Blueprint, jsonify, request
+import os, logging, pytz
+from datetime import datetime
+from flask import Blueprint, jsonify
 from google.cloud import storage
 from google.oauth2 import service_account
+from airflow.plugins_manager import AirflowPlugin
 from airflow.www.app import csrf
-from airflow.models import DagRun
-from airflow.utils.state import State
 from airflow import settings
+from airflow.models import DagRun, TaskInstance
+from airflow.utils.state import State
 from airflow.api.client.local_client import Client
-import logging
-import os
-from datetime import datetime, timedelta
-import pytz
+from airflow.utils.log.log_reader import TaskLogReader
 
 logger = logging.getLogger(__name__)
-
-# Create Flask Blueprint
 reports_bp = Blueprint("reports_api", __name__, url_prefix="/api/v1")
 
+DAG_ID = "meltano_generate-es-reports-daily_generate-es-reports-job"
 
-def get_storage_client():
-    """Initialize Google Cloud Storage client"""
-    keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    if not keyfile or not os.path.isfile(keyfile):
-        raise RuntimeError(
-            "GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the path of a valid service account JSON file."
-        )
-
-    project_id = os.getenv("DBT_BIGQUERY_PROJECT")
-    credentials = service_account.Credentials.from_service_account_file(keyfile)
-    return storage.Client(project=project_id, credentials=credentials)
-
-
-def get_bucket():
-    """Get the GCS bucket for reports"""
-    bucket_name = os.getenv("DOCS_BUCKET_NAME")
-    if not bucket_name:
-        raise RuntimeError("DOCS_BUCKET_NAME environment variable must be set")
-
-    storage_client = get_storage_client()
-    return storage_client.bucket(bucket_name)
-
-
-def parse_report_blob(blob_name):
-    """Parse blob name to extract date and report name"""
-    # Expected format: reports/2025-06-29/nrsf_03/funcionarios_y_empleados.txt
-    parts = blob_name.split("/")
-    if len(parts) != 4 or parts[0] != "reports":
-        return None
-
-    try:
-        report_date = parts[1]  # 2025-06-29
-        report_category = parts[2]  # nrsf_03
-        report_file = parts[3]  # funcionarios_y_empleados.txt
-        report_name = report_file.rsplit(".", 1)[0]  # funcionarios_y_empleados
-
-        # Validate date format
-        datetime.strptime(report_date, "%Y-%m-%d")
-
-        return {
-            "date": report_date,
-            "report_name": report_name,
-            "report_category": report_category,
-            "blob_name": blob_name,
-            "filename": report_file,
-        }
-    except ValueError:
-        return None
-
-
-@reports_bp.route("/reports/dates", methods=["GET"])
-def get_available_dates():
-    """
-    Return all dates for which reports are available
-
-    Response format: Array<String>
-    [
-        "2024-01-15",
-        "2024-01-14",
-        "2024-01-13",
-        ...
-    ]
-    """
-    try:
-        bucket = get_bucket()
-
-        # List all blobs in the reports/ prefix
-        blobs = bucket.list_blobs(prefix="reports/")
-        dates = set()
-
-        for blob in blobs:
-            parsed = parse_report_blob(blob.name)
-            if not parsed:
-                continue
-
-            dates.add(parsed["date"])
-
-        # Convert to sorted list (newest first)
-        sorted_dates = sorted(list(dates), reverse=True)
-
-        return jsonify(sorted_dates)
-
-    except Exception as e:
-        return jsonify({"error": f"Error fetching available dates: {str(e)}"}), 500
-
-
-@reports_bp.route("/reports/date/<date>", methods=["GET"])
-def get_reports_by_date(date):
-    """
-    Return URIs of all reports for a given date
-
-    Args:
-        date: Date in YYYY-MM-DD format (e.g., "2024-01-15")
-
-    Response format: Array<String>
-    [
-        "reports/2025-06-29/nrsf_03/funcionarios_y_empleados.txt",
-        "reports/2025-06-29/nrsf_03/other_report.txt",
-        ...
-    ]
-    """
-    try:
-        # Validate date format
-        try:
-            datetime.strptime(date, "%Y-%m-%d")
-        except ValueError:
-            return (
-                jsonify({"error": "Invalid date format. Expected format: YYYY-MM-DD"}),
-                400,
-            )
-
-        bucket = get_bucket()
-
-        # List all blobs for the specific date
-        date_prefix = f"reports/{date}/"
-        blobs = bucket.list_blobs(prefix=date_prefix)
-
-        uris = []
-
-        for blob in blobs:
-            # Since we're using the date prefix, all blobs should be for this date
-            # But we still validate the blob name format to ensure it's a valid report
-            parsed = parse_report_blob(blob.name)
-            if parsed:
-                uris.append(blob.name)
-
-        # Sort URIs alphabetically
-        uris.sort()
-
-        return jsonify(uris)
-    except Exception as e:
-        return (
-            jsonify({"error": f"Error fetching reports for date {date}: {str(e)}"}),
-            500,
-        )
-
-
-@reports_bp.route("/reports/health", methods=["GET"])
-def health_check():
-    """Health check endpoint for the reports API"""
-    try:
-        # Test GCS connection
-        bucket = get_bucket()
-        bucket.exists()  # This will raise an exception if there are auth issues
-
-        return jsonify(
-            {
-                "status": "healthy",
-                "timestamp": datetime.utcnow().isoformat() + "Z",
-                "bucket": os.getenv("DOCS_BUCKET_NAME"),
-            }
-        )
-    except Exception as e:
-        return (
-            jsonify(
-                {
-                    "status": "unhealthy",
-                    "error": str(e),
-                    "timestamp": datetime.utcnow().isoformat() + "Z",
-                }
-            ),
-            500,
-        )
-
-
-GENERATE_REPORTS_DAG_ID = "meltano_generate-es-reports-daily_generate-es-reports-job"
-
-
-def get_utc_now():
-    """Get current UTC time with timezone info"""
-    return datetime.utcnow().replace(tzinfo=pytz.UTC)
-
-
-def ensure_dag_is_available():
-    """Ensure the DAG exists and is unpaused"""
-    from airflow.models import DagModel
-
-    session = settings.Session()
-    try:
-        # Check if DAG exists in DagModel
-        dag_model = (
-            session.query(DagModel)
-            .filter(DagModel.dag_id == GENERATE_REPORTS_DAG_ID)
-            .first()
-        )
-
-        if not dag_model:
-            logger.error(f"DAG {GENERATE_REPORTS_DAG_ID} not found in DagModel")
-            raise ValueError(f"DAG {GENERATE_REPORTS_DAG_ID} not found")
-
-        # Unpause the DAG if it's paused
-        if dag_model.is_paused:
-            logger.info(f"Unpausing DAG {GENERATE_REPORTS_DAG_ID}")
-            dag_model.is_paused = False
-            session.commit()
-
-        return True
-
-    except Exception as e:
-        session.rollback()
-        logger.error(f"Error ensuring DAG availability: {str(e)}")
-        raise e
-    finally:
-        session.close()
-
-
-def get_running_dag_run():
-    """Check if there's a running DAG run for generate reports"""
-    session = settings.Session()
-    try:
-        running_dag_run = (
-            session.query(DagRun)
-            .filter(
-                DagRun.dag_id == GENERATE_REPORTS_DAG_ID,
-                DagRun.state.in_([State.RUNNING, State.QUEUED]),  # Include QUEUED state
-            )
-            .first()
-        )
-        return running_dag_run
-    finally:
-        session.close()
-
-
-def trigger_dag_run() -> str:
-    """Trigger the reports DAG and return its run_id."""
-    ensure_dag_is_available()
-
-    client = Client(None, None)
-    execution_date = get_utc_now()
-
-    # Supply your own run-id so you always know what to expect
-    run_id = f"api__{execution_date.isoformat()}"
-    resp = client.trigger_dag(
-        dag_id=GENERATE_REPORTS_DAG_ID,
-        run_id=run_id,
-        execution_date=execution_date,
-        conf={
-            "triggered_by": "reports_api",
-            "trigger_time": execution_date.isoformat(),
-            "api_trigger": True,
-        },
+# ──────────────── GCS helpers ────────────────
+def _storage():
+    creds = service_account.Credentials.from_service_account_file(
+        os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
     )
+    return storage.Client(project=os.getenv("DBT_BIGQUERY_PROJECT"), credentials=creds)
 
-    if isinstance(resp, dict):
-        logger.info("Triggered %s with run_id=%s", GENERATE_REPORTS_DAG_ID, run_id)
-    else:
-        run_id = resp.run_id  # overwrite if we didn’t set it ourselves
-        logger.info("Triggered %s with run_id=%s", GENERATE_REPORTS_DAG_ID, run_id)
+def _bucket():
+    return _storage().bucket(os.environ["DOCS_BUCKET_NAME"])
 
-    return run_id
+def _parse(blob):
+    parts = blob.split("/")
+    if len(parts) == 4 and parts[0] == "reports":
+        try:
+            datetime.strptime(parts[1], "%Y-%m-%d")
+            return parts[1]
+        except ValueError:
+            pass
+
+# ──────────────── /reports/dates ────────────────
+@reports_bp.route("/reports/dates")
+def dates():
+    try:
+        blobs = _bucket().list_blobs(prefix="reports/")
+        dates = {_parse(b.name) for b in blobs if _parse(b.name)}
+        return jsonify(sorted(dates, reverse=True))
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+# ──────────────── /reports/date/<date> ────────────────
+@reports_bp.route("/reports/date/<date>")
+def by_date(date):
+    try:
+        datetime.strptime(date, "%Y-%m-%d")
+        blobs = _bucket().list_blobs(prefix=f"reports/{date}/")
+        uris = sorted([b.name for b in blobs if _parse(b.name)])
+        return jsonify(uris)
+    except ValueError:
+        return jsonify(error="Bad date"), 400
+    except Exception as e:
+        return jsonify(error=str(e)), 500
+
+# ──────────────── /reports/health ────────────────
+@reports_bp.route("/reports/health")
+def health():
+    try:
+        _bucket().exists()
+        return jsonify(status="healthy")
+    except Exception as e:
+        return jsonify(status="unhealthy", error=str(e)), 500
 
 
-def format_datetime_for_json(dt):
-    """Format datetime for JSON response with proper timezone"""
-    if not dt:
-        return None
-    # If datetime is naive, assume UTC
-    if dt.tzinfo is None:
-        dt = dt.replace(tzinfo=pytz.UTC)
-    # Convert to ISO format
-    iso_string = dt.isoformat()
-    # Ensure it ends with Z for UTC times
-    if iso_string.endswith("+00:00"):
-        iso_string = iso_string[:-6] + "Z"
-    elif not iso_string.endswith("Z") and "+" not in iso_string[-6:]:
-        iso_string += "Z"
-    return iso_string
-
-
+# ──────────────── /reports/generate ────────────────
 @reports_bp.route("/reports/generate", methods=["POST"])
 @csrf.exempt
-def generate_reports():
-    """
-    Trigger generation of ES reports via Airflow DAG
-
-    Response format:
-    - If job starts successfully: {"run_id": "manual_20250628_100000"}
-    - If job is already running: {"run_id": "existing_run_id"}
-    - If error occurs: {"error": "error message"}
-    """
+def generate():
     try:
-        # Check if there's already a running DAG run
-        running_dag_run = get_running_dag_run()
-        if running_dag_run:
-            return jsonify({"run_id": running_dag_run.run_id})
-
-        # Trigger a new DAG run
-        dag_run_id = trigger_dag_run()
-
-        return jsonify({"run_id": dag_run_id})
-
+        dr = _running()
+        if dr:
+            return jsonify(run_id=dr.run_id)
+        run_id = f"api__{_utc().isoformat()}"
+        Client(None, None).trigger_dag(
+            DAG_ID,
+            run_id=run_id,
+            execution_date=_utc(),
+            conf={"triggered_by": "reports_api"}
+        )
+        return jsonify(run_id=run_id)
     except Exception as e:
-        logger.error(f"Error in generate_reports endpoint: {str(e)}")
-        return jsonify({"error": str(e)}), 500
+        logger.error(e)
+        return jsonify(error=str(e)), 500
 
+# ──────────────── TaskLogReader and Status helpers ────────────────
+_reader = TaskLogReader()
 
-@reports_bp.route("/reports/status", methods=["GET"])
-def get_current_run_status():
-    """
-    Get the status of currently running DAG or return running: false if nothing is running
+def _utc():
+    return datetime.utcnow().replace(tzinfo=pytz.UTC)
 
-    Response format when something is running:
-    {
-        "running": true,
-        "run_id": "manual_20250628_100000",
-        "state": "running|success|failed|queued",
-        "start_date": "2025-06-28T10:00:00Z",
-        "end_date": "2025-06-28T11:00:00Z" or null,
-        "execution_date": "2025-06-28T10:00:00Z",
-        "dag_id": "dag_id",
-        "task_instances": [...]
-    }
+def _run_type(dr):
+    """scheduled | api_triggered"""
+    if dr.external_trigger and dr.conf and dr.conf.get("api_trigger"):
+        return "api_triggered"
+    return "scheduled"
 
-    Response format when nothing is running:
-    {
-        "running": false,
-        "run_id": null,
-        "state": null,
-        "start_date": null,
-        "end_date": null,
-        "execution_date": null,
-        "dag_id": null,
-        "task_instances": null
-    }
-    """
+def _running():
+    s = settings.Session()
     try:
-        # Check if there's a running DAG run
-        running_dag_run = get_running_dag_run()
+        return s.query(DagRun).filter(
+            DagRun.dag_id == DAG_ID,
+            DagRun.state.in_([State.RUNNING, State.QUEUED])
+        ).first()
+    finally:
+        s.close()
 
-        if not running_dag_run:
-            # Nothing is running
-            return jsonify({
-                "running": False,
-                "run_id": None,
-                "state": None,
-                "start_date": None,
-                "end_date": None,
-                "execution_date": None,
-                "dag_id": None,
-                "task_instances": None
-            })
+def _collect_logs(session, run_id):
+    tis = (
+        session.query(TaskInstance)
+        .filter(TaskInstance.dag_id == DAG_ID, TaskInstance.run_id == run_id)
+        .order_by(TaskInstance.task_id.asc())
+        .all()
+    )
 
-        # Something is running, get the full details
-        from airflow.models import TaskInstance
+    def flatten(obj):
+        if isinstance(obj, str):
+            yield obj
+        elif hasattr(obj, "message"):
+            yield obj.message
+        elif isinstance(obj, (list, tuple)):
+            for x in obj:
+                yield from flatten(x)
+        else:
+            yield str(obj)
 
+    pieces = []
+    for ti in tis:
+        chunks, _ = _reader.read_log_chunks(ti, ti.try_number, metadata={})
+        pieces.append(f"\n\n===== {ti.task_id} =====\n")
+        pieces.append("".join(flatten(chunks)))
+
+    return "".join(pieces) if pieces else ""
+
+# ──────────────── /reports/status ────────────────
+@reports_bp.route("/reports/status")
+def status():
+    """Return running status, logs, and info on the most recent finished run."""
+    try:
         session = settings.Session()
-        try:
-            # Get all task instances for this DAG run
-            task_instances = (
-                session.query(TaskInstance)
-                .filter(
-                    TaskInstance.dag_id == GENERATE_REPORTS_DAG_ID,
-                    TaskInstance.run_id == running_dag_run.run_id,
-                )
-                .all()
+
+        # ── current run (RUNNING or QUEUED) ───────────────────────────────────
+        current = (
+            session.query(DagRun)
+            .filter(
+                DagRun.dag_id == DAG_ID,
+                DagRun.state.in_([State.RUNNING, State.QUEUED]),
             )
+            .order_by(DagRun.execution_date.desc())
+            .first()
+        )
 
-            # Format task instance information
-            task_info = []
-            for ti in task_instances:
-                task_data = {
-                    "task_id": ti.task_id,
-                    "state": ti.state,
-                    "start_date": format_datetime_for_json(ti.start_date),
-                    "end_date": format_datetime_for_json(ti.end_date),
-                    "duration": ti.duration,
-                    "log_url": None,  # Simplified - not including logs in this endpoint
-                }
-                task_info.append(task_data)
+        running = bool(current)
+        run_type = run_started_at = logs = None
+        if running:
+            run_type = _run_type(current)
+            run_started_at = current.start_date.isoformat() if current.start_date else None
+            logs = _collect_logs(session, current.run_id)
 
-            return jsonify({
-                "running": True,
-                "run_id": running_dag_run.run_id,
-                "state": running_dag_run.state,
-                "start_date": format_datetime_for_json(running_dag_run.start_date),
-                "end_date": format_datetime_for_json(running_dag_run.end_date),
-                "execution_date": format_datetime_for_json(running_dag_run.execution_date),
-                "dag_id": running_dag_run.dag_id,
-                "task_instances": task_info
-            })
+        # ── last *finished* run ───────────────────────────────────────────────
+        last = (
+            session.query(DagRun)
+            .filter(
+                DagRun.dag_id == DAG_ID,
+                DagRun.state.in_([State.SUCCESS, State.FAILED]),
+            )
+            .order_by(DagRun.execution_date.desc())
+            .first()
+        )
 
-        finally:
-            session.close()
+        last_run = None
+        if last:
+            last_run = {
+                "run_type": _run_type(last),
+                "run_started_at": last.start_date.isoformat() if last.start_date else None,
+                "status": "success" if last.state == State.SUCCESS else "failed",
+                "logs": _collect_logs(session, last.run_id),
+            }
 
+        return jsonify(
+            running=running,
+            run_type=run_type,
+            run_started_at=run_started_at,
+            logs=logs,
+            last_run=last_run,
+        )
     except Exception as e:
-        logger.error(f"Error in get_current_run_status endpoint: {str(e)}")
-        return jsonify({"error": f"Error getting current run status: {str(e)}"}), 500
-
+        logger.error("status endpoint error: %s", e)
+        return jsonify(
+            running=False,
+            run_type=None,
+            run_started_at=None,
+            logs=None,
+            last_run=None,
+            error=str(e),
+        ), 500
+    finally:
+        session.close()
 
 class ReportsApiPlugin(AirflowPlugin):
-    """Airflow plugin to expose reports API endpoints"""
-
     name = "reports_api"
     flask_blueprints = [reports_bp]

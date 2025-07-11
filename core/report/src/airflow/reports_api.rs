@@ -11,15 +11,28 @@ pub struct ReportGenerateResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+#[serde(rename_all = "snake_case")]
+pub enum RunType {
+    Scheduled,
+    ApiTriggered,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct LastRun {
+    pub run_type: RunType,
+    pub run_started_at: Option<DateTime<Utc>>,
+    pub status: String,
+    pub logs: Option<String>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
 pub struct DagRunStatusResponse {
     pub running: bool,
-    pub run_id: Option<String>,
-    pub state: Option<String>,
-    pub start_date: Option<DateTime<Utc>>,
-    pub end_date: Option<DateTime<Utc>>,
-    pub execution_date: Option<DateTime<Utc>>,
-    pub dag_id: Option<String>,
-    pub task_instances: Option<Vec<TaskInstanceInfo>>,
+    pub run_type: Option<RunType>,
+    pub run_started_at: Option<DateTime<Utc>>,
+    pub logs: Option<String>,
+    pub last_run: Option<LastRun>,
+    pub error: Option<String>,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -32,13 +45,6 @@ pub struct TaskInstanceInfo {
     pub log_url: Option<String>,
 }
 
-#[derive(Debug, Serialize, Deserialize)]
-pub struct ReportUri {
-    pub uri: String,
-    pub date: String,
-    pub category: String,
-    pub name: String,
-}
 
 #[derive(Clone)]
 pub struct ReportsApiClient {
@@ -73,18 +79,14 @@ impl ReportsApiClient {
     }
 
     #[tracing::instrument(name = "reports_api.get_reports_by_date", skip(self))]
-    pub async fn get_reports_by_date(&self, date: &str) -> Result<Vec<ReportUri>, ReportError> {
+    pub async fn get_reports_by_date(&self, date: &str) -> Result<Vec<String>, ReportError> {
         let url = format!("{}/api/v1/reports/date/{}", self.base_url, date);
 
         let response = self.client.get(&url).send().await?;
 
         if response.status().is_success() {
             let report_uris: Vec<String> = response.json().await?;
-            let reports = report_uris
-                .into_iter()
-                .map(|uri| self.parse_report_uri(uri, date))
-                .collect();
-            Ok(reports)
+            Ok(report_uris)
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
@@ -130,24 +132,4 @@ impl ReportsApiClient {
         }
     }
 
-    fn parse_report_uri(&self, uri: String, date: &str) -> ReportUri {
-        let parts: Vec<&str> = uri.split('/').collect();
-        let (category, name) = if parts.len() >= 4 {
-            let category = parts[parts.len() - 2].to_string();
-            let name = parts[parts.len() - 1].to_string();
-            (category, name)
-        } else {
-            (
-                "unknown".to_string(),
-                uri.split('/').next_back().unwrap_or("unknown").to_string(),
-            )
-        };
-
-        ReportUri {
-            uri,
-            date: date.to_string(),
-            category,
-            name,
-        }
-    }
 }
