@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -60,20 +60,29 @@ impl ReportsApiClient {
     }
 
     #[tracing::instrument(name = "reports_api.get_report_dates", skip(self))]
-    pub async fn get_report_dates(&self) -> Result<Vec<String>, ReportError> {
+    pub async fn get_report_dates(&self) -> Result<Vec<NaiveDate>, ReportError> {
         let url = format!("{}/api/v1/reports/dates", self.base_url);
 
         let response = self.client.get(&url).send().await?;
 
         if response.status().is_success() {
-            let dates: Vec<String> = response.json().await?;
+            let date_strings: Vec<String> = response.json().await?;
+            let dates = date_strings
+                .into_iter()
+                .map(|date_str| {
+                    NaiveDate::parse_from_str(&date_str, "%Y-%m-%d")
+                        .map_err(|e| ReportError::ApiError(format!(
+                            "Failed to parse date '{}': {}", date_str, e
+                        )))
+                })
+                .collect::<Result<Vec<_>, _>>()?;
             Ok(dates)
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+            Err(ReportError::ApiError(format!(
                 "Failed to get report dates with status {status}: {text}"
-            ))))
+            )))
         }
     }
 
@@ -89,9 +98,9 @@ impl ReportsApiClient {
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+            Err(ReportError::ApiError(format!(
                 "Failed to get reports for date {date} with status {status}: {text}"
-            ))))
+            )))
         }
     }
 
@@ -107,9 +116,9 @@ impl ReportsApiClient {
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+            Err(ReportError::ApiError(format!(
                 "Failed to generate reports with status {status}: {text}"
-            ))))
+            )))
         }
     }
 
@@ -125,9 +134,9 @@ impl ReportsApiClient {
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+            Err(ReportError::ApiError(format!(
                 "Failed to get generation status with status {status}: {text}"
-            ))))
+            )))
         }
     }
 }
