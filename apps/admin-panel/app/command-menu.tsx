@@ -76,24 +76,18 @@ type ApprovalAction = {
 }
 
 interface CommandMenuProps {
-  open?: boolean
-  onOpenChange?: (open: boolean) => void
+  open: boolean
+  onOpenChange: (open: boolean) => void
 }
 
-const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = {}) => {
+const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
   const pathName = usePathname()
   const t = useTranslations("CommandMenu")
 
-  const [internalOpen, setInternalOpen] = useState(false)
-  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
   const setOpen = (value: boolean | ((prev: boolean) => boolean)) => {
-    if (controlledOpen !== undefined && onOpenChange) {
-      const newValue = typeof value === "function" ? value(open) : value
-      onOpenChange(newValue)
-    } else {
-      setInternalOpen(value)
-    }
-    if (typeof value === "boolean" && !value) {
+    const newValue = typeof value === "function" ? value(open) : value
+    onOpenChange(newValue)
+    if (!newValue) {
       search.clearSearch()
     }
   }
