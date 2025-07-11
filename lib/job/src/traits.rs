@@ -185,11 +185,11 @@ mod tests {
     #[test]
     fn attempts_capped_at_30() {
         let settings = test_settings(0);
-        let delay31 = get_delay_ms(&settings, 31);
-        let delay100 = get_delay_ms(&settings, 100);
+        let backoff31 = settings.calculate_backoff(31);
+        let backoff100 = settings.calculate_backoff(100);
 
-        assert_eq!(delay31, delay100, "Both should be capped at attempt 30");
-        assert_delay_near(delay31, MAX_BACKOFF_MS);
+        assert_eq!(backoff31, backoff100, "Both should be capped at attempt 30");
+        assert_eq!(backoff31, MAX_BACKOFF_MS);
     }
 
     #[test]
