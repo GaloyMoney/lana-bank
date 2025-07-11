@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_public_refs WHERE (COALESCE(id < $2, true)) ORDER BY id DESC LIMIT $1) SELECT i.id AS \"entity_id: Ref\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_ref_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_public_ids WHERE (COALESCE(id > $2, true)) ORDER BY id ASC LIMIT $1) SELECT i.id AS \"entity_id: Id\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_id_events e ON i.id = e.id ORDER BY i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: Ref",
+        "name": "entity_id: Id",
         "type_info": "Varchar"
       },
       {
@@ -37,5 +37,5 @@
       false
     ]
   },
-  "hash": "f3d2e0f83aa70bff284581e60053bd9854e8f10d60644bc194b0ca2db50d3d7b"
+  "hash": "4fdb8acf36991cab55f45277f67d7b07d962b055b8ecddc9a37d23bae8c1cb14"
 }

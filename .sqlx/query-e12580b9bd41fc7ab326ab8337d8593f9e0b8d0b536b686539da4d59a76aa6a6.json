@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_public_refs (id, target_id, created_at) VALUES ($1, $2, $3)",
+  "query": "INSERT INTO core_public_ids (id, target_id, created_at) VALUES ($1, $2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -12,5 +12,5 @@
     },
     "nullable": []
   },
-  "hash": "dd8f29ffb519d481b9eae54cf756c1c39b66d0f780723873f8db3fb16761a01d"
+  "hash": "e12580b9bd41fc7ab326ab8337d8593f9e0b8d0b536b686539da4d59a76aa6a6"
 }

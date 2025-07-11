@@ -301,7 +301,7 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
-crate = "public-ref"
+crate = "public-id"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 

@@ -19,7 +19,7 @@ pub enum CustomerError {
     #[error("CustomerError - DocumentStorageError: {0}")]
     DocumentStorageError(#[from] document_storage::error::DocumentStorageError),
     #[error("CustomerError - PublicRefError: {0}")]
-    PublicRefError(#[from] public_ref::error::PublicRefError),
+    PublicRefError(#[from] public_id::PublicRefError),
 }
 
 es_entity::from_es_entity_error!(CustomerError);

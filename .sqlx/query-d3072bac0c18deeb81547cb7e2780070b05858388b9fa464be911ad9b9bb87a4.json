@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE core_public_refs SET target_id = $2 WHERE id = $1",
+  "query": "UPDATE core_public_ids SET target_id = $2 WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -11,5 +11,5 @@
     },
     "nullable": []
   },
-  "hash": "6c849096b37b3074ea83651335a43e195a8b1bd16c778a644b29feeb945a1ffd"
+  "hash": "d3072bac0c18deeb81547cb7e2780070b05858388b9fa464be911ad9b9bb87a4"
 }

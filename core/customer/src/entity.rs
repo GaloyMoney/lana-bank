@@ -19,7 +19,7 @@ pub enum CustomerEvent {
         email: String,
         telegram_id: String,
         customer_type: CustomerType,
-        public_ref: Ref,
+        public_ref: Id,
         audit_info: AuditInfo,
     },
     AuthenticationIdUpdated {
@@ -66,7 +66,7 @@ pub struct Customer {
     pub customer_type: CustomerType,
     #[builder(setter(strip_option, into), default)]
     pub applicant_id: Option<String>,
-    pub public_ref: Ref,
+    pub public_ref: Id,
     events: EntityEvents<CustomerEvent>,
 }
 
@@ -262,7 +262,7 @@ pub struct NewCustomer {
     #[builder(setter(skip), default)]
     pub(super) status: AccountStatus,
     #[builder(setter(into))]
-    pub(super) public_ref: Ref,
+    pub(super) public_ref: Id,
     pub(super) audit_info: AuditInfo,
 }
 

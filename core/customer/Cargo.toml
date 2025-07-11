@@ -22,7 +22,7 @@ authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
 governance = { path = "../governance", optional = true }
 document-storage = { path = "../document-storage" }
-public-ref = { path = "../public-ref" }
+public-id = { path = "../public-id" }
 
 es-entity = { workspace = true }
 strum = { workspace = true }

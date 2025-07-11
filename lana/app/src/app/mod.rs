@@ -83,7 +83,7 @@ impl LanaApp {
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = DocumentStorage::new(&pool, &storage);
-        let public_refs = public_ref::PublicRefs::new(&pool);
+        let public_refs = PublicRefs::new(&pool);
         let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =

@@ -3,7 +3,7 @@ use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
 pub use authz::{action_description::*, AllOrOne};
-pub use public_ref::Ref;
+pub use public_id::Id;
 
 es_entity::entity_id! {
     AuthenticationId,
@@ -11,7 +11,7 @@ es_entity::entity_id! {
     CustomerDocumentId;
 
     CustomerId => document_storage::ReferenceId,
-    CustomerId => public_ref::RefTargetId,
+    CustomerId => public_id::RefTargetId,
     CustomerDocumentId => document_storage::DocumentId
 }
 
@@ -98,8 +98,7 @@ pub type CustomerDocumentAllOrOne = AllOrOne<CustomerDocumentId>;
 pub const PERMISSION_SET_CUSTOMER_VIEWER: &str = "customer_viewer";
 pub const PERMISSION_SET_CUSTOMER_WRITER: &str = "customer_writer";
 
-pub const CUSTOMER_REF_TARGET: public_ref::RefTargetType =
-    public_ref::RefTargetType::new("customer");
+pub const CUSTOMER_REF_TARGET: public_id::RefTargetType = public_id::RefTargetType::new("customer");
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

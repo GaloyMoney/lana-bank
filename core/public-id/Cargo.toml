@@ -1,5 +1,5 @@
 [package]
-name = "public-ref"
+name = "public-id"
 version = "0.3.721-dev"
 edition = "2021"
 license = "FSL-1.1-ALv2"

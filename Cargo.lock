@@ -1161,7 +1161,7 @@ dependencies = [
  "governance",
  "job",
  "outbox",
- "public-ref",
+ "public-id",
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
@@ -1217,7 +1217,7 @@ dependencies = [
  "es-entity",
  "governance",
  "outbox",
- "public-ref",
+ "public-id",
  "schemars 1.0.4",
  "serde",
  "sqlx",
@@ -2903,7 +2903,7 @@ dependencies = [
  "lana-ids",
  "notification",
  "outbox",
- "public-ref",
+ "public-id",
  "rand 0.9.1",
  "rbac-types",
  "reqwest",
@@ -3940,7 +3940,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "public-ref"
+name = "public-id"
 version = "0.3.721-dev"
 dependencies = [
  "async-graphql",

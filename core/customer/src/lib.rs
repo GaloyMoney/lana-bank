@@ -17,7 +17,7 @@ use document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink,
 };
 use outbox::{Outbox, OutboxEventMarker};
-use public_ref::PublicRefs;
+use public_id::PublicRefs;
 
 pub use entity::Customer;
 use entity::*;
@@ -221,7 +221,7 @@ where
 
         match self
             .repo
-            .find_by_public_ref(public_ref::Ref::new(public_ref.into()))
+            .find_by_public_ref(public_id::Id::new(public_ref.into()))
             .await
         {
             Ok(customer) => Ok(Some(customer)),

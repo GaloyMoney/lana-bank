@@ -169,6 +169,5 @@ pub mod terms {
 }
 
 pub mod public_ref {
-    pub use public_ref::{PublicRef, PublicRefsByCreatedAtCursor, Ref, RefTargetType, error};
-    pub type PublicRefs = public_ref::PublicRefs;
+    pub use public_id::{PublicRef, PublicRefs, Ref, RefTargetType, error};
 }

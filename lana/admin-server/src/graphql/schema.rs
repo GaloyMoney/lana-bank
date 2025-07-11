@@ -786,7 +786,7 @@ impl Query {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
         let public_ref = app
             .public_refs()
-            .find_by_ref_optional(lana_app::public_ref::Ref::new(reference))
+            .find_by_id_optional(reference)
             .await?;
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         match public_ref {

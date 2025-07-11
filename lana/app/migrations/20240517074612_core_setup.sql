@@ -110,14 +110,14 @@ CREATE TABLE core_withdrawal_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_public_refs (
+CREATE TABLE core_public_ids (
   id VARCHAR PRIMARY KEY,
   target_id UUID NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE core_public_ref_events (
-  id VARCHAR NOT NULL REFERENCES core_public_refs(id),
+CREATE TABLE core_public_id_events (
+  id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
@@ -125,7 +125,7 @@ CREATE TABLE core_public_ref_events (
   UNIQUE(id, sequence)
 );
 
-CREATE SEQUENCE core_public_ref_counter;
+CREATE SEQUENCE core_public_id_counter;
 
 CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
@@ -133,7 +133,7 @@ CREATE TABLE core_customers (
   email VARCHAR NOT NULL UNIQUE,
   telegram_id VARCHAR NOT NULL UNIQUE,
   status VARCHAR NOT NULL,
-  public_ref VARCHAR NOT NULL REFERENCES core_public_refs(id),
+  public_ref VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

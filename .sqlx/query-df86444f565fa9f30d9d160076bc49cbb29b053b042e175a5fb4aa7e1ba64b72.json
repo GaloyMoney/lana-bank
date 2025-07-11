@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_public_refs WHERE target_id = $1) SELECT i.id AS \"entity_id: Ref\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_ref_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_public_ids WHERE target_id = $1) SELECT i.id AS \"entity_id: Id\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_public_id_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: Ref",
+        "name": "entity_id: Id",
         "type_info": "Varchar"
       },
       {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "e47e74b7ae93887c1aeedb6da10601fd0f370b3c9e1f7d1d0cd1c085018996aa"
+  "hash": "df86444f565fa9f30d9d160076bc49cbb29b053b042e175a5fb4aa7e1ba64b72"
 }

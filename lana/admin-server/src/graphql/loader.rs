@@ -407,7 +407,7 @@ impl Loader<AccountingCsvDocumentId> for LanaLoader {
 
 impl Loader<Ref> for LanaLoader {
     type Value = PublicRef;
-    type Error = Arc<lana_app::public_ref::error::PublicRefError>;
+    type Error = Arc<lana_app::public_ref::error::PublicIdError>;
 
     async fn load(&self, keys: &[Ref]) -> Result<HashMap<Ref, PublicRef>, Self::Error> {
         // Use find_all for efficient batch loading now that Ref is the ID
