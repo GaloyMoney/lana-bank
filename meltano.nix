@@ -11,7 +11,11 @@
 }: let
   inherit (pkgs) dockerTools buildEnv bash coreutils gitMinimal cacert postgresql;
 
-  meltano-unwrapped = pkgs.python311Packages.buildPythonApplication rec {
+  python311WithVirtualenv =
+    python311.withPackages (ps: [ ps.virtualenv ]);
+  python311WithVirtualenvPackages = python311WithVirtualenv.pkgs;
+
+  meltano-unwrapped = python311WithVirtualenvPackages.buildPythonApplication rec {
     pname = "meltano";
     version = "3.7.8";
     pyproject = true;
@@ -21,9 +25,9 @@
       hash = "sha256-dwYJzgqa4pYuXR2oadf6jRJV0ZX5r+mpSE8Km9lzDLI=";
     };
 
-    nativeBuildInputs = with pkgs.python311Packages; [hatchling];
+    nativeBuildInputs = with python311WithVirtualenvPackages; [hatchling];
 
-    propagatedBuildInputs = with pkgs.python311Packages; [
+    propagatedBuildInputs = with python311WithVirtualenvPackages; [
       click
       pyyaml
       requests
@@ -94,13 +98,13 @@
     ]}:''${LD_LIBRARY_PATH:-}"
 
     if [[ "$1" == "install" || "$1" == "invoke" ]]; then
-      MINIMAL_PYTHONPATH="${pkgs.python311Packages.virtualenv}/lib/python3.11/site-packages"
-      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${pkgs.python311Packages.platformdirs}/lib/python3.11/site-packages"
-      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${pkgs.python311Packages.distlib}/lib/python3.11/site-packages"
-      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${pkgs.python311Packages.filelock}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="${python311WithVirtualenvPackages.virtualenv}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311WithVirtualenvPackages.platformdirs}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311WithVirtualenvPackages.distlib}/lib/python3.11/site-packages"
+      MINIMAL_PYTHONPATH="$MINIMAL_PYTHONPATH:${python311WithVirtualenvPackages.filelock}/lib/python3.11/site-packages"
 
       exec env -u PYTHONHOME -u NIX_PYTHONPATH \
-        PATH="${python311}/bin:$PATH" \
+        PATH="${python311WithVirtualenv}/bin:$PATH" \
         PYTHONPATH="$MINIMAL_PYTHONPATH" \
         LD_LIBRARY_PATH="$LD_LIBRARY_PATH" \
         ${meltano-unwrapped}/bin/meltano "$@"
