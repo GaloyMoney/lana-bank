@@ -1398,14 +1398,15 @@ dependencies = [
 
 [[package]]
 name = "core-report"
-version = "0.3.715-dev"
+version = "0.3.728-dev"
 dependencies = [
- "async-graphql",
+ "async-trait",
  "audit",
  "authz",
  "chrono",
  "derive_builder",
  "es-entity",
+ "job",
  "outbox",
  "reqwest",
  "schemars 1.0.4",
@@ -1413,7 +1414,6 @@ dependencies = [
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.12",
- "tokio",
  "tracing",
 ]
 
@@ -2291,33 +2291,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "gcp_auth"
-version = "0.12.3"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dbf67f30198e045a039264c01fb44659ce82402d7771c50938beb41a5ac87733"
-dependencies = [
- "async-trait",
- "base64 0.22.1",
- "bytes",
- "chrono",
- "home",
- "http",
- "http-body-util",
- "hyper",
- "hyper-rustls",
- "hyper-util",
- "ring",
- "rustls-pemfile",
- "serde",
- "serde_json",
- "thiserror 1.0.69",
- "tokio",
- "tracing",
- "tracing-futures",
- "url",
-]
-
-[[package]]
 name = "generic-array"
 version = "0.14.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3167,12 +3140,10 @@ dependencies = [
  "core-report",
  "customer-sync",
  "dashboard",
- "derive_builder",
  "document-storage",
  "es-entity",
  "futures",
  "gcp-bigquery-client",
- "gcp_auth",
  "governance",
  "handlebars",
  "hex",

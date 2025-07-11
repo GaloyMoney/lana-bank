@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -60,26 +60,43 @@ impl ReportsApiClient {
     }
 
     #[tracing::instrument(name = "reports_api.get_report_dates", skip(self))]
-    pub async fn get_report_dates(&self) -> Result<Vec<String>, ReportError> {
-        let url = format!("{}/api/v1/reports/dates", self.base_url);
+    pub async fn get_report_dates(
+        &self,
+        after: Option<NaiveDate>,
+    ) -> Result<Vec<NaiveDate>, ReportError> {
+        let mut url = format!("{}/api/v1/reports/dates", self.base_url);
+
+        if let Some(after_date) = after {
+            let after_str = after_date.format("%Y-%m-%d").to_string();
+            url = format!("{url}?after={after_str}");
+        }
 
         let response = self.client.get(&url).send().await?;
 
         if response.status().is_success() {
-            let dates: Vec<String> = response.json().await?;
+            let date_strings: Vec<String> = response.json().await?;
+            let dates = date_strings
+                .into_iter()
+                .map(|date_str| {
+                    NaiveDate::parse_from_str(&date_str, "%Y-%m-%d").map_err(|e| {
+                        ReportError::ApiError(format!("Failed to parse date '{date_str}': {e}"))
+                    })
+                })
+                .collect::<Result<Vec<_>, _>>()?;
             Ok(dates)
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+            Err(ReportError::ApiError(format!(
                 "Failed to get report dates with status {status}: {text}"
-            ))))
+            )))
         }
     }
 
     #[tracing::instrument(name = "reports_api.get_reports_by_date", skip(self))]
-    pub async fn get_reports_by_date(&self, date: &str) -> Result<Vec<String>, ReportError> {
-        let url = format!("{}/api/v1/reports/date/{}", self.base_url, date);
+    pub async fn get_reports_by_date(&self, date: NaiveDate) -> Result<Vec<String>, ReportError> {
+        let date_str = date.format("%Y-%m-%d").to_string();
+        let url = format!("{}/api/v1/reports/date/{}", self.base_url, date_str);
 
         let response = self.client.get(&url).send().await?;
 
@@ -89,9 +106,9 @@ impl ReportsApiClient {
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
-                "Failed to get reports for date {date} with status {status}: {text}"
-            ))))
+            Err(ReportError::ApiError(format!(
+                "Failed to get reports for date {date_str} with status {status}: {text}"
+            )))
         }
     }
 
@@ -107,9 +124,9 @@ impl ReportsApiClient {
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+            Err(ReportError::ApiError(format!(
                 "Failed to generate reports with status {status}: {text}"
-            ))))
+            )))
         }
     }
 
@@ -125,9 +142,9 @@ impl ReportsApiClient {
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
-            Err(ReportError::Sqlx(sqlx::Error::Protocol(format!(
+            Err(ReportError::ApiError(format!(
                 "Failed to get generation status with status {status}: {text}"
-            ))))
+            )))
         }
     }
 }

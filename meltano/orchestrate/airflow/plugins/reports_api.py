@@ -1,6 +1,6 @@
 import os, logging, pytz
 from datetime import datetime
-from flask import Blueprint, jsonify
+from flask import Blueprint, jsonify, request
 from google.cloud import storage
 from google.oauth2 import service_account
 from airflow.plugins_manager import AirflowPlugin
@@ -39,9 +39,20 @@ def _parse(blob):
 @reports_bp.route("/reports/dates")
 def dates():
     try:
+        after = request.args.get("after")
+        if after:
+            try:
+                datetime.strptime(after, "%Y-%m-%d")
+            except ValueError:
+                return jsonify(error="Invalid after date format, expected YYYY-MM-DD"), 400
+
         blobs = _bucket().list_blobs(prefix="reports/")
         dates = {_parse(b.name) for b in blobs if _parse(b.name)}
-        return jsonify(sorted(dates, reverse=True))
+
+        if after:
+            dates = {date for date in dates if date >= after}
+
+        return jsonify(sorted(dates))
     except Exception as e:
         return jsonify(error=str(e)), 500
 

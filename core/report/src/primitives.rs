@@ -68,6 +68,7 @@ impl CoreReportAction {
     pub const REPORT_GENERATE: Self = CoreReportAction::Report(ReportEntityAction::Generate);
     pub const REPORT_GENERATION_STATUS_READ: Self =
         CoreReportAction::Report(ReportEntityAction::GenerationStatusRead);
+    pub const REPORT_SYNC: Self = CoreReportAction::Report(ReportEntityAction::Sync);
 
     pub fn entities() -> Vec<(
         CoreReportActionDiscriminants,
@@ -94,6 +95,7 @@ impl CoreReportAction {
 pub enum ReportEntityAction {
     Generate,
     GenerationStatusRead,
+    Sync,
 }
 
 impl ReportEntityAction {
@@ -108,6 +110,8 @@ impl ReportEntityAction {
                     variant,
                     &[PERMISSION_SET_REPORT_VIEWER, PERMISSION_SET_REPORT_WRITER],
                 ),
+
+                Self::Sync => ActionDescription::new(variant, &[PERMISSION_SET_REPORT_WRITER]),
             };
             res.push(action_description);
         }
