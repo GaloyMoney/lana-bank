@@ -716,7 +716,7 @@ impl SumsubClient {
         let url_path = format!("/resources/applicants/{applicant_id}/questionnaires");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
-        // Create a basic questionnaire submission based on the volcano_onboarding questionnaire
+        // Create a basic questionnaire submission based on the v1_onboarding questionnaire
         let body = json!({
             "id": questionnaire_id,
             "sections": {
@@ -813,7 +813,7 @@ pub mod testing_utils {
     pub const TEST_LAST_NAME: &str = "Mock-Doe";
     pub const TEST_DATE_OF_BIRTH: &str = "1990-01-01";
     pub const TEST_COUNTRY_CODE: &str = "DEU";
-    pub const TEST_QUESTIONNAIRE_ID: &str = "volcano_onboarding";
+    pub const TEST_QUESTIONNAIRE_ID: &str = "v1_onboarding";
     pub const TEST_CURRENCY: &str = "USD";
     pub const TEST_TX_TYPE: &str = "deposit";
     pub const TEST_TX_DIRECTION: &str = "incoming";
