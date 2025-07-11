@@ -151,7 +151,8 @@
     "placeholders": {
       "searchNavigation": "Buscar navegación...",
       "searchActions": "Buscar acciones...",
-      "whatDoYouNeed": "¿Qué necesitas?"
+      "whatDoYouNeed": "¿Qué necesitas?",
+      "searchPublicId": "Buscar por ID público..."
     },
     "noResults": "No se encontraron resultados.",
     "headings": {
@@ -254,7 +255,8 @@
           "createdOn": "Creado el",
           "telegram": "Telegram",
           "status": "Estado",
-          "customerType": "Tipo"
+          "customerType": "Tipo",
+          "publicId": "ID Público"
         },
         "status": {
           "active": "Activo",

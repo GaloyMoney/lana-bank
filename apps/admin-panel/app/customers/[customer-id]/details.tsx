@@ -12,6 +12,7 @@ import UpdateTelegramIdDialog from "./update-telegram-id"
 import UpdateEmailDialog from "./update-email"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
+import { PublicIdBadge } from "@/components/public-id-badge"
 import {
   AccountStatus,
   CustomerType,
@@ -92,6 +93,10 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
             : t("status.inactive")}
         </Badge>
       ),
+    },
+    {
+      label: t("labels.publicId"),
+      value: <PublicIdBadge publicId={customer.publicId} entityType="Customer" />,
     },
   ]
 

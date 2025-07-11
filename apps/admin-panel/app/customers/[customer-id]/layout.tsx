@@ -31,6 +31,7 @@ gql`
       level
       customerType
       createdAt
+      publicId
       depositAccount {
         id
         depositAccountId

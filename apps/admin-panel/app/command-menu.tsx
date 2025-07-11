@@ -8,7 +8,6 @@ import {
   CheckCircle2,
   CheckSquare,
   FileEdit,
-  Keyboard,
   Plus,
   Settings,
   Shield,
@@ -79,7 +78,12 @@ type ApprovalAction = {
 
 type groups = "main" | "navigation" | "actions"
 
-const CommandMenu = () => {
+interface CommandMenuProps {
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+}
+
+const CommandMenu = ({ open: controlledOpen, onOpenChange }: CommandMenuProps = {}) => {
   const router = useRouter()
   const pathName = usePathname()
 
@@ -104,7 +108,16 @@ const CommandMenu = () => {
     ...navFinanceItems,
   ]
 
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen !== undefined ? controlledOpen : internalOpen
+  const setOpen = (value: boolean | ((prev: boolean) => boolean)) => {
+    if (controlledOpen !== undefined && onOpenChange) {
+      const newValue = typeof value === "function" ? value(open) : value
+      onOpenChange(newValue)
+    } else {
+      setInternalOpen(value)
+    }
+  }
   const [pages, setPages] = useState<groups>("main")
 
   const [createCustomer, setCreateCustomer] = useState(false)
@@ -613,7 +626,6 @@ const CommandMenu = () => {
             </>
           ) : null
         })()}
-      <KeyboardInstructions />
     </>
   )
 }
@@ -633,34 +645,6 @@ function KeyboardControlHeading({
       <kbd className="ml-auto pointer-events-none inline-flex h-5 select-none items-center gap-1 rounded border bg-muted px-1.5 font-mono text-[10px] font-medium text-muted-foreground opacity-100">
         <span className="text-xs">{combination}</span>
       </kbd>
-    </div>
-  )
-}
-
-const KeyboardInstructions = () => {
-  const t = useTranslations("CommandMenu")
-  const [isMac, setIsMac] = useState(false)
-  useEffect(() => {
-    const macPlatforms = ["Macintosh", "MacIntel", "MacPPC", "Mac68K"]
-    const userAgent = window.navigator.userAgent
-    const platform = window.navigator.platform
-
-    setIsMac(
-      macPlatforms.includes(platform) ||
-        userAgent.includes("Mac") ||
-        /Mac/.test(navigator.platform),
-    )
-  }, [])
-
-  return (
-    <div className="fixed bottom-4 right-4 hidden md:flex items-center gap-2 rounded-lg bg-secondary/80 px-3 py-2 text-sm text-secondary-foreground backdrop-blur z-10">
-      <Keyboard className="h-4 w-4" />
-      <span>{t("keyboardInstructions.commandPalette")}</span>
-      <kbd className="rounded border bg-background px-1.5 text-xs font-semibold">
-        {isMac ? "cmd" : "Ctrl"}
-      </kbd>
-      <span>+</span>
-      <kbd className="rounded border bg-background px-1.5 text-xs font-semibold">K</kbd>
     </div>
   )
 }
