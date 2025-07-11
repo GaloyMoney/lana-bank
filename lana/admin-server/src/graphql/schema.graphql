@@ -1308,6 +1308,7 @@ type ManualTransactionExecutePayload {
 type Mutation {
 	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
+	sumsubTestApplicantCreate(input: SumsubTestApplicantCreateInput!): SumsubTestApplicantCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
@@ -1693,6 +1694,14 @@ input SumsubPermalinkCreateInput {
 
 type SumsubPermalinkCreatePayload {
 	url: String!
+}
+
+input SumsubTestApplicantCreateInput {
+	customerId: UUID!
+}
+
+type SumsubTestApplicantCreatePayload {
+	applicantId: String!
 }
 
 type System {

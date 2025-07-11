@@ -18,6 +18,7 @@ sim-time = [
 
 fail-on-warnings = []
 mock-custodian = ["core-custody/mock-custodian", "core-credit/mock-custodian"]
+sumsub-testing = []
 
 [dependencies]
 rbac-types = { path = "../rbac-types" }

@@ -16,38 +16,38 @@ use super::error::ApplicantError;
 
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 
-// Document types (test-only constants)
-#[cfg(test)]
-const DOC_TYPE_PASSPORT: &str = "PASSPORT";
-#[cfg(test)]
-const DOC_TYPE_SELFIE: &str = "SELFIE";
-#[cfg(test)]
-const DOC_TYPE_UTILITY_BILL: &str = "UTILITY_BILL";
+// Document types (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_TYPE_PASSPORT: &str = "PASSPORT";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_TYPE_SELFIE: &str = "SELFIE";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_TYPE_UTILITY_BILL: &str = "UTILITY_BILL";
 
-// Document subtypes (test-only constants)
-#[cfg(test)]
-const DOC_SUBTYPE_FRONT_SIDE: &str = "FRONT_SIDE";
-#[cfg(test)]
-const DOC_SUBTYPE_BACK_SIDE: &str = "BACK_SIDE";
+// Document subtypes (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_SUBTYPE_FRONT_SIDE: &str = "FRONT_SIDE";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const DOC_SUBTYPE_BACK_SIDE: &str = "BACK_SIDE";
 
-// Review answers (test-only constants)
-#[cfg(test)]
-const REVIEW_ANSWER_GREEN: &str = "GREEN";
-#[cfg(test)]
-const REVIEW_ANSWER_RED: &str = "RED";
+// Review answers (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const REVIEW_ANSWER_GREEN: &str = "GREEN";
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub const REVIEW_ANSWER_RED: &str = "RED";
 
-// Questionnaire defaults (test-only constants)
-#[cfg(test)]
+// Questionnaire defaults (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
 const DEFAULT_QUESTIONNAIRE_SECTION: &str = "testSumsubQuestionar";
-#[cfg(test)]
+#[cfg(any(test, feature = "sumsub-testing"))]
 const DEFAULT_QUESTIONNAIRE_ITEM: &str = "test";
-#[cfg(test)]
+#[cfg(any(test, feature = "sumsub-testing"))]
 const DEFAULT_QUESTIONNAIRE_VALUE: &str = "0";
 
-// Test document URLs (test-only constants)
-#[cfg(test)]
+// Test document URLs (testing constants)
+#[cfg(any(test, feature = "sumsub-testing"))]
 const GERMAN_PASSPORT_URL: &str = "https://sumsub.com/files/29346237-germany-passport.jpg";
-#[cfg(test)]
+#[cfg(any(test, feature = "sumsub-testing"))]
 const POA_DOCUMENT_URL: &str = "https://sumsub.com/files/62349849-poa-krause-green.jpg";
 
 #[derive(Clone, Debug)]
@@ -178,7 +178,7 @@ impl SumsubClient {
     }
 
     /// Helper to create document metadata JSON
-    #[cfg(test)]
+    #[cfg(any(test, feature = "sumsub-testing"))]
     fn create_document_metadata(
         doc_type: &str,
         doc_sub_type: &str,
@@ -242,7 +242,7 @@ impl SumsubClient {
     }
 
     /// Helper for simple success/error responses (no data returned)
-    #[cfg(test)]
+    #[cfg(any(test, feature = "sumsub-testing"))]
     async fn handle_simple_response(
         response: reqwest::Response,
         success_message: &str,
@@ -421,8 +421,8 @@ impl SumsubClient {
     /// Creates an applicant directly via API for testing purposes
     /// This is useful for sandbox testing where you want to create an applicant
     /// without requiring a user to visit the permalink URL
-    #[cfg(test)]
-    pub(crate) async fn create_applicant(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn create_applicant(
         &self,
         external_user_id: CustomerId,
         level_name: &str,
@@ -470,8 +470,8 @@ impl SumsubClient {
 
     /// Updates the fixedInfo for an applicant with basic personal data
     /// This is required before simulating approval as Sumsub needs some basic information
-    #[cfg(test)]
-    pub(crate) async fn update_applicant_info(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn update_applicant_info(
         &self,
         applicant_id: &str,
         first_name: &str,
@@ -511,8 +511,8 @@ impl SumsubClient {
 
     /// Uploads a document image for an applicant
     /// This method handles the multipart form data upload required for document images
-    #[cfg(test)]
-    pub(crate) async fn upload_document(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn upload_document(
         &self,
         applicant_id: &str,
         doc_type: &str,        // e.g., "PASSPORT", "SELFIE", "ID_CARD"
@@ -534,7 +534,7 @@ impl SumsubClient {
     }
 
     /// Uploads document with manual multipart body construction for proper HMAC signature calculation
-    #[cfg(test)]
+    #[cfg(any(test, feature = "sumsub-testing"))]
     async fn upload_document_with_manual_multipart(
         &self,
         applicant_id: &str,
@@ -624,8 +624,8 @@ impl SumsubClient {
 
     /// Requests a check/review for an applicant
     /// This moves the applicant to "pending" status for review
-    #[cfg(test)]
-    pub(crate) async fn request_check(&self, applicant_id: &str) -> Result<(), ApplicantError> {
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn request_check(&self, applicant_id: &str) -> Result<(), ApplicantError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/status/pending");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
@@ -651,8 +651,8 @@ impl SumsubClient {
 
     /// Simulates a review response in sandbox mode (GREEN for approved, RED for rejected)
     /// This is only available in sandbox environments for testing purposes
-    #[cfg(test)]
-    pub(crate) async fn simulate_review_response(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn simulate_review_response(
         &self,
         applicant_id: &str,
         review_answer: &str, // "GREEN" or "RED"
@@ -706,8 +706,8 @@ impl SumsubClient {
     }
 
     /// Submits a questionnaire directly to an applicant
-    #[cfg(test)]
-    pub(crate) async fn submit_questionnaire_direct(
+    #[cfg(any(test, feature = "sumsub-testing"))]
+    pub async fn submit_questionnaire_direct(
         &self,
         applicant_id: &str,
         questionnaire_id: &str,
@@ -755,7 +755,7 @@ impl SumsubClient {
     }
 
     /// Alternative approach: Update applicant with questionnaire data
-    #[cfg(test)]
+    #[cfg(any(test, feature = "sumsub-testing"))]
     async fn update_applicant_questionnaire(
         &self,
         applicant_id: &str,
@@ -802,29 +802,29 @@ impl SumsubClient {
     }
 }
 
-#[cfg(test)]
-mod tests {
+#[cfg(any(test, feature = "sumsub-testing"))]
+pub mod testing_utils {
     use super::*;
     use crate::primitives::CustomerId;
 
     // Test configuration constants
-    const TEST_LEVEL_NAME: &str = "basic-kyc-level";
-    const TEST_FIRST_NAME: &str = "John";
-    const TEST_LAST_NAME: &str = "Mock-Doe";
-    const TEST_DATE_OF_BIRTH: &str = "1990-01-01";
-    const TEST_COUNTRY_CODE: &str = "DEU";
-    const TEST_QUESTIONNAIRE_ID: &str = "volcano_onboarding";
-    const TEST_CURRENCY: &str = "USD";
-    const TEST_TX_TYPE: &str = "deposit";
-    const TEST_TX_DIRECTION: &str = "incoming";
-    const TEST_TX_AMOUNT: f64 = 1000.0;
+    pub const TEST_LEVEL_NAME: &str = "basic-kyc-level";
+    pub const TEST_FIRST_NAME: &str = "John";
+    pub const TEST_LAST_NAME: &str = "Mock-Doe";
+    pub const TEST_DATE_OF_BIRTH: &str = "1990-01-01";
+    pub const TEST_COUNTRY_CODE: &str = "DEU";
+    pub const TEST_QUESTIONNAIRE_ID: &str = "volcano_onboarding";
+    pub const TEST_CURRENCY: &str = "USD";
+    pub const TEST_TX_TYPE: &str = "deposit";
+    pub const TEST_TX_DIRECTION: &str = "incoming";
+    pub const TEST_TX_AMOUNT: f64 = 1000.0;
 
     // Test artifact filenames
-    const PASSPORT_FILENAME: &str = "german_passport.jpg";
-    const POA_FILENAME: &str = "poa_krause_green.jpg";
+    pub const PASSPORT_FILENAME: &str = "german_passport.jpg";
+    pub const POA_FILENAME: &str = "poa_krause_green.jpg";
 
     /// Generic function to load test documents, downloading if not present locally
-    async fn load_test_document(
+    pub async fn load_test_document(
         filename: &str,
         download_url: &str,
         description: &str,
@@ -866,7 +866,7 @@ mod tests {
     }
 
     /// Load real passport image for testing, downloading if not present locally
-    async fn load_german_passport_image() -> Result<Vec<u8>, std::io::Error> {
+    pub async fn load_german_passport_image() -> Result<Vec<u8>, std::io::Error> {
         load_test_document(
             PASSPORT_FILENAME,
             GERMAN_PASSPORT_URL,
@@ -876,7 +876,7 @@ mod tests {
     }
 
     /// Load proof of residence document for testing, downloading if not present locally
-    async fn load_proof_of_residence_image() -> Result<Vec<u8>, std::io::Error> {
+    pub async fn load_proof_of_residence_image() -> Result<Vec<u8>, std::io::Error> {
         load_test_document(
             POA_FILENAME,
             POA_DOCUMENT_URL,
@@ -885,7 +885,7 @@ mod tests {
         .await
     }
 
-    fn load_config_from_env() -> Option<SumsubConfig> {
+    pub fn load_config_from_env() -> Option<SumsubConfig> {
         let sumsub_key = std::env::var("SUMSUB_KEY").ok()?;
         let sumsub_secret = std::env::var("SUMSUB_SECRET").ok()?;
 
