@@ -4942,9 +4942,9 @@ dependencies = [
 
 [[package]]
 name = "sqlx-adapter"
-version = "1.7.0"
+version = "1.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4fe4be90d20c7bef2e38710eb78704bc6cf2a7512c4ab065f6aa96421f66c6be"
+checksum = "2a88e13f5aaf770420184c9e2955345f157953fb7ed9f26df59a4a0664478daf"
 dependencies = [
  "async-trait",
  "casbin",
