@@ -1187,6 +1187,13 @@ enum KycLevel {
 	ADVANCED
 }
 
+type LastRun {
+	runType: RunType!
+	runStartedAt: Timestamp
+	status: String!
+	logs: String
+}
+
 enum Layer {
 	SETTLED
 	PENDING
@@ -1348,6 +1355,7 @@ type Mutation {
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	reportGenerate: ReportGeneratePayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1564,10 +1572,24 @@ type Query {
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
+	reportGenerationStatus: ReportGenerationStatusPayload!
 }
 
 type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
+}
+
+type ReportGeneratePayload {
+	runId: String!
+}
+
+type ReportGenerationStatusPayload {
+	running: Boolean!
+	runType: RunType
+	runStartedAt: Timestamp
+	logs: String
+	lastRun: LastRun
+	error: String
 }
 
 type Role {
@@ -1632,6 +1654,11 @@ input RoleRemovePermissionSetsInput {
 
 type RoleRemovePermissionSetsPayload {
 	role: Role!
+}
+
+enum RunType {
+	SCHEDULED
+	API_TRIGGERED
 }
 
 scalar Satoshis

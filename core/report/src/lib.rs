@@ -9,7 +9,6 @@ pub mod primitives;
 pub mod publisher;
 pub mod repo;
 
-use std::collections::HashMap;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -77,66 +76,35 @@ where
         })
     }
 
-    #[instrument(name = "reports.create_report", skip(self), err)]
-    pub async fn create(
+    #[instrument(name = "reports.generate_todays_report", skip(self), err)]
+    pub async fn generate_todays_report(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        name: impl Into<String> + std::fmt::Debug,
-        date: chrono::DateTime<chrono::Utc>,
-    ) -> Result<Report, ReportError> {
-        let audit_info = self
-            .authz
+    ) -> Result<ReportGenerateResponse, ReportError> {
+        self.authz
             .enforce_permission(
                 sub,
                 ReportObject::all_reports(),
-                CoreReportAction::REPORT_CREATE,
+                CoreReportAction::REPORT_GENERATE,
             )
             .await?;
 
-        let new_report = NewReport::builder()
-            .id(ReportId::new())
-            .name(name.into())
-            .date(date)
-            .audit_info(audit_info)
-            .build()
-            .expect("Could not build report");
-
-        self.repo.create(new_report).await
-    }
-
-    #[instrument(name = "reports.find_by_id", skip(self), err)]
-    pub async fn find_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ReportId> + std::fmt::Debug,
-    ) -> Result<Option<Report>, ReportError> {
-        let id = id.into();
-        self.authz
-            .enforce_permission(sub, ReportObject::report(id), CoreReportAction::REPORT_READ)
-            .await?;
-
-        match self.repo.find_by_id(id).await {
-            Ok(report) => Ok(Some(report)),
-            Err(ReportError::EsEntityError(es_entity::EsEntityError::NotFound)) => Ok(None),
-            Err(e) => Err(e),
-        }
-    }
-
-    #[instrument(name = "reports.find_all", skip(self), err)]
-    pub async fn find_all<T: From<Report>>(
-        &self,
-        ids: &[ReportId],
-    ) -> Result<HashMap<ReportId, T>, ReportError> {
-        self.repo.find_all(ids).await
-    }
-
-    #[instrument(name = "reports.generate_todays_report", skip(self), err)]
-    pub async fn generate_todays_report(&self) -> Result<ReportGenerateResponse, ReportError> {
         self.airflow_client.generate_todays_report().await
     }
 
     #[instrument(name = "reports.get_generation_status", skip(self), err)]
-    pub async fn get_generation_status(&self) -> Result<DagRunStatusResponse, ReportError> {
+    pub async fn get_generation_status(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<DagRunStatusResponse, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_GENERATION_STATUS_READ,
+            )
+            .await?;
+
         self.airflow_client.get_generation_status().await
     }
 }

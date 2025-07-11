@@ -65,10 +65,8 @@ pub enum CoreReportAction {
 }
 
 impl CoreReportAction {
-    pub const REPORT_CREATE: Self = CoreReportAction::Report(ReportEntityAction::Create);
-    pub const REPORT_READ: Self = CoreReportAction::Report(ReportEntityAction::Read);
-    pub const REPORT_LIST: Self = CoreReportAction::Report(ReportEntityAction::List);
-    pub const REPORT_UPDATE: Self = CoreReportAction::Report(ReportEntityAction::Update);
+    pub const REPORT_GENERATE: Self = CoreReportAction::Report(ReportEntityAction::Generate);
+    pub const REPORT_GENERATION_STATUS_READ: Self = CoreReportAction::Report(ReportEntityAction::GenerationStatusRead);
 
     pub fn entities() -> Vec<(
         CoreReportActionDiscriminants,
@@ -93,10 +91,8 @@ impl CoreReportAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ReportEntityAction {
-    Read,
-    Create,
-    List,
-    Update,
+    Generate,
+    GenerationStatusRead,
 }
 
 impl ReportEntityAction {
@@ -105,19 +101,12 @@ impl ReportEntityAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_REPORT_WRITER]),
+                Self::Generate => ActionDescription::new(variant, &[PERMISSION_SET_REPORT_WRITER]),
 
-                Self::Read => ActionDescription::new(
+                Self::GenerationStatusRead => ActionDescription::new(
                     variant,
                     &[PERMISSION_SET_REPORT_VIEWER, PERMISSION_SET_REPORT_WRITER],
                 ),
-
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_REPORT_WRITER, PERMISSION_SET_REPORT_VIEWER],
-                ),
-
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_REPORT_WRITER]),
             };
             res.push(action_description);
         }
