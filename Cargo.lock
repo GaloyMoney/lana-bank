@@ -3944,7 +3944,6 @@ name = "public-id"
 version = "0.3.721-dev"
 dependencies = [
  "async-graphql",
- "audit",
  "derive_builder",
  "es-entity",
  "schemars 1.0.4",
