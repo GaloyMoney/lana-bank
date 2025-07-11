@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use chrono::NaiveDate;
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
@@ -45,6 +46,11 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     type Initializer = SyncReportsJobInit<Perms, E>;
+}
+
+#[derive(Default, Clone, Serialize, Deserialize)]
+struct SyncReportsJobExecutionState {
+    date: Option<NaiveDate>,
 }
 
 pub struct SyncReportsJobInit<Perms, E>
@@ -116,12 +122,19 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
-    #[tracing::instrument(name = "core_reports.sync_reports.run", skip(self, _current_job), err)]
+    #[tracing::instrument(name = "core_reports.sync_reports.run", skip(self, current_job), err)]
     async fn run(
         &self,
-        _current_job: CurrentJob,
+        mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        for date in self.reports_api_client.get_report_dates().await? {
+        let mut state = current_job
+            .execution_state::<SyncReportsJobExecutionState>()?
+            .unwrap_or_default();
+
+        let mut dates = self.reports_api_client.get_report_dates(state.date).await?;
+        dates.sort();
+
+        for date in dates {
             for path in self.reports_api_client.get_reports_by_date(date).await? {
                 let report_id = ReportId::new();
                 let mut db = self.repo.begin_op().await?;
@@ -152,14 +165,17 @@ where
                     Ok(_) => {
                         db.commit().await?;
                     }
-                    Err(e) if e.to_string().contains("duplicate key value violates unique constraint") => {
-                        // Ignore duplicate key constraint violations
-                    }
+                    Err(e)
+                        if e.to_string()
+                            .contains("duplicate key value violates unique constraint") => {}
                     Err(e) => {
                         return Err(e.into());
                     }
                 }
             }
+
+            state.date = Some(date);
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
