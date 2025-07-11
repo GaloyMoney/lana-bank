@@ -144,6 +144,6 @@ impl Jobs {
     }
 
     pub async fn start_poll(&mut self) -> Result<(), JobError> {
-        self.executor.start_poll().await
+        self.executor.start().await
     }
 }
