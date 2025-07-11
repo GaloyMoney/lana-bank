@@ -16,6 +16,7 @@ import { useBreakpointDown } from "@lana/web/hooks"
 import { DetailItem, DetailItemProps, DetailsGroup } from ".."
 
 import { cn } from "@/lib/utils"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 const footerVariants = cva(
   "pt-4 pb-4 gap-4 w-full md:w-auto [&>*]:w-full md:[&>*]:w-auto md:[&>*]:mb-0 last:[&>*]:mb-0",
@@ -57,6 +58,7 @@ export interface DetailsCardProps
   columns?: number
   layout?: "horizontal" | "vertical"
   footerClassName?: string
+  publicId?: string
 }
 
 export const DetailsCard: React.FC<DetailsCardProps> = ({
@@ -72,6 +74,7 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
   layout = "vertical",
   variant = "card",
   footerClassName,
+  publicId,
 }) => {
   const isBelowMedium = useBreakpointDown("md")
   const effectiveLayout = isBelowMedium ? "horizontal" : layout
@@ -129,7 +132,14 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between w-full">
           <div className="space-y-1.5">
-            <CardTitle>{title}</CardTitle>
+            <div className="flex items-center gap-2.5">
+              <CardTitle>{title}</CardTitle>
+              {publicId && (
+                <div className={cn("text-sm text-muted-foreground")}>
+                  <PublicIdBadge publicId={publicId} />
+                </div>
+              )}
+            </div>
             {description && <CardDescription>{description}</CardDescription>}
           </div>
           {headerAction && <div>{headerAction}</div>}

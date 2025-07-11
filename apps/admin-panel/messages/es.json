@@ -151,12 +151,15 @@
     "placeholders": {
       "searchNavigation": "Buscar navegación...",
       "searchActions": "Buscar acciones...",
-      "whatDoYouNeed": "¿Qué necesitas?"
+      "whatDoYouNeed": "Busca cualquier cosa o introduce un ID...",
+      "searchPublicId": "Buscar por ID público..."
     },
     "noResults": "No se encontraron resultados.",
+    "searching": "Buscando...",
     "headings": {
       "availableActions": "Acciones Disponibles",
-      "navigation": "Navegación"
+      "navigation": "Navegación",
+      "searchResults": "Resultados de Búsqueda"
     },
     "actions": {
       "createDeposit": "Crear Depósito",
@@ -255,7 +258,8 @@
           "createdOn": "Creado el",
           "telegram": "Telegram",
           "status": "Estado",
-          "customerType": "Tipo"
+          "customerType": "Tipo",
+          "publicId": "ID Público"
         },
         "status": {
           "active": "Activo",

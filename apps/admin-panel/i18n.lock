@@ -97,10 +97,13 @@ checksums:
     UserBlock/profile: d7878693f91303a438852d617f6d35df
     CommandMenu/placeholders/searchNavigation: 7b4b2051b65794dc219f777759f78e36
     CommandMenu/placeholders/searchActions: ed221489a14252da8832da1926142890
-    CommandMenu/placeholders/whatDoYouNeed: 7e5fdaec638b5470bcd0b3d37e90ffe7
+    CommandMenu/placeholders/whatDoYouNeed: 5ff48c3c2c84a5d036e56f104421be53
+    CommandMenu/placeholders/searchPublicId: c7972b7e5acfdf346c272873a997eb54
     CommandMenu/noResults: 8e37a23d37d7b4f501a20991a0d311ea
+    CommandMenu/searching: 56cf28d6712bf3f7f73af2a81974ac45
     CommandMenu/headings/availableActions: 5740b3b18afd2a05798659ccf377246c
     CommandMenu/headings/navigation: 0373afd8238db1c49f4be4fa6cdf5cd3
+    CommandMenu/headings/searchResults: 288cbe56506d5a6f60c9ed6108352da3
     CommandMenu/actions/createDeposit: b742a978d97b624c0afc16dacc7dfbb5
     CommandMenu/actions/createWithdrawal: cf4e544c6a71dc437bf4a0da3abd12f7
     CommandMenu/actions/createCustomer: f37a237d98b2ad0651452d41aa007baa
@@ -176,6 +179,7 @@ checksums:
     Customers/CustomerDetails/details/labels/telegram: 0719cb55ded3146892d106733a8431b2
     Customers/CustomerDetails/details/labels/status: 4e1fcce15854d824919b4a582c697c90
     Customers/CustomerDetails/details/labels/customerType: f04471a7ddac844b9ad145eb9911ef75
+    Customers/CustomerDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
     Customers/CustomerDetails/details/actions/editTelegram: f75713ea7482c56d5fd7dc78ce25c6e1

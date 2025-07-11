@@ -31,8 +31,10 @@ gql`
       level
       customerType
       createdAt
+      publicId
       depositAccount {
         id
+        publicId
         depositAccountId
         balance {
           settled
@@ -101,7 +103,10 @@ export default function CustomerLayout({
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
         <KycStatus customerId={customerId} />
         {data.customer.depositAccount && (
-          <CustomerAccountBalances balance={data.customer.depositAccount.balance} />
+          <CustomerAccountBalances
+            balance={data.customer.depositAccount.balance}
+            publicId={data.customer.depositAccount.publicId}
+          />
         )}
       </div>
       <Tabs

@@ -151,12 +151,15 @@
     "placeholders": {
       "searchNavigation": "Search navigation...",
       "searchActions": "Search actions...",
-      "whatDoYouNeed": "What do you need?"
+      "whatDoYouNeed": "Search anything or enter ID...",
+      "searchPublicId": "Search by Public ID..."
     },
     "noResults": "No results found.",
+    "searching": "Searching...",
     "headings": {
       "availableActions": "Available Actions",
-      "navigation": "Navigation"
+      "navigation": "Navigation",
+      "searchResults": "Search Results"
     },
     "actions": {
       "createDeposit": "Create Deposit",
@@ -255,7 +258,8 @@
           "createdOn": "Created on",
           "telegram": "Telegram",
           "status": "Status",
-          "customerType": "Type"
+          "customerType": "Type",
+          "publicId": "Public ID"
         },
         "status": {
           "active": "Active",

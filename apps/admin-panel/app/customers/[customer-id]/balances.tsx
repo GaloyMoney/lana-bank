@@ -11,10 +11,12 @@ type CustomerAccountBalancesProps = {
   balance: NonNullable<
     NonNullable<GetCustomerBasicDetailsQuery["customer"]>["depositAccount"]
   >["balance"]
+  publicId: string
 }
 
 export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = ({
   balance,
+  publicId,
 }) => {
   const t = useTranslations("Customers.CustomerDetails.accountBalances")
 
@@ -29,5 +31,12 @@ export const CustomerAccountBalances: React.FC<CustomerAccountBalancesProps> = (
     },
   ]
 
-  return <DetailsCard title={t("title")} details={details} className="w-full md:w-1/2" />
+  return (
+    <DetailsCard
+      title={t("title")}
+      details={details}
+      className="w-full md:w-1/2"
+      publicId={publicId}
+    />
+  )
 }

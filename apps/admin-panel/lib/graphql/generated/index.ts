@@ -2641,7 +2641,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, customerType: CustomerType, createdAt: any, depositAccount?: { __typename?: 'DepositAccount', id: string, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
 
 export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
@@ -3074,6 +3074,13 @@ export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never
 
 
 export type GetRealtimePriceUpdatesQuery = { __typename?: 'Query', realtimePrice: { __typename?: 'RealtimePrice', usdCentsPerBtc: UsdCents } };
+
+export type SearchPublicIdTargetQueryVariables = Exact<{
+  publicId: Scalars['PublicId']['input'];
+}>;
+
+
+export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?: { __typename: 'Customer', id: string, customerId: string, email: string } | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string } } | null };
 
 export const UsdBalanceFragmentFragmentDoc = gql`
     fragment UsdBalanceFragment on UsdLedgerAccountBalance {
@@ -4965,8 +4972,10 @@ export const GetCustomerBasicDetailsDocument = gql`
     level
     customerType
     createdAt
+    publicId
     depositAccount {
       id
+      publicId
       depositAccountId
       balance {
         settled
@@ -7806,3 +7815,56 @@ export type GetRealtimePriceUpdatesQueryHookResult = ReturnType<typeof useGetRea
 export type GetRealtimePriceUpdatesLazyQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesLazyQuery>;
 export type GetRealtimePriceUpdatesSuspenseQueryHookResult = ReturnType<typeof useGetRealtimePriceUpdatesSuspenseQuery>;
 export type GetRealtimePriceUpdatesQueryResult = Apollo.QueryResult<GetRealtimePriceUpdatesQuery, GetRealtimePriceUpdatesQueryVariables>;
+export const SearchPublicIdTargetDocument = gql`
+    query SearchPublicIdTarget($publicId: PublicId!) {
+  publicIdTarget(id: $publicId) {
+    __typename
+    ... on Customer {
+      id
+      customerId
+      email
+    }
+    ... on DepositAccount {
+      id
+      customer {
+        id
+        customerId
+        email
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useSearchPublicIdTargetQuery__
+ *
+ * To run a query within a React component, call `useSearchPublicIdTargetQuery` and pass it any options that fit your needs.
+ * When your component renders, `useSearchPublicIdTargetQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useSearchPublicIdTargetQuery({
+ *   variables: {
+ *      publicId: // value for 'publicId'
+ *   },
+ * });
+ */
+export function useSearchPublicIdTargetQuery(baseOptions: Apollo.QueryHookOptions<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables> & ({ variables: SearchPublicIdTargetQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>(SearchPublicIdTargetDocument, options);
+      }
+export function useSearchPublicIdTargetLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>(SearchPublicIdTargetDocument, options);
+        }
+export function useSearchPublicIdTargetSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>(SearchPublicIdTargetDocument, options);
+        }
+export type SearchPublicIdTargetQueryHookResult = ReturnType<typeof useSearchPublicIdTargetQuery>;
+export type SearchPublicIdTargetLazyQueryHookResult = ReturnType<typeof useSearchPublicIdTargetLazyQuery>;
+export type SearchPublicIdTargetSuspenseQueryHookResult = ReturnType<typeof useSearchPublicIdTargetSuspenseQuery>;
+export type SearchPublicIdTargetQueryResult = Apollo.QueryResult<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>;
