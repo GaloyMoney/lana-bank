@@ -30,7 +30,6 @@
         (self: super: {
           python311Packages = super.python311Packages // {
             fasteners   = super.python311Packages.fasteners  .overridePythonAttrs (_: { doCheck = false; });
-            portalocker = super.python311Packages.portalocker.overridePythonAttrs (_: { doCheck = false; });
           };
         })
       ];
