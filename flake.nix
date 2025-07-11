@@ -28,8 +28,16 @@
         })
         (import rust-overlay)
         (self: super: {
-          python311Packages = super.python311Packages // {
-            fasteners   = super.python311Packages.fasteners  .overridePythonAttrs (_: { doCheck = false; });
+          python311 = super.python311.override {
+            packageOverrides = pySelf: pySuper: let
+              disableTests = pkg: pkg.overrideAttrs (_: {
+                doCheck        = false;
+                doInstallCheck = false;
+              });
+            in {
+              fasteners   = disableTests pySuper.fasteners;
+              portalocker = disableTests pySuper.portalocker;
+            };
           };
         })
       ];
