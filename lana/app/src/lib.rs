@@ -53,8 +53,8 @@ pub mod access {
 
 pub mod customer {
     pub use core_customer::{
-        AccountStatus, Customer, CustomerDocumentId, CustomerId, CustomerType, CustomersCursor,
-        CustomersSortBy, FindManyCustomers, KycLevel, Sort, error,
+        AccountStatus, CUSTOMER_REF_TARGET, Customer, CustomerDocumentId, CustomerId, CustomerType,
+        CustomersCursor, CustomersSortBy, FindManyCustomers, KycLevel, Sort, error,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
