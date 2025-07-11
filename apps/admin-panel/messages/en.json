@@ -107,7 +107,6 @@
   "Sidebar": {
     "labels": {
       "loans": "Loans",
-      "customers": "Customers",
       "transactions": "Transactions",
       "administration": "Administration",
       "financialReports": "Financial Reports",
@@ -135,7 +134,8 @@
       "trialBalance": "Trial Balance",
       "modules": "Modules",
       "transactionTemplates": "Transaction Templates",
-      "rolesAndPermissions": "Roles & Permissions"
+      "rolesAndPermissions": "Roles & Permissions",
+      "custodians": "Custodians"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -170,6 +170,7 @@
       "updateTermsTemplate": "Update Terms Template",
       "createTermsTemplate": "Create Terms Template",
       "createCommittee": "Create Committee",
+      "createCustodian": "Add Custodian",
       "confirmWithdrawal": "Confirm Withdrawal",
       "cancelWithdrawal": "Cancel Withdrawal",
       "assignCommittee": "Assign Committee",
@@ -964,6 +965,39 @@
       }
     }
   },
+  "Custodians": {
+    "title": "Custodians",
+    "description": "Manage digital asset custody providers and their secure configurations",
+    "table": {
+      "headers": {
+        "name": "Name",
+        "created": "Created"
+      }
+    },
+    "create": {
+      "title": "Add New Custodian",
+      "description": "Add a new custodian service provider to manage digital assets",
+      "fields": {
+        "type": "Provider Type",
+        "name": "Display Name",
+        "apiKey": "API Key",
+        "apiSecret": "API Secret",
+        "secretKey": "Secret Key",
+        "testingInstance": "Use Testing Environment"
+      },
+      "placeholders": {
+        "selectType": "Select a provider type",
+        "name": "Enter a display name for this custodian",
+        "apiKey": "Enter your API key",
+        "apiSecret": "Enter your API secret",
+        "secretKey": "Enter your secret key"
+      },
+      "buttons": {
+        "create": "Add Custodian"
+      },
+      "success": "Custodian added successfully"
+    }
+  },
   "Deposits": {
     "title": "Deposits",
     "description": "Sums of money added from credit facilities into customer's accounts",
@@ -1420,6 +1454,7 @@
       "user": "User",
       "termsTemplate": "Terms Template",
       "committee": "Committee",
+      "custodian": "Add Custodian",
       "executeManualTransaction": "Execute Manual Transaction",
       "role": "Role"
     }

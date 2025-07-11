@@ -33,6 +33,7 @@ import { CreateTermsTemplateDialog } from "./terms-templates/create"
 import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
+import { CreateCustodianDialog } from "./custodians/create"
 
 import {
   CreditFacility,
@@ -64,6 +65,8 @@ export const PATH_CONFIGS = {
   WITHDRAWAL_DETAILS: /^\/withdrawals\/[^/]+/,
   POLICY_DETAILS: /^\/policies\/[^/]+/,
   DISBURSAL_DETAILS: /^\/disbursals\/[^/]+/,
+
+  CUSTODIANS: "/custodians",
 
   JOURNAL: "/journal",
 
@@ -117,6 +120,7 @@ const CreateButton = () => {
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
+  const [openCreateCustodianDialog, setOpenCreateCustodianDialog] = useState(false)
   const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
@@ -217,6 +221,12 @@ const CreateButton = () => {
       onClick: () => setOpenCreateCommitteeDialog(true),
       dataTestId: "create-committee-button",
       allowedPaths: [PATH_CONFIGS.COMMITTEES, PATH_CONFIGS.COMMITTEE_DETAILS],
+    },
+    {
+      label: t("menuItems.custodian"),
+      onClick: () => setOpenCreateCustodianDialog(true),
+      dataTestId: "create-custodian-button",
+      allowedPaths: [PATH_CONFIGS.CUSTODIANS],
     },
     {
       label: t("menuItems.executeManualTransaction"),
@@ -325,6 +335,11 @@ const CreateButton = () => {
       <CreateCommitteeDialog
         openCreateCommitteeDialog={openCreateCommitteeDialog}
         setOpenCreateCommitteeDialog={setOpenCreateCommitteeDialog}
+      />
+
+      <CreateCustodianDialog
+        openCreateCustodianDialog={openCreateCustodianDialog}
+        setOpenCreateCustodianDialog={setOpenCreateCustodianDialog}
       />
 
       <ExecuteManualTransactionDialog

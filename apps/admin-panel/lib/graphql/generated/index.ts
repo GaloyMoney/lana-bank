@@ -2562,6 +2562,23 @@ export type CreditFacilityPartialPaymentMutationVariables = Exact<{
 
 export type CreditFacilityPartialPaymentMutation = { __typename?: 'Mutation', creditFacilityPartialPayment: { __typename?: 'CreditFacilityPartialPaymentPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, collateralToMatchInitialCvl?: Satoshis | null, subjectCanUpdateCollateral: boolean, subjectCanInitiateDisbursal: boolean, subjectCanRecordPayment: boolean, subjectCanComplete: boolean, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, email: string }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, subjectCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } } };
 
+export type CustodianCreateMutationVariables = Exact<{
+  input: CustodianCreateInput;
+}>;
+
+
+export type CustodianCreateMutation = { __typename?: 'Mutation', custodianCreate: { __typename?: 'CustodianCreatePayload', custodian: { __typename?: 'Custodian', id: string, custodianId: string, name: string, createdAt: any } } };
+
+export type CustodianFieldsFragment = { __typename?: 'Custodian', id: string, custodianId: string, createdAt: any, name: string };
+
+export type CustodiansQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type CustodiansQuery = { __typename?: 'Query', custodians: { __typename?: 'CustodianConnection', edges: Array<{ __typename?: 'CustodianEdge', cursor: string, node: { __typename?: 'Custodian', id: string, custodianId: string, createdAt: any, name: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
 export type GetCustomerCreditFacilitiesQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -3379,6 +3396,14 @@ export const RepaymentOnFacilityPageFragmentDoc = gql`
   outstanding
   accrualAt
   dueAt
+}
+    `;
+export const CustodianFieldsFragmentDoc = gql`
+    fragment CustodianFields on Custodian {
+  id
+  custodianId
+  createdAt
+  name
 }
     `;
 export const DepositFieldsFragmentDoc = gql`
@@ -4546,6 +4571,96 @@ export function useCreditFacilityPartialPaymentMutation(baseOptions?: Apollo.Mut
 export type CreditFacilityPartialPaymentMutationHookResult = ReturnType<typeof useCreditFacilityPartialPaymentMutation>;
 export type CreditFacilityPartialPaymentMutationResult = Apollo.MutationResult<CreditFacilityPartialPaymentMutation>;
 export type CreditFacilityPartialPaymentMutationOptions = Apollo.BaseMutationOptions<CreditFacilityPartialPaymentMutation, CreditFacilityPartialPaymentMutationVariables>;
+export const CustodianCreateDocument = gql`
+    mutation CustodianCreate($input: CustodianCreateInput!) {
+  custodianCreate(input: $input) {
+    custodian {
+      id
+      custodianId
+      name
+      createdAt
+    }
+  }
+}
+    `;
+export type CustodianCreateMutationFn = Apollo.MutationFunction<CustodianCreateMutation, CustodianCreateMutationVariables>;
+
+/**
+ * __useCustodianCreateMutation__
+ *
+ * To run a mutation, you first call `useCustodianCreateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useCustodianCreateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [custodianCreateMutation, { data, loading, error }] = useCustodianCreateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useCustodianCreateMutation(baseOptions?: Apollo.MutationHookOptions<CustodianCreateMutation, CustodianCreateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<CustodianCreateMutation, CustodianCreateMutationVariables>(CustodianCreateDocument, options);
+      }
+export type CustodianCreateMutationHookResult = ReturnType<typeof useCustodianCreateMutation>;
+export type CustodianCreateMutationResult = Apollo.MutationResult<CustodianCreateMutation>;
+export type CustodianCreateMutationOptions = Apollo.BaseMutationOptions<CustodianCreateMutation, CustodianCreateMutationVariables>;
+export const CustodiansDocument = gql`
+    query Custodians($first: Int!, $after: String) {
+  custodians(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        ...CustodianFields
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    ${CustodianFieldsFragmentDoc}`;
+
+/**
+ * __useCustodiansQuery__
+ *
+ * To run a query within a React component, call `useCustodiansQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCustodiansQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCustodiansQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useCustodiansQuery(baseOptions: Apollo.QueryHookOptions<CustodiansQuery, CustodiansQueryVariables> & ({ variables: CustodiansQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CustodiansQuery, CustodiansQueryVariables>(CustodiansDocument, options);
+      }
+export function useCustodiansLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CustodiansQuery, CustodiansQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CustodiansQuery, CustodiansQueryVariables>(CustodiansDocument, options);
+        }
+export function useCustodiansSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CustodiansQuery, CustodiansQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CustodiansQuery, CustodiansQueryVariables>(CustodiansDocument, options);
+        }
+export type CustodiansQueryHookResult = ReturnType<typeof useCustodiansQuery>;
+export type CustodiansLazyQueryHookResult = ReturnType<typeof useCustodiansLazyQuery>;
+export type CustodiansSuspenseQueryHookResult = ReturnType<typeof useCustodiansSuspenseQuery>;
+export type CustodiansQueryResult = Apollo.QueryResult<CustodiansQuery, CustodiansQueryVariables>;
 export const GetCustomerCreditFacilitiesDocument = gql`
     query GetCustomerCreditFacilities($id: UUID!) {
   customer(id: $id) {

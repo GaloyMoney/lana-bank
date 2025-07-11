@@ -22,6 +22,7 @@ import {
   ScrollIcon,
   SquareAsterisk,
   ShieldAlert,
+  Building,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -33,16 +34,13 @@ export function useNavItems() {
   const navDashboardItems: NavItem[] = [
     { title: t("dashboard"), url: "/dashboard", icon: Home },
     { title: t("actions"), url: "/actions", icon: TriangleAlert },
+    { title: t("customers"), url: "/customers", icon: Users },
   ]
 
   const navLoansItems: NavItem[] = [
     { title: t("creditFacilities"), url: "/credit-facilities", icon: Grid2x2 },
     { title: t("disbursals"), url: "/disbursals", icon: ClipboardList },
     { title: t("termTemplates"), url: "/terms-templates", icon: LayoutTemplate },
-  ]
-
-  const navCustomersItems: NavItem[] = [
-    { title: t("customers"), url: "/customers", icon: Users },
   ]
 
   const navTransactionItems: NavItem[] = [
@@ -54,6 +52,7 @@ export function useNavItems() {
     { title: t("auditLogs"), url: "/audit", icon: BookText },
     { title: t("users"), url: "/users", icon: UserCircle },
     { title: t("rolesAndPermissions"), url: "/roles-and-permissions", icon: ShieldAlert },
+    { title: t("custodians"), url: "/custodians", icon: Building },
   ]
 
   const navFinanceItems: NavItem[] = [
@@ -86,7 +85,6 @@ export function useNavItems() {
   const allNavItems: NavItem[] = [
     ...navDashboardItems,
     ...navLoansItems,
-    ...navCustomersItems,
     ...navTransactionItems,
     ...navAdminItems,
     ...navFinanceItems,
@@ -106,7 +104,6 @@ export function useNavItems() {
   return {
     navDashboardItems,
     navLoansItems,
-    navCustomersItems,
     navTransactionItems,
     navAdminItems,
     navFinanceItems,

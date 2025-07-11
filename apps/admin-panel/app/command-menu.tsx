@@ -88,7 +88,6 @@ const CommandMenu = () => {
   const {
     navDashboardItems,
     navLoansItems,
-    navCustomersItems,
     navTransactionItems,
     navAdminItems,
     navFinanceItems,
@@ -98,7 +97,6 @@ const CommandMenu = () => {
   const allNavItems = [
     ...navDashboardItems,
     ...navLoansItems,
-    ...navCustomersItems,
     ...navTransactionItems,
     ...navAdminItems,
     ...navFinanceItems,

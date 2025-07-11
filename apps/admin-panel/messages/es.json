@@ -135,7 +135,8 @@
       "trialBalance": "Balance de Comprobación",
       "modules": "Módulos",
       "transactionTemplates": "Plantillas de transacciones",
-      "rolesAndPermissions": "Roles y permisos"
+      "rolesAndPermissions": "Roles y permisos",
+      "custodians": "Custodios"
     },
     "footer": {
       "appName": "Lana Bank",
@@ -170,6 +171,7 @@
       "updateTermsTemplate": "Actualizar Plantilla de Términos",
       "createTermsTemplate": "Crear Plantilla de Términos",
       "createCommittee": "Crear Comité",
+      "createCustodian": "Agregar Custodio",
       "confirmWithdrawal": "Confirmar Retiro",
       "cancelWithdrawal": "Cancelar Retiro",
       "assignCommittee": "Asignar Comité",
@@ -964,6 +966,42 @@
       }
     }
   },
+  "Custodians": {
+    "title": "Custodios",
+    "description": "Gestionar proveedores de custodia de activos digitales y sus configuraciones seguras",
+    "table": {
+      "headers": {
+        "name": "Nombre",
+        "created": "Creado"
+      }
+    },
+    "create": {
+      "title": "Agregar Nuevo Custodio",
+      "description": "Agregar un nuevo proveedor de servicios de custodia para gestionar activos digitales",
+      "fields": {
+        "type": "Tipo de Proveedor",
+        "name": "Nombre de Visualización",
+        "apiKey": "Clave API",
+        "apiSecret": "Secreto API",
+        "secretKey": "Clave Secreta",
+        "testingInstance": "Usar Entorno de Pruebas"
+      },
+      "placeholders": {
+        "selectType": "Seleccione un tipo de proveedor",
+        "name": "Ingrese un nombre de visualización para este custodio",
+        "apiKey": "Ingrese su clave API",
+        "apiSecret": "Ingrese su secreto API",
+        "secretKey": "Ingrese su clave secreta"
+      },
+      "buttons": {
+        "create": "Agregar Custodio"
+      },
+      "success": "Custodio agregado exitosamente",
+      "errors": {
+        "failed": "Error al agregar el custodio. Por favor intente de nuevo."
+      }
+    }
+  },
   "Deposits": {
     "title": "Depósitos",
     "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
@@ -1420,6 +1458,7 @@
       "user": "Usuario",
       "termsTemplate": "Plantilla de Términos",
       "committee": "Comité",
+      "custodian": "Agregar Custodio",
       "executeManualTransaction": "Ejecutar transacción manual",
       "role": "Rol"
     }

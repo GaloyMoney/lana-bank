@@ -63,7 +63,6 @@ checksums:
     period/days: 47648cd60fc313bc3f05b70357a1d675
     period/months: ae7bef950efc406ff0980affabc1a64c
     Sidebar/labels/loans: 799b76634ee27191b9e0072482c2a6b9
-    Sidebar/labels/customers: c31a0dfd0d92496ba6f5673781db24ef
     Sidebar/labels/transactions: 59973447457c6bd57c161d594f551651
     Sidebar/labels/administration: 2ac17b11fbfddf3617b3754acc55534c
     Sidebar/labels/financialReports: 9f792b4e335ba13d378e7b3d95c71b90
@@ -90,6 +89,7 @@ checksums:
     Sidebar/navItems/modules: 9472210741c31f0ecba26e8590af62ea
     Sidebar/navItems/transactionTemplates: cdfe1e063b21076f6b5dc06d5c6cce33
     Sidebar/navItems/rolesAndPermissions: 766190959c36bdfa5506b087f190707d
+    Sidebar/navItems/custodians: c69cf14ea7b8332077f570c0c8b06585
     Sidebar/footer/appName: 7dfeb06f156f842109c07f26a73cb311
     Sidebar/footer/version: d640a8609bd8374f70e40f862250cb70
     UserBlock/settings: 8df6777277469c1fd88cc18dde2f1cc3
@@ -112,6 +112,7 @@ checksums:
     CommandMenu/actions/updateTermsTemplate: e178deec50459ee7064705367dc1da1c
     CommandMenu/actions/createTermsTemplate: 51fc4806b6fea86ef2d73e2e4ac897bc
     CommandMenu/actions/createCommittee: 061eaa5152ceb07002a0ab2aea9ef97c
+    CommandMenu/actions/createCustodian: a8e359b8fcfb691a7c1bf2eb7129938b
     CommandMenu/actions/confirmWithdrawal: b5fd79d4027b04747c948604bade9bce
     CommandMenu/actions/cancelWithdrawal: 5d7810a76ec776c311099bb1ea2e2db2
     CommandMenu/actions/assignCommittee: d0c985e17d986b2d6798b4edd89c5d14
@@ -348,6 +349,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/dialog/title: 2955e8fe529e8a803b6a271ef5f4a90d
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/dialog/description: ca7b458d59d325b96d2160052515db06
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/custodian: 3f479171d178f75a92b6f2349be450d8
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/termsTemplate: 21fcfdd286d7253fb4818bd0db3b12db
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/creditFacilityTerms: 981094b2d79c6d9ac74c17b56fec30f1
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/interestRate: d4a1febd63ce7963b18c16a27824ce95
@@ -358,6 +360,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/labels/structuringFeeRate: 7242ef1273e70c16c9cfa50a847e292f
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/facilityAmount: 3f06a0124b2929e2ec4d3d7eff4a42a6
+    CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/custodian: 786b25d289df7fdd856a3510d4d54d9a
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/termsTemplate: 287c659be5bb36ec26ba953e5fc6af0c
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/annualRate: b6b7d2eb8e45df6544d97bafff21b4ea
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/form/placeholders/initialCvl: a998ba9d61091370aa7189476c74a7d9
@@ -552,6 +555,25 @@ checksums:
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/selectUser: 2d82432bdbb741aa5fda16a49827c9ae
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/failed: 5569b14914bbbd72c5fb0bc04a64479e
     Committees/CommitteeDetails/AddUserCommitteeDialog/errors/general: dd9aef0a9c3638442bc8f6151feb33d6
+    Custodians/title: c69cf14ea7b8332077f570c0c8b06585
+    Custodians/description: c7e65e4c5a9ff87a593856f3a1cbb713
+    Custodians/table/headers/name: 9368b5a047572b6051f334af5aa76819
+    Custodians/table/headers/created: 6045b4ff97fb7dca19ebadfa2e34a700
+    Custodians/create/title: e3d5cb402056e75b9ec8c7c433d1a525
+    Custodians/create/description: 678856d71938585c8d723a87f1f309e1
+    Custodians/create/fields/type: 7849722fb81a2891eba3a2678135d314
+    Custodians/create/fields/name: 5b5f99a8bf61d1b1c5a0383feb909fae
+    Custodians/create/fields/apiKey: ce825fec5b3e1f8e27c45b1a63619985
+    Custodians/create/fields/apiSecret: 2389c3c60f6a5e14d7dac4de596a30a1
+    Custodians/create/fields/secretKey: cf7d6cd9a5f099133e76d0400150d919
+    Custodians/create/fields/testingInstance: 45ba24fdcad1a9047ae34f0c91d66f70
+    Custodians/create/placeholders/selectType: 9d995b61d345d6a04ae2ea7ee95d2a2c
+    Custodians/create/placeholders/name: a31fc77b55b9d702289a720b1ad5e594
+    Custodians/create/placeholders/apiKey: cf3406112804cb6e464e4bfe29694785
+    Custodians/create/placeholders/apiSecret: 8a6d75b941ab25c70e9d431bbcacf147
+    Custodians/create/placeholders/secretKey: 5f5ba076004497d81cb47a907c3c4cf3
+    Custodians/create/buttons/create: a8e359b8fcfb691a7c1bf2eb7129938b
+    Custodians/create/success: a6348d2405bc7dfa8597367278236a8b
     Deposits/title: 9518ad41e01682ba217001a93932bc1c
     Deposits/description: 574e2918e4528209b7d3f987da3d5964
     Deposits/table/headers/depositId: c8886d38aeea2ed5f785aba4fc96784b
@@ -806,6 +828,7 @@ checksums:
     CreateButton/menuItems/user: 61073457a5c3901084b557d065f876be
     CreateButton/menuItems/termsTemplate: 21fcfdd286d7253fb4818bd0db3b12db
     CreateButton/menuItems/committee: d856e06fc77be0f7b3611d671e3dd0ec
+    CreateButton/menuItems/custodian: a8e359b8fcfb691a7c1bf2eb7129938b
     CreateButton/menuItems/executeManualTransaction: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     CreateButton/menuItems/role: 53743bbb6ca938f5b893552e839d067f
     DataTable/view: 36a9b5e3dc153c036d320460d72a03c3
