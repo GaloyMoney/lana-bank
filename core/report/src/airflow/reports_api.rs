@@ -60,8 +60,16 @@ impl ReportsApiClient {
     }
 
     #[tracing::instrument(name = "reports_api.get_report_dates", skip(self))]
-    pub async fn get_report_dates(&self) -> Result<Vec<NaiveDate>, ReportError> {
-        let url = format!("{}/api/v1/reports/dates", self.base_url);
+    pub async fn get_report_dates(
+        &self,
+        after: Option<NaiveDate>,
+    ) -> Result<Vec<NaiveDate>, ReportError> {
+        let mut url = format!("{}/api/v1/reports/dates", self.base_url);
+
+        if let Some(after_date) = after {
+            let after_str = after_date.format("%Y-%m-%d").to_string();
+            url = format!("{url}?after={after_str}");
+        }
 
         let response = self.client.get(&url).send().await?;
 
