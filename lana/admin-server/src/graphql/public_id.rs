@@ -1,9 +1,6 @@
-use std::sync::Arc;
+use async_graphql::Union;
 
-use async_graphql::{ComplexObject, Context, ID, Result, SimpleObject, Union};
-
-use crate::{graphql::customer::Customer, primitives::*};
-use lana_app::public_id::{PublicId as PublicIdScalar, PublicIdEntity};
+use crate::graphql::customer::Customer;
 
 #[derive(Union)]
 pub enum PublicIdTarget {
