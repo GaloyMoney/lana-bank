@@ -4,7 +4,7 @@ use authz::dummy::DummySubject;
 use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use chrono::Utc;
 use cloud_storage::{Storage, config::StorageConfig};
-use document_storage::DocumentStorage;
+use core_document_storage::DocumentStorage;
 use job::{JobExecutorConfig, Jobs};
 
 use core_accounting::*;

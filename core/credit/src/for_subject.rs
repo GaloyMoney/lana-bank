@@ -1,7 +1,7 @@
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use core_governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;

@@ -16,7 +16,7 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
 };
-use governance::GovernanceEvent;
+use core_governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct CustomerSync<Perms, E>

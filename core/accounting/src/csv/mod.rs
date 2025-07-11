@@ -8,7 +8,7 @@ use tracing::instrument;
 use ::job::JobId;
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use document_storage::{
+use core_document_storage::{
     Document, DocumentId, DocumentStorage, DocumentType, GeneratedDocumentDownloadLink, ReferenceId,
 };
 

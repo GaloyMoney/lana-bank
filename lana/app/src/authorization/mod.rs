@@ -9,7 +9,7 @@ use core_accounting::{CoreAccountingAction, CoreAccountingObject};
 use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 use core_deposit::{CoreDepositAction, CoreDepositObject};
-use governance::{GovernanceAction, GovernanceObject};
+use core_governance::{GovernanceAction, GovernanceObject};
 pub use rbac_types::{AppAction as Action, AppObject as Object, *};
 
 pub type Authorization = authz::Authorization<Audit, core_access::AuthRoleToken>;

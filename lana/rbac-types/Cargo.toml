@@ -15,7 +15,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 [dependencies]
 dashboard = { path = "../dashboard" }
 
-governance = { path = "../../core/governance" }
+core-governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
 core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }

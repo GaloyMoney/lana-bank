@@ -10,7 +10,7 @@ use core_custody::CoreCustodyObject;
 use core_customer::{CustomerId, CustomerObject};
 use core_deposit::CoreDepositObject;
 use dashboard::DashboardModuleObject;
-use governance::GovernanceObject;
+use core_governance::GovernanceObject;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

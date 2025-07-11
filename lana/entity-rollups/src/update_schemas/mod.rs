@@ -13,8 +13,8 @@ use core_credit::event_schema::{
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
 use core_deposit::event_schema::{DepositAccountEvent, DepositEvent, WithdrawalEvent};
-use document_storage::event_schema::DocumentEvent;
-use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
+use core_document_storage::event_schema::DocumentEvent;
+use core_governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
 pub use json_schema::{SchemaChangeInfo, detect_schema_changes, process_schemas_with_changes};

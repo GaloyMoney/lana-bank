@@ -1091,9 +1091,9 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
+ "core-governance",
  "derive_builder",
  "es-entity",
- "governance",
  "outbox",
  "schemars 1.0.4",
  "serde",
@@ -1117,10 +1117,10 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
+ "core-document-storage",
  "core-money",
  "csv",
  "derive_builder",
- "document-storage",
  "es-entity",
  "job",
  "rand 0.9.1",
@@ -1152,16 +1152,16 @@ dependencies = [
  "core-accounting",
  "core-custody",
  "core-customer",
+ "core-document-storage",
+ "core-governance",
  "core-money",
  "core-price",
+ "core-public-id",
  "derive_builder",
- "document-storage",
  "es-entity",
  "futures",
- "governance",
  "job",
  "outbox",
- "public-id",
  "rand 0.9.1",
  "rust_decimal",
  "rust_decimal_macros",
@@ -1212,12 +1212,12 @@ dependencies = [
  "audit",
  "authz",
  "chrono",
+ "core-document-storage",
+ "core-governance",
+ "core-public-id",
  "derive_builder",
- "document-storage",
  "es-entity",
- "governance",
  "outbox",
- "public-id",
  "schemars 1.0.4",
  "serde",
  "sqlx",
@@ -1241,12 +1241,12 @@ dependencies = [
  "cloud-storage",
  "core-accounting",
  "core-customer",
+ "core-document-storage",
+ "core-governance",
  "core-money",
  "derive_builder",
- "document-storage",
  "es-entity",
  "futures",
- "governance",
  "job",
  "outbox",
  "rand 0.9.1",
@@ -1265,6 +1265,23 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-document-storage"
+version = "0.3.728-dev"
+dependencies = [
+ "async-graphql",
+ "audit",
+ "chrono",
+ "cloud-storage",
+ "derive_builder",
+ "es-entity",
+ "schemars 1.0.4",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.12",
+ "tracing",
+]
+
+[[package]]
 name = "core-foundation"
 version = "0.9.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1279,6 +1296,28 @@ name = "core-foundation-sys"
 version = "0.8.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
+
+[[package]]
+name = "core-governance"
+version = "0.3.728-dev"
+dependencies = [
+ "anyhow",
+ "async-graphql",
+ "audit",
+ "authz",
+ "chrono",
+ "derive_builder",
+ "es-entity",
+ "outbox",
+ "schemars 1.0.4",
+ "serde",
+ "sqlx",
+ "strum 0.27.1",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
+]
 
 [[package]]
 name = "core-money"
@@ -1307,6 +1346,20 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.12",
  "tokio",
+]
+
+[[package]]
+name = "core-public-id"
+version = "0.3.721-dev"
+dependencies = [
+ "async-graphql",
+ "derive_builder",
+ "es-entity",
+ "schemars 1.0.4",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.12",
+ "tracing",
 ]
 
 [[package]]
@@ -1440,8 +1493,8 @@ dependencies = [
  "authz",
  "core-customer",
  "core-deposit",
+ "core-governance",
  "futures",
- "governance",
  "job",
  "kratos-admin",
  "outbox",
@@ -1611,23 +1664,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "document-storage"
-version = "0.3.728-dev"
-dependencies = [
- "async-graphql",
- "audit",
- "chrono",
- "cloud-storage",
- "derive_builder",
- "es-entity",
- "schemars 1.0.4",
- "serde",
- "sqlx",
- "thiserror 2.0.12",
- "tracing",
-]
-
-[[package]]
 name = "dotenvy"
 version = "0.15.7"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -1730,8 +1766,8 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
- "document-storage",
- "governance",
+ "core-document-storage",
+ "core-governance",
  "handlebars",
  "schemars 1.0.4",
  "serde",
@@ -2193,28 +2229,6 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8f49c12ba8b21d128a2ce8585955246977fbce4415f680ebf9199b6f9d6d725f"
 dependencies = [
  "async-trait",
-]
-
-[[package]]
-name = "governance"
-version = "0.3.728-dev"
-dependencies = [
- "anyhow",
- "async-graphql",
- "audit",
- "authz",
- "chrono",
- "derive_builder",
- "es-entity",
- "outbox",
- "schemars 1.0.4",
- "serde",
- "sqlx",
- "strum 0.27.1",
- "thiserror 2.0.12",
- "tokio",
- "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -2881,17 +2895,18 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-document-storage",
+ "core-governance",
  "core-money",
  "core-price",
+ "core-public-id",
  "customer-sync",
  "dashboard",
  "derive_builder",
- "document-storage",
  "es-entity",
  "futures",
  "gcp-bigquery-client",
  "gcp_auth",
- "governance",
  "hex",
  "hmac",
  "job",
@@ -2899,7 +2914,6 @@ dependencies = [
  "lana-ids",
  "notification",
  "outbox",
- "public-id",
  "rand 0.9.1",
  "rbac-types",
  "reqwest",
@@ -2949,7 +2963,7 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
- "governance",
+ "core-governance",
  "outbox",
  "serde",
 ]
@@ -2959,8 +2973,8 @@ name = "lana-ids"
 version = "0.3.728-dev"
 dependencies = [
  "cala-ledger",
+ "core-governance",
  "es-entity",
- "governance",
  "job",
  "schemars 1.0.4",
  "serde",
@@ -3936,20 +3950,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "public-id"
-version = "0.3.721-dev"
-dependencies = [
- "async-graphql",
- "derive_builder",
- "es-entity",
- "schemars 1.0.4",
- "serde",
- "sqlx",
- "thiserror 2.0.12",
- "tracing",
-]
-
-[[package]]
 name = "pulldown-cmark"
 version = "0.12.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -4124,9 +4124,9 @@ dependencies = [
  "core-custody",
  "core-customer",
  "core-deposit",
+ "core-governance",
  "dashboard",
  "es-entity",
- "governance",
  "lana-ids",
  "schemars 1.0.4",
  "serde",

@@ -3,7 +3,7 @@ use futures::StreamExt;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
+use core_governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
 

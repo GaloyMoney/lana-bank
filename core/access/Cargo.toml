@@ -8,12 +8,12 @@ edition = "2024"
 
 default = ["governance"]
 fail-on-warnings = []
-graphql = ["es-entity/graphql", "governance/graphql"]
-governance = ["dep:governance"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "outbox/json-schema", "governance/json-schema"]
+graphql = ["es-entity/graphql", "core-governance/graphql"]
+governance = ["dep:core-governance"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "outbox/json-schema", "core-governance/json-schema"]
 
 [dependencies]
-governance = { path = "../governance", optional = true }
+core-governance = { path = "../governance", optional = true }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }

@@ -5,7 +5,7 @@ use cala_ledger::{CalaLedger, CalaLedgerConfig};
 use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use core_deposit::*;
-use document_storage::DocumentStorage;
+use core_document_storage::DocumentStorage;
 use helpers::{action, event, object};
 
 #[tokio::test]

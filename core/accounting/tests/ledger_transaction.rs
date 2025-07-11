@@ -2,7 +2,7 @@ mod helpers;
 
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
-use document_storage::DocumentStorage;
+use core_document_storage::DocumentStorage;
 use job::{JobExecutorConfig, Jobs};
 
 use cala_ledger::{CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit};

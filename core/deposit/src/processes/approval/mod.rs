@@ -1,13 +1,13 @@
 mod job;
 
 use authz::PermissionCheck;
-use governance::{
+use core_governance::{
     ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, GovernanceAction, GovernanceEvent,
     GovernanceObject,
 };
 
 use audit::AuditSvc;
-use governance::Governance;
+use core_governance::Governance;
 use outbox::OutboxEventMarker;
 
 use crate::{

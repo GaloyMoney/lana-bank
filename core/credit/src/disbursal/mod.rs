@@ -6,7 +6,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
+use core_governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
 use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};

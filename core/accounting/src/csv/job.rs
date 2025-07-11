@@ -3,7 +3,7 @@ use async_trait::async_trait;
 use authz::PermissionCheck;
 
 use audit::AuditSvc;
-use document_storage::{DocumentId, DocumentStorage};
+use core_document_storage::{DocumentId, DocumentStorage};
 use job::*;
 use serde::{Deserialize, Serialize};
 

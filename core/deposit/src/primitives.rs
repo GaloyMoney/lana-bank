@@ -4,7 +4,7 @@ use authz::{AllOrOne, action_description::*};
 
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
-pub use governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
+pub use core_governance::{ApprovalProcessId, GovernanceAction, GovernanceObject};
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, EntryId as CalaEntryId,

@@ -119,7 +119,7 @@ pub mod event {
 
     use core_customer::CoreCustomerEvent;
     use core_deposit::CoreDepositEvent;
-    use governance::GovernanceEvent;
+    use core_governance::GovernanceEvent;
 
     #[derive(Debug, Serialize, Deserialize)]
     #[serde(tag = "module")]
