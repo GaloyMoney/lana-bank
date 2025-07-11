@@ -1,14 +1,17 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-pub mod airflow;
-pub mod entity;
+mod airflow;
+mod entity;
 pub mod error;
-pub mod event;
-pub mod jobs;
-pub mod primitives;
-pub mod publisher;
-pub mod repo;
+mod event;
+mod jobs;
+mod primitives;
+mod publisher;
+mod repo;
+
+use publisher::*;
+use repo::*;
 
 use tracing::instrument;
 
@@ -17,14 +20,15 @@ use authz::PermissionCheck;
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
-pub use airflow::*;
-pub use entity::*;
-pub use error::*;
-pub use event::*;
-pub use jobs::*;
+use jobs::{SyncReportsJobConfig, SyncReportsJobInit};
+
+pub use airflow::{
+    AirflowConfig, DagRunStatusResponse, LastRun, ReportGenerateResponse, ReportsApiClient, RunType,
+};
+pub use entity::{Report, ReportEvent};
+pub use error::ReportError;
+pub use event::CoreReportEvent;
 pub use primitives::*;
-pub use publisher::ReportPublisher;
-pub use repo::ReportRepo;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -74,8 +78,8 @@ where
         let airflow_client = ReportsApiClient::new(airflow_config.clone());
 
         jobs.add_initializer_and_spawn_unique(
-            ReportDatesJobInit::new(airflow_client.clone()),
-            ReportDatesJobConfig,
+            SyncReportsJobInit::new(airflow_client.clone()),
+            SyncReportsJobConfig,
         )
         .await?;
 

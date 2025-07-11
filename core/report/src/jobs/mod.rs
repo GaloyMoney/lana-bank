@@ -1,3 +1,3 @@
-pub mod report_dates;
+pub mod sync_reports;
 
-pub use report_dates::*;
+pub use sync_reports::*;
