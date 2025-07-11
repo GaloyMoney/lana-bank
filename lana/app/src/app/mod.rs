@@ -80,7 +80,7 @@ impl LanaApp {
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
-        let reports = Reports::init(&pool, &authz, config.airflow, &outbox).await?;
+        let reports = Reports::init(&pool, &authz, config.airflow, &outbox, &jobs).await?;
         let price = Price::new();
         let storage = Storage::new(&config.storage);
         let documents = DocumentStorage::new(&pool, &storage);

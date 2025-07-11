@@ -1,6 +1,6 @@
 [package]
 name = "core-report"
-version = "0.3.715-dev"
+version = "0.3.728-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
@@ -14,6 +14,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "a
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
 
 es-entity = { workspace = true }
 strum = { workspace = true }
@@ -25,5 +26,6 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 reqwest = { workspace = true }
 tokio = { workspace = true }
+async-trait = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }

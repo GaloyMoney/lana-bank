@@ -1312,14 +1312,16 @@ dependencies = [
 
 [[package]]
 name = "core-report"
-version = "0.3.715-dev"
+version = "0.3.728-dev"
 dependencies = [
  "async-graphql",
+ "async-trait",
  "audit",
  "authz",
  "chrono",
  "derive_builder",
  "es-entity",
+ "job",
  "outbox",
  "reqwest",
  "schemars 1.0.4",
