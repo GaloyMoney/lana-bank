@@ -1421,6 +1421,7 @@ type Mutation {
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	reportGenerate: ReportGeneratePayload!
+	reportGenerateDownloadLink(reportId: UUID!): String!
 }
 
 scalar OneTimeFeeRatePct
@@ -1608,6 +1609,8 @@ type Query {
 	deposit(id: UUID!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
+	reportListAvailableDates: [Date!]!
+	reportsByDate(date: Date!, first: Int!, after: String): ReportConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
@@ -1648,6 +1651,42 @@ type Query {
 
 type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
+}
+
+type Report {
+	id: ID!
+	reportId: UUID!
+	date: Date!
+	pathInBucket: String!
+}
+
+type ReportConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ReportEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Report!]!
+}
+
+"""
+An edge in a connection.
+"""
+type ReportEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Report!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type ReportGeneratePayload {

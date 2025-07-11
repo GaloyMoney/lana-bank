@@ -16,14 +16,15 @@ use lana_app::{
     customer::CustomerDocumentId,
     deposit::error::CoreDepositError,
     governance::error::GovernanceError,
+    report::ReportError,
 };
 
 use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, policy::*, terms_template::*,
-    withdrawal::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, report::*,
+    terms_template::*, withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -401,6 +402,20 @@ impl Loader<AccountingCsvDocumentId> for LanaLoader {
             .csvs()
             .find_all_documents::<AccountingCsvDocument>(keys)
             .await
+            .map_err(Arc::new)
+    }
+}
+
+impl Loader<ReportId> for LanaLoader {
+    type Value = Report;
+    type Error = Arc<ReportError>;
+
+    async fn load(&self, keys: &[ReportId]) -> Result<HashMap<ReportId, Report>, Self::Error> {
+        self.app
+            .reports()
+            .find_all_reports(keys)
+            .await
+            .map(|reports| reports.into_iter().map(|(k, v)| (k, v.into())).collect())
             .map_err(Arc::new)
     }
 }

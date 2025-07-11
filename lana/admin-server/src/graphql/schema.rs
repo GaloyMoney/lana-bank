@@ -238,6 +238,35 @@ impl Query {
         )
     }
 
+    async fn report_list_available_dates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<Date>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let dates = app.reports().list_available_dates(sub).await?;
+        Ok(dates.into_iter().map(Date::from).collect())
+    }
+
+    async fn reports_by_date(
+        &self,
+        ctx: &Context<'_>,
+        date: Date,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<ReportsByCreatedAtCursor, Report, EmptyFields, EmptyFields>>
+    {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let date = date.into_inner();
+        list_with_cursor!(
+            ReportsByCreatedAtCursor,
+            Report,
+            ctx,
+            after,
+            first,
+            |query| app.reports().list_reports_by_date(sub, date, query)
+        )
+    }
+
     async fn terms_template(
         &self,
         ctx: &Context<'_>,
@@ -1941,5 +1970,15 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let response = app.reports().generate_todays_report(sub).await?;
         Ok(ReportGeneratePayload::from(response))
+    }
+
+    pub async fn report_generate_download_link(
+        &self,
+        ctx: &Context<'_>,
+        report_id: UUID,
+    ) -> async_graphql::Result<String> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let download_link = app.reports().generate_download_link(sub, report_id).await?;
+        Ok(download_link)
     }
 }
