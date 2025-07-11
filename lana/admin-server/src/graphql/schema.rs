@@ -860,6 +860,8 @@ impl Mutation {
     }
 
     #[cfg(feature = "sumsub-testing")]
+    /// ⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
+    /// This method is behind a compilation flag and should only be used in test environments.
     pub async fn sumsub_test_applicant_create(
         &self,
         ctx: &Context<'_>,
