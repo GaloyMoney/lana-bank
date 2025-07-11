@@ -9,6 +9,9 @@ use crate::{entity::*, error::*, event::*, primitives::*, publisher::*};
 #[es_repo(
     entity = "Report",
     err = "ReportError",
+    columns(
+        path_in_bucket(ty = "String"),
+    ),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

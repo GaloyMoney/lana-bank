@@ -116,39 +116,49 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
-    #[tracing::instrument(name = "sync_reports_job.run", skip(self, _current_job), err)]
+    #[tracing::instrument(name = "core_reports.sync_reports.run", skip(self, _current_job), err)]
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let dates = self.reports_api_client.get_report_dates().await?;
-        for date in &dates {
-            let reports = self.reports_api_client.get_reports_by_date(*date).await?;
-            for path_in_bucket in reports {
+        for date in self.reports_api_client.get_report_dates().await? {
+            for path in self.reports_api_client.get_reports_by_date(date).await? {
                 let report_id = ReportId::new();
+                let mut db = self.repo.begin_op().await?;
+
                 let audit_info = self
                     .authz
                     .audit()
-                    .record_system_entry(
+                    .record_system_entry_in_tx(
+                        db.tx(),
                         ReportObject::report(report_id),
                         CoreReportAction::REPORT_SYNC,
                     )
                     .await?;
 
-                let new_report = NewReport::builder()
-                    .id(report_id)
-                    .date(date.and_hms_opt(0, 0, 0).unwrap().and_utc())
-                    .path_in_bucket(path_in_bucket.clone())
-                    .audit_info(audit_info)
-                    .build()?;
-
-                self.repo.create(new_report).await?;
-
-                println!(
-                    "Synced report for date {}: {}",
-                    date.format("%Y-%m-%d"),
-                    path_in_bucket
-                );
+                match self
+                    .repo
+                    .create_in_op(
+                        &mut db,
+                        NewReport::builder()
+                            .id(report_id)
+                            .date(date.and_hms_opt(0, 0, 0).unwrap().and_utc())
+                            .path_in_bucket(path.clone())
+                            .audit_info(audit_info)
+                            .build()?,
+                    )
+                    .await
+                {
+                    Ok(_) => {
+                        db.commit().await?;
+                    }
+                    Err(e) if e.to_string().contains("duplicate key value violates unique constraint") => {
+                        // Ignore duplicate key constraint violations
+                    }
+                    Err(e) => {
+                        return Err(e.into());
+                    }
+                }
             }
         }
 

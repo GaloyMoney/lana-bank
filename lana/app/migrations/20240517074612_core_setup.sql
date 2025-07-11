@@ -398,6 +398,7 @@ CREATE TABLE core_document_events (
 
 CREATE TABLE core_reports (
   id UUID PRIMARY KEY,
+  path_in_bucket VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 
