@@ -2,25 +2,16 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AirflowConfig {
-    #[serde(default = "default_host")]
-    pub host: String,
-    #[serde(default = "default_port")]
-    pub port: u16,
+    #[serde(default = "default_uri")]
+    pub uri: String,
 }
 
 impl Default for AirflowConfig {
     fn default() -> Self {
-        Self {
-            host: default_host(),
-            port: default_port(),
-        }
+        Self { uri: default_uri() }
     }
 }
 
-fn default_host() -> String {
-    "localhost".to_string()
-}
-
-fn default_port() -> u16 {
-    8080
+fn default_uri() -> String {
+    "http://localhost:8080".to_string()
 }
