@@ -93,8 +93,8 @@ sdl-rust:
 
 # Cargo alternative for faster compilation during development
 sdl-rust-cargo:
-	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
-	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_sdl --features sumsub-testing > lana/admin-server/src/graphql/schema.graphql
+	SQLX_OFFLINE=true cargo run --bin write_customer_sdl --features sumsub-testing > lana/customer-server/src/graphql/schema.graphql
 
 sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
