@@ -38,10 +38,11 @@
 
               lib = super.lib;
 
-              disableTests = pkg: pkg.overrideAttrs (_: {
-                doCheck        = false;
-                doInstallCheck = false;
-              });
+              disableTests = pkg:
+                pkg.overrideAttrs (_: {
+                  doCheck = false;
+                  doInstallCheck = false;
+                });
             in
               lib.genAttrs pkgsToPatch (name: disableTests pySuper.${name});
           };
