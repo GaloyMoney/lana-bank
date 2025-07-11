@@ -1,3 +1,6 @@
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
 use rust_decimal::Decimal;
 use rust_decimal_macros::dec;
 use serde::{Deserialize, Serialize};
