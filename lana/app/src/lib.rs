@@ -15,8 +15,8 @@ pub mod storage {
 
 pub mod document {
     pub use document_storage::{
-        error, Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
-        DocumentsByCreatedAtCursor, GeneratedDocumentDownloadLink, NewDocument, ReferenceId,
+        Document, DocumentId, DocumentRepo, DocumentStatus, DocumentType,
+        DocumentsByCreatedAtCursor, GeneratedDocumentDownloadLink, NewDocument, ReferenceId, error,
     };
     pub type DocumentStorage = document_storage::DocumentStorage;
 }
@@ -46,15 +46,15 @@ pub mod rbac {
 }
 pub mod access {
     pub use core_access::{
-        config, error, permission_set, role, user, AuthenticationId, Role, RoleId, UserId,
+        AuthenticationId, Role, RoleId, UserId, config, error, permission_set, role, user,
     };
     pub type Access = core_access::CoreAccess<crate::audit::Audit, lana_events::LanaEvent>;
 }
 
 pub mod customer {
     pub use core_customer::{
-        error, AccountStatus, Customer, CustomerDocumentId, CustomerId, CustomerType,
-        CustomersCursor, CustomersSortBy, FindManyCustomers, KycLevel, Sort,
+        AccountStatus, Customer, CustomerDocumentId, CustomerId, CustomerType, CustomersCursor,
+        CustomersSortBy, FindManyCustomers, KycLevel, Sort, error,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
@@ -82,8 +82,8 @@ pub mod governance {
     pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
     pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
     pub use governance::{
-        approval_process_cursor, committee_cursor, error, policy_cursor, ApprovalProcess,
-        ApprovalProcessStatus, ApprovalProcessType, ApprovalRules, Committee, CommitteeId, Policy,
+        ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, ApprovalRules, Committee,
+        CommitteeId, Policy, approval_process_cursor, committee_cursor, error, policy_cursor,
     };
 }
 
@@ -93,17 +93,17 @@ pub mod audit {
         primitives::Subject,
     };
 
-    pub use audit::{error, AuditCursor, AuditEntryId, AuditInfo, AuditSvc};
+    pub use audit::{AuditCursor, AuditEntryId, AuditInfo, AuditSvc, error};
     pub type Audit = audit::Audit<Subject, LanaObject, LanaAction>;
     pub type AuditEntry = audit::AuditEntry<Subject, LanaObject, LanaAction>;
 }
 
 pub mod deposit {
     pub use core_deposit::{
-        error, ChartOfAccountsIntegrationConfig, CoreDepositEvent, Deposit, DepositAccount,
+        ChartOfAccountsIntegrationConfig, CoreDepositEvent, Deposit, DepositAccount,
         DepositAccountBalance, DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositId,
         DepositsByCreatedAtCursor, Withdrawal, WithdrawalId, WithdrawalStatus,
-        WithdrawalsByCreatedAtCursor,
+        WithdrawalsByCreatedAtCursor, error,
     };
 
     pub type Deposits =
@@ -112,10 +112,9 @@ pub mod deposit {
 
 pub mod accounting {
     pub use core_accounting::{
-        chart_of_accounts, csv, error, journal, ledger_account, ledger_transaction,
-        manual_transaction, transaction_templates, AccountCode, AccountCodeSection,
-        AccountingCsvId, CalaAccountId, ChartId, LedgerAccountId, TransactionTemplateId,
-        {tree, Chart},
+        AccountCode, AccountCodeSection, AccountingCsvId, CalaAccountId, ChartId, LedgerAccountId,
+        TransactionTemplateId, chart_of_accounts, csv, error, journal, ledger_account,
+        ledger_transaction, manual_transaction, transaction_templates, {Chart, tree},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;
@@ -140,22 +139,22 @@ pub mod trial_balance {
 }
 
 pub mod custody {
-    pub use core_custody::{custodian, error, CustodyConfig, CustodyPublisher, Wallet, WalletId};
+    pub use core_custody::{CustodyConfig, CustodyPublisher, Wallet, WalletId, custodian, error};
     pub type Custody =
         core_custody::CoreCustody<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod credit {
     pub use core_credit::{
-        error, terms_template_error, ChartOfAccountsIntegrationConfig, Collateral,
-        CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditConfig,
-        CreditFacilitiesCursor, CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
-        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry,
-        CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
-        DisbursalsSortBy, FacilityCVL, FindManyCreditFacilities, FindManyDisbursals,
-        IncrementalPayment, InterestAccrualsPosted, ListDirection, ObligationMovedToLiquidation,
-        Payment, PaymentAllocation, RepaymentStatus, Sort, TermsTemplate,
         APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
+        ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated, CollateralizationUpdated,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
+        CreditFacility, CreditFacilityApproved, CreditFacilityBalanceSummary,
+        CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
+        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
+        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
+        InterestAccrualsPosted, ListDirection, ObligationMovedToLiquidation, Payment,
+        PaymentAllocation, RepaymentStatus, Sort, TermsTemplate, error, terms_template_error,
     };
 
     pub type Credit =
@@ -170,5 +169,5 @@ pub mod terms {
 }
 
 pub mod public_id {
-    pub use public_id::{error, PublicId, PublicIdEntity, PublicIdTargetType, PublicIds};
+    pub use public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
 }

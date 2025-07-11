@@ -28,6 +28,7 @@ export type Scalars = {
   Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
+  PublicId: { input: any; output: any; }
   Satoshis: { input: Satoshis; output: Satoshis; }
   SignedSatoshis: { input: SignedSatoshis; output: SignedSatoshis; }
   SignedUsdCents: { input: SignedUsdCents; output: SignedUsdCents; }
@@ -803,7 +804,7 @@ export type Customer = {
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
   level: KycLevel;
-  publicRef: Scalars['String']['output'];
+  publicId: Scalars['PublicId']['output'];
   status: AccountStatus;
   subjectCanCreateCreditFacility: Scalars['Boolean']['output'];
   telegramId: Scalars['String']['output'];
@@ -1698,16 +1699,7 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
   profitAndLossConfig: ProfitAndLossStatementModuleConfig;
 };
 
-export type PublicRef = {
-  __typename?: 'PublicRef';
-  id: Scalars['ID']['output'];
-  reference: Scalars['String']['output'];
-  target?: Maybe<PublicRefTarget>;
-  targetId: Scalars['UUID']['output'];
-  targetType: Scalars['String']['output'];
-};
-
-export type PublicRefTarget = Customer;
+export type PublicIdTarget = Customer;
 
 export type Query = {
   __typename?: 'Query';
@@ -1745,7 +1737,7 @@ export type Query = {
   policy?: Maybe<Policy>;
   profitAndLossStatement: ProfitAndLossStatement;
   profitAndLossStatementConfig?: Maybe<ProfitAndLossStatementModuleConfig>;
-  publicRefLookup?: Maybe<PublicRef>;
+  publicIdTarget?: Maybe<PublicIdTarget>;
   realtimePrice: RealtimePrice;
   report?: Maybe<Report>;
   reports: Array<Report>;
@@ -1918,8 +1910,8 @@ export type QueryProfitAndLossStatementArgs = {
 };
 
 
-export type QueryPublicRefLookupArgs = {
-  reference: Scalars['String']['input'];
+export type QueryPublicIdTargetArgs = {
+  id: Scalars['PublicId']['input'];
 };
 
 

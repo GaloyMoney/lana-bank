@@ -62,14 +62,6 @@ impl PublicIds {
     pub async fn find_by_id(
         &self,
         id: impl Into<PublicId> + std::fmt::Debug,
-    ) -> Result<PublicIdEntity, PublicIdError> {
-        self.repo.find_by_id(id.into()).await
-    }
-
-    #[instrument(name = "public_id_service.find_by_id_optional", skip(self), err)]
-    pub async fn find_by_id_optional(
-        &self,
-        id: impl Into<PublicId> + std::fmt::Debug,
     ) -> Result<Option<PublicIdEntity>, PublicIdError> {
         match self.repo.find_by_id(id.into()).await {
             Ok(public_id) => Ok(Some(public_id)),

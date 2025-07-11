@@ -22,8 +22,8 @@ use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, policy::*,
-    terms_template::*, withdrawal::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, terms_template::*,
+    withdrawal::*,
 };
 
 #[derive(Debug, Clone, PartialEq, Eq, Hash)]
@@ -402,24 +402,5 @@ impl Loader<AccountingCsvDocumentId> for LanaLoader {
             .find_all_documents::<AccountingCsvDocument>(keys)
             .await
             .map_err(Arc::new)
-    }
-}
-
-impl Loader<lana_app::public_id::PublicId> for LanaLoader {
-    type Value = super::public_id::PublicId;
-    type Error = Arc<lana_app::public_id::error::PublicIdError>;
-
-    async fn load(&self, keys: &[lana_app::public_id::PublicId]) -> Result<HashMap<lana_app::public_id::PublicId, super::public_id::PublicId>, Self::Error> {
-        // Use find_all for efficient batch loading
-        let entities = self.app
-            .public_ids()
-            .find_all::<lana_app::public_id::PublicIdEntity>(keys)
-            .await
-            .map_err(Arc::new)?;
-            
-        Ok(entities
-            .into_iter()
-            .map(|(k, v)| (k, super::public_id::PublicId::from(v)))
-            .collect())
     }
 }

@@ -46,6 +46,10 @@ impl PublicIdTargetType {
     pub const fn new(target: &'static str) -> Self {
         PublicIdTargetType(Cow::Borrowed(target))
     }
+
+    pub fn as_str(&self) -> &str {
+        &self.0
+    }
 }
 
 impl std::fmt::Display for PublicIdTargetType {
