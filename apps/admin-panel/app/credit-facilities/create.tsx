@@ -30,6 +30,7 @@ import {
   useCreditFacilityCreateMutation,
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
+  useCustodiansQuery,
 } from "@/lib/graphql/generated"
 import { currencyConverter, calculateInitialCollateralRequired } from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
@@ -76,6 +77,7 @@ type CreateCreditFacilityDialogProps = {
 
 const initialFormValues = {
   facility: "0",
+  custodianId: "",
   annualRate: "",
   liquidationCvl: "",
   marginCallCvl: "",
@@ -109,6 +111,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
 
   const { data: termsTemplatesData, loading: termsTemplatesLoading } =
     useTermsTemplatesQuery()
+  const { data: custodiansData, loading: custodiansLoading } = useCustodiansQuery({
+    variables: { first: 50 },
+  })
   const [createCreditFacility, { loading, error, reset }] =
     useCreditFacilityCreateMutation({
       update: (cache) => {
@@ -179,6 +184,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     event.preventDefault()
     const {
       facility,
+      custodianId,
       annualRate,
       liquidationCvl,
       marginCallCvl,
@@ -207,6 +213,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             disbursalCreditAccountId,
             customerId,
             facility: currencyConverter.usdToCents(Number(facility)),
+            ...(custodianId && { custodianId }),
             terms: {
               annualRate: parseFloat(annualRate),
               accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
@@ -258,6 +265,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setSelectedTemplateId(latestTemplate.id)
       setFormValues({
         facility: "0",
+        custodianId: "",
         annualRate: latestTemplate.values.annualRate.toString(),
         liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
         marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
@@ -326,6 +334,27 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
               <div>)</div>
             </div>
           )}
+          <div>
+            <Label>{t("form.labels.custodian")}</Label>
+            <Select
+              value={formValues.custodianId}
+              onValueChange={(value) =>
+                setFormValues((prev) => ({ ...prev, custodianId: value }))
+              }
+              disabled={custodiansLoading}
+            >
+              <SelectTrigger>
+                <SelectValue placeholder={t("form.placeholders.custodian")} />
+              </SelectTrigger>
+              <SelectContent>
+                {custodiansData?.custodians.edges.map(({ node: custodian }) => (
+                  <SelectItem key={custodian.id} value={custodian.custodianId}>
+                    {custodian.name}
+                  </SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
           {useTemplateTerms && termsTemplatesData?.termsTemplates.length === 0 ? (
             <div className="text-sm mt-1">{t("form.messages.noTemplates")}</div>
           ) : (

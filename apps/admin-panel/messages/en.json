@@ -564,6 +564,7 @@
         "form": {
           "labels": {
             "facilityAmount": "Facility Amount",
+            "custodian": "Custodian",
             "termsTemplate": "Terms Template",
             "creditFacilityTerms": "Credit Facility Terms",
             "interestRate": "Nominal Interest Rate",
@@ -576,6 +577,7 @@
           },
           "placeholders": {
             "facilityAmount": "Enter the facility amount",
+            "custodian": "Select a custodian",
             "termsTemplate": "Select from predefined terms template",
             "annualRate": "Enter the annual rate",
             "initialCvl": "Enter the initial CVL",
@@ -978,15 +980,15 @@
       "title": "Add New Custodian",
       "description": "Add a new custodian service provider to manage digital assets",
       "fields": {
-        "type": "Provider Type",
-        "name": "Display Name",
+        "type": "Provider",
+        "name": "Name",
         "apiKey": "API Key",
         "apiSecret": "API Secret",
         "secretKey": "Secret Key",
         "testingInstance": "Use Testing Environment"
       },
       "placeholders": {
-        "selectType": "Select a provider type",
+        "selectType": "Select a Provider",
         "name": "Enter a display name for this custodian",
         "apiKey": "Enter your API key",
         "apiSecret": "Enter your API secret",

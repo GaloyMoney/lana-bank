@@ -107,7 +107,6 @@
   "Sidebar": {
     "labels": {
       "loans": "Préstamos",
-      "customers": "Clientes",
       "transactions": "Transacciones",
       "administration": "Administración",
       "financialReports": "Informes Financieros",
@@ -565,6 +564,7 @@
         "form": {
           "labels": {
             "facilityAmount": "Monto de Facilidad",
+            "custodian": "Custodio",
             "termsTemplate": "Plantilla de Términos",
             "creditFacilityTerms": "Términos de Línea de Crédito",
             "interestRate": "Tasa de interés nominal",
@@ -577,6 +577,7 @@
           },
           "placeholders": {
             "facilityAmount": "Ingrese el monto de la facilidad",
+            "custodian": "Seleccione un custodio",
             "termsTemplate": "Seleccione de la plantilla de términos predefinida",
             "annualRate": "Ingrese la tasa anual",
             "initialCvl": "Ingrese el CVL inicial",
@@ -996,10 +997,7 @@
       "buttons": {
         "create": "Agregar Custodio"
       },
-      "success": "Custodio agregado exitosamente",
-      "errors": {
-        "failed": "Error al agregar el custodio. Por favor intente de nuevo."
-      }
+      "success": "Custodio agregado exitosamente"
     }
   },
   "Deposits": {

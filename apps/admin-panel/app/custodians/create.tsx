@@ -154,7 +154,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
               onValueChange={(value: CustodianType) => setSelectedType(value)}
               disabled={loading}
             >
-              <SelectTrigger>
+              <SelectTrigger data-testid="custodian-type-select">
                 <SelectValue placeholder={t("placeholders.selectType")} />
               </SelectTrigger>
               <SelectContent>
@@ -177,6 +177,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   placeholder={t("placeholders.name")}
                   required
                   disabled={loading}
+                  data-testid="custodian-name-input"
                 />
               </div>
               <div>
@@ -191,6 +192,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   placeholder={t("placeholders.apiKey")}
                   required
                   disabled={loading}
+                  data-testid="custodian-api-key-input"
                 />
               </div>
               <div>
@@ -206,6 +208,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   placeholder={t("placeholders.apiSecret")}
                   required
                   disabled={loading}
+                  data-testid="custodian-api-secret-input"
                 />
               </div>
               <div>
@@ -221,6 +224,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   placeholder={t("placeholders.secretKey")}
                   required
                   disabled={loading}
+                  data-testid="custodian-secret-key-input"
                 />
               </div>
 
@@ -230,6 +234,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   checked={komainuConfig.testingInstance}
                   onCheckedChange={handleCheckboxChange}
                   disabled={loading}
+                  data-testid="custodian-testing-instance-checkbox"
                 />
                 <Label htmlFor="testingInstance">{t("fields.testingInstance")}</Label>
               </div>
@@ -242,10 +247,15 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
               variant="outline"
               onClick={closeDialog}
               loading={loading}
+              data-testid="custodian-create-cancel-button"
             >
               {tCommon("cancel")}
             </Button>
-            <Button type="submit" loading={loading}>
+            <Button
+              type="submit"
+              loading={loading}
+              data-testid="custodian-create-submit-button"
+            >
               {t("buttons.create")}
             </Button>
           </DialogFooter>
