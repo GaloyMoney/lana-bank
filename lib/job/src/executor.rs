@@ -13,8 +13,10 @@ use super::{
 pub(crate) struct JobExecutor {
     config: JobExecutorConfig,
     registry: Arc<RwLock<JobRegistry>>,
-    poller_handle: Option<Arc<tokio::task::JoinHandle<()>>>,
-    running_jobs: Arc<RwLock<HashMap<JobId, JobHandle>>>,
+    poll_handle: Option<Arc<OwnedTaskHandle>>,
+    keep_alive_handle: Option<Arc<OwnedTaskHandle>>,
+    listen_handle: Option<Arc<OwnedTaskHandle>>,
+    running_jobs: Arc<RwLock<HashMap<JobId, OwnedTaskHandle>>>,
     jobs: JobRepo,
 }
 
@@ -25,7 +27,9 @@ impl JobExecutor {
         jobs: &JobRepo,
     ) -> Self {
         Self {
-            poller_handle: None,
+            poll_handle: None,
+            keep_alive_handle: None,
+            listen_handle: None,
             config,
             registry,
             running_jobs: Arc::new(RwLock::new(HashMap::new())),
@@ -68,7 +72,7 @@ impl JobExecutor {
         Ok(())
     }
 
-    pub async fn start_poll(&mut self) -> Result<(), JobError> {
+    pub async fn start(&mut self) -> Result<(), JobError> {
         let poll_interval = self.config.poll_interval;
         let max_concurrency = self.config.max_jobs_per_process;
         let min_concurrency = self.config.min_jobs_per_process;
@@ -82,7 +86,7 @@ impl JobExecutor {
         let keep_alive_jobs = Arc::clone(&running_jobs);
         let keep_alive_repo = jobs.clone();
         let keep_alive_pg_interval = pg_interval;
-        tokio::spawn(async move {
+        let keep_alive_handle = tokio::spawn(async move {
             loop {
                 let _ = Self::keep_alive_jobs(
                     &keep_alive_jobs,
@@ -94,8 +98,9 @@ impl JobExecutor {
                 crate::time::sleep(poll_interval * 2).await;
             }
         });
+        self.keep_alive_handle = Some(Arc::new(OwnedTaskHandle(Some(keep_alive_handle))));
 
-        let handle = tokio::spawn(async move {
+        let poll_handle = tokio::spawn(async move {
             loop {
                 let _ = Self::poll_jobs(
                     &registry,
@@ -109,7 +114,7 @@ impl JobExecutor {
                 crate::time::sleep(poll_interval).await;
             }
         });
-        self.poller_handle = Some(Arc::new(handle));
+        self.poll_handle = Some(Arc::new(OwnedTaskHandle(Some(poll_handle))));
         Ok(())
     }
 
@@ -120,7 +125,7 @@ impl JobExecutor {
         err
     )]
     async fn keep_alive_jobs(
-        running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
+        running_jobs: &Arc<RwLock<HashMap<JobId, OwnedTaskHandle>>>,
         jobs: &JobRepo,
         pg_interval: PgInterval,
     ) -> Result<(), JobError> {
@@ -174,7 +179,7 @@ impl JobExecutor {
         max_concurrency: usize,
         min_concurrency: usize,
         pg_interval: PgInterval,
-        running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
+        running_jobs: &Arc<RwLock<HashMap<JobId, OwnedTaskHandle>>>,
         jobs: &JobRepo,
     ) -> Result<(), JobError> {
         let span = Span::current();
@@ -251,7 +256,7 @@ impl JobExecutor {
     )]
     async fn start_job(
         registry: &Arc<RwLock<JobRegistry>>,
-        running_jobs: &Arc<RwLock<HashMap<JobId, JobHandle>>>,
+        running_jobs: &Arc<RwLock<HashMap<JobId, OwnedTaskHandle>>>,
         job: Job,
         attempt: u32,
         job_payload: Option<serde_json::Value>,
@@ -299,7 +304,7 @@ impl JobExecutor {
         running_jobs
             .write()
             .await
-            .insert(id, JobHandle(Some(handle)));
+            .insert(id, OwnedTaskHandle(Some(handle)));
         Ok(())
     }
 
@@ -471,8 +476,8 @@ impl JobExecutor {
     }
 }
 
-struct JobHandle(Option<tokio::task::JoinHandle<()>>);
-impl Drop for JobHandle {
+struct OwnedTaskHandle(Option<tokio::task::JoinHandle<()>>);
+impl Drop for OwnedTaskHandle {
     fn drop(&mut self) {
         if let Some(handle) = self.0.take() {
             handle.abort();
