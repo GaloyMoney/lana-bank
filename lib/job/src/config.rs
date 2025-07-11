@@ -29,9 +29,9 @@ fn default_poll_interval() -> Duration {
 }
 
 fn default_max_jobs_per_process() -> usize {
-    20
+    50
 }
 
 fn default_min_jobs_per_process() -> usize {
-    15
+    25
 }
