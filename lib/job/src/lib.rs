@@ -15,7 +15,7 @@ pub mod error;
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
 use tokio::sync::RwLock;
-use tracing::instrument;
+use tracing::{Span, instrument};
 
 use std::sync::Arc;
 
@@ -85,13 +85,19 @@ impl Jobs {
         Ok(())
     }
 
-    #[instrument(name = "lana.jobs.create_and_spawn_in_op", skip(self, db, config))]
+    #[instrument(
+        name = "jobs.create_and_spawn_in_op",
+        skip(self, db, config),
+        fields(job_type)
+    )]
     pub async fn create_and_spawn_in_op<C: JobConfig>(
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: impl Into<JobId> + std::fmt::Debug,
         config: C,
     ) -> Result<Job, JobError> {
+        let job_type = <<C as JobConfig>::Initializer as JobInitializer>::job_type();
+        Span::current().record("job_type", tracing::field::display(&job_type));
         let new_job = NewJob::builder()
             .id(id.into())
             .job_type(<<C as JobConfig>::Initializer as JobInitializer>::job_type())
@@ -105,7 +111,11 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "lana.jobs.create_and_spawn_at_in_op", skip(self, db, config))]
+    #[instrument(
+        name = "jobs.create_and_spawn_at_in_op",
+        skip(self, db, config),
+        fields(job_type)
+    )]
     pub async fn create_and_spawn_at_in_op<C: JobConfig>(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -113,9 +123,11 @@ impl Jobs {
         config: C,
         schedule_at: DateTime<Utc>,
     ) -> Result<Job, JobError> {
+        let job_type = <<C as JobConfig>::Initializer as JobInitializer>::job_type();
+        Span::current().record("job_type", tracing::field::display(&job_type));
         let new_job = NewJob::builder()
             .id(id.into())
-            .job_type(<<C as JobConfig>::Initializer as JobInitializer>::job_type())
+            .job_type(job_type)
             .config(config)?
             .build()
             .expect("Could not build new job");

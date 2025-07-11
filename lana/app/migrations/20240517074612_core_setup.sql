@@ -449,6 +449,7 @@ CREATE TYPE JobExecutionState AS ENUM ('pending', 'running');
 
 CREATE TABLE job_executions (
   id UUID REFERENCES jobs(id) NOT NULL UNIQUE,
+  job_type VARCHAR NOT NULL,
   attempt_index INT NOT NULL DEFAULT 1,
   state JobExecutionState NOT NULL DEFAULT 'pending',
   execution_state_json JSONB,
