@@ -82,6 +82,11 @@
           pname = "lana-cli";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
+          # Set SOURCE_DATE_EPOCH to the last git commit timestamp (if available)
+          SOURCE_DATE_EPOCH =
+            if self ? lastModified
+            then toString self.lastModified
+            else "315532800";
           cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian";
         };
 
@@ -121,6 +126,11 @@
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
           CARGO_BUILD_TARGET = rustTarget;
+          # Set SOURCE_DATE_EPOCH to the last git commit timestamp (if available)
+          SOURCE_DATE_EPOCH =
+            if self ? lastModified
+            then toString self.lastModified
+            else "315532800";
           cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
 
           # Add musl target for static linking

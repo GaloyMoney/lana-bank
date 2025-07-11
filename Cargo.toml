@@ -138,9 +138,5 @@ tempfile = "3.10.0"
 p256 = "0.13.2"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 
-# Note: The workspace uses resolver = "2" which should unify features across all dependencies.
-# The reqwest dependency is configured with rustls-tls to prevent OpenSSL dependencies in CI builds.
-# The kratos-admin library now uses direct HTTP calls with reqwest instead of ory-kratos-client.
-
 [profile.release]
 lto = true 

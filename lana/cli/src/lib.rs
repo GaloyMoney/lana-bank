@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod build_info;
 pub mod config;
 mod db;
 
@@ -9,21 +10,12 @@ use chacha20poly1305::{ChaCha20Poly1305, KeyInit, aead::OsRng};
 use clap::{Parser, Subcommand};
 use std::{fs, path::PathBuf};
 
+pub use self::build_info::BuildInfo;
 use self::config::{Config, EnvSecrets};
 
 #[derive(Parser)]
 #[clap(long_about = None)]
 struct Cli {
-    #[clap(subcommand)]
-    command: Option<UtilsCommands>,
-
-    #[clap(
-        long,
-        env = "LANA_HOME",
-        default_value = ".lana",
-        value_name = "DIRECTORY"
-    )]
-    lana_home: String,
     #[clap(
         short,
         long,
@@ -48,22 +40,38 @@ struct Cli {
     dev_env_name_prefix: Option<String>,
     #[clap(long, env = "ENCRYPTION_KEY", default_value = "")]
     encryption_key: String,
+    #[clap(long, env = "LANA_HOME", default_value = ".lana")]
+    lana_home: String,
+    #[clap(subcommand)]
+    command: Option<Commands>,
 }
 
 #[derive(Subcommand)]
-enum UtilsCommands {
+enum Commands {
+    /// Show build information including compilation flags
+    BuildInfo,
+    /// Generate encryption key
     Genencryptionkey,
+    /// Run the main server (default when no subcommand is specified)
+    Run,
 }
 
 pub async fn run() -> anyhow::Result<()> {
     let cli = Cli::parse();
 
-    match cli.command {
-        Some(UtilsCommands::Genencryptionkey) => {
+    match cli.command.unwrap_or(Commands::Run) {
+        Commands::BuildInfo => {
+            let build_info = BuildInfo::get();
+            println!("{}", build_info.display());
+            return Ok(());
+        }
+        Commands::Genencryptionkey => {
             let key = ChaCha20Poly1305::generate_key(&mut OsRng);
             println!("{}", hex::encode(key));
+            return Ok(());
         }
-        None => {
+        Commands::Run => {
+            // Continue with server startup
             let sa_creds_base64 = if cli.sa_creds_base64_raw.is_empty() {
                 None
             } else {
