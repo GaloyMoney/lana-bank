@@ -174,7 +174,7 @@ pub mod public_id {
 pub mod report {
     pub use core_report::{
         AirflowConfig, CoreReportAction, CoreReportEvent, DagRunStatusResponse, LastRun, Report,
-        ReportError, ReportGenerateResponse, ReportId, ReportObject, ReportsApiClient, RunType,
+        ReportError, ReportGenerateResponse, ReportId, ReportObject, ReportsApiClient, ReportsByCreatedAtCursor, RunType,
         error,
     };
     pub type Reports =

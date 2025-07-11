@@ -1,7 +1,33 @@
-use async_graphql::{Enum, SimpleObject};
+use async_graphql::{Enum, ID, SimpleObject};
 use lana_app::report::{DagRunStatusResponse, ReportGenerateResponse};
 
-use crate::primitives::Timestamp;
+use crate::primitives::{Timestamp, ToGlobalId, UUID};
+
+pub use lana_app::report::{Report as DomainReport, ReportsByCreatedAtCursor};
+
+#[derive(SimpleObject, Clone)]
+pub struct Report {
+    id: ID,
+    report_id: UUID,
+    date: Timestamp,
+    path_in_bucket: String,
+
+    #[graphql(skip)]
+    pub(super) entity: std::sync::Arc<DomainReport>,
+}
+
+impl From<DomainReport> for Report {
+    fn from(report: DomainReport) -> Self {
+        Report {
+            id: report.id.to_global_id(),
+            report_id: UUID::from(report.id),
+            date: report.date.into(),
+            path_in_bucket: report.path_in_bucket.clone(),
+
+            entity: std::sync::Arc::new(report),
+        }
+    }
+}
 
 #[derive(SimpleObject)]
 pub struct ReportGeneratePayload {

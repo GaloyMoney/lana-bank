@@ -222,6 +222,29 @@ impl Query {
         )
     }
 
+    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(Report, ctx, app.reports().find_report_by_id(sub, id))
+    }
+    async fn reports(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<ReportsByCreatedAtCursor, Report, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            ReportsByCreatedAtCursor,
+            Report,
+            ctx,
+            after,
+            first,
+            |query| app.reports().list_reports(sub, query)
+        )
+    }
+
     async fn terms_template(
         &self,
         ctx: &Context<'_>,

@@ -1542,6 +1542,8 @@ type Query {
 	deposit(id: UUID!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
+	report(id: UUID!): Report
+	reports(first: Int!, after: String): ReportConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
@@ -1579,6 +1581,42 @@ type Query {
 
 type RealtimePrice {
 	usdCentsPerBtc: UsdCents!
+}
+
+type Report {
+	id: ID!
+	reportId: UUID!
+	date: Timestamp!
+	pathInBucket: String!
+}
+
+type ReportConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ReportEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Report!]!
+}
+
+"""
+An edge in a connection.
+"""
+type ReportEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Report!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 type ReportGeneratePayload {
