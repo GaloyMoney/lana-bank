@@ -103,6 +103,7 @@ where
         Ok(disbursal)
     }
 
+    #[instrument(name = "disbursals.create_first_disbursal_in_op", skip(self, db))]
     pub(super) async fn create_first_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,

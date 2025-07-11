@@ -55,10 +55,11 @@ impl JobExecutor {
         }
         sqlx::query!(
             r#"
-          INSERT INTO job_executions (id, reschedule_after, created_at)
-          VALUES ($1, $2, $3)
+          INSERT INTO job_executions (id, job_type, reschedule_after, created_at)
+          VALUES ($1, $2, $3, $4)
         "#,
             job.id as JobId,
+            &job.job_type as &JobType,
             schedule_at.unwrap_or(db.now()),
             db.now()
         )
@@ -99,7 +100,7 @@ impl JobExecutor {
     #[allow(clippy::too_many_arguments)]
     #[instrument(
         level = "trace",
-        name = "job_executor.poll_jobs",
+        name = "job.poll_jobs",
         skip(registry, running_jobs, jobs),
         fields(n_jobs_to_spawn, n_jobs_running, n_jobs_to_poll),
         err
@@ -200,7 +201,7 @@ impl JobExecutor {
     }
 
     #[instrument(
-        name = "job_executor.start_job",
+        name = "job.start_job",
         skip(registry, running_jobs, job, repo),
         fields(job_id, job_type),
         err
@@ -383,6 +384,7 @@ impl JobExecutor {
         Ok(())
     }
 
+    #[instrument(name = "job.fail_job", skip(op, repo))]
     async fn fail_job(
         mut op: es_entity::DbOp<'_>,
         id: JobId,
