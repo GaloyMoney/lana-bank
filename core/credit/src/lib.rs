@@ -315,11 +315,11 @@ where
             terms_templates,
         };
 
-        jobs.add_initializer_and_spawn_unique(
-            WebhookNotificationsInit::new(outbox, &credit),
-            WebhookNotificationsJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        // jobs.add_initializer_and_spawn_unique(
+        //     WebhookNotificationsInit::new(outbox, &credit),
+        //     WebhookNotificationsJobConfig::<Perms, E>::new(),
+        // )
+        // .await?;
 
         Ok(credit)
     }
