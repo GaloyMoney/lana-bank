@@ -261,7 +261,6 @@ impl AuditAction {
 
 impl_trivial_action!(AuditAction, Audit);
 
-
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ReportAction {
