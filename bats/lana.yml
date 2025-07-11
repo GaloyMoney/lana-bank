@@ -3,6 +3,7 @@ db:
 app:
   job_execution:
     poll_interval: 1
+    max_jobs_per_process: 50
   access:
     superuser_email: "admin@galoy.io"
   service_account:
