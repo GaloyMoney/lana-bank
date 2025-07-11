@@ -231,9 +231,8 @@ impl Query {
         ctx: &Context<'_>,
         first: i32,
         after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<ReportsByCreatedAtCursor, Report, EmptyFields, EmptyFields>,
-    > {
+    ) -> async_graphql::Result<Connection<ReportsByCreatedAtCursor, Report, EmptyFields, EmptyFields>>
+    {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
             ReportsByCreatedAtCursor,
@@ -1820,5 +1819,15 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let response = app.reports().generate_todays_report(sub).await?;
         Ok(ReportGeneratePayload::from(response))
+    }
+
+    pub async fn report_generate_download_link(
+        &self,
+        ctx: &Context<'_>,
+        report_id: UUID,
+    ) -> async_graphql::Result<String> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let download_link = app.reports().generate_download_link(sub, report_id).await?;
+        Ok(download_link)
     }
 }

@@ -1356,6 +1356,7 @@ type Mutation {
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	reportGenerate: ReportGeneratePayload!
+	reportGenerateDownloadLink(reportId: UUID!): String!
 }
 
 scalar OneTimeFeeRatePct
