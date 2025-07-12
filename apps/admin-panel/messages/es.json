@@ -1385,7 +1385,6 @@
   "Reports": {
     "title": "Gestión de Informes",
     "description": "Generar y gestionar informes regulatorios, seguir su estado y descargar documentos generados.",
-    "generateReport": "Generar Informe",
     "noReportsFound": "No se encontraron informes",
     "selectReport": "Seleccionar Informe",
     "selectReportPlaceholder": "Seleccione un informe",
@@ -1405,6 +1404,16 @@
       "creating": "Creando...",
       "success": "Creación de informe iniciada",
       "error": "Error al crear informe"
+    },
+    "ReportGeneration": {
+      "generate": "Generar",
+      "reportGenerationHasBeenTriggered": "Se ha iniciado la generación del informe",
+      "reportGenerationFailed": "La generación del informe ha fallado. Error {e}",
+      "startedAt": "Iniciado a las {t}",
+      "running": "En proceso",
+      "detailsOfLastRun": "Detalles de la última ejecución",
+      "scheduled": "Programado por el sistema",
+      "apiTriggered": "Iniciado"
     }
   },
   "TrialBalance": {
