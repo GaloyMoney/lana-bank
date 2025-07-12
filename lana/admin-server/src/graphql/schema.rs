@@ -222,6 +222,35 @@ impl Query {
         )
     }
 
+    async fn report_list_available_dates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<Date>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let dates = app.reports().list_available_dates(sub).await?;
+        Ok(dates.into_iter().map(Date::from).collect())
+    }
+
+    async fn reports_by_date(
+        &self,
+        ctx: &Context<'_>,
+        date: Date,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<Connection<ReportsByCreatedAtCursor, Report, EmptyFields, EmptyFields>>
+    {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let date = date.into_inner();
+        list_with_cursor!(
+            ReportsByCreatedAtCursor,
+            Report,
+            ctx,
+            after,
+            first,
+            |query| app.reports().list_reports_by_date(sub, date, query)
+        )
+    }
+
     async fn terms_template(
         &self,
         ctx: &Context<'_>,
@@ -663,18 +692,6 @@ impl Query {
         Ok(usd_cents_per_btc.into())
     }
 
-    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let report = app.reports().find_by_id(sub, id).await?;
-        Ok(report.map(Report::from))
-    }
-
-    async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let users = app.reports().list_reports(sub).await?;
-        Ok(users.into_iter().map(Report::from).collect())
-    }
-
     async fn audit(
         &self,
         ctx: &Context<'_>,
@@ -813,6 +830,15 @@ impl Query {
             _ => unreachable!(),
         };
         Ok(res)
+    }
+
+    async fn report_generation_status(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<ReportGenerationStatusPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let response = app.reports().get_generation_status(sub).await?;
+        Ok(ReportGenerationStatusPayload::from(response))
     }
 }
 
@@ -1641,25 +1667,6 @@ impl Mutation {
         )
     }
 
-    async fn report_create(&self, ctx: &Context<'_>) -> async_graphql::Result<ReportCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let report = app.reports().create(sub).await?;
-        Ok(ReportCreatePayload::from(report))
-    }
-
-    async fn report_download_links_generate(
-        &self,
-        ctx: &Context<'_>,
-        input: ReportDownloadLinksGenerateInput,
-    ) -> async_graphql::Result<ReportDownloadLinksGeneratePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let links = app
-            .reports()
-            .generate_download_links(sub, input.report_id.into())
-            .await?;
-        Ok(ReportDownloadLinksGeneratePayload::from(links))
-    }
-
     async fn chart_of_accounts_csv_import(
         &self,
         ctx: &Context<'_>,
@@ -1810,5 +1817,24 @@ impl Mutation {
         let link = AccountingCsvDownloadLink::from(result);
 
         Ok(AccountingCsvDownloadLinkGeneratePayload::from(link))
+    }
+
+    pub async fn report_generate(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<ReportGeneratePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let response = app.reports().generate_todays_report(sub).await?;
+        Ok(ReportGeneratePayload::from(response))
+    }
+
+    pub async fn report_generate_download_link(
+        &self,
+        ctx: &Context<'_>,
+        report_id: UUID,
+    ) -> async_graphql::Result<String> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let download_link = app.reports().generate_download_link(sub, report_id).await?;
+        Ok(download_link)
     }
 }

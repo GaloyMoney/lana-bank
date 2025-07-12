@@ -44,6 +44,8 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
+      DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
+      DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
 
   airflow-pg:
     image: ghcr.io/cloudnative-pg/postgresql:17.5

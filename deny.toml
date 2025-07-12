@@ -191,6 +191,11 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
+crate = "core-report"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
 crate = "core-price"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []

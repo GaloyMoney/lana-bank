@@ -1187,6 +1187,13 @@ enum KycLevel {
 	ADVANCED
 }
 
+type LastRun {
+	runType: RunType!
+	runStartedAt: Timestamp
+	status: String!
+	logs: String
+}
+
 enum Layer {
 	SETTLED
 	PENDING
@@ -1342,14 +1349,14 @@ type Mutation {
 	customerDocumentDownloadLinkGenerate(input: CustomerDocumentDownloadLinksGenerateInput!): CustomerDocumentDownloadLinksGeneratePayload!
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
-	reportCreate: ReportCreatePayload!
-	reportDownloadLinksGenerate(input: ReportDownloadLinksGenerateInput!): ReportDownloadLinksGeneratePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	chartOfAccountsAddNode(input: ChartOfAccountsAddNodeInput!): ChartOfAccountsAddNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
 	profitAndLossStatementConfigure(input: ProfitAndLossModuleConfigureInput!): ProfitAndLossStatementModuleConfigurePayload!
 	ledgerAccountCsvCreate(input: LedgerAccountCsvCreateInput!): LedgerAccountCsvCreatePayload!
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
+	reportGenerate: ReportGeneratePayload!
+	reportGenerateDownloadLink(reportId: UUID!): String!
 }
 
 scalar OneTimeFeeRatePct
@@ -1443,6 +1450,8 @@ enum PermissionSetName {
 	DEPOSIT_WRITER
 	GOVERNANCE_VIEWER
 	GOVERNANCE_WRITER
+	REPORT_VIEWER
+	REPORT_WRITER
 }
 
 type Policy {
@@ -1534,6 +1543,8 @@ type Query {
 	deposit(id: UUID!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
+	reportListAvailableDates: [Date!]!
+	reportsByDate(date: Date!, first: Int!, after: String): ReportConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
@@ -1559,8 +1570,6 @@ type Query {
 	balanceSheet(from: Date!, until: Date): BalanceSheet!
 	profitAndLossStatement(from: Date!, until: Date): ProfitAndLossStatement!
 	realtimePrice: RealtimePrice!
-	report(id: UUID!): Report
-	reports: [Report!]!
 	audit(first: Int!, after: String): AuditEntryConnection!
 	depositConfig: DepositModuleConfig
 	creditConfig: CreditModuleConfig
@@ -1568,6 +1577,7 @@ type Query {
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
+	reportGenerationStatus: ReportGenerationStatusPayload!
 }
 
 type RealtimePrice {
@@ -1575,33 +1585,52 @@ type RealtimePrice {
 }
 
 type Report {
+	id: ID!
 	reportId: UUID!
-	createdAt: Timestamp!
-	lastError: String
-	progress: ReportProgress!
+	date: Date!
+	pathInBucket: String!
 }
 
-type ReportCreatePayload {
-	report: Report!
+type ReportConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [ReportEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [Report!]!
 }
 
-type ReportDownloadLink {
-	reportName: String!
-	url: String!
+"""
+An edge in a connection.
+"""
+type ReportEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: Report!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
-input ReportDownloadLinksGenerateInput {
-	reportId: UUID!
+type ReportGeneratePayload {
+	runId: String!
 }
 
-type ReportDownloadLinksGeneratePayload {
-	reportId: UUID!
-	links: [ReportDownloadLink!]!
-}
-
-enum ReportProgress {
-	RUNNING
-	COMPLETE
+type ReportGenerationStatusPayload {
+	running: Boolean!
+	runType: RunType
+	runStartedAt: Timestamp
+	logs: String
+	lastRun: LastRun
+	error: String
 }
 
 type Role {
@@ -1666,6 +1695,11 @@ input RoleRemovePermissionSetsInput {
 
 type RoleRemovePermissionSetsPayload {
 	role: Role!
+}
+
+enum RunType {
+	SCHEDULED
+	API_TRIGGERED
 }
 
 scalar Satoshis
