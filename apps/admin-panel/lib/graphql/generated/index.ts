@@ -2896,6 +2896,24 @@ export type ProfitAndLossStatementQueryVariables = Exact<{
 
 export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } } }> }> } };
 
+export type ReportFieldsFragment = { __typename?: 'Report', id: string, reportId: string, date: any, pathInBucket: string };
+
+export type ReportsByDateQueryVariables = Exact<{
+  date: Scalars['Date']['input'];
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type ReportsByDateQuery = { __typename?: 'Query', reportsByDate: { __typename?: 'ReportConnection', edges: Array<{ __typename?: 'ReportEdge', cursor: string, node: { __typename?: 'Report', id: string, reportId: string, date: any, pathInBucket: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+
+export type ReportGenerateDownloadLinkMutationVariables = Exact<{
+  reportId: Scalars['UUID']['input'];
+}>;
+
+
+export type ReportGenerateDownloadLinkMutation = { __typename?: 'Mutation', reportGenerateDownloadLink: string };
+
 export type ReportGenerateMutationVariables = Exact<{ [key: string]: never; }>;
 
 
@@ -3530,6 +3548,14 @@ export const LedgerAccountDetailsFragmentDoc = gql`
       hasPreviousPage
     }
   }
+}
+    `;
+export const ReportFieldsFragmentDoc = gql`
+    fragment ReportFields on Report {
+  id
+  reportId
+  date
+  pathInBucket
 }
     `;
 export const TermsTemplateFieldsFragmentDoc = gql`
@@ -6663,6 +6689,90 @@ export type ProfitAndLossStatementQueryHookResult = ReturnType<typeof useProfitA
 export type ProfitAndLossStatementLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementLazyQuery>;
 export type ProfitAndLossStatementSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementSuspenseQuery>;
 export type ProfitAndLossStatementQueryResult = Apollo.QueryResult<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>;
+export const ReportsByDateDocument = gql`
+    query ReportsByDate($date: Date!, $first: Int!, $after: String) {
+  reportsByDate(date: $date, first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        ...ReportFields
+      }
+    }
+    pageInfo {
+      endCursor
+      startCursor
+      hasNextPage
+      hasPreviousPage
+    }
+  }
+}
+    ${ReportFieldsFragmentDoc}`;
+
+/**
+ * __useReportsByDateQuery__
+ *
+ * To run a query within a React component, call `useReportsByDateQuery` and pass it any options that fit your needs.
+ * When your component renders, `useReportsByDateQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useReportsByDateQuery({
+ *   variables: {
+ *      date: // value for 'date'
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function useReportsByDateQuery(baseOptions: Apollo.QueryHookOptions<ReportsByDateQuery, ReportsByDateQueryVariables> & ({ variables: ReportsByDateQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ReportsByDateQuery, ReportsByDateQueryVariables>(ReportsByDateDocument, options);
+      }
+export function useReportsByDateLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReportsByDateQuery, ReportsByDateQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ReportsByDateQuery, ReportsByDateQueryVariables>(ReportsByDateDocument, options);
+        }
+export function useReportsByDateSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ReportsByDateQuery, ReportsByDateQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ReportsByDateQuery, ReportsByDateQueryVariables>(ReportsByDateDocument, options);
+        }
+export type ReportsByDateQueryHookResult = ReturnType<typeof useReportsByDateQuery>;
+export type ReportsByDateLazyQueryHookResult = ReturnType<typeof useReportsByDateLazyQuery>;
+export type ReportsByDateSuspenseQueryHookResult = ReturnType<typeof useReportsByDateSuspenseQuery>;
+export type ReportsByDateQueryResult = Apollo.QueryResult<ReportsByDateQuery, ReportsByDateQueryVariables>;
+export const ReportGenerateDownloadLinkDocument = gql`
+    mutation reportGenerateDownloadLink($reportId: UUID!) {
+  reportGenerateDownloadLink(reportId: $reportId)
+}
+    `;
+export type ReportGenerateDownloadLinkMutationFn = Apollo.MutationFunction<ReportGenerateDownloadLinkMutation, ReportGenerateDownloadLinkMutationVariables>;
+
+/**
+ * __useReportGenerateDownloadLinkMutation__
+ *
+ * To run a mutation, you first call `useReportGenerateDownloadLinkMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportGenerateDownloadLinkMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [reportGenerateDownloadLinkMutation, { data, loading, error }] = useReportGenerateDownloadLinkMutation({
+ *   variables: {
+ *      reportId: // value for 'reportId'
+ *   },
+ * });
+ */
+export function useReportGenerateDownloadLinkMutation(baseOptions?: Apollo.MutationHookOptions<ReportGenerateDownloadLinkMutation, ReportGenerateDownloadLinkMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<ReportGenerateDownloadLinkMutation, ReportGenerateDownloadLinkMutationVariables>(ReportGenerateDownloadLinkDocument, options);
+      }
+export type ReportGenerateDownloadLinkMutationHookResult = ReturnType<typeof useReportGenerateDownloadLinkMutation>;
+export type ReportGenerateDownloadLinkMutationResult = Apollo.MutationResult<ReportGenerateDownloadLinkMutation>;
+export type ReportGenerateDownloadLinkMutationOptions = Apollo.BaseMutationOptions<ReportGenerateDownloadLinkMutation, ReportGenerateDownloadLinkMutationVariables>;
 export const ReportGenerateDocument = gql`
     mutation ReportGenerate {
   reportGenerate {

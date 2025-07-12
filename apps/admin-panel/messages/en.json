@@ -1397,6 +1397,13 @@
       "apiTriggered": "Triggered"
     }
   },
+  "ReportsByDate": {
+    "title": "Regulator Reports for {date}",
+    "description": "All regulatory reports generated for this date",
+    "reportName": "Report Name",
+    "actions": "Actions",
+    "errorGeneratingLink": "Error generating link for report"
+  },
   "TrialBalance": {
     "title": "Trial Balance",
     "description": "A summary of all accounts listing debit and credit balances to ensure accounting entries are balanced.",
