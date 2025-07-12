@@ -2906,6 +2906,11 @@ export type ReportGenerationStatusQueryVariables = Exact<{ [key: string]: never;
 
 export type ReportGenerationStatusQuery = { __typename?: 'Query', reportGenerationStatus: { __typename?: 'ReportGenerationStatusPayload', running: boolean, runType?: RunType | null, runStartedAt?: any | null, logs?: string | null, error?: string | null, lastRun?: { __typename?: 'LastRun', runType: RunType, runStartedAt?: any | null, status: string, logs?: string | null } | null } };
 
+export type ReportListAvailableDatesQueryVariables = Exact<{ [key: string]: never; }>;
+
+
+export type ReportListAvailableDatesQuery = { __typename?: 'Query', reportListAvailableDates: Array<any> };
+
 export type RoleAddPermissionSetsMutationVariables = Exact<{
   input: RoleAddPermissionSetsInput;
 }>;
@@ -6739,6 +6744,43 @@ export type ReportGenerationStatusQueryHookResult = ReturnType<typeof useReportG
 export type ReportGenerationStatusLazyQueryHookResult = ReturnType<typeof useReportGenerationStatusLazyQuery>;
 export type ReportGenerationStatusSuspenseQueryHookResult = ReturnType<typeof useReportGenerationStatusSuspenseQuery>;
 export type ReportGenerationStatusQueryResult = Apollo.QueryResult<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>;
+export const ReportListAvailableDatesDocument = gql`
+    query reportListAvailableDates {
+  reportListAvailableDates
+}
+    `;
+
+/**
+ * __useReportListAvailableDatesQuery__
+ *
+ * To run a query within a React component, call `useReportListAvailableDatesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useReportListAvailableDatesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useReportListAvailableDatesQuery({
+ *   variables: {
+ *   },
+ * });
+ */
+export function useReportListAvailableDatesQuery(baseOptions?: Apollo.QueryHookOptions<ReportListAvailableDatesQuery, ReportListAvailableDatesQueryVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<ReportListAvailableDatesQuery, ReportListAvailableDatesQueryVariables>(ReportListAvailableDatesDocument, options);
+      }
+export function useReportListAvailableDatesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReportListAvailableDatesQuery, ReportListAvailableDatesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<ReportListAvailableDatesQuery, ReportListAvailableDatesQueryVariables>(ReportListAvailableDatesDocument, options);
+        }
+export function useReportListAvailableDatesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ReportListAvailableDatesQuery, ReportListAvailableDatesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<ReportListAvailableDatesQuery, ReportListAvailableDatesQueryVariables>(ReportListAvailableDatesDocument, options);
+        }
+export type ReportListAvailableDatesQueryHookResult = ReturnType<typeof useReportListAvailableDatesQuery>;
+export type ReportListAvailableDatesLazyQueryHookResult = ReturnType<typeof useReportListAvailableDatesLazyQuery>;
+export type ReportListAvailableDatesSuspenseQueryHookResult = ReturnType<typeof useReportListAvailableDatesSuspenseQuery>;
+export type ReportListAvailableDatesQueryResult = Apollo.QueryResult<ReportListAvailableDatesQuery, ReportListAvailableDatesQueryVariables>;
 export const RoleAddPermissionSetsDocument = gql`
     mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
   roleAddPermissionSets(input: $input) {

@@ -1385,26 +1385,7 @@
   "Reports": {
     "title": "Report Management",
     "description": "Generate and manage regulatory reports, track their status, and download generated documents.",
-    "noReportsFound": "No reports found",
-    "selectReport": "Select Report",
-    "selectReportPlaceholder": "Select a report",
-    "reportId": "Report ID",
-    "lastError": "Last Error",
-    "currentStatus": "Status",
-    "downloads": "Downloads",
-    "generateLinks": "Generate Links",
-    "status": {
-      "running": "Running (last triggered on {date})",
-      "complete": "Operational (last report created on {date})"
-    },
-    "createDialog": {
-      "title": "Create New Report",
-      "description": "Are you sure you want to create a new report? This action will generate a regulatory report based on the latest financial data.",
-      "create": "Create Report",
-      "creating": "Creating...",
-      "success": "Report creation started",
-      "error": "Failed to create report"
-    },
+    "availableReports": "Available Reports",
     "ReportGeneration": {
       "generate": "Generate",
       "reportGenerationHasBeenTriggered": "Report generation has been triggered",
