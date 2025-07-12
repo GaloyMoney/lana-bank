@@ -786,22 +786,7 @@ checksums:
     ProfitAndLoss/categories/Expenses: 1746536359bb638c45a12980ab3aac3a
     Reports/title: 60990919a45b80f1f1fc1bf292bee36a
     Reports/description: 523613154e094441d7026ee5727c1d9d
-    Reports/noReportsFound: 4bb4797d1372ee0c6ed6a717c26ba97a
-    Reports/selectReport: 00667891b88010a2027bf26b2c9bbfe8
-    Reports/selectReportPlaceholder: c65618d668c8980759431780e8268583
-    Reports/reportId: cb9bc99828b2fcea447b62544964ca32
-    Reports/lastError: 919bde3c9591d09926a3bf25ec6ebb58
-    Reports/currentStatus: 4e1fcce15854d824919b4a582c697c90
-    Reports/downloads: 28027f3f83d0160897d9b7ac9efb6dfa
-    Reports/generateLinks: 48eb38de2a9bdd474d5eb3d74e2daecf
-    Reports/status/running: efcebb52f4955b03c943de9e88c3dc0c
-    Reports/status/complete: cc065d79cc18944fe8daca3abff70401
-    Reports/createDialog/title: c388891629d5241f802b87840275d5d9
-    Reports/createDialog/description: 537c72da37eb73a345e1304c550289b4
-    Reports/createDialog/create: 97560449b7dcf150f9b12bee567ccc5b
-    Reports/createDialog/creating: c949fe6aa47b326f345b405fe9c4d6e7
-    Reports/createDialog/success: 824cd04a7d66e34a7d187d8c2cc102bc
-    Reports/createDialog/error: e641fe9d7105a0d6d8410538e2013add
+    Reports/availableReports: d3f49ae76c3a57e209cc0c6ebcdeb25f
     Reports/ReportGeneration/generate: 0345bf322c191e70d01fd6607ec5c2f8
     Reports/ReportGeneration/reportGenerationHasBeenTriggered: a929db688da7aa86e16769a1aba853bf
     Reports/ReportGeneration/reportGenerationFailed: a0c2490202b5b00994cd80bf21d694fd

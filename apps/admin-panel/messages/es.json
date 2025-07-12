@@ -1385,26 +1385,7 @@
   "Reports": {
     "title": "Gestión de Informes",
     "description": "Generar y gestionar informes regulatorios, seguir su estado y descargar documentos generados.",
-    "noReportsFound": "No se encontraron informes",
-    "selectReport": "Seleccionar Informe",
-    "selectReportPlaceholder": "Seleccione un informe",
-    "reportId": "ID del Informe",
-    "lastError": "Último Error",
-    "currentStatus": "Estado",
-    "downloads": "Descargas",
-    "generateLinks": "Generar Enlaces",
-    "status": {
-      "running": "En ejecución (última activación el {date})",
-      "complete": "Operativo (último informe creado el {date})"
-    },
-    "createDialog": {
-      "title": "Crear Nuevo Informe",
-      "description": "¿Está seguro de que desea crear un nuevo informe? Esta acción generará un informe regulatorio basado en los datos financieros más recientes.",
-      "create": "Crear Informe",
-      "creating": "Creando...",
-      "success": "Creación de informe iniciada",
-      "error": "Error al crear informe"
-    },
+    "availableReports": "Informes disponibles",
     "ReportGeneration": {
       "generate": "Generar",
       "reportGenerationHasBeenTriggered": "Se ha iniciado la generación del informe",
