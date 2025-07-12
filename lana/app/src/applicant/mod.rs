@@ -370,7 +370,7 @@ impl Applicants {
             .sumsub_client
             .create_applicant(customer_id, &level.to_string())
             .await?;
-        
+
         tracing::info!(applicant_id = %applicant_id, "Applicant created");
 
         // Step 2: Update applicant personal information
@@ -387,12 +387,13 @@ impl Applicants {
         tracing::info!("Applicant personal info updated");
 
         // Step 3: Upload passport documents (front and back)
-        let passport_image = load_german_passport_image().await.map_err(|e| {
-            ApplicantError::Sumsub {
-                description: format!("Failed to load passport image: {}", e),
-                code: 500,
-            }
-        })?;
+        let passport_image =
+            load_german_passport_image()
+                .await
+                .map_err(|e| ApplicantError::Sumsub {
+                    description: format!("Failed to load passport image: {}", e),
+                    code: 500,
+                })?;
 
         self.sumsub_client
             .upload_document(
@@ -442,12 +443,13 @@ impl Applicants {
         tokio::time::sleep(tokio::time::Duration::from_secs(1)).await;
 
         // Step 5: Upload proof of residence
-        let poa_image = load_proof_of_residence_image().await.map_err(|e| {
-            ApplicantError::Sumsub {
-                description: format!("Failed to load proof of residence image: {}", e),
-                code: 500,
-            }
-        })?;
+        let poa_image =
+            load_proof_of_residence_image()
+                .await
+                .map_err(|e| ApplicantError::Sumsub {
+                    description: format!("Failed to load proof of residence image: {}", e),
+                    code: 500,
+                })?;
 
         self.sumsub_client
             .upload_document(

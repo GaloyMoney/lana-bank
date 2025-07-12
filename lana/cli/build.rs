@@ -13,6 +13,8 @@ fn main() {
         "sim-bootstrap",
         #[cfg(feature = "sumsub-testing")]
         "sumsub-testing",
+        #[cfg(feature = "mock-custodian")]
+        "mock-custodian",
     ];
     let features_str = features.join(",");
     println!("cargo:rustc-env=ENABLED_FEATURES={features_str}");
