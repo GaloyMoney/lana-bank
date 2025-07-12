@@ -53,4 +53,15 @@ where
     ) -> Result<(), ReportError> {
         self.publisher.publish(db, entity, new_events).await
     }
+
+    pub(super) async fn list_available_dates(&self) -> Result<Vec<NaiveDate>, ReportError> {
+        let dates = sqlx::query!("SELECT DISTINCT date FROM core_reports ORDER BY date DESC")
+            .fetch_all(&self.pool)
+            .await?
+            .into_iter()
+            .map(|row| row.date)
+            .collect();
+
+        Ok(dates)
+    }
 }

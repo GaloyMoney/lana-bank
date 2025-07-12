@@ -222,9 +222,13 @@ impl Query {
         )
     }
 
-    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
+    async fn report_list_available_dates(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<Date>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        maybe_fetch_one!(Report, ctx, app.reports().find_report_by_id(sub, id))
+        let dates = app.reports().list_available_dates(sub).await?;
+        Ok(dates.into_iter().map(Date::from).collect())
     }
 
     async fn reports_by_date(

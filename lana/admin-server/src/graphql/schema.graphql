@@ -1543,7 +1543,7 @@ type Query {
 	deposit(id: UUID!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
-	report(id: UUID!): Report
+	reportListAvailableDates: [Date!]!
 	reportsByDate(date: Date!, first: Int!, after: String): ReportConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!

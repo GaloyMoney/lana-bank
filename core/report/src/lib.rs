@@ -128,27 +128,6 @@ where
         self.airflow_client.get_generation_status().await
     }
 
-    #[instrument(name = "reports.find_report_by_id", skip(self), err)]
-    pub async fn find_report_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ReportId> + std::fmt::Debug,
-    ) -> Result<Option<Report>, ReportError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                ReportObject::all_reports(),
-                CoreReportAction::REPORT_READ,
-            )
-            .await?;
-
-        match self.repo.find_by_id(id.into()).await {
-            Ok(report) => Ok(Some(report)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e),
-        }
-    }
-
     #[instrument(name = "reports.list_reports_by_date", skip(self), err)]
     pub async fn list_reports_by_date(
         &self,
@@ -167,6 +146,22 @@ where
         self.repo
             .list_for_date_by_created_at(date, query, es_entity::ListDirection::Descending)
             .await
+    }
+
+    #[instrument(name = "reports.list_available_dates", skip(self), err)]
+    pub async fn list_available_dates(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<Vec<chrono::NaiveDate>, ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+
+        self.repo.list_available_dates().await
     }
 
     #[instrument(name = "reports.find_all_reports", skip(self), err)]
