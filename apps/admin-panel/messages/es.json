@@ -1397,6 +1397,13 @@
       "apiTriggered": "Iniciado"
     }
   },
+  "ReportsByDate": {
+    "title": "Informes regulatorios para {date}",
+    "description": "Todos los informes regulatorios generados para esta fecha",
+    "reportName": "Nombre del informe",
+    "actions": "Acciones",
+    "errorGeneratingLink": "Error al generar el enlace para el informe"
+  },
   "TrialBalance": {
     "title": "Balance de Comprobación",
     "description": "Un resumen de todas las cuentas que enumera los saldos de débito y crédito para garantizar que los asientos contables estén equilibrados.",
