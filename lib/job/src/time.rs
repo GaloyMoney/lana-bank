@@ -12,9 +12,21 @@ pub(crate) fn now() -> DateTime<Utc> {
     res
 }
 
-pub(crate) async fn sleep(duration: Duration) {
+pub(crate) fn sleep(duration: Duration) -> tokio::time::Sleep {
     #[cfg(feature = "sim-time")]
-    sim_time::sleep(duration).await;
+    let res = sim_time::sleep(duration);
     #[cfg(not(feature = "sim-time"))]
-    tokio::time::sleep(duration).await;
+    let res = tokio::time::sleep(duration);
+    res
+}
+
+pub(crate) fn timeout<F>(duration: Duration, future: F) -> tokio::time::Timeout<F::IntoFuture>
+where
+    F: core::future::IntoFuture,
+{
+    #[cfg(feature = "sim-time")]
+    let res = sim_time::timeout(duration, future);
+    #[cfg(not(feature = "sim-time"))]
+    let res = tokio::time::timeout(duration, future);
+    res
 }

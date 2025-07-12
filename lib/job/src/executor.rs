@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
-use sqlx::postgres::types::PgInterval;
-use tokio::sync::RwLock;
+use sqlx::postgres::{PgListener, PgPool, types::PgInterval};
+use tokio::sync::{Notify, RwLock};
 use tracing::{Span, instrument};
 
-use std::{collections::HashMap, sync::Arc};
+use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use super::{
     JobId, config::*, current::*, entity::*, error::JobError, registry::*, repo::*, traits::*,
@@ -17,6 +17,7 @@ pub(crate) struct JobExecutor {
     keep_alive_handle: Option<Arc<OwnedTaskHandle>>,
     listen_handle: Option<Arc<OwnedTaskHandle>>,
     running_jobs: Arc<RwLock<HashMap<JobId, OwnedTaskHandle>>>,
+    notify: Arc<Notify>,
     jobs: JobRepo,
 }
 
@@ -33,6 +34,7 @@ impl JobExecutor {
             config,
             registry,
             running_jobs: Arc::new(RwLock::new(HashMap::new())),
+            notify: Arc::new(Notify::new()),
             jobs: jobs.clone(),
         }
     }
@@ -73,10 +75,10 @@ impl JobExecutor {
     }
 
     pub async fn start(&mut self) -> Result<(), JobError> {
-        let poll_interval = self.config.poll_interval;
+        let keep_alive_interval = self.config.keep_alive_interval;
         let max_concurrency = self.config.max_jobs_per_process;
         let min_concurrency = self.config.min_jobs_per_process;
-        let pg_interval = PgInterval::try_from(poll_interval * 4)
+        let pg_interval = PgInterval::try_from(keep_alive_interval * 4)
             .map_err(|e| JobError::InvalidPollInterval(e.to_string()))?;
         let running_jobs = Arc::clone(&self.running_jobs);
         let registry = Arc::clone(&self.registry);
@@ -94,27 +96,40 @@ impl JobExecutor {
                     keep_alive_pg_interval,
                 )
                 .await;
-                // Run keep_alive every 2 poll cycles (was alternating before)
-                crate::time::sleep(poll_interval * 2).await;
+                crate::time::sleep(keep_alive_interval).await;
             }
         });
-        self.keep_alive_handle = Some(Arc::new(OwnedTaskHandle(Some(keep_alive_handle))));
+        self.keep_alive_handle = Some(Arc::new(OwnedTaskHandle::new(keep_alive_handle)));
 
+        let notify = self.notify.clone();
         let poll_handle = tokio::spawn(async move {
+            let mut failures = 0;
             loop {
-                let _ = Self::poll_jobs(
+                let max_wait = if Self::poll_jobs(
                     &registry,
                     max_concurrency,
                     min_concurrency,
                     pg_interval,
                     &running_jobs,
                     &jobs,
+                    &notify,
                 )
-                .await;
-                crate::time::sleep(poll_interval).await;
+                .await
+                .is_err()
+                {
+                    failures += 1;
+                    Duration::from_millis(50 << failures)
+                } else {
+                    failures = 0;
+                    Duration::from_secs(60)
+                };
+                let _ = crate::time::timeout(max_wait, notify.notified()).await;
             }
         });
-        self.poll_handle = Some(Arc::new(OwnedTaskHandle(Some(poll_handle))));
+        self.poll_handle = Some(Arc::new(OwnedTaskHandle::new(poll_handle)));
+
+        let listen_handle = start_listener(self.jobs.pool(), self.notify.clone()).await?;
+        self.listen_handle = Some(Arc::new(listen_handle));
         Ok(())
     }
 
@@ -181,6 +196,7 @@ impl JobExecutor {
         pg_interval: PgInterval,
         running_jobs: &Arc<RwLock<HashMap<JobId, OwnedTaskHandle>>>,
         jobs: &JobRepo,
+        notify: &Arc<Notify>,
     ) -> Result<(), JobError> {
         let span = Span::current();
         let now = crate::time::now();
@@ -241,6 +257,7 @@ impl JobExecutor {
                     row.attempt_index as u32,
                     row.data_json,
                     jobs.clone(),
+                    notify,
                 )
                 .await;
             }
@@ -261,6 +278,7 @@ impl JobExecutor {
         attempt: u32,
         job_payload: Option<serde_json::Value>,
         repo: JobRepo,
+        notify: &Arc<Notify>,
     ) -> Result<(), JobError> {
         let runner = registry
             .try_read()
@@ -273,6 +291,7 @@ impl JobExecutor {
         let job_type = job.job_type.clone();
         let all_jobs = Arc::clone(running_jobs);
         let registry = Arc::clone(registry);
+        let notify = Arc::clone(notify);
         let handle = tokio::spawn(async move {
             let res =
                 Self::execute_job(job, attempt, job_payload, runner, repo.clone(), &registry).await;
@@ -300,6 +319,7 @@ impl JobExecutor {
                 }
             }
             write_lock.remove(&id);
+            notify.notify_one();
         });
         running_jobs
             .write()
@@ -476,7 +496,32 @@ impl JobExecutor {
     }
 }
 
+async fn start_listener(
+    pool: &PgPool,
+    notify: Arc<Notify>,
+) -> Result<OwnedTaskHandle, sqlx::Error> {
+    let mut listener = PgListener::connect_with(pool).await?;
+    listener.listen("job_execution").await?;
+    Ok(OwnedTaskHandle::new(tokio::task::spawn(async move {
+        let mut num_errors = 0;
+        loop {
+            if num_errors > 0 || listener.recv().await.is_ok() {
+                notify.notify_one();
+                num_errors = 0;
+            } else {
+                tokio::time::sleep(Duration::from_secs(1 << num_errors)).await;
+                num_errors += 1;
+            }
+        }
+    })))
+}
+
 struct OwnedTaskHandle(Option<tokio::task::JoinHandle<()>>);
+impl OwnedTaskHandle {
+    pub fn new(inner: tokio::task::JoinHandle<()>) -> Self {
+        Self(Some(inner))
+    }
+}
 impl Drop for OwnedTaskHandle {
     fn drop(&mut self) {
         if let Some(handle) = self.0.take() {

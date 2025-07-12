@@ -6,8 +6,8 @@ use std::time::Duration;
 #[derive(Clone, Debug, Serialize, Deserialize)]
 pub struct JobExecutorConfig {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
-    #[serde(default = "default_poll_interval")]
-    pub poll_interval: Duration,
+    #[serde(default = "default_keep_alive_interval")]
+    pub keep_alive_interval: Duration,
     #[serde(default = "default_max_jobs_per_process")]
     pub max_jobs_per_process: usize,
     #[serde(default = "default_min_jobs_per_process")]
@@ -17,14 +17,14 @@ pub struct JobExecutorConfig {
 impl Default for JobExecutorConfig {
     fn default() -> Self {
         Self {
-            poll_interval: default_poll_interval(),
+            keep_alive_interval: default_keep_alive_interval(),
             max_jobs_per_process: default_max_jobs_per_process(),
             min_jobs_per_process: default_min_jobs_per_process(),
         }
     }
 }
 
-fn default_poll_interval() -> Duration {
+fn default_keep_alive_interval() -> Duration {
     Duration::from_secs(5)
 }
 
