@@ -2,6 +2,7 @@ pub mod error;
 
 use async_trait::async_trait;
 use bitgo::TransferState;
+use bytes::Bytes;
 
 use error::CustodianClientError;
 
@@ -20,7 +21,7 @@ pub trait CustodianClient: Send {
     async fn process_webhook(
         &self,
         headers: &http::HeaderMap,
-        payload: &[u8],
+        payload: Bytes,
     ) -> Result<Option<CustodianNotification>, CustodianClientError>;
 }
 
@@ -42,10 +43,10 @@ impl CustodianClient for bitgo::BitgoClient {
     async fn process_webhook(
         &self,
         headers: &http::HeaderMap,
-        payload: &[u8],
+        payload: Bytes,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
         let notification = self
-            .validate_webhook_notification(headers, payload)
+            .validate_webhook_notification(headers, &payload)
             .map_err(CustodianClientError::client)?;
 
         use bitgo::Notification;
@@ -88,7 +89,7 @@ impl CustodianClient for komainu::KomainuClient {
     async fn process_webhook(
         &self,
         _headers: &http::HeaderMap,
-        _payload: &[u8],
+        _payload: Bytes,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
         todo!()
     }
@@ -124,9 +125,9 @@ pub mod mock {
         async fn process_webhook(
             &self,
             _headers: &http::HeaderMap,
-            payload: &[u8],
+            payload: Bytes,
         ) -> Result<Option<CustodianNotification>, CustodianClientError> {
-            if let Ok(WalletBalanceChanged { wallet, balance }) = serde_json::from_slice(payload) {
+            if let Ok(WalletBalanceChanged { wallet, balance }) = serde_json::from_slice(&payload) {
                 Ok(Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet,
                     amount: balance.into(),

@@ -1,4 +1,5 @@
 use sqlx::PgPool;
+use tracing::instrument;
 
 use es_entity::*;
 
@@ -36,13 +37,16 @@ impl CustodianRepo {
         Ok(custodians)
     }
 
+    #[instrument(name = "custody.persist_webhook_notification", skip(self), err)]
     pub async fn persist_webhook_notification(
         &self,
         custodian_id: Option<CustodianId>,
         uri: &http::Uri,
         headers: &http::HeaderMap,
-        payload: &serde_json::Value,
+        payload: &[u8],
     ) -> Result<(), CustodianError> {
+        let payload = serde_json::from_slice::<serde_json::Value>(payload).unwrap_or_default();
+
         let headers = serde_json::to_value(
             headers
                 .iter()

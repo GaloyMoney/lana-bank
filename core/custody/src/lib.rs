@@ -304,12 +304,13 @@ where
         Ok(wallet)
     }
 
+    #[instrument(name = "custody.handle_webhook", skip(self), err)]
     pub async fn handle_webhook(
         &self,
         provider: String,
         uri: http::Uri,
         headers: http::HeaderMap,
-        payload: &[u8],
+        payload: bytes::Bytes,
     ) -> Result<(), CoreCustodyError> {
         let custodian = self.custodians.find_by_provider(provider).await;
 
@@ -319,10 +320,8 @@ where
             Err(e) => return Err(e.into()),
         };
 
-        let json_payload = serde_json::from_slice(payload).unwrap_or_default();
-
         self.custodians
-            .persist_webhook_notification(custodian_id, &uri, &headers, &json_payload)
+            .persist_webhook_notification(custodian_id, &uri, &headers, &payload)
             .await?;
 
         if let Ok(custodian) = custodian {

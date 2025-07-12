@@ -137,6 +137,7 @@ schemars = { version = "1.0.4", features = ["derive", "chrono04", "rust_decimal1
 tempfile = "3.10.0"
 p256 = "0.13.2"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
+bytes = "1.10"
 
 # Note: The workspace uses resolver = "2" which should unify features across all dependencies.
 # The reqwest dependency is configured with rustls-tls to prevent OpenSSL dependencies in CI builds.
