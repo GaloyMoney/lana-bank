@@ -6,7 +6,6 @@ pub mod app;
 pub mod applicant;
 pub mod authorization;
 pub mod primitives;
-pub mod service_account;
 
 pub mod storage {
     pub use cloud_storage::*;

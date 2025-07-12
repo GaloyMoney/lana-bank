@@ -30,8 +30,6 @@ struct Cli {
     sumsub_key: String,
     #[clap(env = "SUMSUB_SECRET", default_value = "")]
     sumsub_secret: String,
-    #[clap(env = "SA_CREDS_BASE64", default_value = "")]
-    sa_creds_base64_raw: String,
     #[clap(env = "SMTP_USERNAME", default_value = "")]
     smtp_username: String,
     #[clap(env = "SMTP_PASSWORD", default_value = "")]
@@ -71,20 +69,12 @@ pub async fn run() -> anyhow::Result<()> {
             return Ok(());
         }
         Commands::Run => {
-            // Continue with server startup
-            let sa_creds_base64 = if cli.sa_creds_base64_raw.is_empty() {
-                None
-            } else {
-                Some(cli.sa_creds_base64_raw)
-            };
-
             let config = Config::init(
                 cli.config,
                 EnvSecrets {
                     pg_con: cli.pg_con,
                     sumsub_key: cli.sumsub_key,
                     sumsub_secret: cli.sumsub_secret,
-                    sa_creds_base64,
                     smtp_username: cli.smtp_username,
                     smtp_password: cli.smtp_password,
                     encryption_key: cli.encryption_key,
