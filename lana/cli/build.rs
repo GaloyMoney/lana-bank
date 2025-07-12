@@ -11,8 +11,10 @@ fn main() {
         "sim-time",
         #[cfg(feature = "sim-bootstrap")]
         "sim-bootstrap",
-        #[cfg(feature = "fail-on-warnings")]
-        "fail-on-warnings",
+        #[cfg(feature = "sumsub-testing")]
+        "sumsub-testing",
+        #[cfg(feature = "mock-custodian")]
+        "mock-custodian",
     ];
     let features_str = features.join(",");
     println!("cargo:rustc-env=ENABLED_FEATURES={features_str}");

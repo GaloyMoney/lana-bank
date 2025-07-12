@@ -40,6 +40,12 @@ You should know about those commands:
 - `make sdl` to regenerate the schema.graphql. do not attempt to update schema.graphql yourself
 - `make sqlx-prepare` to update the .sqlx files. do not attempt to update the .sqlx files yourself
 
+## nix
+
+we need to package our application.
+do not run `nix store gc` yourself. if you think it's needed to prune nix, ask the user first.
+in general, because nix build deterministically, there is no need to prune the nix store, so unless you have a strong conviction, skip the pruning.
+
 ## general coding rules
 
 - interaction across module boundaries are done through events. public events are listed 
