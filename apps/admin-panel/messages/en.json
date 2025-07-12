@@ -1385,7 +1385,6 @@
   "Reports": {
     "title": "Report Management",
     "description": "Generate and manage regulatory reports, track their status, and download generated documents.",
-    "generateReport": "Generate Report",
     "noReportsFound": "No reports found",
     "selectReport": "Select Report",
     "selectReportPlaceholder": "Select a report",
@@ -1405,6 +1404,16 @@
       "creating": "Creating...",
       "success": "Report creation started",
       "error": "Failed to create report"
+    },
+    "ReportGeneration": {
+      "generate": "Generate",
+      "reportGenerationHasBeenTriggered": "Report generation has been triggered",
+      "reportGenerationFailed": "Report generation failed. Error {e}",
+      "startedAt": "Started at {t}",
+      "running": "Running",
+      "detailsOfLastRun": "Details of Last Run",
+      "scheduled": "Scheduled by system",
+      "apiTriggered": "Triggered"
     }
   },
   "TrialBalance": {

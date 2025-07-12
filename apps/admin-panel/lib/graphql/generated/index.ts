@@ -1183,6 +1183,14 @@ export enum KycLevel {
   NotKyced = 'NOT_KYCED'
 }
 
+export type LastRun = {
+  __typename?: 'LastRun';
+  logs?: Maybe<Scalars['String']['output']>;
+  runStartedAt?: Maybe<Scalars['Timestamp']['output']>;
+  runType: RunType;
+  status: Scalars['String']['output'];
+};
+
 export enum Layer {
   Encumbrance = 'ENCUMBRANCE',
   Pending = 'PENDING',
@@ -1329,8 +1337,8 @@ export type Mutation = {
   manualTransactionExecute: ManualTransactionExecutePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
-  reportCreate: ReportCreatePayload;
-  reportDownloadLinksGenerate: ReportDownloadLinksGeneratePayload;
+  reportGenerate: ReportGeneratePayload;
+  reportGenerateDownloadLink: Scalars['String']['output'];
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
   roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
@@ -1497,8 +1505,8 @@ export type MutationProfitAndLossStatementConfigureArgs = {
 };
 
 
-export type MutationReportDownloadLinksGenerateArgs = {
-  input: ReportDownloadLinksGenerateInput;
+export type MutationReportGenerateDownloadLinkArgs = {
+  reportId: Scalars['UUID']['input'];
 };
 
 
@@ -1633,7 +1641,9 @@ export enum PermissionSetName {
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',
-  GovernanceWriter = 'GOVERNANCE_WRITER'
+  GovernanceWriter = 'GOVERNANCE_WRITER',
+  ReportViewer = 'REPORT_VIEWER',
+  ReportWriter = 'REPORT_WRITER'
 }
 
 export type Policy = {
@@ -1741,8 +1751,9 @@ export type Query = {
   profitAndLossStatementConfig?: Maybe<ProfitAndLossStatementModuleConfig>;
   publicIdTarget?: Maybe<PublicIdTarget>;
   realtimePrice: RealtimePrice;
-  report?: Maybe<Report>;
-  reports: Array<Report>;
+  reportGenerationStatus: ReportGenerationStatusPayload;
+  reportListAvailableDates: Array<Scalars['Date']['output']>;
+  reportsByDate: ReportConnection;
   role?: Maybe<Role>;
   roles: RoleConnection;
   termsTemplate?: Maybe<TermsTemplate>;
@@ -1922,8 +1933,10 @@ export type QueryPublicIdTargetArgs = {
 };
 
 
-export type QueryReportArgs = {
-  id: Scalars['UUID']['input'];
+export type QueryReportsByDateArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  date: Scalars['Date']['input'];
+  first: Scalars['Int']['input'];
 };
 
 
@@ -1977,37 +1990,45 @@ export type RealtimePrice = {
 
 export type Report = {
   __typename?: 'Report';
-  createdAt: Scalars['Timestamp']['output'];
-  lastError?: Maybe<Scalars['String']['output']>;
-  progress: ReportProgress;
+  date: Scalars['Date']['output'];
+  id: Scalars['ID']['output'];
+  pathInBucket: Scalars['String']['output'];
   reportId: Scalars['UUID']['output'];
 };
 
-export type ReportCreatePayload = {
-  __typename?: 'ReportCreatePayload';
-  report: Report;
+export type ReportConnection = {
+  __typename?: 'ReportConnection';
+  /** A list of edges. */
+  edges: Array<ReportEdge>;
+  /** A list of nodes. */
+  nodes: Array<Report>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
 };
 
-export type ReportDownloadLink = {
-  __typename?: 'ReportDownloadLink';
-  reportName: Scalars['String']['output'];
-  url: Scalars['String']['output'];
+/** An edge in a connection. */
+export type ReportEdge = {
+  __typename?: 'ReportEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: Report;
 };
 
-export type ReportDownloadLinksGenerateInput = {
-  reportId: Scalars['UUID']['input'];
+export type ReportGeneratePayload = {
+  __typename?: 'ReportGeneratePayload';
+  runId: Scalars['String']['output'];
 };
 
-export type ReportDownloadLinksGeneratePayload = {
-  __typename?: 'ReportDownloadLinksGeneratePayload';
-  links: Array<ReportDownloadLink>;
-  reportId: Scalars['UUID']['output'];
+export type ReportGenerationStatusPayload = {
+  __typename?: 'ReportGenerationStatusPayload';
+  error?: Maybe<Scalars['String']['output']>;
+  lastRun?: Maybe<LastRun>;
+  logs?: Maybe<Scalars['String']['output']>;
+  runStartedAt?: Maybe<Scalars['Timestamp']['output']>;
+  runType?: Maybe<RunType>;
+  running: Scalars['Boolean']['output'];
 };
-
-export enum ReportProgress {
-  Complete = 'COMPLETE',
-  Running = 'RUNNING'
-}
 
 export type Role = {
   __typename?: 'Role';
@@ -2066,6 +2087,11 @@ export type RoleRemovePermissionSetsPayload = {
   __typename?: 'RoleRemovePermissionSetsPayload';
   role: Role;
 };
+
+export enum RunType {
+  ApiTriggered = 'API_TRIGGERED',
+  Scheduled = 'SCHEDULED'
+}
 
 export enum SortDirection {
   Asc = 'ASC',
@@ -2870,22 +2896,15 @@ export type ProfitAndLossStatementQueryVariables = Exact<{
 
 export type ProfitAndLossStatementQuery = { __typename?: 'Query', profitAndLossStatement: { __typename?: 'ProfitAndLossStatement', name: string, total: { __typename?: 'LedgerAccountBalanceRangeByCurrency', usd: { __typename?: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, btc: { __typename?: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } }, categories: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', btcStart: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcDiff: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } }, btcEnd: { __typename?: 'BtcLedgerAccountBalance', settled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, pending: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis }, encumbrance: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } | { __typename: 'UsdLedgerAccountBalanceRange', usdStart: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdDiff: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } }, usdEnd: { __typename?: 'UsdLedgerAccountBalance', settled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, pending: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents }, encumbrance: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } } }> }> } };
 
-export type ReportCreateMutationVariables = Exact<{ [key: string]: never; }>;
+export type ReportGenerateMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReportCreateMutation = { __typename?: 'Mutation', reportCreate: { __typename?: 'ReportCreatePayload', report: { __typename?: 'Report', reportId: string, createdAt: any, lastError?: string | null, progress: ReportProgress } } };
+export type ReportGenerateMutation = { __typename?: 'Mutation', reportGenerate: { __typename?: 'ReportGeneratePayload', runId: string } };
 
-export type ReportsQueryVariables = Exact<{ [key: string]: never; }>;
-
-
-export type ReportsQuery = { __typename?: 'Query', reports: Array<{ __typename?: 'Report', reportId: string, createdAt: any, lastError?: string | null, progress: ReportProgress }> };
-
-export type ReportDownloadLinksMutationVariables = Exact<{
-  input: ReportDownloadLinksGenerateInput;
-}>;
+export type ReportGenerationStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReportDownloadLinksMutation = { __typename?: 'Mutation', reportDownloadLinksGenerate: { __typename?: 'ReportDownloadLinksGeneratePayload', reportId: string, links: Array<{ __typename?: 'ReportDownloadLink', reportName: string, url: string }> } };
+export type ReportGenerationStatusQuery = { __typename?: 'Query', reportGenerationStatus: { __typename?: 'ReportGenerationStatusPayload', running: boolean, runType?: RunType | null, runStartedAt?: any | null, logs?: string | null, error?: string | null, lastRun?: { __typename?: 'LastRun', runType: RunType, runStartedAt?: any | null, status: string, logs?: string | null } | null } };
 
 export type RoleAddPermissionSetsMutationVariables = Exact<{
   input: RoleAddPermissionSetsInput;
@@ -6639,122 +6658,87 @@ export type ProfitAndLossStatementQueryHookResult = ReturnType<typeof useProfitA
 export type ProfitAndLossStatementLazyQueryHookResult = ReturnType<typeof useProfitAndLossStatementLazyQuery>;
 export type ProfitAndLossStatementSuspenseQueryHookResult = ReturnType<typeof useProfitAndLossStatementSuspenseQuery>;
 export type ProfitAndLossStatementQueryResult = Apollo.QueryResult<ProfitAndLossStatementQuery, ProfitAndLossStatementQueryVariables>;
-export const ReportCreateDocument = gql`
-    mutation ReportCreate {
-  reportCreate {
-    report {
-      reportId
-      createdAt
-      lastError
-      progress
-    }
+export const ReportGenerateDocument = gql`
+    mutation ReportGenerate {
+  reportGenerate {
+    runId
   }
 }
     `;
-export type ReportCreateMutationFn = Apollo.MutationFunction<ReportCreateMutation, ReportCreateMutationVariables>;
+export type ReportGenerateMutationFn = Apollo.MutationFunction<ReportGenerateMutation, ReportGenerateMutationVariables>;
 
 /**
- * __useReportCreateMutation__
+ * __useReportGenerateMutation__
  *
- * To run a mutation, you first call `useReportCreateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useReportCreateMutation` returns a tuple that includes:
+ * To run a mutation, you first call `useReportGenerateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useReportGenerateMutation` returns a tuple that includes:
  * - A mutate function that you can call at any time to execute the mutation
  * - An object with fields that represent the current status of the mutation's execution
  *
  * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
  *
  * @example
- * const [reportCreateMutation, { data, loading, error }] = useReportCreateMutation({
+ * const [reportGenerateMutation, { data, loading, error }] = useReportGenerateMutation({
  *   variables: {
  *   },
  * });
  */
-export function useReportCreateMutation(baseOptions?: Apollo.MutationHookOptions<ReportCreateMutation, ReportCreateMutationVariables>) {
+export function useReportGenerateMutation(baseOptions?: Apollo.MutationHookOptions<ReportGenerateMutation, ReportGenerateMutationVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ReportCreateMutation, ReportCreateMutationVariables>(ReportCreateDocument, options);
+        return Apollo.useMutation<ReportGenerateMutation, ReportGenerateMutationVariables>(ReportGenerateDocument, options);
       }
-export type ReportCreateMutationHookResult = ReturnType<typeof useReportCreateMutation>;
-export type ReportCreateMutationResult = Apollo.MutationResult<ReportCreateMutation>;
-export type ReportCreateMutationOptions = Apollo.BaseMutationOptions<ReportCreateMutation, ReportCreateMutationVariables>;
-export const ReportsDocument = gql`
-    query Reports {
-  reports {
-    reportId
-    createdAt
-    lastError
-    progress
+export type ReportGenerateMutationHookResult = ReturnType<typeof useReportGenerateMutation>;
+export type ReportGenerateMutationResult = Apollo.MutationResult<ReportGenerateMutation>;
+export type ReportGenerateMutationOptions = Apollo.BaseMutationOptions<ReportGenerateMutation, ReportGenerateMutationVariables>;
+export const ReportGenerationStatusDocument = gql`
+    query ReportGenerationStatus {
+  reportGenerationStatus {
+    running
+    runType
+    runStartedAt
+    logs
+    error
+    lastRun {
+      runType
+      runStartedAt
+      status
+      logs
+    }
   }
 }
     `;
 
 /**
- * __useReportsQuery__
+ * __useReportGenerationStatusQuery__
  *
- * To run a query within a React component, call `useReportsQuery` and pass it any options that fit your needs.
- * When your component renders, `useReportsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useReportGenerationStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useReportGenerationStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useReportsQuery({
+ * const { data, loading, error } = useReportGenerationStatusQuery({
  *   variables: {
  *   },
  * });
  */
-export function useReportsQuery(baseOptions?: Apollo.QueryHookOptions<ReportsQuery, ReportsQueryVariables>) {
+export function useReportGenerationStatusQuery(baseOptions?: Apollo.QueryHookOptions<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ReportsQuery, ReportsQueryVariables>(ReportsDocument, options);
+        return Apollo.useQuery<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>(ReportGenerationStatusDocument, options);
       }
-export function useReportsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReportsQuery, ReportsQueryVariables>) {
+export function useReportGenerationStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ReportsQuery, ReportsQueryVariables>(ReportsDocument, options);
+          return Apollo.useLazyQuery<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>(ReportGenerationStatusDocument, options);
         }
-export function useReportsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ReportsQuery, ReportsQueryVariables>) {
+export function useReportGenerationStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ReportsQuery, ReportsQueryVariables>(ReportsDocument, options);
+          return Apollo.useSuspenseQuery<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>(ReportGenerationStatusDocument, options);
         }
-export type ReportsQueryHookResult = ReturnType<typeof useReportsQuery>;
-export type ReportsLazyQueryHookResult = ReturnType<typeof useReportsLazyQuery>;
-export type ReportsSuspenseQueryHookResult = ReturnType<typeof useReportsSuspenseQuery>;
-export type ReportsQueryResult = Apollo.QueryResult<ReportsQuery, ReportsQueryVariables>;
-export const ReportDownloadLinksDocument = gql`
-    mutation ReportDownloadLinks($input: ReportDownloadLinksGenerateInput!) {
-  reportDownloadLinksGenerate(input: $input) {
-    reportId
-    links {
-      reportName
-      url
-    }
-  }
-}
-    `;
-export type ReportDownloadLinksMutationFn = Apollo.MutationFunction<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>;
-
-/**
- * __useReportDownloadLinksMutation__
- *
- * To run a mutation, you first call `useReportDownloadLinksMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useReportDownloadLinksMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [reportDownloadLinksMutation, { data, loading, error }] = useReportDownloadLinksMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useReportDownloadLinksMutation(baseOptions?: Apollo.MutationHookOptions<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>(ReportDownloadLinksDocument, options);
-      }
-export type ReportDownloadLinksMutationHookResult = ReturnType<typeof useReportDownloadLinksMutation>;
-export type ReportDownloadLinksMutationResult = Apollo.MutationResult<ReportDownloadLinksMutation>;
-export type ReportDownloadLinksMutationOptions = Apollo.BaseMutationOptions<ReportDownloadLinksMutation, ReportDownloadLinksMutationVariables>;
+export type ReportGenerationStatusQueryHookResult = ReturnType<typeof useReportGenerationStatusQuery>;
+export type ReportGenerationStatusLazyQueryHookResult = ReturnType<typeof useReportGenerationStatusLazyQuery>;
+export type ReportGenerationStatusSuspenseQueryHookResult = ReturnType<typeof useReportGenerationStatusSuspenseQuery>;
+export type ReportGenerationStatusQueryResult = Apollo.QueryResult<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>;
 export const RoleAddPermissionSetsDocument = gql`
     mutation RoleAddPermissionSets($input: RoleAddPermissionSetsInput!) {
   roleAddPermissionSets(input: $input) {
