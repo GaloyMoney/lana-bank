@@ -7,6 +7,7 @@ pub struct BitgoConfig {
     pub express_endpoint: String,
     pub passphrase: String,
     pub testing_instance: bool,
+    pub webhook_secret: String,
 }
 
 impl From<BitgoConfig> for bitgo::BitgoConfig {
@@ -17,6 +18,7 @@ impl From<BitgoConfig> for bitgo::BitgoConfig {
             express_endpoint: config.express_endpoint,
             passphrase: config.passphrase,
             bitgo_test: config.testing_instance,
+            webhook_secret: config.webhook_secret.into_bytes(),
         }
     }
 }

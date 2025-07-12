@@ -103,4 +103,25 @@ where
 
         Ok(res)
     }
+
+    pub(super) async fn record_collateral_update_by_custodian_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
+        updated_collateral: core_money::Satoshis,
+        effective: chrono::NaiveDate,
+    ) -> Result<Option<CollateralUpdate>, CollateralError> {
+        let mut collateral = self.repo.find_by_id(collateral_id).await?;
+
+        let res = if let es_entity::Idempotent::Executed(data) =
+            collateral.record_collateral_update_by_custodian(updated_collateral, effective)
+        {
+            self.repo.update_in_op(db, &mut collateral).await?;
+            Some(data)
+        } else {
+            None
+        };
+
+        Ok(res)
+    }
 }

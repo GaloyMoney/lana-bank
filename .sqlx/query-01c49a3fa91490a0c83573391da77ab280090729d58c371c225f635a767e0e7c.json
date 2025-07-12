@@ -1,0 +1,22 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n                SELECT cf.id AS \"id: CreditFacilityId\" FROM core_credit_facilities cf\n                LEFT JOIN core_collaterals co ON cf.collateral_id = co.id\n                LEFT JOIN core_wallets wa ON co.wallet_id = wa.id\n                WHERE wa.external_wallet_id = $1",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id: CreditFacilityId",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Text"
+      ]
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "01c49a3fa91490a0c83573391da77ab280090729d58c371c225f635a767e0e7c"
+}

@@ -72,7 +72,7 @@ async fn create_and_process_facility(
 
     let cf = app
         .credit()
-        .initiate(
+        .create(
             &sub,
             customer_id,
             deposit_account_id,
@@ -86,7 +86,7 @@ async fn create_and_process_facility(
         match &msg.payload {
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
                 app.credit()
-                    .update_collateral(
+                    .update_collateral_manually(
                         &sub,
                         cf.id,
                         Satoshis::try_from_btc(dec!(230))?,
