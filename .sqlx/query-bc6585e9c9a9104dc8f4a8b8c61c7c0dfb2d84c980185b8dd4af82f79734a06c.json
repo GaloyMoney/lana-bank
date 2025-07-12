@@ -1,16 +1,17 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_reports (id, path_in_bucket, created_at) VALUES ($1, $2, $3)",
+  "query": "INSERT INTO core_reports (id, path_in_bucket, date, created_at) VALUES ($1, $2, $3, $4)",
   "describe": {
     "columns": [],
     "parameters": {
       "Left": [
         "Uuid",
         "Varchar",
+        "Date",
         "Timestamptz"
       ]
     },
     "nullable": []
   },
-  "hash": "b38406802d246ce1066286aa848779627ec389f95b3f12779bbb29a09a242348"
+  "hash": "bc6585e9c9a9104dc8f4a8b8c61c7c0dfb2d84c980185b8dd4af82f79734a06c"
 }

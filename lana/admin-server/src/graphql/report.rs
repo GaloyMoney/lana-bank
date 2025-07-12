@@ -1,7 +1,7 @@
 use async_graphql::{Enum, ID, SimpleObject};
 use lana_app::report::{DagRunStatusResponse, ReportGenerateResponse};
 
-use crate::primitives::{Timestamp, ToGlobalId, UUID};
+use crate::primitives::{Date, Timestamp, ToGlobalId, UUID};
 
 pub use lana_app::report::{Report as DomainReport, ReportsByCreatedAtCursor};
 
@@ -9,7 +9,7 @@ pub use lana_app::report::{Report as DomainReport, ReportsByCreatedAtCursor};
 pub struct Report {
     id: ID,
     report_id: UUID,
-    date: Timestamp,
+    date: Date,
     path_in_bucket: String,
 
     #[graphql(skip)]
