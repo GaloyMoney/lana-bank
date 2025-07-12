@@ -27,6 +27,26 @@
           nodejs = super.nodejs_20;
         })
         (import rust-overlay)
+        (self: super: {
+          python311 = super.python311.override {
+            packageOverrides = pySelf: pySuper: let
+              pkgsToPatch = [
+                "fasteners"
+                "portalocker"
+                "debugpy"
+              ];
+
+              lib = super.lib;
+
+              disableTests = pkg:
+                pkg.overrideAttrs (_: {
+                  doCheck = false;
+                  doInstallCheck = false;
+                });
+            in
+              lib.genAttrs pkgsToPatch (name: disableTests pySuper.${name});
+          };
+        })
       ];
       pkgs = import nixpkgs {
         inherit system overlays;
