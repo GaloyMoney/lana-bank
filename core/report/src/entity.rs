@@ -1,4 +1,4 @@
-use chrono::{DateTime, Utc};
+use chrono::NaiveDate;
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -16,7 +16,7 @@ use crate::primitives::*;
 pub enum ReportEvent {
     Initialized {
         id: ReportId,
-        date: DateTime<Utc>,
+        date: NaiveDate,
         path_in_bucket: String,
         audit_info: AuditInfo,
     },
@@ -26,7 +26,7 @@ pub enum ReportEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Report {
     pub id: ReportId,
-    pub date: DateTime<Utc>,
+    pub date: NaiveDate,
     pub path_in_bucket: String,
     events: EntityEvents<ReportEvent>,
 }
@@ -70,7 +70,7 @@ pub struct NewReport {
     #[builder(setter(into))]
     pub(super) id: ReportId,
     #[builder(setter(into))]
-    pub(super) date: DateTime<Utc>,
+    pub(super) date: NaiveDate,
     #[builder(setter(into))]
     pub(super) path_in_bucket: String,
     pub(super) audit_info: AuditInfo,

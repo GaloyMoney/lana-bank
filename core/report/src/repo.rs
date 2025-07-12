@@ -1,3 +1,4 @@
+use chrono::NaiveDate;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -9,7 +10,7 @@ use crate::{entity::*, error::*, event::*, primitives::*, publisher::*};
 #[es_repo(
     entity = "Report",
     err = "ReportError",
-    columns(path_in_bucket(ty = "String"),),
+    columns(path_in_bucket(ty = "String"), date(ty = "NaiveDate", list_for)),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

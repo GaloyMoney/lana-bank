@@ -155,7 +155,7 @@ where
                         &mut db,
                         NewReport::builder()
                             .id(report_id)
-                            .date(date.and_hms_opt(0, 0, 0).unwrap().and_utc())
+                            .date(date)
                             .path_in_bucket(path.clone())
                             .audit_info(audit_info)
                             .build()?,

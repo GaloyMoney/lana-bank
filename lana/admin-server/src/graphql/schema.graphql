@@ -1544,7 +1544,7 @@ type Query {
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
 	report(id: UUID!): Report
-	reports(first: Int!, after: String): ReportConnection!
+	reportsByDate(date: Date!, first: Int!, after: String): ReportConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
@@ -1587,7 +1587,7 @@ type RealtimePrice {
 type Report {
 	id: ID!
 	reportId: UUID!
-	date: Timestamp!
+	date: Date!
 	pathInBucket: String!
 }
 

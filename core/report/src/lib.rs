@@ -149,10 +149,11 @@ where
         }
     }
 
-    #[instrument(name = "reports.list_reports", skip(self), err)]
-    pub async fn list_reports(
+    #[instrument(name = "reports.list_reports_by_date", skip(self), err)]
+    pub async fn list_reports_by_date(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        date: chrono::NaiveDate,
         query: es_entity::PaginatedQueryArgs<ReportsByCreatedAtCursor>,
     ) -> Result<es_entity::PaginatedQueryRet<Report, ReportsByCreatedAtCursor>, ReportError> {
         self.authz
@@ -164,7 +165,7 @@ where
             .await?;
 
         self.repo
-            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .list_for_date_by_created_at(date, query, es_entity::ListDirection::Descending)
             .await
     }
 

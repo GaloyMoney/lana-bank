@@ -226,21 +226,24 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Report, ctx, app.reports().find_report_by_id(sub, id))
     }
-    async fn reports(
+
+    async fn reports_by_date(
         &self,
         ctx: &Context<'_>,
+        date: Date,
         first: i32,
         after: Option<String>,
     ) -> async_graphql::Result<Connection<ReportsByCreatedAtCursor, Report, EmptyFields, EmptyFields>>
     {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let date = date.into_inner();
         list_with_cursor!(
             ReportsByCreatedAtCursor,
             Report,
             ctx,
             after,
             first,
-            |query| app.reports().list_reports(sub, query)
+            |query| app.reports().list_reports_by_date(sub, date, query)
         )
     }
 
