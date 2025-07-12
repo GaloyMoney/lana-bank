@@ -42,7 +42,6 @@ pub struct EnvSecrets {
     pub pg_con: String,
     pub sumsub_key: String,
     pub sumsub_secret: String,
-    pub sa_creds_base64: Option<String>,
     pub smtp_username: String,
     pub smtp_password: String,
     pub encryption_key: String,
@@ -55,7 +54,6 @@ impl Config {
             pg_con,
             sumsub_key,
             sumsub_secret,
-            sa_creds_base64,
             smtp_username,
             smtp_password,
             encryption_key,
@@ -71,10 +69,6 @@ impl Config {
         config.db.pg_con.clone_from(&pg_con);
         config.app.sumsub.sumsub_key = sumsub_key;
         config.app.sumsub.sumsub_secret = sumsub_secret;
-        config.app.service_account = config
-            .app
-            .service_account
-            .set_sa_creds_base64(sa_creds_base64)?;
         config.app.notification.email.username = smtp_username;
         config.app.notification.email.password = smtp_password;
         if let Some(dev_env_name_prefix) = dev_env_name_prefix {
