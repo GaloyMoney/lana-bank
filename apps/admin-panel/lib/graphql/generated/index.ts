@@ -419,6 +419,7 @@ export type CreditFacility = {
   history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
   maturesAt?: Maybe<Scalars['Timestamp']['output']>;
+  publicId: Scalars['PublicId']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityStatus;
   subjectCanComplete: Scalars['Boolean']['output'];
@@ -517,6 +518,7 @@ export type CreditFacilityDisbursal = {
   creditFacility: CreditFacility;
   disbursalId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  publicId: Scalars['PublicId']['output'];
   status: DisbursalStatus;
 };
 
@@ -1700,7 +1702,7 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
   profitAndLossConfig: ProfitAndLossStatementModuleConfig;
 };
 
-export type PublicIdTarget = Customer | DepositAccount;
+export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | DepositAccount;
 
 export type Query = {
   __typename?: 'Query';
@@ -3080,7 +3082,7 @@ export type SearchPublicIdTargetQueryVariables = Exact<{
 }>;
 
 
-export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?: { __typename: 'Customer', id: string, customerId: string, email: string } | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string } } | null };
+export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?: { __typename: 'CreditFacility' } | { __typename: 'CreditFacilityDisbursal' } | { __typename: 'Customer', id: string, customerId: string, email: string } | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, email: string } } | null };
 
 export const UsdBalanceFragmentFragmentDoc = gql`
     fragment UsdBalanceFragment on UsdLedgerAccountBalance {

@@ -144,6 +144,9 @@
             "null"
           ]
         },
+        "public_id": {
+          "type": "string"
+        },
         "type": {
           "const": "initialized",
           "type": "string"
@@ -158,6 +161,7 @@
         "account_ids",
         "disbursal_credit_account_id",
         "due_date",
+        "public_id",
         "audit_info"
       ],
       "type": "object"

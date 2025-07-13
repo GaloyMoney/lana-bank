@@ -493,6 +493,7 @@ type CreditFacilityDisbursal {
 	disbursalId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	publicId: PublicId!
 	creditFacility: CreditFacility!
 	status: DisbursalStatus!
 	approvalProcess: ApprovalProcess!
@@ -1517,7 +1518,7 @@ type ProfitAndLossStatementModuleConfigurePayload {
 
 scalar PublicId
 
-union PublicIdTarget = Customer | DepositAccount | CreditFacility
+union PublicIdTarget = Customer | DepositAccount | CreditFacility | CreditFacilityDisbursal
 
 type Query {
 	me: Subject!

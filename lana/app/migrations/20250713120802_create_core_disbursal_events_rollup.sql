@@ -17,6 +17,7 @@ CREATE TABLE core_disbursal_events_rollup (
   liquidation_date TIMESTAMPTZ,
   obligation_id UUID,
   overdue_date TIMESTAMPTZ,
+  public_id VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -82,6 +83,7 @@ BEGIN
     new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
+    new_row.public_id := (NEW.event ->> 'public_id');
   ELSE
     -- Default all fields to current values
     new_row.account_ids := current_row.account_ids;
@@ -100,6 +102,7 @@ BEGIN
     new_row.liquidation_date := current_row.liquidation_date;
     new_row.obligation_id := current_row.obligation_id;
     new_row.overdue_date := current_row.overdue_date;
+    new_row.public_id := current_row.public_id;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -114,6 +117,7 @@ BEGIN
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
       new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
       new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
+      new_row.public_id := (NEW.event ->> 'public_id');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
@@ -152,7 +156,8 @@ BEGIN
     ledger_tx_id,
     liquidation_date,
     obligation_id,
-    overdue_date
+    overdue_date,
+    public_id
   )
   VALUES (
     new_row.id,
@@ -174,7 +179,8 @@ BEGIN
     new_row.ledger_tx_id,
     new_row.liquidation_date,
     new_row.obligation_id,
-    new_row.overdue_date
+    new_row.overdue_date,
+    new_row.public_id
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
@@ -194,7 +200,8 @@ BEGIN
     ledger_tx_id = EXCLUDED.ledger_tx_id,
     liquidation_date = EXCLUDED.liquidation_date,
     obligation_id = EXCLUDED.obligation_id,
-    overdue_date = EXCLUDED.overdue_date;
+    overdue_date = EXCLUDED.overdue_date,
+    public_id = EXCLUDED.public_id;
 
   RETURN NEW;
 END;

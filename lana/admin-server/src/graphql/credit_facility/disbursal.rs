@@ -5,7 +5,10 @@ use crate::{
     graphql::{approval_process::*, loader::LanaDataLoader},
     primitives::*,
 };
-pub use lana_app::credit::{Disbursal as DomainDisbursal, DisbursalsCursor};
+pub use lana_app::{
+    credit::{Disbursal as DomainDisbursal, DisbursalsCursor},
+    public_id::PublicId,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -33,6 +36,10 @@ impl From<DomainDisbursal> for CreditFacilityDisbursal {
 
 #[ComplexObject]
 impl CreditFacilityDisbursal {
+    async fn public_id(&self) -> &PublicId {
+        &self.entity.public_id
+    }
+
     async fn credit_facility(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacility> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let facility = loader

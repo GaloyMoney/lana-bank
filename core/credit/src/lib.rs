@@ -199,6 +199,7 @@ where
             price,
             jobs,
             authz.audit(),
+            public_ids,
         );
         let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(authz, &ledger);
         let terms_templates = TermsTemplates::new(pool, authz);
@@ -591,6 +592,11 @@ where
             .obligation_liquidation_duration_from_due
             .map(|d| d.end_date(due_date));
 
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut db, DISBURSAL_REF_TARGET, disbursal_id)
+            .await?;
+
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
             .approval_process_id(disbursal_id)
@@ -602,6 +608,7 @@ where
             .overdue_date(overdue_date)
             .liquidation_date(liquidation_date)
             .audit_info(audit_info)
+            .public_id(public_id.id)
             .build()?;
 
         let disbursal = self.disbursals.create_in_op(&mut db, new_disbursal).await?;

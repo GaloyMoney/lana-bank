@@ -21,6 +21,7 @@ use super::{entity::*, error::DisbursalError};
         ),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         concluded_tx_id(ty = "Option<LedgerTxId>", create(persist = false)),
+        public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish"
@@ -79,6 +80,9 @@ impl From<(DisbursalsSortBy, &Disbursal)> for disbursal_cursor::DisbursalsCursor
                 disbursal_cursor::DisbursalsByApprovalProcessIdCursor::from(disbursal).into()
             }
             DisbursalsSortBy::Id => disbursal_cursor::DisbursalsByIdCursor::from(disbursal).into(),
+            DisbursalsSortBy::PublicId => {
+                disbursal_cursor::DisbursalsByPublicIdCursor::from(disbursal).into()
+            }
         }
     }
 }

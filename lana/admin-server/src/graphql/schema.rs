@@ -814,6 +814,10 @@ impl Query {
                 .credit_facility(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::CreditFacility),
+            "disbursal" => self
+                .disbursal(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::CreditFacilityDisbursal),
             _ => unreachable!(),
         };
         Ok(res)

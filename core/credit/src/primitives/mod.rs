@@ -46,6 +46,7 @@ es_entity::entity_id! {
     PaymentAllocationId => LedgerTxId,
 
     CreditFacilityId => public_id::PublicIdTargetId,
+    DisbursalId => public_id::PublicIdTargetId,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -126,6 +127,8 @@ pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");
+pub const DISBURSAL_REF_TARGET: public_id::PublicIdTargetType =
+    public_id::PublicIdTargetType::new("disbursal");
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

@@ -7,6 +7,7 @@ use authz::PermissionCheck;
 use core_price::Price;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
+use public_id::PublicIds;
 
 use crate::{
     Jobs,
@@ -32,6 +33,7 @@ where
     price: Price,
     jobs: Jobs,
     audit: Perms::Audit,
+    public_ids: PublicIds,
 }
 
 impl<Perms, E> Clone for ActivateCreditFacility<Perms, E>
@@ -47,6 +49,7 @@ where
             price: self.price.clone(),
             jobs: self.jobs.clone(),
             audit: self.audit.clone(),
+            public_ids: self.public_ids.clone(),
         }
     }
 }
@@ -66,6 +69,7 @@ where
         price: &Price,
         jobs: &Jobs,
         audit: &Perms::Audit,
+        public_ids: &PublicIds,
     ) -> Self {
         Self {
             credit_facilities: credit_facilities.clone(),
@@ -74,6 +78,7 @@ where
             price: price.clone(),
             jobs: jobs.clone(),
             audit: audit.clone(),
+            public_ids: public_ids.clone(),
         }
     }
 
@@ -104,8 +109,18 @@ where
                     .obligation_liquidation_duration_from_due
                     .map(|d| d.end_date(due_date));
 
+                let disbursal_id = DisbursalId::new();
+                let public_id = self
+                    .public_ids
+                    .create_in_op(
+                        &mut db,
+                        crate::primitives::DISBURSAL_REF_TARGET,
+                        disbursal_id,
+                    )
+                    .await?;
+
                 let new_disbursal = NewDisbursal::builder()
-                    .id(DisbursalId::new())
+                    .id(disbursal_id)
                     .credit_facility_id(credit_facility.id)
                     .approval_process_id(credit_facility.approval_process_id)
                     .amount(credit_facility.structuring_fee())
@@ -115,6 +130,7 @@ where
                     .overdue_date(overdue_date)
                     .liquidation_date(liquidation_date)
                     .audit_info(audit_info.clone())
+                    .public_id(public_id.id)
                     .build()
                     .expect("could not build new disbursal");
 

@@ -29,6 +29,7 @@ pub enum DisbursalEvent {
         due_date: DateTime<Utc>,
         overdue_date: Option<DateTime<Utc>>,
         liquidation_date: Option<DateTime<Utc>>,
+        public_id: PublicId,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -63,6 +64,7 @@ pub struct Disbursal {
     pub liquidation_date: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
+    pub public_id: PublicId,
     events: EntityEvents<DisbursalEvent>,
 }
 
@@ -81,6 +83,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                     due_date,
                     overdue_date,
                     liquidation_date,
+                    public_id,
                     ..
                 } => {
                     builder = builder
@@ -93,6 +96,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .due_date(*due_date)
                         .overdue_date(*overdue_date)
                         .liquidation_date(*liquidation_date)
+                        .public_id(public_id.clone())
                 }
                 DisbursalEvent::Settled { ledger_tx_id, .. } => {
                     builder = builder.concluded_tx_id(*ledger_tx_id)
@@ -262,6 +266,8 @@ pub struct NewDisbursal {
     pub(super) overdue_date: Option<DateTime<Utc>>,
     pub(super) liquidation_date: Option<DateTime<Utc>>,
     #[builder(setter(into))]
+    pub(super) public_id: PublicId,
+    #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
 
@@ -295,6 +301,7 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 overdue_date: self.overdue_date,
                 liquidation_date: self.liquidation_date,
                 audit_info: self.audit_info,
+                public_id: self.public_id,
             }],
         )
     }

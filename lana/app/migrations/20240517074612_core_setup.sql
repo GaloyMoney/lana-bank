@@ -318,6 +318,7 @@ CREATE TABLE core_disbursals (
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   obligation_id UUID DEFAULT NULL REFERENCES core_obligations(id),
   concluded_tx_id UUID DEFAULT NULL,
+  public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
