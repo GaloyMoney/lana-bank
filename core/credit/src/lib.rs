@@ -33,6 +33,7 @@ use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
+use public_id::PublicIds;
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::{
@@ -100,6 +101,7 @@ where
     custody: CoreCustody<Perms, E>,
     chart_of_accounts_integrations: ChartOfAccountsIntegrations<Perms>,
     terms_templates: TermsTemplates<Perms>,
+    public_ids: PublicIds,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -131,6 +133,7 @@ where
             approve_credit_facility: self.approve_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             terms_templates: self.terms_templates.clone(),
+            public_ids: self.public_ids.clone(),
         }
     }
 }
@@ -164,6 +167,7 @@ where
         outbox: &Outbox<E>,
         cala: &CalaLedger,
         journal_id: cala_ledger::JournalId,
+        public_ids: &PublicIds,
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
@@ -311,6 +315,7 @@ where
             approve_credit_facility,
             chart_of_accounts_integrations,
             terms_templates,
+            public_ids: public_ids.clone(),
         })
     }
 
@@ -431,6 +436,11 @@ where
             None
         };
 
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
+            .await?;
+
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .ledger_tx_id(LedgerTxId::new())
@@ -441,6 +451,7 @@ where
             .amount(amount)
             .account_ids(account_ids)
             .disbursal_credit_account_id(disbursal_credit_account_id.into())
+            .public_id(public_id.id)
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new credit facility");

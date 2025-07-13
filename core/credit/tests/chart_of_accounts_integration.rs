@@ -10,6 +10,7 @@ use core_accounting::CoreAccounting;
 use core_credit::*;
 use document_storage::DocumentStorage;
 use helpers::{action, event, object};
+use public_id::PublicIds;
 
 #[tokio::test]
 async fn chart_of_accounts_integration() -> anyhow::Result<()> {
@@ -36,6 +37,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
     let jobs = job::Jobs::new(&pool, job::JobExecutorConfig::default());
 
     let journal_id = helpers::init_journal(&cala).await?;
+    let public_ids = PublicIds::new(&pool);
 
     let credit = CoreCredit::init(
         &pool,
@@ -49,6 +51,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         &outbox,
         &cala,
         journal_id,
+        &public_ids,
     )
     .await?;
 

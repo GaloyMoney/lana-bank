@@ -19,6 +19,7 @@ pub use core_customer::{CustomerId, CustomerType};
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
 pub use governance::ApprovalProcessId;
+pub use public_id::PublicId;
 
 pub use cvl::*;
 
@@ -43,6 +44,8 @@ es_entity::entity_id! {
 
     DisbursalId => LedgerTxId,
     PaymentAllocationId => LedgerTxId,
+
+    CreditFacilityId => public_id::PublicIdTargetId,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord)]
@@ -120,6 +123,9 @@ pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
+
+pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
+    public_id::PublicIdTargetType::new("credit_facility");
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

@@ -342,6 +342,9 @@
           "format": "uuid",
           "type": "string"
         },
+        "public_id": {
+          "type": "string"
+        },
         "terms": {
           "$ref": "#/$defs/TermValues"
         },
@@ -361,6 +364,7 @@
         "account_ids",
         "disbursal_credit_account_id",
         "approval_process_id",
+        "public_id",
         "audit_info"
       ],
       "type": "object"

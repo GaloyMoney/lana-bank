@@ -34,6 +34,7 @@ pub enum CreditFacilityEvent {
         account_ids: CreditFacilityAccountIds,
         disbursal_credit_account_id: CalaAccountId,
         approval_process_id: ApprovalProcessId,
+        public_id: PublicId,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
@@ -170,6 +171,7 @@ pub struct CreditFacility {
     pub terms: TermValues,
     pub account_ids: CreditFacilityAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
+    pub public_id: PublicId,
     #[builder(setter(strip_option), default)]
     pub activated_at: Option<DateTime<Utc>>,
     #[builder(setter(strip_option), default)]
@@ -650,6 +652,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     disbursal_credit_account_id,
                     terms: t,
                     approval_process_id,
+                    public_id,
                     ..
                 } => {
                     terms = Some(*t);
@@ -662,6 +665,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .approval_process_id(*approval_process_id)
+                        .public_id(public_id.clone())
                 }
                 CreditFacilityEvent::Activated { activated_at, .. } => {
                     let matures_at = terms
@@ -703,6 +707,8 @@ pub struct NewCreditFacility {
     account_ids: CreditFacilityAccountIds,
     disbursal_credit_account_id: CalaAccountId,
     #[builder(setter(into))]
+    pub(super) public_id: PublicId,
+    #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
 
@@ -727,6 +733,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 approval_process_id: self.approval_process_id,
+                public_id: self.public_id,
             }],
         )
     }
@@ -819,6 +826,7 @@ mod test {
             account_ids: CreditFacilityAccountIds::new(),
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
+            public_id: PublicId::from(CreditFacilityId::new()),
         }]
     }
 

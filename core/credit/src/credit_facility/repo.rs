@@ -32,7 +32,8 @@ use super::{entity::*, error::CreditFacilityError};
             list_for,
             update(accessor = "last_collateralization_state()")
         ),
-        status(ty = "CreditFacilityStatus", list_for, update(accessor = "status()"))
+        status(ty = "CreditFacilityStatus", list_for, update(accessor = "status()")),
+        public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish"
@@ -240,6 +241,10 @@ impl From<(CreditFacilitiesSortBy, &CreditFacility)>
             }
             CreditFacilitiesSortBy::Id => {
                 credit_facility_cursor::CreditFacilitiesByIdCursor::from(credit_facility).into()
+            }
+            CreditFacilitiesSortBy::PublicId => {
+                credit_facility_cursor::CreditFacilitiesByPublicIdCursor::from(credit_facility)
+                    .into()
             }
         }
     }

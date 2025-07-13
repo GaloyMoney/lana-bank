@@ -54,4 +54,6 @@ pub enum CoreCreditError {
     CustomerNotFound,
     #[error("CoreCreditError - DisbursalBuilderError: {0}")]
     DisbursalBuilderError(#[from] super::NewDisbursalBuilderError),
+    #[error("CoreCreditError - PublicIdError: {0}")]
+    PublicIdError(#[from] public_id::PublicIdError),
 }

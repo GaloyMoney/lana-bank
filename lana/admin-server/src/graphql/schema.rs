@@ -810,6 +810,10 @@ impl Query {
                 .deposit_account(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::DepositAccount),
+            "credit_facility" => self
+                .credit_facility(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::CreditFacility),
             _ => unreachable!(),
         };
         Ok(res)

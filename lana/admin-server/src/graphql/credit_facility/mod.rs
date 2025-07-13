@@ -22,6 +22,7 @@ pub use lana_app::{
     },
     custody::WalletId,
     primitives::CreditFacilityStatus,
+    public_id::PublicId,
 };
 
 pub use balance::*;
@@ -69,6 +70,9 @@ impl From<DomainCreditFacility> for CreditFacility {
 
 #[ComplexObject]
 impl CreditFacility {
+    async fn public_id(&self) -> &PublicId {
+        &self.entity.public_id
+    }
     async fn can_be_completed(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.credit().can_be_completed(&self.entity).await?)

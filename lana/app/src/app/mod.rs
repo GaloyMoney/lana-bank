@@ -145,6 +145,7 @@ impl LanaApp {
             &outbox,
             &cala,
             journal_init.journal_id,
+            &public_ids,
         )
         .await?;
 

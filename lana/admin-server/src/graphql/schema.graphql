@@ -391,6 +391,7 @@ type CreditFacility {
 	createdAt: Timestamp!
 	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
+	publicId: PublicId!
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
@@ -1516,7 +1517,7 @@ type ProfitAndLossStatementModuleConfigurePayload {
 
 scalar PublicId
 
-union PublicIdTarget = Customer | DepositAccount
+union PublicIdTarget = Customer | DepositAccount | CreditFacility
 
 type Query {
 	me: Subject!

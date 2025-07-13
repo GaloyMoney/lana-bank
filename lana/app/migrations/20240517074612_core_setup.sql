@@ -229,6 +229,7 @@ CREATE TABLE core_credit_facilities (
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
   status VARCHAR NOT NULL,
+  public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

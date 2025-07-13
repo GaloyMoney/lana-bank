@@ -20,6 +20,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   interest_period JSONB,
   outstanding JSONB,
   price JSONB,
+  public_id VARCHAR,
   terms JSONB,
 
   -- Collection rollups
@@ -110,6 +111,7 @@ BEGIN
 ;
     new_row.outstanding := (NEW.event -> 'outstanding');
     new_row.price := (NEW.event -> 'price');
+    new_row.public_id := (NEW.event ->> 'public_id');
     new_row.terms := (NEW.event -> 'terms');
   ELSE
     -- Default all fields to current values
@@ -135,6 +137,7 @@ BEGIN
     new_row.obligation_ids := current_row.obligation_ids;
     new_row.outstanding := current_row.outstanding;
     new_row.price := current_row.price;
+    new_row.public_id := current_row.public_id;
     new_row.terms := current_row.terms;
   END IF;
 
@@ -149,6 +152,7 @@ BEGIN
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.public_id := (NEW.event ->> 'public_id');
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
@@ -211,6 +215,7 @@ BEGIN
     obligation_ids,
     outstanding,
     price,
+    public_id,
     terms
   )
   VALUES (
@@ -240,6 +245,7 @@ BEGIN
     new_row.obligation_ids,
     new_row.outstanding,
     new_row.price,
+    new_row.public_id,
     new_row.terms
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -267,6 +273,7 @@ BEGIN
     obligation_ids = EXCLUDED.obligation_ids,
     outstanding = EXCLUDED.outstanding,
     price = EXCLUDED.price,
+    public_id = EXCLUDED.public_id,
     terms = EXCLUDED.terms;
 
   RETURN NEW;
