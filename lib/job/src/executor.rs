@@ -34,33 +34,6 @@ impl JobExecutor {
         }
     }
 
-    pub async fn spawn_job<I: JobInitializer>(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        job: &Job,
-        schedule_at: Option<DateTime<Utc>>,
-    ) -> Result<(), JobError> {
-        if job.job_type != I::job_type() {
-            return Err(JobError::JobTypeMismatch(
-                job.job_type.clone(),
-                I::job_type(),
-            ));
-        }
-        sqlx::query!(
-            r#"
-          INSERT INTO job_executions (id, job_type, reschedule_after, created_at)
-          VALUES ($1, $2, $3, $4)
-        "#,
-            job.id as JobId,
-            &job.job_type as &JobType,
-            schedule_at.unwrap_or(db.now()),
-            db.now()
-        )
-        .execute(&mut **db.tx())
-        .await?;
-        Ok(())
-    }
-
     pub async fn start(&mut self, registry: &Arc<RwLock<JobRegistry>>) -> Result<(), JobError> {
         let keep_alive_interval = self.config.keep_alive_interval;
         let max_concurrency = self.config.max_jobs_per_process;

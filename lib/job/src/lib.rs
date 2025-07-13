@@ -82,8 +82,7 @@ impl Jobs {
             Err(JobError::DuplicateUniqueJobType) => (),
             Err(e) => return Err(e),
             Ok(job) => {
-                self.executor
-                    .spawn_job::<<C as JobConfig>::Initializer>(&mut db, &job, None)
+                self.insert_execution::<<C as JobConfig>::Initializer>(&mut db, &job, None)
                     .await?;
                 db.commit().await?;
             }
@@ -111,8 +110,7 @@ impl Jobs {
             .build()
             .expect("Could not build new job");
         let job = self.repo.create_in_op(db, new_job).await?;
-        self.executor
-            .spawn_job::<<C as JobConfig>::Initializer>(db, &job, None)
+        self.insert_execution::<<C as JobConfig>::Initializer>(db, &job, None)
             .await?;
         Ok(job)
     }
@@ -138,8 +136,7 @@ impl Jobs {
             .build()
             .expect("Could not build new job");
         let job = self.repo.create_in_op(db, new_job).await?;
-        self.executor
-            .spawn_job::<<C as JobConfig>::Initializer>(db, &job, Some(schedule_at))
+        self.insert_execution::<<C as JobConfig>::Initializer>(db, &job, Some(schedule_at))
             .await?;
         Ok(job)
     }
@@ -151,5 +148,32 @@ impl Jobs {
 
     pub async fn start_executor(&mut self) -> Result<(), JobError> {
         self.executor.start(&self.registry).await
+    }
+
+    async fn insert_execution<I: JobInitializer>(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        job: &Job,
+        schedule_at: Option<DateTime<Utc>>,
+    ) -> Result<(), JobError> {
+        if job.job_type != I::job_type() {
+            return Err(JobError::JobTypeMismatch(
+                job.job_type.clone(),
+                I::job_type(),
+            ));
+        }
+        sqlx::query!(
+            r#"
+          INSERT INTO job_executions (id, job_type, reschedule_after, created_at)
+          VALUES ($1, $2, $3, $4)
+        "#,
+            job.id as JobId,
+            &job.job_type as &JobType,
+            schedule_at.unwrap_or(db.now()),
+            db.now()
+        )
+        .execute(&mut **db.tx())
+        .await?;
+        Ok(())
     }
 }
