@@ -36,6 +36,7 @@ gql`
     collateralizationState
     createdAt
     currentCvl
+    publicId
     collateralToMatchInitialCvl @client
     disbursals {
       status

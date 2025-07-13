@@ -18,6 +18,7 @@ gql`
       amount
       createdAt
       status
+      publicId
       creditFacility {
         id
         creditFacilityId
