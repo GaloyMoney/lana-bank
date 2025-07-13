@@ -17,10 +17,9 @@ pub mod error;
 
 use chrono::{DateTime, Utc};
 use sqlx::PgPool;
-use tokio::sync::RwLock;
 use tracing::{Span, instrument};
 
-use std::sync::Arc;
+use std::sync::{Arc, Mutex};
 
 pub use config::*;
 pub use current::*;
@@ -37,28 +36,33 @@ es_entity::entity_id! { JobId }
 
 #[derive(Clone)]
 pub struct Jobs {
+    config: JobExecutorConfig,
     repo: JobRepo,
-    executor: JobExecutor,
-    registry: Arc<RwLock<JobRegistry>>,
-    runner_handle: Option<Arc<JobExecutorHandle>>,
+    _executor: JobExecutor,
+    registry: Arc<Mutex<Option<JobRegistry>>>,
+    executor_handle: Option<Arc<JobExecutorHandle>>,
 }
 
 impl Jobs {
     pub fn new(pool: &PgPool, config: JobExecutorConfig) -> Self {
         let repo = JobRepo::new(pool);
-        let registry = Arc::new(RwLock::new(JobRegistry::new()));
-        let executor = JobExecutor::new(config, &repo);
+        let registry = Arc::new(Mutex::new(Some(JobRegistry::new())));
+        let executor = JobExecutor::new(config.clone(), &repo);
         Self {
             repo,
-            executor,
+            config,
+            _executor: executor,
             registry,
-            runner_handle: None,
+            executor_handle: None,
         }
     }
 
     pub fn add_initializer<I: JobInitializer>(&self, initializer: I) {
-        let mut registry = self.registry.try_write().expect("Could not lock registry");
-        registry.add_initializer(initializer);
+        let mut registry = self.registry.lock().expect("Couldn't lock Registry Mutex");
+        registry
+            .as_mut()
+            .expect("Registry has been consumed by executor")
+            .add_initializer(initializer);
     }
 
     pub async fn add_initializer_and_spawn_unique<C: JobConfig>(
@@ -67,8 +71,11 @@ impl Jobs {
         config: C,
     ) -> Result<(), JobError> {
         {
-            let mut registry = self.registry.try_write().expect("Could not lock registry");
-            registry.add_initializer(initializer);
+            let mut registry = self.registry.lock().expect("Couldn't lock Registry Mutex");
+            registry
+                .as_mut()
+                .expect("Registry has been consumed by executor")
+                .add_initializer(initializer);
         }
         let new_job = NewJob::builder()
             .id(JobId::new())
@@ -147,7 +154,18 @@ impl Jobs {
     }
 
     pub async fn start_executor(&mut self) -> Result<(), JobError> {
-        self.executor.start(&self.registry).await
+        let registry = self
+            .registry
+            .lock()
+            .expect("Couldn't lock Registry Mutex")
+            .take()
+            .expect("Registry has been consumed by executor");
+        self.executor_handle = Some(Arc::new(
+            NewJobExecutor::new(self.config.clone(), self.repo.clone(), registry)
+                .start()
+                .await?,
+        ));
+        Ok(())
     }
 
     async fn insert_execution<I: JobInitializer>(
