@@ -5,9 +5,12 @@ mod config;
 mod current;
 mod entity;
 mod executor;
+mod handle;
+mod new_executor;
 mod registry;
 mod repo;
 mod time;
+mod tracker;
 mod traits;
 
 pub mod error;
@@ -27,6 +30,7 @@ pub use traits::*;
 
 use error::*;
 use executor::*;
+use new_executor::*;
 use repo::*;
 
 es_entity::entity_id! { JobId }
@@ -36,17 +40,19 @@ pub struct Jobs {
     repo: JobRepo,
     executor: JobExecutor,
     registry: Arc<RwLock<JobRegistry>>,
+    runner_handle: Option<Arc<JobExecutorHandle>>,
 }
 
 impl Jobs {
     pub fn new(pool: &PgPool, config: JobExecutorConfig) -> Self {
         let repo = JobRepo::new(pool);
         let registry = Arc::new(RwLock::new(JobRegistry::new()));
-        let executor = JobExecutor::new(config, Arc::clone(&registry), &repo);
+        let executor = JobExecutor::new(config, &repo);
         Self {
             repo,
             executor,
             registry,
+            runner_handle: None,
         }
     }
 
@@ -143,7 +149,7 @@ impl Jobs {
         self.repo.find_by_id(id).await
     }
 
-    pub async fn start_poll(&mut self) -> Result<(), JobError> {
-        self.executor.start().await
+    pub async fn start_executor(&mut self) -> Result<(), JobError> {
+        self.executor.start(&self.registry).await
     }
 }

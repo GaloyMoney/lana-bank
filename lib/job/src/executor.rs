@@ -6,13 +6,13 @@ use tracing::{Span, instrument};
 use std::{collections::HashMap, sync::Arc, time::Duration};
 
 use super::{
-    JobId, config::*, current::*, entity::*, error::JobError, registry::*, repo::*, traits::*,
+    JobId, config::*, current::*, entity::*, error::JobError, handle::*, registry::*, repo::*,
+    traits::*,
 };
 
 #[derive(Clone)]
 pub(crate) struct JobExecutor {
     config: JobExecutorConfig,
-    registry: Arc<RwLock<JobRegistry>>,
     poll_handle: Option<Arc<OwnedTaskHandle>>,
     keep_alive_handle: Option<Arc<OwnedTaskHandle>>,
     listen_handle: Option<Arc<OwnedTaskHandle>>,
@@ -22,17 +22,12 @@ pub(crate) struct JobExecutor {
 }
 
 impl JobExecutor {
-    pub fn new(
-        config: JobExecutorConfig,
-        registry: Arc<RwLock<JobRegistry>>,
-        jobs: &JobRepo,
-    ) -> Self {
+    pub fn new(config: JobExecutorConfig, jobs: &JobRepo) -> Self {
         Self {
             poll_handle: None,
             keep_alive_handle: None,
             listen_handle: None,
             config,
-            registry,
             running_jobs: Arc::new(RwLock::new(HashMap::new())),
             notify: Arc::new(Notify::new()),
             jobs: jobs.clone(),
@@ -51,14 +46,6 @@ impl JobExecutor {
                 I::job_type(),
             ));
         }
-        if !self
-            .registry
-            .try_read()
-            .expect("Cannot read registry")
-            .initializer_exists(&job.job_type)
-        {
-            return Err(JobError::NoInitializerPresent);
-        }
         sqlx::query!(
             r#"
           INSERT INTO job_executions (id, job_type, reschedule_after, created_at)
@@ -74,14 +61,14 @@ impl JobExecutor {
         Ok(())
     }
 
-    pub async fn start(&mut self) -> Result<(), JobError> {
+    pub async fn start(&mut self, registry: &Arc<RwLock<JobRegistry>>) -> Result<(), JobError> {
         let keep_alive_interval = self.config.keep_alive_interval;
         let max_concurrency = self.config.max_jobs_per_process;
         let min_concurrency = self.config.min_jobs_per_process;
         let pg_interval = PgInterval::try_from(keep_alive_interval * 4)
             .map_err(|e| JobError::InvalidPollInterval(e.to_string()))?;
         let running_jobs = Arc::clone(&self.running_jobs);
-        let registry = Arc::clone(&self.registry);
+        let registry = Arc::clone(registry);
         let jobs = self.jobs.clone();
 
         // Spawn keep_alive thread
@@ -324,7 +311,7 @@ impl JobExecutor {
         running_jobs
             .write()
             .await
-            .insert(id, OwnedTaskHandle(Some(handle)));
+            .insert(id, OwnedTaskHandle::new(handle));
         Ok(())
     }
 
@@ -514,18 +501,4 @@ async fn start_listener(
             }
         }
     })))
-}
-
-struct OwnedTaskHandle(Option<tokio::task::JoinHandle<()>>);
-impl OwnedTaskHandle {
-    pub fn new(inner: tokio::task::JoinHandle<()>) -> Self {
-        Self(Some(inner))
-    }
-}
-impl Drop for OwnedTaskHandle {
-    fn drop(&mut self) {
-        if let Some(handle) = self.0.take() {
-            handle.abort();
-        }
-    }
 }

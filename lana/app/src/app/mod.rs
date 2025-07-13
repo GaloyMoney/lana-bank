@@ -161,7 +161,7 @@ impl LanaApp {
         ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
             .await?;
 
-        jobs.start_poll().await?;
+        jobs.start_executor().await?;
 
         Ok(Self {
             _pool: pool,

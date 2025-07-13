@@ -457,6 +457,20 @@ CREATE TABLE job_executions (
   created_at TIMESTAMPTZ NOT NULL
 );
 
+-- Function to notify on job_executions inserts (once per transaction)
+CREATE OR REPLACE FUNCTION notify_job_execution() RETURNS TRIGGER AS $$
+BEGIN
+  PERFORM pg_notify('job_execution', '');
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+-- Trigger that fires once per statement (not per row)
+CREATE TRIGGER job_executions_notify_trigger
+AFTER INSERT ON job_executions
+FOR EACH STATEMENT
+EXECUTE FUNCTION notify_job_execution();
+
 CREATE TABLE casbin_rule (
   id SERIAL PRIMARY KEY,
   ptype VARCHAR NOT NULL,

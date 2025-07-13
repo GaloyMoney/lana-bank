@@ -24,10 +24,6 @@ impl JobRegistry {
         );
     }
 
-    pub(super) fn initializer_exists(&self, job_type: &JobType) -> bool {
-        self.initializers.contains_key(job_type)
-    }
-
     pub(super) fn init_job(&self, job: &Job) -> Result<Box<dyn JobRunner>, JobError> {
         self.initializers
             .get(&job.job_type)
