@@ -36,7 +36,8 @@ members = [
   "lib/kratos-admin",
   "lib/bitgo",
   "lib/komainu",
-  "lib/cloud-storage"]
+  "lib/cloud-storage",
+  "fuzz"]
 
 [workspace.dependencies]
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }

@@ -1,0 +1,29 @@
+[package]
+name = "lana-cli-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2024"
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rust_decimal = "1.36"
+
+[dependencies.core-money]
+path = "../core/money"
+
+[[bin]]
+name = "fuzz_target_1"
+path = "fuzz_targets/fuzz_target_1.rs"
+test = false
+doc = false
+bench = false
+
+[[bin]]
+name = "money_conversions"
+path = "fuzz_targets/money_conversions.rs"
+test = false
+doc = false
+bench = false
