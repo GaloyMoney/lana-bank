@@ -35,7 +35,7 @@ impl JobExecutor {
     }
 
     pub async fn start(&mut self, registry: &Arc<RwLock<JobRegistry>>) -> Result<(), JobError> {
-        let keep_alive_interval = self.config.keep_alive_interval;
+        let keep_alive_interval = self.config.job_lost_interval;
         let max_concurrency = self.config.max_jobs_per_process;
         let min_concurrency = self.config.min_jobs_per_process;
         let pg_interval = PgInterval::try_from(keep_alive_interval * 4)

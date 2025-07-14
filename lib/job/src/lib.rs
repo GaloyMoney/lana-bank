@@ -6,6 +6,7 @@ mod current;
 mod entity;
 mod executor;
 mod handle;
+mod new_current;
 mod new_executor;
 mod registry;
 mod repo;
