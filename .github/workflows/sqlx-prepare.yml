@@ -19,7 +19,7 @@ jobs:
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
       - name: SQLX Prepare
         run: |
-          nix develop -c make start-deps
+          nix develop -c make reset-deps
           nix develop -c make sqlx-prepare
           git diff --exit-code .sqlx
         env:
