@@ -44,4 +44,4 @@ export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
 echo "Starting services..."
 "$ENGINE" compose "${FILES[@]}" up -d "$@"
 
-wait4x postgresql ${PG_CON}
+wait4x postgresql ${PG_CON} --timeout 60s
