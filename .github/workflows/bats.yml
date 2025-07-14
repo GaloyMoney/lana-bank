@@ -31,11 +31,11 @@ jobs:
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
           
-      - name: Rename Tilt log
+      - name: Rename bats log
         if: always()
         run: mv .e2e-logs e2e-logs || true
         
-      - name: Upload Tilt log
+      - name: Upload bats log
         if: always()
         uses: actions/upload-artifact@v4
         with:
