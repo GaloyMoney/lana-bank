@@ -23,6 +23,7 @@ jobs:
           nix develop -c make sqlx-prepare
           git diff --exit-code .sqlx
         env:
+          ENGINE_DEFAULT: podman
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           TF_VAR_name_prefix: "gha"
 
