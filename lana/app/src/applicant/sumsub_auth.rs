@@ -345,7 +345,7 @@ impl SumsubClient {
     /// Submits a financial transaction to Sumsub for transaction monitoring
     pub async fn submit_finance_transaction(
         &self,
-        external_user_id: CustomerId,
+        customer_id: CustomerId,
         tx_id: impl Into<String>,
         tx_type: &str,
         direction: &str,
@@ -366,13 +366,6 @@ impl SumsubClient {
         let now = chrono::Utc::now();
         let date_format = now.format("%Y-%m-%d %H:%M:%S+0000").to_string();
 
-        // Map direction to Sumsub's expected values: "incoming" -> "in", "outgoing" -> "out"
-        let sumsub_direction = match direction {
-            "incoming" => "in",
-            "outgoing" => "out",
-            other => other, // Pass through if already in correct format
-        };
-
         // Build the request body
         let body = json!({
             "txnId": tx_id,
@@ -380,7 +373,7 @@ impl SumsubClient {
             "txnDate": date_format,
             "info": {
                 "type": tx_type,
-                "direction": sumsub_direction,
+                "direction": direction,
                 "amount": amount,
                 "currencyCode": currency_code,
                 "currencyType": "fiat",
@@ -388,7 +381,7 @@ impl SumsubClient {
             },
             "applicant": {
                 "type": "individual",
-                "externalUserId": external_user_id.to_string(),
+                "externalUserId": customer_id.to_string(),
                 "fullName": ""
             }
         });
