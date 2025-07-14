@@ -94,6 +94,14 @@
     "custody_writer": {
       "label": "Editor de custodia",
       "description": "Puede crear y gestionar configuraciones de custodios"
+    },
+    "report_viewer": {
+      "label": "Visualizador de informes",
+      "description": "Puede ver informes regulatorios y descargarlos"
+    },
+    "report_writer": {
+      "label": "Redactor de informes",
+      "description": "Puede iniciar la generación de informes regulatorios"
     }
   },
   "interestInterval": {
