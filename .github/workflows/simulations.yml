@@ -24,6 +24,7 @@ jobs:
             2>&1 | tee server.log &
           echo "PID=$!" > .server.pid
         env:
+          ENGINE_DEFAULT: podman
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           TF_VAR_name_prefix: "gha"
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
