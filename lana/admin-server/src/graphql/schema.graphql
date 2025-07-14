@@ -1220,7 +1220,7 @@ enum KycLevel {
 }
 
 type LastRun {
-	runType: RunType!
+	runType: ReportGenerationJobRunType!
 	runStartedAt: Timestamp
 	status: String!
 	logs: String
@@ -1421,7 +1421,7 @@ type Mutation {
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
 	reportGenerate: ReportGeneratePayload!
-	reportGenerateDownloadLink(reportId: UUID!): String!
+	reportGenerateDownloadLink(input: ReportGenerateDownloadLinkInput!): ReportGenerateDownloadLinkPayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1646,7 +1646,7 @@ type Query {
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
-	reportGenerationStatus: ReportGenerationStatusPayload!
+	reportGenerationJobStatus: ReportGenerationJobStatusPayload!
 }
 
 type RealtimePrice {
@@ -1689,13 +1689,26 @@ type ReportEdge {
 	cursor: String!
 }
 
+input ReportGenerateDownloadLinkInput {
+	reportId: UUID!
+}
+
+type ReportGenerateDownloadLinkPayload {
+	url: String!
+}
+
 type ReportGeneratePayload {
 	runId: String!
 }
 
-type ReportGenerationStatusPayload {
+enum ReportGenerationJobRunType {
+	SCHEDULED
+	API_TRIGGERED
+}
+
+type ReportGenerationJobStatusPayload {
 	running: Boolean!
-	runType: RunType
+	runType: ReportGenerationJobRunType
 	runStartedAt: Timestamp
 	logs: String
 	lastRun: LastRun
@@ -1764,11 +1777,6 @@ input RoleRemovePermissionSetsInput {
 
 type RoleRemovePermissionSetsPayload {
 	role: Role!
-}
-
-enum RunType {
-	SCHEDULED
-	API_TRIGGERED
 }
 
 scalar Satoshis

@@ -197,7 +197,6 @@ where
         };
 
         let download_link = self.storage.generate_download_link(location).await?;
-
         Ok(download_link)
     }
 }

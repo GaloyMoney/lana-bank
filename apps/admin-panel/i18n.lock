@@ -58,6 +58,10 @@ checksums:
     Permissions/custody_viewer/description: 5be32922e339e74936937610f32d03d4
     Permissions/custody_writer/label: d7d4513c6a80a74f28e925ad18a81fc1
     Permissions/custody_writer/description: 75cd3a76aa1007b95dcc0206c29f990e
+    Permissions/report_viewer/label: a66689c6ed940e3e6a26e703a04851e6
+    Permissions/report_viewer/description: b9a52307adee71b1c818d70ac5160696
+    Permissions/report_writer/label: abba08c361cb57585c6bf6dde57051db
+    Permissions/report_writer/description: d0bb9b9ba3824a2e4c9fadb87d926881
     interestInterval/endOfDay: 24234805a9fd10dfe74eaeafec362699
     interestInterval/endOfMonth: df268ce61af23ae591e0a727f34ad13f
     period/days: 47648cd60fc313bc3f05b70357a1d675
@@ -838,23 +842,21 @@ checksums:
     ProfitAndLoss/categories/Expenses: 1746536359bb638c45a12980ab3aac3a
     Reports/title: 60990919a45b80f1f1fc1bf292bee36a
     Reports/description: 523613154e094441d7026ee5727c1d9d
-    Reports/generateReport: 8f20da23bb7692f803a254cb5f99040e
-    Reports/noReportsFound: 4bb4797d1372ee0c6ed6a717c26ba97a
-    Reports/selectReport: 00667891b88010a2027bf26b2c9bbfe8
-    Reports/selectReportPlaceholder: c65618d668c8980759431780e8268583
-    Reports/reportId: cb9bc99828b2fcea447b62544964ca32
-    Reports/lastError: 919bde3c9591d09926a3bf25ec6ebb58
-    Reports/currentStatus: 4e1fcce15854d824919b4a582c697c90
-    Reports/downloads: 28027f3f83d0160897d9b7ac9efb6dfa
-    Reports/generateLinks: 48eb38de2a9bdd474d5eb3d74e2daecf
-    Reports/status/running: efcebb52f4955b03c943de9e88c3dc0c
-    Reports/status/complete: cc065d79cc18944fe8daca3abff70401
-    Reports/createDialog/title: c388891629d5241f802b87840275d5d9
-    Reports/createDialog/description: 537c72da37eb73a345e1304c550289b4
-    Reports/createDialog/create: 97560449b7dcf150f9b12bee567ccc5b
-    Reports/createDialog/creating: c949fe6aa47b326f345b405fe9c4d6e7
-    Reports/createDialog/success: 824cd04a7d66e34a7d187d8c2cc102bc
-    Reports/createDialog/error: e641fe9d7105a0d6d8410538e2013add
+    Reports/availableReports: d3f49ae76c3a57e209cc0c6ebcdeb25f
+    Reports/noReportsAvailable: d900cb3eb78b7b339338a1ca81f65a06
+    Reports/ReportGeneration/generate: 0345bf322c191e70d01fd6607ec5c2f8
+    Reports/ReportGeneration/reportGenerationHasBeenTriggered: a929db688da7aa86e16769a1aba853bf
+    Reports/ReportGeneration/reportGenerationFailed: a0c2490202b5b00994cd80bf21d694fd
+    Reports/ReportGeneration/startedAt: 976e12bba4ebfbb45fd9cde66f31790e
+    Reports/ReportGeneration/running: 010d4795c3d5df31edde92a3441d7017
+    Reports/ReportGeneration/detailsOfLastRun: c37997c1902267939c95167aa4b27fc5
+    Reports/ReportGeneration/scheduled: d2274a8a46a34994e0d9e2d7b9332aea
+    Reports/ReportGeneration/apiTriggered: 1cbb3bf1dfaab27b9a27b1687a1b3966
+    ReportsByDate/title: 64090a72903b263003b4654b8b014873
+    ReportsByDate/description: b9e788358f03edb51b6717ed73524616
+    ReportsByDate/reportName: 08e1c049c432209a59807910196b1dcd
+    ReportsByDate/actions: c46571856723b03262fd33f511116298
+    ReportsByDate/errorGeneratingLink: 595fd1fbef081f72d9f0dacea64a10a8
     TrialBalance/title: 2d6598d15bc81b1e8d626782922e6ab7
     TrialBalance/description: 3ebb7d653fc18ee660566dd3043c9b05
     TrialBalance/noAccountsPresent: 13af00b386a336e7a22a433dfbb4e465

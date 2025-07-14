@@ -17,6 +17,7 @@ def main():
         "DBT_BIGQUERY_PROJECT",
         "DBT_BIGQUERY_DATASET",
         "DOCS_BUCKET_NAME",
+        "AIRFLOW_CTX_DAG_RUN_ID", # automatically set by Airflow
     ]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
@@ -26,6 +27,7 @@ def main():
     project_id = os.getenv("DBT_BIGQUERY_PROJECT")
     dataset = os.getenv("DBT_BIGQUERY_DATASET")
     bucket_name = os.getenv("DOCS_BUCKET_NAME")
+    run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID")
 
     keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
     if not keyfile or not os.path.isfile(keyfile):
@@ -46,7 +48,6 @@ def main():
             continue
         norm_name = match.group(1)
         report_name = match.group(2)
-        date_str = datetime.now().strftime("%Y-%m-%d")
 
         query = f"SELECT * FROM `{project_id}.{dataset}.{table_name}`;"
         query_job = bq_client.query(query)
@@ -58,7 +59,7 @@ def main():
             report_content_type = "text/xml"
             report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
             report_content = report_bytes.decode("utf-8")
-            blob_path = f"reports/{date_str}/{norm_name}/{report_name}.xml"
+            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.xml"
             store_blob(
                 storage_client,
                 bucket_name,
@@ -78,7 +79,7 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = f"reports/{date_str}/{norm_name}/{report_name}.txt"
+            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.txt"
             store_blob(
                 storage_client,
                 bucket_name,
@@ -97,7 +98,7 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = f"reports/{date_str}/{norm_name}/{report_name}.csv"
+            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.csv"
             store_blob(
                 storage_client,
                 bucket_name,

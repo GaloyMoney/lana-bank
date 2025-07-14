@@ -94,6 +94,14 @@
     "custody_writer": {
       "label": "Editor de custodia",
       "description": "Puede crear y gestionar configuraciones de custodios"
+    },
+    "report_viewer": {
+      "label": "Visualizador de informes",
+      "description": "Puede ver informes regulatorios y descargarlos"
+    },
+    "report_writer": {
+      "label": "Redactor de informes",
+      "description": "Puede iniciar la generación de informes regulatorios"
     }
   },
   "interestInterval": {
@@ -1473,27 +1481,25 @@
   "Reports": {
     "title": "Gestión de Informes",
     "description": "Generar y gestionar informes regulatorios, seguir su estado y descargar documentos generados.",
-    "generateReport": "Generar Informe",
-    "noReportsFound": "No se encontraron informes",
-    "selectReport": "Seleccionar Informe",
-    "selectReportPlaceholder": "Seleccione un informe",
-    "reportId": "ID del Informe",
-    "lastError": "Último Error",
-    "currentStatus": "Estado",
-    "downloads": "Descargas",
-    "generateLinks": "Generar Enlaces",
-    "status": {
-      "running": "En ejecución (última activación el {date})",
-      "complete": "Operativo (último informe creado el {date})"
-    },
-    "createDialog": {
-      "title": "Crear Nuevo Informe",
-      "description": "¿Está seguro de que desea crear un nuevo informe? Esta acción generará un informe regulatorio basado en los datos financieros más recientes.",
-      "create": "Crear Informe",
-      "creating": "Creando...",
-      "success": "Creación de informe iniciada",
-      "error": "Error al crear informe"
+    "availableReports": "Informes disponibles",
+    "noReportsAvailable": "No hay informes disponibles",
+    "ReportGeneration": {
+      "generate": "Generar",
+      "reportGenerationHasBeenTriggered": "Se ha iniciado la generación del informe",
+      "reportGenerationFailed": "La generación del informe ha fallado. Error {e}",
+      "startedAt": "Iniciado a las {t}",
+      "running": "En proceso",
+      "detailsOfLastRun": "Detalles de la última ejecución",
+      "scheduled": "Programado por el sistema",
+      "apiTriggered": "Iniciado"
     }
+  },
+  "ReportsByDate": {
+    "title": "Informes regulatorios para {date}",
+    "description": "Todos los informes regulatorios generados para esta fecha",
+    "reportName": "Nombre del informe",
+    "actions": "Acciones",
+    "errorGeneratingLink": "Error al generar el enlace para el informe"
   },
   "TrialBalance": {
     "title": "Balance de Comprobación",

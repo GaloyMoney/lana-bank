@@ -1,4 +1,4 @@
-use async_graphql::{Enum, ID, SimpleObject};
+use async_graphql::*;
 use lana_app::report::{DagRunStatusResponse, ReportGenerateResponse};
 
 use crate::primitives::{Date, Timestamp, ToGlobalId, UUID};
@@ -43,23 +43,23 @@ impl From<ReportGenerateResponse> for ReportGeneratePayload {
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
-pub enum RunType {
+pub enum ReportGenerationJobRunType {
     Scheduled,
     ApiTriggered,
 }
 
-impl From<lana_app::report::RunType> for RunType {
+impl From<lana_app::report::RunType> for ReportGenerationJobRunType {
     fn from(run_type: lana_app::report::RunType) -> Self {
         match run_type {
-            lana_app::report::RunType::Scheduled => RunType::Scheduled,
-            lana_app::report::RunType::ApiTriggered => RunType::ApiTriggered,
+            lana_app::report::RunType::Scheduled => ReportGenerationJobRunType::Scheduled,
+            lana_app::report::RunType::ApiTriggered => ReportGenerationJobRunType::ApiTriggered,
         }
     }
 }
 
 #[derive(SimpleObject)]
 pub struct LastRun {
-    pub run_type: RunType,
+    pub run_type: ReportGenerationJobRunType,
     pub run_started_at: Option<Timestamp>,
     pub status: String,
     pub logs: Option<String>,
@@ -77,16 +77,16 @@ impl From<lana_app::report::LastRun> for LastRun {
 }
 
 #[derive(SimpleObject)]
-pub struct ReportGenerationStatusPayload {
+pub struct ReportGenerationJobStatusPayload {
     pub running: bool,
-    pub run_type: Option<RunType>,
+    pub run_type: Option<ReportGenerationJobRunType>,
     pub run_started_at: Option<Timestamp>,
     pub logs: Option<String>,
     pub last_run: Option<LastRun>,
     pub error: Option<String>,
 }
 
-impl From<DagRunStatusResponse> for ReportGenerationStatusPayload {
+impl From<DagRunStatusResponse> for ReportGenerationJobStatusPayload {
     fn from(response: DagRunStatusResponse) -> Self {
         Self {
             running: response.running,
@@ -96,5 +96,20 @@ impl From<DagRunStatusResponse> for ReportGenerationStatusPayload {
             last_run: response.last_run.map(Into::into),
             error: response.error,
         }
+    }
+}
+
+#[derive(InputObject)]
+pub struct ReportGenerateDownloadLinkInput {
+    pub report_id: UUID,
+}
+
+#[derive(SimpleObject)]
+pub struct ReportGenerateDownloadLinkPayload {
+    pub url: String,
+}
+impl From<String> for ReportGenerateDownloadLinkPayload {
+    fn from(url: String) -> Self {
+        Self { url }
     }
 }
