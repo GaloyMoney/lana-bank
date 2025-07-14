@@ -1570,7 +1570,6 @@ type Query {
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
-	loanAgreement(id: UUID!): LoanAgreement
 }
 
 type RealtimePrice {

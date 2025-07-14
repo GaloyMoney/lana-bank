@@ -89,3 +89,7 @@ careful filename convention allow for consistency across the application
 - `job.rs` contain code to interact with the asynchronus jobs library
 
 if the filename is different than what is above, this contains domain logic code. 
+
+### serde
+
+if you need to serialized and deserialize json, in general try to use things like `#[serde(rename_all = "camelCase")]` instead of renaming field manually

@@ -333,13 +333,10 @@ impl Applicants {
     ) -> Result<ApplicantInfo, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
-        // Verify the customer exists and the subject has access
-        let customer = self.customers.find_by_id(sub, customer_id).await?;
-        customer.ok_or_else(|| {
-            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
-        })?;
+        // TODO: audit
 
-        // Get applicant details from Sumsub
+        self.customers.find_by_id_without_audit(customer_id).await?;
+
         let applicant_details = self
             .sumsub_client
             .get_applicant_details(customer_id)
@@ -359,11 +356,7 @@ impl Applicants {
     ) -> Result<String, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
-        // Verify the customer exists and the subject has access
-        let customer = self.customers.find_by_id(sub, customer_id).await?;
-        let customer = customer.ok_or_else(|| {
-            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
-        })?;
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
 
         tracing::info!(
             customer_id = %customer_id,

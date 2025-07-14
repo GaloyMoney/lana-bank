@@ -70,30 +70,28 @@ pub struct PermalinkResponse {
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct ApplicantDetails {
     pub id: String,
     #[serde(rename = "externalUserId")]
     pub customer_id: CustomerId,
     #[serde(default)]
     pub info: ApplicantInfo,
-    #[serde(rename = "fixedInfo", default)]
+    #[serde(default)]
     pub fixed_info: ApplicantInfo,
     #[serde(rename = "type")]
     pub applicant_type: String,
 }
 
 #[derive(Debug, Deserialize, Serialize, Default)]
+#[serde(rename_all = "camelCase")]
 pub struct ApplicantInfo {
-    #[serde(rename = "firstName")]
     pub first_name: Option<String>,
-    #[serde(rename = "lastName")]
     pub last_name: Option<String>,
     pub country: Option<String>,
-    #[serde(rename = "countryOfBirth")]
     pub country_of_birth: Option<String>,
     pub dob: Option<String>,
     pub addresses: Option<Vec<Address>>,
-    #[serde(rename = "idDocs")]
     pub id_docs: Option<Vec<IdDocument>>,
 }
 
@@ -153,16 +151,14 @@ impl ApplicantInfo {
     }
 }
 
-// Note: ApplicantDetails delegation methods removed for simplicity.
-// Users can directly access methods via: applicant.info.first_name(), etc.
-
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Address {
-    #[serde(rename = "formattedAddress")]
     pub formatted_address: Option<String>,
 }
 
 #[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "camelCase")]
 pub struct IdDocument {
     #[serde(rename = "idDocType")]
     pub doc_type: String,
