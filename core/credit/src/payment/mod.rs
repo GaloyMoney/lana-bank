@@ -73,21 +73,12 @@ where
 
     pub(super) async fn record_in_op(
         &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         db: &mut es_entity::DbOp<'_>,
+        audit_info: audit::AuditInfo,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<Vec<PaymentAllocation>, PaymentError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_obligations(),
-                CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
-            )
-            .await?;
-
         let new_payment = NewPayment::builder()
             .id(PaymentId::new())
             .amount(amount)

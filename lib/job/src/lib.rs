@@ -94,7 +94,7 @@ impl Jobs {
     }
 
     #[instrument(
-        name = "jobs.create_and_spawn_in_op",
+        name = "job.create_and_spawn_in_op",
         skip(self, db, config),
         fields(job_type)
     )]
@@ -119,7 +119,7 @@ impl Jobs {
     }
 
     #[instrument(
-        name = "jobs.create_and_spawn_at_in_op",
+        name = "job.create_and_spawn_at_in_op",
         skip(self, db, config),
         fields(job_type)
     )]
@@ -144,7 +144,7 @@ impl Jobs {
         Ok(job)
     }
 
-    #[instrument(name = "cala_server.jobs.find", skip(self))]
+    #[instrument(name = "job.find", skip(self))]
     pub async fn find(&self, id: JobId) -> Result<Job, JobError> {
         self.repo.find_by_id(id).await
     }

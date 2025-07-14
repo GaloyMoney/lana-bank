@@ -733,6 +733,15 @@ where
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
+            )
+            .await?;
+
         let credit_facility_id = credit_facility_id.into();
 
         let credit_facility = self
@@ -744,7 +753,7 @@ where
 
         let allocations = self
             .payments
-            .record_in_op(sub, &mut db, credit_facility_id, amount, effective)
+            .record_in_op(&mut db, audit_info, credit_facility_id, amount, effective)
             .await?;
 
         let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);

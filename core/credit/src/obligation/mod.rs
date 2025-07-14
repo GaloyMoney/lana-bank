@@ -1,8 +1,9 @@
 mod entity;
 pub mod error;
-// mod payment_allocator;
 mod primitives;
 mod repo;
+
+use tracing::{Span, instrument};
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
@@ -245,6 +246,11 @@ where
         self.repo.find_by_id(id).await
     }
 
+    #[instrument(
+        name = "credit.obligation.allocate_payment_in_op",
+        skip(self, db),
+        fields(n_new_allocations, n_facility_obligations)
+    )]
     pub async fn allocate_payment_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -254,7 +260,9 @@ where
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
     ) -> Result<PaymentAllocationResult, ObligationError> {
+        let span = Span::current();
         let mut obligations = self.facility_obligations(credit_facility_id).await?;
+        span.record("n_facility_obligations", obligations.len());
 
         obligations.sort();
 
@@ -273,6 +281,7 @@ where
             }
         }
 
+        span.record("n_new_allocations", new_allocations.len());
         Ok(PaymentAllocationResult::new(new_allocations))
     }
 
