@@ -1471,7 +1471,7 @@ impl Mutation {
             CreditFacilityCreatePayload,
             CreditFacility,
             ctx,
-            app.credit().initiate(
+            app.credit().create_facility(
                 sub,
                 customer_id,
                 disbursal_credit_account_id,

@@ -386,8 +386,8 @@ where
         ))
     }
 
-    #[instrument(name = "credit_facility.initiate", skip(self), err)]
-    pub async fn initiate(
+    #[instrument(name = "credit.create_facility", skip(self), err)]
+    pub async fn create_facility(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
@@ -484,7 +484,7 @@ where
         Ok(credit_facility)
     }
 
-    #[instrument(name = "credit_facility.history", skip(self), err)]
+    #[instrument(name = "credit.history", skip(self), err)]
     pub async fn history<T: From<CreditFacilityHistoryEntry>>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -502,7 +502,7 @@ where
         Ok(history.entries.into_iter().rev().map(T::from).collect())
     }
 
-    #[instrument(name = "credit_facility.repayment_plan", skip(self), err)]
+    #[instrument(name = "credit.repayment_plan", skip(self), err)]
     pub async fn repayment_plan<T: From<CreditFacilityRepaymentPlanEntry>>(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -536,7 +536,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit_facility.initiate_disbursal", skip(self), err)]
+    #[instrument(name = "credit.initiate_disbursal", skip(self), err)]
     pub async fn initiate_disbursal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -657,7 +657,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit_facility.update_collateral", skip(self), err)]
+    #[instrument(name = "credit.update_collateral", skip(self), err)]
     pub async fn update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -719,7 +719,12 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit_facility.record_payment", skip(self), err)]
+    #[instrument(
+        name = "credit.record_payment",
+        skip(self),
+        fields(amount_allocated),
+        err
+    )]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn record_payment(
         &self,
@@ -741,6 +746,12 @@ where
             .payments
             .record_in_op(sub, &mut db, credit_facility_id, amount, effective)
             .await?;
+
+        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
+        tracing::Span::current().record(
+            "amount_allocated",
+            tracing::field::display(amount_allocated),
+        );
 
         self.ledger
             .record_obligation_repayments(db, allocations)
@@ -765,7 +776,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit_facility.complete", skip(self), err)]
+    #[instrument(name = "credit.complete_facility", skip(self), err)]
     #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn complete_facility(
         &self,

@@ -72,7 +72,7 @@ async fn create_and_process_facility(
 
     let cf = app
         .credit()
-        .initiate(
+        .create_facility(
             &sub,
             customer_id,
             deposit_account_id,
