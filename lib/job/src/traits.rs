@@ -50,7 +50,7 @@ pub trait JobRunner: Send + Sync + 'static {
     }
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct RetrySettings {
     pub n_attempts: Option<u32>,
     pub n_warn_attempts: Option<u32>,

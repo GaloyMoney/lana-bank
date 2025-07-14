@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use serde_json::Value as JsonValue;
 use sqlx::postgres::{PgListener, PgPool, types::PgInterval};
 use tracing::{Span, instrument};
@@ -6,9 +5,8 @@ use tracing::{Span, instrument};
 use std::{sync::Arc, time::Duration};
 
 use super::{
-    JobId, config::JobExecutorConfig, entity::Job, error::JobError, handle::OwnedTaskHandle,
-    new_current::NewCurrentJob, registry::JobRegistry, repo::JobRepo, tracker::JobTracker,
-    traits::*,
+    JobId, config::JobExecutorConfig, dispatcher::*, entity::Job, error::JobError,
+    handle::OwnedTaskHandle, registry::JobRegistry, repo::JobRepo, tracker::JobTracker, traits::*,
 };
 
 pub(crate) struct NewJobExecutor {
@@ -96,10 +94,7 @@ impl NewJobExecutor {
         );
         if !rows.is_empty() {
             for row in rows {
-                let executor = Arc::clone(self);
-                tokio::spawn(async move {
-                    let _ = executor.execute_job(row).await;
-                });
+                self.dispatch_job(row).await?;
             }
         }
 
@@ -121,181 +116,27 @@ impl NewJobExecutor {
         })))
     }
 
-    #[instrument(name = "job.execute_job", skip_all,
-        fields(job_id, job_type, attempt, error, error.level, error.message, conclusion),
-    err)]
-    async fn execute_job(self: Arc<Self>, polled_job: PolledJob) -> Result<(), JobError> {
-        let job = self.repo.find_by_id(polled_job.id).await?;
-        let retry_settings = self.registry.retry_settings(&job.job_type);
-        let runner = self.registry.init_job(&job)?;
+    #[instrument(
+        name = "job.dispatch_job",
+        skip(self),
+        fields(job_id, job_type, attempt),
+        err
+    )]
+    async fn dispatch_job(&self, polled_job: PolledJob) -> Result<(), JobError> {
         let span = Span::current();
+        span.record("attempt", polled_job.attempt);
+        let job = self.repo.find_by_id(polled_job.id).await?;
         span.record("job_id", tracing::field::display(job.id));
         span.record("job_type", tracing::field::display(&job.job_type));
-        span.record("attempt", polled_job.attempt);
-        let current_job = NewCurrentJob::new(
-            self.repo.pool().clone(),
-            polled_job.id,
-            polled_job.attempt,
-            polled_job.data_json,
-            self.tracker.clone(),
-        );
-        self.tracker.dispatch_job();
-        match Self::dispatch_job(
-            runner,
-            current_job,
-            retry_settings.n_warn_attempts,
-            polled_job.attempt,
-        )
-        .await
-        {
-            Err(e) => {
-                span.record("conclusion", "Error");
-                self.fail_job(job.id, e, retry_settings, polled_job.attempt)
-                    .await?
-            }
-            Ok(JobCompletion::Complete) => {
-                span.record("conclusion", "Complete");
-                let op = self.repo.begin_op().await?;
-                self.complete_job(op, job.id).await?;
-            }
-            Ok(JobCompletion::CompleteWithOp(op)) => {
-                span.record("conclusion", "CompleteWithOp");
-                self.complete_job(op, job.id).await?;
-            }
-            Ok(JobCompletion::RescheduleNow) => {
-                span.record("conclusion", "RescheduleNow");
-                let op = self.repo.begin_op().await?;
-                let t = op.now();
-                Self::reschedule_job(op, job.id, t).await?;
-            }
-            Ok(JobCompletion::RescheduleNowWithOp(op)) => {
-                span.record("conclusion", "RescheduleNowWithOp");
-                let t = op.now();
-                Self::reschedule_job(op, job.id, t).await?;
-            }
-            Ok(JobCompletion::RescheduleIn(d)) => {
-                span.record("conclusion", "RescheduleIn");
-                let op = self.repo.begin_op().await?;
-                let t = op.now() + d;
-                Self::reschedule_job(op, job.id, t).await?;
-            }
-            Ok(JobCompletion::RescheduleInWithOp(d, op)) => {
-                span.record("conclusion", "RescheduleInWithOp");
-                let t = op.now() + d;
-                Self::reschedule_job(op, job.id, t).await?;
-            }
-            Ok(JobCompletion::RescheduleAt(t)) => {
-                span.record("conclusion", "RescheduleAt");
-                let op = self.repo.begin_op().await?;
-                Self::reschedule_job(op, job.id, t).await?;
-            }
-            Ok(JobCompletion::RescheduleAtWithOp(op, t)) => {
-                span.record("conclusion", "RescheduleAtWithOp");
-                Self::reschedule_job(op, job.id, t).await?;
-            }
-        }
-        Ok(())
-    }
-
-    async fn dispatch_job(
-        runner: Box<dyn JobRunner>,
-        current_job: NewCurrentJob,
-        n_warn_attempts: Option<u32>,
-        attempt: u32,
-    ) -> Result<JobCompletion, JobError> {
-        runner.new_run(current_job).await.map_err(|e| {
-            let error = e.to_string();
-            Span::current().record("error", true);
-            Span::current().record("error.message", tracing::field::display(&error));
-            if attempt <= n_warn_attempts.unwrap_or(u32::MAX) {
-                Span::current()
-                    .record("error.level", tracing::field::display(tracing::Level::WARN));
-            } else {
-                Span::current().record(
-                    "error.level",
-                    tracing::field::display(tracing::Level::ERROR),
-                );
-            }
-            JobError::JobExecutionError(error)
-        })
-    }
-
-    #[instrument(name = "job.fail_job", skip(self))]
-    async fn fail_job(
-        &self,
-        id: JobId,
-        error: JobError,
-        retry_settings: &RetrySettings,
-        attempt: u32,
-    ) -> Result<(), JobError> {
-        let mut job = self.repo.find_by_id(id).await?;
-        job.fail(error.to_string());
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut job).await?;
-        if retry_settings.n_attempts.unwrap_or(u32::MAX) > attempt {
-            let reschedule_at = retry_settings.next_attempt_at(attempt);
-            sqlx::query!(
-                r#"
-                UPDATE job_executions
-                SET state = 'pending', reschedule_after = $2, attempt_index = $3
-                WHERE id = $1
-              "#,
-                id as JobId,
-                reschedule_at,
-                (attempt + 1) as i32
-            )
-            .execute(&mut **op.tx())
-            .await?;
-        } else {
-            sqlx::query!(
-                r#"
-                DELETE FROM job_executions
-                WHERE id = $1
-              "#,
-                id as JobId
-            )
-            .execute(&mut **op.tx())
-            .await?;
-        }
-
-        op.commit().await?;
-        Ok(())
-    }
-
-    async fn complete_job(&self, mut op: es_entity::DbOp<'_>, id: JobId) -> Result<(), JobError> {
-        let mut job = self.repo.find_by_id(&id).await?;
-        sqlx::query!(
-            r#"
-          DELETE FROM job_executions
-          WHERE id = $1
-        "#,
-            id as JobId
-        )
-        .execute(&mut **op.tx())
-        .await?;
-        job.completed();
-        self.repo.update_in_op(&mut op, &mut job).await?;
-        op.commit().await?;
-        Ok(())
-    }
-
-    async fn reschedule_job(
-        mut op: es_entity::DbOp<'_>,
-        id: JobId,
-        reschedule_at: DateTime<Utc>,
-    ) -> Result<(), JobError> {
-        sqlx::query!(
-            r#"
-          UPDATE job_executions
-          SET state = 'pending', reschedule_after = $2, attempt_index = 1
-          WHERE id = $1
-        "#,
-            id as JobId,
-            reschedule_at,
-        )
-        .execute(&mut **op.tx())
-        .await?;
-        op.commit().await?;
+        let runner = self.registry.init_job(&job)?;
+        let retry_settings = self.registry.retry_settings(&job.job_type).clone();
+        let repo = self.repo.clone();
+        let tracker = self.tracker.clone();
+        tokio::spawn(async move {
+            let _ = JobDispatcher::new(repo, tracker, retry_settings, runner)
+                .start_job(polled_job)
+                .await;
+        });
         Ok(())
     }
 }
@@ -354,14 +195,6 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
     .await?;
 
     Ok(JobPollResult::from_rows(rows))
-}
-
-#[derive(Debug)]
-pub struct PolledJob {
-    pub id: JobId,
-    pub job_type: String,
-    pub data_json: Option<JsonValue>,
-    pub attempt: u32,
 }
 
 #[derive(Debug)]

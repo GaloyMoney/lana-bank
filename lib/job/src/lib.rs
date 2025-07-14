@@ -3,6 +3,7 @@
 
 mod config;
 mod current;
+mod dispatcher;
 mod entity;
 mod executor;
 mod handle;
