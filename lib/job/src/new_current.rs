@@ -1,27 +1,32 @@
 use serde::{Serialize, de::DeserializeOwned};
 use sqlx::{PgPool, Postgres, Transaction};
 
-use super::{JobId, error::JobError};
+use std::sync::Arc;
+
+use super::{JobId, error::JobError, tracker::JobTracker};
 
 pub struct NewCurrentJob {
     id: JobId,
     attempt: u32,
     pool: PgPool,
     execution_state_json: Option<serde_json::Value>,
+    tracker: Arc<JobTracker>,
 }
 
 impl NewCurrentJob {
     pub(super) fn new(
+        pool: PgPool,
         id: JobId,
         attempt: u32,
-        pool: PgPool,
         execution_state: Option<serde_json::Value>,
+        tracker: Arc<JobTracker>,
     ) -> Self {
         Self {
             id,
             attempt,
             pool,
             execution_state_json: execution_state,
+            tracker,
         }
     }
 
@@ -86,5 +91,11 @@ impl NewCurrentJob {
 
     pub fn pool(&self) -> &PgPool {
         &self.pool
+    }
+}
+
+impl Drop for NewCurrentJob {
+    fn drop(&mut self) {
+        self.tracker.job_completed()
     }
 }

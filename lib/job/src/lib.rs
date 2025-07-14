@@ -183,8 +183,8 @@ impl Jobs {
         }
         sqlx::query!(
             r#"
-          INSERT INTO job_executions (id, job_type, reschedule_after, created_at)
-          VALUES ($1, $2, $3, $4)
+          INSERT INTO job_executions (id, job_type, reschedule_after, alive_at, created_at)
+          VALUES ($1, $2, $3, $4, $4)
         "#,
             job.id as JobId,
             &job.job_type as &JobType,

@@ -454,7 +454,7 @@ CREATE TABLE job_executions (
   state JobExecutionState NOT NULL DEFAULT 'pending',
   execution_state_json JSONB,
   reschedule_after TIMESTAMPTZ,
-  updated_at TIMESTAMPTZ NOT NULL,
+  alive_at TIMESTAMPTZ NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
