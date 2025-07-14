@@ -94,6 +94,14 @@
     "custody_writer": {
       "label": "Custody Writer",
       "description": "Can create and manage custodian configurations"
+    },
+    "report_viewer": {
+      "label": "Report Viewer",
+      "description": "Can see regulatory reports and download them"
+    },
+    "report_writer": {
+      "label": "Report Writer",
+      "description": "Can trigger generation of regulatory reports"
     }
   },
   "interestInterval": {
