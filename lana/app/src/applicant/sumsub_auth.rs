@@ -17,31 +17,31 @@ use super::error::ApplicantError;
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 
 // Document types (testing constants)
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub const DOC_TYPE_PASSPORT: &str = "PASSPORT";
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub const DOC_TYPE_SELFIE: &str = "SELFIE";
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub const DOC_TYPE_UTILITY_BILL: &str = "UTILITY_BILL";
 
 // Document subtypes (testing constants)
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub const DOC_SUBTYPE_FRONT_SIDE: &str = "FRONT_SIDE";
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub const DOC_SUBTYPE_BACK_SIDE: &str = "BACK_SIDE";
 
 // Review answers (testing constants)
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub const REVIEW_ANSWER_GREEN: &str = "GREEN";
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub const REVIEW_ANSWER_RED: &str = "RED";
 
 // Questionnaire defaults (testing constants)
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 const DEFAULT_QUESTIONNAIRE_SECTION: &str = "testSumsubQuestionar";
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 const DEFAULT_QUESTIONNAIRE_ITEM: &str = "test";
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 const DEFAULT_QUESTIONNAIRE_VALUE: &str = "0";
 
 #[derive(Clone, Debug)]
@@ -178,7 +178,7 @@ impl SumsubClient {
     }
 
     /// Helper to create document metadata JSON
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     fn create_document_metadata(
         doc_type: &str,
         doc_sub_type: &str,
@@ -242,7 +242,7 @@ impl SumsubClient {
     }
 
     /// Helper for simple success/error responses (no data returned)
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     async fn handle_simple_response(
         response: reqwest::Response,
         success_message: &str,
@@ -355,7 +355,7 @@ impl SumsubClient {
         let method = "POST";
 
         // First we need to get the Sumsub applicantId for this customer
-        let applicant_details = self.get_applicant_details(external_user_id).await?;
+        let applicant_details = self.get_applicant_details(customer_id).await?;
         let applicant_id = &applicant_details.id;
 
         // Use the correct API endpoint for existing applicants
@@ -414,7 +414,7 @@ impl SumsubClient {
     /// Creates an applicant directly via API for testing purposes
     /// This is useful for sandbox testing where you want to create an applicant
     /// without requiring a user to visit the permalink URL
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     pub async fn create_applicant(
         &self,
         external_user_id: CustomerId,
@@ -463,7 +463,7 @@ impl SumsubClient {
 
     /// Updates the fixedInfo for an applicant with basic personal data
     /// This is required before simulating approval as Sumsub needs some basic information
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     pub async fn update_applicant_info(
         &self,
         applicant_id: &str,
@@ -504,7 +504,7 @@ impl SumsubClient {
 
     /// Uploads a document image for an applicant
     /// This method handles the multipart form data upload required for document images
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     pub async fn upload_document(
         &self,
         applicant_id: &str,
@@ -527,7 +527,7 @@ impl SumsubClient {
     }
 
     /// Uploads document with manual multipart body construction for proper HMAC signature calculation
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     async fn upload_document_with_manual_multipart(
         &self,
         applicant_id: &str,
@@ -616,7 +616,7 @@ impl SumsubClient {
 
     /// Requests a check/review for an applicant
     /// This moves the applicant to "pending" status for review
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     pub async fn request_check(&self, applicant_id: &str) -> Result<(), ApplicantError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/status/pending");
@@ -643,7 +643,7 @@ impl SumsubClient {
 
     /// Simulates a review response in sandbox mode (GREEN for approved, RED for rejected)
     /// This is only available in sandbox environments for testing purposes
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     pub async fn simulate_review_response(
         &self,
         applicant_id: &str,
@@ -698,7 +698,7 @@ impl SumsubClient {
     }
 
     /// Submits a questionnaire directly to an applicant
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     pub async fn submit_questionnaire_direct(
         &self,
         applicant_id: &str,
@@ -747,7 +747,7 @@ impl SumsubClient {
     }
 
     /// Alternative approach: Update applicant with questionnaire data
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     async fn update_applicant_questionnaire(
         &self,
         applicant_id: &str,

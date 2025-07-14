@@ -4,7 +4,7 @@ mod repo;
 pub(crate) mod sumsub_auth;
 mod tx_export;
 
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub(crate) mod sumsub_testing_utils;
 
 #[cfg(test)]
@@ -31,7 +31,7 @@ use sumsub_auth::SumsubClient;
 use repo::ApplicantRepo;
 pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
 
-#[cfg(any(test, feature = "sumsub-testing"))]
+#[cfg(feature = "sumsub-testing")]
 pub use sumsub_auth::SumsubClient as PublicSumsubClient;
 
 use async_graphql::*;
@@ -347,7 +347,7 @@ impl Applicants {
 
     /// Creates a complete test applicant with documents and approval for testing purposes
     /// This method executes the full KYC flow automatically using predefined test data
-    #[cfg(any(test, feature = "sumsub-testing"))]
+    #[cfg(feature = "sumsub-testing")]
     #[instrument(name = "applicant.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,
