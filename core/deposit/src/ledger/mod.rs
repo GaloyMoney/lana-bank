@@ -16,7 +16,7 @@ use cala_ledger::{
 };
 
 use crate::{
-    DepositAccountBalance, LedgerOmnibusAccountIds,
+    DepositAccountBalance, LedgerOmnibusAccountIds, WithdrawalVoidedData,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
 };
@@ -412,6 +412,33 @@ impl DepositLedger {
             .await?;
 
         op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn void_withdrawal(
+        &self,
+        op: es_entity::DbOp<'_>,
+        voided_data: WithdrawalVoidedData,
+    ) -> Result<(), DepositLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        self.cala
+            .void_transaction_in_op(
+                &mut op,
+                voided_data.confirmed_voided_tx_id,
+                voided_data.confirmed_tx_id,
+            )
+            .await?;
+        self.cala
+            .void_transaction_in_op(
+                &mut op,
+                voided_data.initiated_voided_tx_id,
+                voided_data.initiated_tx_id,
+            )
+            .await?;
+
+        op.commit().await?;
+
         Ok(())
     }
 

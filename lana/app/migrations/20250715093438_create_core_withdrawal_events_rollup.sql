@@ -8,7 +8,9 @@ CREATE TABLE core_withdrawal_events_rollup (
   amount BIGINT,
   approval_process_id UUID,
   approved BOOLEAN,
+  confirmed_voided_tx_id UUID,
   deposit_account_id UUID,
+  initiated_voided_tx_id UUID,
   ledger_tx_id UUID,
   reference VARCHAR,
 
@@ -43,7 +45,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'approval_process_concluded', 'confirmed', 'cancelled') THEN
+  IF event_type NOT IN ('initialized', 'approval_process_concluded', 'confirmed', 'cancelled', 'voided') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -64,7 +66,9 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
+    new_row.confirmed_voided_tx_id := (NEW.event ->> 'confirmed_voided_tx_id')::UUID;
     new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
+    new_row.initiated_voided_tx_id := (NEW.event ->> 'initiated_voided_tx_id')::UUID;
     new_row.is_approval_process_concluded := false;
     new_row.is_cancelled := false;
     new_row.is_confirmed := false;
@@ -76,7 +80,9 @@ BEGIN
     new_row.approval_process_id := current_row.approval_process_id;
     new_row.approved := current_row.approved;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.confirmed_voided_tx_id := current_row.confirmed_voided_tx_id;
     new_row.deposit_account_id := current_row.deposit_account_id;
+    new_row.initiated_voided_tx_id := current_row.initiated_voided_tx_id;
     new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
     new_row.is_cancelled := current_row.is_cancelled;
     new_row.is_confirmed := current_row.is_confirmed;
@@ -105,6 +111,10 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_cancelled := true;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+    WHEN 'voided' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.confirmed_voided_tx_id := (NEW.event ->> 'confirmed_voided_tx_id')::UUID;
+      new_row.initiated_voided_tx_id := (NEW.event ->> 'initiated_voided_tx_id')::UUID;
   END CASE;
 
   INSERT INTO core_withdrawal_events_rollup (
@@ -116,7 +126,9 @@ BEGIN
     approval_process_id,
     approved,
     audit_entry_ids,
+    confirmed_voided_tx_id,
     deposit_account_id,
+    initiated_voided_tx_id,
     is_approval_process_concluded,
     is_cancelled,
     is_confirmed,
@@ -132,7 +144,9 @@ BEGIN
     new_row.approval_process_id,
     new_row.approved,
     new_row.audit_entry_ids,
+    new_row.confirmed_voided_tx_id,
     new_row.deposit_account_id,
+    new_row.initiated_voided_tx_id,
     new_row.is_approval_process_concluded,
     new_row.is_cancelled,
     new_row.is_confirmed,
@@ -146,7 +160,9 @@ BEGIN
     approval_process_id = EXCLUDED.approval_process_id,
     approved = EXCLUDED.approved,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
+    confirmed_voided_tx_id = EXCLUDED.confirmed_voided_tx_id,
     deposit_account_id = EXCLUDED.deposit_account_id,
+    initiated_voided_tx_id = EXCLUDED.initiated_voided_tx_id,
     is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
     is_cancelled = EXCLUDED.is_cancelled,
     is_confirmed = EXCLUDED.is_confirmed,

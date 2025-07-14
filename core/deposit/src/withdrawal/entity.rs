@@ -21,6 +21,7 @@ pub enum WithdrawalStatus {
     Confirmed,
     Denied,
     Cancelled,
+    Voided,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -49,6 +50,11 @@ pub enum WithdrawalEvent {
         ledger_tx_id: CalaTransactionId,
         audit_info: AuditInfo,
     },
+    Voided {
+        confirmed_voided_tx_id: CalaTransactionId,
+        initiated_voided_tx_id: CalaTransactionId,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -63,6 +69,13 @@ pub struct Withdrawal {
     pub cancelled_tx_id: Option<CalaTransactionId>,
 
     events: EntityEvents<WithdrawalEvent>,
+}
+
+pub struct WithdrawalVoidedData {
+    pub confirmed_tx_id: CalaTransactionId,
+    pub initiated_tx_id: CalaTransactionId,
+    pub confirmed_voided_tx_id: CalaTransactionId,
+    pub initiated_voided_tx_id: CalaTransactionId,
 }
 
 impl Withdrawal {
@@ -94,6 +107,45 @@ impl Withdrawal {
         });
 
         Ok(ledger_tx_id)
+    }
+
+    fn is_voided(&self) -> bool {
+        self.events
+            .iter_all()
+            .any(|e| matches!(e, WithdrawalEvent::Voided { .. }))
+    }
+
+    pub fn void(&mut self, audit_info: AuditInfo) -> Result<WithdrawalVoidedData, WithdrawalError> {
+        if self.is_voided() {
+            return Err(WithdrawalError::AlreadyVoided(self.id));
+        }
+        if self.is_cancelled() {
+            return Err(WithdrawalError::AlreadyCancelled(self.id));
+        }
+        if !self.is_confirmed() {
+            return Err(WithdrawalError::NotConfirmed(self.id));
+        }
+
+        let confirmed_tx_id = self
+            .confirmed_tx_id()
+            .expect("withdrawal should be confirmed");
+        let initiated_tx_id = self.id.into();
+
+        let confirmed_voided_tx_id = CalaTransactionId::new();
+        let initiated_voided_tx_id = CalaTransactionId::new();
+
+        self.events.push(WithdrawalEvent::Voided {
+            confirmed_voided_tx_id,
+            initiated_voided_tx_id,
+            audit_info,
+        });
+
+        Ok(WithdrawalVoidedData {
+            confirmed_tx_id,
+            initiated_tx_id,
+            confirmed_voided_tx_id,
+            initiated_voided_tx_id,
+        })
     }
 
     pub fn cancel(&mut self, audit_info: AuditInfo) -> Result<CalaTransactionId, WithdrawalError> {
@@ -134,14 +186,17 @@ impl Withdrawal {
     fn is_cancelled(&self) -> bool {
         self.events
             .iter_all()
+            .rev()
             .any(|e| matches!(e, WithdrawalEvent::Cancelled { .. }))
     }
 
     pub fn status(&self) -> WithdrawalStatus {
-        if self.is_confirmed() {
-            WithdrawalStatus::Confirmed
+        if self.is_voided() {
+            WithdrawalStatus::Voided
         } else if self.is_cancelled() {
             WithdrawalStatus::Cancelled
+        } else if self.is_confirmed() {
+            WithdrawalStatus::Confirmed
         } else {
             match self.is_approved_or_denied() {
                 Some(true) => WithdrawalStatus::PendingConfirmation,
@@ -166,6 +221,13 @@ impl Withdrawal {
             audit_info,
         });
         Idempotent::Executed(())
+    }
+
+    fn confirmed_tx_id(&self) -> Option<CalaTransactionId> {
+        self.events.iter_all().find_map(|e| match e {
+            WithdrawalEvent::Confirmed { ledger_tx_id, .. } => Some(*ledger_tx_id),
+            _ => None,
+        })
     }
 }
 
@@ -312,5 +374,90 @@ mod test {
             .build();
 
         assert!(withdrawal.is_ok());
+    }
+
+    fn create_confirmed_withdrawal() -> Withdrawal {
+        let new_withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ONE)
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build()
+            .unwrap();
+
+        let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
+        withdrawal
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
+        withdrawal.confirm(dummy_audit_info()).unwrap();
+        withdrawal
+    }
+
+    #[test]
+    fn can_void_confirmed_withdrawal() {
+        let mut withdrawal = create_confirmed_withdrawal();
+
+        let result = withdrawal.void(dummy_audit_info());
+
+        assert!(result.is_ok());
+        assert!(withdrawal.is_voided());
+        assert_eq!(withdrawal.status(), WithdrawalStatus::Voided);
+    }
+
+    #[test]
+    fn cannot_void_cancelled_withdrawal() {
+        let new_withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ONE)
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build()
+            .unwrap();
+
+        let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
+        withdrawal
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
+        withdrawal.cancel(dummy_audit_info()).unwrap();
+
+        let result = withdrawal.void(dummy_audit_info());
+
+        assert!(matches!(result, Err(WithdrawalError::AlreadyCancelled(_))));
+    }
+
+    #[test]
+    fn cannot_void_already_voided_withdrawal() {
+        let mut withdrawal = create_confirmed_withdrawal();
+
+        withdrawal.void(dummy_audit_info()).unwrap();
+        let result = withdrawal.void(dummy_audit_info());
+
+        assert!(matches!(result, Err(WithdrawalError::AlreadyVoided(_))));
+    }
+
+    #[test]
+    fn cannot_void_unconfirmed_withdrawal() {
+        let new_withdrawal = NewWithdrawal::builder()
+            .id(WithdrawalId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ONE)
+            .reference(None)
+            .approval_process_id(ApprovalProcessId::new())
+            .audit_info(dummy_audit_info())
+            .build()
+            .unwrap();
+
+        let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
+        withdrawal
+            .approval_process_concluded(true, dummy_audit_info())
+            .unwrap();
+
+        let result = withdrawal.void(dummy_audit_info());
+
+        assert!(matches!(result, Err(WithdrawalError::NotConfirmed(_))));
     }
 }
