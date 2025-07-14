@@ -38,15 +38,21 @@ impl NewJobExecutor {
 
     pub async fn start(self) -> Result<JobExecutorHandle, sqlx::Error> {
         let listener_handle = self.start_listener().await?;
+        let lost_handle = self.start_lost_handler();
         let executor = Arc::new(self);
         let handle = OwnedTaskHandle::new(tokio::task::spawn(Self::main_loop(
             Arc::clone(&executor),
             listener_handle,
+            lost_handle,
         )));
         Ok(JobExecutorHandle { executor, handle })
     }
 
-    async fn main_loop(self: Arc<Self>, _listener_task: OwnedTaskHandle) {
+    async fn main_loop(
+        self: Arc<Self>,
+        _listener_task: OwnedTaskHandle,
+        _lost_task: OwnedTaskHandle,
+    ) {
         let mut failures = 0;
         loop {
             let mut timeout = MAX_WAIT;
@@ -116,6 +122,27 @@ impl NewJobExecutor {
         })))
     }
 
+    fn start_lost_handler(&self) -> OwnedTaskHandle {
+        let job_lost_interval = self.config.job_lost_interval;
+        let pool = self.repo.pool().clone();
+        OwnedTaskHandle::new(tokio::task::spawn(async move {
+            loop {
+                crate::time::sleep(job_lost_interval / 2).await;
+                let check_time = crate::time::now() - job_lost_interval;
+                let _ = sqlx::query!(
+                    r#"
+            UPDATE job_executions
+            SET state = 'pending', attempt_index = attempt_index + 1
+            WHERE state = 'running' AND alive_at < $1::timestamptz
+            "#,
+                    check_time,
+                )
+                .fetch_all(&pool)
+                .await;
+            }
+        }))
+    }
+
     #[instrument(
         name = "job.dispatch_job",
         skip(self),
@@ -132,10 +159,18 @@ impl NewJobExecutor {
         let retry_settings = self.registry.retry_settings(&job.job_type).clone();
         let repo = self.repo.clone();
         let tracker = self.tracker.clone();
+        let job_lost_interval = self.config.job_lost_interval;
         tokio::spawn(async move {
-            let _ = JobDispatcher::new(repo, tracker, retry_settings, runner)
-                .start_job(polled_job)
-                .await;
+            let _ = JobDispatcher::new(
+                repo,
+                tracker,
+                retry_settings,
+                job.id,
+                runner,
+                job_lost_interval,
+            )
+            .start_job(polled_job)
+            .await;
         });
         Ok(())
     }

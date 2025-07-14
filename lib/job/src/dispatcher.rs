@@ -1,12 +1,13 @@
 use chrono::{DateTime, Utc};
 use serde_json::Value as JsonValue;
+use sqlx::PgPool;
 use tracing::{Span, instrument};
 
-use std::sync::Arc;
+use std::{sync::Arc, time::Duration};
 
 use super::{
-    JobId, error::JobError, new_current::NewCurrentJob, repo::JobRepo, tracker::JobTracker,
-    traits::*,
+    JobId, error::JobError, handle::OwnedTaskHandle, new_current::NewCurrentJob, repo::JobRepo,
+    tracker::JobTracker, traits::*,
 };
 
 #[derive(Debug)]
@@ -22,19 +23,28 @@ pub(crate) struct JobDispatcher {
     retry_settings: RetrySettings,
     runner: Option<Box<dyn JobRunner>>,
     tracker: Arc<JobTracker>,
+    keep_alive: Option<OwnedTaskHandle>,
 }
 impl JobDispatcher {
     pub fn new(
         repo: JobRepo,
         tracker: Arc<JobTracker>,
         retry_settings: RetrySettings,
+        id: JobId,
         runner: Box<dyn JobRunner>,
+        job_lost_interval: Duration,
     ) -> Self {
+        let keep_alive = Some(OwnedTaskHandle::new(tokio::task::spawn(keep_job_alive(
+            repo.pool().clone(),
+            id,
+            job_lost_interval,
+        ))));
         Self {
             repo,
             retry_settings,
             runner: Some(runner),
             tracker,
+            keep_alive,
         }
     }
 
@@ -107,6 +117,7 @@ impl JobDispatcher {
                 Self::reschedule_job(op, job.id, t).await?;
             }
         }
+        self.stop_keep_alive().await;
         Ok(())
     }
 
@@ -205,10 +216,33 @@ impl JobDispatcher {
         op.commit().await?;
         Ok(())
     }
+
+    async fn stop_keep_alive(&mut self) {
+        if let Some(keep_alive) = self.keep_alive.take() {
+            keep_alive.stop().await;
+        }
+    }
 }
 
 impl Drop for JobDispatcher {
     fn drop(&mut self) {
         self.tracker.job_completed()
+    }
+}
+
+async fn keep_job_alive(pool: PgPool, id: JobId, job_lost_interval: Duration) {
+    loop {
+        crate::time::sleep(job_lost_interval / 2).await;
+        if sqlx::query!(
+            "UPDATE job_executions SET alive_at = $2 WHERE id = $1",
+            id as JobId,
+            crate::time::now()
+        )
+        .execute(&pool)
+        .await
+        .is_err()
+        {
+            break;
+        }
     }
 }
