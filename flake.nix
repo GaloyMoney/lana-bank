@@ -252,7 +252,7 @@
         version = "0.1.0";
         doCheck = false;
         SQLX_OFFLINE = true;
-        cargoExtraArgs = "--bin write_sdl --features sumsub-testing";
+        cargoExtraArgs = "--bin write_sdl";
       };
 
       write_customer_sdl = craneLib.buildPackage {

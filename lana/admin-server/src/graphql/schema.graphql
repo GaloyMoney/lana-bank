@@ -1310,11 +1310,6 @@ type ManualTransactionExecutePayload {
 type Mutation {
 	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
-	"""
-	⚠️ TEST ONLY: Creates a complete test applicant for Sumsub integration testing.
-	This method is behind a compilation flag and should only be used in test environments.
-	"""
-	sumsubTestApplicantCreate(input: SumsubTestApplicantCreateInput!): SumsubTestApplicantCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
 	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
@@ -1575,6 +1570,7 @@ type Query {
 	profitAndLossStatementConfig: ProfitAndLossStatementModuleConfig
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
+	loanAgreement(id: UUID!): LoanAgreement
 }
 
 type RealtimePrice {
@@ -1700,14 +1696,6 @@ input SumsubPermalinkCreateInput {
 
 type SumsubPermalinkCreatePayload {
 	url: String!
-}
-
-input SumsubTestApplicantCreateInput {
-	customerId: UUID!
-}
-
-type SumsubTestApplicantCreatePayload {
-	applicantId: String!
 }
 
 type System {

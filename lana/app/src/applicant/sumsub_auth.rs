@@ -717,7 +717,7 @@ impl SumsubClient {
     ) -> Result<(), ApplicantError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/questionnaires");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = format!("{SUMSUB_BASE_URL}{url_path}");
 
         // Create a basic questionnaire submission based on the v1_onboarding questionnaire
         let body = json!({
