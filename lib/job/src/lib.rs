@@ -5,7 +5,6 @@ mod config;
 mod current;
 mod dispatcher;
 mod entity;
-mod executor;
 mod handle;
 mod poller;
 mod registry;
@@ -29,7 +28,6 @@ pub use registry::*;
 pub use traits::*;
 
 use error::*;
-use executor::*;
 use poller::*;
 use repo::*;
 
@@ -39,22 +37,19 @@ es_entity::entity_id! { JobId }
 pub struct Jobs {
     config: JobsConfig,
     repo: JobRepo,
-    _executor: JobExecutor,
     registry: Arc<Mutex<Option<JobRegistry>>>,
-    executor_handle: Option<Arc<JobPollerHandle>>,
+    poller_handle: Option<Arc<JobPollerHandle>>,
 }
 
 impl Jobs {
     pub fn new(pool: &PgPool, config: JobsConfig) -> Self {
         let repo = JobRepo::new(pool);
         let registry = Arc::new(Mutex::new(Some(JobRegistry::new())));
-        let executor = JobExecutor::new(config.clone(), &repo);
         Self {
             repo,
             config,
-            _executor: executor,
             registry,
-            executor_handle: None,
+            poller_handle: None,
         }
     }
 
@@ -161,7 +156,7 @@ impl Jobs {
             .expect("Couldn't lock Registry Mutex")
             .take()
             .expect("Registry has been consumed by executor");
-        self.executor_handle = Some(Arc::new(
+        self.poller_handle = Some(Arc::new(
             JobPoller::new(self.config.clone(), self.repo.clone(), registry)
                 .start()
                 .await?,

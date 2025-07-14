@@ -16,6 +16,7 @@ pub(crate) struct JobPoller {
     tracker: Arc<JobTracker>,
 }
 
+#[allow(dead_code)]
 pub(crate) struct JobPollerHandle {
     poller: Arc<JobPoller>,
     handle: OwnedTaskHandle,
