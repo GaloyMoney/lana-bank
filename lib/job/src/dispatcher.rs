@@ -6,7 +6,7 @@ use tracing::{Span, instrument};
 use std::{sync::Arc, time::Duration};
 
 use super::{
-    JobId, error::JobError, handle::OwnedTaskHandle, new_current::NewCurrentJob, repo::JobRepo,
+    JobId, current::CurrentJob, error::JobError, handle::OwnedTaskHandle, repo::JobRepo,
     tracker::JobTracker, traits::*,
 };
 
@@ -48,19 +48,19 @@ impl JobDispatcher {
         }
     }
 
-    #[instrument(name = "job.start_job", skip_all,
+    #[instrument(name = "job.execute_job", skip_all,
         fields(job_id, job_type, attempt, error, error.level, error.message, conclusion),
     err)]
-    pub async fn start_job(mut self, polled_job: PolledJob) -> Result<(), JobError> {
+    pub async fn execute_job(mut self, polled_job: PolledJob) -> Result<(), JobError> {
         let job = self.repo.find_by_id(polled_job.id).await?;
         let span = Span::current();
         span.record("job_id", tracing::field::display(job.id));
         span.record("job_type", tracing::field::display(&job.job_type));
         span.record("attempt", polled_job.attempt);
-        let current_job = NewCurrentJob::new(
-            self.repo.pool().clone(),
+        let current_job = CurrentJob::new(
             polled_job.id,
             polled_job.attempt,
+            self.repo.pool().clone(),
             polled_job.data_json,
         );
         self.tracker.dispatch_job();
@@ -123,11 +123,11 @@ impl JobDispatcher {
 
     async fn dispatch_job(
         runner: Box<dyn JobRunner>,
-        current_job: NewCurrentJob,
+        current_job: CurrentJob,
         n_warn_attempts: Option<u32>,
         attempt: u32,
     ) -> Result<JobCompletion, JobError> {
-        runner.new_run(current_job).await.map_err(|e| {
+        runner.run(current_job).await.map_err(|e| {
             let error = e.to_string();
             Span::current().record("error", true);
             Span::current().record("error.message", tracing::field::display(&error));

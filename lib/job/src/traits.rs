@@ -42,12 +42,6 @@ pub trait JobRunner: Send + Sync + 'static {
         &self,
         current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>>;
-    async fn new_run(
-        &self,
-        _current_job: super::new_current::NewCurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        Ok(JobCompletion::Complete)
-    }
 }
 
 #[derive(Debug, Clone)]

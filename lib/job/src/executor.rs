@@ -12,7 +12,7 @@ use super::{
 
 #[derive(Clone)]
 pub(crate) struct JobExecutor {
-    config: JobExecutorConfig,
+    config: JobsConfig,
     poll_handle: Option<Arc<OwnedTaskHandle>>,
     keep_alive_handle: Option<Arc<OwnedTaskHandle>>,
     listen_handle: Option<Arc<OwnedTaskHandle>>,
@@ -22,7 +22,7 @@ pub(crate) struct JobExecutor {
 }
 
 impl JobExecutor {
-    pub fn new(config: JobExecutorConfig, jobs: &JobRepo) -> Self {
+    pub fn new(config: JobsConfig, jobs: &JobRepo) -> Self {
         Self {
             poll_handle: None,
             keep_alive_handle: None,

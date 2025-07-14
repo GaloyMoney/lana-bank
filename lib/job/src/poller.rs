@@ -5,26 +5,26 @@ use tracing::{Span, instrument};
 use std::{sync::Arc, time::Duration};
 
 use super::{
-    JobId, config::JobExecutorConfig, dispatcher::*, entity::Job, error::JobError,
-    handle::OwnedTaskHandle, registry::JobRegistry, repo::JobRepo, tracker::JobTracker, traits::*,
+    JobId, config::JobsConfig, dispatcher::*, error::JobError, handle::OwnedTaskHandle,
+    registry::JobRegistry, repo::JobRepo, tracker::JobTracker,
 };
 
-pub(crate) struct NewJobExecutor {
-    config: JobExecutorConfig,
+pub(crate) struct JobPoller {
+    config: JobsConfig,
     repo: JobRepo,
     registry: JobRegistry,
     tracker: Arc<JobTracker>,
 }
 
-pub(crate) struct JobExecutorHandle {
-    executor: Arc<NewJobExecutor>,
+pub(crate) struct JobPollerHandle {
+    poller: Arc<JobPoller>,
     handle: OwnedTaskHandle,
 }
 
 const MAX_WAIT: Duration = Duration::from_secs(60);
 
-impl NewJobExecutor {
-    pub fn new(config: JobExecutorConfig, repo: JobRepo, registry: JobRegistry) -> Self {
+impl JobPoller {
+    pub fn new(config: JobsConfig, repo: JobRepo, registry: JobRegistry) -> Self {
         Self {
             tracker: Arc::new(JobTracker::new(
                 config.min_jobs_per_process,
@@ -36,7 +36,7 @@ impl NewJobExecutor {
         }
     }
 
-    pub async fn start(self) -> Result<JobExecutorHandle, sqlx::Error> {
+    pub async fn start(self) -> Result<JobPollerHandle, sqlx::Error> {
         let listener_handle = self.start_listener().await?;
         let lost_handle = self.start_lost_handler();
         let executor = Arc::new(self);
@@ -45,7 +45,10 @@ impl NewJobExecutor {
             listener_handle,
             lost_handle,
         )));
-        Ok(JobExecutorHandle { executor, handle })
+        Ok(JobPollerHandle {
+            poller: executor,
+            handle,
+        })
     }
 
     async fn main_loop(
@@ -169,7 +172,7 @@ impl NewJobExecutor {
                 runner,
                 job_lost_interval,
             )
-            .start_job(polled_job)
+            .execute_job(polled_job)
             .await;
         });
         Ok(())

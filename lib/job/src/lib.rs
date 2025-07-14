@@ -7,8 +7,7 @@ mod dispatcher;
 mod entity;
 mod executor;
 mod handle;
-mod new_current;
-mod new_executor;
+mod poller;
 mod registry;
 mod repo;
 mod time;
@@ -31,22 +30,22 @@ pub use traits::*;
 
 use error::*;
 use executor::*;
-use new_executor::*;
+use poller::*;
 use repo::*;
 
 es_entity::entity_id! { JobId }
 
 #[derive(Clone)]
 pub struct Jobs {
-    config: JobExecutorConfig,
+    config: JobsConfig,
     repo: JobRepo,
     _executor: JobExecutor,
     registry: Arc<Mutex<Option<JobRegistry>>>,
-    executor_handle: Option<Arc<JobExecutorHandle>>,
+    executor_handle: Option<Arc<JobPollerHandle>>,
 }
 
 impl Jobs {
-    pub fn new(pool: &PgPool, config: JobExecutorConfig) -> Self {
+    pub fn new(pool: &PgPool, config: JobsConfig) -> Self {
         let repo = JobRepo::new(pool);
         let registry = Arc::new(Mutex::new(Some(JobRegistry::new())));
         let executor = JobExecutor::new(config.clone(), &repo);
@@ -163,7 +162,7 @@ impl Jobs {
             .take()
             .expect("Registry has been consumed by executor");
         self.executor_handle = Some(Arc::new(
-            NewJobExecutor::new(self.config.clone(), self.repo.clone(), registry)
+            JobPoller::new(self.config.clone(), self.repo.clone(), registry)
                 .start()
                 .await?,
         ));

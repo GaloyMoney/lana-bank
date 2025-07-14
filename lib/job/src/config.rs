@@ -4,7 +4,7 @@ use std::time::Duration;
 
 #[serde_with::serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
-pub struct JobExecutorConfig {
+pub struct JobsConfig {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     #[serde(default = "default_job_lost_interval")]
     pub job_lost_interval: Duration,
@@ -14,7 +14,7 @@ pub struct JobExecutorConfig {
     pub min_jobs_per_process: usize,
 }
 
-impl Default for JobExecutorConfig {
+impl Default for JobsConfig {
     fn default() -> Self {
         Self {
             job_lost_interval: default_job_lost_interval(),

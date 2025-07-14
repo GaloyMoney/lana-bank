@@ -23,7 +23,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         .exec_migrations(false)
         .build()?;
     let cala = CalaLedger::init(cala_config).await?;
-    let jobs = job::Jobs::new(&pool, job::JobExecutorConfig::default());
+    let jobs = job::Jobs::new(&pool, job::JobsConfig::default());
 
     let journal_id = helpers::init_journal(&cala).await?;
     let public_ids = public_id::PublicIds::new(&pool);
