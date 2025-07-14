@@ -1404,6 +1404,7 @@
     "title": "Gestión de Informes",
     "description": "Generar y gestionar informes regulatorios, seguir su estado y descargar documentos generados.",
     "availableReports": "Informes disponibles",
+    "noReportsAvailable": "No hay informes disponibles",
     "ReportGeneration": {
       "generate": "Generar",
       "reportGenerationHasBeenTriggered": "Se ha iniciado la generación del informe",

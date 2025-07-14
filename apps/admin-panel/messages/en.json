@@ -1404,6 +1404,7 @@
     "title": "Report Management",
     "description": "Generate and manage regulatory reports, track their status, and download generated documents.",
     "availableReports": "Available Reports",
+    "noReportsAvailable": "No reports available",
     "ReportGeneration": {
       "generate": "Generate",
       "reportGenerationHasBeenTriggered": "Report generation has been triggered",

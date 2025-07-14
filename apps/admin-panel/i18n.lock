@@ -799,6 +799,7 @@ checksums:
     Reports/title: 60990919a45b80f1f1fc1bf292bee36a
     Reports/description: 523613154e094441d7026ee5727c1d9d
     Reports/availableReports: d3f49ae76c3a57e209cc0c6ebcdeb25f
+    Reports/noReportsAvailable: d900cb3eb78b7b339338a1ca81f65a06
     Reports/ReportGeneration/generate: 0345bf322c191e70d01fd6607ec5c2f8
     Reports/ReportGeneration/reportGenerationHasBeenTriggered: a929db688da7aa86e16769a1aba853bf
     Reports/ReportGeneration/reportGenerationFailed: a0c2490202b5b00994cd80bf21d694fd

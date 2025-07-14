@@ -98,6 +98,7 @@ const ReportByDatePage = ({ params }: ReportByDatePageProps) => {
           loading={loading}
           fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
           pageSize={DEFAULT_PAGESIZE}
+          noDataText={t("noReportsAvailable")}
         />
       </CardContent>
     </Card>
