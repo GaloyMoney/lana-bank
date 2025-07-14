@@ -30,12 +30,6 @@
         (self: super: {
           python311 = super.python311.override {
             packageOverrides = pySelf: pySuper: let
-              pkgsToPatch = [
-                "fasteners"
-                "portalocker"
-                "debugpy"
-              ];
-
               lib = super.lib;
 
               disableTests = pkg:
@@ -44,7 +38,13 @@
                   doInstallCheck = false;
                 });
             in
-              lib.genAttrs pkgsToPatch (name: disableTests pySuper.${name});
+              lib.mapAttrs (
+                name: pkg:
+                  if lib.isDerivation pkg && builtins.hasAttr "overrideAttrs" pkg
+                  then disableTests pkg
+                  else pkg
+              )
+              pySuper;
           };
         })
       ];
