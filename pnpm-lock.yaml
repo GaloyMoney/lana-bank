@@ -12,8 +12,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^1.0.44
-        version: 1.0.44
+        specifier: ^1.0.51
+        version: 1.0.51
       '@mermaid-js/mermaid-cli':
         specifier: ^11.6.0
         version: 11.6.0(@types/react@19.1.8)(puppeteer@24.10.0(typescript@5.8.3))
@@ -36,11 +36,11 @@ importers:
         specifier: workspace:*
         version: link:../shared-web
       '@ory/client':
-        specifier: ^1.20.11
-        version: 1.20.11
+        specifier: ^1.20.22
+        version: 1.20.22
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.8.3)(zod@3.25.76)
+        version: 0.13.8(typescript@5.8.3)(zod@4.0.5)
       apollo-upload-client:
         specifier: ^18.0.1
         version: 18.0.1(@apollo/client@3.13.8(@types/react@19.1.8)(graphql-ws@6.0.5(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(graphql@16.11.0)
@@ -48,8 +48,8 @@ importers:
         specifier: ^1.10.0
         version: 1.10.0
       bignumber.js:
-        specifier: ^9.3.0
-        version: 9.3.0
+        specifier: ^9.3.1
+        version: 9.3.1
       class-variance-authority:
         specifier: ^0.7.1
         version: 0.7.1
@@ -102,8 +102,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.0.5
+        version: 4.0.5
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.1
@@ -235,14 +235,14 @@ importers:
         specifier: workspace:*
         version: link:../shared-web
       '@ory/client':
-        specifier: ^1.20.11
-        version: 1.20.11
+        specifier: ^1.20.22
+        version: 1.20.22
       '@sumsub/websdk-react':
         specifier: ^2.3.18
         version: 2.3.18(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.8.3)(zod@3.25.76)
+        version: 0.13.8(typescript@5.8.3)(zod@4.0.5)
       axios:
         specifier: ^1.10.0
         version: 1.10.0
@@ -292,8 +292,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       zod:
-        specifier: ^3.25.76
-        version: 3.25.76
+        specifier: ^4.0.5
+        version: 4.0.5
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.1
@@ -529,8 +529,8 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anthropic-ai/claude-code@1.0.44':
-    resolution: {integrity: sha512-GCX0KeMcyhLlfs/dLWlMiHShAMmjt8d7xcVUS53z7VnV6s3cIIrRPsKQ/xX/Q9rFm5dSVmRnzU88Ku28fb3QKQ==}
+  '@anthropic-ai/claude-code@1.0.51':
+    resolution: {integrity: sha512-annBc4ez7nDPbp+di6bjIQGiAdmdVln4k3gAYioym2MxOEl3py5s7SsoR+dNSmfgfIHUdKBTbtXnXD5rkmO5aA==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -2196,8 +2196,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@ory/client@1.20.11':
-    resolution: {integrity: sha512-fwXAFe4GtTvSxbGv8rLFpntDcAVERvy1Ninc+CpOEE99DsfJUH/EDbCToN1Q9UEE4XWFLiaD6koqkdcNtb4NKg==}
+  '@ory/client@1.20.22':
+    resolution: {integrity: sha512-N0UixgrJ7Xi0O5bttaFbJrtQhZAi61z69d9p/3tn71/nfBPOVTb8mOJIOlPhQIECj/11A65ttzI2R0QhEIeQEw==}
 
   '@otplib/core@12.0.1':
     resolution: {integrity: sha512-4sGntwbA/AC+SbPhbsziRiD+jNDdIzsZ3JUyfZwjtKyc/wufl1pnSIaG4Uqx8ymPagujub0o92kgBnB89cuAMA==}
@@ -4124,8 +4124,8 @@ packages:
   big.js@5.2.2:
     resolution: {integrity: sha512-vyL2OymJxmarO8gxMr0mhChsO9QGwhynfuu4+MHTAW6czfq9humCB7rKpUjDd9YUiDPU4mzpyupFSvOClAwbmQ==}
 
-  bignumber.js@9.3.0:
-    resolution: {integrity: sha512-EM7aMFTXbptt/wZdMlBv2t8IViwQL+h6SLHosp8Yf0dqJMTnY6iL32opnAB6kAdL0SZPuvcAzFr31o0c/R3/RA==}
+  bignumber.js@9.3.1:
+    resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
   binary-extensions@2.3.0:
     resolution: {integrity: sha512-Ceh+7ox5qe7LJuLHoY0feh3pHuUDHAcRUeyL2VYghZwfpkNIy/+8Ocg0a3UuSoYzavmylwuLWQOf3hl0jjMMIw==}
@@ -9119,6 +9119,9 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
+  zod@4.0.5:
+    resolution: {integrity: sha512-/5UuuRPStvHXu7RS+gmvRf4NXrNxpSllGwDnCBcJZtQsKrviYXm54yDGV2KYNLT5kq0lHGcl7lqWJLgSaG+tgA==}
+
 snapshots:
 
   '@adobe/css-tools@4.4.3': {}
@@ -9137,7 +9140,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anthropic-ai/claude-code@1.0.44':
+  '@anthropic-ai/claude-code@1.0.51':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -11788,7 +11791,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@ory/client@1.20.11':
+  '@ory/client@1.20.22':
     dependencies:
       axios: 1.10.0
     transitivePeerDependencies:
@@ -12955,17 +12958,17 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@t3-oss/env-core@0.13.8(typescript@5.8.3)(zod@3.25.76)':
+  '@t3-oss/env-core@0.13.8(typescript@5.8.3)(zod@4.0.5)':
     optionalDependencies:
       typescript: 5.8.3
-      zod: 3.25.76
+      zod: 4.0.5
 
-  '@t3-oss/env-nextjs@0.13.8(typescript@5.8.3)(zod@3.25.76)':
+  '@t3-oss/env-nextjs@0.13.8(typescript@5.8.3)(zod@4.0.5)':
     dependencies:
-      '@t3-oss/env-core': 0.13.8(typescript@5.8.3)(zod@3.25.76)
+      '@t3-oss/env-core': 0.13.8(typescript@5.8.3)(zod@4.0.5)
     optionalDependencies:
       typescript: 5.8.3
-      zod: 3.25.76
+      zod: 4.0.5
 
   '@tanstack/react-virtual@3.13.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -14177,7 +14180,7 @@ snapshots:
 
   big.js@5.2.2: {}
 
-  bignumber.js@9.3.0: {}
+  bignumber.js@9.3.1: {}
 
   binary-extensions@2.3.0: {}
 
@@ -20045,3 +20048,5 @@ snapshots:
       readable-stream: 3.6.2
 
   zod@3.25.76: {}
+
+  zod@4.0.5: {}
