@@ -119,7 +119,7 @@ impl TryFromEvents<JobEvent> for Job {
                         .config(config.clone())
                 }
                 JobEvent::ExecutionScheduled { .. } => {}
-                JobEvent::ExecutionCompleted { .. } => {}
+                JobEvent::ExecutionCompleted => {}
                 JobEvent::ExecutionErrored { .. } => {}
                 JobEvent::JobCompleted => {}
             }
