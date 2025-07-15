@@ -149,17 +149,18 @@ impl JobDispatcher {
     }
 
     #[instrument(name = "job.fail_job", skip(self))]
-    async fn fail_job(&self, id: JobId, error: JobError, attempt: u32) -> Result<(), JobError> {
+    async fn fail_job(&mut self, id: JobId, error: JobError, attempt: u32) -> Result<(), JobError> {
         let mut job = self.repo.find_by_id(id).await?;
         job.fail(error.to_string());
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut job).await?;
         if self.retry_settings.n_attempts.unwrap_or(u32::MAX) > attempt {
+            self.rescheduled = true;
             let reschedule_at = self.retry_settings.next_attempt_at(attempt);
             sqlx::query!(
                 r#"
                 UPDATE job_executions
-                SET state = 'pending', reschedule_after = $2, attempt_index = $3
+                SET state = 'pending', execute_at = $2, attempt_index = $3
                 WHERE id = $1
               "#,
                 id as JobId,
@@ -211,7 +212,7 @@ impl JobDispatcher {
         sqlx::query!(
             r#"
           UPDATE job_executions
-          SET state = 'pending', reschedule_after = $2, attempt_index = 1
+          SET state = 'pending', execute_at = $2, attempt_index = 1
           WHERE id = $1
         "#,
             id as JobId,

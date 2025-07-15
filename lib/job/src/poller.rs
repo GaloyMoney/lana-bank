@@ -72,7 +72,7 @@ impl JobPoller {
                     }
                 }
             };
-            let result = crate::time::timeout(timeout, self.tracker.notified()).await;
+            let _ = crate::time::timeout(timeout, self.tracker.notified()).await;
         }
     }
 
@@ -183,24 +183,24 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
         JobPollRow,
         r#"
         WITH min_wait AS (
-            SELECT MIN(reschedule_after) - $2::timestamptz AS wait_time
+            SELECT MIN(execute_at) - $2::timestamptz AS wait_time
             FROM job_executions
             WHERE state = 'pending'
-            AND reschedule_after > $2::timestamptz
+            AND execute_at > $2::timestamptz
         ),
         selected_jobs AS (
             SELECT je.id, je.execution_state_json AS data_json, je.job_type, je.attempt_index
             FROM job_executions je
             JOIN jobs ON je.id = jobs.id
-            WHERE reschedule_after <= $2::timestamptz
+            WHERE execute_at <= $2::timestamptz
             AND je.state = 'pending'
-            ORDER BY reschedule_after ASC
+            ORDER BY execute_at ASC
             LIMIT $1
             FOR UPDATE
         ),
         updated AS (
             UPDATE job_executions AS je
-            SET state = 'running', reschedule_after = NULL
+            SET state = 'running', execute_at = NULL
             FROM selected_jobs
             WHERE je.id = selected_jobs.id
             RETURNING je.id, je.job_type, selected_jobs.data_json, je.attempt_index

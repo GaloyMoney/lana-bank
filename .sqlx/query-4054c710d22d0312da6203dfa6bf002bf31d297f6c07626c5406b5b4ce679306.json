@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n          INSERT INTO job_executions (id, job_type, execute_at, alive_at, created_at)\n          VALUES ($1, $2, $3, $4, $4)\n        ",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Timestamptz",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4054c710d22d0312da6203dfa6bf002bf31d297f6c07626c5406b5b4ce679306"
+}
