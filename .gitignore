@@ -46,3 +46,4 @@ meltano/**/dbt.log
 .claude/settings.local.json
 meltano/**/*.pid
 meltano/**/*.log
+/rust-lightning/
