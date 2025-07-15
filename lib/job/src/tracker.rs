@@ -45,7 +45,8 @@ impl JobTracker {
     }
 
     pub fn job_completed(&self, rescheduled: bool) {
-        if rescheduled || self.running_jobs.fetch_sub(1, Ordering::SeqCst) == self.min_jobs {
+        let n_running_jobs = self.running_jobs.fetch_sub(1, Ordering::SeqCst);
+        if rescheduled || n_running_jobs == self.min_jobs {
             self.notify.notify_one();
         }
     }
