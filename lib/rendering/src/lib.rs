@@ -14,7 +14,7 @@ pub struct Renderer {
 }
 
 impl Renderer {
-    pub fn try_init(pdf_config_path: Option<std::path::PathBuf>) -> Result<Self, RenderingError> {
+    pub fn try_new(pdf_config_path: Option<std::path::PathBuf>) -> Result<Self, RenderingError> {
         let template_renderer = TemplateRenderer::new();
         let pdf_generator = PdfGenerator::new(pdf_config_path)?;
 
@@ -83,7 +83,7 @@ mod tests {
         let test_data = TestData::new("test@example.com".to_string());
 
         // Test the rendering library directly
-        let renderer = Renderer::try_init(pdf_config_file)?;
+        let renderer = Renderer::try_new(pdf_config_file)?;
 
         // Test template content (simulate loading from file)
         let template_content = "# Test Document\n\n- **Name:** {{name}}\n- **Email:** {{email}}";
@@ -112,7 +112,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_pdf_generator() -> Result<(), RenderingError> {
-        let renderer = Renderer::try_init(None)?;
+        let renderer = Renderer::try_new(None)?;
 
         let markdown = "# Test Document\n\nThis is a test.";
         let pdf_bytes = renderer.markdown_to_pdf(markdown)?;
@@ -125,7 +125,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_template_renderer() -> Result<(), RenderingError> {
-        let renderer = Renderer::try_init(None)?;
+        let renderer = Renderer::try_new(None)?;
 
         let template_content = "# Hello {{name}}\n\n- **Email:** {{email}}";
         let test_data = TestData::new("test@example.com".to_string());
@@ -141,7 +141,7 @@ mod tests {
 
     #[tokio::test]
     async fn test_end_to_end_template_to_pdf() -> Result<(), RenderingError> {
-        let renderer = Renderer::try_init(None)?;
+        let renderer = Renderer::try_new(None)?;
 
         let template_content = "# Loan Agreement\n\n- **Name:** {{name}}\n- **Email:** {{email}}\n\nThis is a test document.";
         let test_data = TestData::new("john.doe@example.com".to_string());
