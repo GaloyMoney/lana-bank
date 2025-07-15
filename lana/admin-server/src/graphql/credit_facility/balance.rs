@@ -8,6 +8,7 @@ pub(super) struct CreditFacilityBalance {
     disbursed: Disbursed,
     interest: Interest,
     outstanding: Outstanding,
+    outstanding_payable: Outstanding,
     due_outstanding: Outstanding,
     collateral: CollateralBalance,
 }
@@ -34,13 +35,16 @@ impl From<lana_app::credit::CreditFacilityBalanceSummary> for CreditFacilityBala
                     usd_balance: balance.interest_posted(),
                 },
                 outstanding: Outstanding {
-                    usd_balance: balance.interest_outstanding_payable(),
+                    usd_balance: balance.interest_outstanding(),
                 },
                 outstanding_payable: Outstanding {
-                    usd_balance: balance.interest_outstanding(),
+                    usd_balance: balance.interest_outstanding_payable(),
                 },
             },
             outstanding: Outstanding {
+                usd_balance: balance.total_outstanding(),
+            },
+            outstanding_payable: Outstanding {
                 usd_balance: balance.total_outstanding_payable(),
             },
             due_outstanding: Outstanding {

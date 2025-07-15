@@ -421,6 +421,7 @@ type CreditFacilityBalance {
 	disbursed: Disbursed!
 	interest: Interest!
 	outstanding: Outstanding!
+	outstandingPayable: Outstanding!
 	dueOutstanding: Outstanding!
 	collateral: CollateralBalance!
 }

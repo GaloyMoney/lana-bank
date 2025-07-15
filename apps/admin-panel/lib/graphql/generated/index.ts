@@ -445,6 +445,7 @@ export type CreditFacilityBalance = {
   facilityRemaining: FacilityRemaining;
   interest: Interest;
   outstanding: Outstanding;
+  outstandingPayable: Outstanding;
 };
 
 export type CreditFacilityCollateralUpdateInput = {
