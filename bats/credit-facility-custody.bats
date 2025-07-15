@@ -16,24 +16,6 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
-wait_for_active() {
-  credit_facility_id=$1
-
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-
-  status=$(graphql_output '.data.creditFacility.status')
-  [[ "$status" == "ACTIVE" ]] || exit 1
-
-  disbursals=$(graphql_output '.data.creditFacility.disbursals')
-  num_disbursals=$(echo $disbursals | jq -r '. | length')
-  [[ "$num_disbursals" -gt "0" ]]
-}
-
 @test "credit-facility-custody: can create with mock custodian" {
   # Setup prerequisites
   customer_id=$(create_customer)

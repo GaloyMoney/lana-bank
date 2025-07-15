@@ -28,14 +28,11 @@ wait_for_active() {
 
   status=$(graphql_output '.data.creditFacility.status')
   [[ "$status" == "ACTIVE" ]] || exit 1
-
-  disbursals=$(graphql_output '.data.creditFacility.disbursals')
-  num_disbursals=$(echo $disbursals | jq -r '. | length')
-  [[ "$num_disbursals" -gt "0" ]]
 }
 
 wait_for_disbursal() {
   credit_facility_id=$1
+  disbursal_id=$2
 
   variables=$(
     jq -n \
@@ -44,9 +41,15 @@ wait_for_disbursal() {
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
   echo "disbursal | $i. $(graphql_output)" >> $RUN_LOG_FILE
-  disbursals=$(graphql_output '.data.creditFacility.disbursals')
-  num_disbursals=$(echo $disbursals | jq -r '. | length')
-  [[ "$num_disbursals" -gt "1" ]]
+  num_disbursals=$(
+    graphql_output \
+      --arg disbursal_id "$disbursal_id" \
+      '[
+        .data.creditFacility.disbursals[]
+        | select(.id == $disbursal_id)
+        ] | length'
+  )
+  [[ "$num_disbursals" -eq "1" ]]
 }
 
 wait_for_accruals() {
@@ -202,7 +205,7 @@ ymd() {
   disbursal_id=$(graphql_output '.data.creditFacilityDisbursalInitiate.disbursal.id')
   [[ "$disbursal_id" != "null" ]] || exit 1
 
-  retry 10 1 wait_for_disbursal "$credit_facility_id"
+  retry 10 1 wait_for_disbursal "$credit_facility_id" "$disbursal_id"
   retry 10 1 wait_for_dashboard_disbursed "$disbursed_before" "$amount"
 }
 
