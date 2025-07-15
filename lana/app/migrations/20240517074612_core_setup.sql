@@ -467,7 +467,7 @@ $$ LANGUAGE plpgsql;
 
 CREATE OR REPLACE FUNCTION notify_job_execution_update() RETURNS TRIGGER AS $$
 BEGIN
-  IF NEW.reschedule_after IS DISTINCT FROM OLD.reschedule_after THEN
+  IF NEW.execute_at IS DISTINCT FROM OLD.execute_at THEN
     PERFORM pg_notify('job_execution', '');
   END IF;
   RETURN NULL;

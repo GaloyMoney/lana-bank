@@ -84,8 +84,8 @@ impl Jobs {
         match self.repo.create_in_op(&mut db, new_job).await {
             Err(JobError::DuplicateUniqueJobType) => (),
             Err(e) => return Err(e),
-            Ok(job) => {
-                self.insert_execution::<<C as JobConfig>::Initializer>(&mut db, &job, None)
+            Ok(mut job) => {
+                self.insert_execution::<<C as JobConfig>::Initializer>(&mut db, &mut job, None)
                     .await?;
                 db.commit().await?;
             }
@@ -112,8 +112,8 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let job = self.repo.create_in_op(db, new_job).await?;
-        self.insert_execution::<<C as JobConfig>::Initializer>(db, &job, None)
+        let mut job = self.repo.create_in_op(db, new_job).await?;
+        self.insert_execution::<<C as JobConfig>::Initializer>(db, &mut job, None)
             .await?;
         Ok(job)
     }
@@ -138,8 +138,8 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let job = self.repo.create_in_op(db, new_job).await?;
-        self.insert_execution::<<C as JobConfig>::Initializer>(db, &job, Some(schedule_at))
+        let mut job = self.repo.create_in_op(db, new_job).await?;
+        self.insert_execution::<<C as JobConfig>::Initializer>(db, &mut job, Some(schedule_at))
             .await?;
         Ok(job)
     }
@@ -167,7 +167,7 @@ impl Jobs {
     async fn insert_execution<I: JobInitializer>(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        job: &Job,
+        job: &mut Job,
         schedule_at: Option<DateTime<Utc>>,
     ) -> Result<(), JobError> {
         Span::current().record("now", tracing::field::display(db.now()));
@@ -177,6 +177,7 @@ impl Jobs {
                 I::job_type(),
             ));
         }
+        let schedule_at = schedule_at.unwrap_or(db.now());
         sqlx::query!(
             r#"
           INSERT INTO job_executions (id, job_type, execute_at, alive_at, created_at)
@@ -184,11 +185,13 @@ impl Jobs {
         "#,
             job.id as JobId,
             &job.job_type as &JobType,
-            schedule_at.unwrap_or(db.now()),
+            schedule_at,
             db.now()
         )
         .execute(&mut **db.tx())
         .await?;
+        job.execution_scheduled(schedule_at);
+        self.repo.update_in_op(db, job).await?;
         Ok(())
     }
 }

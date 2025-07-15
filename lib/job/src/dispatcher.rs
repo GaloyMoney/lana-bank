@@ -150,13 +150,13 @@ impl JobDispatcher {
 
     #[instrument(name = "job.fail_job", skip(self))]
     async fn fail_job(&mut self, id: JobId, error: JobError, attempt: u32) -> Result<(), JobError> {
-        let mut job = self.repo.find_by_id(id).await?;
-        job.fail(error.to_string());
         let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut job).await?;
+        let mut job = self.repo.find_by_id(id).await?;
         if self.retry_settings.n_attempts.unwrap_or(u32::MAX) > attempt {
             self.rescheduled = true;
             let reschedule_at = self.retry_settings.next_attempt_at(attempt);
+            let next_attempt = attempt + 1;
+            job.retry_scheduled(error.to_string(), reschedule_at, next_attempt);
             sqlx::query!(
                 r#"
                 UPDATE job_executions
@@ -165,11 +165,12 @@ impl JobDispatcher {
               "#,
                 id as JobId,
                 reschedule_at,
-                (attempt + 1) as i32
+                next_attempt as i32
             )
             .execute(&mut **op.tx())
             .await?;
         } else {
+            job.job_errored(error.to_string());
             sqlx::query!(
                 r#"
                 DELETE FROM job_executions
@@ -180,6 +181,8 @@ impl JobDispatcher {
             .execute(&mut **op.tx())
             .await?;
         }
+
+        self.repo.update_in_op(&mut op, &mut job).await?;
 
         op.commit().await?;
         Ok(())
@@ -196,7 +199,7 @@ impl JobDispatcher {
         )
         .execute(&mut **op.tx())
         .await?;
-        job.completed();
+        job.job_completed();
         self.repo.update_in_op(&mut op, &mut job).await?;
         op.commit().await?;
         Ok(())
@@ -209,6 +212,7 @@ impl JobDispatcher {
         reschedule_at: DateTime<Utc>,
     ) -> Result<(), JobError> {
         self.rescheduled = true;
+        let mut job = self.repo.find_by_id(&id).await?;
         sqlx::query!(
             r#"
           UPDATE job_executions
@@ -220,6 +224,8 @@ impl JobDispatcher {
         )
         .execute(&mut **op.tx())
         .await?;
+        job.execution_rescheduled(reschedule_at);
+        self.repo.update_in_op(&mut op, &mut job).await?;
         op.commit().await?;
         Ok(())
     }
