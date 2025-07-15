@@ -16,6 +16,8 @@ export const metadata: Metadata = {
   title: "Lana Bank",
   description: "Where the lana keeps flowing",
 }
+
+export const dynamic = "force-dynamic"
 const inter = Inter_Tight({ subsets: ["latin"], display: "auto" })
 
 export default async function RootLayout({
