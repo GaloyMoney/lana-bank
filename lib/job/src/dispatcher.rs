@@ -13,6 +13,7 @@ use super::{
 #[derive(Debug)]
 pub struct PolledJob {
     pub id: JobId,
+    #[allow(dead_code)]
     pub job_type: String,
     pub data_json: Option<JsonValue>,
     pub attempt: u32,
@@ -24,6 +25,7 @@ pub(crate) struct JobDispatcher {
     runner: Option<Box<dyn JobRunner>>,
     tracker: Arc<JobTracker>,
     keep_alive: Option<OwnedTaskHandle>,
+    rescheduled: bool,
 }
 impl JobDispatcher {
     pub fn new(
@@ -45,11 +47,12 @@ impl JobDispatcher {
             runner: Some(runner),
             tracker,
             keep_alive,
+            rescheduled: false,
         }
     }
 
     #[instrument(name = "job.execute_job", skip_all,
-        fields(job_id, job_type, attempt, error, error.level, error.message, conclusion),
+        fields(job_id, job_type, attempt, error, error.level, error.message, conclusion, now),
     err)]
     pub async fn execute_job(mut self, polled_job: PolledJob) -> Result<(), JobError> {
         let job = self.repo.find_by_id(polled_job.id).await?;
@@ -57,6 +60,7 @@ impl JobDispatcher {
         span.record("job_id", tracing::field::display(job.id));
         span.record("job_type", tracing::field::display(&job.job_type));
         span.record("attempt", polled_job.attempt);
+        span.record("now", tracing::field::display(crate::time::now()));
         let current_job = CurrentJob::new(
             polled_job.id,
             polled_job.attempt,
@@ -89,32 +93,32 @@ impl JobDispatcher {
                 span.record("conclusion", "RescheduleNow");
                 let op = self.repo.begin_op().await?;
                 let t = op.now();
-                Self::reschedule_job(op, job.id, t).await?;
+                self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleNowWithOp(op)) => {
                 span.record("conclusion", "RescheduleNowWithOp");
                 let t = op.now();
-                Self::reschedule_job(op, job.id, t).await?;
+                self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleIn(d)) => {
                 span.record("conclusion", "RescheduleIn");
                 let op = self.repo.begin_op().await?;
                 let t = op.now() + d;
-                Self::reschedule_job(op, job.id, t).await?;
+                self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleInWithOp(d, op)) => {
                 span.record("conclusion", "RescheduleInWithOp");
                 let t = op.now() + d;
-                Self::reschedule_job(op, job.id, t).await?;
+                self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleAt(t)) => {
                 span.record("conclusion", "RescheduleAt");
                 let op = self.repo.begin_op().await?;
-                Self::reschedule_job(op, job.id, t).await?;
+                self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleAtWithOp(op, t)) => {
                 span.record("conclusion", "RescheduleAtWithOp");
-                Self::reschedule_job(op, job.id, t).await?;
+                self.reschedule_job(op, job.id, t).await?;
             }
         }
         self.stop_keep_alive().await;
@@ -198,10 +202,12 @@ impl JobDispatcher {
     }
 
     async fn reschedule_job(
+        &mut self,
         mut op: es_entity::DbOp<'_>,
         id: JobId,
         reschedule_at: DateTime<Utc>,
     ) -> Result<(), JobError> {
+        self.rescheduled = true;
         sqlx::query!(
             r#"
           UPDATE job_executions
@@ -226,7 +232,7 @@ impl JobDispatcher {
 
 impl Drop for JobDispatcher {
     fn drop(&mut self) {
-        self.tracker.job_completed()
+        self.tracker.job_completed(self.rescheduled)
     }
 }
 

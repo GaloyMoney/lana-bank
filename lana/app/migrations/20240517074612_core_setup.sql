@@ -458,19 +458,31 @@ CREATE TABLE job_executions (
   created_at TIMESTAMPTZ NOT NULL
 );
 
--- Function to notify on job_executions inserts (once per transaction)
-CREATE OR REPLACE FUNCTION notify_job_execution() RETURNS TRIGGER AS $$
+CREATE OR REPLACE FUNCTION notify_job_execution_insert() RETURNS TRIGGER AS $$
 BEGIN
   PERFORM pg_notify('job_execution', '');
   RETURN NULL;
 END;
 $$ LANGUAGE plpgsql;
 
--- Trigger that fires once per statement (not per row)
-CREATE TRIGGER job_executions_notify_trigger
+CREATE OR REPLACE FUNCTION notify_job_execution_update() RETURNS TRIGGER AS $$
+BEGIN
+  IF NEW.reschedule_after IS DISTINCT FROM OLD.reschedule_after THEN
+    PERFORM pg_notify('job_execution', '');
+  END IF;
+  RETURN NULL;
+END;
+$$ LANGUAGE plpgsql;
+
+CREATE TRIGGER job_executions_notify_insert_trigger
 AFTER INSERT ON job_executions
 FOR EACH STATEMENT
-EXECUTE FUNCTION notify_job_execution();
+EXECUTE FUNCTION notify_job_execution_insert();
+
+CREATE TRIGGER job_executions_notify_update_trigger
+AFTER UPDATE ON job_executions
+FOR EACH ROW
+EXECUTE FUNCTION notify_job_execution_update();
 
 CREATE TABLE casbin_rule (
   id SERIAL PRIMARY KEY,

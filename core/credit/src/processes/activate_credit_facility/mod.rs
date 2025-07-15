@@ -83,7 +83,7 @@ where
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
-    #[instrument(name = "credit_facility.activation.execute", skip(self))]
+    #[instrument(name = "credit.credit_facility.activation.execute", skip(self))]
     pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,

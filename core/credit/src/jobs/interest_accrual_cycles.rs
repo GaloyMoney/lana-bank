@@ -121,26 +121,19 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(
-        name = "credit-facility.interest-accrual-cycles.job",
-        skip(self, current_job),
-        fields(attempt)
-    )]
+    #[instrument(name = "credit.job.interest-accrual-cycles", skip(self, _current_job))]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let span = tracing::Span::current();
-        span.record("attempt", current_job.attempt());
-
         if !self
             .obligations
             .check_facility_obligations_status_updated(self.config.credit_facility_id)
             .await?
         {
-            return Ok(JobCompletion::RescheduleIn(
-                chrono::Duration::minutes(5).to_std()?,
-            ));
+            return Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
+                5 * 60,
+            )));
         }
 
         let mut db = self.credit_facilities.begin_op().await?;

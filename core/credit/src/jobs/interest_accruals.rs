@@ -109,17 +109,14 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     #[instrument(
-        name = "credit-facility.interest-accruals.job",
-        skip(self, current_job),
+        name = "credit.job.interest-accruals",
+        skip(self, _current_job),
         fields(attempt)
     )]
     async fn run(
         &self,
-        current_job: CurrentJob,
+        _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let span = tracing::Span::current();
-        span.record("attempt", current_job.attempt());
-
         let mut db = self.credit_facilities.begin_op().await?;
 
         let crate::ConfirmedAccrual {

@@ -72,14 +72,14 @@ impl JobPoller {
                     }
                 }
             };
-            let _ = crate::time::timeout(timeout, self.tracker.notified()).await;
+            let result = crate::time::timeout(timeout, self.tracker.notified()).await;
         }
     }
 
     #[instrument(
         name = "job.poll_and_dispatch",
         skip(self),
-        fields(n_jobs_running, n_jobs_to_start, jobs_to_start),
+        fields(n_jobs_running, n_jobs_to_start, now, next_poll_in),
         err
     )]
     async fn poll_and_dispatch(
@@ -90,24 +90,19 @@ impl JobPoller {
         self.tracker.trace_n_jobs_running();
         let rows = match poll_jobs(self.repo.pool(), n_jobs_to_poll).await? {
             JobPollResult::WaitTillNextJob(duration) => {
+                span.record("next_poll_in", tracing::field::debug(duration));
                 return Ok(duration);
             }
             JobPollResult::Jobs(jobs) => jobs,
         };
         span.record("n_jobs_to_start", rows.len());
-        span.record(
-            "jobs_to_start",
-            rows.iter()
-                .map(|r| r.job_type.as_str())
-                .collect::<Vec<_>>()
-                .join(","),
-        );
         if !rows.is_empty() {
             for row in rows {
                 self.dispatch_job(row).await?;
             }
         }
 
+        span.record("next_poll_in", tracing::field::debug(Duration::ZERO));
         Ok(Duration::ZERO)
     }
 
@@ -150,7 +145,7 @@ impl JobPoller {
     #[instrument(
         name = "job.dispatch_job",
         skip(self),
-        fields(job_id, job_type, attempt),
+        fields(job_id, job_type, attempt, now),
         err
     )]
     async fn dispatch_job(&self, polled_job: PolledJob) -> Result<(), JobError> {
@@ -164,6 +159,7 @@ impl JobPoller {
         let repo = self.repo.clone();
         let tracker = self.tracker.clone();
         let job_lost_interval = self.config.job_lost_interval;
+        span.record("now", tracing::field::display(crate::time::now()));
         tokio::spawn(async move {
             let _ = JobDispatcher::new(
                 repo,
@@ -182,6 +178,7 @@ impl JobPoller {
 
 async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult, sqlx::Error> {
     let now = crate::time::now();
+    Span::current().record("now", tracing::field::display(now));
     let rows = sqlx::query_as!(
         JobPollRow,
         r#"
@@ -195,7 +192,7 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
             SELECT je.id, je.execution_state_json AS data_json, je.job_type, je.attempt_index
             FROM job_executions je
             JOIN jobs ON je.id = jobs.id
-            WHERE reschedule_after < $2::timestamptz
+            WHERE reschedule_after <= $2::timestamptz
             AND je.state = 'pending'
             ORDER BY reschedule_after ASC
             LIMIT $1

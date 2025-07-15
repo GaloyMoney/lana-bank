@@ -96,18 +96,18 @@ impl Jobs {
     #[instrument(
         name = "job.create_and_spawn_in_op",
         skip(self, db, config),
-        fields(job_type)
+        fields(job_type, now)
     )]
     pub async fn create_and_spawn_in_op<C: JobConfig>(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        id: impl Into<JobId> + std::fmt::Debug,
+        job_id: impl Into<JobId> + std::fmt::Debug,
         config: C,
     ) -> Result<Job, JobError> {
         let job_type = <<C as JobConfig>::Initializer as JobInitializer>::job_type();
         Span::current().record("job_type", tracing::field::display(&job_type));
         let new_job = NewJob::builder()
-            .id(id.into())
+            .id(job_id.into())
             .job_type(<<C as JobConfig>::Initializer as JobInitializer>::job_type())
             .config(config)?
             .build()
@@ -121,19 +121,19 @@ impl Jobs {
     #[instrument(
         name = "job.create_and_spawn_at_in_op",
         skip(self, db, config),
-        fields(job_type)
+        fields(job_type, now)
     )]
     pub async fn create_and_spawn_at_in_op<C: JobConfig>(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        id: impl Into<JobId> + std::fmt::Debug,
+        job_id: impl Into<JobId> + std::fmt::Debug,
         config: C,
         schedule_at: DateTime<Utc>,
     ) -> Result<Job, JobError> {
         let job_type = <<C as JobConfig>::Initializer as JobInitializer>::job_type();
         Span::current().record("job_type", tracing::field::display(&job_type));
         let new_job = NewJob::builder()
-            .id(id.into())
+            .id(job_id.into())
             .job_type(job_type)
             .config(config)?
             .build()
@@ -170,6 +170,7 @@ impl Jobs {
         job: &Job,
         schedule_at: Option<DateTime<Utc>>,
     ) -> Result<(), JobError> {
+        Span::current().record("now", tracing::field::display(db.now()));
         if job.job_type != I::job_type() {
             return Err(JobError::JobTypeMismatch(
                 job.job_type.clone(),

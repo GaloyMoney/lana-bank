@@ -288,6 +288,10 @@ where
         Ok(CompletionOutcome::Completed((credit_facility, completion)))
     }
 
+    #[instrument(
+        name = "credit.facility.complete_interest_cycle_and_maybe_start_new_cycle",
+        skip(self, db)
+    )]
     pub(super) async fn complete_interest_cycle_and_maybe_start_new_cycle(
         &self,
         db: &mut es_entity::DbOp<'_>,
