@@ -91,18 +91,19 @@ where
         &self,
         external_wallet_id: impl AsRef<str>,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let row = sqlx::query!(
+        Ok(es_query!(
+            entity_ty = CreditFacility,
+            id_ty = CreditFacilityId,
+            self.pool(),
             r#"
-                SELECT cf.id AS "id: CreditFacilityId" FROM core_credit_facilities cf
+                SELECT cf.id FROM core_credit_facilities cf
                 LEFT JOIN core_collaterals co ON cf.collateral_id = co.id
                 LEFT JOIN core_wallets wa ON co.wallet_id = wa.id
                 WHERE wa.external_wallet_id = $1"#,
             external_wallet_id.as_ref()
         )
-        .fetch_one(self.pool())
-        .await?;
-
-        self.find_by_id(row.id).await
+        .fetch_one()
+        .await?)
     }
 }
 
