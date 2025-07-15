@@ -92,8 +92,7 @@ where
         external_wallet_id: impl AsRef<str>,
     ) -> Result<CreditFacility, CreditFacilityError> {
         Ok(es_query!(
-            entity_ty = CreditFacility,
-            id_ty = CreditFacilityId,
+            "core",
             self.pool(),
             r#"
                 SELECT cf.id FROM core_credit_facilities cf

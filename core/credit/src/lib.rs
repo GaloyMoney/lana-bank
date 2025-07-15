@@ -22,7 +22,7 @@ mod terms;
 mod terms_template;
 mod time;
 
-use audit::{AuditInfo, AuditSvc};
+use audit::{AuditInfo, AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_custody::{
@@ -668,8 +668,12 @@ where
                     external_wallet_id,
                     amount,
                 } => {
-                    self.update_collateral_by_custodian(external_wallet_id, amount)
-                        .await
+                    self.update_collateral_by_custodian(
+                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                        external_wallet_id,
+                        amount,
+                    )
+                    .await
                 }
             }
         } else {
@@ -726,9 +730,15 @@ where
     #[instrument(name = "credit.update_collateral_by_custodian", skip(self), err)]
     pub(crate) async fn update_collateral_by_custodian(
         &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         external_wallet_id: impl AsRef<str> + std::fmt::Debug,
         amount: Satoshis,
     ) -> Result<(), CoreCreditError> {
+        let audit_info = self
+            .subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
         let credit_facility = self
             .facilities
             .find_by_external_wallet(external_wallet_id)
@@ -736,7 +746,7 @@ where
 
         let effective = time::now().date_naive();
         self.collaterals
-            .record_collateral_update_by_custodian(&credit_facility, amount, effective)
+            .record_collateral_update_by_custodian(&credit_facility, amount, effective, &audit_info)
             .await?;
 
         Ok(())

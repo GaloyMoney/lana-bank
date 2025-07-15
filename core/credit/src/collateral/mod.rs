@@ -119,11 +119,12 @@ where
         credit_facility: &CreditFacility,
         updated_collateral: core_money::Satoshis,
         effective: chrono::NaiveDate,
+        audit_info: &audit::AuditInfo,
     ) -> Result<(), CollateralError> {
         let mut collateral = self.repo.find_by_id(credit_facility.collateral_id).await?;
 
-        if let es_entity::Idempotent::Executed(data) =
-            collateral.record_collateral_update_by_custodian(updated_collateral, effective)
+        if let es_entity::Idempotent::Executed(data) = collateral
+            .record_collateral_update_by_custodian(updated_collateral, effective, audit_info)
         {
             let mut db = self.repo.begin_op().await?;
 

@@ -38,6 +38,7 @@ pub enum CollateralEvent {
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
+        audit_info: AuditInfo,
     },
 }
 
@@ -63,6 +64,7 @@ impl Collateral {
         &mut self,
         new_amount: Satoshis,
         effective: chrono::NaiveDate,
+        audit_info: &AuditInfo,
     ) -> Idempotent<CollateralUpdate> {
         let current = self.amount;
 
@@ -79,6 +81,7 @@ impl Collateral {
             abs_diff,
             collateral_amount: new_amount,
             action,
+            audit_info: audit_info.clone(),
         });
 
         self.amount = new_amount;

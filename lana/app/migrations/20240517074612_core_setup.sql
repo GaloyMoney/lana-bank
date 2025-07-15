@@ -210,7 +210,7 @@ CREATE TABLE core_user_events (
 
 CREATE TABLE core_wallets (
   id UUID PRIMARY KEY,
-  external_wallet_id VARCHAR NULL ,
+  external_wallet_id VARCHAR NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
