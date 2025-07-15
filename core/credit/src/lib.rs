@@ -27,13 +27,12 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
+    CustodianNotification,
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
-use jobs::webhook_notifications::WebhookNotificationsInit;
-use jobs::webhook_notifications::WebhookNotificationsJobConfig;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
@@ -298,7 +297,7 @@ where
         )
         .await?;
 
-        let credit = Self {
+        Ok(Self {
             authz: authz.clone(),
             customer: customer.clone(),
             facilities: credit_facilities,
@@ -319,15 +318,7 @@ where
             chart_of_accounts_integrations,
             terms_templates,
             public_ids: public_ids.clone(),
-        };
-
-        jobs.add_initializer_and_spawn_unique(
-            WebhookNotificationsInit::new(outbox, &credit),
-            WebhookNotificationsJobConfig::<Perms, E>::new(),
-        )
-        .await?;
-
-        Ok(credit)
+        })
     }
 
     pub fn obligations(&self) -> &Obligations<Perms, E> {
@@ -659,6 +650,33 @@ where
             .await?)
     }
 
+    #[instrument(name = "credit.handle_webhook", skip(self), err)]
+    pub async fn handle_webhook(
+        &self,
+        provider: String,
+        uri: http::Uri,
+        headers: http::HeaderMap,
+        payload: bytes::Bytes,
+    ) -> Result<(), CoreCreditError> {
+        if let Some(notification) = self
+            .custody
+            .process_webhook(provider, uri, headers, payload)
+            .await?
+        {
+            match notification {
+                CustodianNotification::WalletBalanceChanged {
+                    external_wallet_id,
+                    amount,
+                } => {
+                    self.update_collateral_by_custodian(external_wallet_id, amount)
+                        .await
+                }
+            }
+        } else {
+            Ok(())
+        }
+    }
+
     #[instrument(name = "credit_facility.update_collateral_manually", skip(self), err)]
     pub async fn update_collateral_manually(
         &self,
@@ -706,7 +724,7 @@ where
     }
 
     #[instrument(name = "credit.update_collateral_by_custodian", skip(self), err)]
-    pub async fn update_collateral_by_custodian(
+    pub(crate) async fn update_collateral_by_custodian(
         &self,
         external_wallet_id: impl AsRef<str> + std::fmt::Debug,
         amount: Satoshis,

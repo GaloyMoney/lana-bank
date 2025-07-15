@@ -304,14 +304,14 @@ where
         Ok(wallet)
     }
 
-    #[instrument(name = "custody.handle_webhook", skip(self), err)]
-    pub async fn handle_webhook(
+    #[instrument(name = "custody.process_webhook", skip(self), err)]
+    pub async fn process_webhook(
         &self,
         provider: String,
         uri: http::Uri,
         headers: http::HeaderMap,
         payload: bytes::Bytes,
-    ) -> Result<(), CoreCustodyError> {
+    ) -> Result<Option<CustodianNotification>, CoreCustodyError> {
         let custodian = self.custodians.find_by_provider(provider).await;
 
         let custodian_id = match custodian {
@@ -324,37 +324,11 @@ where
             .persist_webhook_notification(custodian_id, &uri, &headers, &payload)
             .await?;
 
-        if let Ok(custodian) = custodian {
-            if let Some(notification) = custodian
-                .custodian_client(self.config.encryption.key)
-                .await?
-                .process_webhook(&headers, payload)
-                .await?
-            {
-                match notification {
-                    CustodianNotification::WalletBalanceChanged {
-                        external_wallet_id,
-                        amount,
-                    } => {
-                        let mut db = self.custodians.begin_op().await.unwrap();
-                        self.outbox
-                            .publish_persisted(
-                                db.tx(),
-                                CoreCustodyEvent::WalletBalanceChanged {
-                                    external_wallet_id,
-                                    amount,
-                                },
-                            )
-                            .await
-                            .unwrap();
-
-                        db.commit().await.unwrap();
-                    }
-                }
-            }
-        }
-
-        Ok(())
+        Ok(custodian?
+            .custodian_client(self.config.encryption.key)
+            .await?
+            .process_webhook(&headers, payload)
+            .await?)
     }
 
     #[instrument(

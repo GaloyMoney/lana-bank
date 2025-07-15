@@ -16,7 +16,7 @@ async fn handle_webhook(
     uri: Uri,
     payload: Bytes,
 ) {
-    app.custody()
+    app.credit()
         .handle_webhook(provider, uri, headers, payload)
         .await
         .unwrap_or(())
