@@ -1718,9 +1718,11 @@ export type Query = {
   creditConfig?: Maybe<CreditModuleConfig>;
   creditFacilities: CreditFacilityConnection;
   creditFacility?: Maybe<CreditFacility>;
+  creditFacilityByPublicId?: Maybe<CreditFacility>;
   custodians: CustodianConnection;
   customer?: Maybe<Customer>;
   customerByEmail?: Maybe<Customer>;
+  customerByPublicId?: Maybe<Customer>;
   customerDocument?: Maybe<CustomerDocument>;
   customers: CustomerConnection;
   dashboard: Dashboard;
@@ -1729,6 +1731,7 @@ export type Query = {
   depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
+  disbursalByPublicId?: Maybe<CreditFacilityDisbursal>;
   disbursals: CreditFacilityDisbursalConnection;
   journalEntries: JournalEntryConnection;
   ledgerAccount?: Maybe<LedgerAccount>;
@@ -1812,6 +1815,11 @@ export type QueryCreditFacilityArgs = {
 };
 
 
+export type QueryCreditFacilityByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
+};
+
+
 export type QueryCustodiansArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
@@ -1825,6 +1833,11 @@ export type QueryCustomerArgs = {
 
 export type QueryCustomerByEmailArgs = {
   email: Scalars['String']['input'];
+};
+
+
+export type QueryCustomerByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
 };
 
 
@@ -1859,6 +1872,11 @@ export type QueryDepositsArgs = {
 
 export type QueryDisbursalArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDisbursalByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
 };
 
 

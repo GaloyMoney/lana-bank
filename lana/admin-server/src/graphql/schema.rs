@@ -115,6 +115,22 @@ impl Query {
         maybe_fetch_one!(Customer, ctx, app.customers().find_by_email(sub, email))
     }
 
+    async fn customer_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<Customer>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
+            return Ok(None);
+        };
+        maybe_fetch_one!(
+            Customer,
+            ctx,
+            app.customers().find_by_id(sub, public_id.target_id)
+        )
+    }
+
     async fn customers(
         &self,
         ctx: &Context<'_>,
@@ -260,6 +276,24 @@ impl Query {
         )
     }
 
+    async fn credit_facility_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<CreditFacility>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
+            return Ok(None);
+        };
+        maybe_fetch_one!(
+            CreditFacility,
+            ctx,
+            app.credit()
+                .facilities()
+                .find_by_id(sub, public_id.target_id)
+        )
+    }
+
     async fn credit_facilities(
         &self,
         ctx: &Context<'_>,
@@ -321,6 +355,24 @@ impl Query {
             CreditFacilityDisbursal,
             ctx,
             app.credit().disbursals().find_by_id(sub, id)
+        )
+    }
+
+    async fn disbursal_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<CreditFacilityDisbursal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
+            return Ok(None);
+        };
+        maybe_fetch_one!(
+            CreditFacilityDisbursal,
+            ctx,
+            app.credit()
+                .disbursals()
+                .find_by_id(sub, public_id.target_id)
         )
     }
 
