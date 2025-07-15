@@ -95,6 +95,7 @@ BEGIN
     WHEN 'updated_by_custodian' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.action := (NEW.event ->> 'action');
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     WHEN 'updated' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
