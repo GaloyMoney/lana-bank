@@ -1229,6 +1229,20 @@ impl Mutation {
         )
     }
 
+    pub async fn withdrawal_void(
+        &self,
+        ctx: &Context<'_>,
+        input: WithdrawalVoidInput,
+    ) -> async_graphql::Result<WithdrawalVoidPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            WithdrawalVoidPayload,
+            Withdrawal,
+            ctx,
+            app.deposits().void_withdrawal(sub, input.withdrawal_id)
+        )
+    }
+
     async fn terms_template_create(
         &self,
         ctx: &Context<'_>,

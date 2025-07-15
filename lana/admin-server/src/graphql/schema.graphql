@@ -1327,6 +1327,7 @@ type Mutation {
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
+	withdrawalVoid(input: WithdrawalVoidInput!): WithdrawalVoidPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
@@ -1993,6 +1994,15 @@ enum WithdrawalStatus {
 	CONFIRMED
 	DENIED
 	CANCELLED
+	VOIDED
+}
+
+input WithdrawalVoidInput {
+	withdrawalId: UUID!
+}
+
+type WithdrawalVoidPayload {
+	withdrawal: Withdrawal!
 }
 
 """
