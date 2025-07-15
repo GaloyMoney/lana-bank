@@ -72,6 +72,7 @@ pub enum CoreCreditEvent {
         ledger_tx_id: LedgerTxId,
         amount: UsdCents,
         period: InterestPeriod,
+        due_at: DateTime<Utc>,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,
     },

@@ -193,6 +193,7 @@ impl CreditFacilityRepaymentPlan {
             }
             CoreCreditEvent::AccrualPosted {
                 amount,
+                due_at,
                 effective,
                 recorded_at,
                 ..
@@ -204,7 +205,7 @@ impl CreditFacilityRepaymentPlan {
                     initial: UsdCents::ZERO,
                     outstanding: UsdCents::ZERO,
 
-                    due_at: *recorded_at,
+                    due_at: *due_at,
                     overdue_at: None,
                     defaulted_at: None,
                     recorded_at: *recorded_at,
@@ -458,6 +459,7 @@ mod tests {
                 ledger_tx_id: LedgerTxId::new(),
                 amount: UsdCents::ZERO,
                 period,
+                due_at: period.end,
                 recorded_at: period.end,
                 effective: period.end.date_naive(),
             },
@@ -496,6 +498,7 @@ mod tests {
                 ledger_tx_id: LedgerTxId::new(),
                 amount: UsdCents::ZERO,
                 period: period_1,
+                due_at: period_1.end,
                 recorded_at: period_1.end,
                 effective: period_1.end.date_naive(),
             },
@@ -504,6 +507,7 @@ mod tests {
                 ledger_tx_id: LedgerTxId::new(),
                 amount: UsdCents::ZERO,
                 period: period_2,
+                due_at: period_2.end,
                 recorded_at: period_2.end,
                 effective: period_2.end.date_naive(),
             },

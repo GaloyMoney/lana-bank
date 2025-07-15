@@ -184,6 +184,7 @@ where
                     ledger_tx_id: *tx_id,
                     amount: *total,
                     period: entity.period,
+                    due_at: entity.period.end,
                     recorded_at: event.recorded_at,
                     effective: *effective,
                 }),
