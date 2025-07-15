@@ -14,11 +14,16 @@ pub const CENTS_PER_USD: Decimal = dec!(100);
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct SignedSatoshis(i64);
+
+#[cfg(feature = "graphql")]
 async_graphql::scalar!(SignedSatoshis);
 
-impl From<Satoshis> for SignedSatoshis {
-    fn from(sats: Satoshis) -> Self {
-        Self(i64::try_from(sats.0).expect("Satoshis must be integer sized for i64"))
+impl TryFrom<Satoshis> for SignedSatoshis {
+    type Error = ConversionError;
+    fn try_from(sats: Satoshis) -> Result<Self, Self::Error> {
+        i64::try_from(sats.0)
+            .map(Self)
+            .map_err(|_| ConversionError::Overflow)
     }
 }
 
@@ -78,11 +83,15 @@ pub enum ConversionError {
     DecimalError(#[from] rust_decimal::Error),
     #[error("ConversionError - UnexpectedNegativeNumber: {0}")]
     UnexpectedNegativeNumber(rust_decimal::Decimal),
+    #[error("ConversionError - Overflow")]
+    Overflow,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct Satoshis(u64);
+
+#[cfg(feature = "graphql")]
 async_graphql::scalar!(Satoshis);
 
 impl fmt::Display for Satoshis {
@@ -168,6 +177,8 @@ impl TryFrom<SignedSatoshis> for Satoshis {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct SignedUsdCents(i64);
+
+#[cfg(feature = "graphql")]
 async_graphql::scalar!(SignedUsdCents);
 
 impl SignedUsdCents {
@@ -222,6 +233,8 @@ impl std::ops::Sub<SignedUsdCents> for SignedUsdCents {
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct UsdCents(u64);
+
+#[cfg(feature = "graphql")]
 async_graphql::scalar!(UsdCents);
 
 impl std::ops::SubAssign for UsdCents {

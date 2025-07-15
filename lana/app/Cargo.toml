@@ -31,7 +31,7 @@ customer-sync = { path = "../customer-sync" }
 notification = { path = "../notification" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
-core-money = { path = "../../core/money" }
+core-money = { path = "../../core/money", features = ["graphql"] }
 core-access = { path = "../../core/access", features = ["graphql"] }
 core-custody = { path = "../../core/custody", features = ["graphql"] }
 core-credit = { path = "../../core/credit", features = ["graphql"] }

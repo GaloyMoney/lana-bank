@@ -1,0 +1,46 @@
+[package]
+name = "lana-bank-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[package.metadata]
+cargo-fuzz = true
+
+[workspace]
+members = ["."]
+
+[dependencies]
+# Fuzz testing specific dependency
+libfuzzer-sys = "0.4"
+
+# Explicit versions for isolation from main workspace
+rust_decimal = "1.36"
+rust_decimal_macros = "1.36"
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+thiserror = "1.0"
+
+# Real core-money dependency for testing actual code
+core-money = { path = "../core/money" }
+
+[[bin]]
+name = "money_arithmetic"
+path = "targets/money_arithmetic.rs"
+test = false
+doc = false
+
+[[bin]]
+name = "json_serialization"
+path = "targets/json_serialization.rs"
+test = false
+doc = false
+
+[profile.release]
+opt-level = 3
+debug = true
+overflow-checks = true
+
+# Following rust-lightning pattern for fuzzing performance
+[profile.dev]
+opt-level = 1 

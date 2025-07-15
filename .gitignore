@@ -46,3 +46,8 @@ meltano/**/dbt.log
 .claude/settings.local.json
 meltano/**/*.pid
 meltano/**/*.log
+
+# Fuzz testing
+fuzz/target/
+fuzz/artifacts/
+fuzz/corpus/
