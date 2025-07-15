@@ -306,7 +306,8 @@ mod tests {
         disbursals_upcoming: usize,
     }
 
-    fn default_terms() -> TermValues {
+    fn terms(one_time_fee_rate: u64) -> TermValues {
+        let one_time_fee_rate = OneTimeFeeRatePct::new(one_time_fee_rate);
         TermValues::builder()
             .annual_rate(dec!(12))
             .duration(FacilityDuration::Months(3))
@@ -315,7 +316,7 @@ mod tests {
             .obligation_liquidation_duration_from_due(None)
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
-            .one_time_fee_rate(OneTimeFeeRatePct::new(5))
+            .one_time_fee_rate(one_time_fee_rate)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -335,19 +336,27 @@ mod tests {
         UsdCents::from(1_000_000_00)
     }
 
-    fn initial_plan() -> CreditFacilityRepaymentPlan {
+    fn plan(terms: TermValues) -> CreditFacilityRepaymentPlan {
         let mut plan = CreditFacilityRepaymentPlan::default();
         plan.process_event(
             Default::default(),
             &CoreCreditEvent::FacilityCreated {
                 id: CreditFacilityId::new(),
-                terms: default_terms(),
+                terms,
                 amount: default_facility_amount(),
                 created_at: default_start_date(),
             },
         );
 
         plan
+    }
+
+    fn initial_plan() -> CreditFacilityRepaymentPlan {
+        plan(terms(5))
+    }
+
+    fn initial_plan_no_structuring_fee() -> CreditFacilityRepaymentPlan {
+        plan(terms(0))
     }
 
     fn process_events(plan: &mut CreditFacilityRepaymentPlan, events: Vec<CoreCreditEvent>) {
@@ -402,6 +411,115 @@ mod tests {
                 disbursals_unpaid: 0,
                 disbursals_paid: 0,
                 disbursals_upcoming: 2,
+            }
+        );
+    }
+
+    #[test]
+    fn with_zero_structuring_fee() {
+        let mut plan = initial_plan_no_structuring_fee();
+
+        let events = vec![CoreCreditEvent::FacilityActivated {
+            id: CreditFacilityId::new(),
+            activation_tx_id: LedgerTxId::new(),
+            activated_at: default_start_date(),
+            amount: default_facility_amount(),
+        }];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 0,
+                interest_paid: 0,
+                interest_upcoming: 4,
+                disbursals_unpaid: 0,
+                disbursals_paid: 0,
+                disbursals_upcoming: 1,
+            }
+        );
+    }
+
+    #[test]
+    fn with_zero_structuring_fee_and_first_accrual() {
+        let mut plan = initial_plan_no_structuring_fee();
+
+        let period = InterestInterval::EndOfMonth.period_from(default_start_date());
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::AccrualPosted {
+                credit_facility_id: CreditFacilityId::new(),
+                ledger_tx_id: LedgerTxId::new(),
+                amount: UsdCents::ZERO,
+                period,
+                recorded_at: period.end,
+                effective: period.end.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 0,
+                interest_paid: 1,
+                interest_upcoming: 3,
+                disbursals_unpaid: 0,
+                disbursals_paid: 0,
+                disbursals_upcoming: 0,
+            }
+        );
+    }
+
+    #[test]
+    fn with_zero_structuring_fee_and_second_accrual() {
+        let mut plan = initial_plan_no_structuring_fee();
+
+        let period_1 = InterestInterval::EndOfMonth.period_from(default_start_date());
+        let period_2 = period_1.next();
+        let events = vec![
+            CoreCreditEvent::FacilityActivated {
+                id: CreditFacilityId::new(),
+                activation_tx_id: LedgerTxId::new(),
+                activated_at: default_start_date(),
+                amount: default_facility_amount(),
+            },
+            CoreCreditEvent::AccrualPosted {
+                credit_facility_id: CreditFacilityId::new(),
+                ledger_tx_id: LedgerTxId::new(),
+                amount: UsdCents::ZERO,
+                period: period_1,
+                recorded_at: period_1.end,
+                effective: period_1.end.date_naive(),
+            },
+            CoreCreditEvent::AccrualPosted {
+                credit_facility_id: CreditFacilityId::new(),
+                ledger_tx_id: LedgerTxId::new(),
+                amount: UsdCents::ZERO,
+                period: period_2,
+                recorded_at: period_2.end,
+                effective: period_2.end.date_naive(),
+            },
+        ];
+        process_events(&mut plan, events);
+
+        let counts = count_entries(&plan);
+        assert_eq!(
+            counts,
+            EntriesCount {
+                interest_unpaid: 0,
+                interest_paid: 2,
+                interest_upcoming: 2,
+                disbursals_unpaid: 0,
+                disbursals_paid: 0,
+                disbursals_upcoming: 0,
             }
         );
     }
