@@ -12,7 +12,7 @@
   inherit (pkgs) dockerTools buildEnv bash coreutils gitMinimal cacert postgresql;
 
   python311WithVirtualenv =
-    python311.withPackages (ps: [ ps.virtualenv ]);
+    python311.withPackages (ps: [ps.virtualenv]);
   python311WithVirtualenvPackages = python311WithVirtualenv.pkgs;
 
   meltano-unwrapped = python311WithVirtualenvPackages.buildPythonApplication rec {

@@ -40,11 +40,15 @@ run-server:
 run-server-with-bootstrap:
 	cargo run --all-features --bin lana-cli -- --config ./bats/lana.yml | tee .e2e-logs
 
-check-code: check-code-rust-cargo check-code-apps check-code-tf
+check-code: check-code-rust-cargo check-code-apps check-code-tf check-code-nix
 
 check-code-tf:
 	tofu fmt -recursive .
 	git diff --exit-code *.tf
+
+check-code-nix:
+	nix fmt .
+	git diff --exit-code *.nix
 
 # Default (nix-based) code checking
 check-code-rust: sdl-rust update-schemas
