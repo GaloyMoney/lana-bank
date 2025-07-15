@@ -160,7 +160,7 @@ mod tests {
         let expected_delays = [100, 200, 400, 800]; // 100ms * 2^(n-1)
 
         for (attempt, &expected) in (1..=4).zip(&expected_delays) {
-            let actual = get_delay_ms(&settings, attempt);
+            let actual = settings.calculate_backoff(attempt);
             assert_delay_exact(actual, expected);
         }
     }
@@ -168,7 +168,7 @@ mod tests {
     #[test]
     fn zero_attempt_handled_correctly() {
         let settings = test_settings(0);
-        let delay = get_delay_ms(&settings, 0);
+        let delay = settings.calculate_backoff(0);
         assert_delay_exact(delay, 100); // saturating_sub(1) = 0, so 2^0 = 1
     }
 
@@ -177,8 +177,8 @@ mod tests {
         let settings = test_settings(0);
 
         for high_attempt in [20, 31, 100, 1000, u32::MAX] {
-            let delay = get_delay_ms(&settings, high_attempt);
-            assert_delay_near(delay, MAX_BACKOFF_MS);
+            let delay = settings.calculate_backoff(high_attempt);
+            assert_delay_exact(delay, MAX_BACKOFF_MS);
         }
     }
 
@@ -195,8 +195,7 @@ mod tests {
     #[test]
     fn jitter_adds_randomness() {
         let settings = test_settings(20);
-        let delay = get_delay_ms(&settings, 1);
-
+        let delay = settings.calculate_backoff(1);
         // Base: 100ms, 20% jitter: 80-120ms range
         assert_delay_in_range(delay, 80, 120);
     }
@@ -206,11 +205,9 @@ mod tests {
         let settings = test_settings(20);
 
         for _ in 0..10 {
-            let delay = get_delay_ms(&settings, 1);
-            assert!(
-                delay < u64::MAX,
-                "Delay should be reasonable, got {delay}ms"
-            );
+            let delay = settings.calculate_backoff(1);
+            assert!(delay >= 0, "Delay should be non-negative, got {delay}ms");
+            assert!(delay <= 120, "Delay should be reasonable, got {delay}ms");
         }
     }
 
@@ -218,15 +215,12 @@ mod tests {
     fn deterministic_without_jitter() {
         let settings = test_settings(0);
 
-        let time1 = settings.next_attempt_at(5);
-        let time2 = settings.next_attempt_at(5);
+        let backoff1 = settings.calculate_backoff(5);
+        let backoff2 = settings.calculate_backoff(5);
 
-        let diff_ms = (time1.signed_duration_since(time2))
-            .num_milliseconds()
-            .unsigned_abs();
-        assert!(
-            diff_ms <= TIMING_TOLERANCE_MS,
-            "Times should be nearly identical without jitter, diff: {diff_ms}ms"
+        assert_eq!(
+            backoff1, backoff2,
+            "Backoffs should be identical without jitter"
         );
     }
 }
