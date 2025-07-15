@@ -16,7 +16,7 @@ pub struct Renderer {
 impl Renderer {
     pub fn try_new(pdf_config_path: Option<std::path::PathBuf>) -> Result<Self, RenderingError> {
         let template_renderer = TemplateRenderer::new();
-        let pdf_generator = PdfGenerator::new(pdf_config_path)?;
+        let pdf_generator = PdfGenerator::try_new(pdf_config_path)?;
 
         Ok(Self {
             template_renderer,
