@@ -25,23 +25,11 @@ import { Label } from "@lana/web/ui/label"
 
 import { PermissionsDisplay } from "./permissions-display"
 
-import {
-  useRolesQuery,
-  useUserUpdateRoleMutation,
-  useUserRevokeRoleMutation,
-} from "@/lib/graphql/generated"
+import { useRolesQuery, useUserUpdateRoleMutation } from "@/lib/graphql/generated"
 
 gql`
   mutation UserUpdateRole($input: UserUpdateRoleInput!) {
     userUpdateRole(input: $input) {
-      user {
-        ...UserFields
-      }
-    }
-  }
-
-  mutation UserRevokeRole($input: UserRevokeRoleInput!) {
-    userRevokeRole(input: $input) {
       user {
         ...UserFields
       }
@@ -65,7 +53,7 @@ export function UpdateUserRoleDialog({
   const t = useTranslations("Users.updateRole")
   const tCommon = useTranslations("Common")
 
-  const [selectedRoleId, setSelectedRoleId] = useState<string>("placeholder")
+  const [selectedRoleId, setSelectedRoleId] = useState<string | undefined>(undefined)
   const [error, setError] = useState<string | null>(null)
 
   const { data, loading: rolesLoading } = useRolesQuery({
@@ -76,12 +64,11 @@ export function UpdateUserRoleDialog({
   const roles = data?.roles.edges.map((edge) => edge.node) || []
 
   const [assignRole, { loading: assignLoading }] = useUserUpdateRoleMutation()
-  const [revokeRole, { loading: revokeLoading }] = useUserRevokeRoleMutation()
-  const isLoading = rolesLoading || assignLoading || revokeLoading
+  const isLoading = rolesLoading || assignLoading
 
   useEffect(() => {
     if (open) {
-      setSelectedRoleId("placeholder")
+      setSelectedRoleId(undefined)
       setError(null)
     }
   }, [open])
@@ -93,26 +80,14 @@ export function UpdateUserRoleDialog({
     if (newRoleId === currentRoleId || !newRoleId) return
 
     try {
-      if (currentRoleId && currentRoleId !== newRoleId) {
-        await revokeRole({
-          variables: {
-            input: {
-              id: userId,
-            },
+      await assignRole({
+        variables: {
+          input: {
+            id: userId,
+            roleId: newRoleId,
           },
-        })
-      }
-
-      if (newRoleId && newRoleId !== currentRoleId) {
-        await assignRole({
-          variables: {
-            input: {
-              id: userId,
-              roleId: newRoleId,
-            },
-          },
-        })
-      }
+        },
+      })
 
       toast.success(t("success"))
       onOpenChange(false)
@@ -122,10 +97,9 @@ export function UpdateUserRoleDialog({
     }
   }
 
-  const selectedRole =
-    selectedRoleId !== "placeholder"
-      ? roles.find((role) => role.roleId === selectedRoleId)
-      : null
+  const selectedRole = selectedRoleId
+    ? roles.find((role) => role.roleId === selectedRoleId)
+    : null
 
   const permissionSets = selectedRole?.permissionSets || []
 
@@ -150,9 +124,6 @@ export function UpdateUserRoleDialog({
                   <SelectValue placeholder={t("selectRole")} />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="placeholder" disabled>
-                    {t("selectRole")}
-                  </SelectItem>
                   {roles.map((role) => (
                     <SelectItem key={role.roleId} value={role.roleId}>
                       {role.name}
@@ -164,7 +135,7 @@ export function UpdateUserRoleDialog({
 
             <PermissionsDisplay
               permissionSets={permissionSets}
-              hasSelectedRole={selectedRoleId !== "placeholder"}
+              hasSelectedRole={!!selectedRoleId}
             />
 
             {error && <p className="text-destructive mt-2">{error}</p>}
@@ -181,7 +152,7 @@ export function UpdateUserRoleDialog({
             <Button
               type="submit"
               loading={isLoading}
-              disabled={isLoading || selectedRoleId === "placeholder"}
+              disabled={isLoading || !selectedRoleId}
             >
               {isLoading ? tCommon("loading") : tCommon("update")}
             </Button>

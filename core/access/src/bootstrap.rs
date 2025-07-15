@@ -68,6 +68,7 @@ where
 
         db.commit().await?;
 
+        // Subject::System also has the superuser role
         self.authz
             .assign_role_to_subject(
                 <<Audit as AuditSvc>::Subject as SystemSubject>::system(),

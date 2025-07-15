@@ -35,7 +35,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'authentication_id_updated', 'role_granted', 'role_revoked') THEN
+  IF event_type NOT IN ('initialized', 'authentication_id_updated', 'role_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -55,10 +55,7 @@ BEGIN
 ;
     new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
     new_row.email := (NEW.event ->> 'email');
-    new_row.role_id := CASE
-       WHEN event_type = ANY(ARRAY['role_revoked']) THEN NULL
-       ELSE (NEW.event ->> 'role_id')::UUID
-     END;
+    new_row.role_id := (NEW.event ->> 'role_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.audit_entry_ids := current_row.audit_entry_ids;
@@ -72,14 +69,12 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.email := (NEW.event ->> 'email');
+      new_row.role_id := (NEW.event ->> 'role_id')::UUID;
     WHEN 'authentication_id_updated' THEN
       new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
-    WHEN 'role_granted' THEN
+    WHEN 'role_updated' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.role_id := (NEW.event ->> 'role_id')::UUID;
-    WHEN 'role_revoked' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.role_id := NULL;
   END CASE;
 
   INSERT INTO core_user_events_rollup (

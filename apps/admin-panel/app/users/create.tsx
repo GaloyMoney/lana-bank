@@ -26,11 +26,7 @@ import {
 
 import { PermissionsDisplay } from "./permissions-display"
 
-import {
-  useRolesQuery,
-  useUserUpdateRoleMutation,
-  useUserCreateMutation,
-} from "@/lib/graphql/generated"
+import { useRolesQuery, useUserCreateMutation } from "@/lib/graphql/generated"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 gql`
@@ -82,13 +78,11 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
     },
   })
 
-  const [assignRole, { loading: assigningRole }] = useUserUpdateRoleMutation()
-
   const [email, setEmail] = useState("")
   const [selectedRoleId, setSelectedRoleId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
 
-  const isLoading = creatingUser || assigningRole || isNavigating || rolesLoading
+  const isLoading = creatingUser || isNavigating || rolesLoading
   const isSubmitDisabled = isLoading || !selectedRoleId
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -102,35 +96,20 @@ export const CreateUserDialog: React.FC<CreateUserDialogProps> = ({
 
     try {
       const result = await createUser({
-        variables: { input: { email } },
-      })
-
-      if (result.data) {
-        const userId = result.data.userCreate.user.userId
-        await assignUserRole(userId)
-        finalize(userId)
-      }
-    } catch (error) {
-      handleError(error, t("errors.createPrefix"))
-    }
-  }
-
-  const assignUserRole = async (userId: string) => {
-    if (!selectedRoleId) return false
-
-    try {
-      await assignRole({
         variables: {
           input: {
-            id: userId,
+            email,
             roleId: selectedRoleId,
           },
         },
       })
-      return true
+
+      if (result.data) {
+        const userId = result.data.userCreate.user.userId
+        finalize(userId)
+      }
     } catch (error) {
-      handleError(error, t("errors.assignRolePrefix"))
-      return false
+      handleError(error, t("errors.createPrefix"))
     }
   }
 

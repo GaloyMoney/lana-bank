@@ -89,6 +89,28 @@ where
         &self.users
     }
 
+    /// Creates a new user with an email and assigns the specified role.
+    /// The role must exist and the user must not already exist.
+    #[instrument(name = "core_access.create_user", skip(self))]
+    pub async fn create_user(
+        &self,
+        sub: &<Audit as AuditSvc>::Subject,
+        email: impl Into<String> + std::fmt::Debug,
+        role_id: impl Into<RoleId> + std::fmt::Debug,
+    ) -> Result<User, CoreAccessError> {
+        let role_id = role_id.into();
+        let role = self.roles.find_by_id(role_id).await?;
+
+        if role.name == ROLE_NAME_SUPERUSER {
+            return Err(CoreAccessError::AuthorizationError(
+                authz::error::AuthorizationError::NotAuthorized,
+            ));
+        }
+
+        let user = self.users.create_user(sub, email, &role).await?;
+        Ok(user)
+    }
+
     /// Creates a new role with a given name and initial permission sets. The name
     /// must be unique, an error will be raised in case of conflict.
     pub async fn create_role(
@@ -253,42 +275,6 @@ where
 
         let user = self.users.update_role_of_user(sub, user_id, &role).await?;
 
-        Ok(user)
-    }
-
-    #[instrument(name = "core_access.revoke_role_from_user", skip(self))]
-    pub async fn revoke_role_from_user(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        user_id: impl Into<UserId> + std::fmt::Debug,
-    ) -> Result<User, CoreAccessError> {
-        let user_id = user_id.into();
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccessObject::user(user_id),
-                CoreAccessAction::USER_REVOKE_ROLE,
-            )
-            .await?;
-
-        let current_role = self
-            .users
-            .find_by_id(sub, user_id)
-            .await?
-            .and_then(|u| u.current_role());
-
-        if let Some(current_role_id) = current_role {
-            let role = self.roles.find_by_id(current_role_id).await?;
-
-            if role.name == ROLE_NAME_SUPERUSER {
-                return Err(CoreAccessError::AuthorizationError(
-                    authz::error::AuthorizationError::NotAuthorized,
-                ));
-            }
-        }
-
-        let user = self.users.revoke_role_from_user(sub, user_id).await?;
         Ok(user)
     }
 

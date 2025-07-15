@@ -15,16 +15,13 @@ pub enum UserEvent {
     Initialized {
         id: UserId,
         email: String,
+        role_id: RoleId,
         audit_info: AuditInfo,
     },
     AuthenticationIdUpdated {
         authentication_id: AuthenticationId,
     },
-    RoleGranted {
-        role_id: RoleId,
-        audit_info: AuditInfo,
-    },
-    RoleRevoked {
+    RoleUpdated {
         role_id: RoleId,
         audit_info: AuditInfo,
     },
@@ -47,60 +44,33 @@ impl User {
             .expect("entity_first_persisted_at not found")
     }
 
-    /// Sets user's role to `role`. Returns previous role or `None`
-    /// if no role was previously set.
-    pub(crate) fn update_role(
-        &mut self,
-        role: &Role,
-        audit_info: AuditInfo,
-    ) -> Idempotent<Option<RoleId>> {
-        match self.current_role() {
-            Some(current) if role.id == current => Idempotent::Ignored,
-            previous => {
-                if let Some(previous) = previous {
-                    self.events.push(UserEvent::RoleRevoked {
-                        role_id: previous,
-                        audit_info: audit_info.clone(),
-                    });
-                }
+    /// Sets user's role to `role`. Returns previous role.
+    pub(crate) fn update_role(&mut self, role: &Role, audit_info: AuditInfo) -> Idempotent<RoleId> {
+        let current = self.current_role();
+        if role.id == current {
+            Idempotent::Ignored
+        } else {
+            self.events.push(UserEvent::RoleUpdated {
+                role_id: role.id,
+                audit_info,
+            });
 
-                self.events.push(UserEvent::RoleGranted {
-                    role_id: role.id,
-                    audit_info,
-                });
-
-                Idempotent::Executed(previous)
-            }
+            Idempotent::Executed(current)
         }
     }
 
-    /// Revokes role this user currently has. Returns previous role.
-    pub(crate) fn revoke_role(&mut self, audit_info: AuditInfo) -> Idempotent<RoleId> {
-        match self.current_role() {
-            None => Idempotent::Ignored,
-            Some(previous) => {
-                self.events.push(UserEvent::RoleRevoked {
-                    role_id: previous,
-                    audit_info,
-                });
-
-                Idempotent::Executed(previous)
-            }
-        }
-    }
-
-    /// Returns the role currently assigned to this user. Returns `None`
-    /// if no role has been assigned to the user or previous role has been revoked.
-    pub fn current_role(&self) -> Option<RoleId> {
+    /// Returns the role currently assigned to this user.
+    /// Always returns a role since roles are mandatory from creation.
+    pub fn current_role(&self) -> RoleId {
         self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
-                UserEvent::RoleGranted { role_id, .. } => Some(Some(*role_id)),
-                UserEvent::RoleRevoked { .. } => Some(None),
+                UserEvent::RoleUpdated { role_id, .. } => Some(*role_id),
+                UserEvent::Initialized { role_id, .. } => Some(*role_id),
                 _ => None,
             })
-            .flatten()
+            .expect("User must have a role assigned")
     }
 
     pub fn update_authentication_id(
@@ -133,8 +103,7 @@ impl TryFromEvents<UserEvent> for User {
                 UserEvent::Initialized { id, email, .. } => {
                     builder = builder.id(*id).email(email.clone())
                 }
-                UserEvent::RoleGranted { .. } => (),
-                UserEvent::RoleRevoked { .. } => (),
+                UserEvent::RoleUpdated { .. } => (),
                 UserEvent::AuthenticationIdUpdated { authentication_id } => {
                     builder = builder.authentication_id(*authentication_id);
                 }
@@ -151,6 +120,7 @@ pub struct NewUser {
     pub(super) id: UserId,
     #[builder(setter(into))]
     pub(super) email: String,
+    pub(super) role_id: RoleId,
     pub(super) audit_info: AuditInfo,
 }
 
@@ -171,6 +141,7 @@ impl IntoEvents<UserEvent> for NewUser {
             [UserEvent::Initialized {
                 id: self.id,
                 email: self.email,
+                role_id: self.role_id,
                 audit_info: self.audit_info,
             }],
         )
@@ -194,9 +165,11 @@ mod tests {
     }
 
     fn new_user() -> User {
+        let role = new_role();
         let new_user = NewUser::builder()
             .id(UserId::new())
             .email("email")
+            .role_id(role.id)
             .audit_info(audit_info())
             .build()
             .unwrap();
@@ -220,24 +193,36 @@ mod tests {
     #[test]
     fn user_updating_role() {
         let mut user = new_user();
-        assert_eq!(user.current_role(), None);
-
-        assert!(user.revoke_role(audit_info()).was_ignored());
+        let initial_role = user.current_role();
 
         let role_1 = new_role();
-        let previous = user.update_role(&role_1, audit_info());
-        assert!(matches!(previous, Idempotent::Executed(None)));
-
-        let previous = user.update_role(&role_1, audit_info());
-        assert!(matches!(previous, Idempotent::Ignored));
-
         let role_2 = new_role();
-        let previous = user.update_role(&role_2, audit_info());
-        assert!(matches!(previous, Idempotent::Executed(Some(id)) if id == role_1.id));
-        assert_eq!(user.current_role(), Some(role_2.id));
 
-        let previous = user.revoke_role(audit_info());
-        assert!(matches!(previous, Idempotent::Executed(id) if id == role_2.id));
-        assert_eq!(user.current_role(), None);
+        // Updating to the same role should be ignored
+        let same_role_update = user.update_role(
+            &Role::try_from_events(
+                NewRole::builder()
+                    .id(initial_role)
+                    .name("initial role".to_string())
+                    .audit_info(audit_info())
+                    .build()
+                    .unwrap()
+                    .into_events(),
+            )
+            .unwrap(),
+            audit_info(),
+        );
+        assert!(matches!(same_role_update, Idempotent::Ignored));
+        assert_eq!(user.current_role(), initial_role);
+
+        // Updating to a different role should return the previous role
+        let role_change = user.update_role(&role_1, audit_info());
+        assert!(matches!(role_change, Idempotent::Executed(id) if id == initial_role));
+        assert_eq!(user.current_role(), role_1.id);
+
+        // Updating to another different role should return the previous role
+        let second_role_change = user.update_role(&role_2, audit_info());
+        assert!(matches!(second_role_change, Idempotent::Executed(id) if id == role_1.id));
+        assert_eq!(user.current_role(), role_2.id);
     }
 }

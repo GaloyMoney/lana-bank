@@ -8,15 +8,12 @@ pub enum CoreAccessEvent {
     UserCreated {
         id: UserId,
         email: String,
+        role_id: RoleId,
     },
     UserRemoved {
         id: UserId,
     },
-    UserGrantedRole {
-        id: UserId,
-        role_id: RoleId,
-    },
-    UserRevokedRole {
+    UserUpdatedRole {
         id: UserId,
         role_id: RoleId,
     },

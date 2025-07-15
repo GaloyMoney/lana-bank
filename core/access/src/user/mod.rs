@@ -83,11 +83,12 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_access.create_user", skip(self))]
+    #[instrument(name = "core_access.create_user", skip(self, role))]
     pub async fn create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         email: impl Into<String> + std::fmt::Debug,
+        role: &Role,
     ) -> Result<User, UserError> {
         let audit_info = self
             .subject_can_create_user(sub, true)
@@ -96,12 +97,21 @@ where
 
         let email = email.into();
 
+        let mut db = self.repo.begin_op().await?;
+
         let new_user = NewUser::builder()
             .email(email.clone())
-            .audit_info(audit_info)
+            .role_id(role.id)
+            .audit_info(audit_info.clone())
             .build()
             .expect("Could not build user");
-        let user = self.repo.create(new_user).await?;
+        let user = self.repo.create_in_op(&mut db, new_user).await?;
+
+        // Assign the role in the authorization system
+        self.authz.assign_role_to_subject(user.id, role.id).await?;
+
+        db.commit().await?;
+
         Ok(user)
     }
 
@@ -266,52 +276,10 @@ where
         let mut user = self.repo.find_by_id(id).await?;
 
         if let Idempotent::Executed(previous) = user.update_role(role, audit_info) {
-            if let Some(previous) = previous {
-                self.authz
-                    .revoke_role_from_subject(user.id, previous)
-                    .await?;
-            }
-            self.authz.assign_role_to_subject(user.id, role.id).await?;
-            self.repo.update(&mut user).await?;
-        }
-
-        Ok(user)
-    }
-
-    pub async fn subject_can_revoke_role_from_user(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        user_id: impl Into<Option<UserId>>,
-        enforce: bool,
-    ) -> Result<Option<AuditInfo>, UserError> {
-        Ok(self
-            .authz
-            .evaluate_permission(
-                sub,
-                CoreAccessObject::user(user_id),
-                CoreAccessAction::USER_REVOKE_ROLE,
-                enforce,
-            )
-            .await?)
-    }
-
-    pub async fn revoke_role_from_user(
-        &self,
-        sub: &<Audit as AuditSvc>::Subject,
-        user_id: impl Into<UserId> + std::fmt::Debug,
-    ) -> Result<User, UserError> {
-        let id = user_id.into();
-
-        let audit_role = self
-            .subject_can_revoke_role_from_user(sub, id, true)
-            .await?
-            .expect("audit info missing");
-
-        let mut user = self.repo.find_by_id(id).await?;
-        if let Idempotent::Executed(previous) = user.revoke_role(audit_role) {
             self.authz
                 .revoke_role_from_subject(user.id, previous)
                 .await?;
+            self.authz.assign_role_to_subject(user.id, role.id).await?;
             self.repo.update(&mut user).await?;
         }
 
@@ -341,24 +309,19 @@ where
                 let new_user = NewUser::builder()
                     .id(UserId::new())
                     .email(email)
+                    .role_id(role.id)
                     .audit_info(audit_info.clone())
                     .build()
                     .expect("all fields for new user provided");
 
-                let mut user = self.repo.create_in_op(db, new_user).await?;
-
-                if user.update_role(role, audit_info).did_execute() {
-                    self.repo.update_in_op(db, &mut user).await?;
-                }
-
-                user
+                self.repo.create_in_op(db, new_user).await?
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
+                // Update existing user's role if needed
                 if user.update_role(role, audit_info).did_execute() {
                     self.repo.update_in_op(db, &mut user).await?;
-                };
-
+                }
                 user
             }
         };

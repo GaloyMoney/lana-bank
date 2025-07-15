@@ -14,12 +14,19 @@ teardown_file() {
 @test "superuser: can create bank manager" {
   bank_manager_email=$(generate_email)
 
+  # First get the bank-manager role ID
+  exec_admin_graphql 'list-roles'
+  role_id=$(graphql_output ".data.roles.nodes[] | select(.name == \"bank-manager\").roleId")
+  [[ "$role_id" != "null" ]] || exit 1
+
+  # Create user with email and roleId
   variables=$(
     jq -n \
-    --arg email "$bank_manager_email" \
+    --arg email "$bank_manager_email" --arg roleId "$role_id" \
     '{
       input: {
-        email: $email
+        email: $email,
+        roleId: $roleId
         }
       }'
   )
@@ -28,23 +35,8 @@ teardown_file() {
   user_id=$(graphql_output .data.userCreate.user.userId)
   [[ "$user_id" != "null" ]] || exit 1
 
-  exec_admin_graphql 'list-roles'
-  role_id=$(graphql_output ".data.roles.nodes[] | select(.name == \"bank-manager\").roleId")
-  [[ "$role_id" != "null" ]] || exit 1
-
-  variables=$(
-    jq -n \
-    --arg userId "$user_id" --arg roleId "$role_id" \
-    '{
-      input: {
-        id: $userId,
-        roleId: $roleId
-        }
-      }'
-  )
-
-  exec_admin_graphql 'user-update-role' "$variables"
-  role=$(graphql_output .data.userUpdateRole.user.role.name)
+  # Verify the user was created with the correct role
+  role=$(graphql_output .data.userCreate.user.role.name)
   [[ "$role" = "bank-manager" ]] || exit 1
 }
 

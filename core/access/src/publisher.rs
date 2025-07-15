@@ -43,17 +43,16 @@ where
         use UserEvent::*;
         let events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { id, email, .. } => Some(CoreAccessEvent::UserCreated {
+                Initialized {
+                    id, email, role_id, ..
+                } => Some(CoreAccessEvent::UserCreated {
                     id: *id,
                     email: email.clone(),
+                    role_id: *role_id,
                 }),
-                RoleGranted { role_id: id, .. } => Some(CoreAccessEvent::UserGrantedRole {
+                RoleUpdated { role_id, .. } => Some(CoreAccessEvent::UserUpdatedRole {
                     id: entity.id,
-                    role_id: *id,
-                }),
-                RoleRevoked { role_id: id, .. } => Some(CoreAccessEvent::UserRevokedRole {
-                    id: entity.id,
-                    role_id: *id,
+                    role_id: *role_id,
                 }),
                 AuthenticationIdUpdated { .. } => None,
             })

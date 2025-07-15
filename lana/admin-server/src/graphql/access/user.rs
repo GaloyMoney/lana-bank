@@ -40,16 +40,16 @@ impl From<Arc<DomainUser>> for User {
 
 #[ComplexObject]
 impl User {
-    async fn role(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Role>> {
-        match self.entity.current_role() {
-            None => Ok(None),
-            Some(role_id) => {
-                let loader = ctx.data_unchecked::<LanaDataLoader>();
-                let role = loader.load_one(role_id).await?;
-
-                Ok(role)
-            }
-        }
+    async fn role(&self, ctx: &Context<'_>) -> async_graphql::Result<Role> {
+        let role_id = self.entity.current_role();
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let role = loader.load_one(role_id).await?;
+        role.ok_or_else(|| {
+            Error::new(format!(
+                "Data integrity error: Role with ID {} not found for user {}. This should never happen.",
+                role_id, self.entity.id
+            ))
+        })
     }
 
     async fn email(&self) -> &str {
@@ -68,24 +68,12 @@ impl User {
             .await
             .is_ok())
     }
-
-    async fn subject_can_revoke_role_from_user(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<bool> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .access()
-            .users()
-            .subject_can_revoke_role_from_user(sub, None, false)
-            .await
-            .is_ok())
-    }
 }
 
 #[derive(InputObject)]
 pub struct UserCreateInput {
     pub email: String,
+    pub role_id: UUID,
 }
 
 mutation_payload! { UserCreatePayload, user: User }
@@ -96,10 +84,3 @@ pub struct UserUpdateRoleInput {
     pub role_id: UUID,
 }
 mutation_payload! { UserUpdateRolePayload, user: User }
-
-#[derive(InputObject)]
-pub struct UserRevokeRoleInput {
-    pub id: UUID,
-}
-
-mutation_payload! { UserRevokeRolePayload, user: User }

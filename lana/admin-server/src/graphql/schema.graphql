@@ -1343,7 +1343,6 @@ type Mutation {
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
 	userCreate(input: UserCreateInput!): UserCreatePayload!
 	userUpdateRole(input: UserUpdateRoleInput!): UserUpdateRolePayload!
-	userRevokeRole(input: UserRevokeRoleInput!): UserRevokeRolePayload!
 	roleCreate(input: RoleCreateInput!): RoleCreatePayload!
 	roleAddPermissionSets(input: RoleAddPermissionSetsInput!): RoleAddPermissionSetsPayload!
 	roleRemovePermissionSets(input: RoleRemovePermissionSetsInput!): RoleRemovePermissionSetsPayload!
@@ -1952,25 +1951,17 @@ type User {
 	id: ID!
 	userId: UUID!
 	createdAt: Timestamp!
-	role: Role
+	role: Role!
 	email: String!
 	subjectCanUpdateRoleOfUser: Boolean!
-	subjectCanRevokeRoleFromUser: Boolean!
 }
 
 input UserCreateInput {
 	email: String!
+	roleId: UUID!
 }
 
 type UserCreatePayload {
-	user: User!
-}
-
-input UserRevokeRoleInput {
-	id: UUID!
-}
-
-type UserRevokeRolePayload {
 	user: User!
 }
 

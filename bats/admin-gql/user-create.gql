@@ -3,6 +3,10 @@ mutation UserCreate($input: UserCreateInput!) {
     user {
       userId
       email
+      role {
+        roleId
+        name
+      }
     }
   }
 }

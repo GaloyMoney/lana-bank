@@ -38,14 +38,6 @@ gql`
       }
     }
   }
-
-  mutation UserRevokeRole($input: UserRevokeRoleInput!) {
-    userRevokeRole(input: $input) {
-      user {
-        ...UserFields
-      }
-    }
-  }
 `
 
 type User = NonNullable<

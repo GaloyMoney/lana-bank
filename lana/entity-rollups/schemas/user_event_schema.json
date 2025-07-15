@@ -34,6 +34,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "role_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "type": {
           "const": "initialized",
           "type": "string"
@@ -43,6 +47,7 @@
         "type",
         "id",
         "email",
+        "role_id",
         "audit_info"
       ],
       "type": "object"
@@ -74,28 +79,7 @@
           "type": "string"
         },
         "type": {
-          "const": "role_granted",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "role_id",
-        "audit_info"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
-        "role_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "type": {
-          "const": "role_revoked",
+          "const": "role_updated",
           "type": "string"
         }
       },
