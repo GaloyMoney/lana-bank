@@ -6,6 +6,8 @@ pub enum CollateralError {
     EsEntityError(es_entity::EsEntityError),
     #[error("CollateralError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("CollateralError - CreditError: {0}")]
+    CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("CollateralError - ManualUpdateError: Cannot update collateral with a custodian")]
     ManualUpdateError,
 }

@@ -8,7 +8,9 @@ use authz::PermissionCheck;
 use core_custody::WalletId;
 use outbox::OutboxEventMarker;
 
-use crate::{CreditFacilityPublisher, event::CoreCreditEvent, primitives::*};
+use crate::{
+    CreditFacility, CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent, primitives::*,
+};
 
 pub use entity::Collateral;
 pub(super) use entity::*;
@@ -25,6 +27,7 @@ where
 {
     authz: Perms,
     repo: CollateralRepo<E>,
+    ledger: CreditLedger,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -36,6 +39,7 @@ where
         Self {
             authz: self.authz.clone(),
             repo: self.repo.clone(),
+            ledger: self.ledger.clone(),
         }
     }
 }
@@ -45,10 +49,16 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms, publisher: &CreditFacilityPublisher<E>) -> Self {
+    pub fn new(
+        pool: &sqlx::PgPool,
+        authz: &Perms,
+        publisher: &CreditFacilityPublisher<E>,
+        ledger: &CreditLedger,
+    ) -> Self {
         Self {
             authz: authz.clone(),
             repo: CollateralRepo::new(pool, publisher),
+            ledger: ledger.clone(),
         }
     }
 
@@ -104,24 +114,26 @@ where
         Ok(res)
     }
 
-    pub(super) async fn record_collateral_update_by_custodian_in_op(
+    pub(super) async fn record_collateral_update_by_custodian(
         &self,
-        db: &mut es_entity::DbOp<'_>,
-        collateral_id: CollateralId,
+        credit_facility: &CreditFacility,
         updated_collateral: core_money::Satoshis,
         effective: chrono::NaiveDate,
-    ) -> Result<Option<CollateralUpdate>, CollateralError> {
-        let mut collateral = self.repo.find_by_id(collateral_id).await?;
+    ) -> Result<(), CollateralError> {
+        let mut collateral = self.repo.find_by_id(credit_facility.collateral_id).await?;
 
-        let res = if let es_entity::Idempotent::Executed(data) =
+        if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update_by_custodian(updated_collateral, effective)
         {
-            self.repo.update_in_op(db, &mut collateral).await?;
-            Some(data)
-        } else {
-            None
-        };
+            let mut db = self.repo.begin_op().await?;
 
-        Ok(res)
+            self.repo.update_in_op(&mut db, &mut collateral).await?;
+
+            self.ledger
+                .update_credit_facility_collateral(db, data, credit_facility.account_ids)
+                .await?;
+        }
+
+        Ok(())
     }
 }

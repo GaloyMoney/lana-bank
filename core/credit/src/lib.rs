@@ -183,7 +183,7 @@ where
             governance,
         )
         .await;
-        let collaterals = Collaterals::new(pool, authz, &publisher);
+        let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
         let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
         let payments = Payments::new(pool, authz, &obligations, &publisher);
         let history_repo = HistoryRepo::new(pool);
@@ -734,27 +734,9 @@ where
             .find_by_external_wallet(external_wallet_id)
             .await?;
 
-        let mut db = self.facilities.begin_op().await?;
-
         let effective = time::now().date_naive();
-
-        let collateral_update = if let Some(collateral_update) = self
-            .collaterals
-            .record_collateral_update_by_custodian_in_op(
-                &mut db,
-                credit_facility.collateral_id,
-                amount,
-                effective,
-            )
-            .await?
-        {
-            collateral_update
-        } else {
-            return Ok(());
-        };
-
-        self.ledger
-            .update_credit_facility_collateral(db, collateral_update, credit_facility.account_ids)
+        self.collaterals
+            .record_collateral_update_by_custodian(&credit_facility, amount, effective)
             .await?;
 
         Ok(())
