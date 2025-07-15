@@ -236,3 +236,51 @@ wait_for_approval() {
 
   # assert_accounts_balanced
 }
+
+@test "customer: confirmed withdrawal can be voided" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId,
+        amount: 100,
+        reference: ("void-withdrawal-ref-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+  withdrawal_id=$(graphql_output '.data.withdrawalInitiate.withdrawal.withdrawalId')
+
+  retry 5 1 wait_for_approval $withdrawal_id
+
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'confirm-withdrawal' "$variables"
+
+  status=$(graphql_output '.data.withdrawalConfirm.withdrawal.status')
+  [[ "$status" == "CONFIRMED" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg withdrawalId "$withdrawal_id" \
+    '{
+      input: {
+        withdrawalId: $withdrawalId
+      }
+    }'
+  )
+  exec_admin_graphql 'withdrawal-void' "$variables"
+  status=$(graphql_output '.data.withdrawalVoid.withdrawal.status')
+  [[ "$status" == "VOIDED" ]] || exit 1
+}
