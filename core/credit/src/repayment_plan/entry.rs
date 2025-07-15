@@ -22,6 +22,12 @@ pub struct ObligationDataForEntry {
     pub effective: chrono::NaiveDate,
 }
 
+impl ObligationDataForEntry {
+    fn is_existing_obligation(&self) -> bool {
+        self.status != RepaymentStatus::Upcoming
+    }
+}
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Deserialize, Serialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
@@ -59,6 +65,15 @@ impl Ord for CreditFacilityRepaymentPlanEntry {
             ) => std::cmp::Ordering::Greater,
             _ => std::cmp::Ordering::Equal,
         })
+    }
+}
+
+impl CreditFacilityRepaymentPlanEntry {
+    pub fn is_already_accrued(&self) -> bool {
+        match self {
+            CreditFacilityRepaymentPlanEntry::Disbursal(data)
+            | CreditFacilityRepaymentPlanEntry::Interest(data) => data.is_existing_obligation(),
+        }
     }
 }
 

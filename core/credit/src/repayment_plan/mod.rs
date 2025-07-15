@@ -31,15 +31,8 @@ impl CreditFacilityRepaymentPlan {
     fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         self.entries
             .iter()
-            .filter_map(|entry| match entry {
-                CreditFacilityRepaymentPlanEntry::Disbursal(data)
-                | CreditFacilityRepaymentPlanEntry::Interest(data)
-                    if data.id.is_some() =>
-                {
-                    Some(*entry)
-                }
-                _ => None,
-            })
+            .filter(|entry| entry.is_already_accrued())
+            .cloned()
             .collect()
     }
 
