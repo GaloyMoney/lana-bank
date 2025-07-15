@@ -705,9 +705,10 @@ where
         Ok(credit_facility)
     }
 
+    #[instrument(name = "credit.update_collateral_by_custodian", skip(self), err)]
     pub async fn update_collateral_by_custodian(
         &self,
-        external_wallet_id: impl AsRef<str>,
+        external_wallet_id: impl AsRef<str> + std::fmt::Debug,
         amount: Satoshis,
     ) -> Result<(), CoreCreditError> {
         let credit_facility = self
