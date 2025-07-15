@@ -103,29 +103,21 @@ where
         let csv_result = self
             .generator
             .generate_ledger_account_csv(self.config.ledger_account_id)
-            .await;
+            .await?;
 
-        match csv_result {
-            Ok(csv_data) => {
-                if let Some(mut document) = self
-                    .document_storage
-                    .find_by_id(self.config.document_id)
-                    .await?
-                {
-                    match self.document_storage.upload(csv_data, &mut document).await {
-                        Ok(_) => {}
-                        Err(e) => {
-                            return Err(e.into());
-                        }
-                    }
-                } else {
-                    return Err("Document not found".into());
-                }
-            }
-            Err(e) => {
-                return Err(e.into());
-            }
-        }
+        let document_id = self.config.document_id;
+
+        let document_option = self.document_storage.find_by_id(document_id).await?;
+        let mut document = document_option.ok_or_else(|| {
+            Box::new(std::io::Error::new(
+                std::io::ErrorKind::NotFound,
+                format!("Document with ID {document_id} not found"),
+            )) as Box<dyn std::error::Error>
+        })?;
+
+        self.document_storage
+            .upload(csv_result, &mut document)
+            .await?;
 
         Ok(JobCompletion::Complete)
     }

@@ -1094,6 +1094,8 @@ type Disbursed {
 }
 
 enum DocumentStatus {
+	NEW
+	FAILED
 	ACTIVE
 	ARCHIVED
 	DELETED
