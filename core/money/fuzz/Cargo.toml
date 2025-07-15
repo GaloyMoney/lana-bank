@@ -1,0 +1,26 @@
+[package]
+name = "core-money-fuzz"
+version = "0.0.0"
+publish = false
+edition = "2021"
+
+[workspace]
+
+[package.metadata]
+cargo-fuzz = true
+
+[dependencies]
+libfuzzer-sys = "0.4"
+rust_decimal = "1.35"
+serde = { version = "1.0", features = ["derive"] }
+
+[[bin]]
+name = "satoshis_arithmetic"
+path = "targets/satoshis_arithmetic.rs"
+test = false
+doc = false
+
+[profile.release]
+opt-level = 3
+debug = true
+overflow-checks = true
