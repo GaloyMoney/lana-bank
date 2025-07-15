@@ -706,7 +706,7 @@ where
 
         let collateral_update = if let Some(collateral_update) = self
             .collaterals
-            .record_manual_collateral_update_in_op(
+            .record_collateral_update_via_manual_input_in_op(
                 &mut db,
                 credit_facility.collateral_id,
                 updated_collateral,
@@ -746,7 +746,12 @@ where
 
         let effective = time::now().date_naive();
         self.collaterals
-            .record_collateral_update_by_custodian(&credit_facility, amount, effective, &audit_info)
+            .record_collateral_update_via_custodian_sync(
+                &credit_facility,
+                amount,
+                effective,
+                &audit_info,
+            )
             .await?;
 
         Ok(())
@@ -839,7 +844,7 @@ where
 
             CompletionOutcome::Completed((facility, completion)) => {
                 self.collaterals
-                    .record_manual_collateral_update_in_op(
+                    .record_collateral_update_via_manual_input_in_op(
                         &mut db,
                         facility.collateral_id,
                         Satoshis::ZERO,

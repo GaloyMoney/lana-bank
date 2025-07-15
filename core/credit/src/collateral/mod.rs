@@ -88,7 +88,7 @@ where
         self.repo.create_in_op(db, new_collateral).await
     }
 
-    pub(super) async fn record_manual_collateral_update_in_op(
+    pub(super) async fn record_collateral_update_via_manual_input_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
@@ -102,8 +102,8 @@ where
             return Err(CollateralError::ManualUpdateError);
         }
 
-        let res = if let es_entity::Idempotent::Executed(data) =
-            collateral.record_collateral_update(updated_collateral, effective, audit_info)
+        let res = if let es_entity::Idempotent::Executed(data) = collateral
+            .record_collateral_update_via_manual_input(updated_collateral, effective, audit_info)
         {
             self.repo.update_in_op(db, &mut collateral).await?;
             Some(data)
@@ -114,7 +114,7 @@ where
         Ok(res)
     }
 
-    pub(super) async fn record_collateral_update_by_custodian(
+    pub(super) async fn record_collateral_update_via_custodian_sync(
         &self,
         credit_facility: &CreditFacility,
         updated_collateral: core_money::Satoshis,
@@ -124,7 +124,7 @@ where
         let mut collateral = self.repo.find_by_id(credit_facility.collateral_id).await?;
 
         if let es_entity::Idempotent::Executed(data) = collateral
-            .record_collateral_update_by_custodian(updated_collateral, effective, audit_info)
+            .record_collateral_update_via_custodian_sync(updated_collateral, effective, audit_info)
         {
             let mut db = self.repo.begin_op().await?;
 

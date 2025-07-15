@@ -26,14 +26,14 @@ pub enum CollateralEvent {
         credit_facility_id: CreditFacilityId,
         wallet_id: Option<WalletId>,
     },
-    UpdatedManually {
+    UpdatedViaManualInput {
         ledger_tx_id: LedgerTxId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
         action: CollateralAction,
         audit_info: AuditInfo,
     },
-    UpdatedByCustodian {
+    UpdatedViaCustodianSync {
         ledger_tx_id: LedgerTxId,
         collateral_amount: Satoshis,
         abs_diff: Satoshis,
@@ -60,7 +60,7 @@ impl Collateral {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn record_collateral_update_by_custodian(
+    pub fn record_collateral_update_via_custodian_sync(
         &mut self,
         new_amount: Satoshis,
         effective: chrono::NaiveDate,
@@ -76,7 +76,7 @@ impl Collateral {
 
         let tx_id = LedgerTxId::new();
 
-        self.events.push(CollateralEvent::UpdatedByCustodian {
+        self.events.push(CollateralEvent::UpdatedViaCustodianSync {
             ledger_tx_id: tx_id,
             abs_diff,
             collateral_amount: new_amount,
@@ -94,7 +94,7 @@ impl Collateral {
         })
     }
 
-    pub fn record_collateral_update(
+    pub fn record_collateral_update_via_manual_input(
         &mut self,
         new_amount: Satoshis,
         effective: chrono::NaiveDate,
@@ -110,7 +110,7 @@ impl Collateral {
 
         let tx_id = LedgerTxId::new();
 
-        self.events.push(CollateralEvent::UpdatedManually {
+        self.events.push(CollateralEvent::UpdatedViaManualInput {
             ledger_tx_id: tx_id,
             abs_diff,
             collateral_amount: new_amount,
@@ -164,11 +164,11 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         .wallet_id(*wallet_id)
                         .credit_facility_id(*credit_facility_id)
                 }
-                CollateralEvent::UpdatedManually {
+                CollateralEvent::UpdatedViaManualInput {
                     collateral_amount: new_value,
                     ..
                 }
-                | CollateralEvent::UpdatedByCustodian {
+                | CollateralEvent::UpdatedViaCustodianSync {
                     collateral_amount: new_value,
                     ..
                 } => {
