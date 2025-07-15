@@ -44,21 +44,26 @@ impl CreditFacilityRepaymentPlan {
         let activated_at = self.activated_at();
         let maturity_date = terms.duration.maturity_date(activated_at);
 
-        vec![
-            CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
-                id: None,
-                status: RepaymentStatus::Upcoming,
+        let mut disbursals = vec![];
+        if !structuring_fee.is_zero() {
+            disbursals.push(CreditFacilityRepaymentPlanEntry::Disbursal(
+                ObligationDataForEntry {
+                    id: None,
+                    status: RepaymentStatus::Upcoming,
 
-                initial: structuring_fee,
-                outstanding: structuring_fee,
+                    initial: structuring_fee,
+                    outstanding: structuring_fee,
 
-                due_at: maturity_date,
-                overdue_at: None,
-                defaulted_at: None,
-                recorded_at: activated_at,
-                effective: activated_at.date_naive(),
-            }),
-            CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
+                    due_at: maturity_date,
+                    overdue_at: None,
+                    defaulted_at: None,
+                    recorded_at: activated_at,
+                    effective: activated_at.date_naive(),
+                },
+            ));
+        }
+        disbursals.push(CreditFacilityRepaymentPlanEntry::Disbursal(
+            ObligationDataForEntry {
                 id: None,
                 status: RepaymentStatus::Upcoming,
 
@@ -70,8 +75,10 @@ impl CreditFacilityRepaymentPlan {
                 defaulted_at: None,
                 recorded_at: activated_at,
                 effective: activated_at.date_naive(),
-            }),
-        ]
+            },
+        ));
+
+        disbursals
     }
 
     fn planned_interest_accruals(
