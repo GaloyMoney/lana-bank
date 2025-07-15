@@ -57,7 +57,7 @@ impl BitgoClient {
         mac.update(payload);
         mac.verify_slice(&signature)?;
 
-        Ok(serde_json::from_slice::<Notification>(payload).unwrap())
+        Ok(serde_json::from_slice::<Notification>(payload)?)
     }
 
     #[tracing::instrument(name = "bitgo.generate_wallet", skip(self), err)]
@@ -80,7 +80,7 @@ impl BitgoClient {
             }));
 
         let response: Value = request.send().await?.json().await?;
-        let wallet = serde_json::from_value(response.clone()).unwrap();
+        let wallet = serde_json::from_value(response.clone())?;
 
         Ok((wallet, response))
     }
@@ -98,7 +98,7 @@ impl BitgoClient {
             .bearer_auth(&self.long_lived_token);
 
         let response: Value = request.send().await?.json().await?;
-        let wallet = serde_json::from_value(response.clone()).unwrap();
+        let wallet = serde_json::from_value(response.clone())?;
 
         Ok((wallet, response))
     }
