@@ -64,7 +64,8 @@
           || pkgs.lib.hasInfix "/.sqlx/" path
           || pkgs.lib.hasInfix "/lana/app/migrations/" path
           || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
-          || pkgs.lib.hasInfix "/lana/entity-rollups/src/templates/" path;
+          || pkgs.lib.hasInfix "/lana/entity-rollups/src/templates/" path
+          || pkgs.lib.hasInfix "/lib/rendering/config/" path;
       };
 
       # Function to build cargo artifacts for a specific profile
@@ -325,6 +326,7 @@
           tilt
           procps
           meltanoPkgs.meltano
+          poppler_utils
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run

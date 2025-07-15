@@ -33,6 +33,7 @@ members = [
   "lib/tracing-utils",
   "lib/outbox",
   "lib/jwks-utils",
+  "lib/rendering",
   "lib/kratos-admin",
   "lib/bitgo",
   "lib/komainu",
@@ -137,6 +138,7 @@ schemars = { version = "1.0.4", features = ["derive", "chrono04", "rust_decimal1
 tempfile = "3.10.0"
 p256 = "0.13.2"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
+markdown2pdf = { version = "0.1.4", features = ["rustls-tls"], default-features = false }
 
 [profile.release]
 lto = true 
