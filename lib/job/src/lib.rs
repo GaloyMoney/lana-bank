@@ -149,7 +149,7 @@ impl Jobs {
         self.repo.find_by_id(id).await
     }
 
-    pub async fn start_executor(&mut self) -> Result<(), JobError> {
+    pub async fn start_poll(&mut self) -> Result<(), JobError> {
         let registry = self
             .registry
             .lock()
