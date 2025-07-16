@@ -42,15 +42,11 @@
       importlib-metadata
       typing-extensions
       structlog
-      watchdog
       click-default-group
       fasteners
       croniter
-      pathvalidate
-      click-didyoumean
       flatten-dict
       snowplow-tracker
-      pyhumps
       rich
       ruamel-yaml
       simplejson
@@ -62,15 +58,8 @@
       psutil
       alembic
       sqlalchemy-utils
-      flask
-      flask-cors
-      gunicorn
-      uvicorn
       celery
-      redis
-      boto3
       google-cloud-storage
-      azure-storage-blob
       atomicwrites
       smart-open
       dateparser
