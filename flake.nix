@@ -88,6 +88,12 @@
 
           # Environment variables for protoc
           PROTOC = "${pkgs.protobuf}/bin/protoc";
+          
+          # Ensure protoc is in PATH during build
+          configurePhase = ''
+            export PATH="${pkgs.protobuf}/bin:$PATH"
+            export PROTOC="${pkgs.protobuf}/bin/protoc"
+          '';
         };
 
       # Function to build lana-cli for a specific profile
@@ -118,6 +124,12 @@
 
           # Environment variables for protoc
           PROTOC = "${pkgs.protobuf}/bin/protoc";
+          
+          # Ensure protoc is in PATH during build
+          configurePhase = ''
+            export PATH="${pkgs.protobuf}/bin:$PATH"
+            export PROTOC="${pkgs.protobuf}/bin/protoc"
+          '';
         };
 
       # Function to build static lana-cli (musl target for containers)
@@ -151,6 +163,12 @@
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          
+          # Ensure protoc is in PATH during build
+          configurePhase = ''
+            export PATH="${pkgs.protobuf}/bin:$PATH"
+            export PROTOC="${pkgs.protobuf}/bin/protoc"
+          '';
         };
       in
         craneLibMusl.buildPackage {
@@ -186,6 +204,12 @@
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          
+          # Ensure protoc is in PATH during build
+          configurePhase = ''
+            export PATH="${pkgs.protobuf}/bin:$PATH"
+            export PROTOC="${pkgs.protobuf}/bin/protoc"
+          '';
         };
 
       # Build artifacts and packages for both profiles
