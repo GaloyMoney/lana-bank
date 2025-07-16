@@ -56,7 +56,6 @@ impl JobDispatcher {
     err)]
     pub async fn execute_job(mut self, polled_job: PolledJob) -> Result<(), JobError> {
         let job = self.repo.find_by_id(polled_job.id).await?;
-        eprintln!("execute_job {}", &job.job_type);
         let span = Span::current();
         span.record("job_id", tracing::field::display(job.id));
         span.record("job_type", tracing::field::display(&job.job_type));
@@ -248,7 +247,6 @@ async fn keep_job_alive(pool: PgPool, id: JobId, job_lost_interval: Duration) {
     loop {
         crate::time::sleep(job_lost_interval / 4).await;
         let now = crate::time::now();
-        eprintln!("keep alive {} - {}", id, now);
         if sqlx::query!(
             "UPDATE job_executions SET alive_at = $2 WHERE id = $1",
             id as JobId,

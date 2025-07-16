@@ -129,7 +129,7 @@ impl JobPoller {
                 crate::time::sleep(job_lost_interval / 2).await;
                 let now = crate::time::now();
                 let check_time = now - job_lost_interval;
-                let res = sqlx::query!(
+                let _ = sqlx::query!(
                     r#"
             UPDATE job_executions
             SET state = 'pending', execute_at = $1, attempt_index = attempt_index + 1
@@ -140,16 +140,6 @@ impl JobPoller {
                 )
                 .fetch_all(&pool)
                 .await;
-                eprintln!(
-                    "lost loop ({}) - {} : {}",
-                    res.expect("loop")
-                        .into_iter()
-                        .map(|r| r.id.to_string())
-                        .collect::<Vec<_>>()
-                        .join(","),
-                    now,
-                    check_time
-                );
             }
         }))
     }
@@ -191,68 +181,6 @@ impl JobPoller {
 async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult, sqlx::Error> {
     let now = crate::time::now();
     Span::current().record("now", tracing::field::display(now));
-
-    // Debug: Show all job_executions rows
-    let debug_rows = sqlx::query!(
-        r#"
-        SELECT 
-            id,
-            state as "state: String",
-            execute_at,
-            job_type,
-            attempt_index,
-            alive_at,
-            CASE 
-                WHEN execute_at IS NULL THEN 'NULL'
-                WHEN execute_at <= $1 THEN 'READY (' || (execute_at::text) || ')'
-                ELSE 'FUTURE (' || (execute_at::text) || ')'
-            END as "execute_status: String",
-            execute_at - $1 as "time_diff: PgInterval"
-        FROM job_executions
-        ORDER BY execute_at ASC NULLS LAST
-        "#,
-        now
-    )
-    .fetch_all(pool)
-    .await?;
-
-    eprintln!("=== DEBUG: All job_executions rows ===");
-    eprintln!("Current time (now): {:?}", now);
-    eprintln!("Number of rows: {}", debug_rows.len());
-    for row in &debug_rows {
-        eprintln!(
-            "ID: {:?}, State: {}, JobType: {}, Attempt: {}, ExecuteAt: {:?}, AliveAt: {:?}, Status: {:?}, Diff: {:?}",
-            row.id,
-            row.state,
-            row.job_type,
-            row.attempt_index,
-            row.execute_at,
-            row.alive_at,
-            row.execute_status,
-            row.time_diff
-        );
-    }
-    eprintln!("=== END DEBUG ===");
-
-    // Debug: Show all job_events rows
-    let debug_events = sqlx::query!(
-        r#"
-        SELECT * FROM job_events
-        ORDER BY (id, sequence) ASC
-        "#
-    )
-    .fetch_all(pool)
-    .await?;
-
-    eprintln!("=== DEBUG: All job_events rows ===");
-    eprintln!("Number of events: {}", debug_events.len());
-    for event in &debug_events {
-        eprintln!(
-            "ID: {:?}, RecordedAt: {:?}, Data: {:?}",
-            event.id, event.recorded_at, event.event
-        );
-    }
-    eprintln!("=== END DEBUG EVENTS ===");
 
     let rows = sqlx::query_as!(
         JobPollRow,
