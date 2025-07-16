@@ -114,7 +114,6 @@ mod tests {
     use std::time::Duration;
 
     const MAX_BACKOFF_MS: u64 = 60_000;
-    const TIMING_TOLERANCE_MS: u64 = 5;
 
     fn test_settings(jitter_pct: u8) -> RetrySettings {
         RetrySettings {
@@ -126,24 +125,10 @@ mod tests {
         }
     }
 
-    fn get_delay_ms(settings: &RetrySettings, attempt: u32) -> u64 {
-        let now = crate::time::now();
-        let attempt_time = settings.next_attempt_at(attempt);
-        attempt_time.signed_duration_since(now).num_milliseconds() as u64
-    }
-
     fn assert_delay_exact(actual: u64, expected: u64) {
         assert_eq!(
             actual, expected,
             "Expected exactly {expected}ms, got {actual}ms"
-        );
-    }
-
-    fn assert_delay_near(actual: u64, expected: u64) {
-        let diff = actual.abs_diff(expected);
-        assert!(
-            diff <= TIMING_TOLERANCE_MS,
-            "Expected ~{expected}ms (±{TIMING_TOLERANCE_MS}ms), got {actual}ms"
         );
     }
 
@@ -206,7 +191,6 @@ mod tests {
 
         for _ in 0..10 {
             let delay = settings.calculate_backoff(1);
-            assert!(delay >= 0, "Delay should be non-negative, got {delay}ms");
             assert!(delay <= 120, "Delay should be reasonable, got {delay}ms");
         }
     }
