@@ -22,8 +22,6 @@ gql`
     withdrawalId
     createdAt
     amount
-    # subjectCanConfirm
-    # subjectCanCancel
     account {
       customer {
         customerId

@@ -163,11 +163,8 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
     }
     document.addEventListener("keydown", down)
     return () => document.removeEventListener("keydown", down)
-    // 'search' and 'setOpen' are intentionally excluded from deps to prevent
-    // re-registering keyboard listeners on every render. The effect only needs
-    // to run once to set up global keyboard shortcuts
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
+  }, [setOpen])
 
   const menuItems = [
     {
