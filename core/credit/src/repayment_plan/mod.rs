@@ -46,37 +46,35 @@ impl CreditFacilityRepaymentPlan {
 
         let mut disbursals = vec![];
         if !structuring_fee.is_zero() {
-            disbursals.push(CreditFacilityRepaymentPlanEntry::Disbursal(
-                ObligationDataForEntry {
-                    id: None,
-                    status: RepaymentStatus::Upcoming,
-
-                    initial: structuring_fee,
-                    outstanding: structuring_fee,
-
-                    due_at: maturity_date,
-                    overdue_at: None,
-                    defaulted_at: None,
-                    recorded_at: activated_at,
-                    effective: activated_at.date_naive(),
-                },
-            ));
-        }
-        disbursals.push(CreditFacilityRepaymentPlanEntry::Disbursal(
-            ObligationDataForEntry {
-                id: None,
+            disbursals.push(CreditFacilityRepaymentPlanEntry {
+                repayment_type: RepaymentType::Disbursal,
+                obligation_id: None,
                 status: RepaymentStatus::Upcoming,
 
-                initial: facility_amount,
-                outstanding: facility_amount,
+                initial: structuring_fee,
+                outstanding: structuring_fee,
 
                 due_at: maturity_date,
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: activated_at,
                 effective: activated_at.date_naive(),
-            },
-        ));
+            })
+        }
+        disbursals.push(CreditFacilityRepaymentPlanEntry {
+            repayment_type: RepaymentType::Disbursal,
+            obligation_id: None,
+            status: RepaymentStatus::Upcoming,
+
+            initial: facility_amount,
+            outstanding: facility_amount,
+
+            due_at: maturity_date,
+            overdue_at: None,
+            defaulted_at: None,
+            recorded_at: activated_at,
+            effective: activated_at.date_naive(),
+        });
 
         disbursals
     }
@@ -106,7 +104,11 @@ impl CreditFacilityRepaymentPlan {
         let disbursed_outstanding = updated_entries
             .iter()
             .filter_map(|entry| match entry {
-                CreditFacilityRepaymentPlanEntry::Disbursal(data) => Some(data.outstanding),
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Disbursal,
+                    outstanding,
+                    ..
+                } => Some(*outstanding),
                 _ => None,
             })
             .fold(UsdCents::ZERO, |acc, outstanding| acc + outstanding);
@@ -117,20 +119,19 @@ impl CreditFacilityRepaymentPlan {
                 .annual_rate
                 .interest_for_time_period(disbursed_outstanding, period.days());
 
-            planned_interest_entries.push(CreditFacilityRepaymentPlanEntry::Interest(
-                ObligationDataForEntry {
-                    id: None,
-                    status: RepaymentStatus::Upcoming,
-                    initial: interest,
-                    outstanding: interest,
+            planned_interest_entries.push(CreditFacilityRepaymentPlanEntry {
+                repayment_type: RepaymentType::Interest,
+                obligation_id: None,
+                status: RepaymentStatus::Upcoming,
+                initial: interest,
+                outstanding: interest,
 
-                    due_at: period.end,
-                    overdue_at: None,
-                    defaulted_at: None,
-                    recorded_at: period.end,
-                    effective: period.end.date_naive(),
-                },
-            ));
+                due_at: period.end,
+                overdue_at: None,
+                defaulted_at: None,
+                recorded_at: period.end,
+                effective: period.end.date_naive(),
+            });
 
             next_interest_period = period.next().truncate(maturity_date);
         }
@@ -166,8 +167,9 @@ impl CreditFacilityRepaymentPlan {
                 effective,
                 ..
             } => {
-                let data = ObligationDataForEntry {
-                    id: Some(*id),
+                let entry = CreditFacilityRepaymentPlanEntry {
+                    repayment_type: obligation_type.into(),
+                    obligation_id: Some(*id),
                     status: RepaymentStatus::NotYetDue,
 
                     initial: *amount,
@@ -179,15 +181,10 @@ impl CreditFacilityRepaymentPlan {
                     recorded_at: *recorded_at,
                     effective: *effective,
                 };
-
-                let effective = EffectiveDate::from(*effective);
-                let entry = match obligation_type {
-                    ObligationType::Disbursal => CreditFacilityRepaymentPlanEntry::Disbursal(data),
-                    ObligationType::Interest => {
-                        self.last_interest_accrual_at = Some(effective.end_of_day());
-                        CreditFacilityRepaymentPlanEntry::Interest(data)
-                    }
-                };
+                if *obligation_type == ObligationType::Interest {
+                    let effective = EffectiveDate::from(*effective);
+                    self.last_interest_accrual_at = Some(effective.end_of_day());
+                }
 
                 existing_obligations.push(entry);
             }
@@ -198,8 +195,9 @@ impl CreditFacilityRepaymentPlan {
                 recorded_at,
                 ..
             } if amount.is_zero() => {
-                let data = ObligationDataForEntry {
-                    id: None,
+                let entry = CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
+                    obligation_id: None,
                     status: RepaymentStatus::Paid,
 
                     initial: UsdCents::ZERO,
@@ -214,7 +212,6 @@ impl CreditFacilityRepaymentPlan {
 
                 let effective = EffectiveDate::from(*effective);
                 self.last_interest_accrual_at = Some(effective.end_of_day());
-                let entry = CreditFacilityRepaymentPlanEntry::Interest(data);
 
                 existing_obligations.push(entry);
             }
@@ -223,15 +220,10 @@ impl CreditFacilityRepaymentPlan {
                 amount,
                 ..
             } => {
-                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
-                    let data = match entry {
-                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
-                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
-                    };
-
-                    (data.id == Some(*obligation_id)).then_some(data)
+                if let Some(entry) = existing_obligations.iter_mut().find_map(|entry| {
+                    (entry.obligation_id == Some(*obligation_id)).then_some(entry)
                 }) {
-                    data.outstanding -= *amount;
+                    entry.outstanding -= *amount;
                 } else {
                     return false;
                 }
@@ -248,15 +240,10 @@ impl CreditFacilityRepaymentPlan {
             | CoreCreditEvent::ObligationCompleted {
                 id: obligation_id, ..
             } => {
-                if let Some(data) = existing_obligations.iter_mut().find_map(|entry| {
-                    let data = match entry {
-                        CreditFacilityRepaymentPlanEntry::Disbursal(data)
-                        | CreditFacilityRepaymentPlanEntry::Interest(data) => data,
-                    };
-
-                    (data.id == Some(*obligation_id)).then_some(data)
+                if let Some(entry) = existing_obligations.iter_mut().find_map(|entry| {
+                    (entry.obligation_id == Some(*obligation_id)).then_some(entry)
                 }) {
-                    data.status = match event {
+                    entry.status = match event {
                         CoreCreditEvent::ObligationDue { .. } => RepaymentStatus::Due,
                         CoreCreditEvent::ObligationOverdue { .. } => RepaymentStatus::Overdue,
                         CoreCreditEvent::ObligationDefaulted { .. } => RepaymentStatus::Defaulted,
@@ -371,28 +358,34 @@ mod tests {
 
         for entry in plan.entries.iter() {
             match entry {
-                CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Disbursal,
                     status: RepaymentStatus::Upcoming,
                     ..
-                }) => res.disbursals_upcoming += 1,
-                CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry {
+                } => res.disbursals_upcoming += 1,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Disbursal,
                     status: RepaymentStatus::Paid,
                     ..
-                }) => res.disbursals_paid += 1,
-                CreditFacilityRepaymentPlanEntry::Disbursal(ObligationDataForEntry { .. }) => {
-                    res.disbursals_unpaid += 1
-                }
-                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
+                } => res.disbursals_paid += 1,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Disbursal,
+                    ..
+                } => res.disbursals_unpaid += 1,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
                     status: RepaymentStatus::Upcoming,
                     ..
-                }) => res.interest_upcoming += 1,
-                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
+                } => res.interest_upcoming += 1,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
                     status: RepaymentStatus::Paid,
                     ..
-                }) => res.interest_paid += 1,
-                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry { .. }) => {
-                    res.interest_unpaid += 1
-                }
+                } => res.interest_paid += 1,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
+                    ..
+                } => res.interest_unpaid += 1,
             }
         }
 
@@ -686,11 +679,12 @@ mod tests {
             .entries
             .iter()
             .find_map(|e| match e {
-                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
-                    id,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
+                    obligation_id: Some(_),
                     outstanding,
                     ..
-                }) if id.is_some() => Some(outstanding),
+                } => Some(outstanding),
                 _ => None,
             })
             .unwrap();
@@ -763,12 +757,13 @@ mod tests {
             .entries
             .iter()
             .find_map(|e| match e {
-                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
-                    id,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
+                    obligation_id: Some(_),
                     outstanding,
                     status,
                     ..
-                }) if id.is_some() => Some((outstanding, status)),
+                } => Some((outstanding, status)),
                 _ => None,
             })
             .unwrap();
@@ -786,11 +781,12 @@ mod tests {
             .entries
             .iter()
             .find_map(|e| match e {
-                CreditFacilityRepaymentPlanEntry::Interest(ObligationDataForEntry {
-                    id,
+                CreditFacilityRepaymentPlanEntry {
+                    repayment_type: RepaymentType::Interest,
+                    obligation_id: Some(_),
                     status,
                     ..
-                }) if id.is_some() => Some(status),
+                } => Some(status),
                 _ => None,
             })
             .unwrap();

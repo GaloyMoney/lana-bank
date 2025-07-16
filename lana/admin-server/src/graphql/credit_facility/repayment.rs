@@ -8,6 +8,15 @@ pub enum CreditFacilityRepaymentType {
     Interest,
 }
 
+impl From<lana_app::credit::RepaymentType> for CreditFacilityRepaymentType {
+    fn from(repayment_type: lana_app::credit::RepaymentType) -> Self {
+        match repayment_type {
+            lana_app::credit::RepaymentType::Disbursal => Self::Disbursal,
+            lana_app::credit::RepaymentType::Interest => Self::Interest,
+        }
+    }
+}
+
 #[derive(async_graphql::Enum, Clone, Copy, PartialEq, Eq)]
 pub enum CreditFacilityRepaymentStatus {
     Upcoming,
@@ -47,23 +56,13 @@ pub struct CreditFacilityRepaymentPlanEntry {
 
 impl From<lana_app::credit::CreditFacilityRepaymentPlanEntry> for CreditFacilityRepaymentPlanEntry {
     fn from(repayment: lana_app::credit::CreditFacilityRepaymentPlanEntry) -> Self {
-        match repayment {
-            lana_app::credit::CreditFacilityRepaymentPlanEntry::Disbursal(repayment) => Self {
-                repayment_type: CreditFacilityRepaymentType::Disbursal,
-                status: repayment.status.into(),
-                initial: repayment.initial,
-                outstanding: repayment.outstanding,
-                accrual_at: repayment.recorded_at.into(),
-                due_at: repayment.due_at.into(),
-            },
-            lana_app::credit::CreditFacilityRepaymentPlanEntry::Interest(repayment) => Self {
-                repayment_type: CreditFacilityRepaymentType::Interest,
-                status: repayment.status.into(),
-                initial: repayment.initial,
-                outstanding: repayment.outstanding,
-                accrual_at: repayment.recorded_at.into(),
-                due_at: repayment.due_at.into(),
-            },
+        Self {
+            repayment_type: repayment.repayment_type.into(),
+            status: repayment.status.into(),
+            initial: repayment.initial,
+            outstanding: repayment.outstanding,
+            accrual_at: repayment.recorded_at.into(),
+            due_at: repayment.due_at.into(),
         }
     }
 }
