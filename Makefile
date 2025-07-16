@@ -37,6 +37,9 @@ reset-deps: clean-deps start-deps setup-db
 run-server:
 	cargo run --features sim-time,mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml | tee .e2e-logs
 
+run-server-nix:
+	nix run . -- --config ./bats/lana.yml | tee .e2e-logs
+
 run-server-with-bootstrap:
 	cargo run --all-features --bin lana-cli -- --config ./bats/lana.yml | tee .e2e-logs
 

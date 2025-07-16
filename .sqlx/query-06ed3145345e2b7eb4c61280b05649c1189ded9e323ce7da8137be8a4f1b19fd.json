@@ -1,0 +1,68 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n        SELECT \n            id,\n            state as \"state: String\",\n            execute_at,\n            job_type,\n            attempt_index,\n            CASE \n                WHEN execute_at IS NULL THEN 'NULL'\n                WHEN execute_at <= $1 THEN 'READY (' || (execute_at::text) || ')'\n                ELSE 'FUTURE (' || (execute_at::text) || ')'\n            END as \"execute_status: String\",\n            execute_at - $1 as \"time_diff: PgInterval\"\n        FROM job_executions\n        ORDER BY execute_at ASC NULLS LAST\n        ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "id",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "state: String",
+        "type_info": {
+          "Custom": {
+            "name": "jobexecutionstate",
+            "kind": {
+              "Enum": [
+                "pending",
+                "running"
+              ]
+            }
+          }
+        }
+      },
+      {
+        "ordinal": 2,
+        "name": "execute_at",
+        "type_info": "Timestamptz"
+      },
+      {
+        "ordinal": 3,
+        "name": "job_type",
+        "type_info": "Varchar"
+      },
+      {
+        "ordinal": 4,
+        "name": "attempt_index",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 5,
+        "name": "execute_status: String",
+        "type_info": "Text"
+      },
+      {
+        "ordinal": 6,
+        "name": "time_diff: PgInterval",
+        "type_info": "Interval"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Timestamptz"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      true,
+      false,
+      false,
+      null,
+      null
+    ]
+  },
+  "hash": "06ed3145345e2b7eb4c61280b05649c1189ded9e323ce7da8137be8a4f1b19fd"
+}
