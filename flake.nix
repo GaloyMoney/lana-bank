@@ -215,6 +215,9 @@
           pkgs.cargo-nextest
           pkgs.protobuf
           pkgs.gitMinimal
+          # Font packages for PDF generation tests
+          pkgs.fontconfig
+          pkgs.dejavu_fonts # Provides serif, sans-serif, and monospace
         ];
 
         configurePhase = ''
@@ -223,6 +226,9 @@
           export PATH="${pkgs.protobuf}/bin:$PATH"
           export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
           export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
+          # Font configuration for PDF generation tests
+          export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
+          export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
         '';
 
         buildPhaseCargoCommand = "nextest run";
@@ -327,6 +333,9 @@
           procps
           meltanoPkgs.meltano
           poppler_utils
+          # Font packages for PDF generation
+          fontconfig
+          dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -372,6 +381,10 @@
             shellHook = ''
                 export LANA_CONFIG="$(pwd)/bats/lana.yml"
                 export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
+
+              # Font configuration for PDF generation
+              export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
+              export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
 
               # Container engine setup
               # Clear DOCKER_HOST at the start to avoid stale values
