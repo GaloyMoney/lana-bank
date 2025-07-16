@@ -1,6 +1,4 @@
-use std::fs;
 use std::path::PathBuf;
-use uuid::Uuid;
 
 use crate::error::RenderingError;
 
@@ -27,9 +25,6 @@ impl PdfGenerator {
     /// Generate a PDF from markdown content
     /// Returns the PDF as bytes that can be written to a file or uploaded
     pub fn generate_pdf_from_markdown(&self, markdown: &str) -> Result<Vec<u8>, RenderingError> {
-        let temp_dir = std::env::temp_dir();
-        let temp_file_name = temp_dir.join(format!("{}.pdf", Uuid::new_v4()));
-
         // Convert config file path to string for the API
         let config_path_string = self
             .config_file
@@ -37,24 +32,8 @@ impl PdfGenerator {
             .map(|p| p.to_string_lossy().to_string());
         let config_path = config_path_string.as_deref();
 
-        // Generate the PDF
-        let pdf_bytes = (|| -> Result<Vec<u8>, RenderingError> {
-            markdown2pdf::parse(
-                markdown.to_string(),
-                &temp_file_name.to_string_lossy(),
-                config_path,
-            )
-            .map_err(|e| RenderingError::PdfGeneration(format!("PDF generation failed: {e}")))?;
-
-            let bytes = fs::read(&temp_file_name).map_err(|e| {
-                RenderingError::PdfGeneration(format!("Failed to read temp file: {e}"))
-            })?;
-
-            Ok(bytes)
-        })();
-
-        let _ = fs::remove_file(&temp_file_name);
-
-        pdf_bytes
+        // Generate the PDF directly into bytes without temporary file
+        markdown2pdf::parse_into_bytes(markdown.to_string(), config_path)
+            .map_err(|e| RenderingError::PdfGeneration(format!("PDF generation failed: {e}")))
     }
 }

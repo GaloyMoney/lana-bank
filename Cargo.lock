@@ -3310,9 +3310,9 @@ checksum = "7d947cbb889ed21c2a84be6ffbaebf5b4e0f4340638cba0444907e38b56be084"
 
 [[package]]
 name = "markdown2pdf"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "81b76ef362886f90bb3d02ae7fb77e252c5f8a858d24693eaf94242d566601c5"
+checksum = "9830d7ff4dc157c23d0877ddad5d745a8f509ccb58a8868964a14919a57c851d"
 dependencies = [
  "clap",
  "dirs",
