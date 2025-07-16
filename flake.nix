@@ -180,6 +180,10 @@
           pkgs.cargo-audit
           pkgs.cargo-deny
           pkgs.cargo-machete
+          # Fonts needed for PDF generation tests
+          pkgs.dejavu_fonts
+          pkgs.liberation_ttf
+          pkgs.noto-fonts
         ];
 
         configurePhase = ''
@@ -188,6 +192,8 @@
           export PATH="${pkgs.protobuf}/bin:${pkgs.gitMinimal}/bin:${pkgs.coreutils}/bin:$PATH"
           export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
           export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
+          # Set up fonts for PDF generation
+          export FONTCONFIG_FILE=${pkgs.makeFontsConf { fontDirectories = [pkgs.dejavu_fonts pkgs.liberation_ttf pkgs.noto-fonts]; }}
         '';
 
         buildPhaseCargoCommand = "check";
@@ -215,6 +221,10 @@
           pkgs.cargo-nextest
           pkgs.protobuf
           pkgs.gitMinimal
+          # Fonts needed for PDF generation tests
+          pkgs.dejavu_fonts
+          pkgs.liberation_ttf
+          pkgs.noto-fonts
         ];
 
         configurePhase = ''
@@ -223,6 +233,8 @@
           export PATH="${pkgs.protobuf}/bin:$PATH"
           export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
           export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
+          # Set up fonts for PDF generation
+          export FONTCONFIG_FILE=${pkgs.makeFontsConf { fontDirectories = [pkgs.dejavu_fonts pkgs.liberation_ttf pkgs.noto-fonts]; }}
         '';
 
         buildPhaseCargoCommand = "nextest run";
@@ -318,6 +330,10 @@
           netlify-cli
           pandoc
           nano
+          # Fonts needed for PDF generation
+          dejavu_fonts
+          liberation_ttf
+          noto-fonts
           podman
           podman-compose
           cachix
