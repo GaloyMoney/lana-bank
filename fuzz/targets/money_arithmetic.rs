@@ -48,9 +48,11 @@ fn fuzz_satoshis_operations(a: u64, b: u64) {
 
     // Test arithmetic operations (real core-money uses direct ops, not checked_*)
     // These can panic on overflow, which is what we want to catch in fuzzing
-    if a.saturating_add(b) == a + b {
+    if let Some(sum) = a.checked_add(b) {
         // Only test if no overflow would occur in u64
         let _ = sats_a + sats_b;
+        // Verify the result matches expected
+        assert_eq!(sum, (sats_a + sats_b).into_inner());
     }
 
     if a >= b {
@@ -73,11 +75,11 @@ fn fuzz_signed_satoshis_operations(a: i64, b: i64) {
     let _ = signed_a.abs();
 
     // Test arithmetic operations (real core-money uses direct ops)
-    if a.saturating_add(b) == a + b {
+    if let Some(_sum) = a.checked_add(b) {
         let _ = signed_a + signed_b;
     }
 
-    if a.saturating_sub(b) == a - b {
+    if a >= b {
         let _ = signed_a - signed_b;
     }
 }
@@ -132,7 +134,8 @@ fn fuzz_type_conversions(a_u64: u64, a_i64: i64) {
         match Satoshis::try_from(signed_sats) {
             Ok(unsigned_sats) => {
                 // The conversion goes through BTC, so we need to account for precision
-                let expected_btc = Decimal::from(a_i64);
+                // Use bounded_i64 for consistency since that's what was used to create signed_sats
+                let expected_btc = Decimal::from(bounded_i64);
                 let actual_btc = unsigned_sats.to_btc();
                 assert!((expected_btc - actual_btc).abs() < Decimal::from(1)); // Within 1 satoshi
             }
@@ -141,8 +144,14 @@ fn fuzz_type_conversions(a_u64: u64, a_i64: i64) {
             }
         }
     } else {
+        // Ensure we actually test with a negative value for negative conversion
         let bounded_i64 = (a_i64 % 1_000_000_000) as i64;
-        let signed_sats = SignedSatoshis::from_btc(Decimal::from(bounded_i64));
+        let negative_bounded = if bounded_i64 <= 0 {
+            bounded_i64 - 1
+        } else {
+            -bounded_i64
+        };
+        let signed_sats = SignedSatoshis::from_btc(Decimal::from(negative_bounded));
         match Satoshis::try_from(signed_sats) {
             Ok(_) => {
                 panic!("Conversion from negative SignedSatoshis to Satoshis should fail");
@@ -164,8 +173,10 @@ fn fuzz_usd_operations(a: u64, b: u64) {
     let _ = cents_a.formatted_usd();
 
     // Test arithmetic operations
-    if a.saturating_add(b) == a + b {
+    if let Some(sum) = a.checked_add(b) {
         let _ = cents_a + cents_b;
+        // Verify the result matches expected
+        assert_eq!(sum, (cents_a + cents_b).into_inner());
     }
 
     if a >= b {
@@ -193,7 +204,7 @@ fn fuzz_signed_usd_operations(a: i64, b: i64) {
 
     // Test arithmetic operations (SignedUsdCents only has subtraction in core-money)
 
-    if a.saturating_sub(b) == a - b {
+    if a >= b {
         let _ = signed_cents_a - signed_cents_b;
     }
 }
