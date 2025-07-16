@@ -83,7 +83,7 @@ mod tests {
         let test_data = TestData::new("test@example.com".to_string());
 
         // Test the rendering library directly
-        let renderer = Renderer::new(Some(pdf_config_file));
+        let renderer = Renderer::new(pdf_config_file);
 
         // Test template content (simulate loading from file)
         let template_content = "# Test Document\n\n- **Name:** {{name}}\n- **Email:** {{email}}";
