@@ -576,12 +576,12 @@ where
             )
             .await?;
 
-        let document = self.document_storage.find_by_id(customer_document_id).await;
-
-        if let Ok(document) = document {
-            Ok(Some(document))
-        } else {
-            Ok(None)
+        match self.document_storage.find_by_id(customer_document_id).await {
+            Ok(document) => Ok(Some(document)),
+            Err(document_storage::error::DocumentStorageError::EsEntityError(
+                es_entity::EsEntityError::NotFound,
+            )) => Ok(None),
+            Err(e) => Err(e.into()),
         }
     }
 
