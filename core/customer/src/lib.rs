@@ -579,9 +579,13 @@ where
         let document = self
             .document_storage
             .find_by_id(customer_document_id)
-            .await?;
+            .await;
 
-        Ok(document)
+        if let Ok(document) = document {
+            Ok(Some(document))
+        } else {
+            Ok(None)
+        }
     }
 
     #[instrument(name = "customer.find_all_documents", skip(self), err)]

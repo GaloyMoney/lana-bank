@@ -106,14 +106,7 @@ where
             .await?;
 
         let document_id = self.config.document_id;
-
-        let document_option = self.document_storage.find_by_id(document_id).await?;
-        let mut document = document_option.ok_or_else(|| {
-            Box::new(std::io::Error::new(
-                std::io::ErrorKind::NotFound,
-                format!("Document with ID {document_id} not found"),
-            )) as Box<dyn std::error::Error>
-        })?;
+        let mut document = self.document_storage.find_by_id(document_id).await?;
 
         self.document_storage
             .upload(csv_result, &mut document)
