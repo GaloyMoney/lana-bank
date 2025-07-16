@@ -1229,17 +1229,17 @@ impl Mutation {
         )
     }
 
-    pub async fn withdrawal_void(
+    pub async fn withdrawal_revert(
         &self,
         ctx: &Context<'_>,
-        input: WithdrawalVoidInput,
-    ) -> async_graphql::Result<WithdrawalVoidPayload> {
+        input: WithdrawalRevertInput,
+    ) -> async_graphql::Result<WithdrawalRevertPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            WithdrawalVoidPayload,
+            WithdrawalRevertPayload,
             Withdrawal,
             ctx,
-            app.deposits().void_withdrawal(sub, input.withdrawal_id)
+            app.deposits().revert_withdrawal(sub, input.withdrawal_id)
         )
     }
 

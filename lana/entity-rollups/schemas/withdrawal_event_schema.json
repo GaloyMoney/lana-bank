@@ -138,23 +138,18 @@
         "audit_info": {
           "$ref": "#/$defs/AuditInfo"
         },
-        "confirmed_voided_tx_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "initiated_voided_tx_id": {
+        "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
         },
         "type": {
-          "const": "voided",
+          "const": "reverted",
           "type": "string"
         }
       },
       "required": [
         "type",
-        "confirmed_voided_tx_id",
-        "initiated_voided_tx_id",
+        "ledger_tx_id",
         "audit_info"
       ],
       "type": "object"

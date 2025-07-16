@@ -1,8 +1,0 @@
-mutation WithdrawalVoid($input: WithdrawalVoidInput!) {
-  withdrawalVoid(input: $input) {
-    withdrawal {
-      withdrawalId
-      status
-    }
-  }
-}

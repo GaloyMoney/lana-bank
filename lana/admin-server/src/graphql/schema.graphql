@@ -1327,7 +1327,7 @@ type Mutation {
 	withdrawalInitiate(input: WithdrawalInitiateInput!): WithdrawalInitiatePayload!
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
-	withdrawalVoid(input: WithdrawalVoidInput!): WithdrawalVoidPayload!
+	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
@@ -1988,6 +1988,14 @@ type WithdrawalInitiatePayload {
 	withdrawal: Withdrawal!
 }
 
+input WithdrawalRevertInput {
+	withdrawalId: UUID!
+}
+
+type WithdrawalRevertPayload {
+	withdrawal: Withdrawal!
+}
+
 enum WithdrawalStatus {
 	PENDING_APPROVAL
 	PENDING_CONFIRMATION
@@ -1995,14 +2003,6 @@ enum WithdrawalStatus {
 	DENIED
 	CANCELLED
 	VOIDED
-}
-
-input WithdrawalVoidInput {
-	withdrawalId: UUID!
-}
-
-type WithdrawalVoidPayload {
-	withdrawal: Withdrawal!
 }
 
 """

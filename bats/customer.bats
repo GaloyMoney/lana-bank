@@ -237,7 +237,7 @@ wait_for_approval() {
   # assert_accounts_balanced
 }
 
-@test "customer: confirmed withdrawal can be voided" {
+@test "customer: confirmed withdrawal can be reverted" {
   deposit_account_id=$(read_value 'deposit_account_id')
 
   variables=$(
@@ -280,7 +280,7 @@ wait_for_approval() {
       }
     }'
   )
-  exec_admin_graphql 'withdrawal-void' "$variables"
-  status=$(graphql_output '.data.withdrawalVoid.withdrawal.status')
+  exec_admin_graphql 'withdrawal-revert' "$variables"
+  status=$(graphql_output '.data.withdrawalRevert.withdrawal.status')
   [[ "$status" == "VOIDED" ]] || exit 1
 }

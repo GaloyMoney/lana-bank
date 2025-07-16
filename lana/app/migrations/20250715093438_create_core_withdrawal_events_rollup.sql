@@ -45,7 +45,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'approval_process_concluded', 'confirmed', 'cancelled', 'voided') THEN
+  IF event_type NOT IN ('initialized', 'approval_process_concluded', 'confirmed', 'cancelled', 'reverted') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -111,10 +111,9 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_cancelled := true;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-    WHEN 'voided' THEN
+    WHEN 'reverted' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.confirmed_voided_tx_id := (NEW.event ->> 'confirmed_voided_tx_id')::UUID;
-      new_row.initiated_voided_tx_id := (NEW.event ->> 'initiated_voided_tx_id')::UUID;
+      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
   END CASE;
 
   INSERT INTO core_withdrawal_events_rollup (

@@ -50,9 +50,8 @@ pub enum WithdrawalEvent {
         ledger_tx_id: CalaTransactionId,
         audit_info: AuditInfo,
     },
-    Voided {
-        confirmed_voided_tx_id: CalaTransactionId,
-        initiated_voided_tx_id: CalaTransactionId,
+    Reverted {
+        ledger_tx_id: CalaTransactionId,
         audit_info: AuditInfo,
     },
 }
@@ -71,11 +70,12 @@ pub struct Withdrawal {
     events: EntityEvents<WithdrawalEvent>,
 }
 
-pub struct WithdrawalVoidedData {
-    pub confirmed_tx_id: CalaTransactionId,
-    pub initiated_tx_id: CalaTransactionId,
-    pub confirmed_voided_tx_id: CalaTransactionId,
-    pub initiated_voided_tx_id: CalaTransactionId,
+pub struct WithdrawalReversalData {
+    pub ledger_tx_id: CalaTransactionId,
+    pub credit_account_id: DepositAccountId,
+    pub amount: UsdCents,
+    pub correlation_id: String,
+    pub external_id: String,
 }
 
 impl Withdrawal {
@@ -109,15 +109,18 @@ impl Withdrawal {
         Ok(ledger_tx_id)
     }
 
-    fn is_voided(&self) -> bool {
+    fn is_reverted(&self) -> bool {
         self.events
             .iter_all()
-            .any(|e| matches!(e, WithdrawalEvent::Voided { .. }))
+            .any(|e| matches!(e, WithdrawalEvent::Reverted { .. }))
     }
 
-    pub fn void(&mut self, audit_info: AuditInfo) -> Result<WithdrawalVoidedData, WithdrawalError> {
-        if self.is_voided() {
-            return Err(WithdrawalError::AlreadyVoided(self.id));
+    pub fn revert(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Result<WithdrawalReversalData, WithdrawalError> {
+        if self.is_reverted() {
+            return Err(WithdrawalError::AlreadyReverted(self.id));
         }
         if self.is_cancelled() {
             return Err(WithdrawalError::AlreadyCancelled(self.id));
@@ -126,25 +129,19 @@ impl Withdrawal {
             return Err(WithdrawalError::NotConfirmed(self.id));
         }
 
-        let confirmed_tx_id = self
-            .confirmed_tx_id()
-            .expect("withdrawal should be confirmed");
-        let initiated_tx_id = self.id.into();
+        let ledger_tx_id = CalaTransactionId::new();
 
-        let confirmed_voided_tx_id = CalaTransactionId::new();
-        let initiated_voided_tx_id = CalaTransactionId::new();
-
-        self.events.push(WithdrawalEvent::Voided {
-            confirmed_voided_tx_id,
-            initiated_voided_tx_id,
+        self.events.push(WithdrawalEvent::Reverted {
+            ledger_tx_id,
             audit_info,
         });
 
-        Ok(WithdrawalVoidedData {
-            confirmed_tx_id,
-            initiated_tx_id,
-            confirmed_voided_tx_id,
-            initiated_voided_tx_id,
+        Ok(WithdrawalReversalData {
+            ledger_tx_id,
+            amount: self.amount,
+            credit_account_id: self.deposit_account_id,
+            correlation_id: self.id.to_string(),
+            external_id: format!("lana:withdraw:{}:reverted", self.id),
         })
     }
 
@@ -191,7 +188,7 @@ impl Withdrawal {
     }
 
     pub fn status(&self) -> WithdrawalStatus {
-        if self.is_voided() {
+        if self.is_reverted() {
             WithdrawalStatus::Voided
         } else if self.is_cancelled() {
             WithdrawalStatus::Cancelled
@@ -221,13 +218,6 @@ impl Withdrawal {
             audit_info,
         });
         Idempotent::Executed(())
-    }
-
-    fn confirmed_tx_id(&self) -> Option<CalaTransactionId> {
-        self.events.iter_all().find_map(|e| match e {
-            WithdrawalEvent::Confirmed { ledger_tx_id, .. } => Some(*ledger_tx_id),
-            _ => None,
-        })
     }
 }
 
@@ -396,18 +386,18 @@ mod test {
     }
 
     #[test]
-    fn can_void_confirmed_withdrawal() {
+    fn can_revert_confirmed_withdrawal() {
         let mut withdrawal = create_confirmed_withdrawal();
 
-        let result = withdrawal.void(dummy_audit_info());
+        let result = withdrawal.revert(dummy_audit_info());
 
         assert!(result.is_ok());
-        assert!(withdrawal.is_voided());
+        assert!(withdrawal.is_reverted());
         assert_eq!(withdrawal.status(), WithdrawalStatus::Voided);
     }
 
     #[test]
-    fn cannot_void_cancelled_withdrawal() {
+    fn cannot_revert_cancelled_withdrawal() {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
@@ -424,23 +414,23 @@ mod test {
             .unwrap();
         withdrawal.cancel(dummy_audit_info()).unwrap();
 
-        let result = withdrawal.void(dummy_audit_info());
+        let result = withdrawal.revert(dummy_audit_info());
 
         assert!(matches!(result, Err(WithdrawalError::AlreadyCancelled(_))));
     }
 
     #[test]
-    fn cannot_void_already_voided_withdrawal() {
+    fn cannot_revert_already_reverted_withdrawal() {
         let mut withdrawal = create_confirmed_withdrawal();
 
-        withdrawal.void(dummy_audit_info()).unwrap();
-        let result = withdrawal.void(dummy_audit_info());
+        withdrawal.revert(dummy_audit_info()).unwrap();
+        let result = withdrawal.revert(dummy_audit_info());
 
-        assert!(matches!(result, Err(WithdrawalError::AlreadyVoided(_))));
+        assert!(matches!(result, Err(WithdrawalError::AlreadyReverted(_))));
     }
 
     #[test]
-    fn cannot_void_unconfirmed_withdrawal() {
+    fn cannot_revert_unconfirmed_withdrawal() {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
@@ -456,7 +446,7 @@ mod test {
             .approval_process_concluded(true, dummy_audit_info())
             .unwrap();
 
-        let result = withdrawal.void(dummy_audit_info());
+        let result = withdrawal.revert(dummy_audit_info());
 
         assert!(matches!(result, Err(WithdrawalError::NotConfirmed(_))));
     }

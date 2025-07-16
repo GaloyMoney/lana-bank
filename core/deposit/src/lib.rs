@@ -396,8 +396,8 @@ where
         Ok(withdrawal)
     }
 
-    #[instrument(name = "deposit.void_withdrawal", skip(self), err)]
-    pub async fn void_withdrawal(
+    #[instrument(name = "deposit.revert_withdrawal", skip(self), err)]
+    pub async fn revert_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
@@ -419,12 +419,12 @@ where
 
         let mut op = self.withdrawals.begin_op().await?;
 
-        let withdrawal_reversal_data = withdrawal.void(audit_info)?;
+        let withdrawal_reversal_data = withdrawal.revert(audit_info)?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
         self.ledger
-            .void_withdrawal(op, withdrawal_reversal_data)
+            .revert_withdrawal(op, withdrawal_reversal_data)
             .await?;
 
         Ok(withdrawal)
