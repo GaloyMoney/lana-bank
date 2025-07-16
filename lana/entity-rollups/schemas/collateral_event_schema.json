@@ -87,7 +87,7 @@
           "type": "string"
         },
         "type": {
-          "const": "updated_manually",
+          "const": "updated_via_manual_input",
           "type": "string"
         }
       },
@@ -120,7 +120,7 @@
           "type": "string"
         },
         "type": {
-          "const": "updated_by_custodian",
+          "const": "updated_via_custodian_sync",
           "type": "string"
         }
       },
