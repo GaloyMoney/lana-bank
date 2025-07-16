@@ -44,8 +44,8 @@ members = [
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 es-entity = "0.6.9"
-sim-time = "0.6.10"
-cala-ledger = "0.6.10"
+sim-time = "0.6.11"
+cala-ledger = "0.6.11"
 
 anyhow = "1.0.98"
 async-graphql = { version = "7.0.17", default-features = false, features = [
@@ -138,7 +138,7 @@ schemars = { version = "1.0.4", features = ["derive", "chrono04", "rust_decimal1
 tempfile = "3.10.0"
 p256 = "0.13.2"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
-markdown2pdf = { version = "0.1.4", features = ["rustls-tls"], default-features = false }
+markdown2pdf = { version = "0.1.5", features = ["rustls-tls"], default-features = false }
 
 [profile.release]
 lto = true 
