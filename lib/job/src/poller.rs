@@ -131,7 +131,7 @@ impl JobPoller {
                 let _ = sqlx::query!(
                     r#"
             UPDATE job_executions
-            SET state = 'pending', attempt_index = attempt_index + 1
+            SET state = 'pending', execute_at = $1, attempt_index = attempt_index + 1
             WHERE state = 'running' AND alive_at < $1::timestamptz
             "#,
                     check_time,
