@@ -220,6 +220,26 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
     }
     eprintln!("=== END DEBUG ===");
 
+    // Debug: Show all job_events rows
+    let debug_events = sqlx::query!(
+        r#"
+        SELECT * FROM job_events
+        ORDER BY (id, recorded_at) ASC
+        "#
+    )
+    .fetch_all(pool)
+    .await?;
+
+    eprintln!("=== DEBUG: All job_events rows ===");
+    eprintln!("Number of events: {}", debug_events.len());
+    for event in &debug_events {
+        eprintln!(
+            "ID: {:?}, RecordedAt: {:?}, Data: {:?}",
+            event.id, event.recorded_at, event.event
+        );
+    }
+    eprintln!("=== END DEBUG EVENTS ===");
+
     let rows = sqlx::query_as!(
         JobPollRow,
         r#"
