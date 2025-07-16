@@ -576,10 +576,7 @@ where
             )
             .await?;
 
-        let document = self
-            .document_storage
-            .find_by_id(customer_document_id)
-            .await;
+        let document = self.document_storage.find_by_id(customer_document_id).await;
 
         if let Ok(document) = document {
             Ok(Some(document))
