@@ -56,6 +56,7 @@ impl JobDispatcher {
     err)]
     pub async fn execute_job(mut self, polled_job: PolledJob) -> Result<(), JobError> {
         let job = self.repo.find_by_id(polled_job.id).await?;
+        eprintln!("execute_job {}", &job.job_type);
         let span = Span::current();
         span.record("job_id", tracing::field::display(job.id));
         span.record("job_type", tracing::field::display(&job.job_type));

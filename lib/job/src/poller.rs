@@ -126,7 +126,7 @@ impl JobPoller {
         let pool = self.repo.pool().clone();
         OwnedTaskHandle::new(tokio::task::spawn(async move {
             loop {
-                crate::time::sleep(job_lost_interval / 2).await;
+                tokio::time::sleep(job_lost_interval / 2).await;
                 let check_time = crate::time::now() - job_lost_interval;
                 let _ = sqlx::query!(
                     r#"
@@ -179,6 +179,47 @@ impl JobPoller {
 async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult, sqlx::Error> {
     let now = crate::time::now();
     Span::current().record("now", tracing::field::display(now));
+
+    // Debug: Show all job_executions rows
+    let debug_rows = sqlx::query!(
+        r#"
+        SELECT 
+            id,
+            state as "state: String",
+            execute_at,
+            job_type,
+            attempt_index,
+            CASE 
+                WHEN execute_at IS NULL THEN 'NULL'
+                WHEN execute_at <= $1 THEN 'READY (' || (execute_at::text) || ')'
+                ELSE 'FUTURE (' || (execute_at::text) || ')'
+            END as "execute_status: String",
+            execute_at - $1 as "time_diff: PgInterval"
+        FROM job_executions
+        ORDER BY execute_at ASC NULLS LAST
+        "#,
+        now
+    )
+    .fetch_all(pool)
+    .await?;
+
+    eprintln!("=== DEBUG: All job_executions rows ===");
+    eprintln!("Current time (now): {:?}", now);
+    eprintln!("Number of rows: {}", debug_rows.len());
+    for row in &debug_rows {
+        eprintln!(
+            "ID: {:?}, State: {}, JobType: {}, Attempt: {}, ExecuteAt: {:?}, Status: {:?}, Diff: {:?}",
+            row.id,
+            row.state,
+            row.job_type,
+            row.attempt_index,
+            row.execute_at,
+            row.execute_status,
+            row.time_diff
+        );
+    }
+    eprintln!("=== END DEBUG ===");
+
     let rows = sqlx::query_as!(
         JobPollRow,
         r#"
