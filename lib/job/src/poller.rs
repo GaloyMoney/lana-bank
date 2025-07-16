@@ -66,8 +66,9 @@ impl JobPoller {
                         timeout = duration;
                         failures = 0;
                     }
-                    Err(_) => {
+                    Err(e) => {
                         failures += 1;
+                        eprintln!("job.main_loop errored {e} ({failures})");
                         timeout = Duration::from_millis(50 << failures);
                     }
                 }
@@ -129,7 +130,7 @@ impl JobPoller {
                 crate::time::sleep(job_lost_interval / 2).await;
                 let now = crate::time::now();
                 let check_time = now - job_lost_interval;
-                let _ = sqlx::query!(
+                if let Ok(rows) = sqlx::query!(
                     r#"
             UPDATE job_executions
             SET state = 'pending', execute_at = $1, attempt_index = attempt_index + 1
@@ -139,7 +140,18 @@ impl JobPoller {
                     check_time,
                 )
                 .fetch_all(&pool)
-                .await;
+                .await
+                {
+                    if !rows.is_empty() {
+                        eprintln!(
+                            "job.lost_job: {}",
+                            rows.into_iter()
+                                .map(|r| r.id.to_string())
+                                .collect::<Vec<_>>()
+                                .join(", ")
+                        );
+                    }
+                }
             }
         }))
     }
@@ -163,7 +175,9 @@ impl JobPoller {
         let job_lost_interval = self.config.job_lost_interval;
         span.record("now", tracing::field::display(crate::time::now()));
         tokio::spawn(async move {
-            let _ = JobDispatcher::new(
+            let id = job.id;
+            let attempt = polled_job.attempt;
+            if let Err(e) = JobDispatcher::new(
                 repo,
                 tracker,
                 retry_settings,
@@ -172,7 +186,10 @@ impl JobPoller {
                 job_lost_interval,
             )
             .execute_job(polled_job)
-            .await;
+            .await
+            {
+                eprintln!("JobDispatcher.execute_job {id} ({attempt}) returned error {e}")
+            }
         });
         Ok(())
     }
@@ -203,7 +220,7 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
         ),
         updated AS (
             UPDATE job_executions AS je
-            SET state = 'running', execute_at = NULL
+            SET state = 'running', alive_at = $2, execute_at = NULL
             FROM selected_jobs
             WHERE je.id = selected_jobs.id
             RETURNING je.id, je.job_type, selected_jobs.data_json, je.attempt_index
