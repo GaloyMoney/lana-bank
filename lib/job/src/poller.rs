@@ -126,7 +126,7 @@ impl JobPoller {
         let pool = self.repo.pool().clone();
         OwnedTaskHandle::new(tokio::task::spawn(async move {
             loop {
-                tokio::time::sleep(job_lost_interval / 2).await;
+                crate::time::sleep(job_lost_interval / 2).await;
                 let check_time = crate::time::now() - job_lost_interval;
                 let _ = sqlx::query!(
                     r#"

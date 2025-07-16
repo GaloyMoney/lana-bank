@@ -1,6 +1,8 @@
 db:
   pool_size: 90
 app:
+  job_execution:
+    job_lost_interval: 36000
   access:
     superuser_email: "admin@galoy.io"
   service_account:
