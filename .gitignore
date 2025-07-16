@@ -51,3 +51,4 @@ meltano/**/*.log
 fuzz/target/
 fuzz/artifacts/
 fuzz/corpus/
+/rust-lightning/
