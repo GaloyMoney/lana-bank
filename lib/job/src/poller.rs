@@ -127,17 +127,29 @@ impl JobPoller {
         OwnedTaskHandle::new(tokio::task::spawn(async move {
             loop {
                 crate::time::sleep(job_lost_interval / 2).await;
-                let check_time = crate::time::now() - job_lost_interval;
-                let _ = sqlx::query!(
+                let now = crate::time::now();
+                let check_time = now - job_lost_interval;
+                let res = sqlx::query!(
                     r#"
             UPDATE job_executions
             SET state = 'pending', execute_at = $1, attempt_index = attempt_index + 1
             WHERE state = 'running' AND alive_at < $1::timestamptz
+            RETURNING id as id
             "#,
                     check_time,
                 )
                 .fetch_all(&pool)
                 .await;
+                eprintln!(
+                    "lost loop ({}) - {} : {}",
+                    res.expect("loop")
+                        .into_iter()
+                        .map(|r| r.id.to_string())
+                        .collect::<Vec<_>>()
+                        .join(","),
+                    now,
+                    check_time
+                );
             }
         }))
     }
@@ -189,6 +201,7 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
             execute_at,
             job_type,
             attempt_index,
+            alive_at,
             CASE 
                 WHEN execute_at IS NULL THEN 'NULL'
                 WHEN execute_at <= $1 THEN 'READY (' || (execute_at::text) || ')'
@@ -208,12 +221,13 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
     eprintln!("Number of rows: {}", debug_rows.len());
     for row in &debug_rows {
         eprintln!(
-            "ID: {:?}, State: {}, JobType: {}, Attempt: {}, ExecuteAt: {:?}, Status: {:?}, Diff: {:?}",
+            "ID: {:?}, State: {}, JobType: {}, Attempt: {}, ExecuteAt: {:?}, AliveAt: {:?}, Status: {:?}, Diff: {:?}",
             row.id,
             row.state,
             row.job_type,
             row.attempt_index,
             row.execute_at,
+            row.alive_at,
             row.execute_status,
             row.time_diff
         );
@@ -224,7 +238,7 @@ async fn poll_jobs(pool: &PgPool, n_jobs_to_poll: usize) -> Result<JobPollResult
     let debug_events = sqlx::query!(
         r#"
         SELECT * FROM job_events
-        ORDER BY (id, recorded_at) ASC
+        ORDER BY (id, sequence) ASC
         "#
     )
     .fetch_all(pool)

@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "\n        SELECT * FROM job_events\n        ORDER BY (id, recorded_at) ASC\n        ",
+  "query": "\n        SELECT * FROM job_events\n        ORDER BY (id, sequence) ASC\n        ",
   "describe": {
     "columns": [
       {
@@ -40,5 +40,5 @@
       false
     ]
   },
-  "hash": "bc1e619397904cd4415f29a1acfab63dc249543102b4ffe880ae6e2390de2bcf"
+  "hash": "6996e67e3da713f7f3701cbb4be3090d9dd7c4412c9088b01cc858e4166ee883"
 }

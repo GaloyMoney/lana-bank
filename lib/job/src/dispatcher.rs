@@ -247,10 +247,12 @@ impl Drop for JobDispatcher {
 async fn keep_job_alive(pool: PgPool, id: JobId, job_lost_interval: Duration) {
     loop {
         crate::time::sleep(job_lost_interval / 4).await;
+        let now = crate::time::now();
+        eprintln!("keep alive {} - {}", id, now);
         if sqlx::query!(
             "UPDATE job_executions SET alive_at = $2 WHERE id = $1",
             id as JobId,
-            crate::time::now()
+            now,
         )
         .execute(&pool)
         .await
