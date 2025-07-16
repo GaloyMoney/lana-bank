@@ -24,7 +24,6 @@ import { getSession, logoutUser } from "./ory"
 import { Toast } from "@/components/toast"
 
 import { makeClient } from "@/lib/apollo-client/client"
-import { env } from "@/env"
 
 const AuthenticatedStore = createContext({
   // eslint-disable-next-line no-empty-function
@@ -83,12 +82,11 @@ const AuthenticatedGuard: React.FC<Props> = ({ children }) => {
     })()
   }, [pathName, router, stopAppLoadingAnimation])
 
-  const appVersion = env.NEXT_PUBLIC_APP_VERSION
   const client = useMemo(() => {
     return makeClient({
       coreAdminGqlUrl: "/graphql",
     })
-  }, [appVersion])
+  }, [])
 
   const Stack =
     isAuthenticated || (isAuthenticated === null && isAuthSetInLocalStorage) ? (

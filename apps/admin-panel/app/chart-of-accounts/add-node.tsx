@@ -124,6 +124,9 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
     }, 400)
 
     return () => clearTimeout(timer)
+    // 'code' and 'validateParentCode' are excluded from deps to prevent unnecessary re-renders
+    // The effect only needs to run when parent changes or validation is triggered
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [parent, validationKey])
 
   const validateAccountCodeInput = (value: string): string => {
