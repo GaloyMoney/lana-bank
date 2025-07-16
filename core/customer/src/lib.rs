@@ -578,9 +578,7 @@ where
 
         match self.document_storage.find_by_id(customer_document_id).await {
             Ok(document) => Ok(Some(document)),
-            Err(document_storage::error::DocumentStorageError::EsEntityError(
-                es_entity::EsEntityError::NotFound,
-            )) => Ok(None),
+            Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
         }
     }
