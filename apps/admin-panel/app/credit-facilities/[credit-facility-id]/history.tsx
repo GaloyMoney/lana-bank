@@ -17,7 +17,7 @@ import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacilityHistoryProps = {
-  creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacility"]>
+  creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacilityByPublicId"]>
 }
 
 export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({

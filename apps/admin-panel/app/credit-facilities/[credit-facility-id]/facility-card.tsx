@@ -9,7 +9,9 @@ import Balance from "@/components/balance/balance"
 import { SignedUsdCents } from "@/types"
 
 function calculateTotalCostInCents(
-  creditFacility: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>,
+  creditFacility: NonNullable<
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
+  >,
 ): number {
   const feeRateBN = new BigNumber(
     creditFacility.creditFacilityTerms.oneTimeFeeRate ?? 0,
@@ -27,7 +29,9 @@ function calculateTotalCostInCents(
 function FacilityCard({
   creditFacility,
 }: {
-  creditFacility: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>
+  creditFacility: NonNullable<
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
+  >
 }) {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.FacilityCard")
 

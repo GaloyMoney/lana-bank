@@ -51,6 +51,7 @@ gql`
             }
             ... on CreditFacility {
               creditFacilityId
+              publicId
               customer {
                 email
               }
@@ -59,6 +60,7 @@ gql`
               id
               disbursalId
               creditFacility {
+                publicId
                 customer {
                   email
                 }
@@ -107,7 +109,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
       data.approvalProcessType === ApprovalProcessType.CreditFacilityApproval &&
       data.target.__typename === "CreditFacility"
     ) {
-      return `/credit-facilities/${data.target.creditFacilityId}`
+      return `/credit-facilities/${data.target.publicId}`
     } else if (
       data.approvalProcessType === ApprovalProcessType.WithdrawalApproval &&
       data.target.__typename === "Withdrawal"

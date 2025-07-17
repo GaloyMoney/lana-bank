@@ -17,7 +17,7 @@ describe("credit facility", () => {
   const termsTemplateName: string = `Test Template ${Date.now()}`
 
   before(() => {
-    Cypress.env("creditFacilityId", null)
+    Cypress.env("creditFacilityPublicId", null)
     cy.createTermsTemplate({
       name: termsTemplateName,
       annualRate: "5.5",
@@ -143,13 +143,10 @@ describe("credit facility", () => {
     cy.takeScreenshot("4_submit_credit_facility_form")
 
     cy.url()
-      .should(
-        "match",
-        /\/credit-facilities\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-      )
+      .should("match", /\/credit-facilities\/\d+$/)
       .then((url) => {
-        const facilityId = url.split("/").pop()
-        Cypress.env("creditFacilityId", facilityId)
+        const publicId = url.split("/").pop() as string
+        Cypress.env("creditFacilityPublicId", publicId)
       })
 
     cy.contains(t(CF + ".collateralizationState.noCollateral")).should("be.visible")
@@ -164,10 +161,10 @@ describe("credit facility", () => {
   })
 
   it("should update collateral, approve and activate the credit facility", () => {
-    const creditFacilityId = Cypress.env("creditFacilityId")
-    expect(creditFacilityId).to.exist
+    const publicId = Cypress.env("creditFacilityPublicId")
+    expect(publicId).to.exist
 
-    cy.visit(`/credit-facilities/${creditFacilityId}`)
+    cy.visit(`/credit-facilities/${publicId}`)
     cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("6_visit_credit_facility_page")
 
@@ -223,10 +220,10 @@ describe("credit facility", () => {
   })
 
   it("should successfully initiate and confirm a disbursal", () => {
-    const creditFacilityId = Cypress.env("creditFacilityId")
-    expect(creditFacilityId).to.exist
+    const publicId = Cypress.env("creditFacilityPublicId")
+    expect(publicId).to.exist
 
-    cy.visit(`/credit-facilities/${creditFacilityId}`)
+    cy.visit(`/credit-facilities/${publicId}`)
     cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("11_visit_credit_facility_page_for_disbursal")
 

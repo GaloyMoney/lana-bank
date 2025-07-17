@@ -80,7 +80,7 @@ type ApprovalDialogProps = {
   setOpenApprovalDialog: (isOpen: boolean) => void
   openApprovalDialog: boolean
   approvalProcess: NonNullable<
-    GetCreditFacilityLayoutDetailsQuery["creditFacility"]
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
   >["approvalProcess"]
 }
 

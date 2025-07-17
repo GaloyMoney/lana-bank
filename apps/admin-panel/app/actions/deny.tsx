@@ -41,7 +41,7 @@ type DenialDialogProps = {
   setOpenDenialDialog: (isOpen: boolean) => void
   openDenialDialog: boolean
   approvalProcess: NonNullable<
-    GetCreditFacilityLayoutDetailsQuery["creditFacility"]
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
   >["approvalProcess"]
 }
 

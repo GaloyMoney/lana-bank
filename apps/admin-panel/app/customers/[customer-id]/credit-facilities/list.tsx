@@ -64,7 +64,7 @@ export const CustomerCreditFacilitiesTable: React.FC<
       <DataTable
         data={creditFacilities}
         columns={columns}
-        navigateTo={(facility) => `/credit-facilities/${facility.creditFacilityId}`}
+        navigateTo={(facility) => `/credit-facilities/${facility.publicId}`}
       />
     </CardWrapper>
   )

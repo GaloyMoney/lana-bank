@@ -48,11 +48,12 @@ type CreditFacilityCollateralUpdateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
+  publicId: string
 }
 
 export const CreditFacilityCollateralUpdateDialog: React.FC<
   CreditFacilityCollateralUpdateDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityId }) => {
+> = ({ setOpenDialog, openDialog, creditFacilityId, publicId }) => {
   const t = useTranslations(
     "CreditFacilities.CreditFacilityDetails.CreditFacilityCollateralUpdate",
   )
@@ -64,7 +65,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   const [newCollateral, setNewCollateral] = useState<string>("")
 
   const { data: creditFacilityDetails } = useGetCreditFacilityLayoutDetailsQuery({
-    variables: { id: creditFacilityId },
+    variables: { publicId },
   })
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -113,7 +114,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   }
 
   const currentCollateral =
-    creditFacilityDetails?.creditFacility?.balance?.collateral?.btcBalance || 0
+    creditFacilityDetails?.creditFacilityByPublicId?.balance?.collateral?.btcBalance || 0
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
@@ -192,13 +193,14 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                     }
                     data-testid="current-collateral-balance"
                   />
-                  {creditFacilityDetails?.creditFacility?.collateralToMatchInitialCvl && (
+                  {creditFacilityDetails?.creditFacilityByPublicId
+                    ?.collateralToMatchInitialCvl && (
                     <DetailItem
                       label={t("form.labels.expectedCollateral")}
                       value={
                         <Balance
                           amount={
-                            creditFacilityDetails?.creditFacility
+                            creditFacilityDetails?.creditFacilityByPublicId
                               ?.collateralToMatchInitialCvl
                           }
                           currency="btc"

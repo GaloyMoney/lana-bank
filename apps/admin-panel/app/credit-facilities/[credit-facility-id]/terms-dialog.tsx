@@ -13,7 +13,9 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 type CreditFacilityTermsDialogProps = {
   openTermsDialog: boolean
   setOpenTermsDialog: (isOpen: boolean) => void
-  creditFacility: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>
+  creditFacility: NonNullable<
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
+  >
 }
 
 export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps> = ({

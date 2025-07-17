@@ -29,7 +29,7 @@ import Balance from "@/components/balance/balance"
 type CreditFacilityDetailsProps = {
   creditFacilityId: string
   creditFacilityDetails: NonNullable<
-    GetCreditFacilityLayoutDetailsQuery["creditFacility"]
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
   >
 }
 
@@ -167,6 +167,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 
       <CreditFacilityCollateralUpdateDialog
         creditFacilityId={creditFacilityId}
+        publicId={creditFacilityDetails.publicId}
         openDialog={openCollateralUpdateDialog}
         setOpenDialog={setOpenCollateralUpdateDialog}
       />

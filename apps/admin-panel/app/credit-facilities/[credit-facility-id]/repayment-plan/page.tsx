@@ -17,8 +17,8 @@ gql`
     dueAt
   }
 
-  query GetCreditFacilityRepaymentPlan($id: UUID!) {
-    creditFacility(id: $id) {
+  query GetCreditFacilityRepaymentPlan($publicId: PublicId!) {
+    creditFacilityByPublicId(id: $publicId) {
       id
       creditFacilityId
       repaymentPlan {
@@ -32,12 +32,12 @@ export default function CreditFacilityRepaymentPlansPage({
 }: {
   params: Promise<{ "credit-facility-id": string }>
 }) {
-  const { "credit-facility-id": creditFacilityId } = use(params)
+  const { "credit-facility-id": publicId } = use(params)
   const { data } = useGetCreditFacilityRepaymentPlanQuery({
-    variables: { id: creditFacilityId },
+    variables: { publicId },
   })
 
-  if (!data?.creditFacility) return null
+  if (!data?.creditFacilityByPublicId) return null
 
-  return <CreditFacilityRepaymentPlan creditFacility={data.creditFacility} />
+  return <CreditFacilityRepaymentPlan creditFacility={data.creditFacilityByPublicId} />
 }

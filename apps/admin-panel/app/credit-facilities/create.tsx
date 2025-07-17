@@ -45,11 +45,13 @@ gql`
       creditFacility {
         id
         creditFacilityId
+        publicId
         customer {
           id
           creditFacilities {
             id
             creditFacilityId
+            publicId
             collateralizationState
             status
             createdAt
@@ -245,7 +247,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           if (data.creditFacilityCreate) {
             toast.success(t("form.messages.success"))
             navigate(
-              `/credit-facilities/${data?.creditFacilityCreate.creditFacility.creditFacilityId}`,
+              `/credit-facilities/${data?.creditFacilityCreate.creditFacility.publicId}`,
             )
           }
         },

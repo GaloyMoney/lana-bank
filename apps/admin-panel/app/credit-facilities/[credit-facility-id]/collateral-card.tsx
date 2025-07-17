@@ -13,7 +13,9 @@ import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
 import { Satoshis, UsdCents } from "@/types"
 
 type CreditFacilityOverviewProps = {
-  creditFacility: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>
+  creditFacility: NonNullable<
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
+  >
 }
 
 const getCvlStatus = (

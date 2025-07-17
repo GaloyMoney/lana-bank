@@ -16,12 +16,14 @@ import CardWrapper from "@/components/card-wrapper"
 
 type RepaymentPlan = NonNullable<
   NonNullable<
-    GetCreditFacilityRepaymentPlanQuery["creditFacility"]
+    GetCreditFacilityRepaymentPlanQuery["creditFacilityByPublicId"]
   >["repaymentPlan"][number]
 >
 
 type CreditFacilityRepaymentPlanProps = {
-  creditFacility: NonNullable<GetCreditFacilityRepaymentPlanQuery["creditFacility"]>
+  creditFacility: NonNullable<
+    GetCreditFacilityRepaymentPlanQuery["creditFacilityByPublicId"]
+  >
 }
 
 export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanProps> = ({

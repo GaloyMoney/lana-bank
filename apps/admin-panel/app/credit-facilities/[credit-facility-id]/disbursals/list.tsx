@@ -12,11 +12,13 @@ import DataTable, { Column } from "@/components/data-table"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type Disbursal = NonNullable<
-  GetCreditFacilityDisbursalsQuery["creditFacility"]
+  GetCreditFacilityDisbursalsQuery["creditFacilityByPublicId"]
 >["disbursals"][number]
 
 type CreditFacilityDisbursalsProps = {
-  creditFacility: NonNullable<GetCreditFacilityDisbursalsQuery["creditFacility"]>
+  creditFacility: NonNullable<
+    GetCreditFacilityDisbursalsQuery["creditFacilityByPublicId"]
+  >
 }
 
 export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> = ({
@@ -28,18 +30,18 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
     {
       key: "amount",
       header: t("columns.amount"),
-      render: (amount) => <Balance amount={amount} currency="usd" />,
+      render: (amount: Disbursal["amount"]) => <Balance amount={amount} currency="usd" />,
     },
     {
       key: "createdAt",
       header: t("columns.createdAt"),
-      render: (date) => <DateWithTooltip value={date} />,
+      render: (date: Disbursal["createdAt"]) => <DateWithTooltip value={date} />,
     },
     {
       key: "status",
       header: t("columns.status"),
       align: "right",
-      render: (_, disbursal) => {
+      render: (_: Disbursal["status"], disbursal: Disbursal) => {
         return <DisbursalStatusBadge status={disbursal.status} />
       },
     },

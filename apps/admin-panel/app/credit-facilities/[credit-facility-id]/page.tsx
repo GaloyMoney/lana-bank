@@ -62,8 +62,8 @@ gql`
     }
   }
 
-  query GetCreditFacilityHistory($id: UUID!) {
-    creditFacility(id: $id) {
+  query GetCreditFacilityHistory($publicId: PublicId!) {
+    creditFacilityByPublicId(id: $publicId) {
       ...CreditFacilityHistoryFragment
     }
   }
@@ -78,13 +78,13 @@ interface CreditFacilityHistoryPageProps {
 export default function CreditFacilityHistoryPage({
   params,
 }: CreditFacilityHistoryPageProps) {
-  const { "credit-facility-id": creditFacilityId } = use(params)
+  const { "credit-facility-id": publicId } = use(params)
   const { data } = useGetCreditFacilityHistoryQuery({
-    variables: { id: creditFacilityId },
+    variables: { publicId },
     fetchPolicy: "cache-and-network",
   })
 
-  if (!data?.creditFacility) return null
+  if (!data?.creditFacilityByPublicId) return null
 
-  return <CreditFacilityHistory creditFacility={data.creditFacility} />
+  return <CreditFacilityHistory creditFacility={data.creditFacilityByPublicId} />
 }

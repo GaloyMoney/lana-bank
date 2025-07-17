@@ -16,8 +16,8 @@ gql`
     createdAt
   }
 
-  query GetCreditFacilityDisbursals($id: UUID!) {
-    creditFacility(id: $id) {
+  query GetCreditFacilityDisbursals($publicId: PublicId!) {
+    creditFacilityByPublicId(id: $publicId) {
       id
       creditFacilityId
       disbursals {
@@ -31,12 +31,12 @@ export default function CreditFacilityDisbursalsPage({
 }: {
   params: Promise<{ "credit-facility-id": string }>
 }) {
-  const { "credit-facility-id": creditFacilityId } = use(params)
+  const { "credit-facility-id": publicId } = use(params)
   const { data } = useGetCreditFacilityDisbursalsQuery({
-    variables: { id: creditFacilityId },
+    variables: { publicId },
   })
 
-  if (!data?.creditFacility) return null
+  if (!data?.creditFacilityByPublicId) return null
 
-  return <CreditFacilityDisbursals creditFacility={data.creditFacility} />
+  return <CreditFacilityDisbursals creditFacility={data.creditFacilityByPublicId} />
 }

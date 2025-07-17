@@ -10,7 +10,9 @@ import { DetailsCard, DetailItemProps } from "@/components/details"
 type CreditFacilityWalletDialogProps = {
   openWalletDialog: boolean
   setOpenWalletDialog: (isOpen: boolean) => void
-  wallet: NonNullable<GetCreditFacilityLayoutDetailsQuery["creditFacility"]>["wallet"]
+  wallet: NonNullable<
+    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
+  >["wallet"]
 }
 
 export const CreditFacilityWalletDialog: React.FC<CreditFacilityWalletDialogProps> = ({

@@ -117,8 +117,8 @@ gql`
     subjectCanComplete
   }
 
-  query GetCreditFacilityLayoutDetails($id: UUID!) {
-    creditFacility(id: $id) {
+  query GetCreditFacilityLayoutDetails($publicId: PublicId!) {
+    creditFacilityByPublicId(id: $publicId) {
       ...CreditFacilityLayoutFragment
     }
   }
@@ -134,7 +134,7 @@ export default function CreditFacilityLayout({
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.Layout")
   const navTranslations = useTranslations("Sidebar.navItems")
 
-  const { "credit-facility-id": creditFacilityId } = use(params)
+  const { "credit-facility-id": publicId } = use(params)
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const client = useApolloClient()
   const { setFacility } = useCreateContext()
@@ -145,37 +145,39 @@ export default function CreditFacilityLayout({
     { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
   ]
 
-  const { currentTab, handleTabChange } = useTabNavigation(TABS, creditFacilityId)
+  const { currentTab, handleTabChange } = useTabNavigation(TABS, publicId)
 
   const { data, loading, error } = useGetCreditFacilityLayoutDetailsQuery({
-    variables: { id: creditFacilityId },
+    variables: { publicId },
     fetchPolicy: "cache-and-network",
   })
 
   useEffect(() => {
-    data?.creditFacility && setFacility(data?.creditFacility as CreditFacility)
+    data?.creditFacilityByPublicId &&
+      setFacility(data?.creditFacilityByPublicId as CreditFacility)
     return () => setFacility(null)
-  }, [data?.creditFacility, setFacility])
+  }, [data?.creditFacilityByPublicId, setFacility])
 
   useEffect(() => {
     if (
-      data?.creditFacility?.status === CreditFacilityStatus.PendingApproval &&
-      data?.creditFacility?.approvalProcess?.status === ApprovalProcessStatus.Approved
+      data?.creditFacilityByPublicId?.status === CreditFacilityStatus.PendingApproval &&
+      data?.creditFacilityByPublicId?.approvalProcess?.status ===
+        ApprovalProcessStatus.Approved
     ) {
       const timer = setInterval(() => {
         client.query({
           query: GetCreditFacilityLayoutDetailsDocument,
-          variables: { id: creditFacilityId },
+          variables: { publicId },
           fetchPolicy: "network-only",
         })
         client.query({
           query: GetCreditFacilityHistoryDocument,
-          variables: { id: creditFacilityId },
+          variables: { publicId },
           fetchPolicy: "network-only",
         })
         client.query({
           query: GetCreditFacilityRepaymentPlanDocument,
-          variables: { id: creditFacilityId },
+          variables: { publicId },
           fetchPolicy: "network-only",
         })
       }, 3000)
@@ -183,10 +185,13 @@ export default function CreditFacilityLayout({
       return () => clearInterval(timer)
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.creditFacility?.status, data?.creditFacility?.approvalProcess?.status])
+  }, [
+    data?.creditFacilityByPublicId?.status,
+    data?.creditFacilityByPublicId?.approvalProcess?.status,
+  ])
 
   useEffect(() => {
-    if (data?.creditFacility) {
+    if (data?.creditFacilityByPublicId) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
         {
@@ -194,8 +199,8 @@ export default function CreditFacilityLayout({
           href: "/credit-facilities",
         },
         {
-          title: data.creditFacility.creditFacilityId,
-          href: `/credit-facilities/${creditFacilityId}`,
+          title: data.creditFacilityByPublicId.publicId,
+          href: `/credit-facilities/${publicId}`,
         },
         ...(currentTabData?.url === "/"
           ? []
@@ -206,23 +211,23 @@ export default function CreditFacilityLayout({
       resetToDefault()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.creditFacility, currentTab])
+  }, [data?.creditFacilityByPublicId, currentTab])
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={4} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.creditFacility) return <div>{t("errors.notFound")}</div>
+  if (!data?.creditFacilityByPublicId) return <div>{t("errors.notFound")}</div>
 
   return (
     <main className="max-w-7xl m-auto">
       <CreditFacilityDetailsCard
-        creditFacilityId={creditFacilityId}
-        creditFacilityDetails={data.creditFacility}
+        creditFacilityId={data.creditFacilityByPublicId.creditFacilityId}
+        creditFacilityDetails={data.creditFacilityByPublicId}
       />
       <div className="flex md:flex-row flex-col gap-2 my-2">
-        <FacilityCard creditFacility={data.creditFacility} />
-        <CreditFacilityCollateral creditFacility={data.creditFacility} />
+        <FacilityCard creditFacility={data.creditFacilityByPublicId} />
+        <CreditFacilityCollateral creditFacility={data.creditFacilityByPublicId} />
       </div>
-      <VotersCard approvalProcess={data.creditFacility.approvalProcess} />
+      <VotersCard approvalProcess={data.creditFacilityByPublicId.approvalProcess} />
       <Tabs
         defaultValue={TABS[0].url}
         value={currentTab}

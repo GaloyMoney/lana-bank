@@ -41,6 +41,7 @@ gql`
         node {
           id
           creditFacilityId
+          publicId
           collateralizationState
           createdAt
           status
@@ -90,7 +91,7 @@ const CreditFacilities = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(facility) => `/credit-facilities/${facility.creditFacilityId}`}
+        navigateTo={(facility) => `/credit-facilities/${facility.publicId}`}
         onSort={(column, direction) => {
           setSortBy({
             by: (column === "currentCvl"
