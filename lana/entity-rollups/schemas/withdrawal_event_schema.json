@@ -47,6 +47,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "reference": {
           "type": "string"
         },
@@ -58,6 +62,7 @@
       "required": [
         "type",
         "id",
+        "ledger_tx_id",
         "deposit_account_id",
         "amount",
         "reference",

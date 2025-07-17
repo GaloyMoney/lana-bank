@@ -31,6 +31,7 @@ pub enum WithdrawalStatus {
 pub enum WithdrawalEvent {
     Initialized {
         id: WithdrawalId,
+        ledger_tx_id: CalaTransactionId,
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
         reference: String,
@@ -295,6 +296,7 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
             [WithdrawalEvent::Initialized {
                 reference: self.reference(),
                 id: self.id,
+                ledger_tx_id: self.id.into(),
                 deposit_account_id: self.deposit_account_id,
                 amount: self.amount,
                 approval_process_id: self.approval_process_id,

@@ -417,15 +417,17 @@ where
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
 
-        let mut op = self.withdrawals.begin_op().await?;
-
-        let withdrawal_reversal_data = withdrawal.revert(audit_info)?;
-        self.withdrawals
-            .update_in_op(&mut op, &mut withdrawal)
-            .await?;
-        self.ledger
-            .revert_withdrawal(op, withdrawal_reversal_data)
-            .await?;
+        if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) =
+            withdrawal.revert(audit_info)
+        {
+            let mut op = self.withdrawals.begin_op().await?;
+            self.withdrawals
+                .update_in_op(&mut op, &mut withdrawal)
+                .await?;
+            self.ledger
+                .revert_withdrawal(op, withdrawal_reversal_data)
+                .await?;
+        }
 
         Ok(withdrawal)
     }
