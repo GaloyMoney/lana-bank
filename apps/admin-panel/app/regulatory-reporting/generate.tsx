@@ -21,7 +21,7 @@ import {
 
 import {
   useReportGenerateMutation,
-  useReportGenerationStatusQuery,
+  useReportGenerationJobStatusQuery,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -31,8 +31,8 @@ gql`
     }
   }
 
-  query ReportGenerationStatus {
-    reportGenerationStatus {
+  query ReportGenerationJobStatus {
+    reportGenerationJobStatus {
       running
       runType
       runStartedAt
@@ -61,7 +61,7 @@ const ReportGeneration: React.FC = () => {
     data,
     loading,
     refetch: refetchStatus,
-  } = useReportGenerationStatusQuery({
+  } = useReportGenerationJobStatusQuery({
     pollInterval: POLL_INTERVAL,
   })
 
@@ -82,9 +82,9 @@ const ReportGeneration: React.FC = () => {
   if (loading || !data) return <Button disabled>{t("generate")}</Button>
 
   const currentRunRunning =
-    data.reportGenerationStatus.running || generateLoading || triggered
+    data.reportGenerationJobStatus.running || generateLoading || triggered
   const lastRunFailed =
-    data.reportGenerationStatus.lastRun?.status.toLowerCase() === "failed"
+    data.reportGenerationJobStatus.lastRun?.status.toLowerCase() === "failed"
 
   return (
     <>
@@ -141,7 +141,7 @@ const StatusModal: React.FC<StatusModalDialogProps> = ({
 }) => {
   const t = useTranslations("Reports.ReportGeneration")
 
-  const { data, error } = useReportGenerationStatusQuery({
+  const { data, error } = useReportGenerationJobStatusQuery({
     pollInterval: POLL_INTERVAL,
   })
 
@@ -149,17 +149,17 @@ const StatusModal: React.FC<StatusModalDialogProps> = ({
   if (error) return <div>{t("error", { error: error.message })}</div>
 
   const startedAt = new Date(
-    data.reportGenerationStatus.running
-      ? data.reportGenerationStatus.runStartedAt
-      : data.reportGenerationStatus.lastRun?.runStartedAt,
+    data.reportGenerationJobStatus.running
+      ? data.reportGenerationJobStatus.runStartedAt
+      : data.reportGenerationJobStatus.lastRun?.runStartedAt,
   )
-  const running = data.reportGenerationStatus.running
+  const running = data.reportGenerationJobStatus.running
   const lastRunErrored =
-    data.reportGenerationStatus.lastRun?.status.toLowerCase() === "failed"
+    data.reportGenerationJobStatus.lastRun?.status.toLowerCase() === "failed"
 
   const rawLog = running
-    ? data.reportGenerationStatus.logs
-    : data.reportGenerationStatus.lastRun?.logs
+    ? data.reportGenerationJobStatus.logs
+    : data.reportGenerationJobStatus.lastRun?.logs
   const cleanLog = rawLog?.replace(/\x1B\[[0-9;]*[A-Za-z]/g, "")
 
   return (

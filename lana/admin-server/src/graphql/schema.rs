@@ -892,13 +892,13 @@ impl Query {
         Ok(res)
     }
 
-    async fn report_generation_status(
+    async fn report_generation_job_status(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<ReportGenerationStatusPayload> {
+    ) -> async_graphql::Result<ReportGenerationJobStatusPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let response = app.reports().get_generation_status(sub).await?;
-        Ok(ReportGenerationStatusPayload::from(response))
+        Ok(ReportGenerationJobStatusPayload::from(response))
     }
 }
 
@@ -1921,10 +1921,13 @@ impl Mutation {
     pub async fn report_generate_download_link(
         &self,
         ctx: &Context<'_>,
-        report_id: UUID,
-    ) -> async_graphql::Result<String> {
+        input: ReportGenerateDownloadLinkInput,
+    ) -> async_graphql::Result<ReportGenerateDownloadLinkPayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let download_link = app.reports().generate_download_link(sub, report_id).await?;
-        Ok(download_link)
+        let download_link = app
+            .reports()
+            .generate_download_link(sub, input.report_id)
+            .await?;
+        Ok(ReportGenerateDownloadLinkPayload::from(download_link))
     }
 }

@@ -1193,7 +1193,7 @@ export type LastRun = {
   __typename?: 'LastRun';
   logs?: Maybe<Scalars['String']['output']>;
   runStartedAt?: Maybe<Scalars['Timestamp']['output']>;
-  runType: RunType;
+  runType: ReportGenerationJobRunType;
   status: Scalars['String']['output'];
 };
 
@@ -1344,7 +1344,7 @@ export type Mutation = {
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportGenerate: ReportGeneratePayload;
-  reportGenerateDownloadLink: Scalars['String']['output'];
+  reportGenerateDownloadLink: ReportGenerateDownloadLinkPayload;
   roleAddPermissionSets: RoleAddPermissionSetsPayload;
   roleCreate: RoleCreatePayload;
   roleRemovePermissionSets: RoleRemovePermissionSetsPayload;
@@ -1513,7 +1513,7 @@ export type MutationProfitAndLossStatementConfigureArgs = {
 
 
 export type MutationReportGenerateDownloadLinkArgs = {
-  reportId: Scalars['UUID']['input'];
+  input: ReportGenerateDownloadLinkInput;
 };
 
 
@@ -1766,7 +1766,7 @@ export type Query = {
   profitAndLossStatementConfig?: Maybe<ProfitAndLossStatementModuleConfig>;
   publicIdTarget?: Maybe<PublicIdTarget>;
   realtimePrice: RealtimePrice;
-  reportGenerationStatus: ReportGenerationStatusPayload;
+  reportGenerationJobStatus: ReportGenerationJobStatusPayload;
   reportListAvailableDates: Array<Scalars['Date']['output']>;
   reportsByDate: ReportConnection;
   role?: Maybe<Role>;
@@ -2045,18 +2045,32 @@ export type ReportEdge = {
   node: Report;
 };
 
+export type ReportGenerateDownloadLinkInput = {
+  reportId: Scalars['UUID']['input'];
+};
+
+export type ReportGenerateDownloadLinkPayload = {
+  __typename?: 'ReportGenerateDownloadLinkPayload';
+  url: Scalars['String']['output'];
+};
+
 export type ReportGeneratePayload = {
   __typename?: 'ReportGeneratePayload';
   runId: Scalars['String']['output'];
 };
 
-export type ReportGenerationStatusPayload = {
-  __typename?: 'ReportGenerationStatusPayload';
+export enum ReportGenerationJobRunType {
+  ApiTriggered = 'API_TRIGGERED',
+  Scheduled = 'SCHEDULED'
+}
+
+export type ReportGenerationJobStatusPayload = {
+  __typename?: 'ReportGenerationJobStatusPayload';
   error?: Maybe<Scalars['String']['output']>;
   lastRun?: Maybe<LastRun>;
   logs?: Maybe<Scalars['String']['output']>;
   runStartedAt?: Maybe<Scalars['Timestamp']['output']>;
-  runType?: Maybe<RunType>;
+  runType?: Maybe<ReportGenerationJobRunType>;
   running: Scalars['Boolean']['output'];
 };
 
@@ -2117,11 +2131,6 @@ export type RoleRemovePermissionSetsPayload = {
   __typename?: 'RoleRemovePermissionSetsPayload';
   role: Role;
 };
-
-export enum RunType {
-  ApiTriggered = 'API_TRIGGERED',
-  Scheduled = 'SCHEDULED'
-}
 
 export enum SortDirection {
   Asc = 'ASC',
@@ -2948,21 +2957,21 @@ export type ReportsByDateQueryVariables = Exact<{
 export type ReportsByDateQuery = { __typename?: 'Query', reportsByDate: { __typename?: 'ReportConnection', edges: Array<{ __typename?: 'ReportEdge', cursor: string, node: { __typename?: 'Report', id: string, reportId: string, date: any, pathInBucket: string } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type ReportGenerateDownloadLinkMutationVariables = Exact<{
-  reportId: Scalars['UUID']['input'];
+  input: ReportGenerateDownloadLinkInput;
 }>;
 
 
-export type ReportGenerateDownloadLinkMutation = { __typename?: 'Mutation', reportGenerateDownloadLink: string };
+export type ReportGenerateDownloadLinkMutation = { __typename?: 'Mutation', reportGenerateDownloadLink: { __typename?: 'ReportGenerateDownloadLinkPayload', url: string } };
 
 export type ReportGenerateMutationVariables = Exact<{ [key: string]: never; }>;
 
 
 export type ReportGenerateMutation = { __typename?: 'Mutation', reportGenerate: { __typename?: 'ReportGeneratePayload', runId: string } };
 
-export type ReportGenerationStatusQueryVariables = Exact<{ [key: string]: never; }>;
+export type ReportGenerationJobStatusQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReportGenerationStatusQuery = { __typename?: 'Query', reportGenerationStatus: { __typename?: 'ReportGenerationStatusPayload', running: boolean, runType?: RunType | null, runStartedAt?: any | null, logs?: string | null, error?: string | null, lastRun?: { __typename?: 'LastRun', runType: RunType, runStartedAt?: any | null, status: string, logs?: string | null } | null } };
+export type ReportGenerationJobStatusQuery = { __typename?: 'Query', reportGenerationJobStatus: { __typename?: 'ReportGenerationJobStatusPayload', running: boolean, runType?: ReportGenerationJobRunType | null, runStartedAt?: any | null, logs?: string | null, error?: string | null, lastRun?: { __typename?: 'LastRun', runType: ReportGenerationJobRunType, runStartedAt?: any | null, status: string, logs?: string | null } | null } };
 
 export type ReportListAvailableDatesQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -6802,8 +6811,10 @@ export type ReportsByDateLazyQueryHookResult = ReturnType<typeof useReportsByDat
 export type ReportsByDateSuspenseQueryHookResult = ReturnType<typeof useReportsByDateSuspenseQuery>;
 export type ReportsByDateQueryResult = Apollo.QueryResult<ReportsByDateQuery, ReportsByDateQueryVariables>;
 export const ReportGenerateDownloadLinkDocument = gql`
-    mutation reportGenerateDownloadLink($reportId: UUID!) {
-  reportGenerateDownloadLink(reportId: $reportId)
+    mutation ReportGenerateDownloadLink($input: ReportGenerateDownloadLinkInput!) {
+  reportGenerateDownloadLink(input: $input) {
+    url
+  }
 }
     `;
 export type ReportGenerateDownloadLinkMutationFn = Apollo.MutationFunction<ReportGenerateDownloadLinkMutation, ReportGenerateDownloadLinkMutationVariables>;
@@ -6821,7 +6832,7 @@ export type ReportGenerateDownloadLinkMutationFn = Apollo.MutationFunction<Repor
  * @example
  * const [reportGenerateDownloadLinkMutation, { data, loading, error }] = useReportGenerateDownloadLinkMutation({
  *   variables: {
- *      reportId: // value for 'reportId'
+ *      input: // value for 'input'
  *   },
  * });
  */
@@ -6864,9 +6875,9 @@ export function useReportGenerateMutation(baseOptions?: Apollo.MutationHookOptio
 export type ReportGenerateMutationHookResult = ReturnType<typeof useReportGenerateMutation>;
 export type ReportGenerateMutationResult = Apollo.MutationResult<ReportGenerateMutation>;
 export type ReportGenerateMutationOptions = Apollo.BaseMutationOptions<ReportGenerateMutation, ReportGenerateMutationVariables>;
-export const ReportGenerationStatusDocument = gql`
-    query ReportGenerationStatus {
-  reportGenerationStatus {
+export const ReportGenerationJobStatusDocument = gql`
+    query ReportGenerationJobStatus {
+  reportGenerationJobStatus {
     running
     runType
     runStartedAt
@@ -6883,36 +6894,36 @@ export const ReportGenerationStatusDocument = gql`
     `;
 
 /**
- * __useReportGenerationStatusQuery__
+ * __useReportGenerationJobStatusQuery__
  *
- * To run a query within a React component, call `useReportGenerationStatusQuery` and pass it any options that fit your needs.
- * When your component renders, `useReportGenerationStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * To run a query within a React component, call `useReportGenerationJobStatusQuery` and pass it any options that fit your needs.
+ * When your component renders, `useReportGenerationJobStatusQuery` returns an object from Apollo Client that contains loading, error, and data properties
  * you can use to render your UI.
  *
  * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
  *
  * @example
- * const { data, loading, error } = useReportGenerationStatusQuery({
+ * const { data, loading, error } = useReportGenerationJobStatusQuery({
  *   variables: {
  *   },
  * });
  */
-export function useReportGenerationStatusQuery(baseOptions?: Apollo.QueryHookOptions<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>) {
+export function useReportGenerationJobStatusQuery(baseOptions?: Apollo.QueryHookOptions<ReportGenerationJobStatusQuery, ReportGenerationJobStatusQueryVariables>) {
         const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useQuery<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>(ReportGenerationStatusDocument, options);
+        return Apollo.useQuery<ReportGenerationJobStatusQuery, ReportGenerationJobStatusQueryVariables>(ReportGenerationJobStatusDocument, options);
       }
-export function useReportGenerationStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>) {
+export function useReportGenerationJobStatusLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<ReportGenerationJobStatusQuery, ReportGenerationJobStatusQueryVariables>) {
           const options = {...defaultOptions, ...baseOptions}
-          return Apollo.useLazyQuery<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>(ReportGenerationStatusDocument, options);
+          return Apollo.useLazyQuery<ReportGenerationJobStatusQuery, ReportGenerationJobStatusQueryVariables>(ReportGenerationJobStatusDocument, options);
         }
-export function useReportGenerationStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>) {
+export function useReportGenerationJobStatusSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<ReportGenerationJobStatusQuery, ReportGenerationJobStatusQueryVariables>) {
           const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
-          return Apollo.useSuspenseQuery<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>(ReportGenerationStatusDocument, options);
+          return Apollo.useSuspenseQuery<ReportGenerationJobStatusQuery, ReportGenerationJobStatusQueryVariables>(ReportGenerationJobStatusDocument, options);
         }
-export type ReportGenerationStatusQueryHookResult = ReturnType<typeof useReportGenerationStatusQuery>;
-export type ReportGenerationStatusLazyQueryHookResult = ReturnType<typeof useReportGenerationStatusLazyQuery>;
-export type ReportGenerationStatusSuspenseQueryHookResult = ReturnType<typeof useReportGenerationStatusSuspenseQuery>;
-export type ReportGenerationStatusQueryResult = Apollo.QueryResult<ReportGenerationStatusQuery, ReportGenerationStatusQueryVariables>;
+export type ReportGenerationJobStatusQueryHookResult = ReturnType<typeof useReportGenerationJobStatusQuery>;
+export type ReportGenerationJobStatusLazyQueryHookResult = ReturnType<typeof useReportGenerationJobStatusLazyQuery>;
+export type ReportGenerationJobStatusSuspenseQueryHookResult = ReturnType<typeof useReportGenerationJobStatusSuspenseQuery>;
+export type ReportGenerationJobStatusQueryResult = Apollo.QueryResult<ReportGenerationJobStatusQuery, ReportGenerationJobStatusQueryVariables>;
 export const ReportListAvailableDatesDocument = gql`
     query reportListAvailableDates {
   reportListAvailableDates

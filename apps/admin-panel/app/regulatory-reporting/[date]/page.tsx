@@ -54,8 +54,10 @@ gql`
     }
   }
 
-  mutation reportGenerateDownloadLink($reportId: UUID!) {
-    reportGenerateDownloadLink(reportId: $reportId)
+  mutation ReportGenerateDownloadLink($input: ReportGenerateDownloadLinkInput!) {
+    reportGenerateDownloadLink(input: $input) {
+      url
+    }
   }
 `
 
@@ -143,8 +145,10 @@ const columns = (
       const ext = pathInBucket.split(".").pop()?.toUpperCase() ?? ""
 
       const getLink = async () => {
-        const { data } = await generateDownloadLink({ variables: { reportId } })
-        return data?.reportGenerateDownloadLink
+        const { data } = await generateDownloadLink({
+          variables: { input: { reportId } },
+        })
+        return data?.reportGenerateDownloadLink.url
       }
 
       return (
