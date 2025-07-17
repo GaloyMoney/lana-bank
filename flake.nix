@@ -333,6 +333,26 @@
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
+      # Simple fuzz wrapper
+      fuzzWrapper = pkgs.writeShellScriptBin "fuzz" ''
+        cd fuzz
+        NIGHTLY_PATH=$(find /nix/store -name "*rust-default*nightly*" -type d | head -1)/bin
+        exec env CARGO="$NIGHTLY_PATH/cargo" RUSTC="$NIGHTLY_PATH/rustc" ${cargoFuzz}/bin/cargo-fuzz "$@"
+      '';
+
+      cargoFuzzWrapper = pkgs.writeShellScriptBin "cargo-fuzz" ''
+        # Set up nightly toolchain and run cargo-fuzz
+        NIGHTLY_PATH=$(find /nix/store -name "*rust-default*nightly*" -type d | head -1)/bin
+
+        # Change to fuzz directory if not already there
+        if [[ ! -f "Cargo.toml" ]] && [[ -f "fuzz/Cargo.toml" ]]; then
+          cd fuzz
+        fi
+
+        # Run cargo-fuzz with nightly toolchain
+        exec env CARGO="$NIGHTLY_PATH/cargo" RUSTC="$NIGHTLY_PATH/rustc" ${cargoFuzz}/bin/cargo-fuzz "$@"
+      '';
+
       rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
       rustToolchain = rustVersion.override {
         extensions = [
@@ -342,6 +362,22 @@
           "clippy"
         ];
         targets = ["x86_64-unknown-linux-musl"];
+      };
+
+      # Nightly Rust with cargo-fuzz for fuzz testing
+      rustNightly = pkgs.pkgsBuildHost.rust-bin.selectLatestNightlyWith (toolchain:
+        toolchain.default.override {
+          extensions = ["rust-src"];
+        });
+      cargoFuzz = pkgs.rustPlatform.buildRustPackage rec {
+        pname = "cargo-fuzz";
+        version = "0.12.0";
+        src = pkgs.fetchCrate {
+          inherit pname version;
+          hash = "sha256-Bhef7PpYduPdB5KWUnnqAjV/lrJ6FwU5H8bsCs0k4C8=";
+        };
+        cargoHash = "sha256-lyw7UJrGBL1+ATma3TWBpgjstSHGYMWAyTiq1nJNhgE=";
+        doCheck = false; # Tests require network access
       };
 
       # Separate toolchain for musl cross-compilation
@@ -368,6 +404,10 @@
           cargo-machete
           bacon
           typos
+          rustNightly
+          cargoFuzz
+          cargoFuzzWrapper
+          fuzzWrapper
           postgresql
           docker-compose
           bats

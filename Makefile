@@ -29,6 +29,11 @@ start-deps:
 setup-db:
 	cd lana/app && cargo sqlx migrate run
 
+# Fuzz testing (uses nightly Rust toolchain via flake.nix wrapper)
+.PHONY: fuzz
+fuzz:
+	fuzz run money_arithmetic -- -max_total_time=60
+
 sqlx-prepare:
 	cargo sqlx prepare --workspace
 
