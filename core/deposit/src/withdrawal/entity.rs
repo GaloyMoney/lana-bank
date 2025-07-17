@@ -118,15 +118,13 @@ impl Withdrawal {
     pub fn revert(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<WithdrawalReversalData, WithdrawalError> {
-        if self.is_reverted() {
-            return Err(WithdrawalError::AlreadyReverted(self.id));
-        }
-        if self.is_cancelled() {
-            return Err(WithdrawalError::AlreadyCancelled(self.id));
-        }
+    ) -> Result<Idempotent<WithdrawalReversalData>, WithdrawalError> {
         if !self.is_confirmed() {
             return Err(WithdrawalError::NotConfirmed(self.id));
+        }
+
+        if self.is_reverted() || self.is_cancelled() {
+            return Ok(Idempotent::Ignored);
         }
 
         let ledger_tx_id = CalaTransactionId::new();
@@ -136,13 +134,13 @@ impl Withdrawal {
             audit_info,
         });
 
-        Ok(WithdrawalReversalData {
+        Ok(Idempotent::Executed(WithdrawalReversalData {
             ledger_tx_id,
             amount: self.amount,
             credit_account_id: self.deposit_account_id,
             correlation_id: self.id.to_string(),
             external_id: format!("lana:withdraw:{}:reverted", self.id),
-        })
+        }))
     }
 
     pub fn cancel(&mut self, audit_info: AuditInfo) -> Result<CalaTransactionId, WithdrawalError> {
