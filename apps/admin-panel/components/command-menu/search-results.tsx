@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl"
 
 import { CommandGroup, CommandItem, CommandSeparator } from "@lana/web/ui/command"
 
+import Balance from "../balance/balance"
+
 import { SearchPublicIdTargetQuery } from "@/lib/graphql/generated"
 
 type SearchResult = NonNullable<SearchPublicIdTargetQuery["publicIdTarget"]>
@@ -18,25 +20,52 @@ interface SearchResultsProps {
 
 type ResultInfo = {
   url: string
-  primary: string
+  primary: React.ReactNode
   secondary: string
   id: string
 }
 
-const getResultInfo = (result: SearchResult): ResultInfo | null => {
+const getResultInfo = (
+  result: SearchResult,
+  t: ReturnType<typeof useTranslations<"CommandMenu">>,
+): ResultInfo | null => {
   switch (result.__typename) {
     case "DepositAccount":
       return {
         url: `/customers/${result.customer.publicId}`,
         primary: result.customer.email,
-        secondary: `Deposit Account`,
+        secondary: t("searchResultTypes.depositAccount"),
         id: result.id,
       }
     case "Customer":
       return {
         url: `/customers/${result.publicId}`,
         primary: result.email,
-        secondary: `Customer`,
+        secondary: t("searchResultTypes.customer"),
+        id: result.id,
+      }
+    case "CreditFacility":
+      return {
+        url: `/credit-facilities/${result.publicId}`,
+        primary: (
+          <div className="flex items-center gap-2">
+            <span>{t("searchResultTypes.facilityAmount")}</span>
+            <Balance amount={result.facilityAmount} currency="usd" />
+          </div>
+        ),
+        secondary: t("searchResultTypes.creditFacility"),
+        id: result.id,
+      }
+    case "CreditFacilityDisbursal":
+      return {
+        url: `/disbursals/${result.publicId}`,
+        primary: (
+          <div className="flex items-center gap-2">
+            <span>{t("searchResultTypes.amount")}</span>
+            <Balance amount={result.amount} currency="usd" />
+          </div>
+        ),
+        secondary: t("searchResultTypes.disbursal"),
         id: result.id,
       }
     default:
@@ -54,7 +83,7 @@ export function SearchResults({
   const t = useTranslations("CommandMenu")
 
   const handleResultClick = (result: SearchResult) => {
-    const info = getResultInfo(result)
+    const info = getResultInfo(result, t)
     if (!info) {
       return
     }
@@ -87,7 +116,8 @@ interface SearchResultItemProps {
 }
 
 function SearchResultItem({ result, onSelect }: SearchResultItemProps) {
-  const info = getResultInfo(result)
+  const t = useTranslations("CommandMenu")
+  const info = getResultInfo(result, t)
 
   if (!info) {
     return null

@@ -124,6 +124,12 @@ checksums:
     CommandMenu/actions/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
     CommandMenu/actions/createRole: f085b4f05432198e6eb1d87ca8caf6b7
     CommandMenu/keyboardInstructions/commandPalette: 27374fec801ecad6a2a5c58d98c7f531
+    CommandMenu/searchResultTypes/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CommandMenu/searchResultTypes/depositAccount: 23d240412c0bf14efcff84a2325587be
+    CommandMenu/searchResultTypes/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
+    CommandMenu/searchResultTypes/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
+    CommandMenu/searchResultTypes/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    CommandMenu/searchResultTypes/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
     Customers/title: c31a0dfd0d92496ba6f5673781db24ef
     Customers/description: 38b688862c41b7af092a0dc32856806f
     Customers/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5

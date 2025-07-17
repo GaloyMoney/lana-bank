@@ -3103,7 +3103,7 @@ export type SearchPublicIdTargetQueryVariables = Exact<{
 }>;
 
 
-export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?: { __typename: 'CreditFacility' } | { __typename: 'CreditFacilityDisbursal' } | { __typename: 'Customer', id: string, customerId: string, publicId: any, email: string } | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } } | null };
+export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?: { __typename: 'CreditFacility', id: string, publicId: any, facilityAmount: UsdCents } | { __typename: 'CreditFacilityDisbursal', id: string, amount: UsdCents, publicId: any } | { __typename: 'Customer', id: string, customerId: string, publicId: any, email: string } | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } } | null };
 
 export const UsdBalanceFragmentFragmentDoc = gql`
     fragment UsdBalanceFragment on UsdLedgerAccountBalance {
@@ -7875,6 +7875,16 @@ export const SearchPublicIdTargetDocument = gql`
         publicId
         email
       }
+    }
+    ... on CreditFacility {
+      id
+      publicId
+      facilityAmount
+    }
+    ... on CreditFacilityDisbursal {
+      id
+      amount
+      publicId
     }
   }
 }

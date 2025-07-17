@@ -26,6 +26,16 @@ gql`
           email
         }
       }
+      ... on CreditFacility {
+        id
+        publicId
+        facilityAmount
+      }
+      ... on CreditFacilityDisbursal {
+        id
+        amount
+        publicId
+      }
     }
   }
 `

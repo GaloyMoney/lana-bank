@@ -184,6 +184,14 @@
     },
     "keyboardInstructions": {
       "commandPalette": "Paleta de Comandos"
+    },
+    "searchResultTypes": {
+      "customer": "Cliente",
+      "depositAccount": "Cuenta de depósito",
+      "creditFacility": "Línea de crédito",
+      "disbursal": "Desembolso",
+      "amount": "Monto",
+      "facilityAmount": "Monto de facilidad"
     }
   },
   "Customers": {

@@ -184,6 +184,14 @@
     },
     "keyboardInstructions": {
       "commandPalette": "Command Palette"
+    },
+    "searchResultTypes": {
+      "customer": "Customer",
+      "depositAccount": "Deposit Account",
+      "creditFacility": "Credit Facility",
+      "disbursal": "Disbursal",
+      "amount": "Amount",
+      "facilityAmount": "Facility Amount"
     }
   },
   "Customers": {
