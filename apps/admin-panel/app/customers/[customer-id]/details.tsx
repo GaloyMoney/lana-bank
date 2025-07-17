@@ -19,7 +19,7 @@ import {
 } from "@/lib/graphql/generated"
 
 type CustomerDetailsCardProps = {
-  customer: NonNullable<GetCustomerBasicDetailsQuery["customer"]>
+  customer: NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>
 }
 
 export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) => {

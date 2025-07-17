@@ -20,7 +20,7 @@ import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type HistoryNode = NonNullable<
-  NonNullable<GetCustomerTransactionHistoryQuery["customer"]>["depositAccount"]
+  NonNullable<GetCustomerTransactionHistoryQuery["customerByPublicId"]>["depositAccount"]
 >["history"]["edges"][number]["node"]
 
 type CustomerTransactionsTableProps = {

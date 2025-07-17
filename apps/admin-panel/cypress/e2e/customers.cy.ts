@@ -4,6 +4,7 @@ describe("Customers", () => {
   let testEmail: string
   let testTelegramId: string
   let testCustomerId: string
+  let testCustomerPublicId: string
 
   it("should successfully create a new customer", () => {
     testEmail = `t${Date.now().toString().slice(-6)}@example.com`
@@ -48,15 +49,18 @@ describe("Customers", () => {
       .click()
     cy.takeScreenshot("9_click_confirm_submit")
 
-    cy.url().should(
-      "match",
-      /\/customers\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-    )
+    cy.url().should("match", /\/customers\/[0-9]+$/)
     cy.contains(testEmail).should("be.visible")
     cy.contains(t("Customers.create.title")).should("not.exist")
     cy.takeScreenshot("10_verify_email")
     cy.getIdFromUrl("/customers/").then((id) => {
-      testCustomerId = id
+      testCustomerPublicId = id
+    })
+    cy.graphqlRequest<{ data: { customerByPublicId: { customerId: string } } }>(
+      `query CustomerByPublicId($id: PublicId!) { customerByPublicId(id: $id) { customerId } }`,
+      { id: testCustomerPublicId },
+    ).then((res) => {
+      testCustomerId = res.data.customerByPublicId.customerId
     })
   })
 
@@ -70,7 +74,7 @@ describe("Customers", () => {
     if (!Cypress.env("GOOGLE_CLOUD_AVAILABLE")) {
       this.skip()
     }
-    cy.visit(`/customers/${testCustomerId}/documents`)
+    cy.visit(`/customers/${testCustomerPublicId}/documents`)
     cy.contains(t("Customers.CustomerDetails.Documents.description")).should("exist")
     cy.takeScreenshot("12_customer_documents")
     cy.fixture("test.pdf", "binary").then((content) => {
@@ -106,7 +110,7 @@ describe("Customers", () => {
       }
     }).as("sumsubPermalink")
 
-    cy.visit(`/customers/${testCustomerId}`)
+    cy.visit(`/customers/${testCustomerPublicId}`)
     cy.takeScreenshot("14_customer_kyc_details_page")
 
     cy.get('[data-testid="customer-create-kyc-link"]').click()

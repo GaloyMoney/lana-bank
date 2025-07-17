@@ -21,8 +21,8 @@ import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
 gql`
-  query GetCustomerBasicDetails($id: UUID!) {
-    customer(id: $id) {
+  query GetCustomerBasicDetails($id: PublicId!) {
+    customerByPublicId(id: $id) {
       id
       customerId
       email
@@ -72,16 +72,16 @@ export default function CustomerLayout({
   })
 
   useEffect(() => {
-    if (data?.customer) setCustomer(data.customer as CustomerType)
+    if (data?.customerByPublicId) setCustomer(data.customerByPublicId as CustomerType)
     return () => setCustomer(null)
-  }, [data?.customer, setCustomer])
+  }, [data?.customerByPublicId, setCustomer])
 
   useEffect(() => {
-    if (data?.customer) {
+    if (data?.customerByPublicId) {
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
         { title: navTranslations("customers"), href: "/customers" },
-        { title: data.customer.email, href: `/customers/${customerId}` },
+        { title: data.customerByPublicId.email, href: `/customers/${customerId}` },
         ...(currentTabData?.url === "/"
           ? []
           : [{ title: currentTabData?.tabLabel ?? "", isCurrentPage: true as const }]),
@@ -91,21 +91,21 @@ export default function CustomerLayout({
       resetToDefault()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.customer, currentTab])
+  }, [data?.customerByPublicId, currentTab])
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={3} tabs={6} />
   if (error) return <div className="text-destructive">{t("errors.error")}</div>
-  if (!data || !data.customer) return null
+  if (!data || !data.customerByPublicId) return null
 
   return (
     <main className="max-w-7xl m-auto">
-      <CustomerDetailsCard customer={data.customer} />
+      <CustomerDetailsCard customer={data.customerByPublicId} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
-        <KycStatus customerId={customerId} />
-        {data.customer.depositAccount && (
+        <KycStatus customerId={data.customerByPublicId.customerId} />
+        {data.customerByPublicId.depositAccount && (
           <CustomerAccountBalances
-            balance={data.customer.depositAccount.balance}
-            publicId={data.customer.depositAccount.publicId}
+            balance={data.customerByPublicId.depositAccount.balance}
+            publicId={data.customerByPublicId.depositAccount.publicId}
           />
         )}
       </div>

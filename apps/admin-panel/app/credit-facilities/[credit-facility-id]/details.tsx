@@ -54,7 +54,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     {
       label: t("details.customer"),
       value: `${creditFacilityDetails.customer.email} (${removeUnderscore(creditFacilityDetails.customer.customerType)})`,
-      href: `/customers/${creditFacilityDetails.customer.customerId}`,
+      href: `/customers/${creditFacilityDetails.customer.publicId}`,
     },
     {
       label: t("details.collateralizationState"),

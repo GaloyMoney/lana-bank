@@ -8,8 +8,8 @@ import { Documents } from "./list"
 import { useGetCustomerDocumentsQuery } from "@/lib/graphql/generated"
 
 gql`
-  query GetCustomerDocuments($id: UUID!) {
-    customer(id: $id) {
+  query GetCustomerDocuments($id: PublicId!) {
+    customerByPublicId(id: $id) {
       id
       customerId
       documents {
@@ -31,7 +31,7 @@ export default function CustomerDocumentsPage({
     variables: { id: customerId },
   })
 
-  if (!data?.customer) return null
+  if (!data?.customerByPublicId) return null
 
-  return <Documents customer={data.customer} refetch={refetch} />
+  return <Documents customer={data.customerByPublicId} refetch={refetch} />
 }

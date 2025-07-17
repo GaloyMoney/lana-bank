@@ -8,8 +8,8 @@ import { CustomerCreditFacilitiesTable } from "./list"
 import { useGetCustomerCreditFacilitiesQuery } from "@/lib/graphql/generated"
 
 gql`
-  query GetCustomerCreditFacilities($id: UUID!) {
-    customer(id: $id) {
+  query GetCustomerCreditFacilities($id: PublicId!) {
+    customerByPublicId(id: $id) {
       id
       creditFacilities {
         id
@@ -40,9 +40,11 @@ export default function CustomerCreditFacilitiesPage({
     variables: { id: customerId },
   })
 
-  if (!data?.customer) return null
+  if (!data?.customerByPublicId) return null
 
   return (
-    <CustomerCreditFacilitiesTable creditFacilities={data.customer.creditFacilities} />
+    <CustomerCreditFacilitiesTable
+      creditFacilities={data.customerByPublicId.creditFacilities}
+    />
   )
 }

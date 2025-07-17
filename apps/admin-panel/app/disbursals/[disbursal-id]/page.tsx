@@ -28,6 +28,7 @@ gql`
           id
           email
           customerId
+          publicId
           depositAccount {
             balance {
               settled

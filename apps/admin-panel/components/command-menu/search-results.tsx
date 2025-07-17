@@ -27,14 +27,14 @@ const getResultInfo = (result: SearchResult): ResultInfo | null => {
   switch (result.__typename) {
     case "DepositAccount":
       return {
-        url: `/customers/${result.customer.customerId}`,
+        url: `/customers/${result.customer.publicId}`,
         primary: result.customer.email,
         secondary: `Deposit Account`,
         id: result.id,
       }
     case "Customer":
       return {
-        url: `/customers/${result.customerId}`,
+        url: `/customers/${result.publicId}`,
         primary: result.email,
         secondary: `Customer`,
         id: result.id,

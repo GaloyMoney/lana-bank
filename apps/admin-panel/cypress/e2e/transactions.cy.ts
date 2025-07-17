@@ -7,6 +7,7 @@ const W = "Withdrawals"
 
 describe("Transactions Deposit and Withdraw", () => {
   let customerId: string
+  let customerPublicId: string
   let depositAccountId: string
   const depositAmount = faker.number.int({ min: 1000, max: 5000 })
   const withdrawAmount = faker.number.int({ min: 1000, max: depositAmount })
@@ -16,6 +17,7 @@ describe("Transactions Deposit and Withdraw", () => {
     const testTelegramId = `t${Date.now()}`
     cy.createCustomer(testEmail, testTelegramId).then((customer) => {
       customerId = customer.customerId
+      customerPublicId = customer.publicId
       depositAccountId = customer.depositAccount.depositAccountId
       cy.log(`Created customer with ID: ${customerId}`)
     })
@@ -30,7 +32,7 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should create a Deposit", () => {
-    cy.visit(`/customers/${customerId}`)
+    cy.visit(`/customers/${customerPublicId}`)
     cy.wait(1000)
 
     cy.get('[data-testid="global-create-button"]').click()
@@ -57,13 +59,13 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should show newly created Deposit in customer details page", () => {
-    cy.visit(`/customers/${customerId}`)
+    cy.visit(`/customers/${customerPublicId}`)
     cy.contains(`$${depositAmount.toLocaleString()}.00`).should("be.visible")
     cy.takeScreenshot("7_deposit_in_transactions")
   })
 
   it("should create Withdraw", () => {
-    cy.visit(`/customers/${customerId}`)
+    cy.visit(`/customers/${customerPublicId}`)
     cy.wait(1000)
 
     cy.get('[data-testid="global-create-button"]').click()
@@ -92,7 +94,7 @@ describe("Transactions Deposit and Withdraw", () => {
   })
 
   it("should show newly created Withdraw in customer details page", () => {
-    cy.visit(`/customers/${customerId}`)
+    cy.visit(`/customers/${customerPublicId}`)
     cy.contains(`$${withdrawAmount.toLocaleString()}.00`).should("be.visible")
     cy.takeScreenshot("13_withdrawal_in_transactions")
   })

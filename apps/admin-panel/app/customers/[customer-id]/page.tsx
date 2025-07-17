@@ -8,8 +8,8 @@ import { CustomerTransactionsTable } from "./transactions"
 import { useGetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
 
 gql`
-  query GetCustomerTransactionHistory($id: UUID!, $first: Int!, $after: String) {
-    customer(id: $id) {
+  query GetCustomerTransactionHistory($id: PublicId!, $first: Int!, $after: String) {
+    customerByPublicId(id: $id) {
       id
       customerId
       customerType
@@ -103,7 +103,7 @@ export default function CustomerTransactionsPage({
   if (error) return <div>{error.message}</div>
 
   const historyEntries =
-    data?.customer?.depositAccount?.history.edges.map((edge) => edge.node) || []
+    data?.customerByPublicId?.depositAccount?.history.edges.map((edge) => edge.node) || []
 
   return (
     <div className="space-y-6">

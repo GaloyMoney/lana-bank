@@ -28,7 +28,7 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
     {
       label: t("details.customerEmail"),
       value: disbursal.creditFacility.customer.email,
-      href: `/customers/${disbursal.creditFacility.customer.customerId}`,
+      href: `/customers/${disbursal.creditFacility.customer.publicId}`,
     },
     {
       label: t("details.disbursalAmount"),

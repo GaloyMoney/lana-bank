@@ -9,7 +9,7 @@ import { GetCustomerBasicDetailsQuery } from "@/lib/graphql/generated"
 
 type CustomerAccountBalancesProps = {
   balance: NonNullable<
-    NonNullable<GetCustomerBasicDetailsQuery["customer"]>["depositAccount"]
+    NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>["depositAccount"]
   >["balance"]
   publicId: string
 }

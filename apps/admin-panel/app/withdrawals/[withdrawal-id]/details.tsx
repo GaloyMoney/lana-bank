@@ -40,7 +40,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
     {
       label: t("fields.customerEmail"),
       value: withdrawal.account.customer.email,
-      href: `/customers/${withdrawal.account.customer.customerId}`,
+      href: `/customers/${withdrawal.account.customer.publicId}`,
     },
     {
       label: t("fields.withdrawalId") || "ID",

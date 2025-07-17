@@ -20,6 +20,7 @@ gql`
       customer {
         id
         customerId
+        publicId
         applicantId
         email
         depositAccount {

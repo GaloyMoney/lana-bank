@@ -92,6 +92,7 @@ gql`
     }
     customer {
       customerId
+      publicId
       customerType
       email
     }

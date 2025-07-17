@@ -33,6 +33,7 @@ gql`
         node {
           id
           customerId
+          publicId
           status
           level
           email
@@ -111,7 +112,7 @@ const CustomersList = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(customer) => `/customers/${customer.customerId}`}
+        navigateTo={(customer) => `/customers/${customer.publicId}`}
         onSort={(column, direction) => {
           setSortBy({
             by: camelToScreamingSnake(column) as CustomersSort["by"],

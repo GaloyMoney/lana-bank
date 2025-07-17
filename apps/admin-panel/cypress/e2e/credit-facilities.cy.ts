@@ -13,6 +13,7 @@ const Policy = "Policies.PolicyDetails"
 
 describe("credit facility", () => {
   let customerId: string
+  let customerPublicId: string
   const termsTemplateName: string = `Test Template ${Date.now()}`
 
   before(() => {
@@ -50,6 +51,7 @@ describe("credit facility", () => {
     const testTelegramId = `t${Date.now()}`
     cy.createCustomer(testEmail, testTelegramId).then((customer) => {
       customerId = customer.customerId
+      customerPublicId = customer.publicId
       cy.log(`Created customer with ID: ${customerId}`)
     })
   })
@@ -122,7 +124,7 @@ describe("credit facility", () => {
   })
 
   it("should create a credit facility and verify initial state", () => {
-    cy.visit(`/customers/${customerId}`)
+    cy.visit(`/customers/${customerPublicId}`)
     cy.get('[data-testid="loading-skeleton"]').should("not.exist")
 
     cy.get('[data-testid="global-create-button"]').click()

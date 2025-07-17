@@ -33,6 +33,7 @@ gql`
       customer {
         id
         customerId
+        publicId
         email
         status
         level
@@ -354,7 +355,7 @@ export const CreateCustomerDialog: React.FC<CreateCustomerDialogProps> = ({
         onCompleted: (data) => {
           if (data?.customerCreate.customer) {
             toast.success(t("successMessage"))
-            navigate(`/customers/${data.customerCreate.customer.customerId}`)
+            navigate(`/customers/${data.customerCreate.customer.publicId}`)
           } else {
             throw new Error(t("failedToCreate"))
           }

@@ -22,10 +22,10 @@ import {
 import CardWrapper from "@/components/card-wrapper"
 
 type DocumentType = NonNullable<
-  GetCustomerDocumentsQuery["customer"]
+  GetCustomerDocumentsQuery["customerByPublicId"]
 >["documents"][number]
 type DocumentProps = {
-  customer: NonNullable<GetCustomerDocumentsQuery["customer"]>
+  customer: NonNullable<GetCustomerDocumentsQuery["customerByPublicId"]>
   refetch: () => void
 }
 
@@ -65,7 +65,7 @@ gql`
 `
 
 type CustomerDocumentsProps = {
-  documents: NonNullable<GetCustomerDocumentsQuery["customer"]>["documents"]
+  documents: NonNullable<GetCustomerDocumentsQuery["customerByPublicId"]>["documents"]
   refetch: () => void
 }
 
