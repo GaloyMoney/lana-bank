@@ -158,6 +158,7 @@ mod tests {
             secret_key: "secret_key".to_string(),
             api_secret: "api_secret".to_string(),
             testing_instance: false,
+            webhook_secret: "webhook".to_string(),
         });
         let key = gen_encryption_key();
         let (encrypted, nonce) = custodian_config.encrypt(&key);

@@ -997,6 +997,7 @@
         "apiKey": "API Key",
         "apiSecret": "API Secret",
         "secretKey": "Secret Key",
+        "webhookSecret": "Webhook Secret",
         "testingInstance": "Use Testing Environment"
       },
       "placeholders": {
@@ -1004,7 +1005,8 @@
         "name": "Enter a display name for this custodian",
         "apiKey": "Enter your API key",
         "apiSecret": "Enter your API secret",
-        "secretKey": "Enter your secret key"
+        "secretKey": "Enter your secret key",
+        "webhookSecret": "Enter your webhook secret"
       },
       "buttons": {
         "create": "Add Custodian"

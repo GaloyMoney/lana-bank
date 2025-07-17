@@ -1179,6 +1179,7 @@ export type KomainuConfig = {
   name: Scalars['String']['input'];
   secretKey: Scalars['String']['input'];
   testingInstance: Scalars['Boolean']['input'];
+  webhookSecret: Scalars['String']['input'];
 };
 
 export enum KycLevel {
