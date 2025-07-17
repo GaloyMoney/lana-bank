@@ -55,7 +55,7 @@ impl Ord for CreditFacilityRepaymentPlanEntry {
 }
 
 impl CreditFacilityRepaymentPlanEntry {
-    pub fn is_already_accrued(&self) -> bool {
+    pub fn is_not_upcoming(&self) -> bool {
         self.status != RepaymentStatus::Upcoming
     }
 }

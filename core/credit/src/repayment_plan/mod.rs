@@ -31,7 +31,7 @@ impl CreditFacilityRepaymentPlan {
     fn existing_obligations(&self) -> Vec<CreditFacilityRepaymentPlanEntry> {
         self.entries
             .iter()
-            .filter(|entry| entry.is_already_accrued())
+            .filter(|entry| entry.is_not_upcoming())
             .cloned()
             .collect()
     }
