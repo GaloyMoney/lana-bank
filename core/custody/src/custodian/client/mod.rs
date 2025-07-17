@@ -4,6 +4,8 @@ use async_trait::async_trait;
 use bitgo::TransferState;
 use bytes::Bytes;
 
+use core_money::Satoshis;
+
 use error::CustodianClientError;
 
 use super::notification::CustodianNotification;
@@ -94,10 +96,37 @@ impl CustodianClient for komainu::KomainuClient {
 
     async fn process_webhook(
         &self,
-        _headers: &http::HeaderMap,
-        _payload: Bytes,
+        headers: &http::HeaderMap,
+        payload: Bytes,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
-        Ok(None)
+        let notification = self
+            .validate_webhook_notification(headers, &payload)
+            .map_err(CustodianClientError::client)?;
+
+        use komainu::{EntityType, EventType, Notification};
+
+        let custodian_notification = match notification {
+            Notification {
+                event_type: EventType::BalanceUpdated,
+                entity: EntityType::Wallet,
+                entity_id: wallet_id,
+            } => {
+                let wallet = self
+                    .get_wallet(&wallet_id)
+                    .await
+                    .map_err(CustodianClientError::client)?;
+
+                let amount = Satoshis::try_from_btc(wallet.balance.available)
+                    .map_err(CustodianClientError::client)?;
+
+                Some(CustodianNotification::WalletBalanceChanged {
+                    external_wallet_id: wallet.id,
+                    amount,
+                })
+            }
+        };
+
+        Ok(custodian_notification)
     }
 }
 

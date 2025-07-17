@@ -18,7 +18,7 @@ pub enum EventType {
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "SCREAMING_SNAKE_CASE")]
 pub enum EntityType {
-    Balance,
+    Wallet,
 }
 
 #[derive(Clone, Debug, Deserialize)]
