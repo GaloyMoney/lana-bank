@@ -21,7 +21,7 @@ pub enum WithdrawalStatus {
     Confirmed,
     Denied,
     Cancelled,
-    Revert,
+    Reverted,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -71,6 +71,7 @@ pub struct Withdrawal {
     events: EntityEvents<WithdrawalEvent>,
 }
 
+#[derive(Debug)]
 pub struct WithdrawalReversalData {
     pub ledger_tx_id: CalaTransactionId,
     pub credit_account_id: DepositAccountId,
@@ -120,12 +121,12 @@ impl Withdrawal {
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<WithdrawalReversalData>, WithdrawalError> {
-        if !self.is_confirmed() {
-            return Err(WithdrawalError::NotConfirmed(self.id));
-        }
-
         if self.is_reverted() || self.is_cancelled() {
             return Ok(Idempotent::Ignored);
+        }
+
+        if !self.is_confirmed() {
+            return Err(WithdrawalError::NotConfirmed(self.id));
         }
 
         let ledger_tx_id = CalaTransactionId::new();
@@ -188,7 +189,7 @@ impl Withdrawal {
 
     pub fn status(&self) -> WithdrawalStatus {
         if self.is_reverted() {
-            WithdrawalStatus::Revert
+            WithdrawalStatus::Reverted
         } else if self.is_cancelled() {
             WithdrawalStatus::Cancelled
         } else if self.is_confirmed() {
@@ -393,11 +394,11 @@ mod test {
 
         assert!(result.is_ok());
         assert!(withdrawal.is_reverted());
-        assert_eq!(withdrawal.status(), WithdrawalStatus::Revert);
+        assert_eq!(withdrawal.status(), WithdrawalStatus::Reverted);
     }
 
     #[test]
-    fn cannot_revert_cancelled_withdrawal() {
+    fn cancelled_withdrawal_is_ignored_on_revert() {
         let new_withdrawal = NewWithdrawal::builder()
             .id(WithdrawalId::new())
             .deposit_account_id(DepositAccountId::new())
@@ -414,19 +415,17 @@ mod test {
             .unwrap();
         withdrawal.cancel(dummy_audit_info()).unwrap();
 
-        let result = withdrawal.revert(dummy_audit_info());
-
-        assert!(matches!(result, Err(WithdrawalError::AlreadyCancelled(_))));
+        let result = withdrawal.revert(dummy_audit_info()).unwrap();
+        assert!(result.was_ignored());
     }
 
     #[test]
-    fn cannot_revert_already_reverted_withdrawal() {
+    fn reverted_withdrawal_is_ignored_on_revert() {
         let mut withdrawal = create_confirmed_withdrawal();
 
-        withdrawal.revert(dummy_audit_info()).unwrap();
-        let result = withdrawal.revert(dummy_audit_info());
-
-        assert!(matches!(result, Err(WithdrawalError::AlreadyReverted(_))));
+        let _ = withdrawal.revert(dummy_audit_info()).unwrap();
+        let result = withdrawal.revert(dummy_audit_info()).unwrap();
+        assert!(result.was_ignored());
     }
 
     #[test]

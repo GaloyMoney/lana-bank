@@ -282,5 +282,5 @@ wait_for_approval() {
   )
   exec_admin_graphql 'withdrawal-revert' "$variables"
   status=$(graphql_output '.data.withdrawalRevert.withdrawal.status')
-  [[ "$status" == "VOIDED" ]] || exit 1
+  [[ "$status" == "REVERTED" ]] || exit 1
 }

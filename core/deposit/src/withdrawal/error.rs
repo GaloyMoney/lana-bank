@@ -20,8 +20,6 @@ pub enum WithdrawalError {
     AuditError(#[from] audit::error::AuditError),
     #[error("WithdrawalError - NotConfirmed: {0}")]
     NotConfirmed(WithdrawalId),
-    #[error("WithdrawalError - AlreadyReverted: {0}")]
-    AlreadyReverted(WithdrawalId),
 }
 
 es_entity::from_es_entity_error!(WithdrawalError);

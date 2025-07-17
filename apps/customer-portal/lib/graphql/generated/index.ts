@@ -426,7 +426,7 @@ export enum WithdrawalStatus {
   Denied = 'DENIED',
   PendingApproval = 'PENDING_APPROVAL',
   PendingConfirmation = 'PENDING_CONFIRMATION',
-  Revert = 'REVERT'
+  Reverted = 'REVERTED'
 }
 
 export type GetCreditFacilityQueryVariables = Exact<{

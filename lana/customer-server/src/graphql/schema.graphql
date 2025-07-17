@@ -387,7 +387,7 @@ enum WithdrawalStatus {
 	CONFIRMED
 	DENIED
 	CANCELLED
-	REVERT
+	REVERTED
 }
 
 """
