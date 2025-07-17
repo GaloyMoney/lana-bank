@@ -22,7 +22,6 @@ import {
   GetCreditFacilityHistoryDocument,
   useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
-import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { useCreateContext } from "@/app/create"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
@@ -132,10 +131,8 @@ export default function CreditFacilityLayout({
   params: Promise<{ "credit-facility-id": string }>
 }) {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.Layout")
-  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { "credit-facility-id": publicId } = use(params)
-  const { setCustomLinks, resetToDefault } = useBreadcrumb()
   const client = useApolloClient()
   const { setFacility } = useCreateContext()
 
@@ -189,29 +186,6 @@ export default function CreditFacilityLayout({
     data?.creditFacilityByPublicId?.status,
     data?.creditFacilityByPublicId?.approvalProcess?.status,
   ])
-
-  useEffect(() => {
-    if (data?.creditFacilityByPublicId) {
-      const currentTabData = TABS.find((tab) => tab.url === currentTab)
-      setCustomLinks([
-        {
-          title: navTranslations("creditFacilities"),
-          href: "/credit-facilities",
-        },
-        {
-          title: data.creditFacilityByPublicId.publicId,
-          href: `/credit-facilities/${publicId}`,
-        },
-        ...(currentTabData?.url === "/"
-          ? []
-          : [{ title: currentTabData?.tabLabel ?? "", isCurrentPage: true as const }]),
-      ])
-    }
-    return () => {
-      resetToDefault()
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [data?.creditFacilityByPublicId, currentTab])
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={4} />
   if (error) return <div className="text-destructive">{error.message}</div>

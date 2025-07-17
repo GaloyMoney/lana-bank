@@ -239,10 +239,7 @@ describe("credit facility", () => {
     cy.get('[data-testid="disbursal-submit-button"]').click()
     cy.takeScreenshot("14_submit_disbursal_request")
 
-    cy.url().should(
-      "match",
-      /\/disbursals\/[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$/,
-    )
+    cy.url().should("match", /\/disbursals\/\w+$/)
 
     cy.takeScreenshot("15_disbursal_page")
     cy.takeScreenshot("16_disbursal_success_message")

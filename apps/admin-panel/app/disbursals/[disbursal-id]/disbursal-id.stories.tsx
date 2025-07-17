@@ -31,7 +31,7 @@ const createMocks = (args: DisbursalStoryArgs, disbursalId: string) => [
   {
     request: {
       query: GetDisbursalDetailsDocument,
-      variables: { id: disbursalId },
+      variables: { publicId: disbursalId },
     },
     result: {
       data: {
@@ -66,7 +66,7 @@ const LoadingStory = () => {
     {
       request: {
         query: GetDisbursalDetailsDocument,
-        variables: { id: disbursalId },
+        variables: { publicId: disbursalId },
       },
       delay: Infinity,
     },

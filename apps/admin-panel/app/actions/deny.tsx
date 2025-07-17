@@ -17,7 +17,6 @@ import { Textarea } from "@lana/web/ui/textarea"
 import { formatDate } from "@lana/web/utils"
 
 import {
-  ApprovalProcessType,
   GetCreditFacilityLayoutDetailsDocument,
   GetCreditFacilityLayoutDetailsQuery,
   GetDisbursalDetailsDocument,
@@ -84,27 +83,14 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
           },
           reason: reason.trim(),
         },
-        onCompleted: async ({ approvalProcessDeny }) => {
-          const processType = approvalProcessDeny.approvalProcess.approvalProcessType
-          if (processType === ApprovalProcessType.CreditFacilityApproval) {
-            await client.query({
-              query: GetCreditFacilityLayoutDetailsDocument,
-              variables: { id: approvalProcess.approvalProcessId },
-              fetchPolicy: "network-only",
-            })
-          } else if (processType === ApprovalProcessType.WithdrawalApproval) {
-            await client.query({
-              query: GetWithdrawalDetailsDocument,
-              variables: { id: approvalProcess.approvalProcessId },
-              fetchPolicy: "network-only",
-            })
-          } else if (processType === ApprovalProcessType.DisbursalApproval) {
-            await client.query({
-              query: GetDisbursalDetailsDocument,
-              variables: { id: approvalProcess.approvalProcessId },
-              fetchPolicy: "network-only",
-            })
-          }
+        onCompleted: async () => {
+          await client.refetchQueries({
+            include: [
+              GetCreditFacilityLayoutDetailsDocument,
+              GetWithdrawalDetailsDocument,
+              GetDisbursalDetailsDocument,
+            ],
+          })
           toast.success(t("success.processDenied"))
         },
       })

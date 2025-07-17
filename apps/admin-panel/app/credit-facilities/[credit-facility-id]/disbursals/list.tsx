@@ -54,7 +54,7 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
           data={creditFacility.disbursals}
           columns={columns}
           emptyMessage={t("messages.emptyTable")}
-          navigateTo={(disbursal) => `/disbursals/${disbursal.disbursalId}`}
+          navigateTo={(disbursal) => `/disbursals/${disbursal.publicId}`}
         />
       </CardWrapper>
     </>

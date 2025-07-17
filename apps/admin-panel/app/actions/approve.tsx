@@ -14,7 +14,6 @@ import { Button } from "@lana/web/ui/button"
 import { formatDate } from "@lana/web/utils"
 
 import {
-  ApprovalProcessType,
   GetCreditFacilityLayoutDetailsDocument,
   GetCreditFacilityLayoutDetailsQuery,
   GetDisbursalDetailsDocument,
@@ -116,27 +115,14 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
             processId: approvalProcess.approvalProcessId,
           },
         },
-        onCompleted: async ({ approvalProcessApprove }) => {
-          const processType = approvalProcessApprove.approvalProcess.approvalProcessType
-          if (processType === ApprovalProcessType.CreditFacilityApproval) {
-            await client.query({
-              query: GetCreditFacilityLayoutDetailsDocument,
-              variables: { id: approvalProcess.approvalProcessId },
-              fetchPolicy: "network-only",
-            })
-          } else if (processType === ApprovalProcessType.WithdrawalApproval) {
-            await client.query({
-              query: GetWithdrawalDetailsDocument,
-              variables: { id: approvalProcess.approvalProcessId },
-              fetchPolicy: "network-only",
-            })
-          } else if (processType === ApprovalProcessType.DisbursalApproval) {
-            await client.query({
-              query: GetDisbursalDetailsDocument,
-              variables: { id: approvalProcess.approvalProcessId },
-              fetchPolicy: "network-only",
-            })
-          }
+        onCompleted: async () => {
+          await client.refetchQueries({
+            include: [
+              GetCreditFacilityLayoutDetailsDocument,
+              GetWithdrawalDetailsDocument,
+              GetDisbursalDetailsDocument,
+            ],
+          })
           toast.success(t("success.processApproved"))
         },
       })

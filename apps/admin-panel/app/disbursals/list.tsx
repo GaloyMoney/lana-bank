@@ -23,6 +23,7 @@ gql`
         node {
           id
           disbursalId
+          publicId
           amount
           createdAt
           status
@@ -74,7 +75,7 @@ const Disbursals = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(disbursal) => `/disbursals/${disbursal.disbursalId}`}
+        navigateTo={(disbursal) => `/disbursals/${disbursal.publicId}`}
       />
     </div>
   )

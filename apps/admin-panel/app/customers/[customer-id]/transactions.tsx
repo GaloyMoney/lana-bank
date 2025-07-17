@@ -115,7 +115,7 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       case "CancelledWithdrawalEntry":
         return `/withdrawals/${entry.withdrawal.withdrawalId}`
       case "DisbursalEntry":
-        return `/disbursals/${entry.disbursal.disbursalId}`
+        return `/disbursals/${entry.disbursal.publicId}`
       default:
         return null
     }

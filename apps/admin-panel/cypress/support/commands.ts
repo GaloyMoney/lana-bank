@@ -52,7 +52,9 @@ Cypress.Commands.add(
       })
       .then((response) => {
         if (response.body.errors) {
-          throw new Error(`GraphQL Error: ${JSON.stringify(response.body.errors)}`)
+          throw new Error(
+            `GraphQL Error: ${JSON.stringify(response.body.errors)} variables: ${JSON.stringify(variables)}`,
+          )
         }
         return response.body
       })

@@ -15,7 +15,7 @@ import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 
 type DisbursalDetailsProps = {
-  disbursal: NonNullable<GetDisbursalDetailsQuery["disbursal"]>
+  disbursal: NonNullable<GetDisbursalDetailsQuery["disbursalByPublicId"]>
 }
 
 export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursal }) => {
@@ -70,7 +70,7 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
             </Button>
           </>
         )}
-      <Link href={`/credit-facilities/${disbursal.creditFacility.creditFacilityId}`}>
+      <Link href={`/credit-facilities/${disbursal.creditFacility.publicId}`}>
         <Button variant="outline">{t("buttons.viewCreditFacility")}</Button>
       </Link>
     </>

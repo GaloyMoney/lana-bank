@@ -11,6 +11,7 @@ gql`
   fragment DisbursalOnFacilityPage on CreditFacilityDisbursal {
     id
     disbursalId
+    publicId
     amount
     status
     createdAt

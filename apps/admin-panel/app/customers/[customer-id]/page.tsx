@@ -65,6 +65,7 @@ gql`
                 disbursal {
                   id
                   disbursalId
+                  publicId
                   amount
                   createdAt
                   status

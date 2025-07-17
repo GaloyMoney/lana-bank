@@ -27,6 +27,7 @@ gql`
       disbursal {
         id
         disbursalId
+        publicId
         amount
         status
         createdAt
@@ -82,7 +83,7 @@ export const CreditFacilityDisbursalInitiateDialog: React.FC<
         onCompleted: (data) => {
           if (data.creditFacilityDisbursalInitiate) {
             router.push(
-              `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.disbursalId}`,
+              `/disbursals/${data.creditFacilityDisbursalInitiate.disbursal.publicId}`,
             )
             toast.success(t("messages.success"))
             handleCloseDialog()

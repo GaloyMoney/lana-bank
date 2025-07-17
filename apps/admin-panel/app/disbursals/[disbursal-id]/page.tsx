@@ -11,8 +11,8 @@ import { useGetDisbursalDetailsQuery } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
 
 gql`
-  query GetDisbursalDetails($id: UUID!) {
-    disbursal(id: $id) {
+  query GetDisbursalDetails($publicId: PublicId!) {
+    disbursalByPublicId(id: $publicId) {
       id
       disbursalId
       amount
@@ -24,6 +24,7 @@ gql`
         creditFacilityId
         facilityAmount
         status
+        publicId
         customer {
           id
           email
@@ -51,28 +52,28 @@ function DisbursalPage({
     "disbursal-id": string
   }>
 }) {
-  const { "disbursal-id": disbursalId } = use(params)
+  const { "disbursal-id": publicId } = use(params)
   const { data, loading, error } = useGetDisbursalDetailsQuery({
-    variables: { id: disbursalId },
+    variables: { publicId },
   })
   const { setDisbursal } = useCreateContext()
 
   useEffect(() => {
-    data?.disbursal && setDisbursal(data?.disbursal)
+    data?.disbursalByPublicId && setDisbursal(data.disbursalByPublicId)
     return () => setDisbursal(null)
-  }, [data?.disbursal, setDisbursal])
+  }, [data?.disbursalByPublicId, setDisbursal])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} detailItems={5} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.disbursal) return <div>Not found</div>
+  if (!data?.disbursalByPublicId) return <div>Not found</div>
 
   return (
     <main className="max-w-7xl m-auto">
-      <DisbursalDetailsCard disbursal={data.disbursal} />
-      {data.disbursal.approvalProcess && (
-        <VotersCard approvalProcess={data.disbursal.approvalProcess} />
+      <DisbursalDetailsCard disbursal={data.disbursalByPublicId} />
+      {data.disbursalByPublicId.approvalProcess && (
+        <VotersCard approvalProcess={data.disbursalByPublicId.approvalProcess} />
       )}
     </main>
   )

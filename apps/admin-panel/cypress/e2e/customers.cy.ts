@@ -53,15 +53,18 @@ describe("Customers", () => {
     cy.contains(testEmail).should("be.visible")
     cy.contains(t("Customers.create.title")).should("not.exist")
     cy.takeScreenshot("10_verify_email")
-    cy.getIdFromUrl("/customers/").then((id) => {
-      testCustomerPublicId = id
-    })
-    cy.graphqlRequest<{ data: { customerByPublicId: { customerId: string } } }>(
-      `query CustomerByPublicId($id: PublicId!) { customerByPublicId(id: $id) { customerId } }`,
-      { id: testCustomerPublicId },
-    ).then((res) => {
-      testCustomerId = res.data.customerByPublicId.customerId
-    })
+    cy.getIdFromUrl("/customers/")
+      .then((id) => {
+        testCustomerPublicId = id
+      })
+      .then(() => {
+        cy.graphqlRequest<{ data: { customerByPublicId: { customerId: string } } }>(
+          `query CustomerByPublicId($id: PublicId!) { customerByPublicId(id: $id) { customerId } }`,
+          { id: testCustomerPublicId },
+        ).then((res) => {
+          testCustomerId = res.data.customerByPublicId.customerId
+        })
+      })
   })
 
   it("should show newly created customer in the list", () => {

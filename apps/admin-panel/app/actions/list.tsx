@@ -59,6 +59,7 @@ gql`
             ... on CreditFacilityDisbursal {
               id
               disbursalId
+              publicId
               creditFacility {
                 publicId
                 customer {
@@ -119,7 +120,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
       data.approvalProcessType === ApprovalProcessType.DisbursalApproval &&
       data.target.__typename === "CreditFacilityDisbursal"
     ) {
-      return `/disbursals/${data.target.disbursalId}`
+      return `/disbursals/${data.target.publicId}`
     }
     return "#"
   }

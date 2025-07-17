@@ -20,7 +20,7 @@ export const VotersCard = ({
   approvalProcess,
 }: {
   approvalProcess:
-    | NonNullable<GetDisbursalDetailsQuery["disbursal"]>["approvalProcess"]
+    | NonNullable<GetDisbursalDetailsQuery["disbursalByPublicId"]>["approvalProcess"]
     | NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>["approvalProcess"]
     | null
 }) => {

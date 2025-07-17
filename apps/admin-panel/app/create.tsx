@@ -406,7 +406,7 @@ type ITermsTemplate = TermsTemplateQuery["termsTemplate"] | null
 type IWithdraw = GetWithdrawalDetailsQuery["withdrawal"] | null
 type IPolicy = GetPolicyDetailsQuery["policy"] | null
 type ICommittee = GetCommitteeDetailsQuery["committee"] | null
-type IDisbursal = GetDisbursalDetailsQuery["disbursal"] | null
+type IDisbursal = GetDisbursalDetailsQuery["disbursalByPublicId"] | null
 
 type CreateContext = {
   customer: ICustomer
