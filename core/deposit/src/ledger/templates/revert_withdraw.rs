@@ -107,9 +107,26 @@ impl RevertWithdraw {
             .expect("Couldn't build TxInput");
 
         let entries = vec![
-            // Reverting INITIATE_WITHDRAW
             NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_INITIATE_WITHDRAW_SETTLED_DR'")
+                .entry_type("'REVERT_WITHDRAW_CONFIRM_PENDING_DR'")
+                .currency("params.currency")
+                .account_id("params.deposit_omnibus_account_id")
+                .direction("DEBIT")
+                .layer("PENDING")
+                .units("params.amount")
+                .build()
+                .unwrap(),
+            NewTxTemplateEntry::builder()
+                .entry_type("'REVERT_WITHDRAW_CONFIRM_PENDING_CR'")
+                .currency("params.currency")
+                .account_id("params.credit_account_id")
+                .direction("CREDIT")
+                .layer("PENDING")
+                .units("params.amount")
+                .build()
+                .unwrap(),
+            NewTxTemplateEntry::builder()
+                .entry_type("'REVERT_WITHDRAW_INITIATE_SETTLED_DR'")
                 .currency("params.currency")
                 .account_id("params.deposit_omnibus_account_id")
                 .direction("DEBIT")
@@ -118,7 +135,7 @@ impl RevertWithdraw {
                 .build()
                 .unwrap(),
             NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_INITIATE_WITHDRAW_SETTLED_CR'")
+                .entry_type("'REVERT_WITHDRAW_INITIATE_SETTLED_CR'")
                 .currency("params.currency")
                 .account_id("params.credit_account_id")
                 .direction("CREDIT")
@@ -127,7 +144,7 @@ impl RevertWithdraw {
                 .build()
                 .unwrap(),
             NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_INITIATE_WITHDRAW_PENDING_CR'")
+                .entry_type("'REVERT_WITHDRAW_INITIATE_PENDING_CR'")
                 .currency("params.currency")
                 .account_id("params.deposit_omnibus_account_id")
                 .direction("CREDIT")
@@ -136,28 +153,10 @@ impl RevertWithdraw {
                 .build()
                 .unwrap(),
             NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_INITIATE_WITHDRAW_PENDING_DR'")
+                .entry_type("'REVERT_WITHDRAW_INITIATE_PENDING_DR'")
                 .currency("params.currency")
                 .account_id("params.credit_account_id")
                 .direction("DEBIT")
-                .layer("PENDING")
-                .units("params.amount")
-                .build()
-                .unwrap(),
-            NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_CONFIRM_WITHDRAW_PENDING_DR'")
-                .currency("params.currency")
-                .account_id("params.deposit_omnibus_account_id")
-                .direction("DEBIT")
-                .layer("PENDING")
-                .units("params.amount")
-                .build()
-                .unwrap(),
-            NewTxTemplateEntry::builder()
-                .entry_type("'REVERT_CONFIRM_WITHDRAW_PENDING_CR'")
-                .currency("params.currency")
-                .account_id("params.credit_account_id")
-                .direction("CREDIT")
                 .layer("PENDING")
                 .units("params.amount")
                 .build()
