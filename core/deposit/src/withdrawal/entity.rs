@@ -21,7 +21,7 @@ pub enum WithdrawalStatus {
     Confirmed,
     Denied,
     Cancelled,
-    Voided,
+    Revert,
 }
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -189,7 +189,7 @@ impl Withdrawal {
 
     pub fn status(&self) -> WithdrawalStatus {
         if self.is_reverted() {
-            WithdrawalStatus::Voided
+            WithdrawalStatus::Revert
         } else if self.is_cancelled() {
             WithdrawalStatus::Cancelled
         } else if self.is_confirmed() {
@@ -393,7 +393,7 @@ mod test {
 
         assert!(result.is_ok());
         assert!(withdrawal.is_reverted());
-        assert_eq!(withdrawal.status(), WithdrawalStatus::Voided);
+        assert_eq!(withdrawal.status(), WithdrawalStatus::Revert);
     }
 
     #[test]

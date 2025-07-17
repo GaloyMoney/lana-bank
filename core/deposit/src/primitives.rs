@@ -179,7 +179,7 @@ impl CoreDepositAction {
     pub const WITHDRAWAL_CONFIRM: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Confirm);
     pub const WITHDRAWAL_READ: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Read);
     pub const WITHDRAWAL_LIST: Self = CoreDepositAction::Withdrawal(WithdrawalAction::List);
-    pub const WITHDRAWAL_VOID: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Void);
+    pub const WITHDRAWAL_REVERT: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Revert);
 
     pub fn entities() -> Vec<(
         CoreDepositActionDiscriminants,
@@ -334,7 +334,7 @@ pub enum WithdrawalAction {
     ConcludeApprovalProcess,
     Read,
     List,
-    Void,
+    Revert,
 }
 
 impl WithdrawalAction {
@@ -357,7 +357,7 @@ impl WithdrawalAction {
                     ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER])
                 }
                 Self::Confirm => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-                Self::Void => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
+                Self::Revert => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
             };
             res.push(action_description);
         }

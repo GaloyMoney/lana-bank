@@ -408,7 +408,7 @@ where
             .enforce_permission(
                 sub,
                 CoreDepositObject::withdrawal(id),
-                CoreDepositAction::WITHDRAWAL_VOID,
+                CoreDepositAction::WITHDRAWAL_REVERT,
             )
             .await?;
 
