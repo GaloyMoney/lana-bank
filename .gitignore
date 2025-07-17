@@ -51,3 +51,5 @@ meltano/**/*.log
 fuzz/target/
 fuzz/artifacts/
 fuzz/corpus/
+
+lib/rendering/test-output
