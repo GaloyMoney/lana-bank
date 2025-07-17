@@ -2997,6 +2997,8 @@ version = "0.3.737-dev"
 dependencies = [
  "base64 0.22.1",
  "chrono",
+ "hex",
+ "hmac",
  "p256",
  "pkcs8",
  "reqwest",

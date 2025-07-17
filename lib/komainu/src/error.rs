@@ -10,4 +10,8 @@ pub enum KomainuError {
         errors: Vec<String>,
         status: u16,
     },
+    #[error("Error - MissingWebhookHeaders")]
+    MissingWebhookHeaders,
+    #[error("KomainuError - InvalidWebhookSignature")]
+    InvalidWebhookSignature(#[from] sha2::digest::MacError),
 }

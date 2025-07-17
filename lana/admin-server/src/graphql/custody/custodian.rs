@@ -49,6 +49,8 @@ pub struct KomainuConfig {
     testing_instance: bool,
     #[graphql(secret)]
     secret_key: String,
+    #[graphql(secret)]
+    webhook_secret: String,
 }
 
 impl From<KomainuConfig> for DomainKomainuConfig {
@@ -58,6 +60,7 @@ impl From<KomainuConfig> for DomainKomainuConfig {
             api_secret: config.api_secret,
             testing_instance: config.testing_instance,
             secret_key: config.secret_key,
+            webhook_secret: config.webhook_secret,
         }
     }
 }
