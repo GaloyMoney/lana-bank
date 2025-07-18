@@ -660,8 +660,8 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit.update_collateral_manually", skip(self), err)]
-    pub async fn update_collateral_manually(
+    #[instrument(name = "credit.update_collateral", skip(self), err)]
+    pub async fn update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
