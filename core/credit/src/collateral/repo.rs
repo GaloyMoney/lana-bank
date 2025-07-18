@@ -4,7 +4,9 @@ use es_entity::*;
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CreditFacilityPublisher, collateral::WalletId, event::CoreCreditEvent, primitives::CollateralId,
+    event::CoreCreditEvent,
+    primitives::{CollateralId, CustodyWalletId},
+    publisher::CreditFacilityPublisher,
 };
 
 use super::{entity::*, error::*};
@@ -13,7 +15,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Collateral",
     err = "CollateralError",
-    columns(wallet_id(ty = "Option<WalletId>", update(persist = false))),
+    columns(custody_wallet_id(ty = "Option<CustodyWalletId>", update(persist = false))),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

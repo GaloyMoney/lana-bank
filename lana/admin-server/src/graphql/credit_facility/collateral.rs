@@ -15,7 +15,7 @@ impl From<DomainCollateral> for Collateral {
         Self {
             id: collateral.id.to_global_id(),
             collateral_id: collateral.id.into(),
-            wallet_id: collateral.wallet_id.map(|id| id.into()),
+            wallet_id: collateral.custody_wallet_id.map(|id| id.into()),
         }
     }
 }

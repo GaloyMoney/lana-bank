@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_collaterals (id, wallet_id, created_at) VALUES ($1, $2, $3)",
+  "query": "INSERT INTO core_collaterals (id, custody_wallet_id, created_at) VALUES ($1, $2, $3)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -12,5 +12,5 @@
     },
     "nullable": []
   },
-  "hash": "542ff3d8c6d4147ca99969e0784e5673e90636dfeaeb9d046ee0c83a96a13849"
+  "hash": "9f6f42c27aa00e8deaf9ada9db2c013853e5d3c60c1deaecb3460a6aad72f42e"
 }

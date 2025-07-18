@@ -6,11 +6,11 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
 
 use crate::{
-    Price, WalletId,
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
     ledger::{
@@ -568,9 +568,11 @@ where
     #[instrument(name = "credit.credit_facility.find_by_wallet", skip(self), err)]
     pub async fn find_by_custody_wallet(
         &self,
-        wallet_id: impl Into<WalletId> + std::fmt::Debug,
+        custody_wallet_id: impl Into<CustodyWalletId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        self.repo.find_by_custody_wallet(wallet_id.into()).await
+        self.repo
+            .find_by_custody_wallet(custody_wallet_id.into())
+            .await
     }
 
     #[instrument(name = "credit.credit_facility.balance", skip(self), err)]

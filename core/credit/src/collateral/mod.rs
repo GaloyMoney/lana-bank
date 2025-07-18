@@ -7,7 +7,6 @@ use std::collections::HashMap;
 use tracing::instrument;
 
 use authz::PermissionCheck;
-use core_custody::WalletId;
 use outbox::OutboxEventMarker;
 
 use crate::{
@@ -76,14 +75,14 @@ where
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
         credit_facility_id: CreditFacilityId,
-        wallet_id: Option<WalletId>,
+        custody_wallet_id: Option<CustodyWalletId>,
         account_id: CalaAccountId,
     ) -> Result<Collateral, CollateralError> {
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
             .credit_facility_id(credit_facility_id)
             .account_id(account_id)
-            .wallet_id(wallet_id)
+            .custody_wallet_id(custody_wallet_id)
             .build()
             .expect("all fields for new collateral provided");
 
@@ -105,7 +104,7 @@ where
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id(collateral_id).await?;
 
-        if collateral.wallet_id.is_some() {
+        if collateral.custody_wallet_id.is_some() {
             return Err(CollateralError::ManualUpdateError);
         }
 

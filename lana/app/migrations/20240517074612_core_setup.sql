@@ -225,7 +225,7 @@ CREATE TABLE core_wallet_events (
 
 CREATE TABLE core_collaterals (
   id UUID PRIMARY KEY,
-  wallet_id UUID NULL REFERENCES core_wallets(id),
+  custody_wallet_id UUID,
   created_at TIMESTAMPTZ NOT NULL
 );
 

@@ -15,6 +15,7 @@ pub use cala_ledger::primitives::{
     DebitOrCredit as LedgerDebitOrCredit, JournalId as LedgerJournalId,
     TransactionId as LedgerTxId, TxTemplateId as LedgerTxTemplateId,
 };
+pub use core_custody::WalletId as CustodyWalletId;
 pub use core_customer::{CustomerId, CustomerType};
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
