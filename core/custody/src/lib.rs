@@ -8,6 +8,7 @@ mod event;
 mod primitives;
 mod publisher;
 pub mod wallet;
+mod webhook_notification_repo;
 
 use strum::IntoDiscriminant as _;
 use tracing::instrument;
@@ -23,6 +24,7 @@ use core_money::Satoshis;
 
 pub use custodian::*;
 pub use wallet::*;
+use webhook_notification_repo::*;
 
 pub use config::*;
 use error::CoreCustodyError;
@@ -40,6 +42,7 @@ where
 {
     authz: Perms,
     custodians: CustodianRepo,
+    webhooks: WebhookNotificationRepo,
     config: CustodyConfig,
     wallets: WalletRepo<E>,
     pool: sqlx::PgPool,
@@ -62,6 +65,7 @@ where
         let custody = Self {
             authz: authz.clone(),
             custodians: CustodianRepo::new(pool),
+            webhooks: WebhookNotificationRepo::new(pool),
             config,
             wallets: WalletRepo::new(pool, &CustodyPublisher::new(outbox)),
             pool: pool.clone(),
@@ -321,8 +325,8 @@ where
             Err(e) => return Err(e.into()),
         };
 
-        self.custodians
-            .persist_webhook_notification(custodian_id, &uri, &headers, &payload)
+        self.webhooks
+            .persist(custodian_id, &uri, &headers, &payload)
             .await?;
 
         if let Ok(custodian) = custodian {
@@ -429,6 +433,7 @@ where
         Self {
             authz: self.authz.clone(),
             custodians: self.custodians.clone(),
+            webhooks: self.webhooks.clone(),
             wallets: self.wallets.clone(),
             pool: self.pool.clone(),
             config: self.config.clone(),
