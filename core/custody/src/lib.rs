@@ -19,6 +19,7 @@ pub use publisher::CustodyPublisher;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_money::Satoshis;
 
 pub use custodian::*;
 pub use wallet::*;
@@ -334,34 +335,49 @@ where
                 match notification {
                     CustodianNotification::WalletBalanceChanged {
                         external_wallet_id,
-                        amount,
+                        new_balance,
                     } => {
-                        let mut db = self.wallets.begin_op().await?;
-
-                        let mut wallet = self
-                            .wallets
-                            .find_by_external_wallet_id_in_tx(db.tx(), Some(external_wallet_id))
+                        self.update_wallet_balance(external_wallet_id, new_balance)
                             .await?;
-
-                        let audit_info = self
-                            .authz
-                            .audit()
-                            .record_system_entry_in_tx(
-                                db.tx(),
-                                CoreCustodyObject::wallet(wallet.id),
-                                CoreCustodyAction::WALLET_UPDATE,
-                            )
-                            .await?;
-
-                        if wallet.update_balance(amount, &audit_info).did_execute() {
-                            self.wallets.update_in_op(&mut db, &mut wallet).await?;
-                        }
-
-                        db.commit().await?;
                     }
                 }
             }
         }
+
+        Ok(())
+    }
+
+    #[instrument(name = "custody.update_wallet_balance", skip(self), err)]
+    async fn update_wallet_balance(
+        &self,
+        external_wallet_id: String,
+        new_balance: Satoshis,
+    ) -> Result<(), CoreCustodyError> {
+        let mut db = self.wallets.begin_op().await?;
+
+        let mut wallet = self
+            .wallets
+            .find_by_external_wallet_id_in_tx(db.tx(), Some(external_wallet_id))
+            .await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry_in_tx(
+                db.tx(),
+                CoreCustodyObject::wallet(wallet.id),
+                CoreCustodyAction::WALLET_UPDATE,
+            )
+            .await?;
+
+        if wallet
+            .update_balance(new_balance, &audit_info)
+            .did_execute()
+        {
+            self.wallets.update_in_op(&mut db, &mut wallet).await?;
+        }
+
+        db.commit().await?;
 
         Ok(())
     }

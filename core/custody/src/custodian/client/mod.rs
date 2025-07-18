@@ -68,7 +68,7 @@ impl CustodianClient for bitgo::BitgoClient {
 
                     Some(CustodianNotification::WalletBalanceChanged {
                         external_wallet_id: transfer.wallet,
-                        amount: wallet.confirmed_balance.into(),
+                        new_balance: wallet.confirmed_balance.into(),
                     })
                 } else {
                     None
@@ -116,12 +116,12 @@ impl CustodianClient for komainu::KomainuClient {
                     .await
                     .map_err(CustodianClientError::client)?;
 
-                let amount = Satoshis::try_from_btc(wallet.balance.available)
+                let new_balance = Satoshis::try_from_btc(wallet.balance.available)
                     .map_err(CustodianClientError::client)?;
 
                 Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet.id,
-                    amount,
+                    new_balance,
                 })
             }
         };
@@ -165,7 +165,7 @@ pub mod mock {
             if let Ok(WalletBalanceChanged { wallet, balance }) = serde_json::from_slice(&payload) {
                 Ok(Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet,
-                    amount: balance.into(),
+                    new_balance: balance.into(),
                 }))
             } else {
                 Ok(None)
