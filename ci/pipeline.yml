@@ -36,7 +36,7 @@ groups:
       - check-code
       - build-edge-image
       - release-docker
-      - set-dev-version
+      #! - set-dev-version
       - bump-image-in-chart
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
@@ -47,7 +47,7 @@ jobs:
   -  #@ build_edge_image()
 
   - name: bats-integrations-test
-    #! serial: true
+    serial: true
     plan:
       - in_parallel:
           - get: repo
@@ -79,7 +79,7 @@ jobs:
 
                 cachix use $CACHIX_CACHE_NAME
 
-                nix build . --print-out-paths --no-link | cachix push $CACHIX_CACHE_NAME
+                nix build . --print-out-paths | cachix push $CACHIX_CACHE_NAME
 
                 nix develop --profile dev-profile --command true
                 cachix push $CACHIX_CACHE_NAME dev-profile
@@ -113,14 +113,10 @@ jobs:
               cd repo
               cachix use $CACHIX_CACHE_NAME
               
-              # Cache the build outputs from the project
-              nix build . --print-out-paths --no-link | cachix push $CACHIX_CACHE_NAME
-              
-              # Cache the development environment  
               nix develop --profile dev-profile --command true
               cachix push $CACHIX_CACHE_NAME dev-profile
-              
-              nix develop --command sh -exc "make check-code"
+
+              nix develop -c make check-code
 
   - name: build-static-binary
     serial: true
@@ -152,12 +148,8 @@ jobs:
             # Setup Cachix cache
             cachix use $CACHIX_CACHE_NAME
             
-            # Build the static binary using Nix (equivalent to musl target)
-            nix build .#static --print-build-logs
-            
-            # Push build results to cache
-            nix build .#static --print-out-paths --no-link | cachix push $CACHIX_CACHE_NAME
-            
+            cachix watch-exec $CACHIX_CACHE_NAME -- nix build .#static
+
             # Copy the binary to output
             mkdir -p ../bin
             cp result/bin/lana-cli ../bin/
@@ -402,33 +394,33 @@ jobs:
               image: meltano-edge-image/image.tar
               additional_tags: version/version
 
-  - name: set-dev-version
-    plan:
-      - in_parallel:
-          - { get: repo, passed: [release] }
-          - { get: pipeline-tasks }
-          - get: version
-            trigger: true
-            params: { bump: patch }
-            passed: [release, release-docker]
-      - task: set-dev-version
-        config:
-          image_resource: #@ rust_task_image_config()
-          platform: linux
-          inputs:
-            - name: version
-            - name: repo
-            - name: pipeline-tasks
-          outputs:
-            - name: repo
-          run:
-            path: pipeline-tasks/ci/tasks/set-dev-version.sh
-          params:
-            BRANCH: #@ data.values.git_branch
-      - put: repo-dev-out
-        params:
-          repository: repo
-          rebase: true
+  #! - name: set-dev-version
+  #!   plan:
+  #!     - in_parallel:
+  #!         - { get: repo, passed: [release] }
+  #!         - { get: pipeline-tasks }
+  #!         - get: version
+  #!           trigger: true
+  #!           params: { bump: patch }
+  #!           passed: [release, release-docker]
+  #!     - task: set-dev-version
+  #!       config:
+  #!         image_resource: #@ rust_task_image_config()
+  #!         platform: linux
+  #!         inputs:
+  #!           - name: version
+  #!           - name: repo
+  #!           - name: pipeline-tasks
+  #!         outputs:
+  #!           - name: repo
+  #!         run:
+  #!           path: pipeline-tasks/ci/tasks/set-dev-version.sh
+  #!         params:
+  #!           BRANCH: #@ data.values.git_branch
+  #!     - put: repo-dev-out
+  #!       params:
+  #!         repository: repo
+  #!         rebase: true
 
   - name: bump-image-in-chart
     plan:
@@ -539,14 +531,14 @@ resources:
       branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
-  - name: repo-dev-out
-    type: git
-    source:
-      fetch_tags: true
-      uri: #@ data.values.git_uri
-      branch: #@ data.values.git_branch
-      private_key: #@ data.values.github_private_key
-    webhook_token: ((webhook.secret))
+  #! - name: repo-dev-out
+  #!   type: git
+  #!   source:
+  #!     fetch_tags: true
+  #!     uri: #@ data.values.git_uri
+  #!     branch: #@ data.values.git_branch
+  #!     private_key: #@ data.values.github_private_key
+  #!   webhook_token: ((webhook.secret))
 
   - name: latest-image
     type: registry-image
