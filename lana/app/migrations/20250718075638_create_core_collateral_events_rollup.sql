@@ -10,7 +10,7 @@ CREATE TABLE core_collateral_events_rollup (
   action VARCHAR,
   collateral_amount BIGINT,
   credit_facility_id UUID,
-  wallet_id UUID,
+  custody_wallet_id UUID,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -62,13 +62,13 @@ BEGIN
 ;
     new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+    new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.abs_diff := current_row.abs_diff;
@@ -77,8 +77,8 @@ BEGIN
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.collateral_amount := current_row.collateral_amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
+    new_row.custody_wallet_id := current_row.custody_wallet_id;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
-    new_row.wallet_id := current_row.wallet_id;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -86,7 +86,7 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_id := (NEW.event ->> 'account_id')::UUID;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-      new_row.wallet_id := (NEW.event ->> 'wallet_id')::UUID;
+      new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
     WHEN 'updated_via_manual_input' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.action := (NEW.event ->> 'action');
@@ -111,8 +111,8 @@ BEGIN
     audit_entry_ids,
     collateral_amount,
     credit_facility_id,
-    ledger_tx_ids,
-    wallet_id
+    custody_wallet_id,
+    ledger_tx_ids
   )
   VALUES (
     new_row.id,
@@ -125,8 +125,8 @@ BEGIN
     new_row.audit_entry_ids,
     new_row.collateral_amount,
     new_row.credit_facility_id,
-    new_row.ledger_tx_ids,
-    new_row.wallet_id
+    new_row.custody_wallet_id,
+    new_row.ledger_tx_ids
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
@@ -137,8 +137,8 @@ BEGIN
     audit_entry_ids = EXCLUDED.audit_entry_ids,
     collateral_amount = EXCLUDED.collateral_amount,
     credit_facility_id = EXCLUDED.credit_facility_id,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    wallet_id = EXCLUDED.wallet_id;
+    custody_wallet_id = EXCLUDED.custody_wallet_id,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids;
 
   RETURN NEW;
 END;

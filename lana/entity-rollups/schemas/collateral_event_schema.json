@@ -44,6 +44,13 @@
           "format": "uuid",
           "type": "string"
         },
+        "custody_wallet_id": {
+          "format": "uuid",
+          "type": [
+            "string",
+            "null"
+          ]
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -51,13 +58,6 @@
         "type": {
           "const": "initialized",
           "type": "string"
-        },
-        "wallet_id": {
-          "format": "uuid",
-          "type": [
-            "string",
-            "null"
-          ]
         }
       },
       "required": [
