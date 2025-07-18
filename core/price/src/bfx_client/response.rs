@@ -17,6 +17,24 @@ pub struct BtcUsdTick {
 }
 
 #[derive(Deserialize, Debug)]
+#[allow(dead_code)]
+pub struct BtcUsdHistTick {
+    symbol: String,
+    pub bid: Decimal,
+    placeholder_1: Option<Decimal>,
+    pub ask: Decimal,
+    placeholder_2: Option<Decimal>,
+    placeholder_3: Option<Decimal>,
+    placeholder_4: Option<Decimal>,
+    placeholder_5: Option<Decimal>,
+    placeholder_6: Option<Decimal>,
+    placeholder_7: Option<Decimal>,
+    placeholder_8: Option<Decimal>,
+    placeholder_9: Option<Decimal>,
+    timestamp: i64,
+}
+
+#[derive(Deserialize, Debug)]
 pub struct BfxErrorResponse {
     pub event: String,
     pub code: u32,
