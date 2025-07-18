@@ -79,15 +79,6 @@
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
           cargoExtraArgs = "--features sim-time,sumsub-testing";
-
-          # Add native build inputs including protobuf
-          nativeBuildInputs = with pkgs; [
-            protobuf
-            cacert
-          ];
-
-          # Environment variables for protoc
-          PROTOC = "${pkgs.protobuf}/bin/protoc";
         };
 
       # Function to build lana-cli for a specific profile
@@ -109,15 +100,6 @@
             then toString self.lastModified
             else "315532800";
           cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian,sumsub-testing";
-
-          # Add native build inputs including protobuf
-          nativeBuildInputs = with pkgs; [
-            protobuf
-            cacert
-          ];
-
-          # Environment variables for protoc
-          PROTOC = "${pkgs.protobuf}/bin/protoc";
         };
 
       # Function to build static lana-cli (musl target for containers)
@@ -135,19 +117,12 @@
           CARGO_BUILD_TARGET = rustTarget;
           cargoExtraArgs = "--features sim-time,sim-bootstrap --target ${rustTarget}";
 
-          # Add native build inputs including protobuf
-          nativeBuildInputs = with pkgs; [
-            protobuf
-            cacert
-          ];
-
           # Add musl target dependencies
           depsBuildBuild = with pkgs; [
             pkgsCross.musl64.stdenv.cc
           ];
 
-          # Environment variables for static linking and protoc
-          PROTOC = "${pkgs.protobuf}/bin/protoc";
+          # Environment variables for static linking
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
@@ -170,19 +145,12 @@
             else "315532800";
           cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
 
-          # Add native build inputs including protobuf
-          nativeBuildInputs = with pkgs; [
-            protobuf
-            cacert
-          ];
-
           # Add musl target for static linking
           depsBuildBuild = with pkgs; [
             pkgsCross.musl64.stdenv.cc
           ];
 
-          # Environment variables for static linking and protoc
-          PROTOC = "${pkgs.protobuf}/bin/protoc";
+          # Environment variables for static linking
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
