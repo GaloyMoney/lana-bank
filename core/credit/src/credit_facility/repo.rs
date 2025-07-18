@@ -87,22 +87,21 @@ where
             .await
     }
 
-    pub async fn find_by_wallet(
+    pub async fn find_by_custody_wallet(
         &self,
         wallet_id: WalletId,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        Ok(es_query!(
+        es_query!(
             "core",
             self.pool(),
             r#"
                 SELECT cf.id FROM core_credit_facilities cf
                 LEFT JOIN core_collaterals co ON cf.collateral_id = co.id
-                LEFT JOIN core_wallets wa ON co.wallet_id = wa.id
-                WHERE wa.id = $1"#,
-            Some(uuid::Uuid::from(wallet_id))
+                WHERE co.wallet_id = $1"#,
+            wallet_id as WalletId
         )
         .fetch_one()
-        .await?)
+        .await
     }
 }
 

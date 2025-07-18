@@ -566,11 +566,11 @@ where
     }
 
     #[instrument(name = "credit.credit_facility.find_by_wallet", skip(self), err)]
-    pub async fn find_by_wallet(
+    pub async fn find_by_custody_wallet(
         &self,
         wallet_id: impl Into<WalletId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        self.repo.find_by_wallet(wallet_id.into()).await
+        self.repo.find_by_custody_wallet(wallet_id.into()).await
     }
 
     #[instrument(name = "credit.credit_facility.balance", skip(self), err)]
