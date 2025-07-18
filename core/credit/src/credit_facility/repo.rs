@@ -6,7 +6,7 @@ pub use es_entity::{ListDirection, Sort};
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CoreCreditEvent,
+    CoreCreditEvent, WalletId,
     interest_accrual_cycle::{error::InterestAccrualCycleError, *},
     primitives::*,
     publisher::*,
@@ -87,9 +87,9 @@ where
             .await
     }
 
-    pub async fn find_by_external_wallet(
+    pub async fn find_by_wallet(
         &self,
-        external_wallet_id: impl AsRef<str>,
+        wallet_id: WalletId,
     ) -> Result<CreditFacility, CreditFacilityError> {
         Ok(es_query!(
             "core",
@@ -98,8 +98,8 @@ where
                 SELECT cf.id FROM core_credit_facilities cf
                 LEFT JOIN core_collaterals co ON cf.collateral_id = co.id
                 LEFT JOIN core_wallets wa ON co.wallet_id = wa.id
-                WHERE wa.external_wallet_id = $1"#,
-            external_wallet_id.as_ref()
+                WHERE wa.id = $1"#,
+            Some(uuid::Uuid::from(wallet_id))
         )
         .fetch_one()
         .await?)

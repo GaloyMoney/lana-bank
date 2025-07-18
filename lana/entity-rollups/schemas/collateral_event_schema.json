@@ -109,9 +109,6 @@
         "action": {
           "$ref": "#/$defs/CollateralAction"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "collateral_amount": {
           "$ref": "#/$defs/Satoshis"
         },
@@ -129,8 +126,7 @@
         "ledger_tx_id",
         "collateral_amount",
         "abs_diff",
-        "action",
-        "audit_info"
+        "action"
       ],
       "type": "object"
     }

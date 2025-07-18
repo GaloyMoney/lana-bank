@@ -36,6 +36,12 @@ where
                     id: entity.id,
                     address: address.to_owned(),
                 }),
+                BalanceChanged { new_balance, .. } => {
+                    Some(CoreCustodyEvent::WalletBalanceChanged {
+                        id: entity.id,
+                        new_balance: *new_balance,
+                    })
+                }
             })
             .collect::<Vec<_>>();
 

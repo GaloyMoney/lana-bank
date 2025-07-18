@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 use audit::AuditInfo;
 use es_entity::*;
 
+use core_money::Satoshis;
+
 use crate::primitives::{CustodianId, WalletId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -19,6 +21,10 @@ pub enum WalletEvent {
         external_id: String,
         address: String,
         custodian_response: serde_json::Value,
+        audit_info: AuditInfo,
+    },
+    BalanceChanged {
+        new_balance: Satoshis,
         audit_info: AuditInfo,
     },
 }
@@ -59,6 +65,25 @@ impl Wallet {
         Idempotent::Executed(())
     }
 
+    pub fn update_balance(
+        &mut self,
+        new_balance: Satoshis,
+        audit_info: &AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            WalletEvent::BalanceChanged { new_balance: balance, .. } if *balance == new_balance ,
+            => WalletEvent::BalanceChanged { .. }
+        );
+
+        self.events.push(WalletEvent::BalanceChanged {
+            new_balance,
+            audit_info: audit_info.clone(),
+        });
+
+        Idempotent::Executed(())
+    }
+
     pub fn address(&self) -> Option<&str> {
         self.events.iter_all().find_map(|e| match e {
             WalletEvent::ExternalWalletAttached { address, .. } => Some(address.as_str()),
@@ -80,6 +105,7 @@ impl TryFromEvents<WalletEvent> for Wallet {
                 WalletEvent::ExternalWalletAttached { external_id, .. } => {
                     builder = builder.external_wallet_id(external_id.to_owned());
                 }
+                _ => {}
             }
         }
         builder.events(events).build()

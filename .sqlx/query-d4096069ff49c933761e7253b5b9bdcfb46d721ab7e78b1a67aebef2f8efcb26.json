@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (\n                SELECT cf.id FROM core_credit_facilities cf\n                LEFT JOIN core_collaterals co ON cf.collateral_id = co.id\n                LEFT JOIN core_wallets wa ON co.wallet_id = wa.id\n                WHERE wa.external_wallet_id = $1) SELECT i.id AS \"entity_id: CreditFacilityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_credit_facility_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (\n                SELECT cf.id FROM core_credit_facilities cf\n                LEFT JOIN core_collaterals co ON cf.collateral_id = co.id\n                LEFT JOIN core_wallets wa ON co.wallet_id = wa.id\n                WHERE wa.id = $1) SELECT i.id AS \"entity_id: CreditFacilityId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_credit_facility_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -26,7 +26,7 @@
     ],
     "parameters": {
       "Left": [
-        "Text"
+        "Uuid"
       ]
     },
     "nullable": [
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "b29f4303f06022d017945d5a017204b37870b698659f6513e6773de0b9fd9057"
+  "hash": "d4096069ff49c933761e7253b5b9bdcfb46d721ab7e78b1a67aebef2f8efcb26"
 }

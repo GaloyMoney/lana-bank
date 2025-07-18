@@ -22,12 +22,12 @@ mod terms;
 mod terms_template;
 mod time;
 
-use audit::{AuditInfo, AuditSvc, SystemSubject};
+use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
+use core_custody::WalletId;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
-    CustodianNotification,
 };
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_price::Price;
@@ -294,6 +294,16 @@ where
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityActivationInit::new(outbox, &activate_credit_facility),
             CreditFacilityActivationJobConfig::<Perms, E>::new(),
+        )
+        .await?;
+
+        jobs.add_initializer_and_spawn_unique(
+            wallet_collateral_sync::WalletCollateralSyncInit::new(
+                outbox,
+                &credit_facilities,
+                &collaterals,
+            ),
+            wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
         )
         .await?;
 
@@ -650,37 +660,6 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit.handle_webhook", skip(self), err)]
-    pub async fn handle_webhook(
-        &self,
-        provider: String,
-        uri: http::Uri,
-        headers: http::HeaderMap,
-        payload: bytes::Bytes,
-    ) -> Result<(), CoreCreditError> {
-        if let Some(notification) = self
-            .custody
-            .process_webhook(provider, uri, headers, payload)
-            .await?
-        {
-            match notification {
-                CustodianNotification::WalletBalanceChanged {
-                    external_wallet_id,
-                    amount,
-                } => {
-                    self.update_collateral_by_custodian(
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                        external_wallet_id,
-                        amount,
-                    )
-                    .await
-                }
-            }
-        } else {
-            Ok(())
-        }
-    }
-
     #[instrument(name = "credit.update_collateral_manually", skip(self), err)]
     pub async fn update_collateral_manually(
         &self,
@@ -725,36 +704,6 @@ where
             .await?;
 
         Ok(credit_facility)
-    }
-
-    #[instrument(name = "credit.update_collateral_by_custodian", skip(self), err)]
-    pub(crate) async fn update_collateral_by_custodian(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        external_wallet_id: impl AsRef<str> + std::fmt::Debug,
-        amount: Satoshis,
-    ) -> Result<(), CoreCreditError> {
-        let audit_info = self
-            .subject_can_update_collateral(sub, true)
-            .await?
-            .expect("audit info missing");
-
-        let credit_facility = self
-            .facilities
-            .find_by_external_wallet(external_wallet_id)
-            .await?;
-
-        let effective = time::now().date_naive();
-        self.collaterals
-            .record_collateral_update_via_custodian_sync(
-                &credit_facility,
-                amount,
-                effective,
-                &audit_info,
-            )
-            .await?;
-
-        Ok(())
     }
 
     pub async fn subject_can_record_payment(

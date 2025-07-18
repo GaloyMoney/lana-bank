@@ -304,14 +304,14 @@ where
         Ok(wallet)
     }
 
-    #[instrument(name = "custody.process_webhook", skip(self), err)]
-    pub async fn process_webhook(
+    #[instrument(name = "custody.handle_webhook", skip(self), err)]
+    pub async fn handle_webhook(
         &self,
         provider: String,
         uri: http::Uri,
         headers: http::HeaderMap,
         payload: bytes::Bytes,
-    ) -> Result<Option<CustodianNotification>, CoreCustodyError> {
+    ) -> Result<(), CoreCustodyError> {
         let custodian = self.custodians.find_by_provider(provider).await;
 
         let custodian_id = match custodian {
@@ -324,11 +324,46 @@ where
             .persist_webhook_notification(custodian_id, &uri, &headers, &payload)
             .await?;
 
-        Ok(custodian?
-            .custodian_client(self.config.encryption.key)
-            .await?
-            .process_webhook(&headers, payload)
-            .await?)
+        if let Ok(custodian) = custodian {
+            if let Some(notification) = custodian
+                .custodian_client(self.config.encryption.key)
+                .await?
+                .process_webhook(&headers, payload)
+                .await?
+            {
+                match notification {
+                    CustodianNotification::WalletBalanceChanged {
+                        external_wallet_id,
+                        amount,
+                    } => {
+                        let mut db = self.wallets.begin_op().await?;
+
+                        let mut wallet = self
+                            .wallets
+                            .find_by_external_wallet_id_in_tx(db.tx(), Some(external_wallet_id))
+                            .await?;
+
+                        let audit_info = self
+                            .authz
+                            .audit()
+                            .record_system_entry_in_tx(
+                                db.tx(),
+                                CoreCustodyObject::wallet(wallet.id),
+                                CoreCustodyAction::WALLET_UPDATE,
+                            )
+                            .await?;
+
+                        if wallet.update_balance(amount, &audit_info).did_execute() {
+                            self.wallets.update_in_op(&mut db, &mut wallet).await?;
+                        }
+
+                        db.commit().await?;
+                    }
+                }
+            }
+        }
+
+        Ok(())
     }
 
     #[instrument(

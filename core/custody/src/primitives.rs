@@ -34,8 +34,7 @@ impl CoreCustodyAction {
     pub const CUSTODIAN_CREATE_WALLET: Self =
         CoreCustodyAction::Custodian(CustodianAction::CreateWallet);
 
-    pub const WALLET_GENERATE_ADDRESS: Self =
-        CoreCustodyAction::Wallet(WalletAction::GenerateAddress);
+    pub const WALLET_UPDATE: Self = CoreCustodyAction::Wallet(WalletAction::Update);
 
     pub fn entities() -> Vec<(
         CoreCustodyActionDiscriminants,
@@ -126,7 +125,7 @@ impl From<CustodianAction> for CoreCustodyAction {
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum WalletAction {
-    GenerateAddress,
+    Update,
 }
 
 impl WalletAction {
@@ -135,9 +134,7 @@ impl WalletAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::GenerateAddress => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER])
-                }
+                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
             };
             res.push(action_description);
         }

@@ -31,8 +31,6 @@ cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
 sqlx = { workspace = true }
 
-http = { workspace = true }
-bytes = { workspace = true }
 strum = { workspace = true }
 chrono = { workspace = true }
 serde = { workspace = true }

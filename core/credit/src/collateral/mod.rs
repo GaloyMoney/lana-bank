@@ -4,6 +4,8 @@ mod repo;
 
 use std::collections::HashMap;
 
+use tracing::instrument;
+
 use authz::PermissionCheck;
 use core_custody::WalletId;
 use outbox::OutboxEventMarker;
@@ -88,6 +90,11 @@ where
         self.repo.create_in_op(db, new_collateral).await
     }
 
+    #[instrument(
+        name = "collateral.record_collateral_update_via_manual_input_in_op",
+        skip(db, self),
+        err
+    )]
     pub(super) async fn record_collateral_update_via_manual_input_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -114,17 +121,22 @@ where
         Ok(res)
     }
 
+    #[instrument(
+        name = "collateral.record_collateral_update_via_custodian_sync",
+        fields(credit_facility = %credit_facility.id, updated_collateral = %updated_collateral, effective = %effective),
+        skip(self),
+        err
+    )]
     pub(super) async fn record_collateral_update_via_custodian_sync(
         &self,
         credit_facility: &CreditFacility,
         updated_collateral: core_money::Satoshis,
         effective: chrono::NaiveDate,
-        audit_info: &audit::AuditInfo,
     ) -> Result<(), CollateralError> {
         let mut collateral = self.repo.find_by_id(credit_facility.collateral_id).await?;
 
-        if let es_entity::Idempotent::Executed(data) = collateral
-            .record_collateral_update_via_custodian_sync(updated_collateral, effective, audit_info)
+        if let es_entity::Idempotent::Executed(data) =
+            collateral.record_collateral_update_via_custodian_sync(updated_collateral, effective)
         {
             let mut db = self.repo.begin_op().await?;
 

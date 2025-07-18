@@ -10,7 +10,7 @@ use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject
 use outbox::OutboxEventMarker;
 
 use crate::{
-    Price,
+    Price, WalletId,
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
     ledger::{
@@ -565,12 +565,12 @@ where
             .await
     }
 
-    #[instrument(name = "credit.credit_facility.balance", skip(self), err)]
-    pub async fn find_by_external_wallet(
+    #[instrument(name = "credit.credit_facility.find_by_wallet", skip(self), err)]
+    pub async fn find_by_wallet(
         &self,
-        external_wallet_id: impl AsRef<str> + std::fmt::Debug,
+        wallet_id: impl Into<WalletId> + std::fmt::Debug,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        self.repo.find_by_external_wallet(external_wallet_id).await
+        self.repo.find_by_wallet(wallet_id.into()).await
     }
 
     #[instrument(name = "credit.credit_facility.balance", skip(self), err)]
