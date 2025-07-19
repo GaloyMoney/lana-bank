@@ -6,6 +6,7 @@ pub struct ContractCreationConfig {
     pub pdf_config_file: Option<PathBuf>,
 }
 
+#[allow(clippy::derivable_impls)]
 impl Default for ContractCreationConfig {
     fn default() -> Self {
         Self {
