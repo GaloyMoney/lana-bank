@@ -1,12 +1,12 @@
 /// Helper to extract the 'app' and 'sub' args
-/// 
+///
 /// Instead of:
 /// ```rust
 /// async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
 ///     let app = ctx.data_unchecked::<LanaApp>();
 ///     let CustomerAuthContext { sub } = ctx.data()?;
 /// ```
-/// 
+///
 /// Use:
 /// ```rust
 /// async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {

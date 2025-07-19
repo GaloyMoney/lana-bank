@@ -1,12 +1,12 @@
 /// Helper to extract the 'app' and 'sub' args
-/// 
+///
 /// Instead of:
 /// ```rust
 /// async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
 ///     let app = ctx.data_unchecked::<LanaApp>();
 ///     let AdminAuthContext { sub } = ctx.data()?;
 /// ```
-/// 
+///
 /// Use:
 /// ```rust
 /// async fn users(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<User>> {
@@ -22,7 +22,7 @@ macro_rules! app_and_sub_from_ctx {
 }
 
 /// Helper for a 'standard' find and return
-/// 
+///
 /// Instead of:
 /// ```rust
 /// if let Some(domain_user) = app.users().find_by_id(sub, id).await? {
@@ -34,7 +34,7 @@ macro_rules! app_and_sub_from_ctx {
 ///     Ok(None)
 /// }
 /// ```
-/// 
+///
 /// Use:
 /// ```rust
 /// maybe_fetch_one!(User, ctx, app.users().find_by_id(sub, id).await?)
@@ -84,7 +84,7 @@ macro_rules! exec_mutation {
 }
 
 /// Helper to do a 'standard' list_by query
-/// 
+///
 /// Example usage:
 /// ```rust
 /// query(
@@ -106,7 +106,7 @@ macro_rules! exec_mutation {
 ///                 },
 ///             )
 ///             .await?;
-/// 
+///
 ///         let mut connection = Connection::new(false, res.has_next_page);
 ///         connection
 ///             .edges
@@ -114,7 +114,7 @@ macro_rules! exec_mutation {
 ///                 let cursor = CommitteeByCreatedAtCursor::from(&committee);
 ///                 Edge::new(cursor, Committee::from(committee))
 ///             }));
-/// 
+///
 ///         Ok::<_, async_graphql::Error>(connection)
 ///     },
 /// )
@@ -158,7 +158,7 @@ macro_rules! list_with_cursor {
 }
 
 /// Helper to do a 'standard' list_by query with combo cursor
-/// 
+///
 /// Example usage:
 /// ```rust
 /// query(
@@ -170,7 +170,7 @@ macro_rules! list_with_cursor {
 ///         let first = first.expect("First always exists");
 ///         let after = after
 ///             .map(CommitteeCursor::from);
-/// 
+///
 ///         let res = app
 ///             .governance()
 ///             .list_committees(
@@ -183,7 +183,7 @@ macro_rules! list_with_cursor {
 ///                 sort,
 ///             )
 ///             .await?;
-/// 
+///
 ///         let mut connection = Connection::new(false, res.has_next_page);
 ///         connection
 ///             .edges
@@ -194,7 +194,7 @@ macro_rules! list_with_cursor {
 ///                 ));
 ///                 Edge::new(cursor, Committee::from(committee))
 ///             }));
-/// 
+///
 ///         Ok::<_, async_graphql::Error>(connection)
 ///     },
 /// )
@@ -239,14 +239,14 @@ macro_rules! list_with_combo_cursor {
 }
 
 /// Helper to create a 'standard' payload
-/// 
+///
 /// Creates a payload struct of the form:
 /// ```rust
 /// pub struct SomeMutationPayload {
 ///     entity: Entity
 /// }
 /// ```
-/// 
+///
 /// Example usage:
 /// ```rust
 /// mutation_payload! { PolicyAssignCommitteePayload, policy: Policy }
