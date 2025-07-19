@@ -246,7 +246,11 @@ mod tests {
         // Test that config works correctly
         let pdf_config_file = Some(
             Path::new(env!("CARGO_MANIFEST_DIR"))
-                .join("../../lib/rendering/config/pdf_config.toml"),
+                .parent()
+                .unwrap()
+                .parent()
+                .unwrap()
+                .join("lib/rendering/config/pdf_config.toml"),
         );
 
         let mut config = ContractCreationConfig::default();
