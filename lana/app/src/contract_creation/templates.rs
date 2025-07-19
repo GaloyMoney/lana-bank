@@ -46,9 +46,3 @@ impl ContractTemplates {
         self.render_template("loan_agreement", data)
     }
 }
-
-impl Default for ContractTemplates {
-    fn default() -> Self {
-        Self::init().expect("Failed to initialize contract templates")
-    }
-}
