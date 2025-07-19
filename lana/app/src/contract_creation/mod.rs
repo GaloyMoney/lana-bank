@@ -109,7 +109,7 @@ impl ContractCreation {
         &self,
         sub: &Subject,
         contract_id: impl Into<ContractCreationId> + std::fmt::Debug,
-    ) -> Result<LoanAgreement, ContractCreationError> {
+    ) -> Result<Option<LoanAgreement>, ContractCreationError> {
         let contract_id = contract_id.into();
         let document_id = DocumentId::from(contract_id);
 
@@ -124,9 +124,11 @@ impl ContractCreation {
             )
             .await?;
 
-        let document = self.document_storage.find_by_id(document_id).await?;
-
-        Ok(LoanAgreement::from(document))
+        match self.document_storage.find_by_id(document_id).await {
+            Ok(document) => Ok(Some(LoanAgreement::from(document))),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
     }
 
     #[instrument(name = "contract.generate_document_download_link", skip(self), err)]

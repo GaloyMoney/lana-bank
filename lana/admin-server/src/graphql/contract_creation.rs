@@ -42,11 +42,11 @@ impl LoanAgreement {
 }
 
 impl From<lana_app::contract_creation::LoanAgreement> for LoanAgreement {
-    fn from(simple_loan_agreement: lana_app::contract_creation::LoanAgreement) -> Self {
+    fn from(domain_loan_agreement: lana_app::contract_creation::LoanAgreement) -> Self {
         Self::new(
-            simple_loan_agreement.id,
-            simple_loan_agreement.status.into(),
-            simple_loan_agreement.created_at,
+            domain_loan_agreement.id,
+            domain_loan_agreement.status.into(),
+            domain_loan_agreement.created_at,
         )
     }
 }

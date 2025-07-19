@@ -881,8 +881,8 @@ impl Query {
         id: UUID,
     ) -> async_graphql::Result<Option<LoanAgreement>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let contract = app.contract_creation().find_by_id(sub, id).await?;
-        Ok(Some(LoanAgreement::from(contract)))
+        let agreement = app.contract_creation().find_by_id(sub, id).await?;
+        Ok(agreement.map(LoanAgreement::from))
     }
 }
 
