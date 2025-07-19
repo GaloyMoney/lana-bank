@@ -53,4 +53,3 @@ fuzz/artifacts/
 fuzz/corpus/
 
 lib/rendering/test-output
-/rust-lightning/
