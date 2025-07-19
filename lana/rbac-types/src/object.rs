@@ -197,12 +197,6 @@ mod test {
 
     #[test]
     fn action_serialization() -> anyhow::Result<()> {
-        // App
-        // test_to_and_from_string(
-        //     LanaObject::App(AppObject::Customer(AllOrOne::All)),
-        //     "app/customer/*",
-        // )?;
-
         // Governance
         test_to_and_from_string(
             LanaObject::Governance(GovernanceObject::Committee(AllOrOne::All)),
