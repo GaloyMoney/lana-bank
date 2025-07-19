@@ -119,13 +119,7 @@ wait_for_loan_agreement_completion() {
   sleep 1
 
   # Verify the customer status after the complete KYC flow
-  variables=$(
-    jq -n \
-      --arg customerId "$customer_id" \
-    '{
-      id: $customerId
-    }'
-  )
+  variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
   
   exec_admin_graphql 'customer' "$variables"
   level=$(graphql_output '.data.customer.level')
@@ -134,6 +128,11 @@ wait_for_loan_agreement_completion() {
 
   # After status check
   echo "After test applicant creation - level: $level, status: $status, applicant_id: $final_applicant_id"
+
+  # The complete test applicant should result in BASIC level and ACTIVE status
+  [[ "$level" == "BASIC" ]] || exit 1
+  [[ "$status" == "ACTIVE" ]] || exit 1
+  [[ "$final_applicant_id" == "$test_applicant_id" ]] || exit 1
 
   variables=$(
     jq -n \
@@ -191,11 +190,6 @@ wait_for_loan_agreement_completion() {
   grep "DEU" "$temp_txt" || exit 1
   
   rm -f "$temp_pdf" "$temp_txt"
-
-  # The complete test applicant should result in BASIC level and ACTIVE status
-  [[ "$level" == "BASIC" ]] || exit 1
-  [[ "$status" == "ACTIVE" ]] || exit 1
-  [[ "$final_applicant_id" == "$test_applicant_id" ]] || exit 1
 
   # Test webhook callback integration (original functionality)
   echo "Testing webhook callback functionality..."
@@ -261,6 +255,7 @@ wait_for_loan_agreement_completion() {
         "createdAtMs": "2020-02-21 13:23:19.001"
     }'
 
+  variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
   exec_admin_graphql 'customer' "$variables"
 
   level=$(graphql_output '.data.customer.level')
