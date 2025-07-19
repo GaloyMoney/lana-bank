@@ -16,6 +16,19 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
+wait_for_collateral() {
+  credit_facility_id=$1
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  [[ "$collateral" -eq 1000 ]] || exit 1
+}
+
 @test "credit-facility-custody: can create with mock custodian" {
   # Setup prerequisites
   customer_id=$(create_customer)
@@ -109,12 +122,5 @@ teardown_file() {
   # external wallet ID 123 is hard coded in mock custodian
   curl -s -X POST --json '{"wallet": "123", "balance": 1000}' http://localhost:5253/mock/webhook
 
-  variables=$(
-    jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
-  )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
-  [[ "$collateral" -eq 1000 ]] || exit 1
+  retry 10 1 wait_for_collateral "$credit_facility_id"
 }
