@@ -297,8 +297,9 @@ impl_trivial_action!(ReportAction, Report);
 #[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum ContractCreationAction {
-    Create,
-    Read,
+    Generate,
+    Find,
+    GenerateDownloadLink,
 }
 
 impl ContractCreationAction {
@@ -307,10 +308,11 @@ impl ContractCreationAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                // FIXME: I don't understand this code
-                // what is the PERMISSION_SET_APP_WRITER and PERMISSION_SET_APP_VIEWER supposed to do?
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::Read => ActionDescription::new(variant, &[PERMISSION_SET_APP_VIEWER]),
+                Self::Generate => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Self::Find => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
+                Self::GenerateDownloadLink => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER])
+                }
             };
             res.push(action_description);
         }

@@ -72,7 +72,7 @@ impl ContractCreation {
                 sub,
                 LanaObject::App(AppObject::all_contract_creation()),
                 LanaAction::App(AppAction::ContractCreation(
-                    rbac_types::ContractCreationAction::Create,
+                    rbac_types::ContractCreationAction::Generate,
                 )),
             )
             .await?;
@@ -92,7 +92,6 @@ impl ContractCreation {
             )
             .await?;
 
-        // Create and spawn the job using the document ID as job ID to harmonize them
         self.jobs
             .create_and_spawn_in_op::<GenerateLoanAgreementConfig>(
                 &mut db,
@@ -120,7 +119,7 @@ impl ContractCreation {
                 sub,
                 LanaObject::App(AppObject::all_contract_creation()),
                 LanaAction::App(AppAction::ContractCreation(
-                    rbac_types::ContractCreationAction::Read,
+                    rbac_types::ContractCreationAction::Find,
                 )),
             )
             .await?;
@@ -144,7 +143,7 @@ impl ContractCreation {
                 sub,
                 LanaObject::App(AppObject::all_contract_creation()),
                 LanaAction::App(AppAction::ContractCreation(
-                    rbac_types::ContractCreationAction::Read,
+                    rbac_types::ContractCreationAction::GenerateDownloadLink,
                 )),
             )
             .await?;
