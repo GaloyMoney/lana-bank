@@ -6,7 +6,8 @@ es_entity::entity_id! {
     PaymentId,
     InterestAccrualCycleId,
     TermsTemplateId,
-    ReportId;
+    ReportId,
+    ContractCreationId;
 
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
@@ -17,4 +18,6 @@ es_entity::entity_id! {
 
     DisbursalId => LedgerTransactionId,
     PaymentId => LedgerTransactionId,
+
+    ContractCreationId => document_storage::DocumentId,
 }

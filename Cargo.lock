@@ -3151,6 +3151,7 @@ name = "lana-ids"
 version = "0.3.743-dev"
 dependencies = [
  "cala-ledger",
+ "document-storage",
  "es-entity",
  "governance",
  "job",

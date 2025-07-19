@@ -9,6 +9,7 @@ use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
     GeneratedDocumentDownloadLink, ReferenceId,
 };
+use lana_ids::ContractCreationId;
 use rbac_types::{AppAction, AppObject, LanaAction, LanaObject, Subject};
 use uuid::Uuid;
 
@@ -230,16 +231,6 @@ pub struct LoanAgreement {
     pub id: Uuid,
     pub status: LoanAgreementStatus,
     pub created_at: chrono::DateTime<chrono::Utc>,
-}
-
-es_entity::entity_id! {
-    ContractCreationId,
-}
-
-impl From<ContractCreationId> for DocumentId {
-    fn from(contract_id: ContractCreationId) -> DocumentId {
-        DocumentId::from(contract_id.0)
-    }
 }
 
 #[cfg(test)]

@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use lana_ids::ReportId;
+use lana_ids::{ContractCreationId, ReportId};
 
 use authz::AllOrOne;
 use core_access::CoreAccessObject;
@@ -116,7 +116,7 @@ impl FromStr for LanaObject {
     }
 }
 
-es_entity::entity_id!(ApplicantId, AuditId, ContractCreationId);
+es_entity::entity_id!(ApplicantId, AuditId);
 
 pub type ApplicantAllOrOne = AllOrOne<ApplicantId>;
 pub type ReportAllOrOne = AllOrOne<ReportId>;
