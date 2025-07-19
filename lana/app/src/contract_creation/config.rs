@@ -1,5 +1,5 @@
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
+use std::path::{Path, PathBuf};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 pub struct ContractCreationConfig {
@@ -9,7 +9,10 @@ pub struct ContractCreationConfig {
 impl Default for ContractCreationConfig {
     fn default() -> Self {
         Self {
-            pdf_config_file: Some(PathBuf::from("lib/rendering/config/pdf_config.toml")),
+            pdf_config_file: Some(
+                Path::new(env!("CARGO_MANIFEST_DIR"))
+                    .join("../../lib/rendering/config/pdf_config.toml"),
+            ),
         }
     }
 }
