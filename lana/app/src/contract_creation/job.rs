@@ -80,7 +80,9 @@ impl GenerateLoanAgreementJobRunner {
         template_name: &str,
         data: &T,
     ) -> Result<Vec<u8>, ContractCreationError> {
-        let template_content = self.contract_templates.render_template(template_name, data)?;
+        let template_content = self
+            .contract_templates
+            .render_template(template_name, data)?;
         let pdf_bytes = self
             .renderer
             .render_template_to_pdf(&template_content, data)?;
