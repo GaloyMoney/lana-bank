@@ -185,8 +185,9 @@ wait_for_loan_agreement_completion() {
   [[ "$file_header" == "%PDF" ]] || exit 1
   
   pdftotext "$temp_pdf" "$temp_txt" || exit 1
-  
   echo "temp_txt: $temp_txt"
+  cat "$temp_txt"
+  
   grep "John Mock-Doe" "$temp_txt" || exit 1
   grep "DEU" "$temp_txt" || exit 1
   
