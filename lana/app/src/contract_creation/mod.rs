@@ -63,7 +63,7 @@ impl ContractCreation {
         &self,
         sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-    ) -> Result<SimpleLoanAgreement, ContractCreationError> {
+    ) -> Result<LoanAgreement, ContractCreationError> {
         let customer_id = customer_id.into();
 
         let audit_info = self
@@ -102,7 +102,7 @@ impl ContractCreation {
             .await?;
 
         db.commit().await?;
-        Ok(SimpleLoanAgreement::from(document))
+        Ok(LoanAgreement::from(document))
     }
 
     #[instrument(name = "contract.find_by_id", skip(self), err)]
@@ -110,7 +110,7 @@ impl ContractCreation {
         &self,
         sub: &Subject,
         contract_id: impl Into<ContractCreationId> + std::fmt::Debug,
-    ) -> Result<SimpleLoanAgreement, ContractCreationError> {
+    ) -> Result<LoanAgreement, ContractCreationError> {
         let contract_id = contract_id.into();
         let document_id = DocumentId::from(contract_id);
 
@@ -127,7 +127,7 @@ impl ContractCreation {
 
         let document = self.document_storage.find_by_id(document_id).await?;
 
-        Ok(SimpleLoanAgreement::from(document))
+        Ok(LoanAgreement::from(document))
     }
 
     #[instrument(name = "contract.generate_document_download_link", skip(self), err)]
@@ -158,9 +158,9 @@ impl ContractCreation {
     }
 }
 
-impl From<Document> for SimpleLoanAgreement {
-    fn from(document: Document) -> SimpleLoanAgreement {
-        SimpleLoanAgreement {
+impl From<Document> for LoanAgreement {
+    fn from(document: Document) -> LoanAgreement {
+        LoanAgreement {
             id: document.id.into(),
             status: document.status.into(),
             created_at: document.created_at(),
@@ -168,14 +168,14 @@ impl From<Document> for SimpleLoanAgreement {
     }
 }
 
-impl From<DocumentStatus> for SimpleLoanAgreementStatus {
-    fn from(document_status: DocumentStatus) -> SimpleLoanAgreementStatus {
+impl From<DocumentStatus> for LoanAgreementStatus {
+    fn from(document_status: DocumentStatus) -> LoanAgreementStatus {
         match document_status {
-            DocumentStatus::Active => SimpleLoanAgreementStatus::Completed,
-            DocumentStatus::Archived => SimpleLoanAgreementStatus::Removed,
-            DocumentStatus::Deleted => SimpleLoanAgreementStatus::Removed,
-            DocumentStatus::Failed => SimpleLoanAgreementStatus::Failed,
-            DocumentStatus::New => SimpleLoanAgreementStatus::Pending,
+            DocumentStatus::Active => LoanAgreementStatus::Completed,
+            DocumentStatus::Archived => LoanAgreementStatus::Removed,
+            DocumentStatus::Deleted => LoanAgreementStatus::Removed,
+            DocumentStatus::Failed => LoanAgreementStatus::Failed,
+            DocumentStatus::New => LoanAgreementStatus::Pending,
         }
     }
 }
@@ -217,7 +217,7 @@ impl LoanAgreementData {
 
 // Simple loan agreement types for now (not using the full entity system)
 #[derive(Clone, Debug, PartialEq, Eq)]
-pub enum SimpleLoanAgreementStatus {
+pub enum LoanAgreementStatus {
     Pending,
     Completed,
     Failed,
@@ -225,9 +225,9 @@ pub enum SimpleLoanAgreementStatus {
 }
 
 #[derive(Clone, Debug)]
-pub struct SimpleLoanAgreement {
+pub struct LoanAgreement {
     pub id: Uuid,
-    pub status: SimpleLoanAgreementStatus,
+    pub status: LoanAgreementStatus,
     pub created_at: chrono::DateTime<chrono::Utc>,
 }
 

@@ -9,13 +9,13 @@ pub enum LoanAgreementStatus {
     Failed,
 }
 
-impl From<lana_app::contract_creation::SimpleLoanAgreementStatus> for LoanAgreementStatus {
-    fn from(status: lana_app::contract_creation::SimpleLoanAgreementStatus) -> Self {
+impl From<lana_app::contract_creation::LoanAgreementStatus> for LoanAgreementStatus {
+    fn from(status: lana_app::contract_creation::LoanAgreementStatus) -> Self {
         match status {
-            lana_app::contract_creation::SimpleLoanAgreementStatus::Pending => Self::Pending,
-            lana_app::contract_creation::SimpleLoanAgreementStatus::Completed => Self::Completed,
-            lana_app::contract_creation::SimpleLoanAgreementStatus::Failed => Self::Failed,
-            lana_app::contract_creation::SimpleLoanAgreementStatus::Removed => Self::Failed,
+            lana_app::contract_creation::LoanAgreementStatus::Pending => Self::Pending,
+            lana_app::contract_creation::LoanAgreementStatus::Completed => Self::Completed,
+            lana_app::contract_creation::LoanAgreementStatus::Failed => Self::Failed,
+            lana_app::contract_creation::LoanAgreementStatus::Removed => Self::Failed,
         }
     }
 }
@@ -41,8 +41,8 @@ impl LoanAgreement {
     }
 }
 
-impl From<lana_app::contract_creation::SimpleLoanAgreement> for LoanAgreement {
-    fn from(simple_loan_agreement: lana_app::contract_creation::SimpleLoanAgreement) -> Self {
+impl From<lana_app::contract_creation::LoanAgreement> for LoanAgreement {
+    fn from(simple_loan_agreement: lana_app::contract_creation::LoanAgreement) -> Self {
         Self::new(
             simple_loan_agreement.id,
             simple_loan_agreement.status.into(),
