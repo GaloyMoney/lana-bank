@@ -1,11 +1,10 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
-use std::path::PathBuf;
 
 use document_storage::{DocumentId, DocumentStorage};
 use job::*;
 
-use super::{LoanAgreementData, error::ContractCreationError};
+use super::{LoanAgreementData, error::ContractCreationError, templates::ContractTemplates};
 use crate::applicant::Applicants;
 use crate::customer::{CustomerId, Customers};
 
@@ -22,7 +21,7 @@ pub struct GenerateLoanAgreementJobInitializer {
     customers: Customers,
     applicants: Applicants,
     document_storage: DocumentStorage,
-    template_dir: PathBuf,
+    contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
 }
 
@@ -31,14 +30,14 @@ impl GenerateLoanAgreementJobInitializer {
         customers: &Customers,
         applicants: &Applicants,
         document_storage: &DocumentStorage,
-        template_dir: PathBuf,
+        contract_templates: ContractTemplates,
         renderer: rendering::Renderer,
     ) -> Self {
         Self {
             customers: customers.clone(),
             applicants: applicants.clone(),
             document_storage: document_storage.clone(),
-            template_dir,
+            contract_templates,
             renderer,
         }
     }
@@ -60,7 +59,7 @@ impl JobInitializer for GenerateLoanAgreementJobInitializer {
             customers: self.customers.clone(),
             applicants: self.applicants.clone(),
             document_storage: self.document_storage.clone(),
-            template_dir: self.template_dir.clone(),
+            contract_templates: self.contract_templates.clone(),
             renderer: self.renderer.clone(),
         }))
     }
@@ -71,30 +70,17 @@ pub struct GenerateLoanAgreementJobRunner {
     customers: Customers,
     applicants: Applicants,
     document_storage: DocumentStorage,
-    template_dir: PathBuf,
+    contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
 }
 
 impl GenerateLoanAgreementJobRunner {
-    async fn load_template(&self, template_name: &str) -> Result<String, ContractCreationError> {
-        let template_path = self.template_dir.join(format!("{template_name}.md.hbs"));
-
-        if !template_path.exists() {
-            return Err(ContractCreationError::TemplateNotFound(
-                template_name.to_string(),
-            ));
-        }
-
-        let template_content = std::fs::read_to_string(&template_path)?;
-        Ok(template_content)
-    }
-
     async fn generate_contract_pdf_from_template<T: serde::Serialize>(
         &self,
         template_name: &str,
         data: &T,
     ) -> Result<Vec<u8>, ContractCreationError> {
-        let template_content = self.load_template(template_name).await?;
+        let template_content = self.contract_templates.render_template(template_name, data)?;
         let pdf_bytes = self
             .renderer
             .render_template_to_pdf(&template_content, data)?;

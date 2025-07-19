@@ -16,6 +16,7 @@ use uuid::Uuid;
 pub mod config;
 pub mod error;
 pub mod job;
+pub mod templates;
 
 pub use config::*;
 pub use error::*;
@@ -43,12 +44,14 @@ impl ContractCreation {
     ) -> Result<Self, ContractCreationError> {
         let renderer = rendering::Renderer::new(config.pdf_config_file);
 
+        let contract_templates = templates::ContractTemplates::init()?;
+
         // Initialize the job system for contract creation
         jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
             customers,
             applicants,
             document_storage,
-            config.template_dir.clone(),
+            contract_templates,
             renderer.clone(),
         ));
 
@@ -241,29 +244,30 @@ mod tests {
     #[tokio::test]
     async fn test_contract_creation_config() -> Result<(), error::ContractCreationError> {
         // Test that config works correctly
-        let template_dir =
-            Path::new(env!("CARGO_MANIFEST_DIR")).join("src/contract_creation/templates");
         let pdf_config_file = Some(
             Path::new(env!("CARGO_MANIFEST_DIR"))
                 .join("../../lib/rendering/config/pdf_config.toml"),
         );
 
         let mut config = ContractCreationConfig::default();
-        config.template_dir = template_dir;
         config.pdf_config_file = pdf_config_file;
 
         // Verify that config can be used to create a renderer
-        let renderer = rendering::Renderer::new(config.pdf_config_file);
+        let _renderer = rendering::Renderer::new(config.pdf_config_file);
 
-        // Test basic functionality
-        let template_content = "# Test Contract\n\nHello {{name}}!";
-        let data = serde_json::json!({"name": "World"});
+        // Test embedded templates
+        let contract_templates = templates::ContractTemplates::init()?;
+        let data = serde_json::json!({
+            "full_name": "Test User",
+            "email": "test@example.com",
+            "customer_id": "test-123",
+            "telegram_id": "test_telegram",
+            "date": "2025-01-01"
+        });
 
-        let result = renderer
-            .render_template_to_markdown(template_content, &data)
-            .map_err(|e| error::ContractCreationError::Rendering(e))?;
-
-        assert!(result.contains("Hello World!"));
+        let result = contract_templates.render_template("loan_agreement", &data)?;
+        assert!(result.contains("Test User"));
+        assert!(result.contains("test@example.com"));
 
         Ok(())
     }

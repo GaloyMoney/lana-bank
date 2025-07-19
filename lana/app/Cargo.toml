@@ -59,6 +59,7 @@ chrono = { workspace = true }
 reqwest = { workspace = true }
 derive_builder = { workspace = true }
 futures = { workspace = true }
+handlebars = { workspace = true }
 thiserror = { workspace = true }
 sqlx = { workspace = true }
 strum = { workspace = true }
