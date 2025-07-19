@@ -974,20 +974,6 @@ impl Mutation {
         )
     }
 
-    async fn user_revoke_role(
-        &self,
-        ctx: &Context<'_>,
-        input: UserRevokeRoleInput,
-    ) -> async_graphql::Result<UserRevokeRolePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        exec_mutation!(
-            UserRevokeRolePayload,
-            User,
-            ctx,
-            app.access().revoke_role_from_user(sub, input.id)
-        )
-    }
-
     async fn role_create(
         &self,
         ctx: &Context<'_>,
