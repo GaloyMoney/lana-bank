@@ -126,6 +126,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
+      "ledgerAccount": "Ledger Account",
       "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
@@ -1675,6 +1676,18 @@
       "amount": "Amount",
       "ledgerAccount": "Ledger Account",
       "closestAccountWithCode": "Closest Account With Code"
+    }
+  },
+  "LedgerAccounts": {
+    "title": "Ledger Accounts",
+    "description": "Accounts with entries in the ledger",
+    "form": {
+      "labels": {
+        "accountSearch": "Search Accounts"
+      },
+      "placeholders": {
+        "accountSearch": "Ledger Account ID"
+      }
     }
   },
   "ManualTransactions": {

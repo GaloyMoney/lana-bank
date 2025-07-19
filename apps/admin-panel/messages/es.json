@@ -126,6 +126,7 @@
       "auditLogs": "Registros de Auditoría",
       "committees": "Comités",
       "chartOfAccounts": "Plan de Cuentas",
+      "ledgerAccount": "Cuenta del Libro Mayor",
       "journal": "Diario",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
@@ -1675,6 +1676,18 @@
       "amount": "Monto",
       "ledgerAccount": "Cuenta del libro mayor",
       "closestAccountWithCode": "Código de cuenta principal"
+    }
+  },
+  "LedgerAccounts": {
+    "title": "Cuentas del Libro Mayor",
+    "description": "Cuentas con entradas en el libro mayor",
+    "form": {
+      "labels": {
+        "accountSearch": "Busqueda de Cuentas"
+      },
+      "placeholders": {
+        "accountSearch": "ID de Cuenta del Libro Mayor"
+      }
     }
   },
   "ManualTransactions": {
