@@ -18,12 +18,9 @@ pub struct SignedSatoshis(i64);
 #[cfg(feature = "graphql")]
 async_graphql::scalar!(SignedSatoshis);
 
-impl TryFrom<Satoshis> for SignedSatoshis {
-    type Error = ConversionError;
-    fn try_from(sats: Satoshis) -> Result<Self, Self::Error> {
-        i64::try_from(sats.0)
-            .map(Self)
-            .map_err(|_| ConversionError::Overflow)
+impl From<Satoshis> for SignedSatoshis {
+    fn from(sats: Satoshis) -> Self {
+        Self(i64::try_from(sats.0).expect("Satoshis must be integer sized for i64"))
     }
 }
 
