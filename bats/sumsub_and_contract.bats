@@ -186,6 +186,7 @@ wait_for_loan_agreement_completion() {
   
   pdftotext "$temp_pdf" "$temp_txt" || exit 1
   
+  echo "temp_txt: $temp_txt"
   grep "John Mock-Doe" "$temp_txt" || exit 1
   grep "DEU" "$temp_txt" || exit 1
   
