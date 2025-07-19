@@ -1,76 +1,115 @@
 use async_graphql::*;
+use lana_app::report::{DagRunStatusResponse, ReportGenerateResponse};
 
-use crate::primitives::*;
+use crate::primitives::{Date, Timestamp, ToGlobalId, UUID};
 
-use lana_app::report::Report as DomainReport;
+pub use lana_app::report::{Report as DomainReport, ReportsByCreatedAtCursor};
 
-#[derive(SimpleObject)]
-pub(super) struct Report {
+#[derive(SimpleObject, Clone)]
+pub struct Report {
+    id: ID,
     report_id: UUID,
-    created_at: Timestamp,
-    last_error: Option<String>,
-    progress: ReportProgress,
+    date: Date,
+    path_in_bucket: String,
+
+    #[graphql(skip)]
+    pub(super) entity: std::sync::Arc<DomainReport>,
 }
 
 impl From<DomainReport> for Report {
     fn from(report: DomainReport) -> Self {
-        Self {
+        Report {
+            id: report.id.to_global_id(),
             report_id: UUID::from(report.id),
-            created_at: report.created_at().into(),
-            last_error: report.last_error(),
-            progress: report.progress(),
+            date: report.date.into(),
+            path_in_bucket: report.path_in_bucket.clone(),
+
+            entity: std::sync::Arc::new(report),
         }
     }
 }
 
 #[derive(SimpleObject)]
-pub(super) struct ReportCreatePayload {
-    report: Report,
+pub struct ReportGeneratePayload {
+    pub run_id: String,
 }
 
-impl From<lana_app::report::Report> for ReportCreatePayload {
-    fn from(report: lana_app::report::Report) -> Self {
+impl From<ReportGenerateResponse> for ReportGeneratePayload {
+    fn from(response: ReportGenerateResponse) -> Self {
         Self {
-            report: Report::from(report),
+            run_id: response.run_id,
+        }
+    }
+}
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+pub enum ReportGenerationJobRunType {
+    Scheduled,
+    ApiTriggered,
+}
+
+impl From<lana_app::report::RunType> for ReportGenerationJobRunType {
+    fn from(run_type: lana_app::report::RunType) -> Self {
+        match run_type {
+            lana_app::report::RunType::Scheduled => ReportGenerationJobRunType::Scheduled,
+            lana_app::report::RunType::ApiTriggered => ReportGenerationJobRunType::ApiTriggered,
         }
     }
 }
 
 #[derive(SimpleObject)]
-pub(super) struct ReportDownloadLink {
-    report_name: String,
-    url: String,
+pub struct LastRun {
+    pub run_type: ReportGenerationJobRunType,
+    pub run_started_at: Option<Timestamp>,
+    pub status: String,
+    pub logs: Option<String>,
 }
 
-impl From<lana_app::report::ReportDownloadLink> for ReportDownloadLink {
-    fn from(link: lana_app::report::ReportDownloadLink) -> Self {
+impl From<lana_app::report::LastRun> for LastRun {
+    fn from(last_run: lana_app::report::LastRun) -> Self {
         Self {
-            report_name: link.report_name,
-            url: link.url,
+            run_type: last_run.run_type.into(),
+            run_started_at: last_run.run_started_at.map(|dt| dt.into()),
+            status: last_run.status,
+            logs: last_run.logs,
+        }
+    }
+}
+
+#[derive(SimpleObject)]
+pub struct ReportGenerationJobStatusPayload {
+    pub running: bool,
+    pub run_type: Option<ReportGenerationJobRunType>,
+    pub run_started_at: Option<Timestamp>,
+    pub logs: Option<String>,
+    pub last_run: Option<LastRun>,
+    pub error: Option<String>,
+}
+
+impl From<DagRunStatusResponse> for ReportGenerationJobStatusPayload {
+    fn from(response: DagRunStatusResponse) -> Self {
+        Self {
+            running: response.running,
+            run_type: response.run_type.map(Into::into),
+            run_started_at: response.run_started_at.map(|dt| dt.into()),
+            logs: response.logs,
+            last_run: response.last_run.map(Into::into),
+            error: response.error,
         }
     }
 }
 
 #[derive(InputObject)]
-pub(super) struct ReportDownloadLinksGenerateInput {
+pub struct ReportGenerateDownloadLinkInput {
     pub report_id: UUID,
 }
 
 #[derive(SimpleObject)]
-pub(super) struct ReportDownloadLinksGeneratePayload {
-    report_id: UUID,
-    links: Vec<ReportDownloadLink>,
+pub struct ReportGenerateDownloadLinkPayload {
+    pub url: String,
 }
-
-impl From<lana_app::report::GeneratedReportDownloadLinks> for ReportDownloadLinksGeneratePayload {
-    fn from(generated_links: lana_app::report::GeneratedReportDownloadLinks) -> Self {
-        Self {
-            report_id: UUID::from(generated_links.report_id),
-            links: generated_links
-                .links
-                .into_iter()
-                .map(ReportDownloadLink::from)
-                .collect(),
-        }
+impl From<String> for ReportGenerateDownloadLinkPayload {
+    fn from(url: String) -> Self {
+        Self { url }
     }
 }

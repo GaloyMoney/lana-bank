@@ -6,8 +6,6 @@ pub mod app;
 pub mod applicant;
 pub mod authorization;
 pub mod primitives;
-pub mod report;
-pub mod service_account;
 
 pub mod storage {
     pub use cloud_storage::*;
@@ -171,4 +169,14 @@ pub mod terms {
 
 pub mod public_id {
     pub use public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
+}
+
+pub mod report {
+    pub use core_report::{
+        AirflowConfig, CoreReportAction, CoreReportEvent, DagRunStatusResponse, LastRun, Report,
+        ReportError, ReportGenerateResponse, ReportId, ReportObject, ReportsApiClient,
+        ReportsByCreatedAtCursor, RunType, error,
+    };
+    pub type Reports =
+        core_report::Reports<crate::authorization::Authorization, lana_events::LanaEvent>;
 }

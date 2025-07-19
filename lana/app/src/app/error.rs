@@ -30,8 +30,6 @@ pub enum ApplicationError {
     AuthorizationError(#[from] crate::authorization::error::AuthorizationError),
     #[error("ApplicationError - AuditError: {0}")]
     AuditError(#[from] crate::audit::error::AuditError),
-    #[error("ApplicationError - ReportError: {0}")]
-    ReportError(#[from] crate::report::error::ReportError),
     #[error("ApplicationError - PriceError: {0}")]
     PriceError(#[from] crate::price::error::PriceError),
     #[error("ApplicationError - AccountingInitError: {0}")]
@@ -52,4 +50,6 @@ pub enum ApplicationError {
     ApplicantError(#[from] crate::applicant::error::ApplicantError),
     #[error("ApplicationError - CustodyError: {0}")]
     CustodyError(#[from] crate::custody::error::CoreCustodyError),
+    #[error("ApplicationError - ReportError: {0}")]
+    ReportError(#[from] crate::report::error::ReportError),
 }

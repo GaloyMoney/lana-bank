@@ -49,11 +49,11 @@ pub struct LanaApp {
     credit: Credit,
     custody: Custody,
     price: Price,
-    report: Reports,
     outbox: Outbox,
     governance: Governance,
     dashboard: Dashboard,
     public_ids: PublicIds,
+    reports: Reports,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
 }
@@ -80,11 +80,12 @@ impl LanaApp {
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
-        let price = Price::new();
         let storage = Storage::new(&config.storage);
+        let reports =
+            Reports::init(&pool, &authz, config.airflow, &outbox, &jobs, &storage).await?;
+        let price = Price::new();
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
-        let report = Reports::init(&pool, &config.report, &authz, &jobs, &storage).await?;
 
         let user_onboarding =
             UserOnboarding::init(&jobs, &outbox, access.users(), config.user_onboarding).await?;
@@ -174,13 +175,13 @@ impl LanaApp {
             applicants,
             access,
             price,
-            report,
             credit,
             custody,
             outbox,
             governance,
             dashboard,
             public_ids,
+            reports,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
         })
@@ -194,16 +195,16 @@ impl LanaApp {
         &self.governance
     }
 
+    pub fn reports(&self) -> &Reports {
+        &self.reports
+    }
+
     pub fn customers(&self) -> &Customers {
         &self.customers
     }
 
     pub fn audit(&self) -> &Audit {
         &self.audit
-    }
-
-    pub fn reports(&self) -> &Reports {
-        &self.report
     }
 
     pub fn price(&self) -> &Price {
