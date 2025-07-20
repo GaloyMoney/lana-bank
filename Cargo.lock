@@ -1945,6 +1945,7 @@ dependencies = [
  "document-storage",
  "governance",
  "handlebars",
+ "public-id",
  "schemars 1.0.4",
  "serde",
  "serde_json",
