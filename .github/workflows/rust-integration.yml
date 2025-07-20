@@ -21,7 +21,7 @@ jobs:
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
           
       - name: Run integration tests with podman
-        run: nix develop -c make test-in-ci-cargo
+        run: nix develop -c make test-in-ci
         env:
           ENGINE_DEFAULT: podman
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
