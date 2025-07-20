@@ -170,7 +170,6 @@ pub(super) mod bq {
             .await?;
 
         let field_names: Vec<String> = res
-            .query_response()
             .schema
             .as_ref()
             .and_then(|schema| schema.fields().as_ref())
@@ -178,7 +177,6 @@ pub(super) mod bq {
             .unwrap_or_default();
 
         let rows = res
-            .query_response()
             .rows
             .clone()
             .unwrap_or_default()
