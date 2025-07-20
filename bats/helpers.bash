@@ -261,7 +261,7 @@ getEmailCode() {
     sleep 1
   done
 
-  echo "No message for email ${email} after 30 attempts" >&2
+  echo "No message for email ${email} after 10 attempts" >&2
   exit 1
 }
 
