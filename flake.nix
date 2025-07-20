@@ -194,7 +194,7 @@
         buildPhaseCargoCommand = "check";
         buildPhase = ''
           cargo fmt --check
-          cargo clippy --all-targets --all-features || true
+          cargo clippy --all-targets --all-features --offline
           cargo audit
           cargo deny check
           cargo machete
