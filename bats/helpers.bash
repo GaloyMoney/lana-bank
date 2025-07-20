@@ -76,7 +76,6 @@ login_customer() {
   flowId=$(curl -s -X GET -H "Accept: application/json" "http://app.localhost:4455/self-service/login/api" | jq -r '.id')
   variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
   curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://app.localhost:4455/self-service/login?flow=$flowId"
-  sleep 1
 
   code=$(getEmailCode $email)
   variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
@@ -112,7 +111,6 @@ login_superadmin() {
   flowId=$(curl -s -X GET -H "Accept: application/json" "http://admin.localhost:4455/self-service/login/api" | jq -r '.id')
   variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
   curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId"
-  sleep 1
 
   code=$(getEmailCode $email)
   variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
@@ -223,36 +221,48 @@ getEmailCode() {
   local email="$1"
 
   local container_name="${COMPOSE_PROJECT_NAME}-kratos-admin-pg-1"
-
   local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
   
-  # Try podman exec first (for containerized environments like GitHub Actions)
-  local result=""
-  
-  if command -v podman >/dev/null 2>&1; then
-    result=$(podman exec "${container_name}" psql -U dbuser -d default -t -c "${query}" 2>/dev/null || echo "")
-  fi
-  
-  # If we got a result from container exec, extract the code
-  if [[ -n "$result" ]]; then
-    local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
-    if [[ -n "$code" ]]; then
-      echo "$code"
-      return 0
+  for i in {1..10}; do
+    echo "--- Checking for email code for ${email} (attempt ${i}) ---" >&2
+    
+    local result=""
+    local code=""
+    
+    # Try podman exec first (for containerized environments like GitHub Actions)
+    if command -v podman >/dev/null 2>&1; then
+      result=$(podman exec "${container_name}" psql -U dbuser -d default -t -c "${query}" 2>/dev/null || echo "")
     fi
-  fi
-  
-  # Fallback to direct connection (for development environments)
-  local KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
-  result=$(psql $KRATOS_PG_CON -t -c "${query}" 2>/dev/null || echo "")
+    
+    # If we got a result from container exec, extract the code
+    if [[ -n "$result" ]]; then
+      code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
+      if [[ -n "$code" ]]; then
+        echo "--- Email code found: ${code} ---" >&2
+        echo "$code"
+        return 0
+      fi
+    fi
+    
+    # Fallback to direct connection (for development environments)
+    local KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
+    result=$(psql $KRATOS_PG_CON -t -c "${query}" 2>/dev/null || echo "")
 
-  if [[ -z "$result" ]]; then
-    echo "No message for email ${email}" >&2
-    exit 1
-  fi
+    if [[ -n "$result" ]]; then
+      code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
+      if [[ -n "$code" ]]; then
+        echo "--- Email code found: ${code} ---" >&2
+        echo "$code"
+        return 0
+      fi
+    fi
+    
+    echo "--- No email code found yet, waiting... ---" >&2
+    sleep 1
+  done
 
-  local code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
-  echo "$code"
+  echo "No message for email ${email} after 30 attempts" >&2
+  exit 1
 }
 
 generate_email() {
