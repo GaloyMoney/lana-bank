@@ -28,7 +28,6 @@ impl Renderer {
     #[tracing::instrument(
         name = "rendering.render_template_to_pdf",
         skip_all,
-        fields(template_content = %template_content),
         err
     )]
     pub fn render_template_to_pdf<T: serde::Serialize>(
