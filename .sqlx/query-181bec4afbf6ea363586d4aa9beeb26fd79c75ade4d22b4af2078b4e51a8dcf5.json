@@ -1,0 +1,15 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE core_payments SET credit_facility_payment_idx = $2 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Int4"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "181bec4afbf6ea363586d4aa9beeb26fd79c75ade4d22b4af2078b4e51a8dcf5"
+}

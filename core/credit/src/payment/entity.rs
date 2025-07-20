@@ -31,6 +31,7 @@ pub enum PaymentEvent {
     Initialized {
         id: PaymentId,
         credit_facility_id: CreditFacilityId,
+        credit_facility_payment_idx: i32,
         amount: UsdCents,
         audit_info: AuditInfo,
     },
@@ -46,6 +47,7 @@ pub enum PaymentEvent {
 pub struct Payment {
     pub id: PaymentId,
     pub credit_facility_id: CreditFacilityId,
+    pub credit_facility_payment_idx: i32,
     pub amount: UsdCents,
 
     events: EntityEvents<PaymentEvent>,
@@ -59,12 +61,14 @@ impl TryFromEvents<PaymentEvent> for Payment {
                 PaymentEvent::Initialized {
                     id,
                     credit_facility_id,
+                    credit_facility_payment_idx,
                     amount,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
+                        .credit_facility_payment_idx(*credit_facility_payment_idx)
                         .amount(*amount)
                 }
                 PaymentEvent::PaymentAllocated { .. } => (),
@@ -125,6 +129,7 @@ pub struct NewPayment {
     pub(super) id: PaymentId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
+    pub(super) credit_facility_payment_idx: i32,
     pub(super) amount: UsdCents,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
@@ -142,6 +147,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
             [PaymentEvent::Initialized {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
+                credit_facility_payment_idx: self.credit_facility_payment_idx,
                 amount: self.amount,
                 audit_info: self.audit_info,
             }],

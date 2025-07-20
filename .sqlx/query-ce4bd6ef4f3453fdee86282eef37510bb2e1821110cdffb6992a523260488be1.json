@@ -1,0 +1,40 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "WITH entities AS (SELECT id FROM core_payments WHERE credit_facility_payment_idx = $1) SELECT i.id AS \"entity_id: PaymentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_payment_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "entity_id: PaymentId",
+        "type_info": "Uuid"
+      },
+      {
+        "ordinal": 1,
+        "name": "sequence",
+        "type_info": "Int4"
+      },
+      {
+        "ordinal": 2,
+        "name": "event",
+        "type_info": "Jsonb"
+      },
+      {
+        "ordinal": 3,
+        "name": "recorded_at",
+        "type_info": "Timestamptz"
+      }
+    ],
+    "parameters": {
+      "Left": [
+        "Int4"
+      ]
+    },
+    "nullable": [
+      false,
+      false,
+      false,
+      false
+    ]
+  },
+  "hash": "ce4bd6ef4f3453fdee86282eef37510bb2e1821110cdffb6992a523260488be1"
+}

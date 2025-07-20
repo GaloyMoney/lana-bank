@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_payments (id, credit_facility_id, credit_facility_payment_idx, created_at) VALUES ($1, $2, $3, $4)",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Int4",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "4f0b4d40ebf20699be7a9667778713b5cf6967fb05bc662dc1cfc9052012780b"
+}

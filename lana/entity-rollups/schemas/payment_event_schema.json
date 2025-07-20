@@ -39,6 +39,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "credit_facility_payment_idx": {
+          "format": "int32",
+          "type": "integer"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -52,6 +56,7 @@
         "type",
         "id",
         "credit_facility_id",
+        "credit_facility_payment_idx",
         "amount",
         "audit_info"
       ],
