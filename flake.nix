@@ -216,9 +216,6 @@
           pkgs.cargo-nextest
           pkgs.protobuf
           pkgs.gitMinimal
-          # Font packages for PDF generation tests
-          pkgs.fontconfig
-          pkgs.dejavu_fonts # Provides serif, sans-serif, and monospace
         ];
 
         configurePhase = ''
@@ -227,15 +224,12 @@
           export PATH="${pkgs.protobuf}/bin:$PATH"
           export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
           export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
-          # Font configuration for PDF generation tests
-          export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
-          export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
         '';
 
         buildPhaseCargoCommand = "nextest run";
         buildPhase = ''
           # run whole workspace tests, verbose+locked to mirror Makefile
-          cargo nextest run --workspace --locked --verbose
+          cargo nextest run --workspace --locked --verbose --offline
         '';
 
         installPhase = "touch $out";
@@ -274,7 +268,7 @@
         cargoExtraArgs = "--bin write_customer_sdl";
       };
 
-      meltanoPkgs = pkgs.callPackage ./meltano.nix {};
+      # meltanoPkgs = pkgs.callPackage ./meltano.nix {};
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
@@ -332,11 +326,8 @@
           curl
           tilt
           procps
-          meltanoPkgs.meltano
+          # meltanoPkgs.meltano
           poppler_utils
-          # Font packages for PDF generation
-          fontconfig
-          dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -370,8 +361,8 @@
           entity-rollups = entity-rollups;
           write_sdl = write_sdl;
           write_customer_sdl = write_customer_sdl;
-          meltano = meltanoPkgs.meltano;
-          meltano-image = meltanoPkgs.meltano-image;
+          # meltano = meltanoPkgs.meltano;
+          # meltano-image = meltanoPkgs.meltano-image;
         };
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
@@ -382,10 +373,6 @@
             shellHook = ''
                 export LANA_CONFIG="$(pwd)/bats/lana.yml"
                 export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
-
-              # Font configuration for PDF generation
-              export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
-              export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
 
               # Container engine setup
               # Clear DOCKER_HOST at the start to avoid stale values
