@@ -75,6 +75,11 @@ pub struct GenerateLoanAgreementJobRunner {
 }
 
 impl GenerateLoanAgreementJobRunner {
+    #[tracing::instrument(
+        name = "lana.contract_creation.generate_contract_pdf_from_template",
+        skip(self, data),
+        err
+    )]
     async fn generate_contract_pdf_from_template<T: serde::Serialize>(
         &self,
         template_name: &str,
@@ -92,6 +97,15 @@ impl GenerateLoanAgreementJobRunner {
 
 #[async_trait]
 impl JobRunner for GenerateLoanAgreementJobRunner {
+    #[tracing::instrument(
+        name = "lana.contract_creation.generate_loan_agreement",
+        skip_all,
+        fields(
+            job_id = %current_job.id(),
+            job_attempt = current_job.attempt()
+        ),
+        err
+    )]
     async fn run(
         &self,
         current_job: CurrentJob,

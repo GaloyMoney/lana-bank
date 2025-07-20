@@ -26,6 +26,12 @@ impl ContractTemplates {
     }
 
     /// Render a contract template with the provided data
+    #[tracing::instrument(
+        name = "lana.contract_creation.render_template",
+        skip_all,
+        fields(template_name = %template_name),
+        err
+    )]
     pub fn render_template<T: Serialize>(
         &self,
         template_name: &str,
