@@ -12,6 +12,7 @@ pub use lana_app::{
         SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId, WithdrawalId,
     },
     public_id::PublicId,
+    report::ReportRunId,
     terms::CollateralizationState,
 };
 
@@ -127,6 +128,7 @@ impl_to_global_id! {
     WithdrawalId,
     DepositId,
     ReportId,
+    ReportRunId,
     ManualTransactionId,
     ApprovalProcessId,
     DepositAccountId,

@@ -4,7 +4,8 @@ pub use audit::AuditInfo;
 pub use authz::{AllOrOne, action_description::*};
 
 es_entity::entity_id! {
-    ReportId
+    ReportId,
+    ReportRunId
 }
 
 pub type ReportAllOrOne = AllOrOne<ReportId>;
@@ -28,6 +29,9 @@ impl ReportObject {
             Some(id) => ReportObject::Report(AllOrOne::ById(id)),
             None => ReportObject::all_reports(),
         }
+    }
+    pub fn all_report_runs() -> ReportObject {
+        ReportObject::Report(AllOrOne::All)
     }
 }
 

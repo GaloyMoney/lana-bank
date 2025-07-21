@@ -18,7 +18,7 @@ use super::{
     balance_sheet_config::*, committee::*, contract_creation::*, credit_config::*,
     credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
     document::*, loader::*, policy::*, price::*, profit_and_loss_config::*, public_id::*,
-    report::*, sumsub::*, terms_template::*, withdrawal::*,
+    reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -235,35 +235,6 @@ impl Query {
             after,
             first,
             |query| app.deposits().list_deposits(sub, query)
-        )
-    }
-
-    async fn report_list_available_dates(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<Date>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let dates = app.reports().list_available_dates(sub).await?;
-        Ok(dates.into_iter().map(Date::from).collect())
-    }
-
-    async fn reports_by_date(
-        &self,
-        ctx: &Context<'_>,
-        date: Date,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<Connection<ReportsByCreatedAtCursor, Report, EmptyFields, EmptyFields>>
-    {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let date = date.into_inner();
-        list_with_cursor!(
-            ReportsByCreatedAtCursor,
-            Report,
-            ctx,
-            after,
-            first,
-            |query| app.reports().list_reports_by_date(sub, date, query)
         )
     }
 
@@ -902,13 +873,23 @@ impl Query {
         Ok(agreement.map(LoanAgreement::from))
     }
 
-    async fn report_generation_job_status(
+    async fn report_runs(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<ReportGenerationJobStatusPayload> {
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<ReportRunsByCreatedAtCursor, ReportRun, EmptyFields, EmptyFields>,
+    > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let response = app.reports().get_generation_status(sub).await?;
-        Ok(ReportGenerationJobStatusPayload::from(response))
+        list_with_cursor!(
+            ReportRunsByCreatedAtCursor,
+            ReportRun,
+            ctx,
+            after,
+            first,
+            |query| app.reports().list_report_runs(sub, query)
+        )
     }
 }
 
@@ -1961,27 +1942,5 @@ impl Mutation {
             .generate_document_download_link(sub, input.loan_agreement_id)
             .await?;
         Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
-    }
-
-    pub async fn report_generate(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<ReportGeneratePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let response = app.reports().generate_todays_report(sub).await?;
-        Ok(ReportGeneratePayload::from(response))
-    }
-
-    pub async fn report_generate_download_link(
-        &self,
-        ctx: &Context<'_>,
-        input: ReportGenerateDownloadLinkInput,
-    ) -> async_graphql::Result<ReportGenerateDownloadLinkPayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let download_link = app
-            .reports()
-            .generate_download_link(sub, input.report_id)
-            .await?;
-        Ok(ReportGenerateDownloadLinkPayload::from(download_link))
     }
 }

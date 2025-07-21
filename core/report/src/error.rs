@@ -18,6 +18,10 @@ pub enum ReportError {
     JobError(#[from] job::error::JobError),
     #[error("ReportError - StorageError: {0}")]
     StorageError(#[from] cloud_storage::error::StorageError),
+    #[error("ReportError - ReportModuleError: {0}")]
+    ReportModuleError(#[from] crate::report::error::ReportError),
+    #[error("ReportError - ReportRunModuleError: {0}")]
+    ReportRunModuleError(#[from] crate::report_run::error::ReportRunError),
     #[error("ReportError - ApiError: {0}")]
     ApiError(String),
     #[error("ReportError - NotFound")]

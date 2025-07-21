@@ -1,13 +1,18 @@
-use chrono::NaiveDate;
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::*;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub struct File {
+    pub extension: String,
+    pub path_in_bucket: String,
+}
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -16,9 +21,11 @@ use crate::primitives::*;
 pub enum ReportEvent {
     Initialized {
         id: ReportId,
-        date: NaiveDate,
-        path_in_bucket: String,
-        audit_info: AuditInfo,
+        external_id: String,
+        run_id: ReportRunId,
+        name: String,
+        norm: String,
+        files: Vec<File>,
     },
 }
 
@@ -26,18 +33,19 @@ pub enum ReportEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Report {
     pub id: ReportId,
-    pub date: NaiveDate,
-    pub path_in_bucket: String,
+    pub run_id: ReportRunId,
+    pub external_id: String,
+    pub name: String,
+    pub norm: String,
+    pub files: Vec<File>,
     events: EntityEvents<ReportEvent>,
 }
 
-impl core::fmt::Display for Report {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "Report({}): {}/{}",
-            self.id, self.date, self.path_in_bucket
-        )
+impl Report {
+    pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("No events for report")
     }
 }
 
@@ -49,14 +57,19 @@ impl TryFromEvents<ReportEvent> for Report {
             match event {
                 ReportEvent::Initialized {
                     id,
-                    date,
-                    path_in_bucket,
-                    ..
+                    external_id,
+                    run_id,
+                    name,
+                    norm,
+                    files,
                 } => {
                     builder = builder
                         .id(*id)
-                        .date(*date)
-                        .path_in_bucket(path_in_bucket.clone());
+                        .external_id(external_id.clone())
+                        .run_id(*run_id)
+                        .name(name.clone())
+                        .norm(norm.clone())
+                        .files(files.clone())
                 }
             }
         }
@@ -70,15 +83,23 @@ pub struct NewReport {
     #[builder(setter(into))]
     pub(super) id: ReportId,
     #[builder(setter(into))]
-    pub(super) date: NaiveDate,
+    pub(super) external_id: String,
     #[builder(setter(into))]
-    pub(super) path_in_bucket: String,
-    pub(super) audit_info: AuditInfo,
+    pub(super) run_id: ReportRunId,
+    #[builder(setter(into))]
+    pub(super) name: String,
+    #[builder(setter(into))]
+    pub(super) norm: String,
+    pub(super) files: Vec<File>,
 }
 
 impl NewReport {
     pub fn builder() -> NewReportBuilder {
-        NewReportBuilder::default()
+        let report_id = ReportId::new();
+
+        let mut builder = NewReportBuilder::default();
+        builder.id(report_id);
+        builder
     }
 }
 
@@ -88,9 +109,11 @@ impl IntoEvents<ReportEvent> for NewReport {
             self.id,
             [ReportEvent::Initialized {
                 id: self.id,
-                date: self.date,
-                path_in_bucket: self.path_in_bucket,
-                audit_info: self.audit_info,
+                external_id: self.external_id,
+                run_id: self.run_id,
+                name: self.name,
+                norm: self.norm,
+                files: self.files,
             }],
         )
     }

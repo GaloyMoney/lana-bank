@@ -1219,13 +1219,6 @@ enum KycLevel {
 	ADVANCED
 }
 
-type LastRun {
-	runType: ReportGenerationJobRunType!
-	runStartedAt: Timestamp
-	status: String!
-	logs: String
-}
-
 enum Layer {
 	SETTLED
 	PENDING
@@ -1420,8 +1413,6 @@ type Mutation {
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
-	reportGenerate: ReportGeneratePayload!
-	reportGenerateDownloadLink(input: ReportGenerateDownloadLinkInput!): ReportGenerateDownloadLinkPayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1609,8 +1600,6 @@ type Query {
 	deposit(id: UUID!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
-	reportListAvailableDates: [Date!]!
-	reportsByDate(date: Date!, first: Int!, after: String): ReportConnection!
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
@@ -1646,7 +1635,7 @@ type Query {
 	accountingCsvsForLedgerAccountId(ledgerAccountId: UUID!, first: Int!, after: String): AccountingCsvDocumentConnection!
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
-	reportGenerationJobStatus: ReportGenerationJobStatusPayload!
+	reportRuns(first: Int!, after: String): ReportRunConnection!
 }
 
 type RealtimePrice {
@@ -1656,11 +1645,34 @@ type RealtimePrice {
 type Report {
 	id: ID!
 	reportId: UUID!
-	date: Date!
+	externalId: String!
+	name: String!
+	norm: String!
+	createdAt: Timestamp!
+	runId: UUID!
+	files: [ReportFile!]!
+	reportRun: ReportRun!
+}
+
+type ReportFile {
+	extension: String!
 	pathInBucket: String!
 }
 
-type ReportConnection {
+type ReportRun {
+	id: ID!
+	reportRunId: UUID!
+	externalId: String!
+	createdAt: Timestamp!
+	executionDate: Timestamp
+	state: ReportRunState
+	runType: ReportRunType
+	startDate: Timestamp
+	endDate: Timestamp
+	reports: [Report!]!
+}
+
+type ReportRunConnection {
 	"""
 	Information to aid in pagination.
 	"""
@@ -1668,51 +1680,37 @@ type ReportConnection {
 	"""
 	A list of edges.
 	"""
-	edges: [ReportEdge!]!
+	edges: [ReportRunEdge!]!
 	"""
 	A list of nodes.
 	"""
-	nodes: [Report!]!
+	nodes: [ReportRun!]!
 }
 
 """
 An edge in a connection.
 """
-type ReportEdge {
+type ReportRunEdge {
 	"""
 	The item at the end of the edge
 	"""
-	node: Report!
+	node: ReportRun!
 	"""
 	A cursor for use in pagination
 	"""
 	cursor: String!
 }
 
-input ReportGenerateDownloadLinkInput {
-	reportId: UUID!
+enum ReportRunState {
+	QUEUED
+	RUNNING
+	SUCCESS
+	FAILED
 }
 
-type ReportGenerateDownloadLinkPayload {
-	url: String!
-}
-
-type ReportGeneratePayload {
-	runId: String!
-}
-
-enum ReportGenerationJobRunType {
+enum ReportRunType {
 	SCHEDULED
-	API_TRIGGERED
-}
-
-type ReportGenerationJobStatusPayload {
-	running: Boolean!
-	runType: ReportGenerationJobRunType
-	runStartedAt: Timestamp
-	logs: String
-	lastRun: LastRun
-	error: String
+	MANUAL
 }
 
 type Role {

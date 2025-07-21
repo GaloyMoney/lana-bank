@@ -16,14 +16,14 @@ use lana_app::{
     customer::CustomerDocumentId,
     deposit::error::CoreDepositError,
     governance::error::GovernanceError,
-    report::ReportError,
+    report::{ReportId, ReportRunId, error::ReportError},
 };
 
 use crate::primitives::*;
 
 use super::{
     access::*, accounting::*, approval_process::*, committee::*, credit_facility::*, custody::*,
-    customer::*, deposit::*, deposit_account::*, document::*, policy::*, report::*,
+    customer::*, deposit::*, deposit_account::*, document::*, policy::*, reports::*,
     terms_template::*, withdrawal::*,
 };
 
@@ -411,11 +411,33 @@ impl Loader<ReportId> for LanaLoader {
     type Error = Arc<ReportError>;
 
     async fn load(&self, keys: &[ReportId]) -> Result<HashMap<ReportId, Report>, Self::Error> {
-        self.app
+        let reports = self
+            .app
             .reports()
             .find_all_reports(keys)
             .await
-            .map(|reports| reports.into_iter().map(|(k, v)| (k, v.into())).collect())
-            .map_err(Arc::new)
+            .map_err(Arc::new)?;
+        Ok(reports.into_iter().map(|(k, v)| (k, v.into())).collect())
+    }
+}
+
+impl Loader<ReportRunId> for LanaLoader {
+    type Value = ReportRun;
+    type Error = Arc<ReportError>;
+
+    async fn load(
+        &self,
+        keys: &[ReportRunId],
+    ) -> Result<HashMap<ReportRunId, ReportRun>, Self::Error> {
+        let report_runs = self
+            .app
+            .reports()
+            .find_all_report_runs(keys)
+            .await
+            .map_err(Arc::new)?;
+        Ok(report_runs
+            .into_iter()
+            .map(|(k, v)| (k, v.into()))
+            .collect())
     }
 }

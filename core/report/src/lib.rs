@@ -2,18 +2,16 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod airflow;
-mod entity;
+mod report;
+mod report_run;
+
 pub mod error;
 mod event;
 mod jobs;
 mod primitives;
 mod publisher;
-mod repo;
 
 use publisher::*;
-use repo::*;
-
-use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -21,34 +19,41 @@ use cloud_storage::Storage;
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
-use jobs::{SyncReportsJobConfig, SyncReportsJobInit};
+use crate::airflow::reports_api_client::ReportsApiClient;
 
-pub use airflow::{
-    AirflowConfig, DagRunStatusResponse, LastRun, ReportGenerateResponse, ReportsApiClient, RunType,
-};
-pub use entity::{Report, ReportEvent};
+pub use crate::airflow::config::AirflowConfig;
 pub use error::ReportError;
 pub use event::CoreReportEvent;
 pub use primitives::*;
-pub use repo::report_cursor::ReportsByCreatedAtCursor;
+pub use report::{File, Report, ReportsByCreatedAtCursor};
+pub use report_run::{ReportRun, ReportRunState, ReportRunType, ReportRunsByCreatedAtCursor};
+
+use jobs::{
+    FindNewReportRunJobConfig, FindNewReportRunJobInit, MonitorReportRunJobInit,
+    TriggerReportRunJobInit,
+};
+use report::Reports;
+use report_run::ReportRuns;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
-    pub use crate::entity::ReportEvent;
+    pub use crate::event::CoreReportEvent;
 }
 
-pub struct Reports<Perms, E>
+pub struct CoreReports<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
     authz: Perms,
-    repo: ReportRepo<E>,
-    airflow_client: ReportsApiClient,
+    reports: Reports<Perms, E>,
+    report_runs: ReportRuns<Perms, E>,
+    airflow: ReportsApiClient,
     storage: Storage,
+    jobs: Jobs,
 }
 
-impl<Perms, E> Clone for Reports<Perms, E>
+impl<Perms, E> Clone for CoreReports<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
@@ -56,14 +61,16 @@ where
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            repo: self.repo.clone(),
-            airflow_client: self.airflow_client.clone(),
+            reports: self.reports.clone(),
+            report_runs: self.report_runs.clone(),
+            airflow: self.airflow.clone(),
             storage: self.storage.clone(),
+            jobs: self.jobs.clone(),
         }
     }
 }
 
-impl<Perms, E> Reports<Perms, E>
+impl<Perms, E> CoreReports<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreReportAction>,
@@ -79,105 +86,77 @@ where
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
-        let repo = ReportRepo::new(pool, &publisher);
-        let airflow_client = ReportsApiClient::new(airflow_config.clone());
+        let airflow = ReportsApiClient::new(airflow_config.clone());
+        let reports = Reports::init(pool, authz.clone(), &publisher, outbox).await?;
+        let report_runs = ReportRuns::init(pool, authz.clone(), &publisher, outbox).await?;
 
+        jobs.add_initializer(MonitorReportRunJobInit::new(
+            airflow.clone(),
+            report_runs.clone(),
+            reports.clone(),
+        ));
+        jobs.add_initializer(TriggerReportRunJobInit::new(
+            airflow.clone(),
+            report_runs.clone(),
+            jobs.clone(),
+        ));
         jobs.add_initializer_and_spawn_unique(
-            SyncReportsJobInit::new(airflow_client.clone(), repo.clone(), authz.clone()),
-            SyncReportsJobConfig::new(),
+            FindNewReportRunJobInit::new(airflow.clone(), report_runs.clone(), jobs.clone()),
+            FindNewReportRunJobConfig::new(),
         )
         .await?;
 
         Ok(Self {
             authz: authz.clone(),
-            repo,
-            airflow_client,
             storage: storage.clone(),
+            airflow,
+            reports,
+            report_runs,
+            jobs: jobs.clone(),
         })
     }
 
-    #[instrument(name = "reports.generate_todays_report", skip(self), err)]
-    pub async fn generate_todays_report(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<ReportGenerateResponse, ReportError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                ReportObject::all_reports(),
-                CoreReportAction::REPORT_GENERATE,
-            )
-            .await?;
-
-        self.airflow_client.generate_todays_report().await
-    }
-
-    #[instrument(name = "reports.get_generation_status", skip(self), err)]
-    pub async fn get_generation_status(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<DagRunStatusResponse, ReportError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                ReportObject::all_reports(),
-                CoreReportAction::REPORT_GENERATION_STATUS_READ,
-            )
-            .await?;
-
-        self.airflow_client.get_generation_status().await
-    }
-
-    #[instrument(name = "reports.list_reports_by_date", skip(self), err)]
-    pub async fn list_reports_by_date(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        date: chrono::NaiveDate,
-        query: es_entity::PaginatedQueryArgs<ReportsByCreatedAtCursor>,
-    ) -> Result<es_entity::PaginatedQueryRet<Report, ReportsByCreatedAtCursor>, ReportError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                ReportObject::all_reports(),
-                CoreReportAction::REPORT_READ,
-            )
-            .await?;
-
-        self.repo
-            .list_for_date_by_created_at(date, query, es_entity::ListDirection::Descending)
-            .await
-    }
-
-    #[instrument(name = "reports.list_available_dates", skip(self), err)]
-    pub async fn list_available_dates(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<Vec<chrono::NaiveDate>, ReportError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                ReportObject::all_reports(),
-                CoreReportAction::REPORT_READ,
-            )
-            .await?;
-
-        self.repo.list_available_dates().await
-    }
-
-    #[instrument(name = "reports.find_all_reports", skip(self), err)]
     pub async fn find_all_reports(
         &self,
         ids: &[ReportId],
     ) -> Result<std::collections::HashMap<ReportId, Report>, ReportError> {
-        self.repo.find_all(ids).await
+        self.reports.find_all(ids).await.map_err(ReportError::from)
     }
 
-    #[instrument(name = "reports.generate_download_link", skip(self), err)]
-    pub async fn generate_download_link(
+    pub async fn find_all_report_runs(
+        &self,
+        ids: &[ReportRunId],
+    ) -> Result<std::collections::HashMap<ReportRunId, ReportRun>, ReportError> {
+        self.report_runs
+            .find_all(ids)
+            .await
+            .map_err(ReportError::from)
+    }
+
+    pub async fn list_report_runs(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        report_id: impl Into<ReportId> + std::fmt::Debug,
-    ) -> Result<String, ReportError> {
+        query: es_entity::PaginatedQueryArgs<ReportRunsByCreatedAtCursor>,
+    ) -> Result<es_entity::PaginatedQueryRet<ReportRun, ReportRunsByCreatedAtCursor>, ReportError>
+    {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_report_runs(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+        Ok(self
+            .report_runs
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await?)
+    }
+
+    pub async fn list_reports_for_run(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        run_id: ReportRunId,
+    ) -> Result<Vec<Report>, ReportError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -185,18 +164,9 @@ where
                 CoreReportAction::REPORT_READ,
             )
             .await?;
-
-        let report = match self.repo.find_by_id(report_id.into()).await {
-            Ok(report) => report,
-            Err(e) if e.was_not_found() => return Err(ReportError::NotFound),
-            Err(e) => return Err(e),
-        };
-
-        let location = cloud_storage::LocationInStorage {
-            path: &report.path_in_bucket,
-        };
-
-        let download_link = self.storage.generate_download_link(location).await?;
-        Ok(download_link)
+        self.reports
+            .list_for_run_id(run_id)
+            .await
+            .map_err(ReportError::from)
     }
 }

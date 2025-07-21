@@ -1,0 +1,59 @@
+use sqlx::PgPool;
+
+use es_entity::*;
+use outbox::OutboxEventMarker;
+
+use crate::{event::CoreReportEvent, primitives::*, publisher::ReportPublisher};
+
+use super::{entity::*, error::*};
+
+#[derive(EsRepo)]
+#[es_repo(
+    entity = "ReportRun",
+    err = "ReportRunError",
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
+)]
+pub(crate) struct ReportRunRepo<E>
+where
+    E: OutboxEventMarker<CoreReportEvent>,
+{
+    #[allow(dead_code)]
+    pool: PgPool,
+    publisher: ReportPublisher<E>,
+}
+
+impl<E> ReportRunRepo<E>
+where
+    E: OutboxEventMarker<CoreReportEvent>,
+{
+    pub fn new(pool: &PgPool, publisher: &ReportPublisher<E>) -> Self {
+        Self {
+            pool: pool.clone(),
+            publisher: publisher.clone(),
+        }
+    }
+
+    async fn publish(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        entity: &ReportRun,
+        new_events: es_entity::LastPersisted<'_, ReportRunEvent>,
+    ) -> Result<(), ReportRunError> {
+        self.publisher
+            .publish_report_run(db, entity, new_events)
+            .await
+    }
+}
+
+impl<E> Clone for ReportRunRepo<E>
+where
+    E: OutboxEventMarker<CoreReportEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            publisher: self.publisher.clone(),
+            pool: self.pool.clone(),
+        }
+    }
+}

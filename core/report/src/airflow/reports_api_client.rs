@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::{DateTime, Utc};
 use reqwest::Client;
 use serde::{Deserialize, Serialize};
 
@@ -11,38 +11,54 @@ pub struct ReportGenerateResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
+pub struct File {
+    pub extension: String,
+    pub path_in_bucket: String,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct Report {
+    pub id: String,
+    pub name: String,
+    pub norm: String,
+    pub files: Vec<File>,
+}
+
+#[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Copy, Clone)]
 #[serde(rename_all = "snake_case")]
-pub enum RunType {
+pub enum ReportRunState {
+    Queued,
+    Running,
+    Success,
+    Failed,
+}
+
+#[derive(Debug, Serialize, Deserialize, Copy, Clone)]
+#[serde(rename_all = "snake_case")]
+pub enum ReportRunType {
     Scheduled,
-    ApiTriggered,
+    Manual,
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct LastRun {
-    pub run_type: RunType,
-    pub run_started_at: Option<DateTime<Utc>>,
-    pub status: String,
-    pub logs: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct DagRunStatusResponse {
-    pub running: bool,
-    pub run_type: Option<RunType>,
-    pub run_started_at: Option<DateTime<Utc>>,
-    pub logs: Option<String>,
-    pub last_run: Option<LastRun>,
-    pub error: Option<String>,
-}
-
-#[derive(Debug, Serialize, Deserialize)]
-pub struct TaskInstanceInfo {
-    pub task_id: String,
-    pub state: String,
-    pub start_date: Option<DateTime<Utc>>,
+pub struct Run {
+    pub run_id: String,
+    pub execution_date: DateTime<Utc>,
+    pub state: ReportRunState,
+    pub run_type: ReportRunType,
+    pub start_date: DateTime<Utc>,
     pub end_date: Option<DateTime<Utc>>,
-    pub duration: Option<f64>,
-    pub log_url: Option<String>,
+    pub reports: Vec<Report>,
+}
+
+#[derive(Debug, Serialize, Deserialize)]
+pub struct RunWithoutReports {
+    pub run_id: String,
+    pub execution_date: DateTime<Utc>,
+    pub state: ReportRunState,
+    pub run_type: ReportRunType,
+    pub start_date: DateTime<Utc>,
+    pub end_date: Option<DateTime<Utc>>,
 }
 
 #[derive(Clone)]
@@ -59,61 +75,63 @@ impl ReportsApiClient {
         }
     }
 
-    #[tracing::instrument(name = "reports_api.get_report_dates", skip(self))]
-    pub async fn get_report_dates(
+    #[tracing::instrument(name = "reports_api.list_runs", skip(self))]
+    pub async fn list_runs(
         &self,
-        after: Option<NaiveDate>,
-    ) -> Result<Vec<NaiveDate>, ReportError> {
-        let mut url = format!("{}/api/v1/reports/dates", self.base_url);
+        limit: Option<u32>,
+        after: Option<String>,
+    ) -> Result<Vec<RunWithoutReports>, ReportError> {
+        let mut url = format!("{}/api/v1/reports", self.base_url);
+        let mut query_params = Vec::new();
 
-        if let Some(after_date) = after {
-            let after_str = after_date.format("%Y-%m-%d").to_string();
-            url = format!("{url}?after={after_str}");
+        if let Some(limit) = limit {
+            query_params.push(format!("limit={limit}"));
+        }
+        if let Some(after) = after {
+            query_params.push(format!("after={after}"));
+        }
+
+        if !query_params.is_empty() {
+            url = format!("{}?{}", url, query_params.join("&"));
         }
 
         let response = self.client.get(&url).send().await?;
 
         if response.status().is_success() {
-            let date_strings: Vec<String> = response.json().await?;
-            let dates = date_strings
-                .into_iter()
-                .map(|date_str| {
-                    NaiveDate::parse_from_str(&date_str, "%Y-%m-%d").map_err(|e| {
-                        ReportError::ApiError(format!("Failed to parse date '{date_str}': {e}"))
-                    })
-                })
-                .collect::<Result<Vec<_>, _>>()?;
-            Ok(dates)
+            let runs: Vec<RunWithoutReports> = response.json().await?;
+            Ok(runs)
         } else {
             let status = response.status();
             let text = response.text().await.unwrap_or_default();
             Err(ReportError::ApiError(format!(
-                "Failed to get report dates with status {status}: {text}"
+                "Failed to list runs with status {status}: {text}"
             )))
         }
     }
 
-    #[tracing::instrument(name = "reports_api.get_reports_by_date", skip(self))]
-    pub async fn get_reports_by_date(&self, date: NaiveDate) -> Result<Vec<String>, ReportError> {
-        let date_str = date.format("%Y-%m-%d").to_string();
-        let url = format!("{}/api/v1/reports/date/{}", self.base_url, date_str);
+    #[tracing::instrument(name = "reports_api.get_run", skip(self))]
+    pub async fn get_run(&self, run_id: &str) -> Result<Option<Run>, ReportError> {
+        let url = format!("{}/api/v1/report/{}", self.base_url, run_id);
 
         let response = self.client.get(&url).send().await?;
 
-        if response.status().is_success() {
-            let report_uris: Vec<String> = response.json().await?;
-            Ok(report_uris)
-        } else {
-            let status = response.status();
-            let text = response.text().await.unwrap_or_default();
-            Err(ReportError::ApiError(format!(
-                "Failed to get reports for date {date_str} with status {status}: {text}"
-            )))
+        match response.status().as_u16() {
+            200 => {
+                let run: Run = response.json().await?;
+                Ok(Some(run))
+            }
+            404 => Ok(None),
+            status_code => {
+                let text = response.text().await.unwrap_or_default();
+                Err(ReportError::ApiError(format!(
+                    "Failed to get run {run_id} with status {status_code}: {text}"
+                )))
+            }
         }
     }
 
-    #[tracing::instrument(name = "reports_api.generate_todays_report", skip(self))]
-    pub async fn generate_todays_report(&self) -> Result<ReportGenerateResponse, ReportError> {
+    #[tracing::instrument(name = "reports_api.generate_report", skip(self))]
+    pub async fn generate_report(&self) -> Result<ReportGenerateResponse, ReportError> {
         let url = format!("{}/api/v1/reports/generate", self.base_url);
 
         let response = self.client.post(&url).send().await?;
@@ -129,22 +147,44 @@ impl ReportsApiClient {
             )))
         }
     }
+}
 
-    #[tracing::instrument(name = "reports_api.get_generation_status", skip(self))]
-    pub async fn get_generation_status(&self) -> Result<DagRunStatusResponse, ReportError> {
-        let url = format!("{}/api/v1/reports/status", self.base_url);
+impl From<ReportRunState> for crate::report_run::ReportRunState {
+    fn from(state: ReportRunState) -> Self {
+        match state {
+            ReportRunState::Queued => crate::report_run::ReportRunState::Queued,
+            ReportRunState::Running => crate::report_run::ReportRunState::Running,
+            ReportRunState::Success => crate::report_run::ReportRunState::Success,
+            ReportRunState::Failed => crate::report_run::ReportRunState::Failed,
+        }
+    }
+}
 
-        let response = self.client.get(&url).send().await?;
+impl From<crate::report_run::ReportRunState> for ReportRunState {
+    fn from(state: crate::report_run::ReportRunState) -> Self {
+        match state {
+            crate::report_run::ReportRunState::Queued => ReportRunState::Queued,
+            crate::report_run::ReportRunState::Running => ReportRunState::Running,
+            crate::report_run::ReportRunState::Success => ReportRunState::Success,
+            crate::report_run::ReportRunState::Failed => ReportRunState::Failed,
+        }
+    }
+}
 
-        if response.status().is_success() {
-            let status_response: DagRunStatusResponse = response.json().await?;
-            Ok(status_response)
-        } else {
-            let status = response.status();
-            let text = response.text().await.unwrap_or_default();
-            Err(ReportError::ApiError(format!(
-                "Failed to get generation status with status {status}: {text}"
-            )))
+impl From<ReportRunType> for crate::report_run::ReportRunType {
+    fn from(run_type: ReportRunType) -> Self {
+        match run_type {
+            ReportRunType::Scheduled => crate::report_run::ReportRunType::Scheduled,
+            ReportRunType::Manual => crate::report_run::ReportRunType::Manual,
+        }
+    }
+}
+
+impl From<File> for crate::report::File {
+    fn from(file: File) -> Self {
+        crate::report::File {
+            extension: file.extension,
+            path_in_bucket: file.path_in_bucket,
         }
     }
 }

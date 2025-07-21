@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT date, id FROM core_reports WHERE ((date = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: ReportId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_report_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_report_runs WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: ReportRunId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_report_run_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: ReportId",
+        "name": "entity_id: ReportRunId",
         "type_info": "Uuid"
       },
       {
@@ -26,9 +26,9 @@
     ],
     "parameters": {
       "Left": [
-        "Date",
         "Int8",
-        "Uuid"
+        "Uuid",
+        "Timestamptz"
       ]
     },
     "nullable": [
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "865347601bee19a50d8050a53292c07c9f4993e6888f849a483df662d28be22b"
+  "hash": "8c61eb2ace894dd516245050b6650be44201f376f35d8e338a6fd112b2990615"
 }

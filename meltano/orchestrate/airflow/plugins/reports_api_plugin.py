@@ -6,24 +6,21 @@ Exposes:
   GET  /api/v1/reports/health
   GET  /api/v1/reports?limit=100&after=<run_id>
   GET  /api/v1/report/<run_id>
-  GET  /api/v1/reports/live
   POST /api/v1/reports/generate
 """
 from __future__ import annotations
 
-import os, logging, uuid
+import os, logging
 from datetime import datetime, timezone
-from typing import Protocol, TypedDict, Optional, Sequence, List
+from typing import Protocol, TypedDict, Optional, Sequence
 
 from flask import Blueprint, jsonify, request
 from airflow.plugins_manager import AirflowPlugin
 from airflow.www.app import csrf
 from airflow import settings
 from airflow.api.client.local_client import Client
-from airflow.models import DagRun, TaskInstance
-from airflow.utils.state import State
+from airflow.models import DagRun
 from airflow.utils.session import provide_session
-from airflow.utils.log.log_reader import TaskLogReader
 from google.cloud import storage
 from google.oauth2 import service_account
 from sqlalchemy.orm import Session
@@ -46,14 +43,11 @@ class File(TypedDict):
     path_in_bucket: str
 
 class Report(TypedDict):
+    id: str
     name: str
     norm: str
     files: Sequence[File]
 
-class LiveStatus(TypedDict):
-    running: bool
-    current: Optional[Run]
-    last: Optional[Run]
 
 class StoragePort(Protocol):
     def healthy(self) -> bool: ...
@@ -64,7 +58,6 @@ class AirflowPort(Protocol):
     def list_runs(self, limit: int, after: str | None = None) -> Sequence[Run]: ...
     def get_run(self, run_id: str) -> Run | None: ...
     def trigger_run(self, run_id: str) -> str: ...
-    def live_status(self) -> LiveStatus: ...
 
 class ReportService:
     """Pure-logic façade that the Flask layer calls."""
@@ -92,11 +85,7 @@ class ReportService:
         run_id = f"manual__{ts}"
         return self.airflow.trigger_run(run_id)
 
-    def live_status(self) -> LiveStatus:
-        return self.airflow.live_status()
-
 class AirflowAdapter(AirflowPort):
-    _reader = TaskLogReader()
 
     @staticmethod
     def healthy() -> bool:
@@ -138,40 +127,6 @@ class AirflowAdapter(AirflowPort):
         )
         return run_id
 
-    @provide_session
-    def live_status(self, session: Session | None = None) -> LiveStatus:
-        current = (
-            session.query(DagRun)
-            .filter(
-                DagRun.dag_id == DAG_ID,
-                DagRun.state.in_([State.RUNNING, State.QUEUED]),
-            )
-            .order_by(DagRun.execution_date.desc())
-            .first()
-        )
-
-        last = (
-            session.query(DagRun)
-            .filter(
-                DagRun.dag_id == DAG_ID,
-                DagRun.state.in_([State.SUCCESS, State.FAILED]),
-            )
-            .order_by(DagRun.execution_date.desc())
-            .first()
-        )
-
-        def as_run(dr: DagRun | None) -> Run | None:
-            if not dr:
-                return None
-            run: Run = self._to_run(dr)
-            run["logs"] = self._collect_logs(session, dr.run_id)
-            return run
-
-        return {
-            "running": bool(current),
-            "current": as_run(current),
-            "last":    as_run(last),
-        }
 
     @staticmethod
     def _to_run(dr: DagRun) -> Run:
@@ -184,19 +139,6 @@ class AirflowAdapter(AirflowPort):
             "end_date": dr.end_date.isoformat() if dr.end_date else None,
         }
 
-    def _collect_logs(self, session: Session, run_id: str) -> str:
-        tis: List[TaskInstance] = (
-            session.query(TaskInstance)
-            .filter(TaskInstance.dag_id == DAG_ID, TaskInstance.run_id == run_id)
-            .order_by(TaskInstance.task_id.asc())
-            .all()
-        )
-        parts: list[str] = []
-        for ti in tis:
-            chunks, _ = self._reader.read_log_chunks(ti, ti.try_number, metadata={})
-            parts.append(f"\n\n===== {ti.task_id} =====\n")
-            parts.extend(chunks)
-        return "".join(map(str, parts))
 
 class GCSAdapter(StoragePort):
     # reports/{run_id}/{norm_name}/{report_name}.{extension}
@@ -243,7 +185,7 @@ class GCSAdapter(StoragePort):
             )
 
         return [
-            {"norm": norm, "name": name, "files": files}
+            {"norm": norm, "name": name, "files": files, "id": f"{run_id}/{norm}/{name}"}
             for (norm, name), files in grouped.items()
         ]
 
@@ -274,17 +216,10 @@ def run_details(run_id: str):
 @csrf.exempt
 def generate():
     try:
-        live = svc.live_status()
-        if live["running"] and live["current"]:
-            return jsonify(run_id=live["current"]["run_id"])
         return jsonify(run_id=svc.trigger_report_generation())
     except Exception as exc:
         logger.error("trigger error: %s", exc, exc_info=True)
         return jsonify(error=str(exc)), 500
-
-@bp.route("/reports/live")
-def live():
-    return jsonify(svc.live_status())
 
 class ReportsApiPlugin(AirflowPlugin):
     name = "reports_api"
