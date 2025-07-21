@@ -162,6 +162,7 @@ impl CoreDepositAction {
     pub const DEPOSIT_CREATE: Self = CoreDepositAction::Deposit(DepositAction::Create);
     pub const DEPOSIT_READ: Self = CoreDepositAction::Deposit(DepositAction::Read);
     pub const DEPOSIT_LIST: Self = CoreDepositAction::Deposit(DepositAction::List);
+    pub const DEPOSIT_REVERT: Self = CoreDepositAction::Deposit(DepositAction::Revert);
 
     pub const CHART_OF_ACCOUNTS_INTEGRATION_CONFIG_UPDATE: Self =
         CoreDepositAction::ChartOfAccountsIntegrationConfig(
@@ -294,6 +295,7 @@ pub enum DepositAction {
     Create,
     Read,
     List,
+    Revert,
 }
 
 impl DepositAction {
@@ -303,6 +305,7 @@ impl DepositAction {
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
                 Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
+                Self::Revert => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
                 Self::Read => ActionDescription::new(
                     variant,
                     &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],

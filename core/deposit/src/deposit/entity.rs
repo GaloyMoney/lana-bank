@@ -22,6 +22,18 @@ pub enum DepositEvent {
         reference: String,
         audit_info: AuditInfo,
     },
+    Reverted {
+        ledger_tx_id: CalaTransactionId,
+        audit_info: AuditInfo,
+    },
+}
+
+pub struct DepositReversalData {
+    pub ledger_tx_id: CalaTransactionId,
+    pub credit_account_id: DepositAccountId,
+    pub amount: UsdCents,
+    pub correlation_id: String,
+    pub external_id: String,
 }
 
 #[derive(EsEntity, Builder)]
@@ -39,6 +51,27 @@ impl Deposit {
         self.events
             .entity_first_persisted_at()
             .expect("No events for deposit")
+    }
+
+    pub fn revert(&mut self, audit_info: AuditInfo) -> Idempotent<DepositReversalData> {
+        idempotency_guard!(
+            self.events().iter_all().rev(),
+            DepositEvent::Reverted { .. }
+        );
+
+        let ledger_tx_id = CalaTransactionId::new();
+        self.events.push(DepositEvent::Reverted {
+            ledger_tx_id,
+            audit_info,
+        });
+
+        Idempotent::Executed(DepositReversalData {
+            ledger_tx_id,
+            credit_account_id: self.deposit_account_id,
+            amount: self.amount,
+            correlation_id: self.id.to_string(),
+            external_id: format!("lana:deposit:{}:reverted", self.id),
+        })
     }
 }
 
@@ -60,6 +93,7 @@ impl TryFromEvents<DepositEvent> for Deposit {
                         .amount(*amount)
                         .reference(reference.clone());
                 }
+                _ => {}
             }
         }
         builder.events(events).build()

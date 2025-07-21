@@ -16,7 +16,7 @@ use cala_ledger::{
 };
 
 use crate::{
-    DepositAccountBalance, LedgerOmnibusAccountIds, WithdrawalReversalData,
+    DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds, WithdrawalReversalData,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
 };
@@ -101,6 +101,7 @@ impl DepositLedger {
         templates::CancelWithdraw::init(cala).await?;
         templates::ConfirmWithdraw::init(cala).await?;
         templates::RevertWithdraw::init(cala).await?;
+        templates::RevertDeposit::init(cala).await?;
 
         let deposits_normal_balance_type = DebitOrCredit::Credit;
 
@@ -441,6 +442,35 @@ impl DepositLedger {
             )
             .await?;
         op.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn revert_deposit(
+        &self,
+        op: es_entity::DbOp<'_>,
+        reversal_data: DepositReversalData,
+    ) -> Result<(), DepositLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        let params = templates::RevertDepositParams {
+            journal_id: self.journal_id,
+            deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
+            credit_account_id: reversal_data.credit_account_id.into(),
+            correlation_id: reversal_data.correlation_id,
+            external_id: reversal_data.external_id,
+            amount: reversal_data.amount.to_usd(),
+            currency: self.usd,
+        };
+
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                reversal_data.ledger_tx_id,
+                templates::REVERT_DEPOSIT_CODE,
+                params,
+            )
+            .await?;
 
         Ok(())
     }

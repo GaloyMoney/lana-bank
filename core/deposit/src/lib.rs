@@ -396,6 +396,35 @@ where
         Ok(withdrawal)
     }
 
+    #[instrument(name = "deposit.revert_deposit", skip(self), err)]
+    pub async fn revert_deposit(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        deposit_id: impl Into<DepositId> + std::fmt::Debug,
+    ) -> Result<Deposit, CoreDepositError> {
+        let id = deposit_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit(id),
+                CoreDepositAction::DEPOSIT_REVERT,
+            )
+            .await?;
+
+        let mut deposit = self.deposits.find_by_id(id).await?;
+
+        if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert(audit_info) {
+            let mut op = self.deposits.begin_op().await?;
+            self.deposits.update_in_op(&mut op, &mut deposit).await?;
+            self.ledger
+                .revert_withdrawal(op, withdrawal_reversal_data)
+                .await?;
+        }
+
+        Ok(deposit)
+    }
+
     #[instrument(name = "deposit.revert_withdrawal", skip(self), err)]
     pub async fn revert_withdrawal(
         &self,
