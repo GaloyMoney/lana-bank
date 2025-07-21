@@ -75,7 +75,7 @@ mod url_serde {
             where
                 E: Error,
             {
-                Url::parse(s).map_err(|err| Error::custom(format!("{}: {:?}", err, s)))
+                Url::parse(s).map_err(|err| Error::custom(format!("{err}: {s:?}")))
             }
         }
 
