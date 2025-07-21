@@ -3,7 +3,8 @@ use async_graphql::*;
 use crate::primitives::*;
 
 pub use lana_app::custody::custodian::{
-    Custodian as DomainCustodian, CustodianConfig as DomainCustodianConfig, CustodiansByNameCursor,
+    BitgoConfig as DomainBitgoConfig, Custodian as DomainCustodian,
+    CustodianConfig as DomainCustodianConfig, CustodiansByNameCursor,
     KomainuConfig as DomainKomainuConfig,
 };
 
@@ -35,11 +36,6 @@ impl Custodian {
     }
 }
 
-#[derive(Enum, Copy, Clone, Eq, PartialEq)]
-pub enum CustodianConfig {
-    Komainu,
-}
-
 #[derive(InputObject)]
 pub struct KomainuConfig {
     name: String,
@@ -49,6 +45,20 @@ pub struct KomainuConfig {
     testing_instance: bool,
     #[graphql(secret)]
     secret_key: String,
+    #[graphql(secret)]
+    webhook_secret: String,
+}
+
+#[derive(InputObject)]
+pub struct BitgoConfig {
+    name: String,
+    #[graphql(secret)]
+    long_lived_token: String,
+    #[graphql(secret)]
+    passphrase: String,
+    testing_instance: bool,
+    enterprise_id: String,
+    express_endpoint: String,
     #[graphql(secret)]
     webhook_secret: String,
 }
@@ -65,15 +75,30 @@ impl From<KomainuConfig> for DomainKomainuConfig {
     }
 }
 
+impl From<BitgoConfig> for DomainBitgoConfig {
+    fn from(config: BitgoConfig) -> Self {
+        Self {
+            long_lived_token: config.long_lived_token,
+            passphrase: config.passphrase,
+            testing_instance: config.testing_instance,
+            enterprise_id: config.enterprise_id,
+            express_endpoint: config.express_endpoint,
+            webhook_secret: config.webhook_secret,
+        }
+    }
+}
+
 #[derive(OneofObject)]
 pub enum CustodianCreateInput {
     Komainu(KomainuConfig),
+    Bitgo(BitgoConfig),
 }
 
 impl CustodianCreateInput {
     pub fn name(&self) -> &str {
         match self {
             CustodianCreateInput::Komainu(conf) => &conf.name,
+            CustodianCreateInput::Bitgo(conf) => &conf.name,
         }
     }
 }
@@ -82,6 +107,7 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
     fn from(input: CustodianCreateInput) -> Self {
         match input {
             CustodianCreateInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
+            CustodianCreateInput::Bitgo(config) => DomainCustodianConfig::Bitgo(config.into()),
         }
     }
 }
@@ -89,12 +115,14 @@ impl From<CustodianCreateInput> for DomainCustodianConfig {
 #[derive(OneofObject)]
 pub enum CustodianConfigInput {
     Komainu(KomainuConfig),
+    Bitgo(BitgoConfig),
 }
 
 impl From<CustodianConfigInput> for DomainCustodianConfig {
     fn from(input: CustodianConfigInput) -> Self {
         match input {
             CustodianConfigInput::Komainu(config) => DomainCustodianConfig::Komainu(config.into()),
+            CustodianConfigInput::Bitgo(config) => DomainCustodianConfig::Bitgo(config.into()),
         }
     }
 }

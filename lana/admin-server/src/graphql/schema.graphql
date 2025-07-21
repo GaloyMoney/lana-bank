@@ -214,6 +214,16 @@ type BalanceSheetModuleConfigurePayload {
 	balanceSheetConfig: BalanceSheetModuleConfig!
 }
 
+input BitgoConfig {
+	name: String!
+	longLivedToken: String!
+	passphrase: String!
+	testingInstance: Boolean!
+	enterpriseId: String!
+	expressEndpoint: String!
+	webhookSecret: String!
+}
+
 type BtcAmount {
 	btc: Satoshis!
 }
@@ -738,6 +748,7 @@ type Custodian {
 
 input CustodianConfigInput @oneOf {
 	komainu: KomainuConfig
+	bitgo: BitgoConfig
 }
 
 input CustodianConfigUpdateInput {
@@ -766,6 +777,7 @@ type CustodianConnection {
 
 input CustodianCreateInput @oneOf {
 	komainu: KomainuConfig
+	bitgo: BitgoConfig
 }
 
 type CustodianCreatePayload {
