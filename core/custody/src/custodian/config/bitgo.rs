@@ -31,6 +31,7 @@ impl core::fmt::Debug for BitgoConfig {
             .field("express_endpoint", &self.express_endpoint)
             .field("passphrase", &"<redacted>")
             .field("testing_instance", &self.testing_instance)
+            .field("webhook_secret", &"<redacted>")
             .finish()
     }
 }

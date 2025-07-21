@@ -63,14 +63,11 @@ impl BitgoClient {
         Ok(serde_json::from_slice::<Notification>(payload)?)
     }
 
-    #[tracing::instrument(name = "bitgo.generate_wallet", skip(self), err)]
+    #[tracing::instrument(name = "bitgo.generate_wallet", skip(self), fields(response, url), err)]
     pub async fn generate_wallet(&self, label: &str) -> Result<(Wallet, Value), BitgoError> {
-        let url = self
-            .endpoint
-            .join(&self.coin)
-            .expect("correct URL")
-            .join("wallet/generate")
-            .expect("correct URL");
+        let url = self.url_with_coin("wallet/generate");
+
+        tracing::Span::current().record("url", tracing::field::display(&url));
 
         let request = self
             .http_client
@@ -82,18 +79,20 @@ impl BitgoClient {
                 "enterprise": &self.enterprise_id
             }));
 
-        let response: Value = request.send().await?.json().await?;
-        let wallet = serde_json::from_value(response.clone())?;
+        let response_json: Value = request.send().await?.json().await?;
 
-        Ok((wallet, response))
+        tracing::Span::current().record("response", tracing::field::display(&response_json));
+
+        let response: GenerateWalletResponse = serde_json::from_value(response_json.clone())?;
+
+        Ok((response.wallet, response_json))
     }
 
-    #[tracing::instrument(name = "bitgo.get_wallet", skip(self), err)]
+    #[tracing::instrument(name = "bitgo.get_wallet", skip(self), fields(response, url), err)]
     pub async fn get_wallet(&self, id: &str) -> Result<(Wallet, Value), BitgoError> {
-        let url = self
-            .endpoint
-            .join(&format!("wallet/{id}"))
-            .expect("valid URL");
+        let url = self.url(&format!("wallet/{id}"));
+
+        tracing::Span::current().record("url", tracing::field::display(&url));
 
         let request = self
             .http_client
@@ -101,22 +100,47 @@ impl BitgoClient {
             .bearer_auth(&self.long_lived_token);
 
         let response: Value = request.send().await?.json().await?;
+
+        tracing::Span::current().record("response", tracing::field::display(&response));
+
         let wallet = serde_json::from_value(response.clone())?;
 
         Ok((wallet, response))
     }
 
+    #[tracing::instrument(name = "bitgo.get_transfer", skip(self), fields(response, url), err)]
     pub async fn get_transfer(&self, id: &str, wallet: &str) -> Result<Transfer, BitgoError> {
-        let url = self
-            .endpoint
-            .join(&format!("wallet/{wallet}/transfer/{id}"))
-            .expect("valid URL");
+        let url = self.url(&format!("wallet/{wallet}/transfer/{id}"));
+
+        tracing::Span::current().record("url", tracing::field::display(&url));
 
         let request = self
             .http_client
             .get(url)
             .bearer_auth(&self.long_lived_token);
 
-        Ok(request.send().await?.json().await?)
+        let response: Value = request.send().await?.json().await?;
+
+        tracing::Span::current().record("response", tracing::field::display(&response));
+
+        Ok(serde_json::from_value(response)?)
+    }
+}
+
+impl BitgoClient {
+    fn url(&self, path: &str) -> Url {
+        self.endpoint
+            .join("api/v2/")
+            .expect("valid URL")
+            .join(path)
+            .expect("valid URL")
+    }
+
+    fn url_with_coin(&self, path: &str) -> Url {
+        self.endpoint
+            .join(&format!("api/v2/{}/", self.coin))
+            .expect("valid URL")
+            .join(path)
+            .expect("valid URL")
     }
 }

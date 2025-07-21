@@ -438,7 +438,12 @@ where
 
             let wallet = self
                 .custody
-                .create_wallet_in_op(&mut db, audit_info.clone(), custodian_id)
+                .create_wallet_in_op(
+                    &mut db,
+                    audit_info.clone(),
+                    custodian_id,
+                    &format!("CF {id}"),
+                )
                 .await?;
 
             Some(wallet.id)
