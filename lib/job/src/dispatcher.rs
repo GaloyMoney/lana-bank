@@ -1,9 +1,10 @@
 use chrono::{DateTime, Utc};
+use futures::FutureExt;
 use serde_json::Value as JsonValue;
 use sqlx::PgPool;
 use tracing::{Span, instrument};
 
-use std::{sync::Arc, time::Duration};
+use std::{panic::AssertUnwindSafe, sync::Arc, time::Duration};
 
 use super::{
     JobId, current::CurrentJob, error::JobError, handle::OwnedTaskHandle, repo::JobRepo,
@@ -131,21 +132,58 @@ impl JobDispatcher {
         n_warn_attempts: Option<u32>,
         attempt: u32,
     ) -> Result<JobCompletion, JobError> {
-        runner.run(current_job).await.map_err(|e| {
-            let error = e.to_string();
-            Span::current().record("error", true);
-            Span::current().record("error.message", tracing::field::display(&error));
-            if attempt <= n_warn_attempts.unwrap_or(u32::MAX) {
-                Span::current()
-                    .record("error.level", tracing::field::display(tracing::Level::WARN));
-            } else {
-                Span::current().record(
+        match AssertUnwindSafe(runner.run(current_job))
+            .catch_unwind()
+            .await
+        {
+            Ok(Ok(completion)) => Ok(completion),
+            Ok(Err(e)) => {
+                let span = Span::current();
+                let error = e.to_string();
+                span.record("error", true);
+                span.record("error.message", tracing::field::display(&error));
+                if attempt <= n_warn_attempts.unwrap_or(u32::MAX) {
+                    span.record("error.level", tracing::field::display(tracing::Level::WARN));
+                } else {
+                    span.record(
+                        "error.level",
+                        tracing::field::display(tracing::Level::ERROR),
+                    );
+                }
+                Err(JobError::JobExecutionError(error))
+            }
+            Err(panic) => {
+                let span = Span::current();
+                let message = if let Some(s) = panic.downcast_ref::<&str>() {
+                    s.to_string()
+                } else if let Some(s) = panic.downcast_ref::<String>() {
+                    s.clone()
+                } else {
+                    "Unknown panic payload".to_string()
+                };
+
+                span.record("error", true);
+                span.record(
+                    "error.message",
+                    tracing::field::display(&format!("Panic: {message}")),
+                );
+                span.record(
                     "error.level",
                     tracing::field::display(tracing::Level::ERROR),
                 );
+
+                tracing::error!(
+                    target: "job.panic",
+                    panic_message = %message,
+                    panic_backtrace = ?std::backtrace::Backtrace::capture(),
+                    "Job panicked during execution"
+                );
+
+                Err(JobError::JobExecutionError(format!(
+                    "Job panicked: {message}"
+                )))
             }
-            JobError::JobExecutionError(error)
-        })
+        }
     }
 
     #[instrument(name = "job.fail_job", skip(self))]
