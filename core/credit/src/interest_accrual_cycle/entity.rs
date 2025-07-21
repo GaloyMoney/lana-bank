@@ -63,6 +63,7 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
     InterestAccrualsPosted {
@@ -235,6 +236,7 @@ impl InterestAccrualCycle {
                 tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: interest_accrual.interest,
                 accrued_at: interest_accrual.period.end,
+                effective: interest_accrual.period.end.date_naive(),
                 audit_info,
             });
 
@@ -491,6 +493,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            effective: first_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events.clone());
@@ -506,6 +509,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
+            effective: second_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events);
@@ -534,6 +538,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            effective: first_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events.clone());
@@ -546,6 +551,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
+            effective: second_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events);
@@ -574,6 +580,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            effective: first_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         }]);
         let accrual = accrual_from(events);
@@ -601,6 +608,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: final_accrual_at,
+            effective: final_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         }]);
         let accrual = accrual_from(events);
@@ -621,6 +629,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
+            effective: first_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         });
 
@@ -631,6 +640,7 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
+            effective: second_accrual_at.date_naive(),
             audit_info: dummy_audit_info(),
         });
 
