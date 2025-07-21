@@ -29,7 +29,9 @@ import { gql } from "@apollo/client"
 import {
   useCustodianCreateMutation,
   type KomainuConfig,
+  type BitgoConfig,
   type CustodianCreateInput,
+  CustodiansDocument,
 } from "@/lib/graphql/generated"
 
 gql`
@@ -45,7 +47,7 @@ gql`
   }
 `
 
-type CustodianType = "komainu"
+type CustodianType = "komainu" | "bitgo"
 
 interface CreateCustodianDialogProps {
   openCreateCustodianDialog: boolean
@@ -68,6 +70,15 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     secretKey: "",
     webhookSecret: "",
   })
+  const [bitgoConfig, setBitgoConfig] = useState<BitgoConfig>({
+    name: "",
+    longLivedToken: "",
+    passphrase: "",
+    testingInstance: false,
+    enterpriseId: "",
+    expressEndpoint: "",
+    webhookSecret: "",
+  })
   const [error, setError] = useState<string | null>(null)
 
   const resetForm = () => {
@@ -80,6 +91,15 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       secretKey: "",
       webhookSecret: "",
     })
+    setBitgoConfig({
+      name: "",
+      longLivedToken: "",
+      passphrase: "",
+      testingInstance: false,
+      enterpriseId: "",
+      expressEndpoint: "",
+      webhookSecret: "",
+    })
     setError(null)
   }
 
@@ -90,19 +110,30 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
 
   const [createCustodian, { loading }] = useCustodianCreateMutation()
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleKomainuInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { name, value } = e.target
     setKomainuConfig((prev) => ({ ...prev, [name]: value }))
   }
 
-  const handleCheckboxChange = (checked: boolean) => {
+  const handleBitgoInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const { name, value } = e.target
+    setBitgoConfig((prev) => ({ ...prev, [name]: value }))
+  }
+
+  const handleKomainuCheckboxChange = (checked: boolean) => {
     setKomainuConfig((prev) => ({ ...prev, testingInstance: checked }))
+  }
+
+  const handleBitgoCheckboxChange = (checked: boolean) => {
+    setBitgoConfig((prev) => ({ ...prev, testingInstance: checked }))
   }
 
   const buildCustodianInput = (): CustodianCreateInput => {
     switch (selectedType) {
       case "komainu":
         return { komainu: komainuConfig }
+      case "bitgo":
+        return { bitgo: bitgoConfig }
       default:
         throw new Error(`Unsupported custodian type: ${selectedType}`)
     }
@@ -124,6 +155,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
             throw new Error(t("errors.failed"))
           }
         },
+        refetchQueries: [CustodiansDocument],
       })
     } catch (error) {
       console.error("Error creating custodian:", error)
@@ -161,6 +193,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="komainu">Komainu</SelectItem>
+                <SelectItem value="bitgo">BitGo</SelectItem>
               </SelectContent>
             </Select>
           </div>
@@ -175,7 +208,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   id="name"
                   name="name"
                   value={komainuConfig.name}
-                  onChange={handleInputChange}
+                  onChange={handleKomainuInputChange}
                   placeholder={t("placeholders.name")}
                   required
                   disabled={loading}
@@ -190,7 +223,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   id="apiKey"
                   name="apiKey"
                   value={komainuConfig.apiKey}
-                  onChange={handleInputChange}
+                  onChange={handleKomainuInputChange}
                   placeholder={t("placeholders.apiKey")}
                   required
                   disabled={loading}
@@ -206,7 +239,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   name="apiSecret"
                   type="password"
                   value={komainuConfig.apiSecret}
-                  onChange={handleInputChange}
+                  onChange={handleKomainuInputChange}
                   placeholder={t("placeholders.apiSecret")}
                   required
                   disabled={loading}
@@ -222,7 +255,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   name="secretKey"
                   type="password"
                   value={komainuConfig.secretKey}
-                  onChange={handleInputChange}
+                  onChange={handleKomainuInputChange}
                   placeholder={t("placeholders.secretKey")}
                   required
                   disabled={loading}
@@ -238,7 +271,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   name="webhookSecret"
                   type="password"
                   value={komainuConfig.webhookSecret}
-                  onChange={handleInputChange}
+                  onChange={handleKomainuInputChange}
                   placeholder={t("placeholders.webhookSecret")}
                   required
                   disabled={loading}
@@ -250,7 +283,116 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                 <Checkbox
                   id="testingInstance"
                   checked={komainuConfig.testingInstance}
-                  onCheckedChange={handleCheckboxChange}
+                  onCheckedChange={handleKomainuCheckboxChange}
+                  disabled={loading}
+                  data-testid="custodian-testing-instance-checkbox"
+                />
+                <Label htmlFor="testingInstance">{t("fields.testingInstance")}</Label>
+              </div>
+            </>
+          )}
+
+          {selectedType === "bitgo" && (
+            <>
+              <div>
+                <Label htmlFor="name" required>
+                  {t("fields.name")}
+                </Label>
+                <Input
+                  id="name"
+                  name="name"
+                  value={bitgoConfig.name}
+                  onChange={handleBitgoInputChange}
+                  placeholder={t("placeholders.name")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-name-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="longLivedToken" required>
+                  {t("fields.longLivedToken")}
+                </Label>
+                <Input
+                  id="longLivedToken"
+                  name="longLivedToken"
+                  type="password"
+                  value={bitgoConfig.longLivedToken}
+                  onChange={handleBitgoInputChange}
+                  placeholder={t("placeholders.longLivedToken")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-long-lived-token-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="passphrase" required>
+                  {t("fields.passphrase")}
+                </Label>
+                <Input
+                  id="passphrase"
+                  name="passphrase"
+                  type="password"
+                  value={bitgoConfig.passphrase}
+                  onChange={handleBitgoInputChange}
+                  placeholder={t("placeholders.passphrase")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-passphrase-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="enterpriseId" required>
+                  {t("fields.enterpriseId")}
+                </Label>
+                <Input
+                  id="enterpriseId"
+                  name="enterpriseId"
+                  value={bitgoConfig.enterpriseId}
+                  onChange={handleBitgoInputChange}
+                  placeholder={t("placeholders.enterpriseId")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-enterprise-id-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="expressEndpoint" required>
+                  {t("fields.expressEndpoint")}
+                </Label>
+                <Input
+                  id="expressEndpoint"
+                  name="expressEndpoint"
+                  value={bitgoConfig.expressEndpoint}
+                  onChange={handleBitgoInputChange}
+                  placeholder={t("placeholders.expressEndpoint")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-express-endpoint-input"
+                />
+              </div>
+              <div>
+                <Label htmlFor="webhookSecret" required>
+                  {t("fields.webhookSecret")}
+                </Label>
+                <Input
+                  id="webhookSecret"
+                  name="webhookSecret"
+                  type="password"
+                  value={bitgoConfig.webhookSecret}
+                  onChange={handleBitgoInputChange}
+                  placeholder={t("placeholders.webhookSecret")}
+                  required
+                  disabled={loading}
+                  data-testid="custodian-webhook-secret-input"
+                />
+              </div>
+
+              <div className="flex items-center space-x-2">
+                <Checkbox
+                  id="testingInstance"
+                  checked={bitgoConfig.testingInstance}
+                  onCheckedChange={handleBitgoCheckboxChange}
                   disabled={loading}
                   data-testid="custodian-testing-instance-checkbox"
                 />
