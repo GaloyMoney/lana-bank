@@ -747,6 +747,8 @@ where
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let span = tracing::Span::current();
+
         let audit_info = self
             .authz
             .enforce_permission(
@@ -770,14 +772,19 @@ where
             .payments
             .record_in_op(&mut db, audit_info, credit_facility_id, amount, effective)
             .await?;
-
-        tracing::Span::current().record(
+        span.record(
             "amount_allocated",
             tracing::field::display(allocations.amount_allocated),
         );
 
+        let allocations = allocations.into_iter().collect::<Vec<_>>();
+        if allocations.is_empty() {
+            db.commit().await?;
+            return Ok(credit_facility);
+        }
+
         self.ledger
-            .record_obligation_repayments(db, allocations.into_iter().collect())
+            .record_obligation_repayments(db, allocations)
             .await?;
 
         Ok(credit_facility)
