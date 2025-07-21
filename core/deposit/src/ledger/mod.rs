@@ -471,6 +471,7 @@ impl DepositLedger {
                 params,
             )
             .await?;
+        op.commit().await?;
 
         Ok(())
     }
