@@ -53,7 +53,37 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
         .with(telemetry)
         .init();
 
+    setup_panic_hook();
+
     Ok(())
+}
+
+fn setup_panic_hook() {
+    let default_panic = std::panic::take_hook();
+
+    std::panic::set_hook(Box::new(move |panic_info| {
+        let span = error_span!("panic", panic_type = "unhandled");
+        let _guard = span.enter();
+
+        let message = if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
+            s.to_string()
+        } else if let Some(s) = panic_info.payload().downcast_ref::<String>() {
+            s.clone()
+        } else {
+            "Unknown panic payload".to_string()
+        };
+
+        error!(
+            target: "panic",
+            panic_message = %message,
+            panic_location = ?panic_info.location(),
+            panic_thread = ?std::thread::current().name(),
+            panic_backtrace = ?std::backtrace::Backtrace::capture(),
+            "Unhandled panic in application"
+        );
+
+        default_panic(panic_info);
+    }));
 }
 
 fn telemetry_resource(config: &TracingConfig) -> Resource {
