@@ -32,6 +32,7 @@ pub enum PaymentEvent {
         id: PaymentId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
+        effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
     PaymentAllocated {
@@ -46,7 +47,9 @@ pub enum PaymentEvent {
 pub struct Payment {
     pub id: PaymentId,
     pub credit_facility_id: CreditFacilityId,
-    pub amount: UsdCents,
+    pub initial_amount: UsdCents,
+    pub applied_amount: UsdCents,
+    pub effective: chrono::NaiveDate,
 
     events: EntityEvents<PaymentEvent>,
 }
@@ -54,6 +57,7 @@ pub struct Payment {
 impl TryFromEvents<PaymentEvent> for Payment {
     fn try_from_events(events: EntityEvents<PaymentEvent>) -> Result<Self, EsEntityError> {
         let mut builder = PaymentBuilder::default();
+        let mut applied_amount = UsdCents::ZERO;
         for event in events.iter_all() {
             match event {
                 PaymentEvent::Initialized {
@@ -65,12 +69,19 @@ impl TryFromEvents<PaymentEvent> for Payment {
                     builder = builder
                         .id(*id)
                         .credit_facility_id(*credit_facility_id)
-                        .amount(*amount)
+                        .initial_amount(*amount)
                 }
-                PaymentEvent::PaymentAllocated { .. } => (),
+                PaymentEvent::PaymentAllocated {
+                    disbursal,
+                    interest,
+                    ..
+                } => applied_amount += *disbursal + *interest,
             }
         }
-        builder.events(events).build()
+        builder
+            .applied_amount(applied_amount)
+            .events(events)
+            .build()
     }
 }
 
@@ -115,6 +126,8 @@ impl Payment {
             audit_info,
         });
 
+        self.applied_amount += disbursal + interest;
+
         Idempotent::Executed(())
     }
 }
@@ -126,6 +139,7 @@ pub struct NewPayment {
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amount: UsdCents,
+    effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub(super) audit_info: AuditInfo,
 }
@@ -143,6 +157,7 @@ impl IntoEvents<PaymentEvent> for NewPayment {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
                 amount: self.amount,
+                effective: self.effective,
                 audit_info: self.audit_info,
             }],
         )

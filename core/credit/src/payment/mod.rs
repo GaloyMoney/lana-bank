@@ -81,10 +81,13 @@ where
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<PaymentAllocations, PaymentError> {
+        let effective = effective.into();
+
         let new_payment = NewPayment::builder()
             .id(PaymentId::new())
             .amount(amount)
             .credit_facility_id(credit_facility_id)
+            .effective(effective)
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment");
