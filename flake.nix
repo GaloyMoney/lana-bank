@@ -79,7 +79,7 @@
           version = "0.0.0";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
-          cargoExtraArgs = "--features sim-time,sumsub-testing";
+          cargoExtraArgs = "--all-features";
         };
 
       # Function to build lana-cli for a specific profile
@@ -209,7 +209,13 @@
         cargoToml = ./Cargo.toml;
         cargoLock = ./Cargo.lock;
         cargoArtifacts = debugCargoArtifacts;
+        strictDeps = true;
         SQLX_OFFLINE = true;
+
+        # Environment variables required for tests
+        DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
+        PG_CON = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
+        ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
 
         nativeBuildInputs = [
           pkgs.cacert
@@ -219,17 +225,18 @@
         ];
 
         configurePhase = ''
-          export CARGO_NET_GIT_FETCH_WITH_CLI=true
           export PROTOC="${pkgs.protobuf}/bin/protoc"
           export PATH="${pkgs.protobuf}/bin:$PATH"
-          export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-          export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
+
+          # Disable network access for cargo
+          export CARGO_NET_OFFLINE=true
+          export CARGO_HTTP_MULTIPLEXING=false
         '';
 
         buildPhaseCargoCommand = "nextest run";
         buildPhase = ''
           # run whole workspace tests, verbose+locked to mirror Makefile
-          cargo nextest run --workspace --locked --verbose --offline
+          cargo nextest run --workspace --locked --verbose --all-features --offline
         '';
 
         installPhase = "touch $out";
