@@ -48,7 +48,7 @@ impl KomainuClient {
         };
 
         let host = if config.komainu_test {
-            "https://api-uat.komainu.io"
+            "https://api-demo.komainu.io"
         } else {
             "https://api.komainu.io"
         };
