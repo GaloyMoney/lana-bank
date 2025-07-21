@@ -19,6 +19,7 @@ impl From<KomainuConfig> for komainu::KomainuConfig {
             },
             komainu_test: config.testing_instance,
             webhook_secret: config.webhook_secret.into_bytes(),
+            endpoints: Default::default(),
         }
     }
 }

@@ -10,6 +10,8 @@ pub enum KomainuError {
         errors: Vec<String>,
         status: u16,
     },
+    #[error("BitgoError - Unexpected JSON format: {0}")]
+    JsonFormat(#[from] serde_json::Error),
     #[error("Error - MissingWebhookHeaders")]
     MissingWebhookHeaders,
     #[error("KomainuError - InvalidWebhookSignature")]

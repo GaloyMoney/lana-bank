@@ -47,12 +47,6 @@ impl KomainuClient {
             KomainuSecretKey::Plain { dem } => SecretKey::from_pkcs8_pem(dem).unwrap().into(),
         };
 
-        let host = if config.komainu_test {
-            "https://api-demo.komainu.io"
-        } else {
-            "https://api.komainu.io"
-        };
-
         let get_token_request = GetToken {
             api_user: config.api_user.clone(),
             api_secret: config.api_secret.clone(),
@@ -63,7 +57,7 @@ impl KomainuClient {
             access_token: Default::default(),
             signing_key,
             get_token_request,
-            host: host.parse().expect("valid host"),
+            host: config.url().clone(),
             webhook_secret: config.webhook_secret,
         }
     }
@@ -93,7 +87,7 @@ impl KomainuClient {
         mac.update(payload);
         mac.verify_slice(&signature)?;
 
-        Ok(serde_json::from_slice::<Notification>(payload).unwrap())
+        Ok(serde_json::from_slice::<Notification>(payload)?)
     }
 
     #[tracing::instrument(name = "komainu.get_request", skip(self))]
