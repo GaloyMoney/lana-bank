@@ -7,11 +7,11 @@ CREATE TABLE core_deposit_events_rollup (
   -- Flattened fields from the event JSON
   amount BIGINT,
   deposit_account_id UUID,
-  ledger_tx_id UUID,
   reference VARCHAR,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[]
+  audit_entry_ids BIGINT[],
+  ledger_tx_ids UUID[]
 
 );
 
@@ -56,14 +56,19 @@ BEGIN
      END
 ;
     new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
-    new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+    new_row.ledger_tx_ids := CASE
+       WHEN NEW.event ? 'ledger_tx_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.deposit_account_id := current_row.deposit_account_id;
-    new_row.ledger_tx_id := current_row.ledger_tx_id;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.reference := current_row.reference;
   END IF;
 
@@ -73,11 +78,11 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
-      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'reverted' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;
 
   INSERT INTO core_deposit_events_rollup (
@@ -88,7 +93,7 @@ BEGIN
     amount,
     audit_entry_ids,
     deposit_account_id,
-    ledger_tx_id,
+    ledger_tx_ids,
     reference
   )
   VALUES (
@@ -99,7 +104,7 @@ BEGIN
     new_row.amount,
     new_row.audit_entry_ids,
     new_row.deposit_account_id,
-    new_row.ledger_tx_id,
+    new_row.ledger_tx_ids,
     new_row.reference
   )
   ON CONFLICT (id) DO UPDATE SET
@@ -108,7 +113,7 @@ BEGIN
     amount = EXCLUDED.amount,
     audit_entry_ids = EXCLUDED.audit_entry_ids,
     deposit_account_id = EXCLUDED.deposit_account_id,
-    ledger_tx_id = EXCLUDED.ledger_tx_id,
+    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
     reference = EXCLUDED.reference;
 
   RETURN NEW;

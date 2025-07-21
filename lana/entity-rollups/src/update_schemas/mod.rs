@@ -198,6 +198,12 @@ pub fn update_schemas(
         SchemaInfo {
             name: "DepositEvent",
             filename: "deposit_event_schema.json",
+            collections: vec![CollectionRollup {
+                column_name: "ledger_tx_ids",
+                values: "ledger_tx_id",
+                add_events: vec!["Initialized".to_string(), "Reverted".to_string()],
+                remove_events: vec![],
+            }],
             generate_schema: || serde_json::to_value(schema_for!(DepositEvent)).unwrap(),
             ..Default::default()
         },
@@ -208,7 +214,7 @@ pub fn update_schemas(
                 column_name: "ledger_tx_ids",
                 values: "ledger_tx_id",
                 add_events: vec![
-                    "Initiated".to_string(),
+                    "Initialized".to_string(),
                     "Cancelled".to_string(),
                     "Confirmed".to_string(),
                     "Reverted".to_string(),
