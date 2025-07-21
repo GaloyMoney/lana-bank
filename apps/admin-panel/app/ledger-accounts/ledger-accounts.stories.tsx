@@ -10,7 +10,7 @@ const LedgerAccountSearchStory = () => (
 )
 
 const meta = {
-  title: "Pages/ChartOfAccounts/LedgerAccountSearch",
+  title: "Pages/LedgerAccountSearch",
   component: LedgerAccountSearchStory,
   parameters: {
     layout: "fullscreen",

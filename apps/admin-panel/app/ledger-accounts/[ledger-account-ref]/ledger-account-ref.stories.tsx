@@ -68,7 +68,7 @@ const LedgerAccountStory = () => {
 }
 
 const meta: Meta = {
-  title: "Pages/ChartOfAccounts/LedgerAccountDetails",
+  title: "Pages/LedgerAccountDetails",
   component: LedgerAccountStory,
   parameters: { layout: "fullscreen", nextjs: { appDirectory: true } },
 }
