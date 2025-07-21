@@ -44,6 +44,7 @@ impl BitgoClient {
         })
     }
 
+    #[tracing::instrument(name = "bitgo.validate_webhook_notification", skip(self), err)]
     pub fn validate_webhook_notification(
         &self,
         headers: &HeaderMap,
