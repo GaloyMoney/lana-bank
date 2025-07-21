@@ -93,7 +93,7 @@ impl TryFromEvents<DepositEvent> for Deposit {
                         .amount(*amount)
                         .reference(reference.clone());
                 }
-                _ => {}
+                DepositEvent::Reverted { .. } => {}
             }
         }
         builder.events(events).build()
@@ -213,5 +213,26 @@ mod test {
             .build();
 
         assert!(deposit.is_ok());
+    }
+
+    #[test]
+    fn revert_deposit() {
+        let new_deposit = NewDeposit::builder()
+            .id(DepositId::new())
+            .ledger_transaction_id(CalaTransactionId::new())
+            .deposit_account_id(DepositAccountId::new())
+            .amount(UsdCents::ONE)
+            .reference(None)
+            .audit_info(dummy_audit_info())
+            .build()
+            .unwrap();
+
+        let mut deposit = Deposit::try_from_events(new_deposit.into_events()).unwrap();
+
+        let res = deposit.revert(dummy_audit_info());
+        assert!(res.did_execute());
+
+        let res = deposit.revert(dummy_audit_info());
+        assert!(res.was_ignored());
     }
 }
