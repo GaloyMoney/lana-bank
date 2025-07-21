@@ -1075,6 +1075,15 @@ export type DepositRecordPayload = {
   deposit: Deposit;
 };
 
+export type DepositRevertInput = {
+  depositId: Scalars['UUID']['input'];
+};
+
+export type DepositRevertPayload = {
+  __typename?: 'DepositRevertPayload';
+  deposit: Deposit;
+};
+
 export type DisbursalEntry = {
   __typename?: 'DisbursalEntry';
   disbursal: CreditFacilityDisbursal;
@@ -1363,6 +1372,7 @@ export type Mutation = {
   customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
+  depositRevert: DepositRevertPayload;
   ledgerAccountCsvCreate: LedgerAccountCsvCreatePayload;
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
@@ -1515,6 +1525,11 @@ export type MutationDepositModuleConfigureArgs = {
 
 export type MutationDepositRecordArgs = {
   input: DepositRecordInput;
+};
+
+
+export type MutationDepositRevertArgs = {
+  input: DepositRevertInput;
 };
 
 
