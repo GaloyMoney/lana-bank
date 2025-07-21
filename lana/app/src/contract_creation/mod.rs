@@ -253,8 +253,7 @@ mod tests {
                 .join("lib/rendering/config/pdf_config.toml"),
         );
 
-        let mut config = ContractCreationConfig::default();
-        config.pdf_config_file = pdf_config_file;
+        let config = ContractCreationConfig { pdf_config_file };
 
         // Verify that config can be used to create a renderer
         let _renderer = rendering::Renderer::new(config.pdf_config_file);
