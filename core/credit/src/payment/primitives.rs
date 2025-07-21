@@ -1,5 +1,3 @@
-use rust_decimal::prelude::Zero;
-
 use crate::{payment_allocation::PaymentAllocation, primitives::*};
 
 pub struct PaymentAllocations {
