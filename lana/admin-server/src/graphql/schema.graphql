@@ -1076,6 +1076,14 @@ type DepositRecordPayload {
 	deposit: Deposit!
 }
 
+input DepositRevertInput {
+	depositId: UUID!
+}
+
+type DepositRevertPayload {
+	deposit: Deposit!
+}
+
 type DisbursalEntry {
 	recordedAt: Timestamp!
 	disbursal: CreditFacilityDisbursal!
@@ -1359,6 +1367,7 @@ type Mutation {
 	withdrawalConfirm(input: WithdrawalConfirmInput!): WithdrawalConfirmPayload!
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
+	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!

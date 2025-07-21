@@ -1253,6 +1253,20 @@ impl Mutation {
         )
     }
 
+    pub async fn deposit_revert(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositRevertInput,
+    ) -> async_graphql::Result<DepositRevertPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            DepositRevertPayload,
+            Deposit,
+            ctx,
+            app.deposits().revert_deposit(sub, input.deposit_id)
+        )
+    }
+
     async fn terms_template_create(
         &self,
         ctx: &Context<'_>,

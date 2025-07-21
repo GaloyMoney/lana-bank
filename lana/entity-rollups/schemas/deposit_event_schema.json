@@ -65,6 +65,27 @@
         "audit_info"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "reverted",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_tx_id",
+        "audit_info"
+      ],
+      "type": "object"
     }
   ],
   "title": "DepositEvent"

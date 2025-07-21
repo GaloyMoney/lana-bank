@@ -418,7 +418,7 @@ where
             let mut op = self.deposits.begin_op().await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
-                .revert_withdrawal(op, withdrawal_reversal_data)
+                .revert_deposit(op, deposit_reversal_data)
                 .await?;
         }
 

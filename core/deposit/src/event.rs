@@ -20,4 +20,9 @@ pub enum CoreDepositEvent {
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
     },
+    DepositReverted {
+        id: DepositId,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+    },
 }

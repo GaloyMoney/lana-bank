@@ -94,6 +94,11 @@ where
                     deposit_account_id: entity.deposit_account_id,
                     amount: entity.amount,
                 },
+                Reverted { .. } => CoreDepositEvent::DepositReverted {
+                    id: entity.id,
+                    deposit_account_id: entity.deposit_account_id,
+                    amount: entity.amount,
+                },
             })
             .collect::<Vec<_>>();
         self.outbox

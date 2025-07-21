@@ -58,3 +58,9 @@ pub struct DepositRecordInput {
     pub reference: Option<String>,
 }
 crate::mutation_payload! { DepositRecordPayload, deposit: Deposit }
+
+#[derive(InputObject)]
+pub struct DepositRevertInput {
+    pub deposit_id: UUID,
+}
+crate::mutation_payload! { DepositRevertPayload, deposit: Deposit }

@@ -36,7 +36,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized') THEN
+  IF event_type NOT IN ('initialized', 'reverted') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -75,6 +75,9 @@ BEGIN
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.reference := (NEW.event ->> 'reference');
+    WHEN 'reverted' THEN
+      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
   END CASE;
 
   INSERT INTO core_deposit_events_rollup (
