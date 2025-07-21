@@ -152,7 +152,7 @@ export const AddChartNodeDialog: React.FC<AddChartNodeDialogProps> = ({
 
       if (result.data) {
         toast.success(t("success"))
-        navigate(`/ledger-account/${code.trim()}`)
+        navigate(`/ledger-accounts/${code.trim()}`)
       } else {
         throw new Error(t("errors.noData"))
       }

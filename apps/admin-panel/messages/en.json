@@ -126,7 +126,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
-      "ledgerAccount": "Ledger Account",
+      "ledgerAccounts": "Ledger Accounts",
       "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
@@ -1593,7 +1593,7 @@
     "description": "Details of ledger account",
     "descriptionWithCode": "Details of ledger account by account code {code}",
     "search": {
-      "title": "Search Ledger Account",
+      "title": "Search Ledger Accounts",
       "description": "Enter a ledger account code or ID to view account details",
       "placeholder": "Enter account code (e.g., 1000.01) or account ID",
       "searchButton": "Search Account",

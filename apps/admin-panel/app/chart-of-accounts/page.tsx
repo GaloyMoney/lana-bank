@@ -168,7 +168,7 @@ const AccountRow = React.memo<AccountRowProps>(
     const onClick: MouseEventHandler<HTMLTableRowElement> = (e) => {
       e.preventDefault()
       e.stopPropagation()
-      router.push(`/ledger-account/${account.accountCode}`)
+      router.push(`/ledger-accounts/${account.accountCode}`)
     }
 
     const handleAddChild = (e: React.MouseEvent) => {

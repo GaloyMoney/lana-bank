@@ -68,7 +68,7 @@ export default function LedgerAccount() {
       }
 
       if (accountExists) {
-        router.push(`/ledger-account/${encodeURIComponent(trimmedTerm)}`)
+        router.push(`/ledger-accounts/${encodeURIComponent(trimmedTerm)}`)
       } else {
         setError(t("search.notFound"))
       }

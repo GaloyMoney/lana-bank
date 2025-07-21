@@ -502,7 +502,7 @@ function TrialBalancePage() {
           customFooter={Footer}
           style="compact"
           onClick={(account) =>
-            router.push(`/ledger-account/${account.code || account.id}`)
+            router.push(`/ledger-accounts/${account.code || account.id}`)
           }
           noDataText={t("noAccountsPresent")}
           subRows={(account) =>

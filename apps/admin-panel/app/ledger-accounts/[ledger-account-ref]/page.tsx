@@ -169,7 +169,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
 
   useEffect(() => {
     if (isRefUUID && ledgerAccount && ledgerAccount.code) {
-      router.push(`/ledger-account/${ledgerAccount.code}`)
+      router.push(`/ledger-accounts/${ledgerAccount.code}`)
     }
   }, [ledgerAccount, isRefUUID, router])
 
@@ -215,7 +215,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         const closestAccountWithCode = record.ledgerAccount.closestAccountWithCode?.code
         return (
           <Link
-            href={`/ledger-account/${closestAccountWithCode}`}
+            href={`/ledger-accounts/${closestAccountWithCode}`}
             className="hover:underline"
           >
             {closestAccountWithCode}
@@ -302,7 +302,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                           <DataTable
                             onRowClick={(ancestor) =>
                               router.push(
-                                `/ledger-account/${ancestor.code || ancestor.id}`,
+                                `/ledger-accounts/${ancestor.code || ancestor.id}`,
                               )
                             }
                             cellClassName="!py-0 !h-10"
@@ -340,7 +340,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                         <CollapsibleContent className="max-w-[864px] pt-2">
                           <DataTable
                             onRowClick={({ code, id }) =>
-                              router.push(`/ledger-account/${code || id}`)
+                              router.push(`/ledger-accounts/${code || id}`)
                             }
                             cellClassName="!py-0 !h-10"
                             data={ledgerAccount?.children || []}

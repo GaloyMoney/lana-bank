@@ -125,7 +125,7 @@ const JournalPage: React.FC = () => {
         const accountName = account.name || account.code
         return (
           <Link
-            href={`/ledger-account/${account.code || account.id}`}
+            href={`/ledger-accounts/${account.code || account.id}`}
             className="hover:underline"
           >
             {accountName}
@@ -167,7 +167,7 @@ const JournalPage: React.FC = () => {
         const closestAccountWithCode = account.closestAccountWithCode?.code
         return (
           <Link
-            href={`/ledger-account/${closestAccountWithCode}`}
+            href={`/ledger-accounts/${closestAccountWithCode}`}
             className="hover:underline"
           >
             {closestAccountWithCode}
