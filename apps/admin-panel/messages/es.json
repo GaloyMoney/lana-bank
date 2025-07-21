@@ -126,6 +126,7 @@
       "auditLogs": "Registros de Auditoría",
       "committees": "Comités",
       "chartOfAccounts": "Plan de Cuentas",
+      "ledgerAccount": "Cuenta Contable",
       "journal": "Diario",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
@@ -1591,6 +1592,14 @@
     "entriesTitle": "Asientos contables en esta cuenta",
     "description": "Detalles de la cuenta contable",
     "descriptionWithCode": "Detalles de la cuenta contable por código de cuenta {code}",
+    "search": {
+      "title": "Buscar Cuenta Contable",
+      "description": "Ingrese un código de cuenta contable o ID para ver los detalles de la cuenta",
+      "placeholder": "Ingrese código de cuenta (ej., 1000.01) o ID de cuenta",
+      "searchButton": "Buscar Cuenta",
+      "notFound": "Cuenta contable no encontrada. El código de cuenta o ID que ingresó puede no existir.",
+      "searchError": "Ocurrió un error durante la búsqueda. Por favor, inténtelo de nuevo."
+    },
     "details": {
       "code": "Código de cuenta",
       "name": "Nombre de la cuenta",

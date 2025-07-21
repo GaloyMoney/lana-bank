@@ -2875,6 +2875,20 @@ export type LedgerAccountQueryVariables = Exact<{
 
 export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange: { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } } | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }, history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount: { __typename: 'BtcAmount', btc: Satoshis } | { __typename: 'UsdAmount', usd: UsdCents }, ledgerAccount: { __typename?: 'LedgerAccount', code?: any | null, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } } | null };
 
+export type LedgerAccountExistsByCodeQueryVariables = Exact<{
+  code: Scalars['String']['input'];
+}>;
+
+
+export type LedgerAccountExistsByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string } | null };
+
+export type LedgerAccountExistsByIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type LedgerAccountExistsByIdQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string } | null };
+
 export type LedgerTransactionQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -6095,6 +6109,86 @@ export type LedgerAccountQueryHookResult = ReturnType<typeof useLedgerAccountQue
 export type LedgerAccountLazyQueryHookResult = ReturnType<typeof useLedgerAccountLazyQuery>;
 export type LedgerAccountSuspenseQueryHookResult = ReturnType<typeof useLedgerAccountSuspenseQuery>;
 export type LedgerAccountQueryResult = Apollo.QueryResult<LedgerAccountQuery, LedgerAccountQueryVariables>;
+export const LedgerAccountExistsByCodeDocument = gql`
+    query LedgerAccountExistsByCode($code: String!) {
+  ledgerAccountByCode(code: $code) {
+    id
+  }
+}
+    `;
+
+/**
+ * __useLedgerAccountExistsByCodeQuery__
+ *
+ * To run a query within a React component, call `useLedgerAccountExistsByCodeQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerAccountExistsByCodeQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLedgerAccountExistsByCodeQuery({
+ *   variables: {
+ *      code: // value for 'code'
+ *   },
+ * });
+ */
+export function useLedgerAccountExistsByCodeQuery(baseOptions: Apollo.QueryHookOptions<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables> & ({ variables: LedgerAccountExistsByCodeQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>(LedgerAccountExistsByCodeDocument, options);
+      }
+export function useLedgerAccountExistsByCodeLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>(LedgerAccountExistsByCodeDocument, options);
+        }
+export function useLedgerAccountExistsByCodeSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>(LedgerAccountExistsByCodeDocument, options);
+        }
+export type LedgerAccountExistsByCodeQueryHookResult = ReturnType<typeof useLedgerAccountExistsByCodeQuery>;
+export type LedgerAccountExistsByCodeLazyQueryHookResult = ReturnType<typeof useLedgerAccountExistsByCodeLazyQuery>;
+export type LedgerAccountExistsByCodeSuspenseQueryHookResult = ReturnType<typeof useLedgerAccountExistsByCodeSuspenseQuery>;
+export type LedgerAccountExistsByCodeQueryResult = Apollo.QueryResult<LedgerAccountExistsByCodeQuery, LedgerAccountExistsByCodeQueryVariables>;
+export const LedgerAccountExistsByIdDocument = gql`
+    query LedgerAccountExistsById($id: UUID!) {
+  ledgerAccount(id: $id) {
+    id
+  }
+}
+    `;
+
+/**
+ * __useLedgerAccountExistsByIdQuery__
+ *
+ * To run a query within a React component, call `useLedgerAccountExistsByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useLedgerAccountExistsByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useLedgerAccountExistsByIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useLedgerAccountExistsByIdQuery(baseOptions: Apollo.QueryHookOptions<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables> & ({ variables: LedgerAccountExistsByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables>(LedgerAccountExistsByIdDocument, options);
+      }
+export function useLedgerAccountExistsByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables>(LedgerAccountExistsByIdDocument, options);
+        }
+export function useLedgerAccountExistsByIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables>(LedgerAccountExistsByIdDocument, options);
+        }
+export type LedgerAccountExistsByIdQueryHookResult = ReturnType<typeof useLedgerAccountExistsByIdQuery>;
+export type LedgerAccountExistsByIdLazyQueryHookResult = ReturnType<typeof useLedgerAccountExistsByIdLazyQuery>;
+export type LedgerAccountExistsByIdSuspenseQueryHookResult = ReturnType<typeof useLedgerAccountExistsByIdSuspenseQuery>;
+export type LedgerAccountExistsByIdQueryResult = Apollo.QueryResult<LedgerAccountExistsByIdQuery, LedgerAccountExistsByIdQueryVariables>;
 export const LedgerTransactionDocument = gql`
     query LedgerTransaction($id: UUID!) {
   ledgerTransaction(id: $id) {

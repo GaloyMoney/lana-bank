@@ -126,6 +126,7 @@
       "auditLogs": "Audit Logs",
       "committees": "Committees",
       "chartOfAccounts": "Chart of Accounts",
+      "ledgerAccount": "Ledger Account",
       "journal": "Journal",
       "users": "Users",
       "balanceSheet": "Balance Sheet",
@@ -1591,6 +1592,14 @@
     "entriesTitle": "Journal entries in this account",
     "description": "Details of ledger account",
     "descriptionWithCode": "Details of ledger account by account code {code}",
+    "search": {
+      "title": "Search Ledger Account",
+      "description": "Enter a ledger account code or ID to view account details",
+      "placeholder": "Enter account code (e.g., 1000.01) or account ID",
+      "searchButton": "Search Account",
+      "notFound": "Ledger account not found. The account code or ID you entered may not exist.",
+      "searchError": "An error occurred while searching. Please try again."
+    },
     "details": {
       "code": "Account Code",
       "name": "Account Name",

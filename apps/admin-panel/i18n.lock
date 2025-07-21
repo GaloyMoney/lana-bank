@@ -80,6 +80,7 @@ checksums:
     Sidebar/navItems/auditLogs: c7efb33d09676938d07651774b067bf6
     Sidebar/navItems/committees: c5de346d62a6ad000e90b53d5f4e123c
     Sidebar/navItems/chartOfAccounts: b7e16497105264b631772ce1952e136c
+    Sidebar/navItems/ledgerAccount: d6afe57367f5001206a03de7a93d20e7
     Sidebar/navItems/journal: f7b651715289f785561bd3bca4911a73
     Sidebar/navItems/users: fe42f97809c24d700d3912c8d02ed452
     Sidebar/navItems/balanceSheet: 0c5e5cc9dd1e661a276e1536917a8db8
@@ -938,6 +939,12 @@ checksums:
     ChartOfAccountsLedgerAccount/entriesTitle: 99c901d20f504e810a773ecc8335d1ec
     ChartOfAccountsLedgerAccount/description: 1cb54558341987f3d67421ea3ea90d39
     ChartOfAccountsLedgerAccount/descriptionWithCode: cd8f9f4d52de7097bb3bf5df68df82f8
+    ChartOfAccountsLedgerAccount/search/title: b62956b2619294e4eb06f5aa8125d54f
+    ChartOfAccountsLedgerAccount/search/description: ac0f3f0f801567a637b0aa68e3142a8b
+    ChartOfAccountsLedgerAccount/search/placeholder: c77354c46f991d1752a4208c756419f6
+    ChartOfAccountsLedgerAccount/search/searchButton: 7d7290226a5ac34275d94c50beffad6f
+    ChartOfAccountsLedgerAccount/search/notFound: b8af943e19fa8c058e50be6ffe5ce97c
+    ChartOfAccountsLedgerAccount/search/searchError: a648d2c1da87cb5dc1db3f71b4d70a14
     ChartOfAccountsLedgerAccount/details/code: 9218742c297d337fdc0f5f5dd985294d
     ChartOfAccountsLedgerAccount/details/name: 5a4c82f1bc517348b64c107345f94f65
     ChartOfAccountsLedgerAccount/details/usdBalance: 857ee8a777580666ef3e60098e442c11
