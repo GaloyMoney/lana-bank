@@ -13,12 +13,10 @@ use lana_ids::ContractCreationId;
 use rbac_types::{AppAction, AppObject, LanaAction, LanaObject, Subject};
 use uuid::Uuid;
 
-pub mod config;
-pub mod error;
+mod error;
 pub mod job;
-pub mod templates;
+mod templates;
 
-pub use config::*;
 pub use error::*;
 pub use job::*;
 
@@ -34,15 +32,14 @@ use tracing::instrument;
 const LOAN_AGREEMENT_DOCUMENT_TYPE: DocumentType = DocumentType::new("loan_agreement");
 
 impl ContractCreation {
-    pub async fn init(
-        config: ContractCreationConfig,
+    pub fn try_new(
         customers: &Customers,
         applicants: &Applicants,
         document_storage: &DocumentStorage,
         jobs: &Jobs,
         authz: &Authorization,
     ) -> Result<Self, ContractCreationError> {
-        let renderer = rendering::Renderer::new(config.pdf_config_file);
+        let renderer = rendering::Renderer::new();
 
         let contract_templates = templates::ContractTemplates::init()?;
 
@@ -239,24 +236,12 @@ pub struct LoanAgreement {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use std::path::Path;
 
     #[tokio::test]
     async fn test_contract_creation_config() -> Result<(), error::ContractCreationError> {
-        // Test that config works correctly
-        let pdf_config_file = Some(
-            Path::new(env!("CARGO_MANIFEST_DIR"))
-                .parent()
-                .unwrap()
-                .parent()
-                .unwrap()
-                .join("lib/rendering/config/pdf_config.toml"),
-        );
-
-        let config = ContractCreationConfig { pdf_config_file };
-
-        // Verify that config can be used to create a renderer
-        let _renderer = rendering::Renderer::new(config.pdf_config_file);
+        // Test that the embedded PDF config works correctly
+        // Verify that renderer can be created with embedded config
+        let _renderer = rendering::Renderer::new();
 
         // Test embedded templates
         let contract_templates = templates::ContractTemplates::init()?;
