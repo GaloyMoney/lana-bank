@@ -66,10 +66,26 @@ pub enum InterestAccrualCycleEvent {
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
     },
+    AccruedInterestReverted {
+        ledger_tx_id: LedgerTxId,
+        accrued_ledger_tx_id: LedgerTxId,
+        tx_ref: String,
+        amount: UsdCents,
+        effective: chrono::NaiveDate,
+        audit_info: AuditInfo,
+    },
     InterestAccrualsPosted {
         ledger_tx_id: LedgerTxId,
         tx_ref: String,
         obligation_id: Option<ObligationId>,
+        total: UsdCents,
+        effective: chrono::NaiveDate,
+        audit_info: AuditInfo,
+    },
+    PostedInterestAccrualsReverted {
+        ledger_tx_id: LedgerTxId,
+        posted_ledger_tx_id: LedgerTxId,
+        tx_ref: String,
         total: UsdCents,
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
@@ -86,7 +102,9 @@ pub struct InterestAccrualCycle {
     pub facility_matures_at: DateTime<Utc>,
     pub terms: TermValues,
     pub period: InterestPeriod,
+
     events: EntityEvents<InterestAccrualCycleEvent>,
+    reverted_ledger_tx_ids: Vec<LedgerTxId>,
 }
 
 #[derive(Debug, Clone)]
@@ -116,6 +134,7 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
         events: EntityEvents<InterestAccrualCycleEvent>,
     ) -> Result<Self, EsEntityError> {
         let mut builder = InterestAccrualCycleBuilder::default();
+        let mut reverted_ledger_tx_ids = vec![];
         for event in events.iter_all() {
             match event {
                 InterestAccrualCycleEvent::Initialized {
@@ -138,10 +157,21 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
                         .terms(*terms)
                 }
                 InterestAccrualCycleEvent::InterestAccrued { .. } => (),
+                InterestAccrualCycleEvent::AccruedInterestReverted {
+                    accrued_ledger_tx_id,
+                    ..
+                } => reverted_ledger_tx_ids.push(*accrued_ledger_tx_id),
                 InterestAccrualCycleEvent::InterestAccrualsPosted { .. } => (),
+                InterestAccrualCycleEvent::PostedInterestAccrualsReverted {
+                    posted_ledger_tx_id,
+                    ..
+                } => reverted_ledger_tx_ids.push(*posted_ledger_tx_id),
             }
         }
-        builder.events(events).build()
+        builder
+            .reverted_ledger_tx_ids(reverted_ledger_tx_ids)
+            .events(events)
+            .build()
     }
 }
 
