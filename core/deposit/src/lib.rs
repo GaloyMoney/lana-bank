@@ -413,6 +413,8 @@ where
             .await?;
 
         let mut deposit = self.deposits.find_by_id(id).await?;
+        self.check_account_active(deposit.deposit_account_id)
+            .await?;
 
         if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert(audit_info) {
             let mut op = self.deposits.begin_op().await?;
