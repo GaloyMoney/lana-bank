@@ -468,6 +468,22 @@ mod test {
         "2024-01-15T12:00:00Z".parse::<DateTime<Utc>>().unwrap()
     }
 
+    fn end_of_month(start_date: DateTime<Utc>) -> DateTime<Utc> {
+        let current_year = start_date.year();
+        let current_month = start_date.month();
+
+        let (year, month) = if current_month == 12 {
+            (current_year + 1, 1)
+        } else {
+            (current_year, current_month + 1)
+        };
+
+        Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
+            .single()
+            .expect("should return a valid date time")
+            - chrono::Duration::seconds(1)
+    }
+
     fn default_period() -> InterestPeriod {
         InterestInterval::EndOfDay.period_from(default_started_at())
     }
@@ -737,6 +753,38 @@ mod test {
     }
 
     #[test]
+    fn total_accrued() {
+        let mut events = initial_events();
+
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+        events.push(InterestAccrualCycleEvent::InterestAccrued {
+            ledger_tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            accrued_at: first_accrual_at,
+            effective: first_accrual_at.date_naive(),
+            audit_info: dummy_audit_info(),
+        });
+
+        let second_accrual_period = first_accrual_cycle_period.next();
+        let second_accrual_at = second_accrual_period.end;
+        events.push(InterestAccrualCycleEvent::InterestAccrued {
+            ledger_tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            accrued_at: second_accrual_at,
+            effective: second_accrual_at.date_naive(),
+            audit_info: dummy_audit_info(),
+        });
+
+        let accrual = accrual_from(events);
+        assert_eq!(accrual.total_accrued(), UsdCents::from(2));
+    }
+
+    #[test]
     fn zero_amount_accrual() {
         let mut accrual = accrual_from(initial_events());
         let InterestAccrualData {
@@ -754,29 +802,13 @@ mod test {
         assert!(accrual.accrual_cycle_data().is_none());
     }
 
-    fn end_of_month(start_date: DateTime<Utc>) -> DateTime<Utc> {
-        let current_year = start_date.year();
-        let current_month = start_date.month();
-
-        let (year, month) = if current_month == 12 {
-            (current_year + 1, 1)
-        } else {
-            (current_year, current_month + 1)
-        };
-
-        Utc.with_ymd_and_hms(year, month, 1, 0, 0, 0)
-            .single()
-            .expect("should return a valid date time")
-            - chrono::Duration::seconds(1)
-    }
-
     #[test]
     fn accrual_is_zero_for_zero_outstanding() {
         let mut accrual = accrual_from(initial_events());
 
         let start = default_started_at();
-        let start_day = start.day();
         let end = end_of_month(start);
+        let start_day = start.day();
         let end_day = end.day();
         let mut expected_end_of_day = Utc
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
@@ -805,6 +837,47 @@ mod test {
     }
 
     #[test]
+    fn record_accrual_returns_correct_period() {
+        let mut accrual = accrual_from(initial_events());
+
+        let start = default_started_at();
+        let end = end_of_month(start);
+        let start_day = start.day();
+        let end_day = end.day();
+
+        let mut expected_end_of_day = Utc
+            .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap();
+        for _ in start_day..(end_day + 1) {
+            let InterestAccrualData { period, .. } =
+                accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+            assert_eq!(period.end, expected_end_of_day);
+
+            expected_end_of_day += chrono::Duration::days(1);
+        }
+    }
+
+    #[test]
+    fn accrual_cycle_data_exists_at_end_of_cycle() {
+        let mut accrual = accrual_from(initial_events());
+
+        let start = default_started_at();
+        let end = end_of_month(start);
+        let start_day = start.day();
+        let end_day = end.day();
+
+        let mut accrual_cycle_data: Option<InterestAccrualCycleData> = None;
+        for _ in start_day..(end_day + 1) {
+            assert!(accrual_cycle_data.is_none());
+
+            accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+
+            accrual_cycle_data = accrual.accrual_cycle_data();
+        }
+        assert!(accrual_cycle_data.is_some());
+    }
+
+    #[test]
     fn accrual_is_sum_of_all_interest() {
         let disbursed_outstanding_amount = UsdCents::from(1_000_000_00);
         let expected_daily_interest = default_terms()
@@ -814,32 +887,18 @@ mod test {
         let mut accrual = accrual_from(initial_events());
 
         let start = default_started_at();
-        let start_day = start.day();
         let end = end_of_month(start);
+        let start_day = start.day();
         let end_day = end.day();
-        let mut expected_end_of_day = Utc
-            .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
-            .unwrap();
-        let mut accrual_cycle_data: Option<InterestAccrualCycleData> = None;
+
         for _ in start_day..(end_day + 1) {
-            assert!(accrual_cycle_data.is_none());
-
-            let InterestAccrualData {
-                interest, period, ..
-            } = accrual.record_accrual(disbursed_outstanding_amount, dummy_audit_info());
+            let InterestAccrualData { interest, .. } =
+                accrual.record_accrual(disbursed_outstanding_amount, dummy_audit_info());
             assert_eq!(interest, expected_daily_interest);
-            assert_eq!(period.end, expected_end_of_day);
-
-            accrual_cycle_data = accrual.accrual_cycle_data();
-            expected_end_of_day += chrono::Duration::days(1);
         }
 
         let expected_accrual_sum = expected_daily_interest * (end_day + 1 - start_day).into();
-        match accrual_cycle_data {
-            Some(InterestAccrualCycleData { interest, .. }) => {
-                assert_eq!(interest, expected_accrual_sum);
-            }
-            _ => panic!("Expected accrual to be returned"),
-        }
+        let InterestAccrualCycleData { interest, .. } = accrual.accrual_cycle_data().unwrap();
+        assert_eq!(interest, expected_accrual_sum);
     }
 }
