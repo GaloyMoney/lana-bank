@@ -7,8 +7,8 @@ use chacha20poly1305::{
 };
 use serde::{Deserialize, Serialize};
 
-pub use bitgo::BitgoConfig;
-pub use komainu::KomainuConfig;
+pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
+pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
 
 use super::error::CustodianError;
 
@@ -37,17 +37,14 @@ pub struct DeprecatedEncryptionKey {
     pub key: String,
 }
 
-#[cfg(not(feature = "mock-custodian"))]
-#[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display))]
-#[strum_discriminants(strum(serialize_all = "kebab-case"))]
-#[serde(tag = "type", rename_all = "snake_case")]
-pub enum CustodianConfig {
-    Komainu(KomainuConfig),
-    Bitgo(BitgoConfig),
+#[derive(Debug, Clone, Serialize, Deserialize, Default)]
+pub struct CustodyProviderConfig {
+    #[serde(default)]
+    pub komainu_directory: KomainuDirectoryConfig,
+    #[serde(default)]
+    pub bitgo_directory: BitgoDirectoryConfig,
 }
 
-#[cfg(feature = "mock-custodian")]
 #[derive(Clone, Debug, PartialEq, Eq, Serialize, Deserialize, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
@@ -55,6 +52,8 @@ pub enum CustodianConfig {
 pub enum CustodianConfig {
     Komainu(KomainuConfig),
     Bitgo(BitgoConfig),
+
+    #[cfg(feature = "mock-custodian")]
     Mock,
 }
 

@@ -58,7 +58,7 @@ pub struct BitgoConfig {
     passphrase: String,
     testing_instance: bool,
     enterprise_id: String,
-    express_endpoint: String,
+    webhook_url: String,
     #[graphql(secret)]
     webhook_secret: String,
 }
@@ -82,7 +82,7 @@ impl From<BitgoConfig> for DomainBitgoConfig {
             passphrase: config.passphrase,
             testing_instance: config.testing_instance,
             enterprise_id: config.enterprise_id,
-            express_endpoint: config.express_endpoint,
+            webhook_url: config.webhook_url,
             webhook_secret: config.webhook_secret,
         }
     }

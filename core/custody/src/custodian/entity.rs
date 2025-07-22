@@ -88,35 +88,23 @@ impl Custodian {
         Ok(())
     }
 
-    #[cfg(not(feature = "mock-custodian"))]
     #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id), err)]
     pub async fn custodian_client(
         self,
         key: EncryptionKey,
+        provider_config: &CustodyProviderConfig,
     ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
         match self.custodian_config(key) {
-            CustodianConfig::Komainu(config) => {
-                Ok(Box::new(komainu::KomainuClient::new(config.into())))
-            }
-            CustodianConfig::Bitgo(config) => Ok(Box::new(
-                bitgo::BitgoClient::new(config.into()).map_err(CustodianClientError::client)?,
-            )),
-        }
-    }
+            CustodianConfig::Komainu(config) => Ok(Box::new(komainu::KomainuClient::new(
+                config.into(),
+                provider_config.komainu_directory.clone(),
+            ))),
+            CustodianConfig::Bitgo(config) => Ok(Box::new(bitgo::BitgoClient::new(
+                config.into(),
+                provider_config.bitgo_directory.clone(),
+            ))),
 
-    #[cfg(feature = "mock-custodian")]
-    #[instrument(name = "custody.custodian_client", skip(self, key), fields(custodian_id = %self.id), err)]
-    pub async fn custodian_client(
-        self,
-        key: EncryptionKey,
-    ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
-        match self.custodian_config(key) {
-            CustodianConfig::Komainu(config) => {
-                Ok(Box::new(komainu::KomainuClient::new(config.into())))
-            }
-            CustodianConfig::Bitgo(config) => Ok(Box::new(
-                bitgo::BitgoClient::new(config.into()).map_err(CustodianClientError::client)?,
-            )),
+            #[cfg(feature = "mock-custodian")]
             CustodianConfig::Mock => Ok(Box::new(super::client::mock::CustodianMock)),
         }
     }

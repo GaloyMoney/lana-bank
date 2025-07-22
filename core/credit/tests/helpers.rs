@@ -13,6 +13,7 @@ pub fn custody_config() -> CustodyConfig {
             key: [1u8; 32].into(),
         },
         deprecated_encryption_key: None,
+        custody_providers: Default::default(),
     }
 }
 

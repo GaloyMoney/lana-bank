@@ -1012,10 +1012,10 @@
         "apiSecret": "API Secret",
         "secretKey": "Secret Key",
         "webhookSecret": "Webhook Secret",
+        "webhookUrl": "Webhook URL",
         "longLivedToken": "Long Lived Token",
         "passphrase": "Passphrase",
         "enterpriseId": "Enterprise ID",
-        "expressEndpoint": "Express Endpoint",
         "testingInstance": "Use Testing Environment"
       },
       "placeholders": {
@@ -1025,10 +1025,10 @@
         "apiSecret": "Enter your API secret",
         "secretKey": "Enter your secret key",
         "webhookSecret": "Enter your webhook secret",
+        "webhookUrl": "Enter webhook URL",
         "longLivedToken": "Enter your long lived token",
         "passphrase": "Enter your wallet passphrase",
-        "enterpriseId": "Enter your enterprise ID",
-        "expressEndpoint": "Enter your express endpoint URL"
+        "enterpriseId": "Enter your enterprise ID"
       },
       "buttons": {
         "create": "Add Custodian"

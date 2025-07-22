@@ -24,7 +24,7 @@ use serde::{de::DeserializeOwned, Serialize};
 use sha2::{Digest as _, Sha256};
 use tokio::sync::Mutex;
 
-pub use config::{KomainuConfig, KomainuSecretKey};
+pub use config::{KomainuConfig, KomainuDirectoryConfig, KomainuSecretKey};
 pub use error::KomainuError;
 pub use wire::{EntityType, EventType, Notification, Request, Transaction, Wallet};
 use wire::{Fallible, GetToken, GetTokenResponse, Many};
@@ -34,13 +34,13 @@ pub struct KomainuClient {
     http_client: Client,
     access_token: Arc<Mutex<Option<AccessToken>>>,
     signing_key: SigningKey,
-    host: Url,
+    endpoint: Url,
     get_token_request: GetToken,
     webhook_secret: Vec<u8>,
 }
 
 impl KomainuClient {
-    pub fn new(config: KomainuConfig) -> Self {
+    pub fn new(config: KomainuConfig, directory_config: KomainuDirectoryConfig) -> Self {
         let signing_key = match &config.secret_key {
             KomainuSecretKey::Encrypted { dem, passphrase } => {
                 SecretKey::from_pkcs8_encrypted_pem(dem, passphrase)
@@ -55,12 +55,18 @@ impl KomainuClient {
             api_secret: config.api_secret.clone(),
         };
 
+        let endpoint = if config.komainu_test {
+            directory_config.testing_url
+        } else {
+            directory_config.production_url
+        };
+
         Self {
             http_client: Client::new(),
             access_token: Default::default(),
             signing_key,
             get_token_request,
-            host: config.url().clone(),
+            endpoint,
             webhook_secret: config.webhook_secret,
         }
     }
@@ -254,7 +260,7 @@ impl KomainuClient {
     }
 
     fn url(&self, path: &str) -> Url {
-        self.host.join(path).expect("valid path")
+        self.endpoint.join(path).expect("valid path")
     }
 }
 

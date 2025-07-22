@@ -31,7 +31,7 @@ pub trait CustodianClient: Send {
 impl CustodianClient for bitgo::BitgoClient {
     async fn initialize_wallet(&self, label: &str) -> Result<WalletResponse, CustodianClientError> {
         let (wallet, full_response) = self
-            .generate_wallet(label)
+            .add_wallet(label)
             .await
             .map_err(CustodianClientError::client)?;
 
@@ -56,7 +56,7 @@ impl CustodianClient for bitgo::BitgoClient {
         let custodian_notification = match notification {
             Notification::Transfer(transfer) if transfer.state == TransferState::Confirmed => {
                 let transfer = self
-                    .get_transfer(&transfer.wallet, &transfer.transfer)
+                    .get_transfer(&transfer.transfer, &transfer.wallet)
                     .await
                     .map_err(CustodianClientError::client)?;
 

@@ -220,7 +220,7 @@ input BitgoConfig {
 	passphrase: String!
 	testingInstance: Boolean!
 	enterpriseId: String!
-	expressEndpoint: String!
+	webhookUrl: String!
 	webhookSecret: String!
 }
 

@@ -1015,7 +1015,6 @@
         "longLivedToken": "Token de larga duración",
         "passphrase": "Frase de contraseña",
         "enterpriseId": "ID de empresa",
-        "expressEndpoint": "Punto de conexión Express",
         "testingInstance": "Usar Entorno de Pruebas"
       },
       "placeholders": {
@@ -1027,8 +1026,7 @@
         "webhookSecret": "Introduce tu secreto del webhook",
         "longLivedToken": "Introduce tu token de larga duración",
         "passphrase": "Introduce la frase de contraseña de tu cartera",
-        "enterpriseId": "Introduce tu ID de empresa",
-        "expressEndpoint": "Introduce la URL de tu punto de conexión Express"
+        "enterpriseId": "Introduce tu ID de empresa"
       },
       "buttons": {
         "create": "Agregar Custodio"

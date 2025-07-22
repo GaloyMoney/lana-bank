@@ -299,12 +299,12 @@ export const mockBitgoConfig = (overrides?: Partial<BitgoConfig>, _relationships
     relationshipsToOmit.add('BitgoConfig');
     return {
         enterpriseId: overrides && overrides.hasOwnProperty('enterpriseId') ? overrides.enterpriseId! : faker.lorem.word(),
-        expressEndpoint: overrides && overrides.hasOwnProperty('expressEndpoint') ? overrides.expressEndpoint! : faker.lorem.word(),
         longLivedToken: overrides && overrides.hasOwnProperty('longLivedToken') ? overrides.longLivedToken! : faker.lorem.word(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         passphrase: overrides && overrides.hasOwnProperty('passphrase') ? overrides.passphrase! : faker.lorem.word(),
         testingInstance: overrides && overrides.hasOwnProperty('testingInstance') ? overrides.testingInstance! : faker.datatype.boolean(),
         webhookSecret: overrides && overrides.hasOwnProperty('webhookSecret') ? overrides.webhookSecret! : faker.lorem.word(),
+        webhookUrl: overrides && overrides.hasOwnProperty('webhookUrl') ? overrides.webhookUrl! : faker.lorem.word(),
     };
 };
 

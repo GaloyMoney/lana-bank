@@ -26,7 +26,7 @@ pub use custodian::*;
 pub use wallet::*;
 use webhook_notification_repo::*;
 
-pub use config::*;
+pub use config::CustodyConfig;
 use error::CoreCustodyError;
 pub use primitives::*;
 
@@ -332,7 +332,7 @@ where
 
         if let Ok(custodian) = custodian {
             if let Some(notification) = custodian
-                .custodian_client(self.config.encryption.key)
+                .custodian_client(self.config.encryption.key, &self.config.custody_providers)
                 .await?
                 .process_webhook(&headers, payload)
                 .await?
@@ -405,7 +405,7 @@ where
             .await?;
 
         let client = custodian
-            .custodian_client(self.config.encryption.key)
+            .custodian_client(self.config.encryption.key, &self.config.custody_providers)
             .await?;
 
         let external_wallet = client.initialize_wallet(label).await?;

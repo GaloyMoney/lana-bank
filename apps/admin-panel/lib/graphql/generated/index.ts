@@ -231,12 +231,12 @@ export type BalanceSheetModuleConfigurePayload = {
 
 export type BitgoConfig = {
   enterpriseId: Scalars['String']['input'];
-  expressEndpoint: Scalars['String']['input'];
   longLivedToken: Scalars['String']['input'];
   name: Scalars['String']['input'];
   passphrase: Scalars['String']['input'];
   testingInstance: Scalars['Boolean']['input'];
   webhookSecret: Scalars['String']['input'];
+  webhookUrl: Scalars['String']['input'];
 };
 
 export type BtcAmount = {

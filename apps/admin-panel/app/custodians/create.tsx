@@ -76,8 +76,8 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
     passphrase: "",
     testingInstance: false,
     enterpriseId: "",
-    expressEndpoint: "",
     webhookSecret: "",
+    webhookUrl: "",
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -97,8 +97,8 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
       passphrase: "",
       testingInstance: false,
       enterpriseId: "",
-      expressEndpoint: "",
       webhookSecret: "",
+      webhookUrl: "",
     })
     setError(null)
   }
@@ -357,18 +357,18 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                 />
               </div>
               <div>
-                <Label htmlFor="expressEndpoint" required>
-                  {t("fields.expressEndpoint")}
+                <Label htmlFor="webhookUrl" required>
+                  {t("fields.webhookUrl")}
                 </Label>
                 <Input
-                  id="expressEndpoint"
-                  name="expressEndpoint"
-                  value={bitgoConfig.expressEndpoint}
+                  id="webhookUrl"
+                  name="webhookUrl"
+                  value={bitgoConfig.webhookUrl}
                   onChange={handleBitgoInputChange}
-                  placeholder={t("placeholders.expressEndpoint")}
+                  placeholder={t("placeholders.webhookUrl")}
                   required
                   disabled={loading}
-                  data-testid="custodian-express-endpoint-input"
+                  data-testid="custodian-enterprise-id-input"
                 />
               </div>
               <div>
