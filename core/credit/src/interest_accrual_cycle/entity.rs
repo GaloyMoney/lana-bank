@@ -193,7 +193,7 @@ impl InterestAccrualCycle {
                     ledger_tx_id,
                     amount,
                     ..
-                } if !self.reverted_ledger_tx_ids.contains(ledger_tx_id) => Some(*amount),
+                } if !self.is_reverted_event(ledger_tx_id) => Some(*amount),
                 _ => None,
             })
             .fold(UsdCents::ZERO, |acc, amount| acc + amount)
@@ -209,7 +209,7 @@ impl InterestAccrualCycle {
                     ledger_tx_id,
                     accrued_at,
                     ..
-                } if !self.reverted_ledger_tx_ids.contains(ledger_tx_id) => Some(*accrued_at),
+                } if !self.is_reverted_event(ledger_tx_id) => Some(*accrued_at),
                 _ => None,
             })
             .collect::<Vec<_>>();
@@ -227,6 +227,10 @@ impl InterestAccrualCycle {
         untruncated_last_period.truncate(self.accrual_cycle_ends_at())
     }
 
+    fn is_reverted_event(&self, ledger_tx_id: &LedgerTxId) -> bool {
+        self.reverted_ledger_tx_ids.contains(ledger_tx_id)
+    }
+
     pub fn count_accrued(&self) -> usize {
         self.events
             .iter_all()
@@ -234,7 +238,7 @@ impl InterestAccrualCycle {
                 matches!(
                     event,
                     InterestAccrualCycleEvent::InterestAccrued { ledger_tx_id, .. }
-                        if !self.reverted_ledger_tx_ids.contains(ledger_tx_id))
+                        if !self.is_reverted_event(ledger_tx_id))
             })
             .count()
     }
@@ -245,7 +249,7 @@ impl InterestAccrualCycle {
                 ledger_tx_id,
                 accrued_at,
                 ..
-            } if !self.reverted_ledger_tx_ids.contains(ledger_tx_id) => Some(*accrued_at),
+            } if !self.is_reverted_event(ledger_tx_id) => Some(*accrued_at),
             _ => None,
         });
 
