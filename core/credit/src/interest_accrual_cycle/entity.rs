@@ -226,7 +226,12 @@ impl InterestAccrualCycle {
     pub fn count_accrued(&self) -> usize {
         self.events
             .iter_all()
-            .filter(|event| matches!(event, InterestAccrualCycleEvent::InterestAccrued { .. }))
+            .filter(|event| {
+                matches!(
+                    event,
+                    InterestAccrualCycleEvent::InterestAccrued { ledger_tx_id, .. }
+                        if !self.reverted_ledger_tx_ids.contains(ledger_tx_id))
+            })
             .count()
     }
 
@@ -589,6 +594,88 @@ mod test {
             accrual.last_accrual_period().unwrap().start,
             first_accrual_cycle_period.start
         );
+    }
+
+    #[test]
+    fn count_accrued_period_at_start() {
+        let accrual = accrual_from(initial_events());
+        assert_eq!(accrual.count_accrued(), 0);
+    }
+
+    #[test]
+    fn count_multiple_accrued() {
+        let mut events = initial_events();
+
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+        events.push(InterestAccrualCycleEvent::InterestAccrued {
+            ledger_tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            accrued_at: first_accrual_at,
+            effective: first_accrual_at.date_naive(),
+            audit_info: dummy_audit_info(),
+        });
+        let accrual = accrual_from(events.clone());
+        assert_eq!(accrual.count_accrued(), 1);
+
+        let second_accrual_period = first_accrual_cycle_period.next();
+        let second_accrual_at = second_accrual_period.end;
+        events.push(InterestAccrualCycleEvent::InterestAccrued {
+            ledger_tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            accrued_at: second_accrual_at,
+            effective: second_accrual_at.date_naive(),
+            audit_info: dummy_audit_info(),
+        });
+        let accrual = accrual_from(events);
+        assert_eq!(accrual.count_accrued(), 2);
+    }
+
+    #[test]
+    fn count_multiple_accrued_with_reverted() {
+        let mut events = initial_events();
+
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+        events.push(InterestAccrualCycleEvent::InterestAccrued {
+            ledger_tx_id: LedgerTxId::new(),
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            accrued_at: first_accrual_at,
+            effective: first_accrual_at.date_naive(),
+            audit_info: dummy_audit_info(),
+        });
+
+        let second_accrual_tx_id = LedgerTxId::new();
+        let second_accrual_period = first_accrual_cycle_period.next();
+        let second_accrual_at = second_accrual_period.end;
+        events.push(InterestAccrualCycleEvent::InterestAccrued {
+            ledger_tx_id: second_accrual_tx_id,
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            accrued_at: second_accrual_at,
+            effective: second_accrual_at.date_naive(),
+            audit_info: dummy_audit_info(),
+        });
+        let accrual = accrual_from(events.clone());
+        assert_eq!(accrual.count_accrued(), 2);
+
+        events.push(InterestAccrualCycleEvent::AccruedInterestReverted {
+            ledger_tx_id: LedgerTxId::new(),
+            accrued_ledger_tx_id: second_accrual_tx_id,
+            tx_ref: "".to_string(),
+            amount: UsdCents::ONE,
+            effective: first_accrual_at.date_naive(),
+            audit_info: dummy_audit_info(),
+        });
+        let accrual = accrual_from(events);
+        assert_eq!(accrual.count_accrued(), 1);
     }
 
     #[test]
