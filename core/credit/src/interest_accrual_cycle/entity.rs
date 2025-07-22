@@ -130,6 +130,22 @@ pub(crate) struct InterestAccrualData {
     pub(crate) tx_id: LedgerTxId,
 }
 
+#[derive(Debug, Clone)]
+struct InterestAccruedEventData {
+    ledger_tx_id: LedgerTxId,
+    accrual_idx: usize,
+    amount: UsdCents,
+    effective: chrono::NaiveDate,
+}
+
+#[derive(Debug, Clone)]
+pub(crate) struct RevertedInterestAccrualData {
+    pub(crate) interest: UsdCents,
+    pub(crate) tx_ref: String,
+    pub(crate) tx_id: LedgerTxId,
+    pub(crate) effective: chrono::NaiveDate,
+}
+
 impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
     fn try_from_events(
         events: EntityEvents<InterestAccrualCycleEvent>,
@@ -300,6 +316,78 @@ impl InterestAccrualCycle {
             });
 
         interest_accrual
+    }
+
+    fn last_unreverted_accrual(&self) -> Option<InterestAccruedEventData> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            InterestAccrualCycleEvent::InterestAccrued {
+                ledger_tx_id,
+                accrual_idx,
+                amount,
+                effective,
+                ..
+            } if !self.is_reverted_event(ledger_tx_id) => Some(InterestAccruedEventData {
+                ledger_tx_id: *ledger_tx_id,
+                accrual_idx: *accrual_idx,
+                amount: *amount,
+                effective: *effective,
+            }),
+            _ => None,
+        })
+    }
+
+    pub(crate) fn revert_accrual(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Idempotent<RevertedInterestAccrualData> {
+        let InterestAccruedEventData {
+            ledger_tx_id: accrued_ledger_tx_id,
+            accrual_idx,
+            amount,
+            effective,
+        } = match self.last_unreverted_accrual() {
+            Some(a) => a,
+            None => return Idempotent::Ignored,
+        };
+
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            InterestAccrualCycleEvent::AccruedInterestReverted {
+                accrued_ledger_tx_id: found_accrued_ledger_tx_id,
+                ..
+            } if accrued_ledger_tx_id == *found_accrued_ledger_tx_id
+        );
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            InterestAccrualCycleEvent::InterestAccrualsPosted {
+                ledger_tx_id,
+                ..
+            } if !self.is_reverted_event(ledger_tx_id),
+            => InterestAccrualCycleEvent::InterestAccrualsPosted {..}
+        );
+
+        let reverted_interest_accrual = RevertedInterestAccrualData {
+            tx_id: LedgerTxId::new(),
+            tx_ref: format!(
+                "{}-reverted-interest-accrual-{}-{}",
+                self.id, accrual_idx, accrued_ledger_tx_id
+            ),
+            interest: amount,
+            effective,
+        };
+
+        self.events
+            .push(InterestAccrualCycleEvent::AccruedInterestReverted {
+                ledger_tx_id: reverted_interest_accrual.tx_id,
+                accrued_ledger_tx_id,
+                tx_ref: reverted_interest_accrual.tx_ref.to_string(),
+                amount: reverted_interest_accrual.interest,
+                effective: reverted_interest_accrual.effective,
+                audit_info,
+            });
+        self.reverted_ledger_tx_ids.push(accrued_ledger_tx_id);
+
+        Idempotent::Executed(reverted_interest_accrual)
     }
 
     pub(crate) fn accrual_cycle_data(&self) -> Option<InterestAccrualCycleData> {
@@ -978,6 +1066,175 @@ mod test {
 
             expected_end_of_day += chrono::Duration::days(1);
         }
+    }
+
+    #[test]
+    fn record_accrual_returns_correct_period_after_revert() {
+        let mut accrual = accrual_from(initial_events());
+
+        let start = default_started_at();
+        let expected_end_of_day_1 = Utc
+            .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
+            .unwrap();
+        let InterestAccrualData { period, .. } =
+            accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+        assert_eq!(period.end, expected_end_of_day_1);
+
+        let expected_end_of_day_2 = expected_end_of_day_1 + chrono::Duration::days(1);
+        let InterestAccrualData { period, .. } =
+            accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+        assert_eq!(period.end, expected_end_of_day_2);
+
+        let _ = accrual.revert_accrual(dummy_audit_info());
+        let _ = accrual.revert_accrual(dummy_audit_info());
+        let InterestAccrualData { period, .. } =
+            accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+        assert_eq!(period.end, expected_end_of_day_1);
+    }
+
+    #[test]
+    fn can_revert_accrual() {
+        let mut events = initial_events();
+
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+
+        let ledger_tx_id = LedgerTxId::new();
+        let amount = UsdCents::ONE;
+        let effective = first_accrual_at.date_naive();
+        events.push(InterestAccrualCycleEvent::InterestAccrued {
+            ledger_tx_id,
+            accrual_idx: 0,
+            tx_ref: "".to_string(),
+            amount,
+            accrued_at: first_accrual_at,
+            effective,
+            audit_info: dummy_audit_info(),
+        });
+        let mut accrual = accrual_from(events);
+
+        assert!(accrual.revert_accrual(dummy_audit_info()).did_execute());
+
+        let (tx_id, interest, reverted_effective) = match accrual.events.iter_all().last() {
+            Some(InterestAccrualCycleEvent::AccruedInterestReverted {
+                accrued_ledger_tx_id,
+                amount,
+                effective,
+                ..
+            }) => (*accrued_ledger_tx_id, *amount, *effective),
+            _ => panic!("Expected last event to be AccruedInterestReverted"),
+        };
+        assert_eq!(ledger_tx_id, tx_id);
+        assert_eq!(amount, interest);
+        assert_eq!(effective, reverted_effective);
+    }
+
+    #[test]
+    fn revert_accrual_ignored_if_last_accrual_reverted() {
+        let mut events = initial_events();
+
+        let accrued_ledger_tx_id = LedgerTxId::new();
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+        events.extend([
+            InterestAccrualCycleEvent::InterestAccrued {
+                ledger_tx_id: accrued_ledger_tx_id,
+                accrual_idx: 0,
+                tx_ref: "".to_string(),
+                amount: UsdCents::ONE,
+                accrued_at: first_accrual_at,
+                effective: first_accrual_at.date_naive(),
+                audit_info: dummy_audit_info(),
+            },
+            InterestAccrualCycleEvent::AccruedInterestReverted {
+                ledger_tx_id: LedgerTxId::new(),
+                accrued_ledger_tx_id,
+                tx_ref: "".to_string(),
+                amount: UsdCents::ONE,
+                effective: first_accrual_at.date_naive(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut accrual = accrual_from(events);
+
+        assert!(accrual.revert_accrual(dummy_audit_info()).was_ignored());
+    }
+
+    #[test]
+    fn can_revert_accrual_if_last_posted_event_not_reverted() {
+        let mut events = initial_events();
+
+        let posted_ledger_tx_id = LedgerTxId::new();
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+        events.extend([
+            InterestAccrualCycleEvent::InterestAccrued {
+                ledger_tx_id: LedgerTxId::new(),
+                accrual_idx: 0,
+                tx_ref: "".to_string(),
+                amount: UsdCents::ONE,
+                accrued_at: first_accrual_at,
+                effective: first_accrual_at.date_naive(),
+                audit_info: dummy_audit_info(),
+            },
+            InterestAccrualCycleEvent::InterestAccrualsPosted {
+                ledger_tx_id: posted_ledger_tx_id,
+                tx_ref: "".to_string(),
+                obligation_id: Some(ObligationId::new()),
+                total: UsdCents::ONE,
+                effective: Utc::now().date_naive(),
+                audit_info: dummy_audit_info(),
+            },
+            InterestAccrualCycleEvent::PostedInterestAccrualsReverted {
+                ledger_tx_id: LedgerTxId::new(),
+                posted_ledger_tx_id,
+                tx_ref: "".to_string(),
+                total: UsdCents::ONE,
+                effective: Utc::now().date_naive(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut accrual = accrual_from(events);
+
+        assert!(accrual.revert_accrual(dummy_audit_info()).did_execute());
+    }
+
+    #[test]
+    fn revert_accrual_ignored_if_last_posted_event_is_reverted() {
+        let mut events = initial_events();
+
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+        events.extend([
+            InterestAccrualCycleEvent::InterestAccrued {
+                ledger_tx_id: LedgerTxId::new(),
+                accrual_idx: 0,
+                tx_ref: "".to_string(),
+                amount: UsdCents::ONE,
+                accrued_at: first_accrual_at,
+                effective: first_accrual_at.date_naive(),
+                audit_info: dummy_audit_info(),
+            },
+            InterestAccrualCycleEvent::InterestAccrualsPosted {
+                ledger_tx_id: LedgerTxId::new(),
+                tx_ref: "".to_string(),
+                obligation_id: Some(ObligationId::new()),
+                total: UsdCents::ONE,
+                effective: Utc::now().date_naive(),
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut accrual = accrual_from(events);
+
+        assert!(accrual.revert_accrual(dummy_audit_info()).was_ignored());
     }
 
     #[test]
