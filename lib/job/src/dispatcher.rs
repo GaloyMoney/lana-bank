@@ -122,7 +122,6 @@ impl JobDispatcher {
                 self.reschedule_job(op, job.id, t).await?;
             }
         }
-        self.stop_keep_alive().await;
         Ok(())
     }
 
@@ -188,6 +187,7 @@ impl JobDispatcher {
 
     #[instrument(name = "job.fail_job", skip(self))]
     async fn fail_job(&mut self, id: JobId, error: JobError, attempt: u32) -> Result<(), JobError> {
+        self.stop_keep_alive().await;
         let mut op = self.repo.begin_op().await?;
         let mut job = self.repo.find_by_id(id).await?;
         if self.retry_settings.n_attempts.unwrap_or(u32::MAX) > attempt {
@@ -226,8 +226,13 @@ impl JobDispatcher {
         Ok(())
     }
 
-    async fn complete_job(&self, mut op: es_entity::DbOp<'_>, id: JobId) -> Result<(), JobError> {
+    async fn complete_job(
+        &mut self,
+        mut op: es_entity::DbOp<'_>,
+        id: JobId,
+    ) -> Result<(), JobError> {
         let mut job = self.repo.find_by_id(&id).await?;
+        self.stop_keep_alive().await;
         sqlx::query!(
             r#"
           DELETE FROM job_executions
@@ -251,6 +256,7 @@ impl JobDispatcher {
     ) -> Result<(), JobError> {
         self.rescheduled = true;
         let mut job = self.repo.find_by_id(&id).await?;
+        self.stop_keep_alive().await;
         sqlx::query!(
             r#"
           UPDATE job_executions
@@ -284,18 +290,17 @@ impl Drop for JobDispatcher {
 
 async fn keep_job_alive(pool: PgPool, id: JobId, job_lost_interval: Duration) {
     loop {
-        crate::time::sleep(job_lost_interval / 4).await;
         let now = crate::time::now();
-        if sqlx::query!(
-            "UPDATE job_executions SET alive_at = $2 WHERE id = $1",
+        if let Err(e) = sqlx::query!(
+            "UPDATE job_executions SET state = 'running', alive_at = $2 WHERE id = $1",
             id as JobId,
             now,
         )
         .execute(&pool)
         .await
-        .is_err()
         {
-            break;
-        }
+            eprintln!("Keep alive job ({id}) errored: {e}");
+        };
+        crate::time::sleep(job_lost_interval / 4).await;
     }
 }

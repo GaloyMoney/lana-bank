@@ -58,9 +58,10 @@ impl JobPoller {
         _lost_task: OwnedTaskHandle,
     ) {
         let mut failures = 0;
+        let mut woken_up = false;
         loop {
             println!("job.main_loop");
-            let timeout = match self.poll_and_dispatch().await {
+            let timeout = match self.poll_and_dispatch(woken_up).await {
                 Ok(duration) => {
                     failures = 0;
                     duration
@@ -72,7 +73,9 @@ impl JobPoller {
                 }
             };
             println!("job.main_loop.timeout: {:?}", timeout);
-            let _ = crate::time::timeout(timeout, self.tracker.notified()).await;
+            woken_up = crate::time::timeout(timeout, self.tracker.notified())
+                .await
+                .is_ok();
         }
     }
 
@@ -83,7 +86,7 @@ impl JobPoller {
         ret,
         err
     )]
-    async fn poll_and_dispatch(self: &Arc<Self>) -> Result<Duration, JobError> {
+    async fn poll_and_dispatch(self: &Arc<Self>, woken_up: bool) -> Result<Duration, JobError> {
         let span = Span::current();
         println!("poll_and_dispatch");
         let Some(n_jobs_to_poll) = self.tracker.next_batch_size() else {
