@@ -25,3 +25,9 @@ impl PdfGenerator {
             .map_err(|e| RenderingError::PdfGeneration(format!("PDF generation failed: {e}")))
     }
 }
+
+impl Default for PdfGenerator {
+    fn default() -> Self {
+        Self::new()
+    }
+}
