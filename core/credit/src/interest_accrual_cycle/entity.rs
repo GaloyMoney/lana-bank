@@ -60,6 +60,7 @@ pub enum InterestAccrualCycleEvent {
     },
     InterestAccrued {
         ledger_tx_id: LedgerTxId,
+        accrual_idx: usize,
         tx_ref: String,
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
@@ -278,7 +279,8 @@ impl InterestAccrualCycle {
             .annual_rate
             .interest_for_time_period(amount, days_in_interest_period);
 
-        let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
+        let accrual_idx = self.count_accrued() + 1;
+        let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, accrual_idx);
         let interest_accrual = InterestAccrualData {
             interest: interest_for_period,
             period: accrual_period,
@@ -289,6 +291,7 @@ impl InterestAccrualCycle {
         self.events
             .push(InterestAccrualCycleEvent::InterestAccrued {
                 ledger_tx_id: interest_accrual.tx_id,
+                accrual_idx,
                 tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: interest_accrual.interest,
                 accrued_at: interest_accrual.period.end,
@@ -546,6 +549,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -562,6 +566,7 @@ mod test {
         let second_accrual_at = second_accrual_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
@@ -585,6 +590,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -597,6 +603,7 @@ mod test {
         let second_accrual_at = second_accrual_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: second_accrual_tx_id,
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
@@ -640,6 +647,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -653,6 +661,7 @@ mod test {
         let second_accrual_at = second_accrual_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
@@ -673,6 +682,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -685,6 +695,7 @@ mod test {
         let second_accrual_at = second_accrual_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: second_accrual_tx_id,
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
@@ -725,6 +736,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.extend([InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -749,6 +761,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -761,6 +774,7 @@ mod test {
         let second_accrual_at = second_accrual_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: second_tx_id,
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
@@ -802,6 +816,7 @@ mod test {
 
         events.extend([InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: final_accrual_at,
@@ -823,6 +838,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -834,6 +850,7 @@ mod test {
         let second_accrual_at = second_accrual_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
@@ -855,6 +872,7 @@ mod test {
         let first_accrual_at = first_accrual_cycle_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: LedgerTxId::new(),
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
@@ -867,6 +885,7 @@ mod test {
         let second_accrual_at = second_accrual_period.end;
         events.push(InterestAccrualCycleEvent::InterestAccrued {
             ledger_tx_id: second_tx_id,
+            accrual_idx: 0,
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
