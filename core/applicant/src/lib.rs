@@ -22,11 +22,8 @@ use error::ApplicantError;
 
 pub use job_types::{SumsubExportJobConfig, SumsubExportJobData, SUMSUB_EXPORT_JOB};
 use repo::ApplicantRepo;
-pub use sumsub_auth::{ApplicantInfo, PermalinkResponse, SumsubClient};
-pub use transaction_export::{
-    usd_cents_to_dollars, SumsubTransactionDirection, TransactionData, TransactionExporter,
-    TransactionProcessor, TransactionType,
-};
+use sumsub_auth::SumsubClient;
+pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
 
 #[cfg(feature = "graphql")]
 use async_graphql::*;
@@ -167,16 +164,6 @@ impl Applicants {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
         }
-    }
-
-    /// Provides access to the Sumsub client for advanced operations
-    pub fn sumsub_client(&self) -> &SumsubClient {
-        &self.sumsub_client
-    }
-
-    /// Creates a transaction exporter for Sumsub compliance
-    pub fn transaction_exporter(&self) -> transaction_export::TransactionExporter {
-        transaction_export::TransactionExporter::new(self.sumsub_client.clone())
     }
 
     #[instrument(name = "applicant.handle_callback", skip(self, payload))]
