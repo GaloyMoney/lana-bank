@@ -215,6 +215,10 @@ impl InterestAccrualCycle {
         .truncate(self.accrual_cycle_ends_at())
     }
 
+    fn is_reverted_event(&self, ledger_tx_id: &LedgerTxId) -> bool {
+        self.reverted_ledger_tx_ids.contains(ledger_tx_id)
+    }
+
     pub fn count_accrued(&self) -> usize {
         self.events
             .iter_all()
