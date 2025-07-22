@@ -14,7 +14,7 @@
 --    Passed               (Loan 91 days or more past due)
 --    Paid off             (Loan settled or canceled)
 --    In collection        (Loan with manual status in collection)
---    Paid off             (Irrecoverable loan that has been settled with own funds)
+--    Written off             (Irrecoverable loan that has been settled with own funds)
 
 
 select
