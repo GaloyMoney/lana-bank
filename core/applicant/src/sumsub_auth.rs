@@ -1,7 +1,7 @@
 use hmac::{Hmac, Mac};
 use reqwest::{
-    Client as ReqwestClient,
     header::{HeaderMap, HeaderValue},
+    Client as ReqwestClient,
 };
 
 use serde::{Deserialize, Serialize};
@@ -9,10 +9,10 @@ use serde_json::json;
 use sha2::Sha256;
 use std::time::{SystemTime, UNIX_EPOCH};
 
-use crate::primitives::CustomerId;
+use core_customer::CustomerId;
 
-use super::SumsubConfig;
 use super::error::ApplicantError;
+use super::SumsubConfig;
 
 const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
 

@@ -1,5 +1,5 @@
-use crate::primitives::CustomerId;
 use chrono::Utc;
+use core_customer::CustomerId;
 use serde::{Deserialize, Serialize};
 
 use sqlx::PgPool;
@@ -22,10 +22,6 @@ pub struct ApplicantRepo {
 impl ApplicantRepo {
     pub fn new(pool: &PgPool) -> Self {
         Self { pool: pool.clone() }
-    }
-
-    pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'static>, ApplicantError> {
-        Ok(es_entity::DbOp::init(&self.pool).await?)
     }
 
     pub async fn persist_webhook_data(

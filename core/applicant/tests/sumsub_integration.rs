@@ -2,9 +2,8 @@
 #[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_create_real_applicant() {
-    use crate::applicant::SumsubClient;
-    use crate::applicant::sumsub_testing_utils;
-    use crate::primitives::CustomerId;
+    use core_applicant::{sumsub_testing_utils, SumsubClient};
+    use core_customer::CustomerId;
 
     // Load configuration from environment
     let config = sumsub_testing_utils::load_config_from_env()
@@ -60,9 +59,8 @@ async fn test_create_real_applicant() {
 #[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_create_permalink() {
-    use crate::applicant::SumsubClient;
-    use crate::applicant::sumsub_testing_utils;
-    use crate::primitives::CustomerId;
+    use core_applicant::{sumsub_testing_utils, SumsubClient};
+    use core_customer::CustomerId;
 
     let config = sumsub_testing_utils::load_config_from_env()
         .expect("SUMSUB_KEY and SUMSUB_SECRET must be set");

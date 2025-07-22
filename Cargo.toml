@@ -17,6 +17,7 @@ members = [
 
   "core/accounting",
   "core/access",
+  "core/applicant",
   "core/customer",
   "core/governance",
   "core/money",

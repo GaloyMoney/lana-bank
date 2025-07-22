@@ -70,6 +70,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
+    /// Provides access to the underlying repository for advanced operations
+    pub fn repo(&self) -> &CustomerRepo<E> {
+        &self.repo
+    }
     pub fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,

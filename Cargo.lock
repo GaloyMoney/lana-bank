@@ -1173,6 +1173,39 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-applicant"
+version = "0.3.754-dev"
+dependencies = [
+ "async-graphql",
+ "async-trait",
+ "audit",
+ "authz",
+ "base64 0.22.1",
+ "chrono",
+ "core-customer",
+ "core-deposit",
+ "core-money",
+ "derive_builder",
+ "es-entity",
+ "futures",
+ "hex",
+ "hmac",
+ "job",
+ "outbox",
+ "reqwest",
+ "schemars 1.0.4",
+ "serde",
+ "serde_json",
+ "sha2",
+ "sqlx",
+ "strum 0.27.2",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "core-credit"
 version = "0.3.762-dev"
 dependencies = [
@@ -3068,6 +3101,7 @@ dependencies = [
  "cloud-storage",
  "core-access",
  "core-accounting",
+ "core-applicant",
  "core-credit",
  "core-custody",
  "core-customer",

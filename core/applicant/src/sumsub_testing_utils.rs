@@ -1,4 +1,4 @@
-use crate::applicant::SumsubConfig;
+use crate::SumsubConfig;
 
 // Test configuration constants
 #[allow(dead_code)]

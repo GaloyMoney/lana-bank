@@ -1,48 +1,33 @@
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
 mod config;
 pub mod error;
 mod repo;
-pub(crate) mod sumsub_auth;
-mod tx_export;
+mod sumsub_auth;
+pub mod transaction_export;
 
 #[cfg(feature = "sumsub-testing")]
-pub(crate) mod sumsub_testing_utils;
+pub mod sumsub_testing_utils;
 
-#[cfg(test)]
-mod tests;
-
-use core_customer;
-use job::Jobs;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use std::sync::Arc;
 use tracing::instrument;
 
-use crate::{
-    customer::{CustomerId, Customers},
-    deposit::Deposits,
-    outbox::Outbox,
-    primitives::Subject,
-};
+use core_customer::CustomerId;
 
 pub use config::*;
 use error::ApplicantError;
-use sumsub_auth::SumsubClient;
 
 use repo::ApplicantRepo;
-pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
+pub use sumsub_auth::{ApplicantInfo, PermalinkResponse, SumsubClient};
+pub use transaction_export::{
+    usd_cents_to_dollars, SumsubTransactionDirection, TransactionData, TransactionExporter,
+    TransactionProcessor, TransactionType,
+};
 
-#[cfg(feature = "sumsub-testing")]
-pub use sumsub_auth::SumsubClient as PublicSumsubClient;
-
+#[cfg(feature = "graphql")]
 use async_graphql::*;
-
-/// Applicants service
-#[derive(Clone)]
-pub struct Applicants {
-    sumsub_client: SumsubClient,
-    customers: Arc<Customers>,
-    repo: ApplicantRepo,
-}
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
 #[serde(rename_all = "UPPERCASE")]
@@ -64,7 +49,8 @@ impl std::str::FromStr for ReviewAnswer {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq, strum::Display)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, strum::Display)]
+#[cfg_attr(feature = "graphql", derive(Enum))]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum SumsubVerificationLevel {
@@ -164,28 +150,31 @@ pub struct ReviewResult {
     pub review_reject_type: Option<String>,
 }
 
+/// Applicants service
+#[derive(Clone)]
+pub struct Applicants {
+    sumsub_client: SumsubClient,
+    repo: ApplicantRepo,
+}
+
 impl Applicants {
-    pub async fn init(
-        pool: &PgPool,
-        config: &SumsubConfig,
-        customers: &Customers,
-        deposits: &Deposits,
-        jobs: &Jobs,
-        outbox: &Outbox,
-    ) -> Result<Self, ApplicantError> {
+    pub fn new(pool: &PgPool, config: &SumsubConfig) -> Self {
         let sumsub_client = SumsubClient::new(config);
 
-        jobs.add_initializer_and_spawn_unique(
-            tx_export::SumsubExportInit::new(outbox, &sumsub_client, deposits),
-            tx_export::SumsubExportJobConfig,
-        )
-        .await?;
-
-        Ok(Self {
+        Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
-            customers: Arc::new(customers.clone()),
-        })
+        }
+    }
+
+    /// Provides access to the Sumsub client for advanced operations
+    pub fn sumsub_client(&self) -> &SumsubClient {
+        &self.sumsub_client
+    }
+
+    /// Creates a transaction exporter for Sumsub compliance
+    pub fn transaction_exporter(&self) -> transaction_export::TransactionExporter {
+        transaction_export::TransactionExporter::new(self.sumsub_client.clone())
     }
 
     #[instrument(name = "applicant.handle_callback", skip(self, payload))]
@@ -199,143 +188,31 @@ impl Applicants {
             .persist_webhook_data(customer_id, payload.clone())
             .await?;
 
-        let mut db = self.repo.begin_op().await?;
+        // Note: The callback processing logic will need to be handled at the application layer
+        // since it requires access to customer services that are not available in this core crate
 
-        match self.process_payload(&mut db, payload).await {
-            Ok(_) => (),
-            Err(ApplicantError::UnhandledCallbackType(_)) => (),
-            Err(e) => return Err(e),
-        }
-
-        db.commit().await?;
-
-        Ok(())
-    }
-
-    async fn process_payload(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        payload: serde_json::Value,
-    ) -> Result<(), ApplicantError> {
-        match serde_json::from_value(payload.clone())? {
-            SumsubCallbackPayload::ApplicantCreated {
-                external_user_id,
-                applicant_id,
-                sandbox_mode,
-                ..
-            } => {
-                let res = self
-                    .customers
-                    .start_kyc(db, external_user_id, applicant_id)
-                    .await;
-
-                match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
-                        return Ok(());
-                    }
-                    Err(e) => return Err(e.into()),
-                }
-            }
-            SumsubCallbackPayload::ApplicantReviewed {
-                external_user_id,
-                review_result:
-                    ReviewResult {
-                        review_answer: ReviewAnswer::Red,
-                        ..
-                    },
-                applicant_id,
-                sandbox_mode,
-                ..
-            } => {
-                let res = self
-                    .customers
-                    .decline_kyc(db, external_user_id, applicant_id)
-                    .await;
-
-                match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
-                        return Ok(());
-                    }
-                    Err(e) => return Err(e.into()),
-                }
-            }
-            SumsubCallbackPayload::ApplicantReviewed {
-                external_user_id,
-                review_result:
-                    ReviewResult {
-                        review_answer: ReviewAnswer::Green,
-                        ..
-                    },
-                applicant_id,
-                level_name,
-                sandbox_mode,
-                ..
-            } => {
-                // Try to parse the level name, will return error for unrecognized values
-                match level_name.parse::<SumsubVerificationLevel>() {
-                    Ok(_) => {} // Level is valid, continue
-                    Err(_) => {
-                        return Err(ApplicantError::UnhandledCallbackType(format!(
-                            "Sumsub level {level_name} not implemented"
-                        )));
-                    }
-                };
-
-                let res = self
-                    .customers
-                    .approve_kyc(db, external_user_id, applicant_id)
-                    .await;
-
-                match res {
-                    Ok(_) => (),
-                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
-                        return Ok(());
-                    }
-                    Err(e) => return Err(e.into()),
-                }
-            }
-            SumsubCallbackPayload::Unknown => {
-                return Err(ApplicantError::UnhandledCallbackType(format!(
-                    "callback event not processed for payload {payload}",
-                )));
-            }
-        }
         Ok(())
     }
 
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
-        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        level_name: &str,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
-        let customer = self.customers.find_by_id(sub, customer_id).await?;
-        let customer = customer.ok_or_else(|| {
-            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
-        })?;
-
-        let level: SumsubVerificationLevel = customer.customer_type.into();
-
         self.sumsub_client
-            .create_permalink(customer_id, &level.to_string())
+            .create_permalink(customer_id, level_name)
             .await
     }
 
     #[instrument(name = "applicant.get_applicant_info", skip(self))]
     pub async fn get_applicant_info(
         &self,
-        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<ApplicantInfo, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
-
-        // TODO: audit
-
-        self.customers.find_by_id_without_audit(customer_id).await?;
 
         let applicant_details = self
             .sumsub_client
@@ -351,24 +228,20 @@ impl Applicants {
     #[instrument(name = "applicant.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,
-        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
+        level_name: &str,
     ) -> Result<String, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
-
-        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
 
         tracing::info!(
             customer_id = %customer_id,
             "Creating complete test applicant with full KYC flow"
         );
 
-        let level: SumsubVerificationLevel = customer.customer_type.into();
-
         // Step 1: Create applicant via API
         let applicant_id = self
             .sumsub_client
-            .create_applicant(customer_id, &level.to_string())
+            .create_applicant(customer_id, level_name)
             .await?;
 
         tracing::info!(applicant_id = %applicant_id, "Applicant created");
@@ -508,5 +381,64 @@ impl Applicants {
         );
 
         Ok(applicant_id)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use core_customer::CustomerType;
+
+    #[test]
+    fn test_review_answer_parsing() {
+        assert_eq!(
+            "GREEN".parse::<ReviewAnswer>().unwrap(),
+            ReviewAnswer::Green
+        );
+        assert_eq!(
+            "green".parse::<ReviewAnswer>().unwrap(),
+            ReviewAnswer::Green
+        );
+        assert_eq!("RED".parse::<ReviewAnswer>().unwrap(), ReviewAnswer::Red);
+        assert_eq!("red".parse::<ReviewAnswer>().unwrap(), ReviewAnswer::Red);
+
+        assert!("INVALID".parse::<ReviewAnswer>().is_err());
+    }
+
+    #[test]
+    fn test_sumsub_verification_level_parsing() {
+        assert_eq!(
+            "basic-kyc-level"
+                .parse::<SumsubVerificationLevel>()
+                .unwrap(),
+            SumsubVerificationLevel::BasicKycLevel
+        );
+        assert_eq!(
+            "basic-kyb-level"
+                .parse::<SumsubVerificationLevel>()
+                .unwrap(),
+            SumsubVerificationLevel::BasicKybLevel
+        );
+
+        assert!("invalid-level".parse::<SumsubVerificationLevel>().is_err());
+    }
+
+    #[test]
+    fn test_customer_type_to_verification_level() {
+        assert_eq!(
+            SumsubVerificationLevel::from(CustomerType::Individual),
+            SumsubVerificationLevel::BasicKycLevel
+        );
+        assert_eq!(
+            SumsubVerificationLevel::from(CustomerType::PrivateCompany),
+            SumsubVerificationLevel::BasicKybLevel
+        );
+    }
+
+    #[test]
+    fn test_sumsub_config_default() {
+        let config = SumsubConfig::default();
+        assert!(config.sumsub_key.is_empty());
+        assert!(config.sumsub_secret.is_empty());
     }
 }
