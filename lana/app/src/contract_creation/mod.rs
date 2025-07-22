@@ -41,7 +41,7 @@ impl ContractCreation {
     ) -> Result<Self, ContractCreationError> {
         let renderer = rendering::Renderer::new();
 
-        let contract_templates = templates::ContractTemplates::init()?;
+        let contract_templates = templates::ContractTemplates::try_new()?;
 
         // Initialize the job system for contract creation
         jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
@@ -244,7 +244,7 @@ mod tests {
         let _renderer = rendering::Renderer::new();
 
         // Test embedded templates
-        let contract_templates = templates::ContractTemplates::init()?;
+        let contract_templates = templates::ContractTemplates::try_new()?;
         let data = serde_json::json!({
             "full_name": "Test User",
             "email": "test@example.com",

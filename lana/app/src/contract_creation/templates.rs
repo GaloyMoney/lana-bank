@@ -11,7 +11,7 @@ pub struct ContractTemplates {
 
 impl ContractTemplates {
     /// Create a new contract templates instance with embedded templates
-    pub fn init() -> Result<Self, ContractCreationError> {
+    pub fn try_new() -> Result<Self, ContractCreationError> {
         let mut handlebars = Handlebars::new();
         handlebars
             .register_template_string(
