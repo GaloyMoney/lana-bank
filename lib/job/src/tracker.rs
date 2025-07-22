@@ -22,8 +22,6 @@ impl JobTracker {
     pub fn next_batch_size(&self) -> Option<usize> {
         let n_running = self.running_jobs.load(Ordering::SeqCst);
         tracing::Span::current().record("n_jobs_running", n_running);
-        let min = self.min_jobs;
-        println!("Tracker.next_batch_size - n_running: {n_running}, self.min_jobs: {min}");
         if n_running < self.min_jobs {
             Some(self.max_jobs - n_running)
         } else {
@@ -45,7 +43,6 @@ impl JobTracker {
 
     pub fn job_completed(&self, rescheduled: bool) {
         let n_running_jobs = self.running_jobs.fetch_sub(1, Ordering::SeqCst);
-        println!("tracker.job_completed: previously running {n_running_jobs}");
         if rescheduled || n_running_jobs == self.min_jobs {
             self.notify.notify_one();
         }

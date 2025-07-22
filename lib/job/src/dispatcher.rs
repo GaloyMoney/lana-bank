@@ -283,15 +283,15 @@ impl JobDispatcher {
 
 impl Drop for JobDispatcher {
     fn drop(&mut self) {
-        println!("JobDispatcher.job_completed");
         self.tracker.job_completed(self.rescheduled)
     }
 }
 
 async fn keep_job_alive(pool: PgPool, id: JobId, job_lost_interval: Duration) {
+    let mut failures = 0;
     loop {
         let now = crate::time::now();
-        if let Err(e) = sqlx::query!(
+        let timeout = match sqlx::query!(
             "UPDATE job_executions SET state = 'running', alive_at = $2 WHERE id = $1",
             id as JobId,
             now,
@@ -299,8 +299,16 @@ async fn keep_job_alive(pool: PgPool, id: JobId, job_lost_interval: Duration) {
         .execute(&pool)
         .await
         {
-            eprintln!("Keep alive job ({id}) errored: {e}");
+            Ok(_) => {
+                failures = 0;
+                job_lost_interval / 4
+            }
+            Err(e) => {
+                failures += 1;
+                eprintln!("Keep alive job ({id}) errored: {e}");
+                Duration::from_millis(50 << failures)
+            }
         };
-        crate::time::sleep(job_lost_interval / 4).await;
+        crate::time::sleep(timeout).await;
     }
 }

@@ -33,5 +33,5 @@ fn default_max_jobs_per_process() -> usize {
 }
 
 fn default_min_jobs_per_process() -> usize {
-    25
+    30
 }
