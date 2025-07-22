@@ -277,6 +277,7 @@ impl JobDispatcher {
 
 impl Drop for JobDispatcher {
     fn drop(&mut self) {
+        println!("JobDispatcher.job_completed");
         self.tracker.job_completed(self.rescheduled)
     }
 }
