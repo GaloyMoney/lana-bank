@@ -924,7 +924,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let permalink = app
             .applicants()
-            .create_permalink(sub, input.customer_id)
+            .create_permalink(sub, input.customer_id.into())
             .await?;
         Ok(SumsubPermalinkCreatePayload { url: permalink.url })
     }
@@ -940,7 +940,7 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let applicant_id = app
             .applicants()
-            .create_complete_test_applicant(sub, input.customer_id)
+            .create_complete_test_applicant(sub, input.customer_id.into(), "basic-kyc-level")
             .await?;
         Ok(SumsubTestApplicantCreatePayload { applicant_id })
     }

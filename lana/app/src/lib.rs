@@ -3,7 +3,84 @@
 
 pub mod accounting_init;
 pub mod app;
-pub mod applicant;
+
+pub mod applicant {
+    pub use core_applicant::*;
+
+    use sqlx::PgPool;
+
+    use super::{customer::Customers, deposit::Deposits, job::Jobs, outbox::Outbox};
+
+    /// Application-level Applicants service that wraps the core functionality
+    #[derive(Clone)]
+    pub struct Applicants {
+        core: core_applicant::Applicants,
+    }
+
+    impl Applicants {
+        pub async fn init(
+            pool: &PgPool,
+            config: &SumsubConfig,
+            _customers: &Customers,
+            _deposits: &Deposits,
+            _jobs: &Jobs,
+            _outbox: &Outbox,
+        ) -> Result<Self, core_applicant::error::ApplicantError> {
+            // For now, just create the core service
+            // TODO: Add job initialization and other app-level setup
+            let core = core_applicant::Applicants::new(pool, config);
+
+            Ok(Self { core })
+        }
+
+        // Delegate all methods to the core implementation
+        pub async fn handle_callback(
+            &self,
+            payload: serde_json::Value,
+        ) -> Result<(), core_applicant::error::ApplicantError> {
+            self.core.handle_callback(payload).await
+        }
+
+        pub async fn create_permalink(
+            &self,
+            _sub: &crate::primitives::Subject,
+            customer_id: crate::primitives::CustomerId,
+        ) -> Result<core_applicant::PermalinkResponse, core_applicant::error::ApplicantError>
+        {
+            // Convert the application CustomerId to core CustomerId
+            let core_customer_id: core_customer::CustomerId = customer_id;
+
+            // For now, use a default level - this would need to be determined from the customer
+            // TODO: Look up customer and determine the appropriate level
+            let level_name = "basic-kyc-level"; // Default level
+
+            self.core
+                .create_permalink(core_customer_id, level_name)
+                .await
+        }
+
+        pub async fn get_applicant_info(
+            &self,
+            _sub: &crate::primitives::Subject,
+            customer_id: core_customer::CustomerId,
+        ) -> Result<core_applicant::ApplicantInfo, core_applicant::error::ApplicantError> {
+            self.core.get_applicant_info(customer_id).await
+        }
+
+        #[cfg(feature = "sumsub-testing")]
+        pub async fn create_complete_test_applicant(
+            &self,
+            _sub: &crate::primitives::Subject,
+            customer_id: core_customer::CustomerId,
+            level_name: &str,
+        ) -> Result<String, core_applicant::error::ApplicantError> {
+            self.core
+                .create_complete_test_applicant(customer_id, level_name)
+                .await
+        }
+    }
+}
+
 pub mod authorization;
 pub mod primitives;
 pub mod report;

@@ -3,6 +3,7 @@
 
 mod config;
 pub mod error;
+pub mod job_types;
 mod repo;
 mod sumsub_auth;
 pub mod transaction_export;
@@ -19,6 +20,7 @@ use core_customer::CustomerId;
 pub use config::*;
 use error::ApplicantError;
 
+pub use job_types::{SumsubExportJobConfig, SumsubExportJobData, SUMSUB_EXPORT_JOB};
 use repo::ApplicantRepo;
 pub use sumsub_auth::{ApplicantInfo, PermalinkResponse, SumsubClient};
 pub use transaction_export::{
