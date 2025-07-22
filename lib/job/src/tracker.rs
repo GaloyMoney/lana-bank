@@ -19,12 +19,11 @@ impl JobTracker {
         }
     }
 
-    pub fn trace_n_jobs_running(&self) {
-        tracing::Span::current().record("n_jobs_running", self.running_jobs.load(Ordering::SeqCst));
-    }
-
     pub fn next_batch_size(&self) -> Option<usize> {
         let n_running = self.running_jobs.load(Ordering::SeqCst);
+        tracing::Span::current().record("n_jobs_running", n_running);
+        let min = self.min_jobs;
+        println!("Tracker.next_batch_size - n_running: {n_running}, self.min_jobs: {min}");
         if n_running < self.min_jobs {
             Some(self.max_jobs - n_running)
         } else {

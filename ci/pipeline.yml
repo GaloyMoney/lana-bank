@@ -34,7 +34,7 @@ groups:
       - bats-integrations-test
       - release
       - check-code
-      #!- build-edge-image
+      - build-edge-image
       - release-docker
       - set-dev-version
       - bump-image-in-chart
@@ -44,7 +44,7 @@ groups:
       - build-static-binary
 
 jobs:
-  #! -  #@ build_edge_image()
+  -  #@ build_edge_image()
 
   - name: bats-integrations-test
     #! serial: true
@@ -581,7 +581,7 @@ resources:
       password: #@ data.values.gar_registry_password
 
   -  #@ pipeline_tasks_resource()
-  #! -  #@ edge_image_resource(publicRepo=False)
+  -  #@ edge_image_resource(publicRepo=False)
   -  #@ version_resource()
   -  #@ gh_release_resource()
   -  #@ charts_repo_bot_branch()
