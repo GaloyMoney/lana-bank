@@ -1184,18 +1184,15 @@ dependencies = [
  "core-customer",
  "core-money",
  "es-entity",
- "hex",
- "hmac",
  "job",
  "lana-events",
  "outbox",
  "rbac-types",
- "reqwest",
  "serde",
  "serde_json",
- "sha2",
  "sqlx",
  "strum 0.27.2",
+ "sumsub",
  "thiserror 2.0.12",
  "tokio",
  "tracing",
@@ -1583,6 +1580,27 @@ name = "data-encoding"
 version = "2.9.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
+
+[[package]]
+name = "deposit-sync"
+version = "0.3.762-dev"
+dependencies = [
+ "async-trait",
+ "audit",
+ "authz",
+ "core-customer",
+ "core-deposit",
+ "core-money",
+ "futures",
+ "governance",
+ "job",
+ "lana-events",
+ "outbox",
+ "serde",
+ "sumsub",
+ "thiserror 2.0.12",
+ "tracing",
+]
 
 [[package]]
 name = "der"
@@ -3107,6 +3125,7 @@ dependencies = [
  "core-price",
  "customer-sync",
  "dashboard",
+ "deposit-sync",
  "derive_builder",
  "document-storage",
  "es-entity",
@@ -5783,6 +5802,23 @@ name = "subtle"
 version = "2.6.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
+
+[[package]]
+name = "sumsub"
+version = "0.3.762-dev"
+dependencies = [
+ "chrono",
+ "hex",
+ "hmac",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "sha2",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
+]
 
 [[package]]
 name = "syn"

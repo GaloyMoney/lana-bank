@@ -12,7 +12,7 @@ default = []
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "es-entity/graphql"]
 json-schema = ["outbox/json-schema"]
-sumsub-testing = []
+sumsub-testing = ["sumsub/sumsub-testing"]
 
 [dependencies]
 outbox = { path = "../../lib/outbox" }
@@ -24,6 +24,7 @@ rbac-types = { path = "../../lana/rbac-types" }
 lana-events = { path = "../../lana/events" }
 authz = { path = "../../lib/authz" }
 audit = { path = "../../lib/audit" }
+sumsub = { path = "../../lib/sumsub" }
 
 es-entity = { workspace = true }
 
@@ -36,10 +37,6 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
-reqwest = { workspace = true }
-hex = { workspace = true }
-hmac = { workspace = true }
-sha2 = { workspace = true }
 async-trait = { workspace = true }
 
 async-graphql = { workspace = true, optional = true } 

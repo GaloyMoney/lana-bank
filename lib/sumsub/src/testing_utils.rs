@@ -1,29 +1,24 @@
 //! Sumsub testing utilities module
 //! Contains constants and helper functions for testing Sumsub integration
 
-// Test configuration constants
+// Test configuration constants (not duplicated in wire.rs)
+#[cfg(feature = "sumsub-testing")]
 pub const TEST_LEVEL_NAME: &str = "basic-kyc-level";
-pub const TEST_FIRST_NAME: &str = "John";
-pub const TEST_LAST_NAME: &str = "Mock-Doe";
-pub const TEST_DATE_OF_BIRTH: &str = "1990-01-01";
-pub const TEST_COUNTRY_CODE: &str = "DEU";
-pub const TEST_QUESTIONNAIRE_ID: &str = "v1_onboarding";
-
-// Test transaction constants
-pub const TEST_CURRENCY: &str = "USD";
-pub const TEST_TX_TYPE: &str = "deposit";
-pub const TEST_TX_DIRECTION: &str = "incoming";
-pub const TEST_TX_AMOUNT: f64 = 1000.0;
 
 // Test artifact filenames
+#[cfg(feature = "sumsub-testing")]
 pub const PASSPORT_FILENAME: &str = "german_passport.jpg";
+#[cfg(feature = "sumsub-testing")]
 pub const POA_FILENAME: &str = "poa_krause_green.jpg";
 
 // Test document URLs
+#[cfg(feature = "sumsub-testing")]
 pub const GERMAN_PASSPORT_URL: &str = "https://sumsub.com/files/29346237-germany-passport.jpg";
+#[cfg(feature = "sumsub-testing")]
 pub const POA_DOCUMENT_URL: &str = "https://sumsub.com/files/62349849-poa-krause-green.jpg";
 
 /// Generic function to load test documents, downloading if not present locally
+#[cfg(feature = "sumsub-testing")]
 pub async fn load_test_document(
     filename: &str,
     download_url: &str,
@@ -56,6 +51,7 @@ pub async fn load_test_document(
 
 /// Load Sumsub configuration from environment variables
 /// Returns None if required environment variables are not set
+#[cfg(feature = "sumsub-testing")]
 pub fn load_config_from_env() -> Option<crate::SumsubConfig> {
     let sumsub_key = std::env::var("SUMSUB_KEY").ok()?;
     let sumsub_secret = std::env::var("SUMSUB_SECRET").ok()?;

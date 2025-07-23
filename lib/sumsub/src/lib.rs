@@ -1,0 +1,522 @@
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
+mod config;
+mod error;
+mod wire;
+
+#[cfg(feature = "sumsub-testing")]
+pub mod testing_utils;
+
+use hmac::{Hmac, Mac};
+use reqwest::{
+    header::{HeaderMap, HeaderValue},
+    Client as ReqwestClient,
+};
+use serde_json::json;
+use sha2::Sha256;
+use std::time::{SystemTime, UNIX_EPOCH};
+
+pub use config::SumsubConfig;
+pub use error::SumsubError;
+pub use wire::*;
+
+const SUMSUB_BASE_URL: &str = "https://api.sumsub.com";
+
+/// Sumsub API client
+#[derive(Clone, Debug)]
+pub struct SumsubClient {
+    client: ReqwestClient,
+    sumsub_key: String,
+    sumsub_secret: String,
+}
+
+impl SumsubClient {
+    pub fn new(config: &SumsubConfig) -> Self {
+        Self {
+            client: ReqwestClient::builder()
+                .use_rustls_tls()
+                .build()
+                .expect("should always build SumsubClient"),
+            sumsub_key: config.sumsub_key.clone(),
+            sumsub_secret: config.sumsub_secret.clone(),
+        }
+    }
+
+    /// Create a permalink for SDK integration
+    pub async fn create_permalink<T>(
+        &self,
+        external_user_id: T,
+        level_name: &str,
+    ) -> Result<PermalinkResponse, SumsubError>
+    where
+        T: std::fmt::Display,
+    {
+        let method = "POST";
+        let url = format!(
+            "/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}"
+        );
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+
+        let body = json!({}).to_string();
+        let headers = self.get_headers(method, &url, Some(&body))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        self.handle_api_response(response, "Failed to create permalink")
+            .await
+    }
+
+    /// Get applicant details by external user ID
+    pub async fn get_applicant_details<T>(
+        &self,
+        external_user_id: T,
+    ) -> Result<ApplicantDetails<T>, SumsubError>
+    where
+        T: std::fmt::Display + serde::de::DeserializeOwned,
+    {
+        let method = "GET";
+        let url = format!("/resources/applicants/-;externalUserId={external_user_id}/one");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+
+        let headers = self.get_headers(method, &url, None)?;
+        let response = self.client.get(&full_url).headers(headers).send().await?;
+
+        self.handle_api_response(response, "Failed to get applicant details")
+            .await
+    }
+
+    /// Submit a financial transaction for monitoring
+    pub async fn submit_finance_transaction<T>(
+        &self,
+        external_user_id: T,
+        tx_id: impl Into<String>,
+        tx_type: &str,
+        direction: &str,
+        amount: f64,
+        currency_code: &str,
+    ) -> Result<(), SumsubError>
+    where
+        T: std::fmt::Display + Clone + serde::de::DeserializeOwned,
+    {
+        // First get the applicant details to obtain the internal applicant ID
+        let applicant_details = self.get_applicant_details(external_user_id.clone()).await?;
+        let applicant_id = &applicant_details.id;
+
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/kyt/txns/-/data");
+        let tx_id = tx_id.into();
+
+        // Current timestamp for the request
+        let now = chrono::Utc::now();
+        let date_format = now.format("%Y-%m-%d %H:%M:%S+0000").to_string();
+
+        // Build the request body
+        let body = json!({
+            "txnId": tx_id,
+            "type": "finance",
+            "txnDate": date_format,
+            "info": {
+                "type": tx_type,
+                "direction": direction,
+                "amount": amount,
+                "currencyCode": currency_code,
+                "currencyType": "fiat",
+                "paymentDetails": ""
+            },
+            "applicant": {
+                "type": "individual",
+                "externalUserId": external_user_id.to_string(),
+                "fullName": ""
+            }
+        });
+
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            Err(self.handle_sumsub_error(&response_text, "Failed to post transaction"))
+        }
+    }
+
+    // Testing methods (only available with sumsub-testing feature)
+    #[cfg(feature = "sumsub-testing")]
+    pub async fn create_applicant<T>(
+        &self,
+        external_user_id: T,
+        level_name: &str,
+    ) -> Result<String, SumsubError>
+    where
+        T: std::fmt::Display,
+    {
+        let method = "POST";
+        let url = format!("/resources/applicants?levelName={level_name}");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+
+        let body = json!({
+            "externalUserId": external_user_id.to_string(),
+            "type": "individual"
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        let response_text = response.text().await?;
+
+        match serde_json::from_str::<wire::SumsubResponse<serde_json::Value>>(&response_text) {
+            Ok(wire::SumsubResponse::Success(applicant_data)) => {
+                if let Some(applicant_id) = applicant_data.get("id").and_then(|id| id.as_str()) {
+                    Ok(applicant_id.to_string())
+                } else {
+                    Err(SumsubError::InvalidResponse(
+                        "Applicant ID not found in response".to_string(),
+                    ))
+                }
+            }
+            Ok(wire::SumsubResponse::Error(wire::ApiError { description, code })) => {
+                Err(SumsubError::ApiError { description, code })
+            }
+            Err(e) => Err(SumsubError::JsonFormat(e)),
+        }
+    }
+
+    #[cfg(feature = "sumsub-testing")]
+    pub async fn update_applicant_info(
+        &self,
+        applicant_id: &str,
+        first_name: &str,
+        last_name: &str,
+        date_of_birth: &str,    // Format: YYYY-MM-DD
+        country_of_birth: &str, // 3-letter country code
+    ) -> Result<(), SumsubError> {
+        let method = "PATCH";
+        let url_path = format!("/resources/applicants/{applicant_id}/fixedInfo");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let body = json!({
+            "firstName": first_name,
+            "lastName": last_name,
+            "dob": date_of_birth,
+            "countryOfBirth": country_of_birth
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .patch(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        self.handle_simple_response(response, "Failed to update applicant info")
+            .await
+    }
+
+    #[cfg(feature = "sumsub-testing")]
+    pub async fn simulate_review_response(
+        &self,
+        applicant_id: &str,
+        review_answer: &str, // "GREEN" or "RED"
+    ) -> Result<(), SumsubError> {
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/status/testCompleted");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let body = if review_answer == wire::testing::REVIEW_ANSWER_GREEN {
+            json!({
+                "reviewAnswer": wire::testing::REVIEW_ANSWER_GREEN,
+                "rejectLabels": []
+            })
+        } else {
+            json!({
+                "reviewAnswer": wire::testing::REVIEW_ANSWER_RED,
+                "rejectLabels": ["UNSATISFACTORY_PHOTOS"],
+                "reviewRejectType": "RETRY",
+                "clientComment": "Test rejection for automated testing",
+                "moderationComment": "This is a simulated rejection for testing purposes"
+            })
+        };
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            match serde_json::from_str::<wire::SumsubResponse<serde_json::Value>>(&response_text) {
+                Ok(wire::SumsubResponse::Error(wire::ApiError { description, code })) => {
+                    Err(SumsubError::ApiError { description, code })
+                }
+                _ => Err(SumsubError::InvalidResponse(format!(
+                    "Failed to simulate review: {response_text}"
+                ))),
+            }
+        }
+    }
+
+    #[cfg(feature = "sumsub-testing")]
+    pub async fn upload_document(
+        &self,
+        applicant_id: &str,
+        doc_type: &str,
+        doc_subtype: &str,
+        country: Option<&str>,
+        image_data: Vec<u8>,
+        filename: &str,
+    ) -> Result<(), SumsubError> {
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/info/idDoc");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        // Create multipart form data
+        let boundary = format!("----formdata-{}", uuid::Uuid::new_v4());
+        let mut body = Vec::new();
+
+        // Add metadata part
+        let metadata = json!({
+            "idDocType": doc_type,
+            "country": country.unwrap_or("DEU")
+        });
+        if !doc_subtype.is_empty() {
+            let metadata = json!({
+                "idDocType": doc_type,
+                "idDocSubType": doc_subtype,
+                "country": country.unwrap_or("DEU")
+            });
+            body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+            body.extend_from_slice(b"Content-Disposition: form-data; name=\"metadata\"\r\n");
+            body.extend_from_slice(b"Content-Type: application/json\r\n\r\n");
+            body.extend_from_slice(metadata.to_string().as_bytes());
+            body.extend_from_slice(b"\r\n");
+        } else {
+            body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+            body.extend_from_slice(b"Content-Disposition: form-data; name=\"metadata\"\r\n");
+            body.extend_from_slice(b"Content-Type: application/json\r\n\r\n");
+            body.extend_from_slice(metadata.to_string().as_bytes());
+            body.extend_from_slice(b"\r\n");
+        }
+
+        // Add content part
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(
+            format!(
+                "Content-Disposition: form-data; name=\"content\"; filename=\"{filename}\"\r\n"
+            )
+            .as_bytes(),
+        );
+        body.extend_from_slice(b"Content-Type: image/jpeg\r\n\r\n");
+        body.extend_from_slice(&image_data);
+        body.extend_from_slice(b"\r\n");
+        body.extend_from_slice(format!("--{boundary}--\r\n").as_bytes());
+
+        let content_type = format!("multipart/form-data; boundary={boundary}");
+        let mut headers =
+            self.get_headers(method, &url_path, Some(&String::from_utf8_lossy(&body)))?;
+        headers.insert("Content-Type", HeaderValue::from_str(&content_type)?);
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        self.handle_simple_response(response, "Failed to upload document")
+            .await
+    }
+
+    #[cfg(feature = "sumsub-testing")]
+    pub async fn submit_questionnaire_direct(
+        &self,
+        applicant_id: &str,
+        questionnaire_id: &str,
+    ) -> Result<(), SumsubError> {
+        let method = "POST";
+        let url_path =
+            format!("/resources/applicants/{applicant_id}/questionnaires/{questionnaire_id}/data");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let body = json!({
+            "sections": {
+                wire::testing::DEFAULT_QUESTIONNAIRE_SECTION: {
+                    "items": {
+                        wire::testing::DEFAULT_QUESTIONNAIRE_ITEM: {
+                            "value": wire::testing::DEFAULT_QUESTIONNAIRE_VALUE
+                        }
+                    }
+                }
+            }
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        self.handle_simple_response(response, "Failed to submit questionnaire")
+            .await
+    }
+
+    #[cfg(feature = "sumsub-testing")]
+    pub async fn request_check(&self, applicant_id: &str) -> Result<(), SumsubError> {
+        let method = "POST";
+        let url_path = format!("/resources/applicants/{applicant_id}/status/pending");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let body = json!({}).to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body))?;
+
+        let response = self
+            .client
+            .post(&full_url)
+            .headers(headers)
+            .body(body)
+            .send()
+            .await?;
+
+        self.handle_simple_response(response, "Failed to request check")
+            .await
+    }
+
+    // Private helper methods
+    fn get_headers(
+        &self,
+        method: &str,
+        url: &str,
+        body: Option<&str>,
+    ) -> Result<HeaderMap, SumsubError> {
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+        let signature = self.sign(method, url, body, timestamp)?;
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Accept", HeaderValue::from_static("application/json"));
+        headers.insert("Content-Type", HeaderValue::from_static("application/json"));
+        headers.insert(
+            "X-App-Token",
+            HeaderValue::from_str(&self.sumsub_key).expect("Invalid sumsub key"),
+        );
+        headers.insert(
+            "X-App-Access-Ts",
+            HeaderValue::from_str(&timestamp.to_string()).expect("Invalid timestamp"),
+        );
+        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
+
+        Ok(headers)
+    }
+
+    fn sign(
+        &self,
+        method: &str,
+        url: &str,
+        body: Option<&str>,
+        timestamp: u64,
+    ) -> Result<String, SumsubError> {
+        type HmacSha256 = Hmac<Sha256>;
+        let mut mac = HmacSha256::new_from_slice(self.sumsub_secret.as_bytes())
+            .expect("HMAC can take key of any size");
+        mac.update(timestamp.to_string().as_bytes());
+        mac.update(method.as_bytes());
+        mac.update(url.as_bytes());
+        if let Some(body) = body {
+            mac.update(body.as_bytes());
+        }
+        Ok(hex::encode(mac.finalize().into_bytes()))
+    }
+
+    async fn handle_api_response<T>(
+        &self,
+        response: reqwest::Response,
+        error_message: &str,
+    ) -> Result<T, SumsubError>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        if response.status().is_success() {
+            let parsed: wire::SumsubResponse<T> = response.json().await?;
+            match parsed {
+                wire::SumsubResponse::Success(data) => Ok(data),
+                wire::SumsubResponse::Error(wire::ApiError { description, code }) => {
+                    Err(SumsubError::ApiError { description, code })
+                }
+            }
+        } else {
+            let status_code = response.status().as_u16();
+            let response_text = response.text().await?;
+            Err(SumsubError::ApiError {
+                description: format!("{error_message}: {response_text}"),
+                code: status_code,
+            })
+        }
+    }
+
+    #[cfg(feature = "sumsub-testing")]
+    async fn handle_simple_response(
+        &self,
+        response: reqwest::Response,
+        error_message: &str,
+    ) -> Result<(), SumsubError> {
+        if response.status().is_success() {
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            Err(self.handle_sumsub_error(&response_text, error_message))
+        }
+    }
+
+    fn handle_sumsub_error(&self, response_text: &str, fallback_message: &str) -> SumsubError {
+        match serde_json::from_str::<wire::SumsubResponse<serde_json::Value>>(response_text) {
+            Ok(wire::SumsubResponse::Error(wire::ApiError { description, code })) => {
+                SumsubError::ApiError { description, code }
+            }
+            _ => SumsubError::ApiError {
+                description: format!("{fallback_message}: {response_text}"),
+                code: 500,
+            },
+        }
+    }
+}

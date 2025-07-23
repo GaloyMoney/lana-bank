@@ -11,6 +11,7 @@ members = [
   "lana/dashboard",
   "lana/user-onboarding",
   "lana/customer-sync",
+  "lana/deposit-sync",
   "lana/notification",
 
   "lana/entity-rollups",
@@ -38,6 +39,7 @@ members = [
   "lib/kratos-admin",
   "lib/bitgo",
   "lib/komainu",
+  "lib/sumsub",
   "lib/cloud-storage"]
 
 [workspace.dependencies]

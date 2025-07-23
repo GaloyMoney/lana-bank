@@ -1,15 +1,12 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod config;
 pub mod error;
 pub mod job_types;
 mod repo;
-mod sumsub_auth;
-pub mod transaction_export;
 
 #[cfg(feature = "sumsub-testing")]
-pub mod sumsub_testing_utils;
+pub use sumsub::testing_utils as sumsub_testing_utils;
 
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
@@ -20,12 +17,12 @@ use authz::PermissionCheck;
 use core_customer::{CustomerId, Customers};
 use outbox::OutboxEventMarker;
 
-pub use config::*;
 use error::ApplicantError;
+pub use sumsub::SumsubConfig;
 
 pub use job_types::{SumsubExportJobConfig, SumsubExportJobData, SUMSUB_EXPORT_JOB};
 use repo::ApplicantRepo;
-pub use sumsub_auth::{ApplicantInfo, PermalinkResponse, SumsubClient};
+pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
 use rbac_types::Subject;
 
@@ -158,7 +155,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
 {
-    sumsub_client: sumsub_auth::SumsubClient,
+    sumsub_client: SumsubClient,
     repo: ApplicantRepo,
     customers: Customers<Perms, E>,
 }
@@ -186,7 +183,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
     pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers<Perms, E>) -> Self {
-        let sumsub_client = sumsub_auth::SumsubClient::new(config);
+        let sumsub_client = SumsubClient::new(config);
 
         Self {
             repo: ApplicantRepo::new(pool),
@@ -327,6 +324,7 @@ where
         self.sumsub_client
             .create_permalink(customer_id, &level.to_string())
             .await
+            .map_err(ApplicantError::from)
     }
 
     #[instrument(name = "applicant.get_applicant_info", skip(self))]
@@ -344,7 +342,8 @@ where
         let applicant_details = self
             .sumsub_client
             .get_applicant_details(customer_id)
-            .await?;
+            .await
+            .map_err(ApplicantError::from)?;
 
         Ok(applicant_details.info)
     }
@@ -380,10 +379,10 @@ where
         self.sumsub_client
             .update_applicant_info(
                 &applicant_id,
-                sumsub_testing_utils::TEST_FIRST_NAME,
-                sumsub_testing_utils::TEST_LAST_NAME,
-                sumsub_testing_utils::TEST_DATE_OF_BIRTH,
-                sumsub_testing_utils::TEST_COUNTRY_CODE,
+                sumsub::testing::TEST_FIRST_NAME,
+                sumsub::testing::TEST_LAST_NAME,
+                sumsub::testing::TEST_DATE_OF_BIRTH,
+                sumsub::testing::TEST_COUNTRY_CODE,
             )
             .await?;
 
@@ -396,17 +395,19 @@ where
             "German passport image",
         )
         .await
-        .map_err(|e| ApplicantError::Sumsub {
-            description: format!("Failed to load passport image: {e}"),
-            code: 500,
+        .map_err(|e| {
+            ApplicantError::SumsubError(sumsub::SumsubError::ApiError {
+                description: format!("Failed to load passport image: {e}"),
+                code: 500,
+            })
         })?;
 
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_PASSPORT,
-                sumsub_auth::DOC_SUBTYPE_FRONT_SIDE,
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                sumsub::testing::DOC_TYPE_PASSPORT,
+                sumsub::testing::DOC_SUBTYPE_FRONT_SIDE,
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 passport_image.clone(),
                 sumsub_testing_utils::PASSPORT_FILENAME,
             )
@@ -418,9 +419,9 @@ where
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_PASSPORT,
-                sumsub_auth::DOC_SUBTYPE_BACK_SIDE,
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                sumsub::testing::DOC_TYPE_PASSPORT,
+                sumsub::testing::DOC_SUBTYPE_BACK_SIDE,
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 passport_image.clone(),
                 sumsub_testing_utils::PASSPORT_FILENAME,
             )
@@ -435,9 +436,9 @@ where
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_SELFIE,
+                sumsub::testing::DOC_TYPE_SELFIE,
                 "",
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 passport_image, // Reuse passport image as selfie for testing
                 sumsub_testing_utils::PASSPORT_FILENAME,
             )
@@ -455,17 +456,19 @@ where
             "Proof of residence document",
         )
         .await
-        .map_err(|e| ApplicantError::Sumsub {
-            description: format!("Failed to load proof of residence image: {e}"),
-            code: 500,
+        .map_err(|e| {
+            ApplicantError::SumsubError(sumsub::SumsubError::ApiError {
+                description: format!("Failed to load proof of residence image: {e}"),
+                code: 500,
+            })
         })?;
 
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_UTILITY_BILL,
+                sumsub::testing::DOC_TYPE_UTILITY_BILL,
                 "",
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 poa_image,
                 sumsub_testing_utils::POA_FILENAME,
             )
@@ -478,7 +481,7 @@ where
 
         // Step 6: Submit questionnaire
         self.sumsub_client
-            .submit_questionnaire_direct(&applicant_id, sumsub_testing_utils::TEST_QUESTIONNAIRE_ID)
+            .submit_questionnaire_direct(&applicant_id, sumsub::testing::TEST_QUESTIONNAIRE_ID)
             .await?;
 
         tracing::info!("Questionnaire submitted");
@@ -496,7 +499,7 @@ where
 
         // Step 8: Simulate approval (GREEN)
         self.sumsub_client
-            .simulate_review_response(&applicant_id, sumsub_auth::REVIEW_ANSWER_GREEN)
+            .simulate_review_response(&applicant_id, sumsub::testing::REVIEW_ANSWER_GREEN)
             .await?;
 
         tracing::info!("Approval simulated");

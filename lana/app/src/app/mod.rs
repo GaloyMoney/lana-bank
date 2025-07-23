@@ -132,15 +132,17 @@ impl LanaApp {
 
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
 
-        // Initialize Sumsub export job
+        // Initialize deposit sync for Sumsub transaction export
         let sumsub_client = crate::applicant::SumsubClient::new(&config.sumsub);
-        let transaction_exporter =
-            crate::applicant::transaction_export::TransactionExporter::new(sumsub_client);
-        jobs.add_initializer(crate::applicant::sumsub_export_job::SumsubExportInit::new(
+        let deposit_sync_config = deposit_sync::config::DepositSyncConfig::default();
+        let _deposit_sync = deposit_sync::DepositSync::init(
+            &jobs,
             &outbox,
-            transaction_exporter,
             &deposits,
-        ));
+            sumsub_client.clone(),
+            deposit_sync_config,
+        )
+        .await?;
 
         let custody = Custody::init(&pool, &authz, config.custody, &outbox).await?;
 
