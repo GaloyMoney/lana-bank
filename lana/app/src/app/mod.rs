@@ -20,6 +20,7 @@ use crate::{
     customer_sync::CustomerSync,
     dashboard::Dashboard,
     deposit::Deposits,
+    deposit_sync::DepositSync,
     document::DocumentStorage,
     governance::Governance,
     job::Jobs,
@@ -58,6 +59,7 @@ pub struct LanaApp {
     contract_creation: ContractCreation,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
+    _deposit_sync: DepositSync,
 }
 
 impl LanaApp {
@@ -132,15 +134,12 @@ impl LanaApp {
 
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
 
-        // Initialize deposit sync for Sumsub transaction export
-        let sumsub_client = crate::applicant::SumsubClient::new(&config.sumsub);
-        let deposit_sync_config = deposit_sync::config::DepositSyncConfig::default();
-        let _deposit_sync = deposit_sync::DepositSync::init(
+        let deposit_sync = DepositSync::init(
             &jobs,
             &outbox,
             &deposits,
-            sumsub_client.clone(),
-            deposit_sync_config,
+            crate::applicant::SumsubClient::new(&config.sumsub),
+            config.deposit_sync,
         )
         .await?;
 
@@ -200,6 +199,7 @@ impl LanaApp {
             contract_creation,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
+            _deposit_sync: deposit_sync,
         })
     }
 
