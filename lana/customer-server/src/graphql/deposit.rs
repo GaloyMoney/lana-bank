@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::deposit::Deposit as DomainDeposit;
+pub use lana_app::deposit::{Deposit as DomainDeposit, DepositStatus};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -35,5 +35,9 @@ impl From<DomainDeposit> for Deposit {
 impl Deposit {
     async fn reference(&self) -> &str {
         &self.entity.reference
+    }
+
+    async fn status(&self) -> DepositStatus {
+        self.entity.status()
     }
 }

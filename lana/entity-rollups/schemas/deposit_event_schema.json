@@ -19,6 +19,13 @@
       ],
       "type": "object"
     },
+    "DepositStatus": {
+      "enum": [
+        "Confirmed",
+        "Reverted"
+      ],
+      "type": "string"
+    },
     "UsdCents": {
       "format": "uint64",
       "minimum": 0,
@@ -50,6 +57,9 @@
         "reference": {
           "type": "string"
         },
+        "status": {
+          "$ref": "#/$defs/DepositStatus"
+        },
         "type": {
           "const": "initialized",
           "type": "string"
@@ -62,6 +72,7 @@
         "deposit_account_id",
         "amount",
         "reference",
+        "status",
         "audit_info"
       ],
       "type": "object"
@@ -75,6 +86,9 @@
           "format": "uuid",
           "type": "string"
         },
+        "status": {
+          "$ref": "#/$defs/DepositStatus"
+        },
         "type": {
           "const": "reverted",
           "type": "string"
@@ -83,6 +97,7 @@
       "required": [
         "type",
         "ledger_tx_id",
+        "status",
         "audit_info"
       ],
       "type": "object"

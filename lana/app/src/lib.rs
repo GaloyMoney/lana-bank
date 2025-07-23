@@ -102,7 +102,7 @@ pub mod deposit {
     pub use core_deposit::{
         ChartOfAccountsIntegrationConfig, CoreDepositEvent, Deposit, DepositAccount,
         DepositAccountBalance, DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositId,
-        DepositsByCreatedAtCursor, Withdrawal, WithdrawalId, WithdrawalStatus,
+        DepositStatus, DepositsByCreatedAtCursor, Withdrawal, WithdrawalId, WithdrawalStatus,
         WithdrawalsByCreatedAtCursor, error,
     };
 

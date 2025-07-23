@@ -955,6 +955,7 @@ type Deposit {
 	amount: UsdCents!
 	createdAt: Timestamp!
 	reference: String!
+	status: DepositStatus!
 	account: DepositAccount!
 }
 
@@ -1082,6 +1083,11 @@ input DepositRevertInput {
 
 type DepositRevertPayload {
 	deposit: Deposit!
+}
+
+enum DepositStatus {
+	CONFIRMED
+	REVERTED
 }
 
 type DisbursalEntry {

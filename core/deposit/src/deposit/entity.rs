@@ -9,6 +9,14 @@ use es_entity::*;
 
 use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId};
 
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum DepositStatus {
+    Confirmed,
+    Reverted,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -20,10 +28,12 @@ pub enum DepositEvent {
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
         reference: String,
+        status: DepositStatus,
         audit_info: AuditInfo,
     },
     Reverted {
         ledger_tx_id: CalaTransactionId,
+        status: DepositStatus,
         audit_info: AuditInfo,
     },
 }
@@ -53,6 +63,19 @@ impl Deposit {
             .expect("No events for deposit")
     }
 
+    pub fn status(&self) -> DepositStatus {
+        if self.is_reverted() {
+            return DepositStatus::Reverted;
+        }
+        DepositStatus::Confirmed
+    }
+
+    fn is_reverted(&self) -> bool {
+        self.events
+            .iter_all()
+            .any(|e| matches!(e, DepositEvent::Reverted { .. }))
+    }
+
     pub fn revert(&mut self, audit_info: AuditInfo) -> Idempotent<DepositReversalData> {
         idempotency_guard!(
             self.events().iter_all().rev(),
@@ -62,6 +85,7 @@ impl Deposit {
         let ledger_tx_id = CalaTransactionId::new();
         self.events.push(DepositEvent::Reverted {
             ledger_tx_id,
+            status: DepositStatus::Reverted,
             audit_info,
         });
 
@@ -146,6 +170,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
             [DepositEvent::Initialized {
                 reference: self.reference(),
                 id: self.id,
+                status: DepositStatus::Confirmed,
                 ledger_tx_id: self.ledger_transaction_id,
                 deposit_account_id: self.deposit_account_id,
                 amount: self.amount,

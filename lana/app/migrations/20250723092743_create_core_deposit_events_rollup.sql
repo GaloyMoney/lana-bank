@@ -8,6 +8,7 @@ CREATE TABLE core_deposit_events_rollup (
   amount BIGINT,
   deposit_account_id UUID,
   reference VARCHAR,
+  status VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -63,6 +64,7 @@ BEGIN
      END
 ;
     new_row.reference := (NEW.event ->> 'reference');
+    new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
@@ -70,6 +72,7 @@ BEGIN
     new_row.deposit_account_id := current_row.deposit_account_id;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.reference := current_row.reference;
+    new_row.status := current_row.status;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -80,9 +83,11 @@ BEGIN
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.reference := (NEW.event ->> 'reference');
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'reverted' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
   END CASE;
 
   INSERT INTO core_deposit_events_rollup (
@@ -94,7 +99,8 @@ BEGIN
     audit_entry_ids,
     deposit_account_id,
     ledger_tx_ids,
-    reference
+    reference,
+    status
   )
   VALUES (
     new_row.id,
@@ -105,7 +111,8 @@ BEGIN
     new_row.audit_entry_ids,
     new_row.deposit_account_id,
     new_row.ledger_tx_ids,
-    new_row.reference
+    new_row.reference,
+    new_row.status
   )
   ON CONFLICT (id) DO UPDATE SET
     last_sequence = EXCLUDED.last_sequence,
@@ -114,7 +121,8 @@ BEGIN
     audit_entry_ids = EXCLUDED.audit_entry_ids,
     deposit_account_id = EXCLUDED.deposit_account_id,
     ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    reference = EXCLUDED.reference;
+    reference = EXCLUDED.reference,
+    status = EXCLUDED.status;
 
   RETURN NEW;
 END;

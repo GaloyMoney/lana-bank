@@ -189,6 +189,7 @@ type Deposit {
 	amount: UsdCents!
 	createdAt: Timestamp!
 	reference: String!
+	status: DepositStatus!
 }
 
 type DepositAccount {
@@ -241,6 +242,11 @@ type DepositAccountHistoryEntryEdge {
 type DepositEntry {
 	recordedAt: Timestamp!
 	deposit: Deposit!
+}
+
+enum DepositStatus {
+	CONFIRMED
+	REVERTED
 }
 
 type DisbursalEntry {

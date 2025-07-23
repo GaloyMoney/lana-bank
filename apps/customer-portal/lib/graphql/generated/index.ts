@@ -228,6 +228,7 @@ export type Deposit = {
   depositId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   reference: Scalars['String']['output'];
+  status: DepositStatus;
 };
 
 export type DepositAccount = {
@@ -280,6 +281,11 @@ export type DepositEntry = {
   deposit: Deposit;
   recordedAt: Scalars['Timestamp']['output'];
 };
+
+export enum DepositStatus {
+  Confirmed = 'CONFIRMED',
+  Reverted = 'REVERTED'
+}
 
 export type DisbursalEntry = {
   __typename?: 'DisbursalEntry';
