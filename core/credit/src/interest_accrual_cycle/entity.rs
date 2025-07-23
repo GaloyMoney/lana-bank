@@ -352,13 +352,6 @@ impl InterestAccrualCycle {
 
         idempotency_guard!(
             self.events.iter_all().rev(),
-            InterestAccrualCycleEvent::AccruedInterestReverted {
-                accrued_ledger_tx_id: found_accrued_ledger_tx_id,
-                ..
-            } if accrued_ledger_tx_id == *found_accrued_ledger_tx_id
-        );
-        idempotency_guard!(
-            self.events.iter_all().rev(),
             InterestAccrualCycleEvent::InterestAccrualsPosted {
                 ledger_tx_id,
                 ..
