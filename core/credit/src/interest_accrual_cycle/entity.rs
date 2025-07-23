@@ -344,14 +344,6 @@ impl InterestAccrualCycle {
             None => return Idempotent::Ignored,
         };
 
-        idempotency_guard!(
-            self.events.iter_all().rev(),
-            InterestAccrualCycleEvent::AccruedInterestReverted {
-                accrued_ledger_tx_id: found_accrued_ledger_tx_id,
-                ..
-            } if accrued_ledger_tx_id == *found_accrued_ledger_tx_id
-        );
-
         let reverted_interest_accrual = RevertedInterestAccrualData {
             tx_id: LedgerTxId::new(),
             tx_ref: format!(
