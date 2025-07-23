@@ -943,10 +943,9 @@ impl Mutation {
         let (app, _sub) = app_and_sub_from_ctx!(ctx);
         let applicant_id = app
             .applicants()
-            .create_complete_test_applicant(
-                lana_app::primitives::CustomerId::from(input.customer_id),
-                "basic-kyc-level",
-            )
+            .create_complete_test_applicant(lana_app::primitives::CustomerId::from(
+                input.customer_id,
+            ))
             .await?;
         Ok(SumsubTestApplicantCreatePayload { applicant_id })
     }
