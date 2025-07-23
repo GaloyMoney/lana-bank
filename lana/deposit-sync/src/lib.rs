@@ -73,7 +73,7 @@ where
 
         jobs.add_initializer_and_spawn_unique(
             SumsubExportInit::new(outbox, transaction_exporter, deposits, config),
-            SumsubExportJobConfig::new(),
+            SumsubExportJobConfig::<Perms, E>::new(),
         )
         .await?;
 

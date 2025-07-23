@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod error;
-pub mod job_types;
 mod repo;
 
 #[cfg(feature = "sumsub-testing")]
@@ -20,7 +19,6 @@ use outbox::OutboxEventMarker;
 use error::ApplicantError;
 pub use sumsub::SumsubConfig;
 
-pub use job_types::{SumsubExportJobConfig, SumsubExportJobData, SUMSUB_EXPORT_JOB};
 use repo::ApplicantRepo;
 pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
