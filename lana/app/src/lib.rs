@@ -6,6 +6,8 @@ pub mod app;
 
 pub mod applicant {
     pub use core_applicant::*;
+    pub type Applicants =
+        core_applicant::Applicants<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod authorization;

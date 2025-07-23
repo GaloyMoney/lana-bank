@@ -10,7 +10,7 @@ ignored = []
 [features]
 default = []
 fail-on-warnings = []
-graphql = ["dep:async-graphql"]
+graphql = ["dep:async-graphql", "es-entity/graphql"]
 json-schema = ["outbox/json-schema"]
 sumsub-testing = []
 
@@ -20,6 +20,12 @@ job = { path = "../../lib/job" }
 core-customer = { path = "../customer" }
 core-money = { path = "../money" }
 rbac-types = { path = "../../lana/rbac-types" }
+
+lana-events = { path = "../../lana/events" }
+authz = { path = "../../lib/authz" }
+audit = { path = "../../lib/audit" }
+
+es-entity = { workspace = true }
 
 strum = { workspace = true }
 serde = { workspace = true }

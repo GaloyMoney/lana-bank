@@ -8,11 +8,17 @@ mod repo;
 mod sumsub_auth;
 pub mod transaction_export;
 
+#[cfg(feature = "sumsub-testing")]
+pub mod sumsub_testing_utils;
+
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tracing::instrument;
 
-use core_customer::CustomerId;
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use core_customer::{CustomerId, Customers};
+use outbox::OutboxEventMarker;
 
 pub use config::*;
 use error::ApplicantError;
@@ -148,19 +154,45 @@ pub struct ReviewResult {
     pub review_reject_type: Option<String>,
 }
 
-#[derive(Clone)]
-pub struct Applicants {
+pub struct Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
+{
     sumsub_client: SumsubClient,
     repo: ApplicantRepo,
+    customers: Customers<Perms, E>,
 }
 
-impl Applicants {
-    pub fn new(pool: &PgPool, config: &SumsubConfig) -> Self {
+impl<Perms, E> Clone for Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            sumsub_client: self.sumsub_client.clone(),
+            repo: self.repo.clone(),
+            customers: self.customers.clone(),
+        }
+    }
+}
+
+impl<Perms, E> Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
+{
+    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers<Perms, E>) -> Self {
         let sumsub_client = SumsubClient::new(config);
 
         Self {
             repo: ApplicantRepo::new(pool),
             sumsub_client,
+            customers: customers.clone(),
         }
     }
 
@@ -175,9 +207,109 @@ impl Applicants {
             .persist_webhook_data(customer_id, payload.clone())
             .await?;
 
-        // Note: The callback processing logic will need to be handled at the application layer
-        // since it requires access to customer services that are not available in this core crate
+        let mut db = self.repo.begin_op().await?;
 
+        match self.process_payload(&mut db, payload).await {
+            Ok(_) => (),
+            Err(ApplicantError::UnhandledCallbackType(_)) => (),
+            Err(e) => return Err(e),
+        }
+
+        db.commit().await?;
+
+        Ok(())
+    }
+
+    async fn process_payload(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        payload: serde_json::Value,
+    ) -> Result<(), ApplicantError> {
+        match serde_json::from_value(payload.clone())? {
+            SumsubCallbackPayload::ApplicantCreated {
+                external_user_id,
+                applicant_id,
+                sandbox_mode,
+                ..
+            } => {
+                let res = self
+                    .customers
+                    .start_kyc(db, external_user_id, applicant_id)
+                    .await;
+
+                match res {
+                    Ok(_) => (),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        return Ok(());
+                    }
+                    Err(e) => return Err(e.into()),
+                }
+            }
+            SumsubCallbackPayload::ApplicantReviewed {
+                external_user_id,
+                review_result:
+                    ReviewResult {
+                        review_answer: ReviewAnswer::Red,
+                        ..
+                    },
+                applicant_id,
+                sandbox_mode,
+                ..
+            } => {
+                let res = self
+                    .customers
+                    .decline_kyc(db, external_user_id, applicant_id)
+                    .await;
+
+                match res {
+                    Ok(_) => (),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        return Ok(());
+                    }
+                    Err(e) => return Err(e.into()),
+                }
+            }
+            SumsubCallbackPayload::ApplicantReviewed {
+                external_user_id,
+                review_result:
+                    ReviewResult {
+                        review_answer: ReviewAnswer::Green,
+                        ..
+                    },
+                applicant_id,
+                level_name,
+                sandbox_mode,
+                ..
+            } => {
+                // Try to parse the level name, will return error for unrecognized values
+                match level_name.parse::<SumsubVerificationLevel>() {
+                    Ok(_) => {} // Level is valid, continue
+                    Err(_) => {
+                        return Err(ApplicantError::UnhandledCallbackType(format!(
+                            "Sumsub level {level_name} not implemented"
+                        )));
+                    }
+                };
+
+                let res = self
+                    .customers
+                    .approve_kyc(db, external_user_id, applicant_id)
+                    .await;
+
+                match res {
+                    Ok(_) => (),
+                    Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        return Ok(());
+                    }
+                    Err(e) => return Err(e.into()),
+                }
+            }
+            SumsubCallbackPayload::Unknown => {
+                return Err(ApplicantError::UnhandledCallbackType(format!(
+                    "callback event not processed for payload {payload}",
+                )));
+            }
+        }
         Ok(())
     }
 
