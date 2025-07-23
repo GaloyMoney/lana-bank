@@ -11,7 +11,7 @@ pub struct ReportGenerateResponse {
 }
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct File {
+pub struct ReportFile {
     pub extension: String,
     pub path_in_bucket: String,
 }
@@ -21,7 +21,7 @@ pub struct Report {
     pub id: String,
     pub name: String,
     pub norm: String,
-    pub files: Vec<File>,
+    pub files: Vec<ReportFile>,
 }
 
 #[derive(Debug, Serialize, Deserialize, PartialEq, Eq, Copy, Clone)]
@@ -180,9 +180,9 @@ impl From<ReportRunType> for crate::report_run::ReportRunType {
     }
 }
 
-impl From<File> for crate::report::File {
-    fn from(file: File) -> Self {
-        crate::report::File {
+impl From<ReportFile> for crate::report::ReportFile {
+    fn from(file: ReportFile) -> Self {
+        crate::report::ReportFile {
             extension: file.extension,
             path_in_bucket: file.path_in_bucket,
         }

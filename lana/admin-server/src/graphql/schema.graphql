@@ -1413,6 +1413,8 @@ type Mutation {
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
+	triggerReportRun: Boolean!
+	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
 }
 
 scalar OneTimeFeeRatePct
@@ -1636,6 +1638,7 @@ type Query {
 	publicIdTarget(id: PublicId!): PublicIdTarget
 	loanAgreement(id: UUID!): LoanAgreement
 	reportRuns(first: Int!, after: String): ReportRunConnection!
+	reportRun(id: UUID!): ReportRun
 }
 
 type RealtimePrice {
@@ -1656,19 +1659,23 @@ type Report {
 
 type ReportFile {
 	extension: String!
-	pathInBucket: String!
+}
+
+input ReportFileGenerateDownloadLinkInput {
+	reportId: UUID!
+	extension: String!
+}
+
+type ReportFileGenerateDownloadLinkPayload {
+	url: String!
 }
 
 type ReportRun {
 	id: ID!
 	reportRunId: UUID!
-	externalId: String!
-	createdAt: Timestamp!
-	executionDate: Timestamp
 	state: ReportRunState
 	runType: ReportRunType
-	startDate: Timestamp
-	endDate: Timestamp
+	generatedAt: Timestamp
 	reports: [Report!]!
 }
 

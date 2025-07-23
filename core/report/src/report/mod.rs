@@ -8,7 +8,7 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{event::CoreReportEvent, primitives::*, publisher::ReportPublisher};
 
-pub use entity::{File, NewReport, Report};
+pub use entity::{NewReport, Report, ReportFile};
 pub use repo::report_cursor::ReportsByCreatedAtCursor;
 
 #[cfg(feature = "json-schema")]
@@ -80,5 +80,9 @@ where
             )
             .await?;
         Ok(reports.entities)
+    }
+
+    pub async fn find_by_id(&self, id: ReportId) -> Result<Report, ReportError> {
+        self.repo.find_by_id(id).await
     }
 }

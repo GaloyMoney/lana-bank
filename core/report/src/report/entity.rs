@@ -9,7 +9,7 @@ use crate::primitives::*;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct File {
+pub struct ReportFile {
     pub extension: String,
     pub path_in_bucket: String,
 }
@@ -25,7 +25,7 @@ pub enum ReportEvent {
         run_id: ReportRunId,
         name: String,
         norm: String,
-        files: Vec<File>,
+        files: Vec<ReportFile>,
     },
 }
 
@@ -37,7 +37,7 @@ pub struct Report {
     pub external_id: String,
     pub name: String,
     pub norm: String,
-    pub files: Vec<File>,
+    pub files: Vec<ReportFile>,
     events: EntityEvents<ReportEvent>,
 }
 
@@ -90,7 +90,7 @@ pub struct NewReport {
     pub(super) name: String,
     #[builder(setter(into))]
     pub(super) norm: String,
-    pub(super) files: Vec<File>,
+    pub(super) files: Vec<ReportFile>,
 }
 
 impl NewReport {

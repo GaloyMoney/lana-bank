@@ -61,3 +61,9 @@ export const fromISODateString = (dateString: string): Date => {
   // Months are 0-based in JavaScript Dates.
   return new Date(Date.UTC(year, month - 1, day));
 };
+
+export const formatSpacedSentenceCaseFromSnakeCase = (str: string): string => {
+  return str
+    .replace(/_/g, " ") // Replace underscores with spaces
+    .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize the first letter of each word
+};

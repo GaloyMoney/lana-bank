@@ -11,7 +11,7 @@ Exposes:
 from __future__ import annotations
 
 import os, logging
-from datetime import datetime, timezone
+from datetime import datetime, timezone, timedelta
 from typing import Protocol, TypedDict, Optional, Sequence
 
 from flask import Blueprint, jsonify, request
@@ -81,7 +81,7 @@ class ReportService:
         return run
 
     def trigger_report_generation(self) -> str:
-        ts = datetime.now(timezone.utc).isoformat()
+        ts = (datetime.now(timezone.utc) - timedelta(days=1)).isoformat()
         run_id = f"manual__{ts}"
         return self.airflow.trigger_run(run_id)
 
@@ -101,14 +101,40 @@ class AirflowAdapter(AirflowPort):
     def list_runs(
         self, limit: int, after: str | None = None, session: Session | None = None
     ) -> Sequence[Run]:
-        q = (
+        dag_runs = (
             session.query(DagRun)
             .filter(DagRun.dag_id == DAG_ID)
-            .order_by(DagRun.execution_date.desc())
+            .all()
         )
+
+        def _run_id_to_dt(run_id: str) -> datetime:
+            _RUN_ID_RE = re.compile(r"^(?:manual|scheduled)__(?P<ts>.+)$")
+            m = _RUN_ID_RE.match(run_id)
+            if not m:
+                raise ValueError(f"Unrecognised run_id format: {run_id}")
+
+            ts = m["ts"].strip()
+
+            # If “+” was swallowed by URL decoding, fix it.
+            if " " in ts and not ts.endswith("Z"):
+                ts = ts.replace(" ", "+", 1)
+
+            # If the string still lacks an offset, assume UTC.
+            if re.fullmatch(r".*\d{2}:\d{2}$", ts) and "+" not in ts and "-" not in ts:
+                ts += "+00:00"
+
+            return datetime.fromisoformat(ts)
+
+        mapped: list[tuple[datetime, Run]] = [
+            (_run_id_to_dt(dr.run_id), self._to_run(dr)) for dr in dag_runs
+        ]
+
         if after:
-            q = q.filter(DagRun.run_id < after)
-        return [self._to_run(dr) for dr in q.limit(limit).all()]
+            after_dt = _run_id_to_dt(after)
+            mapped = [t for t in mapped if t[0] < after_dt]
+
+        mapped.sort(key=lambda pair: pair[0], reverse=True)
+        return [run for _, run in mapped[:limit]]
 
     @provide_session
     def get_run(

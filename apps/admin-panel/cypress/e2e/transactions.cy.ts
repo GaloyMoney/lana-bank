@@ -107,7 +107,9 @@ describe("Transactions Deposit and Withdraw", () => {
         cy.visit(`/withdrawals/${withdrawalId}`)
         cy.wait(1000)
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()) {
+          if (
+            badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()
+          ) {
             // case when we have policy attached for withdrawal no ss needed here
             cy.get('[data-testid="approval-process-deny-button"]').click()
             cy.get('[data-testid="approval-process-dialog-deny-reason"]').type("testing")

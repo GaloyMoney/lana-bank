@@ -11,6 +11,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "ReportRun",
     err = "ReportRunError",
+    columns(external_id(ty = "String")),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

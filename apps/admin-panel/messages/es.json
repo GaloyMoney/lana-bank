@@ -1483,23 +1483,43 @@
     "description": "Generar y gestionar informes regulatorios, seguir su estado y descargar documentos generados.",
     "availableReports": "Informes disponibles",
     "noReportsAvailable": "No hay informes disponibles",
+    "listHeaders": {
+      "generatedAt": "Generado el",
+      "state": "Estado",
+      "runType": "Tipo de ejecución"
+    },
+    "starting": "Iniciando...",
+    "listValues": {
+      "runType": {
+        "manual": "Manual",
+        "scheduled": "Programado"
+      },
+      "state": {
+        "queued": "En cola",
+        "running": "En ejecución",
+        "failed": "Fallido",
+        "success": "Exitoso"
+      }
+    },
     "ReportGeneration": {
       "generate": "Generar",
-      "reportGenerationHasBeenTriggered": "Se ha iniciado la generación del informe",
-      "reportGenerationFailed": "La generación del informe ha fallado. Error {e}",
-      "startedAt": "Iniciado a las {t}",
-      "running": "En proceso",
-      "detailsOfLastRun": "Detalles de la última ejecución",
-      "scheduled": "Programado por el sistema",
-      "apiTriggered": "Iniciado"
+      "reportGenerationHasBeenTriggered": "La generación del informe ha sido iniciada, aparecerá en la lista en breve",
+      "reportGenerationFailed": "La generación del informe falló, por favor inténtalo de nuevo"
     }
   },
-  "ReportsByDate": {
-    "title": "Informes regulatorios para {date}",
-    "description": "Todos los informes regulatorios generados para esta fecha",
-    "reportName": "Nombre del informe",
-    "actions": "Acciones",
-    "errorGeneratingLink": "Error al generar el enlace para el informe"
+  "ReportRun": {
+    "title": "Informes a fecha de {date}",
+    "state": {
+      "failed": "Fallido",
+      "queued": "En cola",
+      "running": "En ejecución",
+      "success": "Exitoso"
+    },
+    "noReportsAvailable": "No hay informes disponibles",
+    "norm": "Norma",
+    "name": "Nombre",
+    "download": "Descargar",
+    "errorGeneratingLink": "Error al generar el enlace de descarga"
   },
   "TrialBalance": {
     "title": "Balance de Comprobación",

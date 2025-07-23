@@ -48,8 +48,6 @@ impl From<DomainReportRunType> for ReportRunType {
 pub struct ReportRun {
     id: ID,
     report_run_id: UUID,
-    external_id: String,
-    created_at: Timestamp,
 
     #[graphql(skip)]
     pub entity: Arc<DomainReportRun>,
@@ -59,9 +57,7 @@ impl From<lana_app::report::ReportRun> for ReportRun {
     fn from(report_run: lana_app::report::ReportRun) -> Self {
         ReportRun {
             id: report_run.id.to_global_id(),
-            created_at: report_run.created_at().into(),
             report_run_id: UUID::from(report_run.id),
-            external_id: report_run.external_id.clone(),
             entity: Arc::new(report_run),
         }
     }
@@ -69,10 +65,6 @@ impl From<lana_app::report::ReportRun> for ReportRun {
 
 #[ComplexObject]
 impl ReportRun {
-    async fn execution_date(&self) -> Option<Timestamp> {
-        self.entity.execution_date.map(|dt| dt.into())
-    }
-
     async fn state(&self) -> Option<ReportRunState> {
         self.entity.state.map(|s| s.into())
     }
@@ -81,12 +73,8 @@ impl ReportRun {
         self.entity.run_type.map(|rt| rt.into())
     }
 
-    async fn start_date(&self) -> Option<Timestamp> {
+    async fn generated_at(&self) -> Option<Timestamp> {
         self.entity.start_date.map(|dt| dt.into())
-    }
-
-    async fn end_date(&self) -> Option<Timestamp> {
-        self.entity.end_date.map(|dt| dt.into())
     }
 
     async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {

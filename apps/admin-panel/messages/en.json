@@ -1483,23 +1483,43 @@
     "description": "Generate and manage regulatory reports, track their status, and download generated documents.",
     "availableReports": "Available Reports",
     "noReportsAvailable": "No reports available",
+    "listHeaders": {
+      "generatedAt": "Generated At",
+      "state": "State",
+      "runType": "Run Type"
+    },
+    "starting": "Starting...",
+    "listValues": {
+      "runType": {
+        "manual": "Manual",
+        "scheduled": "Scheduled"
+      },
+      "state": {
+        "queued": "Queued",
+        "running": "Running",
+        "failed": "Failed",
+        "success": "Success"
+      }
+    },
     "ReportGeneration": {
       "generate": "Generate",
-      "reportGenerationHasBeenTriggered": "Report generation has been triggered",
-      "reportGenerationFailed": "Report generation failed. Error {e}",
-      "startedAt": "Started at {t}",
-      "running": "Running",
-      "detailsOfLastRun": "Details of Last Run",
-      "scheduled": "Scheduled by system",
-      "apiTriggered": "Triggered"
+      "reportGenerationHasBeenTriggered": "Report generation has been triggered, it will appear in the list shortly",
+      "reportGenerationFailed": "Report generation failed, please retry"
     }
   },
-  "ReportsByDate": {
-    "title": "Regulator Reports for {date}",
-    "description": "All regulatory reports generated for this date",
-    "reportName": "Report Name",
-    "actions": "Actions",
-    "errorGeneratingLink": "Error generating link for report"
+  "ReportRun": {
+    "title": "Reports as of {date}",
+    "state": {
+      "failed": "Failed",
+      "queued": "Queued",
+      "running": "Running",
+      "success": "Success"
+    },
+    "noReportsAvailable": "No reports available",
+    "norm": "Norm",
+    "name": "Name",
+    "download": "Download",
+    "errorGeneratingLink": "Error generating download link"
   },
   "TrialBalance": {
     "title": "Trial Balance",

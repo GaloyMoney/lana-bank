@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 use super::super::loader::LanaDataLoader;
 
-pub use lana_app::report::{File, Report as DomainReport};
+pub use lana_app::report::{Report as DomainReport, ReportFile as DomainReportFile};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -37,14 +37,12 @@ impl From<lana_app::report::Report> for Report {
 #[derive(SimpleObject)]
 pub struct ReportFile {
     extension: String,
-    path_in_bucket: String,
 }
 
-impl From<File> for ReportFile {
-    fn from(file: File) -> Self {
+impl From<DomainReportFile> for ReportFile {
+    fn from(file: DomainReportFile) -> Self {
         ReportFile {
             extension: file.extension,
-            path_in_bucket: file.path_in_bucket,
         }
     }
 }
@@ -76,28 +74,13 @@ impl Report {
     }
 }
 
-#[derive(InputObject)]
-pub struct ReportCreateInput {
-    pub external_id: String,
-    pub run_id: UUID,
-    pub name: String,
-    pub norm: String,
-    pub files: Vec<ReportFileInput>,
+#[derive(SimpleObject)]
+pub struct ReportFileGenerateDownloadLinkPayload {
+    pub url: String,
 }
 
 #[derive(InputObject)]
-pub struct ReportFileInput {
+pub struct ReportFileGenerateDownloadLinkInput {
+    pub report_id: UUID,
     pub extension: String,
-    pub path_in_bucket: String,
 }
-
-impl From<ReportFileInput> for File {
-    fn from(input: ReportFileInput) -> Self {
-        File {
-            extension: input.extension,
-            path_in_bucket: input.path_in_bucket,
-        }
-    }
-}
-
-crate::mutation_payload! { ReportCreatePayload, report: Report }
