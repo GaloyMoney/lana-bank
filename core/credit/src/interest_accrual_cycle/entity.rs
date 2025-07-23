@@ -146,6 +146,20 @@ pub(crate) struct RevertedInterestAccrualData {
     pub(crate) effective: chrono::NaiveDate,
 }
 
+#[derive(Debug, Clone)]
+struct PostedCycleEventData {
+    ledger_tx_id: LedgerTxId,
+    amount: UsdCents,
+    effective: chrono::NaiveDate,
+}
+
+pub(crate) struct RevertedInterestCycleData {
+    pub(crate) total: UsdCents,
+    pub(crate) tx_ref: String,
+    pub(crate) tx_id: LedgerTxId,
+    pub(crate) effective: chrono::NaiveDate,
+}
+
 impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
     fn try_from_events(
         events: EntityEvents<InterestAccrualCycleEvent>,
@@ -472,6 +486,59 @@ impl InterestAccrualCycle {
             });
 
         Idempotent::Executed(Some(new_obligation))
+    }
+
+    fn last_unreverted_accrual_cycle(&self) -> Option<PostedCycleEventData> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            InterestAccrualCycleEvent::InterestAccrualsPosted {
+                ledger_tx_id,
+                total: amount,
+                effective,
+                ..
+            } if !self.is_reverted_event(ledger_tx_id) => Some(PostedCycleEventData {
+                ledger_tx_id: *ledger_tx_id,
+                amount: *amount,
+                effective: *effective,
+            }),
+            _ => None,
+        })
+    }
+
+    pub(crate) fn revert_accrual_cycle(
+        &mut self,
+        audit_info: AuditInfo,
+    ) -> Idempotent<RevertedInterestCycleData> {
+        let PostedCycleEventData {
+            ledger_tx_id: posted_ledger_tx_id,
+            amount,
+            effective,
+        } = match self.last_unreverted_accrual_cycle() {
+            Some(a) => a,
+            None => return Idempotent::Ignored,
+        };
+
+        let reverted_interest_accrual_cycle = RevertedInterestCycleData {
+            tx_id: LedgerTxId::new(),
+            tx_ref: format!(
+                "{}-reverted-interest-accrual-cycle-{}-{}",
+                self.id, self.idx, posted_ledger_tx_id
+            ),
+            total: amount,
+            effective,
+        };
+
+        self.events
+            .push(InterestAccrualCycleEvent::PostedInterestAccrualsReverted {
+                ledger_tx_id: reverted_interest_accrual_cycle.tx_id,
+                posted_ledger_tx_id,
+                tx_ref: reverted_interest_accrual_cycle.tx_ref.to_string(),
+                total: reverted_interest_accrual_cycle.total,
+                effective: reverted_interest_accrual_cycle.effective,
+                audit_info,
+            });
+        self.reverted_ledger_tx_ids.push(posted_ledger_tx_id);
+
+        Idempotent::Executed(reverted_interest_accrual_cycle)
     }
 }
 
@@ -997,6 +1064,87 @@ mod test {
         let mut accrual = accrual_from(events);
 
         assert!(accrual.revert_accrual(dummy_audit_info()).was_ignored());
+    }
+
+    #[test]
+    fn can_revert_accrual_cycle() {
+        let mut events = initial_events();
+
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+
+        let ledger_tx_id = LedgerTxId::new();
+        let amount = UsdCents::ONE;
+        let effective = first_accrual_at.date_naive();
+        events.push(InterestAccrualCycleEvent::InterestAccrualsPosted {
+            ledger_tx_id,
+            tx_ref: "".to_string(),
+            obligation_id: Some(ObligationId::new()),
+            total: amount,
+            effective,
+            audit_info: dummy_audit_info(),
+        });
+        let mut accrual = accrual_from(events);
+
+        assert!(
+            accrual
+                .revert_accrual_cycle(dummy_audit_info())
+                .did_execute()
+        );
+
+        let (tx_id, total, reverted_effective) = match accrual.events.iter_all().last() {
+            Some(InterestAccrualCycleEvent::PostedInterestAccrualsReverted {
+                posted_ledger_tx_id,
+                total,
+                effective,
+                ..
+            }) => (*posted_ledger_tx_id, *total, *effective),
+            _ => panic!("Expected last event to be AccruedInterestReverted"),
+        };
+        assert_eq!(ledger_tx_id, tx_id);
+        assert_eq!(amount, total);
+        assert_eq!(effective, reverted_effective);
+    }
+
+    #[test]
+    fn revert_accrual_cycle_ignored_if_last_posted_is_reverted() {
+        let mut events = initial_events();
+
+        let first_accrual_cycle_period = default_terms()
+            .accrual_interval
+            .period_from(default_started_at());
+        let first_accrual_at = first_accrual_cycle_period.end;
+
+        let ledger_tx_id = LedgerTxId::new();
+        let amount = UsdCents::ONE;
+        let effective = first_accrual_at.date_naive();
+        events.extend([
+            InterestAccrualCycleEvent::InterestAccrualsPosted {
+                ledger_tx_id,
+                tx_ref: "".to_string(),
+                obligation_id: Some(ObligationId::new()),
+                total: amount,
+                effective,
+                audit_info: dummy_audit_info(),
+            },
+            InterestAccrualCycleEvent::PostedInterestAccrualsReverted {
+                ledger_tx_id: LedgerTxId::new(),
+                posted_ledger_tx_id: ledger_tx_id,
+                tx_ref: "".to_string(),
+                total: amount,
+                effective,
+                audit_info: dummy_audit_info(),
+            },
+        ]);
+        let mut accrual = accrual_from(events);
+
+        assert!(
+            accrual
+                .revert_accrual_cycle(dummy_audit_info())
+                .was_ignored()
+        );
     }
 
     #[test]
