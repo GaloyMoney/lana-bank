@@ -1177,12 +1177,10 @@ name = "core-applicant"
 version = "0.3.754-dev"
 dependencies = [
  "async-graphql",
- "async-trait",
  "audit",
  "authz",
  "chrono",
  "core-customer",
- "core-money",
  "es-entity",
  "job",
  "lana-events",
@@ -3129,7 +3127,6 @@ dependencies = [
  "derive_builder",
  "document-storage",
  "es-entity",
- "futures",
  "gcp-bigquery-client",
  "gcp_auth",
  "governance",

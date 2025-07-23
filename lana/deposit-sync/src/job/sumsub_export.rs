@@ -18,7 +18,7 @@ use sumsub::SumsubClient;
 use job::*;
 use lana_events::LanaEvent;
 
-use crate::{config::*, error::DepositSyncError};
+use crate::error::DepositSyncError;
 
 /// Job configuration for Sumsub export
 pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("sumsub-export");
@@ -168,7 +168,6 @@ where
     outbox: Outbox<E>,
     transaction_exporter: SumsubTransactionExporter,
     deposits: CoreDeposit<Perms, E>,
-    config: DepositSyncConfig,
 }
 
 impl<Perms, E> SumsubExportInit<Perms, E>
@@ -183,13 +182,11 @@ where
         outbox: &Outbox<E>,
         transaction_exporter: SumsubTransactionExporter,
         deposits: &CoreDeposit<Perms, E>,
-        config: DepositSyncConfig,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             transaction_exporter,
             deposits: deposits.clone(),
-            config,
         }
     }
 }
@@ -218,7 +215,6 @@ where
             outbox: self.outbox.clone(),
             transaction_exporter: self.transaction_exporter.clone(),
             deposits: self.deposits.clone(),
-            config: self.config.clone(),
         }))
     }
 
@@ -246,7 +242,6 @@ where
     outbox: Outbox<E>,
     transaction_exporter: SumsubTransactionExporter,
     deposits: CoreDeposit<Perms, E>,
-    config: DepositSyncConfig,
 }
 
 #[async_trait]
@@ -267,10 +262,6 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if !self.config.sumsub_export_enabled {
-            return Ok(JobCompletion::RescheduleNow);
-        }
-
         let mut state = current_job
             .execution_state::<SumsubExportJobState>()?
             .unwrap_or_default();

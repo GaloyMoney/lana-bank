@@ -18,7 +18,6 @@ sumsub-testing = ["sumsub/sumsub-testing"]
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 core-customer = { path = "../customer" }
-core-money = { path = "../money" }
 rbac-types = { path = "../../lana/rbac-types" }
 
 lana-events = { path = "../../lana/events" }
@@ -37,6 +36,5 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
-async-trait = { workspace = true }
 
 async-graphql = { workspace = true, optional = true } 

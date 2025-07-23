@@ -71,11 +71,13 @@ where
     ) -> Result<Self, DepositSyncError> {
         let transaction_exporter = SumsubTransactionExporter::new(sumsub_client);
 
-        jobs.add_initializer_and_spawn_unique(
-            SumsubExportInit::new(outbox, transaction_exporter, deposits, config),
-            SumsubExportJobConfig::<Perms, E>::new(),
-        )
-        .await?;
+        if config.sumsub_export_enabled {
+            jobs.add_initializer_and_spawn_unique(
+                SumsubExportInit::new(outbox, transaction_exporter, deposits),
+                SumsubExportJobConfig::<Perms, E>::new(),
+            )
+            .await?;
+        }
 
         Ok(Self {
             _phantom: std::marker::PhantomData,
