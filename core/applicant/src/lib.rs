@@ -316,14 +316,17 @@ where
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
-        sub: &Subject,
+        // TODO: do proper audit
+        _sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-        level_name: &str,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+        let level: SumsubVerificationLevel = customer.customer_type.into();
+
         self.sumsub_client
-            .create_permalink(customer_id, level_name)
+            .create_permalink(customer_id, &level.to_string())
             .await
     }
 

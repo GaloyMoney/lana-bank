@@ -927,7 +927,6 @@ impl Mutation {
             .create_permalink(
                 sub,
                 lana_app::primitives::CustomerId::from(input.customer_id),
-                "basic-kyc-level",
             )
             .await?;
         Ok(SumsubPermalinkCreatePayload { url: permalink.url })
