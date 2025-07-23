@@ -120,7 +120,7 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
         let (full_name, address, country) = if customer.applicant_id.is_some() {
             match self
                 .applicants
-                .get_applicant_info(&rbac_types::Subject::System, self.config.customer_id)
+                .get_applicant_info(&crate::primitives::Subject::System, self.config.customer_id)
                 .await
             {
                 Ok(applicant_info) => (
