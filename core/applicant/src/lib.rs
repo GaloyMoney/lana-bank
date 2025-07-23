@@ -8,9 +8,6 @@ mod repo;
 mod sumsub_auth;
 pub mod transaction_export;
 
-#[cfg(feature = "sumsub-testing")]
-pub mod sumsub_testing_utils;
-
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
 use tracing::instrument;
@@ -151,7 +148,6 @@ pub struct ReviewResult {
     pub review_reject_type: Option<String>,
 }
 
-/// Applicants service
 #[derive(Clone)]
 pub struct Applicants {
     sumsub_client: SumsubClient,
