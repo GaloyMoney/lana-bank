@@ -9,6 +9,7 @@ import { WithdrawalStatusBadge } from "../status-badge"
 
 import { WithdrawalConfirmDialog } from "./confirm"
 import { WithdrawalCancelDialog } from "./cancel"
+import { WithdrawalRevertDialog } from "./revert"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
@@ -31,6 +32,9 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
     GetWithdrawalDetailsQuery["withdrawal"] | null
   >(null)
   const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] = useState<
+    GetWithdrawalDetailsQuery["withdrawal"] | null
+  >(null)
+  const [openWithdrawalRevertDialog, setOpenWithdrawalRevertDialog] = useState<
     GetWithdrawalDetailsQuery["withdrawal"] | null
   >(null)
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
@@ -94,6 +98,15 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
           </Button>
         </>
       )}
+      {withdrawal.status === WithdrawalStatus.Confirmed && (
+        <Button
+          data-testid="withdraw-revert-button"
+          variant="outline"
+          onClick={() => setOpenWithdrawalRevertDialog(withdrawal)}
+        >
+          {t("buttons.revert")}
+        </Button>
+      )}
       {withdrawal?.approvalProcess.status === ApprovalProcessStatus.InProgress &&
         withdrawal.approvalProcess.subjectCanSubmitDecision && (
           <>
@@ -138,6 +151,13 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
           withdrawalData={openWithdrawalCancelDialog}
           openWithdrawalCancelDialog={Boolean(openWithdrawalCancelDialog)}
           setOpenWithdrawalCancelDialog={() => setOpenWithdrawalCancelDialog(null)}
+        />
+      )}
+      {openWithdrawalRevertDialog && (
+        <WithdrawalRevertDialog
+          withdrawalData={openWithdrawalRevertDialog}
+          openWithdrawalRevertDialog={Boolean(openWithdrawalRevertDialog)}
+          setOpenWithdrawalRevertDialog={() => setOpenWithdrawalRevertDialog(null)}
         />
       )}
       <ApprovalDialog

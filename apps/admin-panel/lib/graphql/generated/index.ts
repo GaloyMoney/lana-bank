@@ -3167,6 +3167,13 @@ export type GetWithdrawalDetailsQueryVariables = Exact<{
 
 export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } | null };
 
+export type WithdrawalRevertMutationVariables = Exact<{
+  input: WithdrawalRevertInput;
+}>;
+
+
+export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, subjectCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role?: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } | null } }> } } } };
+
 export type WithdrawalInitiateMutationVariables = Exact<{
   input: WithdrawalInitiateInput;
 }>;
@@ -7868,6 +7875,41 @@ export type GetWithdrawalDetailsQueryHookResult = ReturnType<typeof useGetWithdr
 export type GetWithdrawalDetailsLazyQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsLazyQuery>;
 export type GetWithdrawalDetailsSuspenseQueryHookResult = ReturnType<typeof useGetWithdrawalDetailsSuspenseQuery>;
 export type GetWithdrawalDetailsQueryResult = Apollo.QueryResult<GetWithdrawalDetailsQuery, GetWithdrawalDetailsQueryVariables>;
+export const WithdrawalRevertDocument = gql`
+    mutation WithdrawalRevert($input: WithdrawalRevertInput!) {
+  withdrawalRevert(input: $input) {
+    withdrawal {
+      ...WithdrawDetailsPageFragment
+    }
+  }
+}
+    ${WithdrawDetailsPageFragmentFragmentDoc}`;
+export type WithdrawalRevertMutationFn = Apollo.MutationFunction<WithdrawalRevertMutation, WithdrawalRevertMutationVariables>;
+
+/**
+ * __useWithdrawalRevertMutation__
+ *
+ * To run a mutation, you first call `useWithdrawalRevertMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useWithdrawalRevertMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [withdrawalRevertMutation, { data, loading, error }] = useWithdrawalRevertMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useWithdrawalRevertMutation(baseOptions?: Apollo.MutationHookOptions<WithdrawalRevertMutation, WithdrawalRevertMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<WithdrawalRevertMutation, WithdrawalRevertMutationVariables>(WithdrawalRevertDocument, options);
+      }
+export type WithdrawalRevertMutationHookResult = ReturnType<typeof useWithdrawalRevertMutation>;
+export type WithdrawalRevertMutationResult = Apollo.MutationResult<WithdrawalRevertMutation>;
+export type WithdrawalRevertMutationOptions = Apollo.BaseMutationOptions<WithdrawalRevertMutation, WithdrawalRevertMutationVariables>;
 export const WithdrawalInitiateDocument = gql`
     mutation WithdrawalInitiate($input: WithdrawalInitiateInput!) {
   withdrawalInitiate(input: $input) {

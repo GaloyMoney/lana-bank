@@ -1133,6 +1133,22 @@
           "unknown": "Ocurrió un error desconocido"
         }
       },
+      "WithdrawalRevertDialog": {
+        "title": "Revertir Retiro",
+        "description": "¿Está seguro de que desea revertir este retiro?",
+        "fields": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "amount": "Monto"
+        },
+        "buttons": {
+          "revert": "Revertir"
+        },
+        "success": "Retiro revertido exitosamente",
+        "errors": {
+          "noData": "No se recibieron datos de la mutación",
+          "unknown": "Ocurrió un error desconocido"
+        }
+      },
       "WithdrawalDetailsCard": {
         "title": "Retiro",
         "fields": {
@@ -1149,7 +1165,8 @@
           "confirm": "Confirmar",
           "cancel": "Cancelar",
           "approve": "Aprobar",
-          "deny": "Rechazar"
+          "deny": "Rechazar",
+          "revert": "Revertir"
         }
       }
     },

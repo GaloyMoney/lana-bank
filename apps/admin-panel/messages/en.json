@@ -1133,6 +1133,22 @@
           "unknown": "An unknown error occurred"
         }
       },
+      "WithdrawalRevertDialog": {
+        "title": "Revert Withdrawal",
+        "description": "Are you sure you want to revert this withdrawal?",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "amount": "Amount"
+        },
+        "buttons": {
+          "revert": "Revert"
+        },
+        "success": "Withdrawal reverted successfully",
+        "errors": {
+          "noData": "No data returned from mutation",
+          "unknown": "An unknown error occurred"
+        }
+      },
       "WithdrawalDetailsCard": {
         "title": "Withdrawal",
         "fields": {
@@ -1149,7 +1165,8 @@
           "confirm": "Confirm",
           "cancel": "Cancel",
           "approve": "Approve",
-          "deny": "Deny"
+          "deny": "Deny",
+          "revert": "Revert"
         }
       }
     },
