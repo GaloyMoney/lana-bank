@@ -70,8 +70,12 @@ impl FromStr for AccountName {
         if trimmed.is_empty() {
             return Err(AccountNameParseError::Empty);
         }
-        if trimmed.chars().next().unwrap().is_ascii_digit() {
-            return Err(AccountNameParseError::StartsWithDigit);
+        if let Some(first_char) = trimmed.chars().next() {
+            if first_char.is_ascii_digit() {
+                return Err(AccountNameParseError::StartsWithDigit);
+            }
+        } else {
+            return Err(AccountNameParseError::Empty);
         }
         Ok(AccountName {
             name: trimmed.to_string(),
