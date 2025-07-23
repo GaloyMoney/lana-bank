@@ -1,45 +1,80 @@
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
-import { formatDate, toISODateString } from "@lana/web/utils"
+import { formatDate } from "@lana/web/utils"
 
-import DataTable, { Column } from "@/components/data-table"
-import { useReportListAvailableDatesQuery } from "@/lib/graphql/generated"
-import { TableLoadingSkeleton } from "@/components/table-loading-skeleton"
+import { ReportRun, useReportRunsQuery } from "@/lib/graphql/generated"
+
+import PaginatedTable, {
+  Column,
+  DEFAULT_PAGESIZE,
+  PaginatedData,
+} from "@/components/paginated-table"
 
 gql`
-  query reportListAvailableDates {
-    reportListAvailableDates
+  query ReportRuns($first: Int!, $after: String) {
+    reportRuns(first: $first, after: $after) {
+      edges {
+        cursor
+        node {
+          id
+          reportRunId
+          generatedAt
+          runType
+          state
+        }
+      }
+      pageInfo {
+        endCursor
+        startCursor
+        hasNextPage
+        hasPreviousPage
+      }
+    }
   }
 `
 
-const AvailableDatesForReport: React.FC = () => {
+const AvailableReportRuns: React.FC = () => {
   const t = useTranslations("Reports")
 
-  const { data, loading, error } = useReportListAvailableDatesQuery()
+  const { data, loading, error, fetchMore } = useReportRunsQuery({
+    variables: {
+      first: DEFAULT_PAGESIZE,
+    },
+    pollInterval: 5000,
+  })
 
-  const dates = (data?.reportListAvailableDates || []).map((date) => new Date(date))
-
-  const columns: Column<Date>[] = [
+  const columns: Column<ReportRun>[] = [
     {
-      key: "getDate",
-      header: t("availableReports"),
-      render: (_, date) => formatDate(date, { includeTime: false }),
+      key: "generatedAt",
+      label: t("listHeaders.generatedAt"),
+      render: (date) => (date ? formatDate(date) : t("starting")),
+    },
+    {
+      key: "runType",
+      label: t("listHeaders.runType"),
+      render: (runType) => runType && t(`listValues.runType.${runType?.toLowerCase()}`),
+    },
+    {
+      key: "state",
+      label: t("listHeaders.state"),
+      render: (state) => state && t(`listValues.state.${state?.toLowerCase()}`),
     },
   ]
-
-  if (loading) return <TableLoadingSkeleton columns={2} />
 
   return (
     <div>
       {error && <p className="text-destructive text-sm">{error?.message}</p>}
-      <DataTable<Date>
-        data={dates}
+      <PaginatedTable<ReportRun>
         columns={columns}
-        navigateTo={(date) => `/regulatory-reporting/${toISODateString(date)}`}
+        data={data?.reportRuns as PaginatedData<ReportRun>}
+        loading={!data && loading}
+        pageSize={DEFAULT_PAGESIZE}
+        fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
+        navigateTo={(reportRun) => `/regulatory-reporting/${reportRun.reportRunId}`}
       />
     </div>
   )
 }
 
-export { AvailableDatesForReport }
+export { AvailableReportRuns }

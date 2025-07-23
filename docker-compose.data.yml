@@ -19,6 +19,8 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
+      AIRFLOW__CORE__DEFAULT_TASK_RETRIES: 0
+      AIRFLOW__CORE__DEFAULT_TASK_RETRY_DELAY: 0
       TAP_POSTGRES_HOST: core-pg
       TAP_POSTGRES_PORT: 5432
       TARGET_BIGQUERY_CREDENTIALS_JSON: ${TARGET_BIGQUERY_CREDENTIALS_JSON}
@@ -44,6 +46,8 @@ services:
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
+      AIRFLOW__CORE__DEFAULT_TASK_RETRIES: 0
+      AIRFLOW__CORE__DEFAULT_TASK_RETRY_DELAY: 0
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
 

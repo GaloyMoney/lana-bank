@@ -30,9 +30,6 @@ impl ReportObject {
             None => ReportObject::all_reports(),
         }
     }
-    pub fn all_report_runs() -> ReportObject {
-        ReportObject::Report(AllOrOne::All)
-    }
 }
 
 impl Display for ReportObject {
@@ -70,9 +67,6 @@ pub enum CoreReportAction {
 
 impl CoreReportAction {
     pub const REPORT_GENERATE: Self = CoreReportAction::Report(ReportEntityAction::Generate);
-    pub const REPORT_GENERATION_STATUS_READ: Self =
-        CoreReportAction::Report(ReportEntityAction::GenerationStatusRead);
-    pub const REPORT_SYNC: Self = CoreReportAction::Report(ReportEntityAction::Sync);
     pub const REPORT_READ: Self = CoreReportAction::Report(ReportEntityAction::Read);
 
     pub fn entities() -> Vec<(
@@ -99,9 +93,7 @@ impl CoreReportAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ReportEntityAction {
     Generate,
-    GenerationStatusRead,
     Read,
-    Sync,
 }
 
 impl ReportEntityAction {
@@ -111,18 +103,10 @@ impl ReportEntityAction {
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
                 Self::Generate => ActionDescription::new(variant, &[PERMISSION_SET_REPORT_WRITER]),
-
-                Self::GenerationStatusRead => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_REPORT_VIEWER, PERMISSION_SET_REPORT_WRITER],
-                ),
-
                 Self::Read => ActionDescription::new(
                     variant,
                     &[PERMISSION_SET_REPORT_VIEWER, PERMISSION_SET_REPORT_WRITER],
                 ),
-
-                Self::Sync => ActionDescription::new(variant, &[PERMISSION_SET_REPORT_WRITER]),
             };
             res.push(action_description);
         }

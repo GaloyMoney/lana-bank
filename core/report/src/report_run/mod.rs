@@ -78,4 +78,8 @@ where
     {
         self.repo.list_by_created_at(query, direction).await
     }
+
+    pub async fn find_by_id(&self, id: ReportRunId) -> Result<ReportRun, ReportRunError> {
+        self.repo.find_by_id(id).await
+    }
 }

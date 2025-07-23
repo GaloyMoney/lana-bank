@@ -421,6 +421,7 @@ CREATE TABLE core_report_events (
 
 CREATE TABLE core_report_runs (
   id UUID PRIMARY KEY,
+  external_id VARCHAR NOT NULL UNIQUE,
   created_at TIMESTAMPTZ NOT NULL
 );
 

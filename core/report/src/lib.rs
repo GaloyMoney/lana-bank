@@ -25,12 +25,12 @@ pub use crate::airflow::config::AirflowConfig;
 pub use error::ReportError;
 pub use event::CoreReportEvent;
 pub use primitives::*;
-pub use report::{File, Report, ReportsByCreatedAtCursor};
+pub use report::{Report, ReportFile, ReportsByCreatedAtCursor};
 pub use report_run::{ReportRun, ReportRunState, ReportRunType, ReportRunsByCreatedAtCursor};
 
 use jobs::{
     FindNewReportRunJobConfig, FindNewReportRunJobInit, MonitorReportRunJobInit,
-    TriggerReportRunJobInit,
+    TriggerReportRunJobConfig, TriggerReportRunJobInit,
 };
 use report::Reports;
 use report_run::ReportRuns;
@@ -142,7 +142,7 @@ where
         self.authz
             .enforce_permission(
                 sub,
-                ReportObject::all_report_runs(),
+                ReportObject::all_reports(),
                 CoreReportAction::REPORT_READ,
             )
             .await?;
@@ -168,5 +168,85 @@ where
             .list_for_run_id(run_id)
             .await
             .map_err(ReportError::from)
+    }
+
+    pub async fn find_report_run_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ReportRunId> + std::fmt::Debug,
+    ) -> Result<Option<ReportRun>, ReportError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+
+        match self.report_runs.find_by_id(id).await {
+            Ok(report_run) => Ok(Some(report_run)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    pub async fn trigger_report_run(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    ) -> Result<(), ReportError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::all_reports(),
+                CoreReportAction::REPORT_GENERATE,
+            )
+            .await?;
+
+        let mut db = self.report_runs.repo().begin_op().await?;
+        self.jobs
+            .create_and_spawn_in_op(
+                &mut db,
+                job::JobId::new(),
+                TriggerReportRunJobConfig::<Perms, E>::new(),
+            )
+            .await?;
+        db.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn generate_report_file_download_link(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        report_id: impl Into<ReportId> + std::fmt::Debug,
+        extension: String,
+    ) -> Result<String, ReportError> {
+        let report_id = report_id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                ReportObject::Report(AllOrOne::ById(report_id)),
+                CoreReportAction::REPORT_READ,
+            )
+            .await?;
+
+        let report = match self.reports.find_by_id(report_id).await {
+            Ok(report) => report,
+            Err(e) if e.was_not_found() => return Err(ReportError::NotFound),
+            Err(e) => return Err(e.into()),
+        };
+
+        let file = match report.files.iter().find(|f| f.extension == extension) {
+            Some(file) => file,
+            None => return Err(ReportError::NotFound),
+        };
+
+        let location = cloud_storage::LocationInStorage {
+            path: &file.path_in_bucket,
+        };
+
+        let download_link = self.storage.generate_download_link(location).await?;
+        Ok(download_link)
     }
 }

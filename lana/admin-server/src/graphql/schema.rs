@@ -882,6 +882,15 @@ impl Query {
             |query| app.reports().list_report_runs(sub, query)
         )
     }
+
+    async fn report_run(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<ReportRun>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(ReportRun, ctx, app.reports().find_report_run_by_id(sub, id))
+    }
 }
 
 pub struct Mutation;
@@ -1938,5 +1947,24 @@ impl Mutation {
             .generate_document_download_link(sub, input.loan_agreement_id)
             .await?;
         Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
+    }
+
+    async fn trigger_report_run(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        app.reports().trigger_report_run(sub).await?;
+        Ok(true)
+    }
+
+    async fn report_file_generate_download_link(
+        &self,
+        ctx: &Context<'_>,
+        input: ReportFileGenerateDownloadLinkInput,
+    ) -> async_graphql::Result<ReportFileGenerateDownloadLinkPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let url = app
+            .reports()
+            .generate_report_file_download_link(sub, input.report_id, input.extension)
+            .await?;
+        Ok(ReportFileGenerateDownloadLinkPayload { url })
     }
 }

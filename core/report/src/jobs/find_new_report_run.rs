@@ -137,7 +137,7 @@ where
         let next_runs = self.airflow.list_runs(Some(1), state.run_id).await?;
 
         for run in next_runs.into_iter() {
-            let report_run = self
+            let report_run = match self
                 .report_runs
                 .repo()
                 .create(
@@ -146,7 +146,19 @@ where
                         .build()
                         .expect("Failed to create NewReportRun"),
                 )
-                .await?;
+                .await
+            {
+                Ok(report_run) => report_run,
+                Err(e)
+                    if e.to_string()
+                        .contains("duplicate key value violates unique constraint") =>
+                {
+                    return Ok(JobCompletion::Complete);
+                }
+                Err(e) => {
+                    return Err(e.into());
+                }
+            };
 
             let mut db = self.report_runs.repo().begin_op().await?;
             self.jobs

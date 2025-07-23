@@ -10,7 +10,7 @@ import {
 } from "@lana/web/ui/card"
 
 import { ReportGeneration } from "./generate"
-import { AvailableDatesForReport } from "./list"
+import { AvailableReportRuns } from "./list"
 
 const RegulatorReportingPage: React.FC = () => {
   const t = useTranslations("Reports")
@@ -25,7 +25,7 @@ const RegulatorReportingPage: React.FC = () => {
         <ReportGeneration />
       </CardHeader>
       <CardContent>
-        <AvailableDatesForReport />
+        <AvailableReportRuns />
       </CardContent>
     </Card>
   )

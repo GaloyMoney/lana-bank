@@ -1,33 +1,19 @@
 import type { Meta, StoryObj } from "@storybook/nextjs"
 import { MockedProvider } from "@apollo/client/testing"
-import { toISODateString } from "@lana/web/utils"
 
 import RegulatoryReportingPage from "./page"
 
-import faker from "@/.storybook/faker"
+import { ReportRunsDocument } from "@/lib/graphql/generated"
+import { mockReportRunConnection } from "@/lib/graphql/generated/mocks"
 
-import { ReportListAvailableDatesDocument } from "@/lib/graphql/generated"
-
-const createRandomReportDates = () => {
-  const count = faker.number.int({ min: 3, max: 6 })
-
-  return Array.from({ length: count }, () => {
-    const date = faker.date.recent({ days: 30 })
-    return toISODateString(date)
-  })
+const one = {
+  request: { query: ReportRunsDocument, variables: { first: 10 } },
+  result: { data: { reportRuns: mockReportRunConnection() } },
 }
 
 const baseMocks = [
-  {
-    request: {
-      query: ReportListAvailableDatesDocument,
-    },
-    result: {
-      data: {
-        reportListAvailableDates: createRandomReportDates(),
-      },
-    },
-  },
+  // polling consumes one mock every request
+  ...Array.from({ length: 100 }, () => one),
 ]
 
 const meta = {
@@ -65,7 +51,7 @@ const LoadingStory = () => {
   const mocks = [
     {
       request: {
-        query: ReportListAvailableDatesDocument,
+        query: ReportRunsDocument,
       },
       delay: Infinity,
     },
