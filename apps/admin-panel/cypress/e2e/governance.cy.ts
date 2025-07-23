@@ -121,7 +121,7 @@ describe("Governance Test", () => {
           .should("be.visible")
           .should(
             "have.text",
-            t("Withdrawals.WithdrawalStatus.pendingApproval").toUpperCase(),
+            t("Withdrawals.WithdrawalStatus.pending_approval").toUpperCase(),
           )
         cy.takeScreenshot("17_step-verify-pending-withdrawal")
       })
@@ -139,7 +139,7 @@ describe("Governance Test", () => {
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
           if (
             badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pendingApproval").toUpperCase()
+            t("Withdrawals.WithdrawalStatus.pending_approval").toUpperCase()
           ) {
             cy.get('[data-testid="approval-process-approve-button"]').click()
             cy.takeScreenshot("19_step-click-approve-button")
@@ -153,11 +153,11 @@ describe("Governance Test", () => {
               .invoke("text")
               .should(
                 "eq",
-                t("Withdrawals.WithdrawalStatus.pendingConfirmation").toUpperCase(),
+                t("Withdrawals.WithdrawalStatus.pending_confirmation").toUpperCase(),
               )
           } else if (
             badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pendingConfirmation").toUpperCase()
+            t("Withdrawals.WithdrawalStatus.pending_confirmation").toUpperCase()
           ) {
             throw new Error("State is Pending Confirmation")
           } else {
@@ -179,7 +179,7 @@ describe("Governance Test", () => {
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
           if (
             badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pendingApproval").toUpperCase()
+            t("Withdrawals.WithdrawalStatus.pending_approval").toUpperCase()
           ) {
             cy.get('[data-testid="approval-process-deny-button"]').click()
             cy.takeScreenshot("22_step-click-deny-button")
@@ -195,7 +195,7 @@ describe("Governance Test", () => {
               .should("eq", t("Withdrawals.WithdrawalStatus.denied").toUpperCase())
           } else if (
             badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pendingConfirmation").toUpperCase()
+            t("Withdrawals.WithdrawalStatus.pending_confirmation").toUpperCase()
           ) {
             throw new Error("State is Pending Confirmation")
           } else {
