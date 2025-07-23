@@ -333,7 +333,7 @@ where
     #[instrument(name = "applicant.get_applicant_info", skip(self))]
     pub async fn get_applicant_info(
         &self,
-        // TODO: do proper audit
+        // TODO: log audit
         _sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<ApplicantInfo, ApplicantError> {
@@ -357,7 +357,6 @@ where
     pub async fn create_complete_test_applicant(
         &self,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
-        level_name: &str,
     ) -> Result<String, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
