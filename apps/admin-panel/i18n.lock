@@ -649,6 +649,14 @@ checksums:
     Withdrawals/WithdrawDetails/WithdrawalConfirmDialog/success: bf5df62429683cbe350b29f1e788f094
     Withdrawals/WithdrawDetails/WithdrawalConfirmDialog/errors/noData: 15bbd3de8bd8d4529675467807b4427b
     Withdrawals/WithdrawDetails/WithdrawalConfirmDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/title: 9a1c98b5d299d563486a2797a428f683
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/description: 082e3257a7b4e74722c5e6d6058366eb
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/fields/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/buttons/revert: 9666b5975a819f9047570234a7c409f8
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/success: bc42d515c6db93dc2fc941c7ddfa1eae
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/errors/noData: 15bbd3de8bd8d4529675467807b4427b
+    Withdrawals/WithdrawDetails/WithdrawalRevertDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/title: 90991ef39c923572c15cac977346ee77
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/fields/withdrawalId: c8886d38aeea2ed5f785aba4fc96784b
@@ -660,6 +668,7 @@ checksums:
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
+    Withdrawals/WithdrawDetails/WithdrawalDetailsCard/buttons/revert: 9666b5975a819f9047570234a7c409f8
     Withdrawals/WithdrawalInitiateDialog/title: 0c0c54cd536cb862be7e3c3bdb64745e
     Withdrawals/WithdrawalInitiateDialog/description: 6a9a298fc0df7f3eff2d0fd83742e86d
     Withdrawals/WithdrawalInitiateDialog/creatingFor: 84d0d42f142bf61d2b619d6dad3151ef
