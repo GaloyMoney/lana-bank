@@ -600,7 +600,11 @@ checksums:
     Deposits/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
     Deposits/table/headers/reference: fbba6b416a620e774c0fa80e167e5d46
     Deposits/table/headers/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Deposits/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     Deposits/table/errors/general: e3155209ffd73b29a4f09be76592d8e7
+    Deposits/table/values/na: 0f9c9f00cd99d49b710b4e4cfd8fe85c
+    Deposits/DepositStatus/confirmed: f9fba8b0dea06eb2ac38665b8d76e48c
+    Deposits/DepositStatus/reverted: 53eae991796f30a525fe3dcfccaf3dec
     Deposits/CreateDepositDialog/title: b742a978d97b624c0afc16dacc7dfbb5
     Deposits/CreateDepositDialog/description: f59e63cf5afa74bcf751ec138c5bd542
     Deposits/CreateDepositDialog/creatingFor: d4024b0ec68285c1d09f063355012a81
@@ -613,6 +617,23 @@ checksums:
     Deposits/CreateDepositDialog/success: 1b7d450545ef6e8ee0258cca0fcb78f6
     Deposits/CreateDepositDialog/errors/noData: 15bbd3de8bd8d4529675467807b4427b
     Deposits/CreateDepositDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    Deposits/DepositDetails/DepositRevertDialog/title: 3b086b4b0164b5b98222d7ba72f76c81
+    Deposits/DepositDetails/DepositRevertDialog/description: b5840220325467a0576dd4bfd92e69e3
+    Deposits/DepositDetails/DepositRevertDialog/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
+    Deposits/DepositDetails/DepositRevertDialog/fields/amount: a0ae9c6ff98b57475cdce56f66066aa4
+    Deposits/DepositDetails/DepositRevertDialog/buttons/revert: 9666b5975a819f9047570234a7c409f8
+    Deposits/DepositDetails/DepositRevertDialog/success: f8ae0969af6403efc74355d140d8dddc
+    Deposits/DepositDetails/DepositRevertDialog/errors/noData: 15bbd3de8bd8d4529675467807b4427b
+    Deposits/DepositDetails/DepositRevertDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    Deposits/DepositDetails/DepositDetailsCard/title: e233d53e369427d12f87d610bcf56ccb
+    Deposits/DepositDetails/DepositDetailsCard/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93
+    Deposits/DepositDetails/DepositDetailsCard/fields/depositId: c8886d38aeea2ed5f785aba4fc96784b
+    Deposits/DepositDetails/DepositDetailsCard/fields/depositAmount: a0fcd7093bb36340aba5b55731b1ce35
+    Deposits/DepositDetails/DepositDetailsCard/fields/depositReference: b9daf9af35db6a4444de4ce5471dfa6c
+    Deposits/DepositDetails/DepositDetailsCard/fields/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Deposits/DepositDetails/DepositDetailsCard/fields/status: 4e1fcce15854d824919b4a582c697c90
+    Deposits/DepositDetails/DepositDetailsCard/values/na: 0f9c9f00cd99d49b710b4e4cfd8fe85c
+    Deposits/DepositDetails/DepositDetailsCard/buttons/revert: 9666b5975a819f9047570234a7c409f8
     Withdrawals/title: 4f557c00affbc9ba31b380c6c9b39156
     Withdrawals/description: 4f7906ac0f68f580ad77ce69816d9b22
     Withdrawals/table/headers/withdrawalId: c8886d38aeea2ed5f785aba4fc96784b
@@ -622,11 +643,12 @@ checksums:
     Withdrawals/table/headers/status: 4e1fcce15854d824919b4a582c697c90
     Withdrawals/table/errors/general: 75095361ea483b28314895ee30ed76e0
     Withdrawals/table/values/na: 0f9c9f00cd99d49b710b4e4cfd8fe85c
-    Withdrawals/WithdrawalStatus/pendingApproval: b25ca494ba78b23ced54002ba14c0bac
-    Withdrawals/WithdrawalStatus/pendingConfirmation: 3792acdb5e8cc1451fb55085d8f08512
+    Withdrawals/WithdrawalStatus/pending_approval: b25ca494ba78b23ced54002ba14c0bac
+    Withdrawals/WithdrawalStatus/pending_confirmation: 3792acdb5e8cc1451fb55085d8f08512
     Withdrawals/WithdrawalStatus/confirmed: f9fba8b0dea06eb2ac38665b8d76e48c
     Withdrawals/WithdrawalStatus/cancelled: a2bf1284fcc69487979e3c21bd5e840b
     Withdrawals/WithdrawalStatus/denied: 14571edbcf40a34ba476a0e9feb16009
+    Withdrawals/WithdrawalStatus/reverted: 53eae991796f30a525fe3dcfccaf3dec
     Withdrawals/WithdrawDetails/WithdrawalCancelDialog/title: 5d7810a76ec776c311099bb1ea2e2db2
     Withdrawals/WithdrawDetails/WithdrawalCancelDialog/description: e78ab80422c6c601582edf8378da4bb7
     Withdrawals/WithdrawDetails/WithdrawalCancelDialog/fields/customerEmail: ebca1f74384e364c0bbc0782c0b14d93

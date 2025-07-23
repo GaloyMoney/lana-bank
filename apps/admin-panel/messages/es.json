@@ -1036,11 +1036,19 @@
         "depositId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
-        "amount": "Monto"
+        "amount": "Monto",
+        "status": "Estado"
       },
       "errors": {
         "general": "Ocurrió un error al obtener los depósitos."
+      },
+      "values": {
+        "na": "N/A"
       }
+    },
+    "DepositStatus": {
+      "confirmed": "Confirmado",
+      "reverted": "Revertido"
     },
     "CreateDepositDialog": {
       "title": "Crear Depósito",
@@ -1063,6 +1071,41 @@
         "noData": "No se devolvieron datos de la mutación",
         "unknown": "Ocurrió un error desconocido"
       }
+    },
+    "DepositDetails": {
+      "DepositRevertDialog": {
+        "title": "Revertir Depósito",
+        "description": "¿Está seguro de que desea revertir este depósito?",
+        "fields": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "amount": "Monto"
+        },
+        "buttons": {
+          "revert": "Revertir"
+        },
+        "success": "Depósito revertido exitosamente",
+        "errors": {
+          "noData": "No se recibieron datos de la mutación",
+          "unknown": "Ocurrió un error desconocido"
+        }
+      },
+      "DepositDetailsCard": {
+        "title": "Depósito",
+        "fields": {
+          "customerEmail": "Correo Electrónico del Cliente",
+          "depositId": "ID",
+          "depositAmount": "Monto del Depósito",
+          "depositReference": "Referencia del Depósito",
+          "createdAt": "Fecha de Creación",
+          "status": "Estado"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "revert": "Revertir"
+        }
+      }
     }
   },
   "Withdrawals": {
@@ -1084,11 +1127,12 @@
       }
     },
     "WithdrawalStatus": {
-      "pendingApproval": "Aprobación Pendiente",
-      "pendingConfirmation": "Confirmación Pendiente",
+      "pending_approval": "Aprobación Pendiente",
+      "pending_confirmation": "Confirmación Pendiente",
       "confirmed": "Confirmado",
       "cancelled": "Cancelado",
-      "denied": "Denegado"
+      "denied": "Denegado",
+      "reverted": "Revertido"
     },
     "WithdrawDetails": {
       "WithdrawalCancelDialog": {

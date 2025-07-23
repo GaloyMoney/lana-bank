@@ -3,6 +3,8 @@
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+import { DepositStatusBadge } from "./status-badge"
+
 import { Deposit, useDepositsQuery } from "@/lib/graphql/generated"
 
 import PaginatedTable, {
@@ -10,16 +12,22 @@ import PaginatedTable, {
   DEFAULT_PAGESIZE,
   PaginatedData,
 } from "@/components/paginated-table"
-
 import Balance from "@/components/balance/balance"
 
 gql`
   fragment DepositFields on Deposit {
     id
-    createdAt
     depositId
     reference
+    createdAt
     amount
+    status
+    account {
+      customer {
+        customerId
+        email
+      }
+    }
   }
 
   query Deposits($first: Int!, $after: String) {
@@ -34,11 +42,6 @@ gql`
         cursor
         node {
           ...DepositFields
-          account {
-            customer {
-              email
-            }
-          }
         }
       }
     }
@@ -62,6 +65,7 @@ const Deposits = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
+        navigateTo={(deposit) => `/deposits/${deposit.depositId}`}
       />
     </div>
   )
@@ -98,10 +102,17 @@ const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
     key: "reference",
     label: t("headers.reference"),
+    render: (reference, deposit) =>
+      reference === deposit.depositId ? t("values.na") : reference,
   },
   {
     key: "amount",
     label: t("headers.amount"),
     render: (amount) => <Balance amount={amount} currency="usd" />,
+  },
+  {
+    key: "status",
+    label: t("headers.status"),
+    render: (status) => <DepositStatusBadge status={status} />,
   },
 ]

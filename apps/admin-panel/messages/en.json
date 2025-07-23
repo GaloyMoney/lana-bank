@@ -1036,11 +1036,19 @@
         "depositId": "ID",
         "customer": "Customer",
         "reference": "Reference",
-        "amount": "Amount"
+        "amount": "Amount",
+        "status": "Status"
       },
       "errors": {
         "general": "An error occurred while fetching deposits."
+      },
+      "values": {
+        "na": "N/A"
       }
+    },
+    "DepositStatus": {
+      "confirmed": "Confirmed",
+      "reverted": "Reverted"
     },
     "CreateDepositDialog": {
       "title": "Create Deposit",
@@ -1063,6 +1071,41 @@
         "noData": "No data returned from mutation",
         "unknown": "An unknown error occurred"
       }
+    },
+    "DepositDetails": {
+      "DepositRevertDialog": {
+        "title": "Revert Deposit",
+        "description": "Are you sure you want to revert this deposit?",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "amount": "Amount"
+        },
+        "buttons": {
+          "revert": "Revert"
+        },
+        "success": "Deposit reverted successfully",
+        "errors": {
+          "noData": "No data returned from mutation",
+          "unknown": "An unknown error occurred"
+        }
+      },
+      "DepositDetailsCard": {
+        "title": "Deposit",
+        "fields": {
+          "customerEmail": "Customer Email",
+          "depositId": "ID",
+          "depositAmount": "Deposit Amount",
+          "depositReference": "Deposit Reference",
+          "createdAt": "Created At",
+          "status": "Status"
+        },
+        "values": {
+          "na": "N/A"
+        },
+        "buttons": {
+          "revert": "Revert"
+        }
+      }
     }
   },
   "Withdrawals": {
@@ -1084,11 +1127,12 @@
       }
     },
     "WithdrawalStatus": {
-      "pendingApproval": "Pending Approval",
-      "pendingConfirmation": "Pending Confirmation",
+      "pending_approval": "Pending Approval",
+      "pending_confirmation": "Pending Confirmation",
       "confirmed": "Confirmed",
       "cancelled": "Cancelled",
-      "denied": "Denied"
+      "denied": "Denied",
+      "reverted": "Reverted"
     },
     "WithdrawDetails": {
       "WithdrawalCancelDialog": {

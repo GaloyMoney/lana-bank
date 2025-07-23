@@ -34,6 +34,7 @@ gql`
                   amount
                   createdAt
                   reference
+                  status
                 }
               }
               ... on WithdrawalEntry {

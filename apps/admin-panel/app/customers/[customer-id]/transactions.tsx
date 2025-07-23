@@ -17,6 +17,7 @@ import Balance from "@/components/balance/balance"
 import DataTable, { Column } from "@/components/data-table"
 import { GetCustomerTransactionHistoryQuery } from "@/lib/graphql/generated"
 import { WithdrawalStatusBadge } from "@/app/withdrawals/status-badge"
+import { DepositStatusBadge } from "@/app/deposits/status-badge"
 import { DisbursalStatusBadge } from "@/app/disbursals/status-badge"
 
 type HistoryNode = NonNullable<
@@ -97,6 +98,8 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
       header: t("table.headers.status"),
       render: (_: HistoryNode["__typename"], entry: HistoryNode) => {
         switch (entry.__typename) {
+          case "DepositEntry":
+            return <DepositStatusBadge status={entry.deposit.status} />
           case "WithdrawalEntry":
           case "CancelledWithdrawalEntry":
             return <WithdrawalStatusBadge status={entry.withdrawal.status} />
@@ -111,6 +114,8 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
 
   const getNavigateUrl = (entry: HistoryNode): string | null => {
     switch (entry.__typename) {
+      case "DepositEntry":
+        return `/deposits/${entry.deposit.depositId}`
       case "WithdrawalEntry":
       case "CancelledWithdrawalEntry":
         return `/withdrawals/${entry.withdrawal.withdrawalId}`

@@ -3,6 +3,7 @@
 import React, { useState } from "react"
 import { gql, useApolloClient } from "@apollo/client"
 import { useTranslations } from "next-intl"
+import { useRouter } from "next/navigation"
 import { toast } from "sonner"
 
 import {
@@ -80,6 +81,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
   const [reference, setReference] = useState<string>("")
   const [error, setError] = useState<string | null>(null)
   const client = useApolloClient()
+  const router = useRouter()
   const { customer } = useCreateContext()
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -105,6 +107,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
         })
         toast.success(t("success"))
         handleCloseDialog()
+        router.push(`/deposits/${result.data.depositRecord.deposit.depositId}`)
       } else {
         throw new Error(t("errors.noData"))
       }

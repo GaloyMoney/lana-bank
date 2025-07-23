@@ -63,6 +63,7 @@ export const PATH_CONFIGS = {
   TERMS_TEMPLATE_DETAILS: /^\/terms-templates\/[^/]+/,
 
   WITHDRAWAL_DETAILS: /^\/withdrawals\/[^/]+/,
+  DEPOSIT_DETAILS: /^\/deposits\/[^/]+/,
   POLICY_DETAILS: /^\/policies\/[^/]+/,
   DISBURSAL_DETAILS: /^\/disbursals\/[^/]+/,
 
