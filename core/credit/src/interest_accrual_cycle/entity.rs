@@ -350,10 +350,7 @@ impl InterestAccrualCycle {
         })
     }
 
-    pub(crate) fn revert_accrual(
-        &mut self,
-        audit_info: AuditInfo,
-    ) -> Idempotent<RevertedInterestAccrualData> {
+    fn revert_accrual(&mut self, audit_info: AuditInfo) -> Idempotent<RevertedInterestAccrualData> {
         let InterestAccruedEventData {
             ledger_tx_id: accrued_ledger_tx_id,
             accrual_idx,
@@ -519,7 +516,7 @@ impl InterestAccrualCycle {
         })
     }
 
-    pub(crate) fn revert_accrual_cycle(
+    fn revert_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
     ) -> Idempotent<RevertedInterestCycleData> {
@@ -554,6 +551,40 @@ impl InterestAccrualCycle {
         self.reverted_ledger_tx_ids.push(posted_ledger_tx_id);
 
         Idempotent::Executed(reverted_interest_accrual_cycle)
+    }
+
+    pub(crate) fn revert_after(
+        &mut self,
+        effective: chrono::NaiveDate,
+        audit_info: AuditInfo,
+    ) -> Idempotent<(
+        Option<RevertedInterestCycleData>,
+        Vec<RevertedInterestAccrualData>,
+    )> {
+        let reverted_cycle_data = self
+            .last_unreverted_accrual_cycle()
+            .filter(|cycle| cycle.effective >= effective)
+            .and_then(|_| {
+                if let Idempotent::Executed(data) = self.revert_accrual_cycle(audit_info.clone()) {
+                    Some(data)
+                } else {
+                    None
+                }
+            });
+
+        let mut reverted_accruals_data = vec![];
+        while let Some(event) = self.last_unreverted_accrual() {
+            if event.effective < effective {
+                break;
+            }
+
+            match self.revert_accrual(audit_info.clone()) {
+                Idempotent::Executed(data) => reverted_accruals_data.push(data),
+                _ => break,
+            }
+        }
+
+        Idempotent::Executed((reverted_cycle_data, reverted_accruals_data))
     }
 }
 
@@ -1376,6 +1407,428 @@ mod test {
                 .revert_accrual_cycle(dummy_audit_info())
                 .was_ignored()
         );
+    }
+
+    mod revert_after {
+        use super::*;
+
+        mod with_posted {
+            use super::*;
+
+            fn events_and_effective_dates() -> (
+                Vec<InterestAccrualCycleEvent>,
+                DateTime<Utc>,
+                DateTime<Utc>,
+                DateTime<Utc>,
+            ) {
+                let mut events = initial_events();
+
+                let first_accrual_period = default_terms()
+                    .accrual_interval
+                    .period_from(default_started_at());
+                let first_accrual_at = first_accrual_period.end;
+                let second_accrual_period = first_accrual_period.next();
+                let second_accrual_at = second_accrual_period.end;
+                let third_accrual_period = second_accrual_period.next();
+                let third_accrual_at = third_accrual_period.end;
+
+                events.extend([
+                    InterestAccrualCycleEvent::InterestAccrued {
+                        ledger_tx_id: LedgerTxId::new(),
+                        accrual_idx: 0,
+                        tx_ref: "".to_string(),
+                        amount: UsdCents::ONE,
+                        accrued_at: first_accrual_at,
+                        effective: first_accrual_at.date_naive(),
+                        audit_info: dummy_audit_info(),
+                    },
+                    InterestAccrualCycleEvent::InterestAccrued {
+                        ledger_tx_id: LedgerTxId::new(),
+                        accrual_idx: 0,
+                        tx_ref: "".to_string(),
+                        amount: UsdCents::ONE,
+                        accrued_at: second_accrual_at,
+                        effective: second_accrual_at.date_naive(),
+                        audit_info: dummy_audit_info(),
+                    },
+                    InterestAccrualCycleEvent::InterestAccrued {
+                        ledger_tx_id: LedgerTxId::new(),
+                        accrual_idx: 0,
+                        tx_ref: "".to_string(),
+                        amount: UsdCents::ONE,
+                        accrued_at: third_accrual_at,
+                        effective: third_accrual_at.date_naive(),
+                        audit_info: dummy_audit_info(),
+                    },
+                    InterestAccrualCycleEvent::InterestAccrualsPosted {
+                        ledger_tx_id: LedgerTxId::new(),
+                        tx_ref: "".to_string(),
+                        obligation_id: Some(ObligationId::new()),
+                        total: UsdCents::from(3),
+                        effective: third_accrual_at.date_naive(),
+                        audit_info: dummy_audit_info(),
+                    },
+                ]);
+
+                (
+                    events,
+                    first_accrual_at,
+                    second_accrual_at,
+                    third_accrual_at,
+                )
+            }
+
+            #[test]
+            fn can_revert_after() {
+                let (events, first_accrual_at, _, _) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_before_first_accrual =
+                    first_accrual_at.date_naive() - chrono::Duration::days(1);
+                let (posted_data, accruals_data) = accrual
+                    .revert_after(date_before_first_accrual, dummy_audit_info())
+                    .unwrap();
+                assert!(posted_data.is_some());
+                assert_eq!(accruals_data.len(), 3);
+            }
+
+            #[test]
+            fn before_all_accruals() {
+                let (events, first_accrual_at, _, _) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_before_first_accrual =
+                    first_accrual_at.date_naive() - chrono::Duration::days(1);
+                accrual
+                    .revert_after(date_before_first_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 1);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 3);
+            }
+
+            #[test]
+            fn on_first_accrual() {
+                let (events, first_accrual_at, _, _) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_on_first_accrual = first_accrual_at.date_naive();
+                accrual
+                    .revert_after(date_on_first_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 1);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 3);
+            }
+
+            #[test]
+            fn on_second_accrual() {
+                let (events, _, second_accrual_at, _) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_on_second_accrual = second_accrual_at.date_naive();
+                accrual
+                    .revert_after(date_on_second_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 1);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 2);
+            }
+
+            #[test]
+            fn on_third_accrual() {
+                let (events, _, _, third_accrual_at) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_on_third_accrual = third_accrual_at.date_naive();
+                accrual
+                    .revert_after(date_on_third_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 1);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 1);
+            }
+
+            #[test]
+            fn after_all_accruals() {
+                let (events, _, _, third_accrual_at) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_after_third_accrual =
+                    third_accrual_at.date_naive() + chrono::Duration::days(1);
+                accrual
+                    .revert_after(date_after_third_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 0);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 0);
+            }
+        }
+
+        mod no_posted {
+
+            use super::*;
+
+            fn events_and_effective_dates()
+            -> (Vec<InterestAccrualCycleEvent>, DateTime<Utc>, DateTime<Utc>) {
+                let mut events = initial_events();
+
+                let first_accrual_period = default_terms()
+                    .accrual_interval
+                    .period_from(default_started_at());
+                let first_accrual_at = first_accrual_period.end;
+                let second_accrual_period = first_accrual_period.next();
+                let second_accrual_at = second_accrual_period.end;
+
+                events.extend([
+                    InterestAccrualCycleEvent::InterestAccrued {
+                        ledger_tx_id: LedgerTxId::new(),
+                        accrual_idx: 0,
+                        tx_ref: "".to_string(),
+                        amount: UsdCents::ONE,
+                        accrued_at: first_accrual_at,
+                        effective: first_accrual_at.date_naive(),
+                        audit_info: dummy_audit_info(),
+                    },
+                    InterestAccrualCycleEvent::InterestAccrued {
+                        ledger_tx_id: LedgerTxId::new(),
+                        accrual_idx: 0,
+                        tx_ref: "".to_string(),
+                        amount: UsdCents::ONE,
+                        accrued_at: second_accrual_at,
+                        effective: second_accrual_at.date_naive(),
+                        audit_info: dummy_audit_info(),
+                    },
+                ]);
+
+                (events, first_accrual_at, second_accrual_at)
+            }
+
+            #[test]
+            fn can_revert_after() {
+                let (events, first_accrual_at, _) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_before_first_accrual =
+                    first_accrual_at.date_naive() - chrono::Duration::days(1);
+                let (posted_data, accruals_data) = accrual
+                    .revert_after(date_before_first_accrual, dummy_audit_info())
+                    .unwrap();
+                assert!(posted_data.is_none());
+                assert_eq!(accruals_data.len(), 2);
+            }
+
+            #[test]
+            fn before_all_accruals() {
+                let (events, first_accrual_at, _) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_before_first_accrual =
+                    first_accrual_at.date_naive() - chrono::Duration::days(1);
+                accrual
+                    .revert_after(date_before_first_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 0);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 2);
+            }
+
+            #[test]
+            fn on_first_accrual() {
+                let (events, first_accrual_at, _) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_on_first_accrual = first_accrual_at.date_naive();
+                accrual
+                    .revert_after(date_on_first_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 0);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 2);
+            }
+
+            #[test]
+            fn on_second_accrual() {
+                let (events, _, second_accrual_at) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_on_second_accrual = second_accrual_at.date_naive();
+                accrual
+                    .revert_after(date_on_second_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 0);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 1);
+            }
+
+            #[test]
+            fn after_all_accruals() {
+                let (events, _, second_accrual_at) = events_and_effective_dates();
+                let mut accrual = accrual_from(events);
+
+                let date_after_second_accrual =
+                    second_accrual_at.date_naive() + chrono::Duration::days(1);
+                accrual
+                    .revert_after(date_after_second_accrual, dummy_audit_info())
+                    .did_execute();
+
+                let n_posted_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_posted_reverted, 0);
+
+                let n_accrued_reverted = accrual
+                    .events()
+                    .iter_all()
+                    .filter(|event| match event {
+                        InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                        _ => false,
+                    })
+                    .count();
+                assert_eq!(n_accrued_reverted, 0);
+            }
+        }
     }
 
     #[test]
