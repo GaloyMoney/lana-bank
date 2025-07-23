@@ -132,6 +132,16 @@ impl LanaApp {
 
         let applicants = Applicants::new(&pool, &config.sumsub, &customers);
 
+        // Initialize Sumsub export job
+        let sumsub_client = crate::applicant::SumsubClient::new(&config.sumsub);
+        let transaction_exporter =
+            crate::applicant::transaction_export::TransactionExporter::new(sumsub_client);
+        jobs.add_initializer(crate::applicant::sumsub_export_job::SumsubExportInit::new(
+            &outbox,
+            transaction_exporter,
+            &deposits,
+        ));
+
         let custody = Custody::init(&pool, &authz, config.custody, &outbox).await?;
 
         let credit = Credit::init(

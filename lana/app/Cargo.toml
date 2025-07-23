@@ -56,6 +56,7 @@ sim-time = { workspace = true, optional = true }
 anyhow = { workspace = true }
 async-graphql = { workspace = true }
 async-trait = { workspace = true }
+futures = { workspace = true }
 chrono = { workspace = true }
 reqwest = { workspace = true }
 derive_builder = { workspace = true }

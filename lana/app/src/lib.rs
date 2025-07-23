@@ -5,6 +5,8 @@ pub mod accounting_init;
 pub mod app;
 
 pub mod applicant {
+    pub mod sumsub_export_job;
+
     pub use core_applicant::*;
     pub type Applicants =
         core_applicant::Applicants<crate::authorization::Authorization, lana_events::LanaEvent>;

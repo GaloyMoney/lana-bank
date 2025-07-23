@@ -25,8 +25,7 @@ use error::ApplicantError;
 
 pub use job_types::{SumsubExportJobConfig, SumsubExportJobData, SUMSUB_EXPORT_JOB};
 use repo::ApplicantRepo;
-use sumsub_auth::SumsubClient;
-pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
+pub use sumsub_auth::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
 use rbac_types::Subject;
 
@@ -159,7 +158,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
 {
-    sumsub_client: SumsubClient,
+    sumsub_client: sumsub_auth::SumsubClient,
     repo: ApplicantRepo,
     customers: Customers<Perms, E>,
 }
@@ -187,7 +186,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
     pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers<Perms, E>) -> Self {
-        let sumsub_client = SumsubClient::new(config);
+        let sumsub_client = sumsub_auth::SumsubClient::new(config);
 
         Self {
             repo: ApplicantRepo::new(pool),

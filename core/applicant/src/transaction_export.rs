@@ -44,7 +44,7 @@ impl TransactionExporter {
     }
 
     /// Submit a deposit transaction to Sumsub for monitoring
-    #[instrument(name = "transaction_export.submit_deposit", skip(self), err)]
+    #[instrument(name = "applicant.submit_deposit_transaction", skip(self), err)]
     pub async fn submit_deposit_transaction(
         &self,
         transaction_id: impl Into<String> + std::fmt::Debug,
@@ -58,7 +58,7 @@ impl TransactionExporter {
                 customer_id,
                 transaction_id,
                 "Deposit",
-                "in",
+                &SumsubTransactionDirection::In.to_string(),
                 usd_cents_to_dollars(amount),
                 "USD",
             )
@@ -66,7 +66,7 @@ impl TransactionExporter {
     }
 
     /// Submit a withdrawal transaction to Sumsub for monitoring
-    #[instrument(name = "transaction_export.submit_withdrawal", skip(self), err)]
+    #[instrument(name = "applicant.submit_withdrawal_transaction", skip(self), err)]
     pub async fn submit_withdrawal_transaction(
         &self,
         transaction_id: impl Into<String> + std::fmt::Debug,
@@ -80,7 +80,7 @@ impl TransactionExporter {
                 customer_id,
                 transaction_id,
                 "Withdrawal",
-                "out",
+                &SumsubTransactionDirection::Out.to_string(),
                 usd_cents_to_dollars(amount),
                 "USD",
             )

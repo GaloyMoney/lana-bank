@@ -3110,6 +3110,7 @@ dependencies = [
  "derive_builder",
  "document-storage",
  "es-entity",
+ "futures",
  "gcp-bigquery-client",
  "gcp_auth",
  "governance",
