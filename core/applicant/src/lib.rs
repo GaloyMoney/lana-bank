@@ -25,6 +25,8 @@ use repo::ApplicantRepo;
 use sumsub_auth::SumsubClient;
 pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
 
+use rbac_types::Subject;
+
 #[cfg(feature = "graphql")]
 use async_graphql::*;
 
@@ -186,6 +188,7 @@ impl Applicants {
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
+        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
         level_name: &str,
     ) -> Result<PermalinkResponse, ApplicantError> {

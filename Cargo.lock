@@ -1185,6 +1185,7 @@ dependencies = [
  "hmac",
  "job",
  "outbox",
+ "rbac-types",
  "reqwest",
  "serde",
  "serde_json",

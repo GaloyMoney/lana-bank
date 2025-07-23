@@ -924,7 +924,11 @@ impl Mutation {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let permalink = app
             .applicants()
-            .create_permalink(sub, input.customer_id.into())
+            .create_permalink(
+                sub,
+                lana_app::primitives::CustomerId::from(input.customer_id),
+                "basic-kyc-level",
+            )
             .await?;
         Ok(SumsubPermalinkCreatePayload { url: permalink.url })
     }
@@ -937,10 +941,13 @@ impl Mutation {
         ctx: &Context<'_>,
         input: SumsubTestApplicantCreateInput,
     ) -> async_graphql::Result<SumsubTestApplicantCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let (app, _sub) = app_and_sub_from_ctx!(ctx);
         let applicant_id = app
             .applicants()
-            .create_complete_test_applicant(sub, input.customer_id.into(), "basic-kyc-level")
+            .create_complete_test_applicant(
+                lana_app::primitives::CustomerId::from(input.customer_id),
+                "basic-kyc-level",
+            )
             .await?;
         Ok(SumsubTestApplicantCreatePayload { applicant_id })
     }

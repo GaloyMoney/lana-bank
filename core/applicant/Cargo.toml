@@ -19,6 +19,7 @@ outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 core-customer = { path = "../customer" }
 core-money = { path = "../money" }
+rbac-types = { path = "../../lana/rbac-types" }
 
 strum = { workspace = true }
 serde = { workspace = true }
