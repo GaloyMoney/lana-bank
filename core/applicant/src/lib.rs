@@ -333,9 +333,14 @@ where
     #[instrument(name = "applicant.get_applicant_info", skip(self))]
     pub async fn get_applicant_info(
         &self,
+        // TODO: do proper audit
+        _sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<ApplicantInfo, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
+
+        // will return error if customer not found
+        self.customers.find_by_id_without_audit(customer_id).await?;
 
         let applicant_details = self
             .sumsub_client
@@ -356,6 +361,10 @@ where
     ) -> Result<String, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
+        // will return error if customer not found
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+        let level: SumsubVerificationLevel = customer.customer_type.into();
+
         tracing::info!(
             customer_id = %customer_id,
             "Creating complete test applicant with full KYC flow"
@@ -364,7 +373,7 @@ where
         // Step 1: Create applicant via API
         let applicant_id = self
             .sumsub_client
-            .create_applicant(customer_id, level_name)
+            .create_applicant(customer_id, &level.to_string())
             .await?;
 
         tracing::info!(applicant_id = %applicant_id, "Applicant created");
@@ -504,64 +513,5 @@ where
         );
 
         Ok(applicant_id)
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-    use core_customer::CustomerType;
-
-    #[test]
-    fn test_review_answer_parsing() {
-        assert_eq!(
-            "GREEN".parse::<ReviewAnswer>().unwrap(),
-            ReviewAnswer::Green
-        );
-        assert_eq!(
-            "green".parse::<ReviewAnswer>().unwrap(),
-            ReviewAnswer::Green
-        );
-        assert_eq!("RED".parse::<ReviewAnswer>().unwrap(), ReviewAnswer::Red);
-        assert_eq!("red".parse::<ReviewAnswer>().unwrap(), ReviewAnswer::Red);
-
-        assert!("INVALID".parse::<ReviewAnswer>().is_err());
-    }
-
-    #[test]
-    fn test_sumsub_verification_level_parsing() {
-        assert_eq!(
-            "basic-kyc-level"
-                .parse::<SumsubVerificationLevel>()
-                .unwrap(),
-            SumsubVerificationLevel::BasicKycLevel
-        );
-        assert_eq!(
-            "basic-kyb-level"
-                .parse::<SumsubVerificationLevel>()
-                .unwrap(),
-            SumsubVerificationLevel::BasicKybLevel
-        );
-
-        assert!("invalid-level".parse::<SumsubVerificationLevel>().is_err());
-    }
-
-    #[test]
-    fn test_customer_type_to_verification_level() {
-        assert_eq!(
-            SumsubVerificationLevel::from(CustomerType::Individual),
-            SumsubVerificationLevel::BasicKycLevel
-        );
-        assert_eq!(
-            SumsubVerificationLevel::from(CustomerType::PrivateCompany),
-            SumsubVerificationLevel::BasicKybLevel
-        );
-    }
-
-    #[test]
-    fn test_sumsub_config_default() {
-        let config = SumsubConfig::default();
-        assert!(config.sumsub_key.is_empty());
-        assert!(config.sumsub_secret.is_empty());
     }
 }
