@@ -13,8 +13,8 @@ importers:
   .:
     devDependencies:
       '@anthropic-ai/claude-code':
-        specifier: ^1.0.58
-        version: 1.0.58
+        specifier: ^1.0.59
+        version: 1.0.59
       '@mermaid-js/mermaid-cli':
         specifier: ^11.6.0
         version: 11.6.0(@types/react@19.1.8)(puppeteer@24.10.0(typescript@5.8.3))
@@ -37,11 +37,11 @@ importers:
         specifier: workspace:*
         version: link:../shared-web
       '@ory/client':
-        specifier: ^1.20.23
-        version: 1.20.23
+        specifier: ^1.21.0
+        version: 1.21.0
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.8.3)(zod@4.0.5)
+        version: 0.13.8(typescript@5.8.3)(zod@4.0.8)
       apollo-upload-client:
         specifier: ^18.0.1
         version: 18.0.1(@apollo/client@3.13.8(@types/react@19.1.8)(graphql-ws@6.0.5(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.0(react@19.1.0))(react@19.1.0))(graphql@16.11.0)
@@ -103,8 +103,8 @@ importers:
         specifier: ^3.3.1
         version: 3.3.1
       zod:
-        specifier: ^4.0.5
-        version: 4.0.5
+        specifier: ^4.0.8
+        version: 4.0.8
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.1
@@ -236,14 +236,14 @@ importers:
         specifier: workspace:*
         version: link:../shared-web
       '@ory/client':
-        specifier: ^1.20.23
-        version: 1.20.23
+        specifier: ^1.21.0
+        version: 1.21.0
       '@sumsub/websdk-react':
         specifier: ^2.3.19
         version: 2.3.19(react-dom@19.1.0(react@19.1.0))(react@19.1.0)
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.8.3)(zod@4.0.5)
+        version: 0.13.8(typescript@5.8.3)(zod@4.0.8)
       axios:
         specifier: ^1.11.0
         version: 1.11.0
@@ -293,8 +293,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       zod:
-        specifier: ^4.0.5
-        version: 4.0.5
+        specifier: ^4.0.8
+        version: 4.0.8
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.0.1
@@ -530,8 +530,8 @@ packages:
   '@antfu/utils@8.1.1':
     resolution: {integrity: sha512-Mex9nXf9vR6AhcXmMrlz/HVgYYZpVGJ6YlPgwl7UnaFpnshXs6EK/oa5Gpf3CzENMjkvEx2tQtntGnb7UtSTOQ==}
 
-  '@anthropic-ai/claude-code@1.0.58':
-    resolution: {integrity: sha512-XcfqklHSCuBRpVV9vZaAGvdJFAyVKb/UHz2VG9osvn1pRqY7e+HhIOU9X7LeI+c116QhmjglGwe+qz4jOC83CQ==}
+  '@anthropic-ai/claude-code@1.0.59':
+    resolution: {integrity: sha512-/DkygJuGk9fVPkBwB2a8o9Vi2/3iDvzi5+FJ6w4sUFTR97VTR84/zCP20PyY24zVWm++X3yslyqjOzOaYmtLnw==}
     engines: {node: '>=18.0.0'}
     hasBin: true
 
@@ -2328,8 +2328,8 @@ packages:
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
 
-  '@ory/client@1.20.23':
-    resolution: {integrity: sha512-A5LvII6FExGOOc1yzfcom6ktgZpItlQDez68AvF2Ny0vra3+YPWNSPJgKVt+9VFFK2bcOZaWB/Om8zsC0w81iA==}
+  '@ory/client@1.21.0':
+    resolution: {integrity: sha512-pKX0Ovdkg16hlAmVhnZ3UcZaOeiV3MxayxiadELdjL9ovpvFEQRq0mcMx2aLs5bwNCIg0ZO9mEz3ekrbxBXSXA==}
 
   '@otplib/core@12.0.1':
     resolution: {integrity: sha512-4sGntwbA/AC+SbPhbsziRiD+jNDdIzsZ3JUyfZwjtKyc/wufl1pnSIaG4Uqx8ymPagujub0o92kgBnB89cuAMA==}
@@ -9224,8 +9224,8 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.0.5:
-    resolution: {integrity: sha512-/5UuuRPStvHXu7RS+gmvRf4NXrNxpSllGwDnCBcJZtQsKrviYXm54yDGV2KYNLT5kq0lHGcl7lqWJLgSaG+tgA==}
+  zod@4.0.8:
+    resolution: {integrity: sha512-+MSh9cZU9r3QKlHqrgHMTSr3QwMGv4PLfR0M4N/sYWV5/x67HgXEhIGObdBkpnX8G78pTgWnIrBL2lZcNJOtfg==}
 
 snapshots:
 
@@ -9245,7 +9245,7 @@ snapshots:
 
   '@antfu/utils@8.1.1': {}
 
-  '@anthropic-ai/claude-code@1.0.58':
+  '@anthropic-ai/claude-code@1.0.59':
     optionalDependencies:
       '@img/sharp-darwin-arm64': 0.33.5
       '@img/sharp-darwin-x64': 0.33.5
@@ -11996,7 +11996,7 @@ snapshots:
 
   '@nolyfill/is-core-module@1.0.39': {}
 
-  '@ory/client@1.20.23':
+  '@ory/client@1.21.0':
     dependencies:
       axios: 1.11.0
     transitivePeerDependencies:
@@ -13163,17 +13163,17 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@t3-oss/env-core@0.13.8(typescript@5.8.3)(zod@4.0.5)':
+  '@t3-oss/env-core@0.13.8(typescript@5.8.3)(zod@4.0.8)':
     optionalDependencies:
       typescript: 5.8.3
-      zod: 4.0.5
+      zod: 4.0.8
 
-  '@t3-oss/env-nextjs@0.13.8(typescript@5.8.3)(zod@4.0.5)':
+  '@t3-oss/env-nextjs@0.13.8(typescript@5.8.3)(zod@4.0.8)':
     dependencies:
-      '@t3-oss/env-core': 0.13.8(typescript@5.8.3)(zod@4.0.5)
+      '@t3-oss/env-core': 0.13.8(typescript@5.8.3)(zod@4.0.8)
     optionalDependencies:
       typescript: 5.8.3
-      zod: 4.0.5
+      zod: 4.0.8
 
   '@tanstack/react-virtual@3.13.10(react-dom@19.1.0(react@19.1.0))(react@19.1.0)':
     dependencies:
@@ -20236,4 +20236,4 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zod@4.0.5: {}
+  zod@4.0.8: {}
