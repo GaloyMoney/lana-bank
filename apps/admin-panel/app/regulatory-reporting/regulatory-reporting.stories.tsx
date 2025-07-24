@@ -3,32 +3,17 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import RegulatoryReportingPage from "./page"
 
-import faker from "@/.storybook/faker"
+import { ReportRunsDocument } from "@/lib/graphql/generated"
+import { mockReportRunConnection } from "@/lib/graphql/generated/mocks"
 
-import { ReportsDocument } from "@/lib/graphql/generated"
-import { mockReport } from "@/lib/graphql/generated/mocks"
-
-const createRandomReports = () => {
-  const count = faker.number.int({ min: 3, max: 6 })
-
-  return Array.from({ length: count }, () =>
-    mockReport({
-      lastError: faker.helpers.maybe(() => faker.lorem.sentence(), { probability: 0.3 }),
-    }),
-  )
+const one = {
+  request: { query: ReportRunsDocument, variables: { first: 10 } },
+  result: { data: { reportRuns: mockReportRunConnection() } },
 }
 
 const baseMocks = [
-  {
-    request: {
-      query: ReportsDocument,
-    },
-    result: {
-      data: {
-        reports: createRandomReports(),
-      },
-    },
-  },
+  // polling consumes one mock every request
+  ...Array.from({ length: 100 }, () => one),
 ]
 
 const meta = {
@@ -66,7 +51,7 @@ const LoadingStory = () => {
   const mocks = [
     {
       request: {
-        query: ReportsDocument,
+        query: ReportRunsDocument,
       },
       delay: Infinity,
     },

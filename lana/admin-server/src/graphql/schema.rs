@@ -18,7 +18,7 @@ use super::{
     balance_sheet_config::*, committee::*, contract_creation::*, credit_config::*,
     credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
     document::*, loader::*, policy::*, price::*, profit_and_loss_config::*, public_id::*,
-    report::*, sumsub::*, terms_template::*, withdrawal::*,
+    reports::*, sumsub::*, terms_template::*, withdrawal::*,
 };
 
 pub struct Query;
@@ -715,18 +715,6 @@ impl Query {
         Ok(usd_cents_per_btc.into())
     }
 
-    async fn report(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Report>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let report = app.reports().find_by_id(sub, id).await?;
-        Ok(report.map(Report::from))
-    }
-
-    async fn reports(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<Report>> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let users = app.reports().list_reports(sub).await?;
-        Ok(users.into_iter().map(Report::from).collect())
-    }
-
     async fn audit(
         &self,
         ctx: &Context<'_>,
@@ -883,6 +871,34 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let agreement = app.contract_creation().find_by_id(sub, id).await?;
         Ok(agreement.map(LoanAgreement::from))
+    }
+
+    async fn report_runs(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<ReportRunsByCreatedAtCursor, ReportRun, EmptyFields, EmptyFields>,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            ReportRunsByCreatedAtCursor,
+            ReportRun,
+            ctx,
+            after,
+            first,
+            |query| app.reports().list_report_runs(sub, query)
+        )
+    }
+
+    async fn report_run(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<ReportRun>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(ReportRun, ctx, app.reports().find_report_run_by_id(sub, id))
     }
 }
 
@@ -1755,25 +1771,6 @@ impl Mutation {
         )
     }
 
-    async fn report_create(&self, ctx: &Context<'_>) -> async_graphql::Result<ReportCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let report = app.reports().create(sub).await?;
-        Ok(ReportCreatePayload::from(report))
-    }
-
-    async fn report_download_links_generate(
-        &self,
-        ctx: &Context<'_>,
-        input: ReportDownloadLinksGenerateInput,
-    ) -> async_graphql::Result<ReportDownloadLinksGeneratePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let links = app
-            .reports()
-            .generate_download_links(sub, input.report_id.into())
-            .await?;
-        Ok(ReportDownloadLinksGeneratePayload::from(links))
-    }
-
     async fn chart_of_accounts_csv_import(
         &self,
         ctx: &Context<'_>,
@@ -1954,5 +1951,24 @@ impl Mutation {
             .generate_document_download_link(sub, input.loan_agreement_id)
             .await?;
         Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
+    }
+
+    async fn trigger_report_run(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        app.reports().trigger_report_run(sub).await?;
+        Ok(true)
+    }
+
+    async fn report_file_generate_download_link(
+        &self,
+        ctx: &Context<'_>,
+        input: ReportFileGenerateDownloadLinkInput,
+    ) -> async_graphql::Result<ReportFileGenerateDownloadLinkPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let url = app
+            .reports()
+            .generate_report_file_download_link(sub, input.report_id, input.extension)
+            .await?;
+        Ok(ReportFileGenerateDownloadLinkPayload { url })
     }
 }

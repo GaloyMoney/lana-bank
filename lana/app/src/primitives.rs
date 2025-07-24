@@ -15,6 +15,7 @@ pub use core_customer::{CustomerDocumentId, CustomerId};
 pub use core_deposit::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 pub use core_money::*;
 pub use core_price::PriceOfOneBTC;
+pub use core_report::ReportId;
 pub use document_storage::{DocumentId, ReferenceId};
 pub use governance::{ApprovalProcessId, CommitteeId, CommitteeMemberId, PolicyId};
 pub use job::JobId;
