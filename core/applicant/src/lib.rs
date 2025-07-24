@@ -319,10 +319,10 @@ where
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
         let level: SumsubVerificationLevel = customer.customer_type.into();
 
-        self.sumsub_client
+        Ok(self
+            .sumsub_client
             .create_permalink(customer_id, &level.to_string())
-            .await
-            .map_err(ApplicantError::from)
+            .await?)
     }
 
     #[instrument(name = "applicant.get_applicant_info", skip(self))]
@@ -340,8 +340,7 @@ where
         let applicant_details = self
             .sumsub_client
             .get_applicant_details(customer_id)
-            .await
-            .map_err(ApplicantError::from)?;
+            .await?;
 
         Ok(applicant_details.info)
     }
