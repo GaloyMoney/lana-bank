@@ -71,7 +71,7 @@ loans_with_overdue_days as (
 risk_category as (
     select
         od.*,
-        greatest(0, remaining_balance_usd - collateral_amount_usd) as net_risk,
+        remaining_balance_usd - collateral_amount_usd as net_risk,
         r.category as risk_category_ref,
         r.reserve_percentage,
     from loans_with_overdue_days as od
@@ -81,16 +81,20 @@ risk_category as (
 final as (
     select
         *,
-        reserve_percentage * net_risk as reserve,
+        reserve_percentage * greatest(0, net_risk) as reserve,
     from risk_category
 )
 
 select
+    credit_facility_id,
+    customer_id,
+    reference_id as disbursal_id,
     left(replace(customer_id, '-', ''), 14) as `nit_deudor`,
     '{{ npb4_17_01_tipos_de_cartera('Cartera propia Ley Acceso al Crédito (19)') }}' as `cod_cartera`,
     '{{ npb4_17_02_tipos_de_activos_de_riesgo('Préstamos') }}' as `cod_activo`,
     left(replace(upper(reference_id), '-', ''), 20) as `num_referencia`,
     loan_amount_usd as `monto_referencia`,
+    remaining_balance_usd,
     remaining_balance_usd as `saldo_referencia`,
     remaining_capital_balance_usd as `saldo_vigente_k`,
     cast(null as numeric) as `saldo_vencido_k`,
@@ -179,6 +183,7 @@ select
     -- Corresponds to the reference balance[2.6]
     -- less the proportional value of the guarantees[3.6 / 2.59]
     -- (saldo_referencia - valor_garantia_proporcional)
+    net_risk,
     net_risk as `riesgo_neto`,
 
     cast(null as numeric) as `saldo_seguro`,
@@ -188,14 +193,17 @@ select
     cast(null as string) as `producto_tarjeta_credito`,
 
     -- Sum of the proportional values ​​of each guarantee[3.6]
+    collateral_amount_usd,
     collateral_amount_usd as `valor_garantia_cons`,
 
     cast(null as string) as `distrito_otorgamiento`,
+    reserve,
     reserve as `reserva_referencia`,
     cast(null as string) as `etapa_judicial`,
     cast(null as date) as `fecha_demanda`,
     duration_value as `plazo_credito`,
     'SO' as `orden_descuento`,
+    risk_category_ref,
     risk_category_ref as `categoria_riesgo_ref`,
     cast(null as numeric) as `reserva_constituir`,
     cast(null as numeric) as `porcentaje_reserva`,
@@ -204,6 +212,7 @@ select
     cast(null as numeric) as `porcenta_reserva_descon`,
     cast(null as numeric) as `porcenta_adiciona_descon`,
     cast(null as string) as `depto_destino_credito`,
+    reserve_percentage,
     reserve_percentage as `porc_reserva_referencia`,
     cast(null as numeric) as `calculo_brecha`,
     cast(null as numeric) as `ajuste_brecha`,
