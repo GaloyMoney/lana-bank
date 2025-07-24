@@ -292,12 +292,13 @@ impl SumsubClient {
         }
     }
 
+    /// Uploads document with manual multipart body construction for proper HMAC signature calculation
     #[cfg(feature = "sumsub-testing")]
     pub async fn upload_document(
         &self,
         applicant_id: &str,
         doc_type: &str,
-        doc_subtype: &str,
+        doc_sub_type: &str,
         country: Option<&str>,
         image_data: Vec<u8>,
         filename: &str,
@@ -306,35 +307,21 @@ impl SumsubClient {
         let url_path = format!("/resources/applicants/{applicant_id}/info/idDoc");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
-        // Create multipart form data
-        let boundary = format!("----formdata-{}", uuid::Uuid::new_v4());
+        let metadata = Self::create_document_metadata(doc_type, doc_sub_type, country);
+
+        let timestamp = SystemTime::now().duration_since(UNIX_EPOCH)?.as_secs();
+
+        // Manually construct multipart body for signature calculation
+        let boundary = format!("----formdata-reqwest-{timestamp}");
         let mut body = Vec::new();
 
-        // Add metadata part
-        let metadata = json!({
-            "idDocType": doc_type,
-            "country": country.unwrap_or("DEU")
-        });
-        if !doc_subtype.is_empty() {
-            let metadata = json!({
-                "idDocType": doc_type,
-                "idDocSubType": doc_subtype,
-                "country": country.unwrap_or("DEU")
-            });
-            body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
-            body.extend_from_slice(b"Content-Disposition: form-data; name=\"metadata\"\r\n");
-            body.extend_from_slice(b"Content-Type: application/json\r\n\r\n");
-            body.extend_from_slice(metadata.to_string().as_bytes());
-            body.extend_from_slice(b"\r\n");
-        } else {
-            body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
-            body.extend_from_slice(b"Content-Disposition: form-data; name=\"metadata\"\r\n");
-            body.extend_from_slice(b"Content-Type: application/json\r\n\r\n");
-            body.extend_from_slice(metadata.to_string().as_bytes());
-            body.extend_from_slice(b"\r\n");
-        }
+        // Add metadata field
+        body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
+        body.extend_from_slice(b"Content-Disposition: form-data; name=\"metadata\"\r\n\r\n");
+        body.extend_from_slice(metadata.as_bytes());
+        body.extend_from_slice(b"\r\n");
 
-        // Add content part
+        // Add file field
         body.extend_from_slice(format!("--{boundary}\r\n").as_bytes());
         body.extend_from_slice(
             format!(
@@ -342,15 +329,40 @@ impl SumsubClient {
             )
             .as_bytes(),
         );
-        body.extend_from_slice(b"Content-Type: image/jpeg\r\n\r\n");
+        body.extend_from_slice(b"Content-Type: application/octet-stream\r\n\r\n");
         body.extend_from_slice(&image_data);
         body.extend_from_slice(b"\r\n");
+
+        // Add closing boundary
         body.extend_from_slice(format!("--{boundary}--\r\n").as_bytes());
 
-        let content_type = format!("multipart/form-data; boundary={boundary}");
-        let mut headers =
-            self.get_headers(method, &url_path, Some(&String::from_utf8_lossy(&body)))?;
-        headers.insert("Content-Type", HeaderValue::from_str(&content_type)?);
+        // Calculate signature with the manual multipart body
+        let signature = {
+            type HmacSha256 = Hmac<Sha256>;
+            let mut mac = HmacSha256::new_from_slice(self.sumsub_secret.as_bytes())
+                .expect("HMAC can take key of any size");
+            mac.update(timestamp.to_string().as_bytes());
+            mac.update(method.as_bytes());
+            mac.update(url_path.as_bytes());
+            mac.update(&body);
+            hex::encode(mac.finalize().into_bytes())
+        };
+
+        let mut headers = HeaderMap::new();
+        headers.insert("Accept", HeaderValue::from_static("application/json"));
+        headers.insert(
+            "Content-Type",
+            HeaderValue::from_str(&format!("multipart/form-data; boundary={boundary}"))?,
+        );
+        headers.insert(
+            "X-App-Token",
+            HeaderValue::from_str(&self.sumsub_key).expect("Invalid sumsub key"),
+        );
+        headers.insert(
+            "X-App-Access-Ts",
+            HeaderValue::from_str(&timestamp.to_string()).expect("Invalid timestamp"),
+        );
+        headers.insert("X-App-Access-Sig", HeaderValue::from_str(&signature)?);
 
         let response = self
             .client
@@ -364,6 +376,29 @@ impl SumsubClient {
             .await
     }
 
+    /// Helper method to create document metadata
+    #[cfg(feature = "sumsub-testing")]
+    fn create_document_metadata(
+        doc_type: &str,
+        doc_sub_type: &str,
+        country: Option<&str>,
+    ) -> String {
+        if doc_sub_type.is_empty() {
+            json!({
+                "idDocType": doc_type,
+                "country": country.unwrap_or("DEU")
+            })
+            .to_string()
+        } else {
+            json!({
+                "idDocType": doc_type,
+                "idDocSubType": doc_sub_type,
+                "country": country.unwrap_or("DEU")
+            })
+            .to_string()
+        }
+    }
+
     #[cfg(feature = "sumsub-testing")]
     pub async fn submit_questionnaire_direct(
         &self,
@@ -371,11 +406,12 @@ impl SumsubClient {
         questionnaire_id: &str,
     ) -> Result<(), SumsubError> {
         let method = "POST";
-        let url_path =
-            format!("/resources/applicants/{applicant_id}/questionnaires/{questionnaire_id}/data");
+        let url_path = format!("/resources/applicants/{applicant_id}/questionnaires");
         let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
 
+        // Create a basic questionnaire submission based on the v1_onboarding questionnaire
         let body = json!({
+            "id": questionnaire_id,
             "sections": {
                 wire::testing::DEFAULT_QUESTIONNAIRE_SECTION: {
                     "items": {
@@ -398,8 +434,64 @@ impl SumsubClient {
             .send()
             .await?;
 
-        self.handle_simple_response(response, "Failed to submit questionnaire")
-            .await
+        if response.status().is_success() {
+            tracing::info!("Questionnaire submitted successfully");
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            tracing::info!("Questionnaire submission response: {response_text}");
+
+            // Try alternative approach: add questionnaire data directly to applicant info
+            self.update_applicant_questionnaire(applicant_id, questionnaire_id)
+                .await
+        }
+    }
+
+    /// Alternative approach: Update applicant with questionnaire data
+    #[cfg(feature = "sumsub-testing")]
+    async fn update_applicant_questionnaire(
+        &self,
+        applicant_id: &str,
+        questionnaire_id: &str,
+    ) -> Result<(), SumsubError> {
+        let method = "PATCH";
+        let url_path =
+            format!("/resources/applicants/{applicant_id}/questionnaires/{questionnaire_id}");
+        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+
+        let body = json!({
+            "sections": {
+                wire::testing::DEFAULT_QUESTIONNAIRE_SECTION: {
+                    "items": {
+                        wire::testing::DEFAULT_QUESTIONNAIRE_ITEM: {
+                            "value": wire::testing::DEFAULT_QUESTIONNAIRE_VALUE
+                        }
+                    }
+                }
+            }
+        });
+
+        let body_str = body.to_string();
+        let headers = self.get_headers(method, &url_path, Some(&body_str))?;
+
+        let response = self
+            .client
+            .patch(&full_url)
+            .headers(headers)
+            .body(body_str)
+            .send()
+            .await?;
+
+        if response.status().is_success() {
+            tracing::info!("Questionnaire updated successfully (alternative approach)");
+            Ok(())
+        } else {
+            let response_text = response.text().await?;
+            Err(self.handle_sumsub_error(
+                &response_text,
+                "Failed to submit questionnaire via both methods",
+            ))
+        }
     }
 
     #[cfg(feature = "sumsub-testing")]
