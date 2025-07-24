@@ -504,6 +504,41 @@ impl CreditFacility {
         }
     }
 
+    fn interest_accrual_ids(&self) -> Vec<InterestAccrualCycleId> {
+        self.events
+            .iter_all()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_id: id,
+                    ..
+                } => Some(*id),
+                _ => None,
+            })
+            .collect::<Vec<_>>()
+    }
+
+    // TODO: add unit tests
+    pub(crate) fn revert_interest_accruals_after(
+        &mut self,
+        effective: chrono::NaiveDate,
+        audit_info: &AuditInfo,
+    ) -> Vec<RevertedInterestEventData> {
+        let mut data = vec![];
+        for id in self.interest_accrual_ids().iter().rev() {
+            let accrual_cycle = self
+                .interest_accruals
+                .get_persisted_mut(id)
+                .expect("Accrual Cycle not found");
+
+            match accrual_cycle.revert_after(effective.into(), audit_info.clone()) {
+                Idempotent::Executed(res) => data.extend(res),
+                Idempotent::Ignored => break,
+            };
+        }
+
+        data
+    }
+
     pub fn last_collateralization_state(&self) -> CollateralizationState {
         if self.is_completed() {
             return CollateralizationState::NoCollateral;
