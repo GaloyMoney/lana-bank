@@ -34,7 +34,7 @@ pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
 };
 use deposit::*;
-pub use deposit::{Deposit, DepositStatus, DepositsByCreatedAtCursor};
+pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
 use error::*;
 pub use event::*;

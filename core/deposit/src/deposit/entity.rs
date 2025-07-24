@@ -7,15 +7,7 @@ use audit::AuditInfo;
 use core_money::UsdCents;
 use es_entity::*;
 
-use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId};
-
-#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
-#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum DepositStatus {
-    Confirmed,
-    Reverted,
-}
+use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -28,11 +20,13 @@ pub enum DepositEvent {
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
         reference: String,
-        status: DepositStatus,
         audit_info: AuditInfo,
     },
     Reverted {
         ledger_tx_id: CalaTransactionId,
+        audit_info: AuditInfo,
+    },
+    StatusUpdated {
         status: DepositStatus,
         audit_info: AuditInfo,
     },
@@ -64,16 +58,14 @@ impl Deposit {
     }
 
     pub fn status(&self) -> DepositStatus {
-        if self.is_reverted() {
-            return DepositStatus::Reverted;
-        }
-        DepositStatus::Confirmed
-    }
-
-    fn is_reverted(&self) -> bool {
         self.events
             .iter_all()
-            .any(|e| matches!(e, DepositEvent::Reverted { .. }))
+            .rev()
+            .find_map(|e| match e {
+                DepositEvent::StatusUpdated { status, .. } => Some(*status),
+                _ => None,
+            })
+            .expect("status should always exist")
     }
 
     pub fn revert(&mut self, audit_info: AuditInfo) -> Idempotent<DepositReversalData> {
@@ -85,9 +77,9 @@ impl Deposit {
         let ledger_tx_id = CalaTransactionId::new();
         self.events.push(DepositEvent::Reverted {
             ledger_tx_id,
-            status: DepositStatus::Reverted,
-            audit_info,
+            audit_info: audit_info.clone(),
         });
+        self.update_status(DepositStatus::Reverted, audit_info);
 
         Idempotent::Executed(DepositReversalData {
             ledger_tx_id,
@@ -96,6 +88,11 @@ impl Deposit {
             correlation_id: self.id.to_string(),
             external_id: format!("lana:deposit:{}:reverted", self.id),
         })
+    }
+
+    fn update_status(&mut self, status: DepositStatus, audit_info: AuditInfo) {
+        self.events
+            .push(DepositEvent::StatusUpdated { status, audit_info });
     }
 }
 
@@ -118,6 +115,7 @@ impl TryFromEvents<DepositEvent> for Deposit {
                         .reference(reference.clone());
                 }
                 DepositEvent::Reverted { .. } => {}
+                DepositEvent::StatusUpdated { .. } => {}
             }
         }
         builder.events(events).build()
@@ -167,15 +165,20 @@ impl IntoEvents<DepositEvent> for NewDeposit {
     fn into_events(self) -> EntityEvents<DepositEvent> {
         EntityEvents::init(
             self.id,
-            [DepositEvent::Initialized {
-                reference: self.reference(),
-                id: self.id,
-                status: DepositStatus::Confirmed,
-                ledger_tx_id: self.ledger_transaction_id,
-                deposit_account_id: self.deposit_account_id,
-                amount: self.amount,
-                audit_info: self.audit_info,
-            }],
+            [
+                DepositEvent::Initialized {
+                    reference: self.reference(),
+                    id: self.id,
+                    ledger_tx_id: self.ledger_transaction_id,
+                    deposit_account_id: self.deposit_account_id,
+                    amount: self.amount,
+                    audit_info: self.audit_info.clone(),
+                },
+                DepositEvent::StatusUpdated {
+                    status: DepositStatus::Confirmed,
+                    audit_info: self.audit_info,
+                },
+            ],
         )
     }
 }
@@ -253,6 +256,7 @@ mod test {
             .unwrap();
 
         let mut deposit = Deposit::try_from_events(new_deposit.into_events()).unwrap();
+        assert_eq!(deposit.status(), DepositStatus::Confirmed);
 
         let res = deposit.revert(dummy_audit_info());
         assert!(res.did_execute());

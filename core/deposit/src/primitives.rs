@@ -1,3 +1,7 @@
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+use serde::{Deserialize, Serialize};
+
 use std::{fmt::Display, str::FromStr};
 
 use authz::{AllOrOne, action_description::*};
@@ -428,4 +432,12 @@ impl From<CustomerType> for DepositAccountType {
             _ => panic!("Invalid customer type"),
         }
     }
+}
+
+#[derive(Debug, Copy, Clone, Serialize, Deserialize, Eq, PartialEq)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum DepositStatus {
+    Confirmed,
+    Reverted,
 }

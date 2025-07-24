@@ -99,6 +99,10 @@ where
                     deposit_account_id: entity.deposit_account_id,
                     amount: entity.amount,
                 },
+                StatusUpdated { status, .. } => CoreDepositEvent::DepositStatusUpdated {
+                    id: entity.id,
+                    status: *status,
+                },
             })
             .collect::<Vec<_>>();
         self.outbox
