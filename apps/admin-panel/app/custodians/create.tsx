@@ -368,7 +368,7 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                   placeholder={t("placeholders.webhookUrl")}
                   required
                   disabled={loading}
-                  data-testid="custodian-enterprise-id-input"
+                  data-testid="custodian-webhook-url-input"
                 />
               </div>
               <div>
