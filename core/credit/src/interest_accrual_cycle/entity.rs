@@ -140,9 +140,9 @@ struct InterestAccruedEventData {
 
 #[derive(Debug, Clone)]
 pub(crate) struct RevertedInterestAccrualData {
-    pub(crate) interest: UsdCents,
-    pub(crate) tx_ref: String,
     pub(crate) tx_id: LedgerTxId,
+    pub(crate) tx_ref: String,
+    pub(crate) interest: UsdCents,
     pub(crate) effective: chrono::NaiveDate,
 }
 
@@ -154,10 +154,15 @@ struct PostedCycleEventData {
 }
 
 pub(crate) struct RevertedInterestCycleData {
-    pub(crate) total: UsdCents,
-    pub(crate) tx_ref: String,
     pub(crate) tx_id: LedgerTxId,
+    pub(crate) tx_ref: String,
+    pub(crate) total: UsdCents,
     pub(crate) effective: chrono::NaiveDate,
+}
+
+pub(crate) enum RevertedInterestEventData {
+    Accrued(RevertedInterestAccrualData),
+    PostedCycle(RevertedInterestCycleData),
 }
 
 impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
@@ -557,34 +562,40 @@ impl InterestAccrualCycle {
         &mut self,
         effective: chrono::NaiveDate,
         audit_info: AuditInfo,
-    ) -> Idempotent<(
-        Option<RevertedInterestCycleData>,
-        Vec<RevertedInterestAccrualData>,
-    )> {
-        let reverted_cycle_data = self
+    ) -> Idempotent<Vec<RevertedInterestEventData>> {
+        let mut all_reverted_data = vec![];
+
+        let posted_entry_after_effective_exists = self
             .last_unreverted_accrual_cycle()
             .filter(|cycle| cycle.effective >= effective)
-            .and_then(|_| {
-                if let Idempotent::Executed(data) = self.revert_accrual_cycle(audit_info.clone()) {
-                    Some(data)
-                } else {
-                    None
-                }
-            });
+            .is_some();
+        let reverted_cycle_data = if posted_entry_after_effective_exists {
+            Some(self.revert_accrual_cycle(audit_info.clone()))
+        } else {
+            None
+        };
+        if let Some(Idempotent::Executed(reverted_cycle_data)) = reverted_cycle_data {
+            all_reverted_data.push(RevertedInterestEventData::PostedCycle(reverted_cycle_data))
+        }
 
-        let mut reverted_accruals_data = vec![];
         while let Some(event) = self.last_unreverted_accrual() {
             if event.effective < effective {
                 break;
             }
 
             match self.revert_accrual(audit_info.clone()) {
-                Idempotent::Executed(data) => reverted_accruals_data.push(data),
+                Idempotent::Executed(accrued_data) => {
+                    all_reverted_data.push(RevertedInterestEventData::Accrued(accrued_data))
+                }
                 _ => break,
             }
         }
 
-        Idempotent::Executed((reverted_cycle_data, reverted_accruals_data))
+        if all_reverted_data.is_empty() {
+            Idempotent::Ignored
+        } else {
+            Idempotent::Executed(all_reverted_data)
+        }
     }
 }
 
@@ -1485,11 +1496,18 @@ mod test {
 
                 let date_before_first_accrual =
                     first_accrual_at.date_naive() - chrono::Duration::days(1);
-                let (posted_data, accruals_data) = accrual
+                let res = accrual
                     .revert_after(date_before_first_accrual, dummy_audit_info())
                     .unwrap();
-                assert!(posted_data.is_some());
-                assert_eq!(accruals_data.len(), 3);
+
+                let (n_posted, n_accrued) =
+                    res.iter()
+                        .fold((0, 0), |(posted, accrued), event| match event {
+                            RevertedInterestEventData::PostedCycle(_) => (posted + 1, accrued),
+                            RevertedInterestEventData::Accrued(_) => (posted, accrued + 1),
+                        });
+                assert_eq!(n_posted, 1);
+                assert_eq!(n_accrued, 3);
             }
 
             #[test]
@@ -1696,11 +1714,18 @@ mod test {
 
                 let date_before_first_accrual =
                     first_accrual_at.date_naive() - chrono::Duration::days(1);
-                let (posted_data, accruals_data) = accrual
+                let res = accrual
                     .revert_after(date_before_first_accrual, dummy_audit_info())
                     .unwrap();
-                assert!(posted_data.is_none());
-                assert_eq!(accruals_data.len(), 2);
+
+                let (n_posted, n_accrued) =
+                    res.iter()
+                        .fold((0, 0), |(posted, accrued), event| match event {
+                            RevertedInterestEventData::PostedCycle(_) => (posted + 1, accrued),
+                            RevertedInterestEventData::Accrued(_) => (posted, accrued + 1),
+                        });
+                assert_eq!(n_posted, 0);
+                assert_eq!(n_accrued, 2);
             }
 
             #[test]
