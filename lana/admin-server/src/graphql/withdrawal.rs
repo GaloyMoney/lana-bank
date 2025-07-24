@@ -71,24 +71,6 @@ impl Withdrawal {
             .expect("account not found");
         Ok(account)
     }
-
-    // async fn subject_can_confirm(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     Ok(app
-    //         .withdrawals()
-    //         .subject_can_confirm(sub, false)
-    //         .await
-    //         .is_ok())
-    // }
-
-    // async fn subject_can_cancel(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
-    //     let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-    //     Ok(app
-    //         .withdrawals()
-    //         .subject_can_cancel(sub, false)
-    //         .await
-    //         .is_ok())
-    // }
 }
 
 #[derive(InputObject)]
