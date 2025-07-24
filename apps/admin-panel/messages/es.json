@@ -1012,6 +1012,7 @@
         "apiSecret": "Secreto API",
         "secretKey": "Clave Secreta",
         "webhookSecret": "Secreto del webhook",
+        "webhookUrl": "URL del webhook",
         "longLivedToken": "Token de larga duración",
         "passphrase": "Frase de contraseña",
         "enterpriseId": "ID de empresa",
@@ -1024,6 +1025,7 @@
         "apiSecret": "Ingrese su secreto API",
         "secretKey": "Ingrese su clave secreta",
         "webhookSecret": "Introduce tu secreto del webhook",
+        "webhookUrl": "Introduce la URL del webhook",
         "longLivedToken": "Introduce tu token de larga duración",
         "passphrase": "Introduce la frase de contraseña de tu cartera",
         "enterpriseId": "Introduce tu ID de empresa"
