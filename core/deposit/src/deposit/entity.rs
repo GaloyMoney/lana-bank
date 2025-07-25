@@ -100,8 +100,10 @@ impl Deposit {
     fn update_status(&mut self, status: DepositStatus, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(
             self.events().iter_all().rev(),
-            DepositEvent::StatusUpdated { .. }
+            DepositEvent::StatusUpdated { status: existing_status, ..  } if existing_status == &status,
+            => DepositEvent::StatusUpdated { .. }
         );
+
         self.events
             .push(DepositEvent::StatusUpdated { status, audit_info });
 
