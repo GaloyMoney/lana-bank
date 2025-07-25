@@ -335,6 +335,26 @@ where
         })
     }
 
+    pub async fn revert_interest_accruals_on_or_after_in_op(
+        &self,
+        _db: &mut es_entity::DbOp<'_>,
+        _id: CreditFacilityId,
+        _effective: chrono::NaiveDate,
+        _audit_info: &audit::AuditInfo,
+    ) -> Result<(), CreditFacilityError> {
+        Ok(())
+    }
+
+    pub async fn generate_interest_until_but_before_in_op(
+        &self,
+        _db: &mut es_entity::DbOp<'_>,
+        _id: CreditFacilityId,
+        _effective: chrono::NaiveDate,
+        _audit_info: &audit::AuditInfo,
+    ) -> Result<(), CreditFacilityError> {
+        Ok(())
+    }
+
     pub async fn find_by_id_without_audit(
         &self,
         id: impl Into<CreditFacilityId> + std::fmt::Debug,
