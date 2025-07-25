@@ -1183,7 +1183,6 @@ dependencies = [
  "core-customer",
  "es-entity",
  "job",
- "lana-events",
  "outbox",
  "serde",
  "serde_json",

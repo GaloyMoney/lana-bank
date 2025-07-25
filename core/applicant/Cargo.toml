@@ -18,7 +18,6 @@ outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 core-customer = { path = "../customer" }
 
-lana-events = { path = "../../lana/events" }
 authz = { path = "../../lib/authz" }
 audit = { path = "../../lib/audit" }
 sumsub = { path = "../../lib/sumsub" }

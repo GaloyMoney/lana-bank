@@ -13,7 +13,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CustomerId, Customers};
+use core_customer::{CoreCustomerEvent, CustomerId, Customers};
 use outbox::OutboxEventMarker;
 
 use error::ApplicantError;
@@ -149,7 +149,7 @@ pub struct ReviewResult {
 pub struct Applicants<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
     sumsub_client: SumsubClient,
@@ -160,7 +160,7 @@ where
 impl<Perms, E> Clone for Applicants<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -175,7 +175,7 @@ where
 impl<Perms, E> Applicants<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
