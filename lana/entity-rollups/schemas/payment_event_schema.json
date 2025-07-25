@@ -39,6 +39,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -53,6 +57,7 @@
         "id",
         "credit_facility_id",
         "amount",
+        "effective",
         "audit_info"
       ],
       "type": "object"
