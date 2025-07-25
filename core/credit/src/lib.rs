@@ -761,6 +761,7 @@ where
 
         let mut db = self.facilities.begin_op().await?;
 
+        // TODO: add revert/reapply steps here
         let allocations = self
             .payments
             .record_in_op(&mut db, audit_info, credit_facility_id, amount, effective)
