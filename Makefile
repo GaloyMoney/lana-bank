@@ -71,7 +71,7 @@ check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features
 	SQLX_OFFLINE=true cargo audit
-	cargo deny check
+	cargo deny check --hide-inclusion-graph
 	cargo machete
 
 # Default (nix-based) schema update
