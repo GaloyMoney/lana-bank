@@ -73,6 +73,16 @@ where
         }
     }
 
+    pub(super) async fn revert_payments_after_in_op(
+        &self,
+        _db: &mut es_entity::DbOp<'_>,
+        _credit_facility_id: CreditFacilityId,
+        _effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+        _audit_info: &audit::AuditInfo,
+    ) -> Result<Vec<(UsdCents, chrono::NaiveDate)>, PaymentError> {
+        Ok(vec![])
+    }
+
     pub(super) async fn record_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -101,7 +111,7 @@ where
                 credit_facility_id,
                 payment.id,
                 amount,
-                effective.into(),
+                effective,
                 &audit_info,
             )
             .await?;

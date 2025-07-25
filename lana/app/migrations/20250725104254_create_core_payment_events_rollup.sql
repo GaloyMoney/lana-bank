@@ -8,6 +8,7 @@ CREATE TABLE core_payment_events_rollup (
   amount BIGINT,
   credit_facility_id UUID,
   disbursal BIGINT,
+  effective VARCHAR,
   interest BIGINT,
 
   -- Collection rollups
@@ -60,6 +61,7 @@ BEGIN
 ;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.disbursal := (NEW.event ->> 'disbursal')::BIGINT;
+    new_row.effective := (NEW.event ->> 'effective');
     new_row.interest := (NEW.event ->> 'interest')::BIGINT;
     new_row.is_payment_allocated := false;
   ELSE
@@ -68,6 +70,7 @@ BEGIN
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.disbursal := current_row.disbursal;
+    new_row.effective := current_row.effective;
     new_row.interest := current_row.interest;
     new_row.is_payment_allocated := current_row.is_payment_allocated;
   END IF;
@@ -78,6 +81,7 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
+      new_row.effective := (NEW.event ->> 'effective');
     WHEN 'payment_allocated' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.disbursal := (NEW.event ->> 'disbursal')::BIGINT;
@@ -94,6 +98,7 @@ BEGIN
     audit_entry_ids,
     credit_facility_id,
     disbursal,
+    effective,
     interest,
     is_payment_allocated
   )
@@ -106,6 +111,7 @@ BEGIN
     new_row.audit_entry_ids,
     new_row.credit_facility_id,
     new_row.disbursal,
+    new_row.effective,
     new_row.interest,
     new_row.is_payment_allocated
   )
@@ -116,6 +122,7 @@ BEGIN
     audit_entry_ids = EXCLUDED.audit_entry_ids,
     credit_facility_id = EXCLUDED.credit_facility_id,
     disbursal = EXCLUDED.disbursal,
+    effective = EXCLUDED.effective,
     interest = EXCLUDED.interest,
     is_payment_allocated = EXCLUDED.is_payment_allocated;
 
