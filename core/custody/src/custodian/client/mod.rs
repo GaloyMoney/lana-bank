@@ -88,7 +88,7 @@ impl CustodianClient for komainu::KomainuClient {
         _label: &str,
     ) -> Result<WalletResponse, CustodianClientError> {
         Ok(WalletResponse {
-            external_id: "c33f1d21-6e42-49e6-a676-17ad0ac6dfef".to_string(),
+            external_id: "efabc792-a0fe-44b6-b0b5-4966997e8962".to_string(),
             address: "tb1qplx6wllreywl3nadc7wh6waah58xq7p48857qh".to_string(),
             full_response: serde_json::Value::Null,
         })
