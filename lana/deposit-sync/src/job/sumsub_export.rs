@@ -75,11 +75,7 @@ impl SumsubTransactionExporter {
     }
 
     /// Submit a deposit transaction to Sumsub for monitoring
-    #[instrument(
-        name = "deposit_sync.submit_deposit_transaction_to_sumsub",
-        skip(self),
-        err
-    )]
+    #[instrument(name = "deposit_sync.submit_deposit_transaction", skip(self), err)]
     pub async fn submit_deposit_transaction(
         &self,
         transaction_id: impl Into<String> + std::fmt::Debug,
@@ -102,11 +98,7 @@ impl SumsubTransactionExporter {
     }
 
     /// Submit a withdrawal transaction to Sumsub for monitoring
-    #[instrument(
-        name = "deposit_sync.submit_withdrawal_transaction_to_sumsub",
-        skip(self),
-        err
-    )]
+    #[instrument(name = "deposit_sync.submit_withdrawal_transaction", skip(self), err)]
     pub async fn submit_withdrawal_transaction(
         &self,
         transaction_id: impl Into<String> + std::fmt::Debug,
