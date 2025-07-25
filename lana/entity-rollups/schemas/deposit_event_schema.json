@@ -57,6 +57,9 @@
         "reference": {
           "type": "string"
         },
+        "status": {
+          "$ref": "#/$defs/DepositStatus"
+        },
         "type": {
           "const": "initialized",
           "type": "string"
@@ -69,6 +72,7 @@
         "deposit_account_id",
         "amount",
         "reference",
+        "status",
         "audit_info"
       ],
       "type": "object"
