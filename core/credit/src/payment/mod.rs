@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod primitives;
 mod repo;
 
 use tracing::instrument;
@@ -14,6 +15,7 @@ use crate::{
 };
 
 pub use entity::Payment;
+pub use primitives::*;
 
 #[cfg(feature = "json-schema")]
 pub use entity::PaymentEvent;
@@ -78,7 +80,7 @@ where
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<Vec<PaymentAllocation>, PaymentError> {
+    ) -> Result<PaymentAllocations, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(PaymentId::new())
             .amount(amount)
@@ -113,7 +115,7 @@ where
             .create_all_in_op(db, res.allocations)
             .await?;
 
-        Ok(allocations)
+        Ok(PaymentAllocations::new(allocations))
     }
 
     pub(super) async fn find_allocation_by_id_without_audit(

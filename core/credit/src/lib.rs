@@ -771,14 +771,13 @@ where
             .record_in_op(&mut db, audit_info, credit_facility_id, amount, effective)
             .await?;
 
-        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
         tracing::Span::current().record(
             "amount_allocated",
-            tracing::field::display(amount_allocated),
+            tracing::field::display(allocations.amount_allocated),
         );
 
         self.ledger
-            .record_obligation_repayments(db, allocations)
+            .record_obligation_repayments(db, allocations.into_iter().collect())
             .await?;
 
         Ok(credit_facility)
