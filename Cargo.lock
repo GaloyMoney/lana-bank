@@ -1593,6 +1593,7 @@ dependencies = [
  "job",
  "lana-events",
  "outbox",
+ "rust_decimal",
  "serde",
  "sumsub",
  "thiserror 2.0.12",

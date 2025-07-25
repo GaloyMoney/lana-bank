@@ -25,4 +25,5 @@ tracing = { workspace = true }
 serde = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
-thiserror = { workspace = true } 
+thiserror = { workspace = true }
+rust_decimal = { workspace = true } 

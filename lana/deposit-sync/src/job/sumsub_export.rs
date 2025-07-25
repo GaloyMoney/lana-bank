@@ -78,16 +78,15 @@ impl SumsubTransactionExporter {
     ) -> Result<(), DepositSyncError> {
         let transaction_id = transaction_id.into();
 
+        let amount: f64 = amount.to_usd().try_into()?;
+
         self.sumsub_client
             .submit_finance_transaction(
                 deposit_account_holder_id,
                 transaction_id,
                 "Deposit",
                 &SumsubTransactionDirection::In.to_string(),
-                amount
-                    .to_usd()
-                    .try_into()
-                    .expect("USD amount should convert to f64"),
+                amount,
                 "USD",
             )
             .await
@@ -104,16 +103,15 @@ impl SumsubTransactionExporter {
     ) -> Result<(), DepositSyncError> {
         let transaction_id = transaction_id.into();
 
+        let amount: f64 = amount.to_usd().try_into()?;
+
         self.sumsub_client
             .submit_finance_transaction(
                 deposit_account_holder_id,
                 transaction_id,
                 "Withdrawal",
                 &SumsubTransactionDirection::Out.to_string(),
-                amount
-                    .to_usd()
-                    .try_into()
-                    .expect("USD amount should convert to f64"),
+                amount,
                 "USD",
             )
             .await

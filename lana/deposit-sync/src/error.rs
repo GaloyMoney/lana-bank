@@ -6,4 +6,8 @@ pub enum DepositSyncError {
     Job(#[from] ::job::error::JobError),
     #[error("DepositSyncError - SumsubError: {0}")]
     Sumsub(#[from] sumsub::SumsubError),
+    #[error("DepositSyncError - CoreMoneyError: {0}")]
+    CoreMoney(#[from] core_money::ConversionError),
+    #[error("DepositSyncError - DecimalConversionError: {0}")]
+    DecimalConversion(#[from] rust_decimal::Error),
 }
