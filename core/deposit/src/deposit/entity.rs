@@ -79,20 +79,31 @@ impl Deposit {
             ledger_tx_id,
             audit_info: audit_info.clone(),
         });
-        self.update_status(DepositStatus::Reverted, audit_info);
 
-        Idempotent::Executed(DepositReversalData {
-            ledger_tx_id,
-            credit_account_id: self.deposit_account_id,
-            amount: self.amount,
-            correlation_id: self.id.to_string(),
-            external_id: format!("lana:deposit:{}:reverted", self.id),
-        })
+        if self
+            .update_status(DepositStatus::Reverted, audit_info)
+            .did_execute()
+        {
+            return Idempotent::Executed(DepositReversalData {
+                ledger_tx_id,
+                credit_account_id: self.deposit_account_id,
+                amount: self.amount,
+                correlation_id: self.id.to_string(),
+                external_id: format!("lana:deposit:{}:reverted", self.id),
+            });
+        }
+        Idempotent::Ignored
     }
 
-    fn update_status(&mut self, status: DepositStatus, audit_info: AuditInfo) {
+    fn update_status(&mut self, status: DepositStatus, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events().iter_all().rev(),
+            DepositEvent::StatusUpdated { .. }
+        );
         self.events
             .push(DepositEvent::StatusUpdated { status, audit_info });
+
+        Idempotent::Executed(())
     }
 }
 
