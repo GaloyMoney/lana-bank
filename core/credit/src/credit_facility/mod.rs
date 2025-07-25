@@ -12,7 +12,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
-    interest_accrual_cycle::NewInterestAccrualCycleData,
+    interest_accrual_cycle::{NewInterestAccrualCycleData, RevertedInterestEventData},
     ledger::{
         CreditFacilityActivation, CreditFacilityInterestAccrual,
         CreditFacilityInterestAccrualCycle, CreditLedger,
@@ -257,6 +257,21 @@ where
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
         Ok(confirmed_accrual)
+    }
+
+    pub(super) async fn revert_interest_accruals_on_or_after_in_op(
+        &self,
+        db: &mut es_entity::DbOp<'_>,
+        id: CreditFacilityId,
+        effective: chrono::NaiveDate,
+        audit_info: &audit::AuditInfo,
+    ) -> Result<Vec<RevertedInterestEventData>, CreditFacilityError> {
+        let mut credit_facility = self.repo.find_by_id(id).await?;
+        let reverted_interest_data =
+            credit_facility.revert_interest_accruals_after(effective, audit_info);
+        self.repo.update_in_op(db, &mut credit_facility).await?;
+
+        Ok(reverted_interest_data)
     }
 
     pub(super) async fn complete_in_op(
