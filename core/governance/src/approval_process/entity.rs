@@ -140,7 +140,7 @@ impl ApprovalProcess {
         for event in self.events.iter_all().rev() {
             match event {
                 ApprovalProcessEvent::Concluded { approved: true, .. } => {
-                    return ApprovalProcessStatus::Approved
+                    return ApprovalProcessStatus::Approved;
                 }
                 ApprovalProcessEvent::Concluded {
                     approved: false, ..
@@ -327,9 +327,11 @@ mod tests {
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible = [approver].iter().copied().collect();
-        assert!(process
-            .approve(&eligible, approver, audit_info.clone())
-            .did_execute());
+        assert!(
+            process
+                .approve(&eligible, approver, audit_info.clone())
+                .did_execute()
+        );
         assert!(process.approvers().contains(&approver));
     }
 
@@ -343,9 +345,11 @@ mod tests {
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
-        assert!(process
-            .approve(&HashSet::new(), approver, audit_info.clone())
-            .was_ignored());
+        assert!(
+            process
+                .approve(&HashSet::new(), approver, audit_info.clone())
+                .was_ignored()
+        );
         assert!(process.approvers().is_empty());
     }
 
@@ -360,12 +364,16 @@ mod tests {
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
-        assert!(process
-            .approve(&eligible, approver, audit_info.clone())
-            .did_execute());
-        assert!(process
-            .approve(&eligible, approver, audit_info.clone())
-            .was_ignored());
+        assert!(
+            process
+                .approve(&eligible, approver, audit_info.clone())
+                .did_execute()
+        );
+        assert!(
+            process
+                .approve(&eligible, approver, audit_info.clone())
+                .was_ignored()
+        );
     }
 
     #[test]
@@ -377,9 +385,11 @@ mod tests {
         let approver = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
-        assert!(process
-            .approve(&eligible, approver, audit_info.clone())
-            .was_ignored());
+        assert!(
+            process
+                .approve(&eligible, approver, audit_info.clone())
+                .was_ignored()
+        );
     }
 
     #[test]
@@ -394,9 +404,11 @@ mod tests {
         let audit_info = dummy_audit_info();
         let reason = String::new();
         let eligible = [denier].iter().copied().collect();
-        assert!(process
-            .deny(&eligible, denier, reason, audit_info.clone())
-            .did_execute());
+        assert!(
+            process
+                .deny(&eligible, denier, reason, audit_info.clone())
+                .did_execute()
+        );
         assert!(process.deniers().contains(&denier));
     }
 
@@ -411,9 +423,11 @@ mod tests {
         let denier = CommitteeMemberId::new();
         let reason = String::new();
         let audit_info = dummy_audit_info();
-        assert!(process
-            .deny(&HashSet::new(), denier, reason, audit_info.clone())
-            .was_ignored());
+        assert!(
+            process
+                .deny(&HashSet::new(), denier, reason, audit_info.clone())
+                .was_ignored()
+        );
         assert!(process.deniers().is_empty());
     }
 
@@ -428,12 +442,16 @@ mod tests {
         let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
-        assert!(process
-            .approve(&eligible, denier, audit_info.clone())
-            .did_execute());
-        assert!(process
-            .deny(&eligible, denier, String::new(), audit_info.clone())
-            .was_ignored());
+        assert!(
+            process
+                .approve(&eligible, denier, audit_info.clone())
+                .did_execute()
+        );
+        assert!(
+            process
+                .deny(&eligible, denier, String::new(), audit_info.clone())
+                .was_ignored()
+        );
     }
 
     #[test]
@@ -445,8 +463,10 @@ mod tests {
         let denier = CommitteeMemberId::new();
         let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
-        assert!(process
-            .deny(&eligible, denier, String::new(), audit_info.clone())
-            .was_ignored());
+        assert!(
+            process
+                .deny(&eligible, denier, String::new(), audit_info.clone())
+                .was_ignored()
+        );
     }
 }

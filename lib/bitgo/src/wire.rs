@@ -1,12 +1,12 @@
 use aes::Aes256;
 use bip32::{Prefix, XPrv, XPub};
 use ccm::{
-    aead::{generic_array::GenericArray, Aead as _},
-    consts::{U13, U8},
     Ccm, KeyInit as _,
+    aead::{Aead as _, generic_array::GenericArray},
+    consts::{U8, U13},
 };
 use pbkdf2::pbkdf2_hmac_array;
-use rand::{rngs::OsRng, TryRngCore as _};
+use rand::{TryRngCore as _, rngs::OsRng};
 use serde::{Deserialize, Serialize};
 use sha2::Sha256;
 
@@ -191,8 +191,8 @@ impl EncryptedPrv {
 pub mod inlined_json {
 
     use serde::{
-        de::{DeserializeOwned, Error},
         Deserialize, Deserializer, Serialize, Serializer,
+        de::{DeserializeOwned, Error},
     };
 
     pub fn deserialize<'de, D, T: DeserializeOwned>(deserializer: D) -> Result<Option<T>, D::Error>
@@ -220,7 +220,7 @@ pub mod inlined_json {
 
 pub mod base64_array {
     use base64::prelude::*;
-    use serde::{de::Error, Deserialize, Deserializer, Serializer};
+    use serde::{Deserialize, Deserializer, Serializer, de::Error};
 
     pub fn deserialize<'de, D, const N: usize>(deserializer: D) -> Result<[u8; N], D::Error>
     where
@@ -248,7 +248,7 @@ pub mod base64_array {
 
 pub mod base64_vec {
     use base64::prelude::*;
-    use serde::{de::Error, Deserialize, Deserializer, Serializer};
+    use serde::{Deserialize, Deserializer, Serializer, de::Error};
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<Vec<u8>, D::Error>
     where
@@ -272,7 +272,7 @@ mod xpub {
     use std::str::FromStr;
 
     use bip32::{Prefix, XPub};
-    use serde::{de::Error, Deserialize, Deserializer, Serializer};
+    use serde::{Deserialize, Deserializer, Serializer, de::Error};
 
     pub fn deserialize<'de, D>(deserializer: D) -> Result<XPub, D::Error>
     where

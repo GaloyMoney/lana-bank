@@ -8,19 +8,19 @@ mod wire;
 use std::sync::Arc;
 use std::time::{Duration, Instant};
 
-use base64::{prelude::BASE64_STANDARD, Engine as _};
+use base64::{Engine as _, prelude::BASE64_STANDARD};
 use hmac::{Hmac, Mac as _};
 use p256::{
-    ecdsa::{signature::Signer as _, Signature, SigningKey},
-    pkcs8::DecodePrivateKey as _,
     SecretKey,
+    ecdsa::{Signature, SigningKey, signature::Signer as _},
+    pkcs8::DecodePrivateKey as _,
 };
 use reqwest::header::HeaderMap;
 use reqwest::{
-    header::{HeaderValue, CONTENT_TYPE},
     Client, Method, RequestBuilder, Url,
+    header::{CONTENT_TYPE, HeaderValue},
 };
-use serde::{de::DeserializeOwned, Serialize};
+use serde::{Serialize, de::DeserializeOwned};
 use sha2::{Digest as _, Sha256};
 use tokio::sync::Mutex;
 

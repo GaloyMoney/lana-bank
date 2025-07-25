@@ -24,7 +24,7 @@ use entity::*;
 use error::*;
 pub use event::*;
 pub use primitives::*;
-pub use repo::{customer_cursor::*, CustomerRepo, CustomersSortBy, FindManyCustomers, Sort};
+pub use repo::{CustomerRepo, CustomersSortBy, FindManyCustomers, Sort, customer_cursor::*};
 
 pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");
 

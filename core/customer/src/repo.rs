@@ -64,7 +64,7 @@ where
 }
 
 mod account_status_sqlx {
-    use sqlx::{postgres::*, Type};
+    use sqlx::{Type, postgres::*};
 
     use crate::primitives::AccountStatus;
 

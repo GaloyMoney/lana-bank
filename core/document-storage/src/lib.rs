@@ -15,7 +15,7 @@ use tracing::instrument;
 pub use entity::{Document, DocumentStatus, GeneratedDocumentDownloadLink, NewDocument};
 use error::*;
 pub use primitives::*;
-pub use repo::{document_cursor::DocumentsByCreatedAtCursor, DocumentRepo};
+pub use repo::{DocumentRepo, document_cursor::DocumentsByCreatedAtCursor};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {

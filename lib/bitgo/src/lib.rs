@@ -7,10 +7,10 @@ mod wire;
 
 use bip32::XPrv;
 use hmac::{Hmac, Mac as _};
-use rand::{rngs::OsRng, TryRngCore as _};
-use reqwest::{header::HeaderMap, Client, Url};
-use serde::{de::DeserializeOwned, Serialize};
-use serde_json::{json, Value};
+use rand::{TryRngCore as _, rngs::OsRng};
+use reqwest::{Client, Url, header::HeaderMap};
+use serde::{Serialize, de::DeserializeOwned};
+use serde_json::{Value, json};
 use sha2::Sha256;
 
 pub use config::{BitgoConfig, BitgoDirectoryConfig};
