@@ -1,7 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
-use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -57,68 +56,6 @@ pub enum TransactionType {
     Withdrawal,
 }
 
-/// Sumsub transaction exporter
-#[derive(Clone)]
-pub struct SumsubTransactionExporter {
-    sumsub_client: SumsubClient,
-}
-
-impl SumsubTransactionExporter {
-    pub fn new(sumsub_client: SumsubClient) -> Self {
-        Self { sumsub_client }
-    }
-
-    /// Submit a deposit transaction to Sumsub for monitoring
-    #[instrument(name = "deposit_sync.submit_deposit_transaction", skip(self), err)]
-    pub async fn submit_deposit_transaction(
-        &self,
-        transaction_id: impl Into<String> + std::fmt::Debug,
-        deposit_account_holder_id: DepositAccountHolderId,
-        amount: UsdCents,
-    ) -> Result<(), DepositSyncError> {
-        let transaction_id = transaction_id.into();
-
-        let amount: f64 = amount.to_usd().try_into()?;
-
-        self.sumsub_client
-            .submit_finance_transaction(
-                deposit_account_holder_id,
-                transaction_id,
-                "Deposit",
-                &SumsubTransactionDirection::In.to_string(),
-                amount,
-                "USD",
-            )
-            .await
-            .map_err(DepositSyncError::from)
-    }
-
-    /// Submit a withdrawal transaction to Sumsub for monitoring
-    #[instrument(name = "deposit_sync.submit_withdrawal_transaction", skip(self), err)]
-    pub async fn submit_withdrawal_transaction(
-        &self,
-        transaction_id: impl Into<String> + std::fmt::Debug,
-        deposit_account_holder_id: DepositAccountHolderId,
-        amount: UsdCents,
-    ) -> Result<(), DepositSyncError> {
-        let transaction_id = transaction_id.into();
-
-        let amount: f64 = amount.to_usd().try_into()?;
-
-        self.sumsub_client
-            .submit_finance_transaction(
-                deposit_account_holder_id,
-                transaction_id,
-                "Withdrawal",
-                &SumsubTransactionDirection::Out.to_string(),
-                amount,
-                "USD",
-            )
-            .await
-            .map_err(DepositSyncError::from)
-    }
-}
-
 #[derive(serde::Serialize)]
 pub struct SumsubExportJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
@@ -156,7 +93,7 @@ where
         + std::fmt::Debug,
 {
     outbox: Outbox<E>,
-    transaction_exporter: SumsubTransactionExporter,
+    sumsub_client: SumsubClient,
     deposits: CoreDeposit<Perms, E>,
 }
 
@@ -170,12 +107,12 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        transaction_exporter: SumsubTransactionExporter,
+        sumsub_client: SumsubClient,
         deposits: &CoreDeposit<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            transaction_exporter,
+            sumsub_client,
             deposits: deposits.clone(),
         }
     }
@@ -203,7 +140,7 @@ where
     fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(SumsubExportJobRunner {
             outbox: self.outbox.clone(),
-            transaction_exporter: self.transaction_exporter.clone(),
+            sumsub_client: self.sumsub_client.clone(),
             deposits: self.deposits.clone(),
         }))
     }
@@ -230,7 +167,7 @@ where
         + std::fmt::Debug,
 {
     outbox: Outbox<E>,
-    transaction_exporter: SumsubTransactionExporter,
+    sumsub_client: SumsubClient,
     deposits: CoreDeposit<Perms, E>,
 }
 
@@ -270,13 +207,18 @@ where
                         .await?
                         .expect("Deposit account not found");
                     message.inject_trace_parent();
-                    self.transaction_exporter
-                        .submit_deposit_transaction(
-                            id.to_string(),
+                    let amount_usd: f64 = amount.to_usd().try_into()?;
+                    self.sumsub_client
+                        .submit_finance_transaction(
                             account.account_holder_id,
-                            *amount,
+                            id.to_string(),
+                            "Deposit",
+                            &SumsubTransactionDirection::In.to_string(),
+                            amount_usd,
+                            "USD",
                         )
-                        .await?;
+                        .await
+                        .map_err(DepositSyncError::from)?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(&state).await?;
                 }
@@ -291,13 +233,18 @@ where
                         .await?
                         .expect("Deposit account not found");
                     message.inject_trace_parent();
-                    self.transaction_exporter
-                        .submit_withdrawal_transaction(
-                            id.to_string(),
+                    let amount_usd: f64 = amount.to_usd().try_into()?;
+                    self.sumsub_client
+                        .submit_finance_transaction(
                             account.account_holder_id,
-                            *amount,
+                            id.to_string(),
+                            "Withdrawal",
+                            &SumsubTransactionDirection::Out.to_string(),
+                            amount_usd,
+                            "USD",
                         )
-                        .await?;
+                        .await
+                        .map_err(DepositSyncError::from)?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(&state).await?;
                 }
