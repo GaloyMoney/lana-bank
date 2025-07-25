@@ -5,7 +5,6 @@ edition = "2021"
 license = "FSL-1.1-ALv2"
 
 [features]
-default = []
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
