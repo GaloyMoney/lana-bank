@@ -7,11 +7,11 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountHolderId,
-    DepositId, GovernanceAction, GovernanceObject, WithdrawalId,
+    GovernanceAction, GovernanceObject,
 };
 use core_money::UsdCents;
 use governance::GovernanceEvent;
-use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
+use outbox::{Outbox, OutboxEventMarker};
 use sumsub::SumsubClient;
 
 use job::*;
@@ -269,13 +269,14 @@ where
                         .find_account_by_id_without_audit(*deposit_account_id)
                         .await?
                         .expect("Deposit account not found");
-                    self.submit_deposit_transaction(
-                        &message,
-                        *id,
-                        account.account_holder_id,
-                        *amount,
-                    )
-                    .await?;
+                    message.inject_trace_parent();
+                    self.transaction_exporter
+                        .submit_deposit_transaction(
+                            id.to_string(),
+                            account.account_holder_id,
+                            *amount,
+                        )
+                        .await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(&state).await?;
                 }
@@ -289,13 +290,14 @@ where
                         .find_account_by_id_without_audit(*deposit_account_id)
                         .await?
                         .expect("Deposit account not found");
-                    self.submit_withdrawal_transaction(
-                        &message,
-                        *id,
-                        account.account_holder_id,
-                        *amount,
-                    )
-                    .await?;
+                    message.inject_trace_parent();
+                    self.transaction_exporter
+                        .submit_withdrawal_transaction(
+                            id.to_string(),
+                            account.account_holder_id,
+                            *amount,
+                        )
+                        .await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(&state).await?;
                 }
@@ -303,46 +305,5 @@ where
             }
         }
         Ok(JobCompletion::RescheduleNow)
-    }
-}
-
-impl<Perms, E> SumsubExportJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
-{
-    #[instrument(name = "deposit_sync.submit_withdrawal_transaction", skip(self), err)]
-    pub async fn submit_withdrawal_transaction(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-        withdrawal_id: WithdrawalId,
-        deposit_account_holder_id: DepositAccountHolderId,
-        amount: UsdCents,
-    ) -> Result<(), DepositSyncError> {
-        message.inject_trace_parent();
-        self.transaction_exporter
-            .submit_withdrawal_transaction(
-                withdrawal_id.to_string(),
-                deposit_account_holder_id,
-                amount,
-            )
-            .await
-    }
-
-    #[instrument(name = "deposit_sync.submit_deposit_transaction", skip(self), err)]
-    pub async fn submit_deposit_transaction(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-        deposit_id: DepositId,
-        deposit_account_holder_id: DepositAccountHolderId,
-        amount: UsdCents,
-    ) -> Result<(), DepositSyncError> {
-        message.inject_trace_parent();
-        self.transaction_exporter
-            .submit_deposit_transaction(deposit_id.to_string(), deposit_account_holder_id, amount)
-            .await
     }
 }
