@@ -1586,7 +1586,6 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
- "core-customer",
  "core-deposit",
  "core-money",
  "futures",

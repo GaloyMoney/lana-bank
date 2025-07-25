@@ -69,9 +69,9 @@ where
         sumsub_client: SumsubClient,
         config: DepositSyncConfig,
     ) -> Result<Self, DepositSyncError> {
-        let transaction_exporter = SumsubTransactionExporter::new(sumsub_client);
-
         if config.sumsub_export_enabled {
+            let transaction_exporter = SumsubTransactionExporter::new(sumsub_client);
+
             jobs.add_initializer_and_spawn_unique(
                 SumsubExportInit::new(outbox, transaction_exporter, deposits),
                 SumsubExportJobConfig::<Perms, E>::new(),

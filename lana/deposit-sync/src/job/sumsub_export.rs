@@ -3,12 +3,11 @@ use futures::StreamExt;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use audit::{AuditSvc, SystemSubject};
+use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::CustomerId;
 use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositId,
-    GovernanceAction, GovernanceObject, WithdrawalId,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountHolderId,
+    DepositId, GovernanceAction, GovernanceObject, WithdrawalId,
 };
 use core_money::UsdCents;
 use governance::GovernanceEvent;
@@ -22,11 +21,6 @@ use crate::error::DepositSyncError;
 
 /// Job configuration for Sumsub export
 pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("sumsub-export");
-
-/// Converts USD cents to dollars for Sumsub API
-pub fn usd_cents_to_dollars(cents: UsdCents) -> f64 {
-    (cents.into_inner() as f64) / 100.0
-}
 
 /// Direction of the transaction from Sumsub's perspective
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -52,7 +46,7 @@ impl std::fmt::Display for SumsubTransactionDirection {
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct SumsubExportJobData {
     pub transaction_id: String,
-    pub customer_id: CustomerId,
+    pub deposit_account_holder_id: DepositAccountHolderId,
     pub amount: UsdCents,
     pub transaction_type: TransactionType,
 }
@@ -79,18 +73,21 @@ impl SumsubTransactionExporter {
     pub async fn submit_deposit_transaction(
         &self,
         transaction_id: impl Into<String> + std::fmt::Debug,
-        customer_id: CustomerId,
+        deposit_account_holder_id: DepositAccountHolderId,
         amount: UsdCents,
     ) -> Result<(), DepositSyncError> {
         let transaction_id = transaction_id.into();
 
         self.sumsub_client
             .submit_finance_transaction(
-                customer_id,
+                deposit_account_holder_id,
                 transaction_id,
                 "Deposit",
                 &SumsubTransactionDirection::In.to_string(),
-                usd_cents_to_dollars(amount),
+                amount
+                    .to_usd()
+                    .try_into()
+                    .expect("USD amount should convert to f64"),
                 "USD",
             )
             .await
@@ -102,18 +99,21 @@ impl SumsubTransactionExporter {
     pub async fn submit_withdrawal_transaction(
         &self,
         transaction_id: impl Into<String> + std::fmt::Debug,
-        customer_id: CustomerId,
+        deposit_account_holder_id: DepositAccountHolderId,
         amount: UsdCents,
     ) -> Result<(), DepositSyncError> {
         let transaction_id = transaction_id.into();
 
         self.sumsub_client
             .submit_finance_transaction(
-                customer_id,
+                deposit_account_holder_id,
                 transaction_id,
                 "Withdrawal",
                 &SumsubTransactionDirection::Out.to_string(),
-                usd_cents_to_dollars(amount),
+                amount
+                    .to_usd()
+                    .try_into()
+                    .expect("USD amount should convert to f64"),
                 "USD",
             )
             .await
@@ -268,16 +268,13 @@ where
                 })) => {
                     let account = self
                         .deposits
-                        .find_account_by_id(
-                            &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                            *deposit_account_id,
-                        )
+                        .find_account_by_id_without_audit(*deposit_account_id)
                         .await?
                         .expect("Deposit account not found");
                     self.submit_deposit_transaction(
                         &message,
                         *id,
-                        account.account_holder_id.into(),
+                        account.account_holder_id,
                         *amount,
                     )
                     .await?;
@@ -291,16 +288,13 @@ where
                 })) => {
                     let account = self
                         .deposits
-                        .find_account_by_id(
-                            &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                            *deposit_account_id,
-                        )
+                        .find_account_by_id_without_audit(*deposit_account_id)
                         .await?
                         .expect("Deposit account not found");
                     self.submit_withdrawal_transaction(
                         &message,
                         *id,
-                        account.account_holder_id.into(),
+                        account.account_holder_id,
                         *amount,
                     )
                     .await?;
@@ -327,12 +321,16 @@ where
         &self,
         message: &PersistentOutboxEvent<E>,
         withdrawal_id: WithdrawalId,
-        customer_id: CustomerId,
+        deposit_account_holder_id: DepositAccountHolderId,
         amount: UsdCents,
     ) -> Result<(), DepositSyncError> {
         message.inject_trace_parent();
         self.transaction_exporter
-            .submit_withdrawal_transaction(withdrawal_id.to_string(), customer_id, amount)
+            .submit_withdrawal_transaction(
+                withdrawal_id.to_string(),
+                deposit_account_holder_id,
+                amount,
+            )
             .await
     }
 
@@ -341,12 +339,12 @@ where
         &self,
         message: &PersistentOutboxEvent<E>,
         deposit_id: DepositId,
-        customer_id: CustomerId,
+        deposit_account_holder_id: DepositAccountHolderId,
         amount: UsdCents,
     ) -> Result<(), DepositSyncError> {
         message.inject_trace_parent();
         self.transaction_exporter
-            .submit_deposit_transaction(deposit_id.to_string(), customer_id, amount)
+            .submit_deposit_transaction(deposit_id.to_string(), deposit_account_holder_id, amount)
             .await
     }
 }

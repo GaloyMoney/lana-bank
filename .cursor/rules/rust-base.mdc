@@ -40,6 +40,8 @@ You should know about those commands:
 - `make sdl` to regenerate the schema.graphql. do not attempt to update schema.graphql yourself
 - `make sqlx-prepare` to update the .sqlx files. do not attempt to update the .sqlx files yourself
 
+if you want to call `cargo` directly, best is prepend it with `SQLX_OFFLINE=true`
+
 ## nix
 
 we need to package our application.

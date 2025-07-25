@@ -9,7 +9,6 @@ fail-on-warnings = []
 
 [dependencies]
 
-core-customer = { path = "../../core/customer" }
 core-deposit = { path = "../../core/deposit" }
 core-money = { path = "../../core/money" }
 governance = { path = "../../core/governance" }
