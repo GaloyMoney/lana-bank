@@ -26,4 +26,6 @@ pub enum ApplicantError {
     ReviewAnswerParseError(String),
     #[error("ApplicantError - SumsubError: {0}")]
     SumsubError(#[from] sumsub::SumsubError),
+    #[error("ApplicantError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
 }

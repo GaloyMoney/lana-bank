@@ -120,7 +120,7 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
         let (full_name, address, country) = if customer.applicant_id.is_some() {
             match self
                 .applicants
-                .get_applicant_info(&crate::primitives::Subject::System, self.config.customer_id)
+                .get_applicant_info_without_audit(self.config.customer_id)
                 .await
             {
                 Ok(applicant_info) => (
@@ -130,10 +130,10 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
                     applicant_info.primary_address().map(|s| s.to_string()),
                     applicant_info.nationality().map(|s| s.to_string()),
                 ),
-                Err(_) => ("N/A".to_string(), None, None), // Fallback if applicant info is not available
+                Err(_) => ("N/A (applicant info not available)".to_string(), None, None), // Fallback if applicant info is not available
             }
         } else {
-            ("N/A".to_string(), None, None)
+            ("N/A (customer has no applicant)".to_string(), None, None)
         };
 
         let loan_data = LoanAgreementData::new(

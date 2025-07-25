@@ -22,8 +22,6 @@ pub use sumsub::SumsubConfig;
 use repo::ApplicantRepo;
 pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
-use rbac_types::Subject;
-
 #[cfg(feature = "graphql")]
 use async_graphql::*;
 
@@ -153,6 +151,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<lana_events::CoreCustomerEvent>,
 {
+    authz: Perms,
     sumsub_client: SumsubClient,
     repo: ApplicantRepo,
     customers: Customers<Perms, E>,
@@ -165,6 +164,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
+            authz: self.authz.clone(),
             sumsub_client: self.sumsub_client.clone(),
             repo: self.repo.clone(),
             customers: self.customers.clone(),
@@ -180,10 +180,16 @@ where
         From<core_customer::CoreCustomerAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
 {
-    pub fn new(pool: &PgPool, config: &SumsubConfig, customers: &Customers<Perms, E>) -> Self {
+    pub fn new(
+        pool: &PgPool,
+        config: &SumsubConfig,
+        authz: &Perms,
+        customers: &Customers<Perms, E>,
+    ) -> Self {
         let sumsub_client = SumsubClient::new(config);
 
         Self {
+            authz: authz.clone(),
             repo: ApplicantRepo::new(pool),
             sumsub_client,
             customers: customers.clone(),
@@ -310,11 +316,19 @@ where
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
-        // TODO: do proper audit
-        _sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
+
+        let _audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                core_customer::CustomerObject::customer(customer_id),
+                core_customer::CoreCustomerAction::CUSTOMER_READ,
+            )
+            .await?;
 
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
         let level: SumsubVerificationLevel = customer.customer_type.into();
@@ -325,11 +339,9 @@ where
             .await?)
     }
 
-    #[instrument(name = "applicant.get_applicant_info", skip(self))]
-    pub async fn get_applicant_info(
+    #[instrument(name = "applicant.get_applicant_info_without_audit", skip(self))]
+    pub async fn get_applicant_info_without_audit(
         &self,
-        // TODO: log audit
-        _sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<ApplicantInfo, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();

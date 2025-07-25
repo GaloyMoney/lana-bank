@@ -1185,7 +1185,6 @@ dependencies = [
  "job",
  "lana-events",
  "outbox",
- "rbac-types",
  "serde",
  "serde_json",
  "sqlx",

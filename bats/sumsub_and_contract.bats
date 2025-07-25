@@ -149,7 +149,7 @@ wait_for_loan_agreement_completion() {
   status=$(graphql_output '.data.loanAgreementGenerate.loanAgreement.status')
   [[ "$status" == "PENDING" ]] || exit 1
   
-  retry 30 2 wait_for_loan_agreement_completion $loan_agreement_id
+  retry 30 1 wait_for_loan_agreement_completion $loan_agreement_id
   
   variables=$(
     jq -n \

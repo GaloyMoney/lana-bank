@@ -17,7 +17,6 @@ sumsub-testing = ["sumsub/sumsub-testing"]
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 core-customer = { path = "../customer" }
-rbac-types = { path = "../../lana/rbac-types" }
 
 lana-events = { path = "../../lana/events" }
 authz = { path = "../../lib/authz" }
