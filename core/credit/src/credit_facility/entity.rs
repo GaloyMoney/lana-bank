@@ -53,6 +53,10 @@ pub enum CreditFacilityEvent {
         interest_period: InterestPeriod,
         audit_info: AuditInfo,
     },
+    InterestAccrualCycleReverted {
+        interest_accrual_id: InterestAccrualCycleId,
+        audit_info: AuditInfo,
+    },
     InterestAccrualCycleConcluded {
         interest_accrual_cycle_idx: InterestAccrualCycleIdx,
         ledger_tx_id: Option<LedgerTxId>,
@@ -180,6 +184,7 @@ pub struct CreditFacility {
     #[es_entity(nested)]
     #[builder(default)]
     interest_accruals: Nested<InterestAccrualCycle>,
+    reverted_accrual_cycles: Vec<InterestAccrualCycleId>,
     events: EntityEvents<CreditFacilityEvent>,
 }
 
@@ -511,7 +516,7 @@ impl CreditFacility {
                 CreditFacilityEvent::InterestAccrualCycleStarted {
                     interest_accrual_id: id,
                     ..
-                } => Some(*id),
+                } if !self.is_reverted_accrual(id) => Some(*id),
                 _ => None,
             })
             .collect::<Vec<_>>()
@@ -530,10 +535,18 @@ impl CreditFacility {
                 .get_persisted_mut(id)
                 .expect("Accrual Cycle not found");
 
-            match accrual_cycle.revert_after(effective.into(), audit_info.clone()) {
-                Idempotent::Executed(res) => data.extend(res),
-                Idempotent::Ignored => break,
+            if let Idempotent::Executed(res) =
+                accrual_cycle.revert_after(effective, audit_info.clone())
+            {
+                data.extend(res);
             };
+
+            self.events
+                .push(CreditFacilityEvent::InterestAccrualCycleReverted {
+                    interest_accrual_id: accrual_cycle.id,
+                    audit_info: audit_info.clone(),
+                });
+            self.reverted_accrual_cycles.push(accrual_cycle.id);
         }
 
         data
@@ -680,6 +693,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
     fn try_from_events(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CreditFacilityBuilder::default();
         let mut terms = None;
+        let mut reverted_accrual_cycles = Vec::new();
         for event in events.iter_all() {
             match event {
                 CreditFacilityEvent::Initialized {
@@ -715,13 +729,22 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
+                CreditFacilityEvent::InterestAccrualCycleReverted {
+                    interest_accrual_id,
+                    ..
+                } => {
+                    reverted_accrual_cycles.push(*interest_accrual_id);
+                }
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
                 CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }
-        builder.events(events).build()
+        builder
+            .reverted_accrual_cycles(reverted_accrual_cycles)
+            .events(events)
+            .build()
     }
 }
 
