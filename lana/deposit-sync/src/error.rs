@@ -10,4 +10,6 @@ pub enum DepositSyncError {
     CoreMoney(#[from] core_money::ConversionError),
     #[error("DepositSyncError - DecimalConversionError: {0}")]
     DecimalConversion(#[from] rust_decimal::Error),
+    #[error("DepositSyncError - CoreDepositError: {0}")]
+    CoreDeposit(#[from] core_deposit::error::CoreDepositError),
 }

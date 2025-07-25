@@ -16,8 +16,6 @@ use sumsub::SumsubClient;
 use job::*;
 use lana_events::LanaEvent;
 
-use crate::error::DepositSyncError;
-
 /// Job configuration for Sumsub export
 pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("sumsub-export");
 
@@ -217,10 +215,7 @@ where
                             amount_usd,
                             "USD",
                         )
-                        .await
-                        .map_err(DepositSyncError::from)?;
-                    state.sequence = message.sequence;
-                    current_job.update_execution_state(&state).await?;
+                        .await?;
                 }
                 Some(LanaEvent::Deposit(CoreDepositEvent::WithdrawalConfirmed {
                     id,
@@ -243,13 +238,12 @@ where
                             amount_usd,
                             "USD",
                         )
-                        .await
-                        .map_err(DepositSyncError::from)?;
-                    state.sequence = message.sequence;
-                    current_job.update_execution_state(&state).await?;
+                        .await?;
                 }
                 _ => continue,
             }
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
         }
         Ok(JobCompletion::RescheduleNow)
     }
