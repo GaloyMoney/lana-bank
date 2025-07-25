@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+mod primitives;
 mod repo;
 
 use tracing::instrument;
@@ -14,6 +15,7 @@ use crate::{
 };
 
 pub use entity::Payment;
+pub use primitives::*;
 
 #[cfg(feature = "json-schema")]
 pub use entity::PaymentEvent;
@@ -71,6 +73,16 @@ where
         }
     }
 
+    pub(super) async fn revert_payments_after_in_op(
+        &self,
+        _db: &mut es_entity::DbOp<'_>,
+        _credit_facility_id: CreditFacilityId,
+        _effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+        _audit_info: &audit::AuditInfo,
+    ) -> Result<Vec<(UsdCents, chrono::NaiveDate)>, PaymentError> {
+        Ok(vec![])
+    }
+
     pub(super) async fn record_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -78,11 +90,14 @@ where
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<Vec<PaymentAllocation>, PaymentError> {
+    ) -> Result<PaymentAllocations, PaymentError> {
+        let effective = effective.into();
+
         let new_payment = NewPayment::builder()
             .id(PaymentId::new())
             .amount(amount)
             .credit_facility_id(credit_facility_id)
+            .effective(effective)
             .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment");
@@ -96,7 +111,7 @@ where
                 credit_facility_id,
                 payment.id,
                 amount,
-                effective.into(),
+                effective,
                 &audit_info,
             )
             .await?;
@@ -113,7 +128,7 @@ where
             .create_all_in_op(db, res.allocations)
             .await?;
 
-        Ok(allocations)
+        Ok(PaymentAllocations::new(allocations))
     }
 
     pub(super) async fn find_allocation_by_id_without_audit(

@@ -743,6 +743,10 @@ where
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
+        let span = tracing::Span::current();
+
+        let effective = effective.into();
+
         let audit_info = self
             .authz
             .enforce_permission(
@@ -761,17 +765,65 @@ where
 
         let mut db = self.facilities.begin_op().await?;
 
-        // TODO: add revert/reapply steps here
-        let allocations = self
+        // Revert all the things
+
+        let mut payments_reverted_data = self
             .payments
-            .record_in_op(&mut db, audit_info, credit_facility_id, amount, effective)
+            .revert_payments_after_in_op(
+                // updates all obligations as well
+                &mut db,
+                credit_facility_id,
+                effective,
+                &audit_info,
+            )
+            .await?;
+        payments_reverted_data.push((amount, effective)); // implement explicit type and 'add' function
+
+        self.facilities
+            .revert_interest_accruals_on_or_after_in_op(
+                // cancels interest obligations as well
+                &mut db,
+                credit_facility_id,
+                effective,
+                &audit_info,
+            )
             .await?;
 
-        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
-        tracing::Span::current().record(
-            "amount_allocated",
-            tracing::field::display(amount_allocated),
-        );
+        // Replay by re-applying interest and payments
+
+        let mut allocations = vec![];
+        for payment in payments_reverted_data {
+            let (payment_amount, payment_effective) = payment;
+            self.facilities
+                .generate_interest_until_but_before_in_op(
+                    &mut db,
+                    credit_facility_id,
+                    payment_effective,
+                    &audit_info,
+                )
+                .await?;
+            let payment_allocations = self
+                .payments
+                .record_in_op(
+                    &mut db,
+                    audit_info.clone(),
+                    credit_facility_id,
+                    payment_amount,
+                    effective,
+                )
+                .await?;
+            span.record(
+                "amount_allocated",
+                tracing::field::display(payment_allocations.amount_allocated),
+            );
+
+            allocations.extend(payment_allocations);
+        }
+
+        if allocations.is_empty() {
+            db.commit().await?;
+            return Ok(credit_facility);
+        }
 
         self.ledger
             .record_obligation_repayments(db, allocations)
