@@ -10,6 +10,9 @@ mod svc_trait;
 pub use primitives::*;
 pub use svc_trait::*;
 
+// Re-export pagination types for consumers who need them
+pub use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
+
 #[derive(Clone)]
 pub struct Audit<S, O, A> {
     pool: sqlx::PgPool,

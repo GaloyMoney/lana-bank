@@ -10,13 +10,11 @@ ignored = ["schemars"]
 [features]
 
 fail-on-warnings = []
-test-dummy = [ "dep:es-entity" ]
+test-dummy = []
 json-schema = ["dep:schemars", "audit/json-schema"]
 
 [dependencies]
 audit = { path = "../audit" }
-
-es-entity = { workspace = true, optional = true }
 
 sqlx-adapter = { workspace = true }
 

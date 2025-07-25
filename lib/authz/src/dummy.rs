@@ -2,7 +2,10 @@ use async_trait::async_trait;
 
 use std::fmt;
 
-use audit::{AuditCursor, AuditEntry, AuditInfo, AuditSvc, error::AuditError};
+use audit::{
+    AuditCursor, AuditEntry, AuditInfo, AuditSvc, PaginatedQueryArgs, PaginatedQueryRet,
+    error::AuditError,
+};
 
 use crate::{PermissionCheck, error::AuthorizationError};
 
@@ -106,19 +109,14 @@ where
 
     async fn list(
         &self,
-        _query: es_entity::PaginatedQueryArgs<AuditCursor>,
+        _query: PaginatedQueryArgs<AuditCursor>,
     ) -> Result<
-        es_entity::PaginatedQueryRet<
-            AuditEntry<Self::Subject, Self::Object, Self::Action>,
-            AuditCursor,
-        >,
+        PaginatedQueryRet<AuditEntry<Self::Subject, Self::Object, Self::Action>, AuditCursor>,
         AuditError,
     > {
-        Ok(es_entity::PaginatedQueryRet {
-            entities: vec![],
-            has_next_page: false,
-            end_cursor: None,
-        })
+        // This method should never be called on the dummy implementation
+        // as it's only used for testing authorization logic, not audit querying
+        unimplemented!("DummyAudit::list should not be called - this is a test-only implementation")
     }
 }
 

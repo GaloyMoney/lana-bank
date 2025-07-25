@@ -371,7 +371,6 @@ version = "0.3.766-dev"
 dependencies = [
  "async-trait",
  "audit",
- "es-entity",
  "schemars 1.0.4",
  "sqlx",
  "sqlx-adapter",
