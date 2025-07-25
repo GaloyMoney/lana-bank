@@ -53,6 +53,10 @@ pub enum CreditFacilityEvent {
         interest_period: InterestPeriod,
         audit_info: AuditInfo,
     },
+    InterestAccrualCycleReverted {
+        interest_accrual_id: InterestAccrualCycleId,
+        audit_info: AuditInfo,
+    },
     InterestAccrualCycleConcluded {
         interest_accrual_cycle_idx: InterestAccrualCycleIdx,
         ledger_tx_id: Option<LedgerTxId>,
@@ -180,6 +184,7 @@ pub struct CreditFacility {
     #[es_entity(nested)]
     #[builder(default)]
     interest_accruals: Nested<InterestAccrualCycle>,
+    reverted_accrual_cycles: Vec<InterestAccrualCycleId>,
     events: EntityEvents<CreditFacilityEvent>,
 }
 
@@ -680,6 +685,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
     fn try_from_events(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CreditFacilityBuilder::default();
         let mut terms = None;
+        let mut reverted_accrual_cycles = Vec::new();
         for event in events.iter_all() {
             match event {
                 CreditFacilityEvent::Initialized {
@@ -715,13 +721,22 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
+                CreditFacilityEvent::InterestAccrualCycleReverted {
+                    interest_accrual_id,
+                    ..
+                } => {
+                    reverted_accrual_cycles.push(*interest_accrual_id);
+                }
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
                 CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }
-        builder.events(events).build()
+        builder
+            .reverted_accrual_cycles(reverted_accrual_cycles)
+            .events(events)
+            .build()
     }
 }
 
