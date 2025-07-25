@@ -20,6 +20,7 @@ pub enum DepositEvent {
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
         reference: String,
+        status: DepositStatus,
         audit_info: AuditInfo,
     },
     Reverted {
@@ -63,6 +64,7 @@ impl Deposit {
             .rev()
             .find_map(|e| match e {
                 DepositEvent::StatusUpdated { status, .. } => Some(*status),
+                DepositEvent::Initialized { status, .. } => Some(*status),
                 _ => None,
             })
             .expect("status should always exist")
@@ -176,20 +178,15 @@ impl IntoEvents<DepositEvent> for NewDeposit {
     fn into_events(self) -> EntityEvents<DepositEvent> {
         EntityEvents::init(
             self.id,
-            [
-                DepositEvent::Initialized {
-                    reference: self.reference(),
-                    id: self.id,
-                    ledger_tx_id: self.ledger_transaction_id,
-                    deposit_account_id: self.deposit_account_id,
-                    amount: self.amount,
-                    audit_info: self.audit_info.clone(),
-                },
-                DepositEvent::StatusUpdated {
-                    status: DepositStatus::Confirmed,
-                    audit_info: self.audit_info,
-                },
-            ],
+            [DepositEvent::Initialized {
+                reference: self.reference(),
+                id: self.id,
+                ledger_tx_id: self.ledger_transaction_id,
+                deposit_account_id: self.deposit_account_id,
+                amount: self.amount,
+                status: DepositStatus::Confirmed,
+                audit_info: self.audit_info.clone(),
+            }],
         )
     }
 }
