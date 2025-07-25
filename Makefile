@@ -53,6 +53,11 @@ check-code-nix:
 	nix fmt .
 	git diff --exit-code *.nix
 
+# Dependency DAG validation targets
+check-dag:
+	@echo "🔍 Checking dependency DAG..."
+	@cd dev/check-dependency-dag && cargo run --quiet
+
 # Default (nix-based) code checking
 check-code-rust: sdl-rust update-schemas
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
@@ -73,6 +78,7 @@ check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
 	SQLX_OFFLINE=true cargo audit
 	cargo deny check --hide-inclusion-graph
 	cargo machete
+	make check-dag
 
 # Default (nix-based) schema update
 update-schemas:

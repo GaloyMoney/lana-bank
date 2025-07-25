@@ -1,0 +1,9 @@
+[package]
+name = "check-dependency-dag"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+cargo_metadata = "0.18"
+serde_json = "1.0"
+anyhow = "1.0" 
