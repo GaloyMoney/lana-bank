@@ -5,10 +5,9 @@ use lana_ids::{ContractCreationId, ReportId};
 use authz::AllOrOne;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
-use core_applicant::ApplicantId;
 use core_credit::CoreCreditObject;
 use core_custody::CoreCustodyObject;
-use core_customer::{CustomerId, CustomerObject};
+use core_customer::CustomerObject;
 use core_deposit::CoreDepositObject;
 use dashboard::DashboardModuleObject;
 use governance::GovernanceObject;
@@ -119,7 +118,6 @@ impl FromStr for LanaObject {
 
 es_entity::entity_id!(AuditId);
 
-pub type ApplicantAllOrOne = AllOrOne<ApplicantId>;
 pub type ReportAllOrOne = AllOrOne<ReportId>;
 pub type AuditAllOrOne = AllOrOne<AuditId>;
 pub type ContractCreationAllOrOne = AllOrOne<ContractCreationId>;
@@ -128,7 +126,6 @@ pub type ContractCreationAllOrOne = AllOrOne<ContractCreationId>;
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppObject {
-    Applicant(ApplicantAllOrOne),
     Report(ReportAllOrOne),
     Audit(AuditAllOrOne),
     ContractCreation(ContractCreationAllOrOne),
@@ -156,7 +153,6 @@ impl Display for AppObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         let discriminant = AppObjectDiscriminants::from(self);
         match self {
-            Self::Applicant(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Self::Report(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Self::Audit(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             Self::ContractCreation(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
@@ -171,10 +167,6 @@ impl FromStr for AppObject {
         let (entity, id) = s.split_once('/').expect("missing slash");
         use AppObjectDiscriminants::*;
         let res = match entity.parse().expect("invalid entity") {
-            Applicant => {
-                let obj_ref = id.parse().map_err(|_| "could not parse Applicant")?;
-                Self::Applicant(obj_ref)
-            }
             Report => {
                 let obj_ref = id.parse().map_err(|_| "could not parse Report")?;
                 Self::Report(obj_ref)
@@ -192,8 +184,6 @@ impl FromStr for AppObject {
         Ok(res)
     }
 }
-
-pub type CustomerAllOrOne = AllOrOne<CustomerId>;
 
 #[cfg(test)]
 mod test {
