@@ -17,7 +17,6 @@ dashboard = { path = "../dashboard" }
 
 governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
-core-applicant = { path = "../../core/applicant" }
 core-customer = { path = "../../core/customer" }
 core-credit = { path = "../../core/credit" }
 core-custody = { path = "../../core/custody" }
