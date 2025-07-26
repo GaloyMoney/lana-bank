@@ -1,5 +1,6 @@
 [workspace]
 resolver = "2"
+exclude = ["dev/check-dependency-dag"]
 members = [
   "lana/cli",
   "lana/admin-server",
