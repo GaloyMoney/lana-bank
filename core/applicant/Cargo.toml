@@ -10,7 +10,6 @@ ignored = []
 [features]
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "es-entity/graphql"]
-json-schema = ["outbox/json-schema"]
 sumsub-testing = ["sumsub/sumsub-testing"]
 
 [dependencies]

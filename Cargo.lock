@@ -4481,6 +4481,7 @@ dependencies = [
  "authz",
  "core-access",
  "core-accounting",
+ "core-applicant",
  "core-credit",
  "core-custody",
  "core-customer",

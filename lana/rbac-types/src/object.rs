@@ -5,6 +5,7 @@ use lana_ids::{ContractCreationId, ReportId};
 use authz::AllOrOne;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
+use core_applicant::ApplicantId;
 use core_credit::CoreCreditObject;
 use core_custody::CoreCustodyObject;
 use core_customer::{CustomerId, CustomerObject};
@@ -116,7 +117,7 @@ impl FromStr for LanaObject {
     }
 }
 
-es_entity::entity_id!(ApplicantId, AuditId);
+es_entity::entity_id!(AuditId);
 
 pub type ApplicantAllOrOne = AllOrOne<ApplicantId>;
 pub type ReportAllOrOne = AllOrOne<ReportId>;

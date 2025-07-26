@@ -25,6 +25,8 @@ pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 #[cfg(feature = "graphql")]
 use async_graphql::*;
 
+es_entity::entity_id!(ApplicantId);
+
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
 #[serde(rename_all = "UPPERCASE")]
 #[strum(serialize_all = "UPPERCASE")]
