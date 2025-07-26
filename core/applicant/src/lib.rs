@@ -1,48 +1,31 @@
-mod config;
+#![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
+#![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+
 pub mod error;
 mod repo;
-pub(crate) mod sumsub_auth;
-mod tx_export;
 
 #[cfg(feature = "sumsub-testing")]
-pub(crate) mod sumsub_testing_utils;
+pub use sumsub::testing_utils as sumsub_testing_utils;
 
-#[cfg(test)]
-mod tests;
-
-use core_customer;
-use job::Jobs;
 use serde::{Deserialize, Serialize};
 use sqlx::PgPool;
-use std::sync::Arc;
 use tracing::instrument;
 
-use crate::{
-    customer::{CustomerId, Customers},
-    deposit::Deposits,
-    outbox::Outbox,
-    primitives::Subject,
-};
+use audit::AuditSvc;
+use authz::PermissionCheck;
+use core_customer::{CoreCustomerEvent, CustomerId, Customers};
+use outbox::OutboxEventMarker;
 
-pub use config::*;
 use error::ApplicantError;
-use sumsub_auth::SumsubClient;
+pub use sumsub::SumsubConfig;
 
 use repo::ApplicantRepo;
-pub use sumsub_auth::{ApplicantInfo, PermalinkResponse};
+pub use sumsub::{ApplicantInfo, PermalinkResponse, SumsubClient};
 
-#[cfg(feature = "sumsub-testing")]
-pub use sumsub_auth::SumsubClient as PublicSumsubClient;
-
+#[cfg(feature = "graphql")]
 use async_graphql::*;
 
-/// Applicants service
-#[derive(Clone)]
-pub struct Applicants {
-    sumsub_client: SumsubClient,
-    customers: Arc<Customers>,
-    repo: ApplicantRepo,
-}
+es_entity::entity_id!(ApplicantId);
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize, strum::Display)]
 #[serde(rename_all = "UPPERCASE")]
@@ -64,7 +47,8 @@ impl std::str::FromStr for ReviewAnswer {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize, Enum, PartialEq, Eq, strum::Display)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, strum::Display)]
+#[cfg_attr(feature = "graphql", derive(Enum))]
 #[serde(rename_all = "kebab-case")]
 #[strum(serialize_all = "kebab-case")]
 pub enum SumsubVerificationLevel {
@@ -164,28 +148,54 @@ pub struct ReviewResult {
     pub review_reject_type: Option<String>,
 }
 
-impl Applicants {
-    pub async fn init(
+pub struct Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    authz: Perms,
+    sumsub_client: SumsubClient,
+    repo: ApplicantRepo,
+    customers: Customers<Perms, E>,
+}
+
+impl<Perms, E> Clone for Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    fn clone(&self) -> Self {
+        Self {
+            authz: self.authz.clone(),
+            sumsub_client: self.sumsub_client.clone(),
+            repo: self.repo.clone(),
+            customers: self.customers.clone(),
+        }
+    }
+}
+
+impl<Perms, E> Applicants<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<core_customer::CustomerObject>,
+{
+    pub fn new(
         pool: &PgPool,
         config: &SumsubConfig,
-        customers: &Customers,
-        deposits: &Deposits,
-        jobs: &Jobs,
-        outbox: &Outbox,
-    ) -> Result<Self, ApplicantError> {
+        authz: &Perms,
+        customers: &Customers<Perms, E>,
+    ) -> Self {
         let sumsub_client = SumsubClient::new(config);
 
-        jobs.add_initializer_and_spawn_unique(
-            tx_export::SumsubExportInit::new(outbox, &sumsub_client, deposits),
-            tx_export::SumsubExportJobConfig,
-        )
-        .await?;
-
-        Ok(Self {
+        Self {
+            authz: authz.clone(),
             repo: ApplicantRepo::new(pool),
             sumsub_client,
-            customers: Arc::new(customers.clone()),
-        })
+            customers: customers.clone(),
+        }
     }
 
     #[instrument(name = "applicant.handle_callback", skip(self, payload))]
@@ -308,33 +318,37 @@ impl Applicants {
     #[instrument(name = "applicant.create_permalink", skip(self))]
     pub async fn create_permalink(
         &self,
-        sub: &Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<PermalinkResponse, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
-        let customer = self.customers.find_by_id(sub, customer_id).await?;
-        let customer = customer.ok_or_else(|| {
-            ApplicantError::CustomerIdNotFound(format!("Customer with ID {customer_id} not found"))
-        })?;
+        let _audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                core_customer::CustomerObject::customer(customer_id),
+                core_customer::CoreCustomerAction::CUSTOMER_READ,
+            )
+            .await?;
 
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
         let level: SumsubVerificationLevel = customer.customer_type.into();
 
-        self.sumsub_client
+        Ok(self
+            .sumsub_client
             .create_permalink(customer_id, &level.to_string())
-            .await
+            .await?)
     }
 
-    #[instrument(name = "applicant.get_applicant_info", skip(self))]
-    pub async fn get_applicant_info(
+    #[instrument(name = "applicant.get_applicant_info_without_audit", skip(self))]
+    pub async fn get_applicant_info_without_audit(
         &self,
-        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<ApplicantInfo, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
-        // TODO: audit
-
+        // will return error if customer not found
         self.customers.find_by_id_without_audit(customer_id).await?;
 
         let applicant_details = self
@@ -351,19 +365,18 @@ impl Applicants {
     #[instrument(name = "applicant.create_complete_test_applicant", skip(self))]
     pub async fn create_complete_test_applicant(
         &self,
-        sub: &Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug,
     ) -> Result<String, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
+        // will return error if customer not found
         let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+        let level: SumsubVerificationLevel = customer.customer_type.into();
 
         tracing::info!(
             customer_id = %customer_id,
             "Creating complete test applicant with full KYC flow"
         );
-
-        let level: SumsubVerificationLevel = customer.customer_type.into();
 
         // Step 1: Create applicant via API
         let applicant_id = self
@@ -377,10 +390,10 @@ impl Applicants {
         self.sumsub_client
             .update_applicant_info(
                 &applicant_id,
-                sumsub_testing_utils::TEST_FIRST_NAME,
-                sumsub_testing_utils::TEST_LAST_NAME,
-                sumsub_testing_utils::TEST_DATE_OF_BIRTH,
-                sumsub_testing_utils::TEST_COUNTRY_CODE,
+                sumsub::testing::TEST_FIRST_NAME,
+                sumsub::testing::TEST_LAST_NAME,
+                sumsub::testing::TEST_DATE_OF_BIRTH,
+                sumsub::testing::TEST_COUNTRY_CODE,
             )
             .await?;
 
@@ -393,17 +406,19 @@ impl Applicants {
             "German passport image",
         )
         .await
-        .map_err(|e| ApplicantError::Sumsub {
-            description: format!("Failed to load passport image: {e}"),
-            code: 500,
+        .map_err(|e| {
+            ApplicantError::SumsubError(sumsub::SumsubError::ApiError {
+                description: format!("Failed to load passport image: {e}"),
+                code: 500,
+            })
         })?;
 
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_PASSPORT,
-                sumsub_auth::DOC_SUBTYPE_FRONT_SIDE,
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                sumsub::testing::DOC_TYPE_PASSPORT,
+                sumsub::testing::DOC_SUBTYPE_FRONT_SIDE,
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 passport_image.clone(),
                 sumsub_testing_utils::PASSPORT_FILENAME,
             )
@@ -415,9 +430,9 @@ impl Applicants {
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_PASSPORT,
-                sumsub_auth::DOC_SUBTYPE_BACK_SIDE,
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                sumsub::testing::DOC_TYPE_PASSPORT,
+                sumsub::testing::DOC_SUBTYPE_BACK_SIDE,
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 passport_image.clone(),
                 sumsub_testing_utils::PASSPORT_FILENAME,
             )
@@ -432,9 +447,9 @@ impl Applicants {
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_SELFIE,
+                sumsub::testing::DOC_TYPE_SELFIE,
                 "",
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 passport_image, // Reuse passport image as selfie for testing
                 sumsub_testing_utils::PASSPORT_FILENAME,
             )
@@ -452,17 +467,19 @@ impl Applicants {
             "Proof of residence document",
         )
         .await
-        .map_err(|e| ApplicantError::Sumsub {
-            description: format!("Failed to load proof of residence image: {e}"),
-            code: 500,
+        .map_err(|e| {
+            ApplicantError::SumsubError(sumsub::SumsubError::ApiError {
+                description: format!("Failed to load proof of residence image: {e}"),
+                code: 500,
+            })
         })?;
 
         self.sumsub_client
             .upload_document(
                 &applicant_id,
-                sumsub_auth::DOC_TYPE_UTILITY_BILL,
+                sumsub::testing::DOC_TYPE_UTILITY_BILL,
                 "",
-                Some(sumsub_testing_utils::TEST_COUNTRY_CODE),
+                Some(sumsub::testing::TEST_COUNTRY_CODE),
                 poa_image,
                 sumsub_testing_utils::POA_FILENAME,
             )
@@ -475,7 +492,7 @@ impl Applicants {
 
         // Step 6: Submit questionnaire
         self.sumsub_client
-            .submit_questionnaire_direct(&applicant_id, sumsub_testing_utils::TEST_QUESTIONNAIRE_ID)
+            .submit_questionnaire_direct(&applicant_id, sumsub::testing::TEST_QUESTIONNAIRE_ID)
             .await?;
 
         tracing::info!("Questionnaire submitted");
@@ -493,7 +510,7 @@ impl Applicants {
 
         // Step 8: Simulate approval (GREEN)
         self.sumsub_client
-            .simulate_review_response(&applicant_id, sumsub_auth::REVIEW_ANSWER_GREEN)
+            .simulate_review_response(&applicant_id, sumsub::testing::REVIEW_ANSWER_GREEN)
             .await?;
 
         tracing::info!("Approval simulated");

@@ -3,7 +3,13 @@
 
 pub mod accounting_init;
 pub mod app;
-pub mod applicant;
+
+pub mod applicant {
+    pub use core_applicant::*;
+    pub type Applicants =
+        core_applicant::Applicants<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
+
 pub mod authorization;
 pub mod primitives;
 pub mod report;
@@ -64,6 +70,12 @@ pub mod customer_sync {
     pub use customer_sync::config::CustomerSyncConfig;
     pub type CustomerSync =
         customer_sync::CustomerSync<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
+
+pub mod deposit_sync {
+    pub use deposit_sync::config::DepositSyncConfig;
+    pub type DepositSync =
+        deposit_sync::DepositSync<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
 pub mod price {

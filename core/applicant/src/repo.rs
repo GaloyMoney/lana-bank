@@ -1,5 +1,5 @@
-use crate::primitives::CustomerId;
 use chrono::Utc;
+use core_customer::CustomerId;
 use serde::{Deserialize, Serialize};
 
 use sqlx::PgPool;

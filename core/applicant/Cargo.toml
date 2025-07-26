@@ -1,0 +1,38 @@
+[package]
+name = "core-applicant"
+version = "0.3.754-dev"
+license = "FSL-1.1-ALv2"
+edition = "2021"
+
+[package.metadata.cargo-machete]
+ignored = ["schemars"]
+
+[features]
+fail-on-warnings = []
+graphql = ["dep:async-graphql", "es-entity/graphql"]
+sumsub-testing = ["sumsub/sumsub-testing"]
+json-schema = ["dep:schemars", "es-entity/json-schema"]
+
+[dependencies]
+outbox = { path = "../../lib/outbox" }
+job = { path = "../../lib/job" }
+core-customer = { path = "../customer" }
+
+authz = { path = "../../lib/authz" }
+audit = { path = "../../lib/audit" }
+sumsub = { path = "../../lib/sumsub" }
+
+es-entity = { workspace = true }
+
+schemars = { workspace = true, optional = true }
+strum = { workspace = true }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sqlx = { workspace = true }
+thiserror = { workspace = true }
+chrono = { workspace = true }
+tracing = { workspace = true }
+uuid = { workspace = true }
+tokio = { workspace = true }
+
+async-graphql = { workspace = true, optional = true } 

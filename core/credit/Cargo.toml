@@ -7,7 +7,7 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-graphql = [ "dep:async-graphql", "cala-ledger/graphql" ]
+graphql = [ "dep:async-graphql", "cala-ledger/graphql", "es-entity/graphql" ]
 json-schema = ["dep:schemars", "cala-ledger/json-schema", "es-entity/json-schema", "core-money/json-schema", "job/json-schema", "core-price/json-schema", "outbox/json-schema"]
 sim-time = ["dep:sim-time", "es-entity/sim-time"]
 mock-custodian = ["core-custody/mock-custodian"]
@@ -28,7 +28,7 @@ cloud-storage = { path = "../../lib/cloud-storage" }
 public-id = { path = "../public-id" }
 
 cala-ledger = { workspace = true }
-es-entity = { workspace = true, features = ["graphql"] }
+es-entity = { workspace = true }
 sqlx = { workspace = true }
 
 strum = { workspace = true }

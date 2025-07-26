@@ -1,0 +1,25 @@
+[package]
+name = "sumsub"
+version = "0.3.762-dev"
+license = "FSL-1.1-ALv2"
+edition = "2021"
+
+[features]
+fail-on-warnings = []
+sumsub-testing = []
+
+[dependencies]
+hex = { workspace = true }
+hmac = { workspace = true }
+reqwest = { workspace = true, features = ["rustls-tls"] }
+serde = { workspace = true }
+serde_json = { workspace = true }
+sha2 = { workspace = true }
+thiserror = { workspace = true }
+tracing = { workspace = true }
+chrono = { workspace = true }
+uuid = { workspace = true }
+
+[dev-dependencies]
+tokio = { workspace = true }
+uuid = { workspace = true } 

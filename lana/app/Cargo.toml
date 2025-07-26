@@ -18,7 +18,7 @@ sim-time = [
 
 fail-on-warnings = []
 mock-custodian = ["core-custody/mock-custodian", "core-credit/mock-custodian"]
-sumsub-testing = []
+sumsub-testing = ["core-applicant/sumsub-testing"]
 
 [dependencies]
 rbac-types = { path = "../rbac-types" }
@@ -28,11 +28,13 @@ lana-ids = { path = "../ids" }
 dashboard = { path = "../dashboard" }
 user-onboarding = { path = "../user-onboarding" }
 customer-sync = { path = "../customer-sync" }
+deposit-sync = { path = "../deposit-sync" }
 notification = { path = "../notification" }
 
 governance = { path = "../../core/governance", features = ["graphql"] }
 core-money = { path = "../../core/money", features = ["graphql"] }
 core-access = { path = "../../core/access", features = ["graphql"] }
+core-applicant = { path = "../../core/applicant", features = ["graphql"] }
 core-custody = { path = "../../core/custody", features = ["graphql"] }
 core-credit = { path = "../../core/credit", features = ["graphql"] }
 core-customer = { path = "../../core/customer", features = ["graphql"] }
@@ -58,20 +60,15 @@ async-trait = { workspace = true }
 chrono = { workspace = true }
 reqwest = { workspace = true }
 derive_builder = { workspace = true }
-futures = { workspace = true }
 handlebars = { workspace = true }
 thiserror = { workspace = true }
 sqlx = { workspace = true }
-strum = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 uuid = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
 base64 = { workspace = true }
-hex = { workspace = true }
-hmac = { workspace = true }
-sha2 = { workspace = true }
 gcp_auth = { workspace = true }
 gcp-bigquery-client = { workspace = true }
 schemars = { workspace = true }

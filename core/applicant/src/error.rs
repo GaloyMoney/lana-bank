@@ -7,15 +7,9 @@ pub enum ApplicantError {
     #[error("ApplicantError - Serde: {0}")]
     Serde(#[from] serde_json::Error),
     #[error("ApplicantError - CustomerError: {0}")]
-    CustomerError(#[from] crate::customer::error::CustomerError),
+    CustomerError(#[from] core_customer::error::CustomerError),
     #[error("ApplicantError - SystemTimeError: {0}")]
     SystemTimeError(#[from] std::time::SystemTimeError),
-    #[error("ApplicantError - InvalidHeaderValue: {0}")]
-    InvalidHeaderValue(#[from] reqwest::header::InvalidHeaderValue),
-    #[error("ApplicantError - Reqwest: {0}")]
-    Reqwest(#[from] reqwest::Error),
-    #[error("ApplicantError - Sumsub Error: {code}, {description}")]
-    Sumsub { code: u16, description: String },
     #[error("ApplicantError - UnhandledCallbackType: {0}")]
     UnhandledCallbackType(String),
     #[error("ApplicantError - MissingExternalUserId: {0}")]
@@ -23,11 +17,15 @@ pub enum ApplicantError {
     #[error("ApplicantError - UuidError: {0}")]
     UuidError(#[from] uuid::Error),
     #[error("ApplicantError - JobError: {0}")]
-    JobError(#[from] crate::job::error::JobError),
+    JobError(#[from] job::error::JobError),
     #[error("ApplicantError - CustomerIdNotFound: {0}")]
     CustomerIdNotFound(String),
     #[error("ApplicantError - SumsubVerificationLevelParseError: Could not parse '{0}'")]
     SumsubVerificationLevelParseError(String),
     #[error("ApplicantError - ReviewAnswerParseError: Could not parse '{0}'")]
     ReviewAnswerParseError(String),
+    #[error("ApplicantError - SumsubError: {0}")]
+    SumsubError(#[from] sumsub::SumsubError),
+    #[error("ApplicantError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
 }

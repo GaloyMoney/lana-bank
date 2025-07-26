@@ -181,6 +181,11 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
+crate = "core-applicant"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
 crate = "core-credit"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
@@ -212,6 +217,11 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "dashboard"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
+crate = "deposit-sync"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
@@ -287,6 +297,11 @@ license-files = []
 
 [[licenses.clarify]]
 crate = "sim-bootstrap"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
+crate = "sumsub"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
