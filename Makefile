@@ -59,7 +59,7 @@ check-code-rust: sdl-rust update-schemas
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	git diff --exit-code lana/entity-rollups/schemas
 	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
-	nix build .#check-code -L --option sandbox false
+	nix build .#check-code -L
 
 # Cargo alternative for faster compilation during development
 check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
@@ -193,7 +193,7 @@ start-cypress-stack:
 
 # Default (nix-based) test in CI
 test-in-ci: start-deps setup-db
-	nix build .#test-in-ci -L --option sandbox false
+	nix build .#test-in-ci -L
 
 # Cargo alternative for faster compilation during development
 test-in-ci-cargo: start-deps setup-db

@@ -14,7 +14,8 @@ json-schema = [
   "document-storage/json-schema",
   "core-deposit/json-schema",
   "core-credit/json-schema",
-  "core-accounting/json-schema"
+  "core-accounting/json-schema",
+  "public-id/json-schema"
 ]
 
 [[bin]]
@@ -30,6 +31,7 @@ core-deposit = { path = "../../core/deposit" }
 core-credit = { path = "../../core/credit" }
 core-accounting = { path = "../../core/accounting" }
 document-storage = { path = "../../core/document-storage" }
+public-id = { path = "../../core/public-id" }
 
 clap = { workspace = true }
 schemars = { workspace = true }

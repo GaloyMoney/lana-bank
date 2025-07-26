@@ -79,7 +79,7 @@
           version = "0.0.0";
           CARGO_PROFILE = profile;
           SQLX_OFFLINE = true;
-          cargoExtraArgs = "--features sim-time,sumsub-testing";
+          cargoExtraArgs = "--all-features";
         };
 
       # Function to build lana-cli for a specific profile
@@ -194,7 +194,7 @@
         buildPhaseCargoCommand = "check";
         buildPhase = ''
           cargo fmt --check
-          cargo clippy --all-targets --all-features || true
+          cargo clippy --all-targets --all-features --offline
           cargo audit
           cargo deny check
           cargo machete
@@ -209,33 +209,34 @@
         cargoToml = ./Cargo.toml;
         cargoLock = ./Cargo.lock;
         cargoArtifacts = debugCargoArtifacts;
+        strictDeps = true;
         SQLX_OFFLINE = true;
+
+        # Environment variables required for tests
+        DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
+        PG_CON = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
+        ENCRYPTION_KEY = "0000000000000000000000000000000000000000000000000000000000000000";
 
         nativeBuildInputs = [
           pkgs.cacert
           pkgs.cargo-nextest
           pkgs.protobuf
           pkgs.gitMinimal
-          # Font packages for PDF generation tests
-          pkgs.fontconfig
-          pkgs.dejavu_fonts # Provides serif, sans-serif, and monospace
         ];
 
         configurePhase = ''
-          export CARGO_NET_GIT_FETCH_WITH_CLI=true
           export PROTOC="${pkgs.protobuf}/bin/protoc"
           export PATH="${pkgs.protobuf}/bin:$PATH"
-          export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-          export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
-          # Font configuration for PDF generation tests
-          export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
-          export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
+
+          # Disable network access for cargo
+          export CARGO_NET_OFFLINE=true
+          export CARGO_HTTP_MULTIPLEXING=false
         '';
 
         buildPhaseCargoCommand = "nextest run";
         buildPhase = ''
           # run whole workspace tests, verbose+locked to mirror Makefile
-          cargo nextest run --workspace --locked --verbose
+          cargo nextest run --workspace --locked --verbose --all-features --offline
         '';
 
         installPhase = "touch $out";
@@ -274,7 +275,7 @@
         cargoExtraArgs = "--bin write_customer_sdl";
       };
 
-      meltanoPkgs = pkgs.callPackage ./meltano.nix {};
+      # meltanoPkgs = pkgs.callPackage ./meltano.nix {};
 
       mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
 
@@ -332,11 +333,8 @@
           curl
           tilt
           procps
-          meltanoPkgs.meltano
+          # meltanoPkgs.meltano
           poppler_utils
-          # Font packages for PDF generation
-          fontconfig
-          dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
@@ -370,8 +368,8 @@
           entity-rollups = entity-rollups;
           write_sdl = write_sdl;
           write_customer_sdl = write_customer_sdl;
-          meltano = meltanoPkgs.meltano;
-          meltano-image = meltanoPkgs.meltano-image;
+          # meltano = meltanoPkgs.meltano;
+          # meltano-image = meltanoPkgs.meltano-image;
         };
 
         apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
@@ -382,10 +380,6 @@
             shellHook = ''
                 export LANA_CONFIG="$(pwd)/bats/lana.yml"
                 export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
-
-              # Font configuration for PDF generation
-              export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
-              export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
 
               # Container engine setup
               # Clear DOCKER_HOST at the start to avoid stale values
