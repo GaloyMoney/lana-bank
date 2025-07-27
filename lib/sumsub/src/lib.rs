@@ -11,7 +11,7 @@ pub mod testing_utils;
 use hmac::{Hmac, Mac};
 use reqwest::{
     header::{HeaderMap, HeaderValue},
-    Client as ReqwestClient,
+    Client as ReqwestClient, Url,
 };
 use serde_json::json;
 use sha2::Sha256;
@@ -29,6 +29,7 @@ pub struct SumsubClient {
     client: ReqwestClient,
     sumsub_key: String,
     sumsub_secret: String,
+    base_url: Url,
 }
 
 impl SumsubClient {
@@ -40,6 +41,7 @@ impl SumsubClient {
                 .expect("should always build SumsubClient"),
             sumsub_key: config.sumsub_key.clone(),
             sumsub_secret: config.sumsub_secret.clone(),
+            base_url: Url::parse(SUMSUB_BASE_URL).expect("SUMSUB_BASE_URL should be a valid URL"),
         }
     }
 
@@ -56,14 +58,14 @@ impl SumsubClient {
         let url = format!(
             "/resources/sdkIntegrations/levels/{level_name}/websdkLink?&externalUserId={external_user_id}"
         );
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+        let full_url = self.base_url.join(&url).expect("valid URL");
 
         let body = json!({}).to_string();
         let headers = self.get_headers(method, &url, Some(&body))?;
 
         let response = self
             .client
-            .post(&full_url)
+            .post(full_url)
             .headers(headers)
             .body(body)
             .send()
@@ -83,10 +85,10 @@ impl SumsubClient {
     {
         let method = "GET";
         let url = format!("/resources/applicants/-;externalUserId={external_user_id}/one");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+        let full_url = self.base_url.join(&url).expect("valid URL");
 
         let headers = self.get_headers(method, &url, None)?;
-        let response = self.client.get(&full_url).headers(headers).send().await?;
+        let response = self.client.get(full_url).headers(headers).send().await?;
 
         self.handle_api_response(response, "Failed to get applicant details")
             .await
@@ -137,13 +139,13 @@ impl SumsubClient {
             }
         });
 
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
         let body_str = body.to_string();
         let headers = self.get_headers(method, &url_path, Some(&body_str))?;
 
         let response = self
             .client
-            .post(&full_url)
+            .post(full_url)
             .headers(headers)
             .body(body_str)
             .send()
@@ -169,7 +171,7 @@ impl SumsubClient {
     {
         let method = "POST";
         let url = format!("/resources/applicants?levelName={level_name}");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url);
+        let full_url = self.base_url.join(&url).expect("valid URL");
 
         let body = json!({
             "externalUserId": external_user_id.to_string(),
@@ -181,7 +183,7 @@ impl SumsubClient {
 
         let response = self
             .client
-            .post(&full_url)
+            .post(full_url)
             .headers(headers)
             .body(body_str)
             .send()
@@ -217,7 +219,7 @@ impl SumsubClient {
     ) -> Result<(), SumsubError> {
         let method = "PATCH";
         let url_path = format!("/resources/applicants/{applicant_id}/fixedInfo");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let body = json!({
             "firstName": first_name,
@@ -231,7 +233,7 @@ impl SumsubClient {
 
         let response = self
             .client
-            .patch(&full_url)
+            .patch(full_url)
             .headers(headers)
             .body(body_str)
             .send()
@@ -249,7 +251,7 @@ impl SumsubClient {
     ) -> Result<(), SumsubError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/status/testCompleted");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let body = if review_answer == wire::testing::REVIEW_ANSWER_GREEN {
             json!({
@@ -271,7 +273,7 @@ impl SumsubClient {
 
         let response = self
             .client
-            .post(&full_url)
+            .post(full_url)
             .headers(headers)
             .body(body_str)
             .send()
@@ -305,7 +307,7 @@ impl SumsubClient {
     ) -> Result<(), SumsubError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/info/idDoc");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let metadata = Self::create_document_metadata(doc_type, doc_sub_type, country);
 
@@ -366,7 +368,7 @@ impl SumsubClient {
 
         let response = self
             .client
-            .post(&full_url)
+            .post(full_url)
             .headers(headers)
             .body(body)
             .send()
@@ -407,7 +409,7 @@ impl SumsubClient {
     ) -> Result<(), SumsubError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/questionnaires");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         // Create a basic questionnaire submission based on the v1_onboarding questionnaire
         let body = json!({
@@ -428,7 +430,7 @@ impl SumsubClient {
 
         let response = self
             .client
-            .post(&full_url)
+            .post(full_url)
             .headers(headers)
             .body(body_str)
             .send()
@@ -457,7 +459,7 @@ impl SumsubClient {
         let method = "PATCH";
         let url_path =
             format!("/resources/applicants/{applicant_id}/questionnaires/{questionnaire_id}");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let body = json!({
             "sections": {
@@ -476,7 +478,7 @@ impl SumsubClient {
 
         let response = self
             .client
-            .patch(&full_url)
+            .patch(full_url)
             .headers(headers)
             .body(body_str)
             .send()
@@ -498,14 +500,14 @@ impl SumsubClient {
     pub async fn request_check(&self, applicant_id: &str) -> Result<(), SumsubError> {
         let method = "POST";
         let url_path = format!("/resources/applicants/{applicant_id}/status/pending");
-        let full_url = format!("{}{}", SUMSUB_BASE_URL, &url_path);
+        let full_url = self.base_url.join(&url_path).expect("valid URL");
 
         let body = json!({}).to_string();
         let headers = self.get_headers(method, &url_path, Some(&body))?;
 
         let response = self
             .client
-            .post(&full_url)
+            .post(full_url)
             .headers(headers)
             .body(body)
             .send()
