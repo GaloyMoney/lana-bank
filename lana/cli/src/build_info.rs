@@ -9,8 +9,6 @@ pub struct BuildInfo {
     pub build_profile: String,
     /// Target architecture triple
     pub build_target: String,
-    /// Build timestamp
-    pub build_timestamp: String,
     /// Version information
     pub version: String,
 }
@@ -29,7 +27,6 @@ impl BuildInfo {
             enabled_features,
             build_profile: env!("BUILD_PROFILE").to_string(),
             build_target: env!("BUILD_TARGET").to_string(),
-            build_timestamp: env!("BUILD_TIMESTAMP").to_string(),
             version: env!("CARGO_PKG_VERSION").to_string(),
         }
     }
@@ -37,11 +34,10 @@ impl BuildInfo {
     /// Format build info for display in CLI
     pub fn display(&self) -> String {
         format!(
-            "lana-cli {}\nBuild Profile: {}\nBuild Target: {}\nBuild Timestamp: {}\nEnabled Features: [{}]",
+            "lana-cli {}\nBuild Profile: {}\nBuild Target: {}\nEnabled Features: [{}]",
             self.version,
             self.build_profile,
             self.build_target,
-            self.build_timestamp,
             self.enabled_features.join(", ")
         )
     }
