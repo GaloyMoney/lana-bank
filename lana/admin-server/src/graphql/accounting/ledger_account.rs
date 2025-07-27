@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
+use cala_ledger::DebitOrCredit;
 use lana_app::accounting::{
     AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
     journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
@@ -37,6 +38,10 @@ impl From<DomainLedgerAccount> for LedgerAccount {
 impl LedgerAccount {
     async fn name(&self) -> &str {
         &self.entity.name
+    }
+
+    async fn normal_balance_type(&self) -> DebitOrCredit {
+        self.entity.normal_balance_type
     }
 
     async fn balance_range(&self) -> async_graphql::Result<LedgerAccountBalanceRange> {

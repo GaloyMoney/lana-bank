@@ -1549,6 +1549,7 @@ export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relations
         history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
+        normalBalanceType: overrides && overrides.hasOwnProperty('normalBalanceType') ? overrides.normalBalanceType! : DebitOrCredit.Credit,
     };
 };
 

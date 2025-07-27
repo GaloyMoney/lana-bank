@@ -2,7 +2,7 @@ use std::collections::HashMap;
 
 use crate::{
     AccountCode, BalanceRange, CalaAccount, CalaAccountBalance, CalaAccountId, CalaAccountSet,
-    CalaAccountSetId, CalaBalanceId, CalaBalanceRange, CalaCurrency, CalaJournalId,
+    CalaAccountSetId, CalaBalanceId, CalaBalanceRange, CalaCurrency, CalaJournalId, DebitOrCredit,
     LedgerAccountId,
 };
 
@@ -11,6 +11,7 @@ pub struct LedgerAccount {
     pub id: LedgerAccountId,
     pub name: String,
     pub code: Option<AccountCode>,
+    pub normal_balance_type: DebitOrCredit,
     pub btc_balance_range: Option<BalanceRange>,
     pub usd_balance_range: Option<BalanceRange>,
 
@@ -96,6 +97,7 @@ impl From<(CalaAccountSet, AccountBalances)> for LedgerAccount {
             id: values.id.into(),
             name: values.name,
             code,
+            normal_balance_type: values.normal_balance_type,
             btc_balance_range,
             usd_balance_range,
             ancestor_ids: Vec::new(),
@@ -135,6 +137,7 @@ impl From<(CalaAccountSet, BalanceRanges)> for LedgerAccount {
             id: values.id.into(),
             name: values.name,
             code,
+            normal_balance_type: values.normal_balance_type,
             btc_balance_range,
             usd_balance_range,
             ancestor_ids: Vec::new(),
@@ -167,12 +170,15 @@ impl From<(CalaAccount, AccountBalances)> for LedgerAccount {
             period_activity: Some(balance),
         });
 
-        let external_id = account.values().external_id.clone();
+        let values = account.values();
+        let external_id = values.external_id.clone();
+        let normal_balance_type = values.normal_balance_type;
 
         LedgerAccount {
             id: account.id.into(),
             name: account.into_values().name,
             code: None,
+            normal_balance_type,
             usd_balance_range,
             btc_balance_range,
             ancestor_ids: Vec::new(),
@@ -204,12 +210,15 @@ impl From<(CalaAccount, BalanceRanges)> for LedgerAccount {
             period_activity: Some(range.period),
         });
 
-        let external_id = account.values().external_id.clone();
+        let values = account.values();
+        let external_id = values.external_id.clone();
+        let normal_balance_type = values.normal_balance_type;
 
         LedgerAccount {
             id: account.id.into(),
             name: account.into_values().name,
             code: None,
+            normal_balance_type,
             usd_balance_range,
             btc_balance_range,
             ancestor_ids: Vec::new(),

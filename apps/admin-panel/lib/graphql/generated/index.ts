@@ -1213,6 +1213,7 @@ export type LedgerAccount = {
   history: JournalEntryConnection;
   id: Scalars['UUID']['output'];
   name: Scalars['String']['output'];
+  normalBalanceType: DebitOrCredit;
 };
 
 
