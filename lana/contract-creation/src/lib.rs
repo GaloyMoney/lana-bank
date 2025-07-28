@@ -1,6 +1,6 @@
 use ::job::{JobId, Jobs};
 use authz::PermissionCheck;
-use core_credit::CustomerId;
+use core_customer::CustomerId;
 use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
     GeneratedDocumentDownloadLink, ReferenceId,
