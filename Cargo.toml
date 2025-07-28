@@ -2,48 +2,9 @@
 resolver = "2"
 exclude = ["dev/check-dependency-dag"]
 members = [
-  "lana/cli",
-  "lana/admin-server",
-  "lana/customer-server",
-  "lana/app",
-  "lana/rbac-types",
-  "lana/events",
-  "lana/ids",
-  "lana/dashboard",
-  "lana/user-onboarding",
-  "lana/customer-sync",
-  "lana/deposit-sync",
-  "lana/notification",
-
-  "lana/entity-rollups",
-
-  "core/accounting",
-  "core/access",
-  "core/applicant",
-  "core/customer",
-  "core/governance",
-  "core/money",
-  "core/deposit",
-  "core/price",
-  "core/credit",
-  "core/custody",
-  "core/document-storage",
-  "core/public-id",
-  "core/report",
-
-  "lib/authz",
-  "lib/audit",
-  "lib/job",
-  "lib/tracing-utils",
-  "lib/outbox",
-  "lib/jwks-utils",
-  "lib/rendering",
-  "lib/kratos-admin",
-  "lib/bitgo",
-  "lib/komainu",
-  "lib/sumsub",
-  "lib/cloud-storage",
-  "lib/airflow" ]
+  "lana/*",
+  "core/*",
+  "lib/*"]
 
 [workspace.dependencies]
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
