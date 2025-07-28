@@ -25,6 +25,5 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
-reqwest = { workspace = true }
 async-trait = { workspace = true }
 schemars = { workspace = true, optional = true }
