@@ -202,8 +202,7 @@ where
                     let account = self
                         .deposits
                         .find_account_by_id_without_audit(*deposit_account_id)
-                        .await?
-                        .expect("Deposit account not found");
+                        .await?;
                     message.inject_trace_parent();
                     let amount_usd: f64 = amount.to_usd().try_into()?;
                     self.sumsub_client
@@ -225,8 +224,7 @@ where
                     let account = self
                         .deposits
                         .find_account_by_id_without_audit(*deposit_account_id)
-                        .await?
-                        .expect("Deposit account not found");
+                        .await?;
                     message.inject_trace_parent();
                     let amount_usd: f64 = amount.to_usd().try_into()?;
                     self.sumsub_client
