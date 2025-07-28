@@ -5,13 +5,8 @@ use core_customer::CustomerId;
 use document_storage::{DocumentId, DocumentStorage};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 
+use crate::{Applicants, Customers};
 use super::{LoanAgreementData, error::ContractCreationError, templates::ContractTemplates};
-
-// Type aliases that match the main app's concrete types
-type LanaAudit = audit::Audit<rbac_types::Subject, rbac_types::LanaObject, rbac_types::LanaAction>;
-type Authorization = authz::Authorization<LanaAudit, core_access::AuthRoleToken>;
-type Customers = core_customer::Customers<Authorization, lana_events::LanaEvent>;
-type Applicants = core_applicant::Applicants<Authorization, lana_events::LanaEvent>;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GenerateLoanAgreementConfig {

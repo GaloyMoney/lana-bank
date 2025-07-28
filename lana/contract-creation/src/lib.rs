@@ -21,8 +21,8 @@ use tracing::instrument;
 // Type aliases that match the main app's concrete types
 type LanaAudit = audit::Audit<Subject, LanaObject, LanaAction>;
 type Authorization = authz::Authorization<LanaAudit, core_access::AuthRoleToken>;
-type Customers = core_customer::Customers<Authorization, lana_events::LanaEvent>;
-type Applicants = core_applicant::Applicants<Authorization, lana_events::LanaEvent>;
+pub(crate) type Customers = core_customer::Customers<Authorization, lana_events::LanaEvent>;
+pub(crate) type Applicants = core_applicant::Applicants<Authorization, lana_events::LanaEvent>;
 
 const LOAN_AGREEMENT_DOCUMENT_TYPE: DocumentType = DocumentType::new("loan_agreement");
 
