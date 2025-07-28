@@ -65,7 +65,7 @@
           || pkgs.lib.hasInfix "/lana/app/migrations/" path
           || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
           || pkgs.lib.hasInfix "/lana/entity-rollups/src/templates/" path
-          || pkgs.lib.hasInfix "/lana/app/contract_creation/src/templates/" path
+          || pkgs.lib.hasInfix "/lana/contract-creation/src/templates/" path
           || pkgs.lib.hasInfix "/lib/rendering/config/" path;
       };
 
