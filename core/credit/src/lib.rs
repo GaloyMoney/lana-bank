@@ -1,5 +1,9 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
+#![cfg_attr(
+    feature = "fail-on-warnings",
+    allow(clippy::inconsistent_digit_grouping)
+)]
 
 mod chart_of_accounts_integration;
 mod collateral;

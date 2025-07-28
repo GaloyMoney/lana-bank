@@ -74,7 +74,7 @@ check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
 	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
-	SQLX_OFFLINE=true cargo clippy --all-features
+	SQLX_OFFLINE=true cargo clippy --all-features --all-targets
 	SQLX_OFFLINE=true cargo audit
 	cargo deny check --hide-inclusion-graph
 	cargo machete
