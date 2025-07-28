@@ -24,6 +24,6 @@ async fn handle_webhook(
 
 pub fn webhook_routes() -> Router<JwtDecoderState> {
     Router::new()
-        .route("/{provider}/webhook", post(handle_webhook))
+        .route("/webhook/{provider}", post(handle_webhook))
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
 }
