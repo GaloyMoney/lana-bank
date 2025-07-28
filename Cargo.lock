@@ -1170,6 +1170,34 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "2f8a2ca5ac02d09563609681103aada9e1777d54fc57a5acd7a41404f9c93b6e"
 
 [[package]]
+name = "contract-creation"
+version = "0.3.762-dev"
+dependencies = [
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "core-access",
+ "core-applicant",
+ "core-credit",
+ "core-customer",
+ "document-storage",
+ "handlebars",
+ "job",
+ "lana-events",
+ "lana-ids",
+ "rbac-types",
+ "rendering",
+ "serde",
+ "serde_json",
+ "sqlx",
+ "thiserror 2.0.12",
+ "tokio",
+ "tracing",
+ "uuid",
+]
+
+[[package]]
 name = "convert_case"
 version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -3159,6 +3187,7 @@ dependencies = [
  "cala-ledger",
  "chrono",
  "cloud-storage",
+ "contract-creation",
  "core-access",
  "core-accounting",
  "core-applicant",
@@ -3172,10 +3201,10 @@ dependencies = [
  "customer-sync",
  "dashboard",
  "deposit-sync",
+ "derive_builder",
  "document-storage",
  "es-entity",
  "governance",
- "handlebars",
  "job",
  "lana-events",
  "lana-ids",
@@ -3184,7 +3213,7 @@ dependencies = [
  "public-id",
  "rand 0.9.2",
  "rbac-types",
- "rendering",
+ "reqwest",
  "rust_decimal",
  "rust_decimal_macros",
  "schemars 1.0.4",

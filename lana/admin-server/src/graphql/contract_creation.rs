@@ -65,8 +65,8 @@ pub struct LoanAgreementDownloadLinksGenerateInput {
 
 #[derive(SimpleObject)]
 pub struct LoanAgreementDownloadLinksGeneratePayload {
-    loan_agreement_id: UUID,
-    link: String,
+    pub loan_agreement_id: UUID,
+    pub link: String,
 }
 
 impl From<lana_app::document::GeneratedDocumentDownloadLink>

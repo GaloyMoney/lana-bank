@@ -1,12 +1,17 @@
 use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 
+use core_customer::CustomerId;
 use document_storage::{DocumentId, DocumentStorage};
-use job::*;
+use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 
 use super::{LoanAgreementData, error::ContractCreationError, templates::ContractTemplates};
-use crate::applicant::Applicants;
-use crate::customer::{CustomerId, Customers};
+
+// Type aliases that match the main app's concrete types
+type LanaAudit = audit::Audit<rbac_types::Subject, rbac_types::LanaObject, rbac_types::LanaAction>;
+type Authorization = authz::Authorization<LanaAudit, core_access::AuthRoleToken>;
+type Customers = core_customer::Customers<Authorization, lana_events::LanaEvent>;
+type Applicants = core_applicant::Applicants<Authorization, lana_events::LanaEvent>;
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GenerateLoanAgreementConfig {
@@ -130,7 +135,7 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
                     applicant_info.primary_address().map(|s| s.to_string()),
                     applicant_info.nationality().map(|s| s.to_string()),
                 ),
-                Err(_) => ("N/A (applicant info not available)".to_string(), None, None), // Fallback if applicant info is not available
+                Err(_) => ("N/A (applicant info not available)".to_string(), None, None),
             }
         } else {
             ("N/A (customer has no applicant)".to_string(), None, None)

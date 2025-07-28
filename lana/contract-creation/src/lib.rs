@@ -1,9 +1,5 @@
-use crate::applicant::Applicants;
-use crate::authorization::Authorization;
-use crate::customer::Customers;
 use ::job::{JobId, Jobs};
 use authz::PermissionCheck;
-use chrono;
 use core_credit::CustomerId;
 use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
@@ -20,16 +16,22 @@ mod templates;
 pub use error::*;
 pub use job::*;
 
+use tracing::instrument;
+
+// Type aliases that match the main app's concrete types
+type LanaAudit = audit::Audit<Subject, LanaObject, LanaAction>;
+type Authorization = authz::Authorization<LanaAudit, core_access::AuthRoleToken>;
+type Customers = core_customer::Customers<Authorization, lana_events::LanaEvent>;
+type Applicants = core_applicant::Applicants<Authorization, lana_events::LanaEvent>;
+
+const LOAN_AGREEMENT_DOCUMENT_TYPE: DocumentType = DocumentType::new("loan_agreement");
+
 #[derive(Clone)]
 pub struct ContractCreation {
     document_storage: DocumentStorage,
     jobs: Jobs,
     authz: Authorization,
 }
-
-use tracing::instrument;
-
-const LOAN_AGREEMENT_DOCUMENT_TYPE: DocumentType = DocumentType::new("loan_agreement");
 
 impl ContractCreation {
     pub fn try_new(
@@ -40,7 +42,6 @@ impl ContractCreation {
         authz: &Authorization,
     ) -> Result<Self, ContractCreationError> {
         let renderer = rendering::Renderer::new();
-
         let contract_templates = templates::ContractTemplates::try_new()?;
 
         // Initialize the job system for contract creation
