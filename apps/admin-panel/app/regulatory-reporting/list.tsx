@@ -19,7 +19,9 @@ gql`
         node {
           id
           reportRunId
-          generatedAt
+          executionDate
+          startDate
+          endDate
           runType
           state
         }
@@ -46,9 +48,12 @@ const AvailableReportRuns: React.FC = () => {
 
   const columns: Column<ReportRun>[] = [
     {
-      key: "generatedAt",
+      key: "startDate",
       label: t("listHeaders.generatedAt"),
-      render: (date) => (date ? formatDate(date) : t("starting")),
+      render: (_, reportRun) => {
+        const date = reportRun.startDate || reportRun.executionDate
+        return date ? formatDate(date) : t("starting")
+      },
     },
     {
       key: "runType",

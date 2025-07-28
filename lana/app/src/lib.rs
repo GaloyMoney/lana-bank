@@ -187,8 +187,8 @@ pub mod contract_creation;
 
 pub mod report {
     pub use core_report::{
-        AirflowConfig, CoreReportAction, CoreReportEvent, Report, ReportError, ReportFile,
-        ReportId, ReportObject, ReportRun, ReportRunId, ReportRunState, ReportRunType,
+        CoreReportAction, CoreReportEvent, Report, ReportConfig, ReportError, ReportFile, ReportId,
+        ReportObject, ReportRun, ReportRunId, ReportRunState, ReportRunType,
         ReportRunsByCreatedAtCursor, ReportsByCreatedAtCursor, error,
     };
     pub type Reports =

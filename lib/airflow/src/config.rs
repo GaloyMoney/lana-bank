@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
+use url::Url;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct AirflowConfig {
     #[serde(default = "default_uri")]
-    pub uri: String,
+    pub uri: Url,
 }
 
 impl Default for AirflowConfig {
@@ -12,6 +13,6 @@ impl Default for AirflowConfig {
     }
 }
 
-fn default_uri() -> String {
-    "http://localhost:8080".to_string()
+fn default_uri() -> Url {
+    Url::parse("http://localhost:8080").expect("invalid url")
 }

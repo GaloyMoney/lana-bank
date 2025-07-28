@@ -1,39 +1,38 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-mod airflow;
-mod report;
-mod report_run;
+pub mod report;
+pub mod report_run;
 
+pub mod config;
 pub mod error;
-mod event;
+pub mod event;
+
 mod jobs;
 mod primitives;
 mod publisher;
 
-use publisher::*;
-
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cloud_storage::Storage;
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::airflow::reports_api_client::ReportsApiClient;
-
-pub use crate::airflow::config::AirflowConfig;
+pub use config::*;
 pub use error::ReportError;
-pub use event::CoreReportEvent;
+pub use event::*;
 pub use primitives::*;
-pub use report::{Report, ReportFile, ReportsByCreatedAtCursor};
-pub use report_run::{ReportRun, ReportRunState, ReportRunType, ReportRunsByCreatedAtCursor};
+
+use cloud_storage::Storage;
+use publisher::ReportPublisher;
 
 use jobs::{
     FindNewReportRunJobConfig, FindNewReportRunJobInit, MonitorReportRunJobInit,
     TriggerReportRunJobConfig, TriggerReportRunJobInit,
 };
-use report::Reports;
-use report_run::ReportRuns;
+
+use airflow::*;
+pub use report::*;
+pub use report_run::*;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -46,9 +45,9 @@ where
     E: OutboxEventMarker<CoreReportEvent>,
 {
     authz: Perms,
-    reports: Reports<Perms, E>,
-    report_runs: ReportRuns<Perms, E>,
-    airflow: ReportsApiClient,
+    reports: ReportRepo<E>,
+    report_runs: ReportRunRepo<E>,
+    airflow: Airflow,
     storage: Storage,
     jobs: Jobs,
 }
@@ -80,28 +79,28 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        airflow_config: AirflowConfig,
+        config: ReportConfig,
         outbox: &Outbox<E>,
         jobs: &Jobs,
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
-        let airflow = ReportsApiClient::new(airflow_config.clone());
-        let reports = Reports::init(pool, authz.clone(), &publisher, outbox).await?;
-        let report_runs = ReportRuns::init(pool, authz.clone(), &publisher, outbox).await?;
+        let airflow = Airflow::new(config.airflow);
+        let report_repo = ReportRepo::new(pool, &publisher);
+        let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
         jobs.add_initializer(MonitorReportRunJobInit::new(
             airflow.clone(),
-            report_runs.clone(),
-            reports.clone(),
+            report_run_repo.clone(),
+            report_repo.clone(),
         ));
         jobs.add_initializer(TriggerReportRunJobInit::new(
             airflow.clone(),
-            report_runs.clone(),
+            report_run_repo.clone(),
             jobs.clone(),
         ));
         jobs.add_initializer_and_spawn_unique(
-            FindNewReportRunJobInit::new(airflow.clone(), report_runs.clone(), jobs.clone()),
+            FindNewReportRunJobInit::new(airflow.clone(), report_run_repo.clone(), jobs.clone()),
             FindNewReportRunJobConfig::new(),
         )
         .await?;
@@ -110,8 +109,8 @@ where
             authz: authz.clone(),
             storage: storage.clone(),
             airflow,
-            reports,
-            report_runs,
+            reports: report_repo,
+            report_runs: report_run_repo,
             jobs: jobs.clone(),
         })
     }
@@ -164,10 +163,16 @@ where
                 CoreReportAction::REPORT_READ,
             )
             .await?;
-        self.reports
-            .list_for_run_id(run_id)
-            .await
-            .map_err(ReportError::from)
+
+        Ok(self
+            .reports
+            .list_for_run_id_by_created_at(
+                run_id,
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
     }
 
     pub async fn find_report_run_by_id(
@@ -194,7 +199,7 @@ where
     pub async fn trigger_report_run(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    ) -> Result<(), ReportError> {
+    ) -> Result<job::JobId, ReportError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -203,17 +208,18 @@ where
             )
             .await?;
 
-        let mut db = self.report_runs.repo().begin_op().await?;
-        self.jobs
+        let mut db = self.report_runs.begin_op().await?;
+        let job = self
+            .jobs
             .create_and_spawn_in_op(
                 &mut db,
                 job::JobId::new(),
-                TriggerReportRunJobConfig::<Perms, E>::new(),
+                TriggerReportRunJobConfig::<E>::new(),
             )
             .await?;
         db.commit().await?;
 
-        Ok(())
+        Ok(job.id)
     }
 
     pub async fn generate_report_file_download_link(

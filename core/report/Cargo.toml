@@ -5,12 +5,12 @@ license = "FSL-1.1-ALv2"
 edition = "2024"
 
 [features]
-default = []
 fail-on-warnings = []
 graphql = ["es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
 
 [dependencies]
+airflow = { path = "../../lib/airflow" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 outbox = { path = "../../lib/outbox" }

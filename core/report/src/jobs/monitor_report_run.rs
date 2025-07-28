@@ -4,31 +4,22 @@ use job::{
 };
 use serde::{Deserialize, Serialize};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    airflow::reports_api_client::ReportsApiClient,
-    event::CoreReportEvent,
-    primitives::*,
-    report::{NewReport, Reports},
-    report_run::{ReportRunState, ReportRuns},
-};
+use crate::{event::CoreReportEvent, primitives::*, report::*, report_run::*};
+use airflow::Airflow;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct MonitorReportRunJobConfig<Perms, E>
+pub struct MonitorReportRunJobConfig<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
     report_run_id: ReportRunId,
-    _phantom: std::marker::PhantomData<(Perms, E)>,
+    _phantom: std::marker::PhantomData<E>,
 }
 
-impl<Perms, E> MonitorReportRunJobConfig<Perms, E>
+impl<E> MonitorReportRunJobConfig<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
     pub fn new(report_run_id: ReportRunId) -> Self {
@@ -39,51 +30,43 @@ where
     }
 }
 
-impl<Perms, E> JobConfig for MonitorReportRunJobConfig<Perms, E>
+impl<E> JobConfig for MonitorReportRunJobConfig<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreReportAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    type Initializer = MonitorReportRunJobInit<Perms, E>;
+    type Initializer = MonitorReportRunJobInit<E>;
 }
 
-pub struct MonitorReportRunJobInit<Perms, E>
+pub struct MonitorReportRunJobInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub airflow: ReportsApiClient,
-    pub report_runs: ReportRuns<Perms, E>,
-    pub reports: Reports<Perms, E>,
+    pub airflow: Airflow,
+    pub report_run_repo: ReportRunRepo<E>,
+    pub report_repo: ReportRepo<E>,
 }
 
-impl<Perms, E> MonitorReportRunJobInit<Perms, E>
+impl<E> MonitorReportRunJobInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
     pub fn new(
-        airflow: ReportsApiClient,
-        report_runs: ReportRuns<Perms, E>,
-        reports: Reports<Perms, E>,
+        airflow: Airflow,
+        report_run_repo: ReportRunRepo<E>,
+        report_repo: ReportRepo<E>,
     ) -> Self {
         Self {
             airflow,
-            report_runs,
-            reports,
+            report_run_repo,
+            report_repo,
         }
     }
 }
 
 const MONITOR_REPORT_RUN_JOB_TYPE: JobType = JobType::new("monitor-report-run");
 
-impl<Perms, E> JobInitializer for MonitorReportRunJobInit<Perms, E>
+impl<E> JobInitializer for MonitorReportRunJobInit<E>
 where
-    Perms: PermissionCheck + Send + Sync + 'static,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreReportAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     fn job_type() -> JobType {
@@ -91,12 +74,12 @@ where
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        let config: MonitorReportRunJobConfig<Perms, E> = job.config()?;
+        let config: MonitorReportRunJobConfig<E> = job.config()?;
         Ok(Box::new(MonitorReportRunJobRunner {
             config,
             airflow: self.airflow.clone(),
-            report_runs: self.report_runs.clone(),
-            reports: self.reports.clone(),
+            report_repo: self.report_repo.clone(),
+            report_run_repo: self.report_run_repo.clone(),
         }))
     }
 
@@ -105,27 +88,23 @@ where
     }
 }
 
-pub struct MonitorReportRunJobRunner<Perms, E>
+pub struct MonitorReportRunJobRunner<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    config: MonitorReportRunJobConfig<Perms, E>,
-    airflow: ReportsApiClient,
-    report_runs: ReportRuns<Perms, E>,
-    reports: Reports<Perms, E>,
+    config: MonitorReportRunJobConfig<E>,
+    airflow: Airflow,
+    report_run_repo: ReportRunRepo<E>,
+    report_repo: ReportRepo<E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for MonitorReportRunJobRunner<Perms, E>
+impl<E> JobRunner for MonitorReportRunJobRunner<E>
 where
-    Perms: PermissionCheck + Send + Sync + 'static,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreReportAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     #[tracing::instrument(
-        name = "core_reports.get_report_run.run",
+        name = "core_reports.job.monitor_report_run.run",
         skip(self, _current_job),
         err
     )]
@@ -134,16 +113,20 @@ where
         mut _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut report_run = self
-            .report_runs
-            .repo()
+            .report_run_repo
             .find_by_id(self.config.report_run_id)
             .await?;
 
-        let Some(details) = self.airflow.get_run(&report_run.external_id).await? else {
+        let Some(details) = self
+            .airflow
+            .reports()
+            .get_run(&report_run.external_id)
+            .await?
+        else {
             return Ok(JobCompletion::RescheduleNow);
         };
 
-        if report_run.state.map(Into::into) == Some(details.state) {
+        if report_run.state == details.state.into() {
             return Ok(JobCompletion::RescheduleNow);
         }
 
@@ -154,22 +137,23 @@ where
             details.start_date,
             details.end_date,
         );
-        self.report_runs.repo().update(&mut report_run).await?;
+        self.report_run_repo.update(&mut report_run).await?;
 
         if matches!(
             report_run.state,
-            Some(ReportRunState::Failed | ReportRunState::Success)
+            ReportRunState::Failed | ReportRunState::Success
         ) {
-            for report in details.reports {
-                let new_report = NewReport::builder()
-                    .external_id(report.id)
-                    .run_id(report_run.id)
-                    .name(report.name)
-                    .norm(report.norm)
-                    .files(report.files.into_iter().map(Into::into).collect())
-                    .build()?;
-
-                self.reports.repo().create(new_report).await?;
+            if let Some(reports) = details.reports {
+                for report in reports {
+                    let new_report = NewReport::builder()
+                        .external_id(report.id)
+                        .run_id(report_run.id)
+                        .name(report.name)
+                        .norm(report.norm)
+                        .files(report.files.into_iter().map(Into::into).collect())
+                        .build()?;
+                    self.report_repo.create(new_report).await?;
+                }
             }
             Ok(JobCompletion::Complete)
         } else {

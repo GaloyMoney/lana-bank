@@ -1385,7 +1385,7 @@ type Mutation {
 	accountingCsvDownloadLinkGenerate(input: AccountingCsvDownloadLinkGenerateInput!): AccountingCsvDownloadLinkGeneratePayload!
 	loanAgreementGenerate(input: LoanAgreementGenerateInput!): LoanAgreementGeneratePayload!
 	loanAgreementDownloadLinkGenerate(input: LoanAgreementDownloadLinksGenerateInput!): LoanAgreementDownloadLinksGeneratePayload!
-	triggerReportRun: Boolean!
+	triggerReportRun: ReportRunCreatePayload!
 	reportFileGenerateDownloadLink(input: ReportFileGenerateDownloadLinkInput!): ReportFileGenerateDownloadLinkPayload!
 }
 
@@ -1645,9 +1645,11 @@ type ReportFileGenerateDownloadLinkPayload {
 type ReportRun {
 	id: ID!
 	reportRunId: UUID!
-	state: ReportRunState
-	runType: ReportRunType
-	generatedAt: Timestamp
+	state: ReportRunState!
+	runType: ReportRunType!
+	executionDate: Timestamp!
+	startDate: Timestamp
+	endDate: Timestamp
 	reports: [Report!]!
 }
 
@@ -1664,6 +1666,10 @@ type ReportRunConnection {
 	A list of nodes.
 	"""
 	nodes: [ReportRun!]!
+}
+
+type ReportRunCreatePayload {
+	jobId: String!
 }
 
 """

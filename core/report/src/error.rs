@@ -12,18 +12,16 @@ pub enum ReportError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("ReportError - AuditError: ${0}")]
     AuditError(#[from] audit::error::AuditError),
-    #[error("ReportError - Reqwest: {0}")]
-    Reqwest(#[from] reqwest::Error),
     #[error("ReportError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
     #[error("ReportError - StorageError: {0}")]
     StorageError(#[from] cloud_storage::error::StorageError),
-    #[error("ReportError - ReportModuleError: {0}")]
-    ReportModuleError(#[from] crate::report::error::ReportError),
-    #[error("ReportError - ReportRunModuleError: {0}")]
-    ReportRunModuleError(#[from] crate::report_run::error::ReportRunError),
-    #[error("ReportError - ApiError: {0}")]
-    ApiError(String),
+    #[error("ReportError - ReportError: {0}")]
+    ReportError(#[from] crate::report::error::ReportError),
+    #[error("ReportError - ReportRunError: {0}")]
+    ReportRunError(#[from] crate::report_run::error::ReportRunError),
+    #[error("ReportError - AirflowError: {0}")]
+    AirflowError(#[from] airflow::AirflowError),
     #[error("ReportError - NotFound")]
     NotFound,
 }

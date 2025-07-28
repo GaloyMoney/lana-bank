@@ -5,29 +5,21 @@ use job::{
 };
 use serde::{Deserialize, Serialize};
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    airflow::reports_api_client::ReportsApiClient,
-    event::CoreReportEvent,
-    primitives::{CoreReportAction, ReportObject},
-    report_run::{NewReportRun, ReportRuns},
-};
+use crate::{event::CoreReportEvent, report_run::*};
+use airflow::Airflow;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct FindNewReportRunJobConfig<Perms, E>
+pub struct FindNewReportRunJobConfig<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    _phantom: std::marker::PhantomData<(Perms, E)>,
+    _phantom: std::marker::PhantomData<E>,
 }
 
-impl<Perms, E> FindNewReportRunJobConfig<Perms, E>
+impl<E> FindNewReportRunJobConfig<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
     pub fn new() -> Self {
@@ -37,14 +29,11 @@ where
     }
 }
 
-impl<Perms, E> JobConfig for FindNewReportRunJobConfig<Perms, E>
+impl<E> JobConfig for FindNewReportRunJobConfig<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreReportAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    type Initializer = FindNewReportRunJobInit<Perms, E>;
+    type Initializer = FindNewReportRunJobInit<E>;
 }
 
 #[derive(Default, Clone, Serialize, Deserialize)]
@@ -52,25 +41,23 @@ struct FindNewReportRunJobExecutionState {
     run_id: Option<String>,
 }
 
-pub struct FindNewReportRunJobInit<Perms, E>
+pub struct FindNewReportRunJobInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub airflow: ReportsApiClient,
-    pub report_runs: ReportRuns<Perms, E>,
+    pub airflow: Airflow,
+    pub report_run_repo: ReportRunRepo<E>,
     pub jobs: Jobs,
 }
 
-impl<Perms, E> FindNewReportRunJobInit<Perms, E>
+impl<E> FindNewReportRunJobInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(airflow: ReportsApiClient, report_runs: ReportRuns<Perms, E>, jobs: Jobs) -> Self {
+    pub fn new(airflow: Airflow, report_run_repo: ReportRunRepo<E>, jobs: Jobs) -> Self {
         Self {
             airflow,
-            report_runs,
+            report_run_repo,
             jobs,
         }
     }
@@ -78,11 +65,8 @@ where
 
 const FIND_NEW_REPORT_RUN_JOB_TYPE: JobType = JobType::new("find-new-report-run");
 
-impl<Perms, E> JobInitializer for FindNewReportRunJobInit<Perms, E>
+impl<E> JobInitializer for FindNewReportRunJobInit<E>
 where
-    Perms: PermissionCheck + Send + Sync + 'static,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreReportAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     fn job_type() -> JobType {
@@ -90,10 +74,10 @@ where
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        let _config: FindNewReportRunJobConfig<Perms, E> = job.config()?;
+        let _config: FindNewReportRunJobConfig<E> = job.config()?;
         Ok(Box::new(FindNewReportRunJobRunner {
             airflow: self.airflow.clone(),
-            report_runs: self.report_runs.clone(),
+            report_run_repo: self.report_run_repo.clone(),
             jobs: self.jobs.clone(),
         }))
     }
@@ -103,22 +87,18 @@ where
     }
 }
 
-pub struct FindNewReportRunJobRunner<Perms, E>
+pub struct FindNewReportRunJobRunner<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    airflow: ReportsApiClient,
-    report_runs: ReportRuns<Perms, E>,
+    airflow: Airflow,
+    report_run_repo: ReportRunRepo<E>,
     jobs: Jobs,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for FindNewReportRunJobRunner<Perms, E>
+impl<E> JobRunner for FindNewReportRunJobRunner<E>
 where
-    Perms: PermissionCheck + Send + Sync + 'static,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreReportAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<ReportObject>,
     E: OutboxEventMarker<CoreReportEvent> + Send + Sync + 'static,
 {
     #[tracing::instrument(
@@ -134,12 +114,15 @@ where
             .execution_state::<FindNewReportRunJobExecutionState>()?
             .unwrap_or_default();
 
-        let next_runs = self.airflow.list_runs(Some(1), state.run_id).await?;
+        let next_runs = self
+            .airflow
+            .reports()
+            .list_runs(Some(1), state.run_id)
+            .await?;
 
         for run in next_runs.into_iter() {
             let report_run = match self
-                .report_runs
-                .repo()
+                .report_run_repo
                 .create(
                     NewReportRun::builder()
                         .external_id(run.run_id.clone())
@@ -160,14 +143,12 @@ where
                 }
             };
 
-            let mut db = self.report_runs.repo().begin_op().await?;
+            let mut db = self.report_run_repo.begin_op().await?;
             self.jobs
                 .create_and_spawn_in_op(
                     &mut db,
                     job::JobId::new(),
-                    super::monitor_report_run::MonitorReportRunJobConfig::<Perms, E>::new(
-                        report_run.id,
-                    ),
+                    super::monitor_report_run::MonitorReportRunJobConfig::<E>::new(report_run.id),
                 )
                 .await?;
             db.commit().await?;

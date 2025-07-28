@@ -1949,10 +1949,13 @@ impl Mutation {
         Ok(LoanAgreementDownloadLinksGeneratePayload::from(doc))
     }
 
-    async fn trigger_report_run(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn trigger_report_run(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<ReportRunCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        app.reports().trigger_report_run(sub).await?;
-        Ok(true)
+        let job_id = app.reports().trigger_report_run(sub).await?;
+        Ok(ReportRunCreatePayload::from(job_id))
     }
 
     async fn report_file_generate_download_link(

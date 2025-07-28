@@ -42,7 +42,8 @@ members = [
   "lib/bitgo",
   "lib/komainu",
   "lib/sumsub",
-  "lib/cloud-storage"]
+  "lib/cloud-storage",
+  "lib/airflow" ]
 
 [workspace.dependencies]
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }

@@ -32,7 +32,9 @@ gql`
       reportRunId
       state
       runType
-      generatedAt
+      executionDate
+      startDate
+      endDate
       reports {
         id
         reportId
@@ -74,13 +76,15 @@ const ReportRunPage = ({ params }: ReportRunPageProps) => {
 
   if (loading && !data) return <TableLoadingSkeleton />
 
+  const date = data?.reportRun?.startDate || data?.reportRun?.executionDate
+
   return (
     <Card>
       <CardHeader className="flex flex-col md:flex-row md:justify-between md:items-center gap-4">
         <div className="flex flex-col gap-1">
           <CardTitle>
             {t("title", {
-              date: formatDate(data?.reportRun?.generatedAt, { includeTime: true }),
+              date: formatDate(date, { includeTime: true }),
             })}
           </CardTitle>
           {data?.reportRun?.state && (

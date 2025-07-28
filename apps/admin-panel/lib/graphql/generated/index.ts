@@ -1386,7 +1386,7 @@ export type Mutation = {
   sumsubPermalinkCreate: SumsubPermalinkCreatePayload;
   termsTemplateCreate: TermsTemplateCreatePayload;
   termsTemplateUpdate: TermsTemplateUpdatePayload;
-  triggerReportRun: Scalars['Boolean']['output'];
+  triggerReportRun: ReportRunCreatePayload;
   userCreate: UserCreatePayload;
   userRevokeRole: UserRevokeRolePayload;
   userUpdateRole: UserUpdateRolePayload;
@@ -2106,12 +2106,14 @@ export type ReportFileGenerateDownloadLinkPayload = {
 
 export type ReportRun = {
   __typename?: 'ReportRun';
-  generatedAt?: Maybe<Scalars['Timestamp']['output']>;
+  endDate?: Maybe<Scalars['Timestamp']['output']>;
+  executionDate: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
   reportRunId: Scalars['UUID']['output'];
   reports: Array<Report>;
-  runType?: Maybe<ReportRunType>;
-  state?: Maybe<ReportRunState>;
+  runType: ReportRunType;
+  startDate?: Maybe<Scalars['Timestamp']['output']>;
+  state: ReportRunState;
 };
 
 export type ReportRunConnection = {
@@ -2122,6 +2124,11 @@ export type ReportRunConnection = {
   nodes: Array<ReportRun>;
   /** Information to aid in pagination. */
   pageInfo: PageInfo;
+};
+
+export type ReportRunCreatePayload = {
+  __typename?: 'ReportRunCreatePayload';
+  jobId: Scalars['String']['output'];
 };
 
 /** An edge in a connection. */
@@ -3049,7 +3056,7 @@ export type ReportRunByIdQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', id: string, reportRunId: string, state?: ReportRunState | null, runType?: ReportRunType | null, generatedAt?: any | null, reports: Array<{ __typename?: 'Report', id: string, reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
+export type ReportRunByIdQuery = { __typename?: 'Query', reportRun?: { __typename?: 'ReportRun', id: string, reportRunId: string, state: ReportRunState, runType: ReportRunType, executionDate: any, startDate?: any | null, endDate?: any | null, reports: Array<{ __typename?: 'Report', id: string, reportId: string, externalId: string, name: string, norm: string, files: Array<{ __typename?: 'ReportFile', extension: string }> }> } | null };
 
 export type ReportFileGenerateDownloadLinkMutationVariables = Exact<{
   input: ReportFileGenerateDownloadLinkInput;
@@ -3061,7 +3068,7 @@ export type ReportFileGenerateDownloadLinkMutation = { __typename?: 'Mutation', 
 export type ReportGenerateMutationVariables = Exact<{ [key: string]: never; }>;
 
 
-export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: boolean };
+export type ReportGenerateMutation = { __typename?: 'Mutation', triggerReportRun: { __typename?: 'ReportRunCreatePayload', jobId: string } };
 
 export type ReportRunsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3069,7 +3076,7 @@ export type ReportRunsQueryVariables = Exact<{
 }>;
 
 
-export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, generatedAt?: any | null, runType?: ReportRunType | null, state?: ReportRunState | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type ReportRunsQuery = { __typename?: 'Query', reportRuns: { __typename?: 'ReportRunConnection', edges: Array<{ __typename?: 'ReportRunEdge', cursor: string, node: { __typename?: 'ReportRun', id: string, reportRunId: string, executionDate: any, startDate?: any | null, endDate?: any | null, runType: ReportRunType, state: ReportRunState } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type RoleAddPermissionSetsMutationVariables = Exact<{
   input: RoleAddPermissionSetsInput;
@@ -7045,7 +7052,9 @@ export const ReportRunByIdDocument = gql`
     reportRunId
     state
     runType
-    generatedAt
+    executionDate
+    startDate
+    endDate
     reports {
       id
       reportId
@@ -7127,7 +7136,9 @@ export type ReportFileGenerateDownloadLinkMutationResult = Apollo.MutationResult
 export type ReportFileGenerateDownloadLinkMutationOptions = Apollo.BaseMutationOptions<ReportFileGenerateDownloadLinkMutation, ReportFileGenerateDownloadLinkMutationVariables>;
 export const ReportGenerateDocument = gql`
     mutation ReportGenerate {
-  triggerReportRun
+  triggerReportRun {
+    jobId
+  }
 }
     `;
 export type ReportGenerateMutationFn = Apollo.MutationFunction<ReportGenerateMutation, ReportGenerateMutationVariables>;
@@ -7163,7 +7174,9 @@ export const ReportRunsDocument = gql`
       node {
         id
         reportRunId
-        generatedAt
+        executionDate
+        startDate
+        endDate
         runType
         state
       }
