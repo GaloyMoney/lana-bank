@@ -316,4 +316,27 @@ where
 
         Ok(chart)
     }
+
+    #[instrument(name = "core_accounting.add_child_node", skip(self), err)]
+    pub async fn add_child_node(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+        parent_code: AccountCode,
+        code: AccountCode,
+        name: AccountName,
+        trial_balance_ref: &str,
+    ) -> Result<Chart, CoreAccountingError> {
+        let (chart, new_account_set_id) = self
+            .chart_of_accounts()
+            .add_child_node(sub, chart_id, parent_code, code, name)
+            .await?;
+        if let Some(new_account_set_id) = new_account_set_id {
+            self.trial_balances()
+                .add_new_chart_accounts_to_trial_balance(trial_balance_ref, &[new_account_set_id])
+                .await?;
+        }
+
+        Ok(chart)
+    }
 }

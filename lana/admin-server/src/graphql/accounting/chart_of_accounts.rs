@@ -65,21 +65,28 @@ pub struct ChartOfAccountsCsvImportInput {
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
-pub struct ChartOfAccountsAddNodeInput {
+pub struct ChartOfAccountsAddRootNodeInput {
     pub chart_id: UUID,
-    pub parent: Option<AccountCode>,
     pub code: AccountCode,
     pub name: String,
     pub normal_balance_type: DebitOrCredit,
 }
-crate::mutation_payload! { ChartOfAccountsAddNodePayload, chart_of_accounts: ChartOfAccounts }
+crate::mutation_payload! { ChartOfAccountsAddRootNodePayload, chart_of_accounts: ChartOfAccounts }
 
-impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
+#[derive(InputObject)]
+pub struct ChartOfAccountsAddChildNodeInput {
+    pub chart_id: UUID,
+    pub parent: AccountCode,
+    pub code: AccountCode,
+    pub name: String,
+}
+crate::mutation_payload! { ChartOfAccountsAddChildNodePayload, chart_of_accounts: ChartOfAccounts }
+
+impl TryFrom<ChartOfAccountsAddRootNodeInput> for AccountSpec {
     type Error = Box<dyn std::error::Error + Sync + Send>;
 
-    fn try_from(input: ChartOfAccountsAddNodeInput) -> Result<Self, Self::Error> {
-        let ChartOfAccountsAddNodeInput {
-            parent,
+    fn try_from(input: ChartOfAccountsAddRootNodeInput) -> Result<Self, Self::Error> {
+        let ChartOfAccountsAddRootNodeInput {
             code,
             name,
             normal_balance_type,
@@ -87,7 +94,7 @@ impl TryFrom<ChartOfAccountsAddNodeInput> for AccountSpec {
         } = input;
 
         Ok(Self::try_new(
-            parent.map(|v| v.try_into()).transpose()?,
+            None,
             code.try_into()?,
             name.parse()?,
             normal_balance_type,

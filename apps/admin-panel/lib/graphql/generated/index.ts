@@ -267,6 +267,18 @@ export type ChartOfAccounts = {
   name: Scalars['String']['output'];
 };
 
+export type ChartOfAccountsAddChildNodeInput = {
+  chartId: Scalars['UUID']['input'];
+  code: Scalars['AccountCode']['input'];
+  name: Scalars['String']['input'];
+  parent: Scalars['AccountCode']['input'];
+};
+
+export type ChartOfAccountsAddChildNodePayload = {
+  __typename?: 'ChartOfAccountsAddChildNodePayload';
+  chartOfAccounts: ChartOfAccounts;
+};
+
 export type ChartOfAccountsAddNodeInput = {
   chartId: Scalars['UUID']['input'];
   code: Scalars['AccountCode']['input'];
@@ -277,6 +289,18 @@ export type ChartOfAccountsAddNodeInput = {
 
 export type ChartOfAccountsAddNodePayload = {
   __typename?: 'ChartOfAccountsAddNodePayload';
+  chartOfAccounts: ChartOfAccounts;
+};
+
+export type ChartOfAccountsAddRootNodeInput = {
+  chartId: Scalars['UUID']['input'];
+  code: Scalars['AccountCode']['input'];
+  name: Scalars['String']['input'];
+  normalBalanceType: DebitOrCredit;
+};
+
+export type ChartOfAccountsAddRootNodePayload = {
+  __typename?: 'ChartOfAccountsAddRootNodePayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1350,7 +1374,9 @@ export type Mutation = {
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
+  chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddNode: ChartOfAccountsAddNodePayload;
+  chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1417,8 +1443,18 @@ export type MutationBalanceSheetConfigureArgs = {
 };
 
 
+export type MutationChartOfAccountsAddChildNodeArgs = {
+  input: ChartOfAccountsAddChildNodeInput;
+};
+
+
 export type MutationChartOfAccountsAddNodeArgs = {
   input: ChartOfAccountsAddNodeInput;
+};
+
+
+export type MutationChartOfAccountsAddRootNodeArgs = {
+  input: ChartOfAccountsAddRootNodeInput;
 };
 
 

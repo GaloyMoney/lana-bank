@@ -12,8 +12,8 @@ use authz::PermissionCheck;
 use cala_ledger::{CalaLedger, account::Account};
 
 use crate::primitives::{
-    AccountIdOrCode, AccountSpec, CalaAccountSetId, CalaJournalId, ChartId, CoreAccountingAction,
-    CoreAccountingObject, LedgerAccountId,
+    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
+    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
 pub(super) use csv::{CsvParseError, CsvParser};
@@ -224,6 +224,26 @@ where
 
         let new_account_set_id = chart.trial_balance_account_id_from_new_account(account_set_id);
         Ok((chart, new_account_set_id))
+    }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.add_child_node",
+        skip(self),
+        err
+    )]
+    pub async fn add_child_node(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        parent_code: AccountCode,
+        code: AccountCode,
+        name: AccountName,
+    ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
+        let id = id.into();
+        let chart = self.repo.find_by_id(id).await?;
+        let parent_balance_type = chart.get_parent_balance_type(&parent_code)?;
+        let spec = AccountSpec::try_new(Some(parent_code), code.into(), name, parent_balance_type)?;
+        self.add_node(sub, id, spec).await
     }
 
     #[instrument(name = "core_accounting.chart_of_accounts.find_by_id", skip(self), err)]

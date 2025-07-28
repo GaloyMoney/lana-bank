@@ -238,6 +238,16 @@ impl Chart {
         Ok(())
     }
 
+    pub fn get_parent_balance_type(
+        &self,
+        parent_code: &AccountCode,
+    ) -> Result<cala_ledger::DebitOrCredit, ChartOfAccountsError> {
+        self.all_accounts
+            .get(parent_code)
+            .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
+            .ok_or_else(|| ChartOfAccountsError::ParentAccountNotFound(parent_code.to_string()))
+    }
+
     fn manual_transaction_account_id_from_code(
         &self,
         code: &AccountCode,
