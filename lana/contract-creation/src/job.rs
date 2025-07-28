@@ -5,8 +5,8 @@ use core_customer::CustomerId;
 use document_storage::{DocumentId, DocumentStorage};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 
-use crate::{Applicants, Customers};
 use super::{LoanAgreementData, error::ContractCreationError, templates::ContractTemplates};
+use crate::{Applicants, Customers};
 
 #[derive(Clone, Serialize, Deserialize)]
 pub struct GenerateLoanAgreementConfig {
