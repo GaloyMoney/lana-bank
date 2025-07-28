@@ -65,7 +65,7 @@ describe(t(U + ".title"), () => {
     cy.takeScreenshot("9_update_roles")
 
     cy.get('[role="combobox"]').click()
-    cy.get('[role="option"]').eq(2).click()
+    cy.get('[role="option"]').eq(1).click()
     cy.get('button[type="submit"]').click()
 
     cy.contains(t(U + ".updateRole.success")).should("be.visible")
