@@ -372,6 +372,21 @@ impl CreditFacility {
         Ok(full_period.truncate(self.matures_at.expect("Facility is already active")))
     }
 
+    fn next_interest_accrual_cycle_idx(&self) -> InterestAccrualCycleIdx {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_id,
+                    interest_accrual_cycle_idx: idx,
+                    ..
+                } if !self.is_reverted_accrual(interest_accrual_id) => Some(idx.next()),
+                _ => None,
+            })
+            .unwrap_or(InterestAccrualCycleIdx::FIRST)
+    }
+
     pub(crate) fn start_interest_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
@@ -385,18 +400,7 @@ impl CreditFacility {
             return Err(CreditFacilityError::InterestAccrualCycleWithInvalidFutureStartDate);
         }
 
-        let idx = self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleStarted {
-                    interest_accrual_cycle_idx: idx,
-                    ..
-                } => Some(idx.next()),
-                _ => None,
-            })
-            .unwrap_or(InterestAccrualCycleIdx::FIRST);
+        let idx = self.next_interest_accrual_cycle_idx();
         let id = InterestAccrualCycleId::new();
         self.events
             .push(CreditFacilityEvent::InterestAccrualCycleStarted {
@@ -915,9 +919,32 @@ mod test {
             .extend_entities(new_entities);
     }
 
-    mod next_interest_accrual_cycle_period {
+    mod interest_accrual_cycle {
 
         use super::*;
+
+        #[test]
+        fn can_progress_next_accrual_idx() {
+            let mut events = initial_events();
+            let credit_facility = facility_from(events.clone());
+            assert_eq!(
+                credit_facility.next_interest_accrual_cycle_idx(),
+                InterestAccrualCycleIdx::FIRST
+            );
+
+            let activated_at = date_from("2021-01-15T12:00:00Z");
+            events.push(CreditFacilityEvent::InterestAccrualCycleStarted {
+                interest_accrual_id: InterestAccrualCycleId::new(),
+                interest_accrual_cycle_idx: InterestAccrualCycleIdx::FIRST,
+                interest_period: InterestInterval::EndOfDay.period_from(activated_at),
+                audit_info: dummy_audit_info(),
+            });
+            let credit_facility = facility_from(events);
+            assert_eq!(
+                credit_facility.next_interest_accrual_cycle_idx(),
+                InterestAccrualCycleIdx::FIRST.next()
+            );
+        }
 
         #[test]
         fn next_interest_accrual_cycle_period_handles_first_and_second_periods() {
@@ -934,8 +961,10 @@ mod test {
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
+            let first_idx = credit_facility.next_interest_accrual_cycle_idx();
             let InterestPeriod { start, .. } = first_accrual_cycle_period;
             assert_eq!(start, activated_at);
+            assert_eq!(first_idx, InterestAccrualCycleIdx::FIRST);
 
             credit_facility
                 .start_interest_accrual_cycle(dummy_audit_info())
@@ -946,7 +975,9 @@ mod test {
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
+            let second_idx = credit_facility.next_interest_accrual_cycle_idx();
             assert_eq!(second_accrual_period, first_accrual_cycle_period.next());
+            assert_eq!(second_idx, InterestAccrualCycleIdx::FIRST.next());
         }
 
         #[test]
@@ -966,6 +997,10 @@ mod test {
                 .unwrap();
             let second_accrual_cycle_period = first_accrual_cycle_period.next();
             let third_accrual_cycle_period = second_accrual_cycle_period.next();
+
+            let expected_first_idx = InterestAccrualCycleIdx::FIRST;
+            let expected_second_idx = expected_first_idx.next();
+            let expected_third_idx = expected_second_idx.next();
 
             credit_facility
                 .start_interest_accrual_cycle(dummy_audit_info())
@@ -991,7 +1026,9 @@ mod test {
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
+            let third_idx = credit_facility.next_interest_accrual_cycle_idx();
             assert_eq!(third_accrual_period, third_accrual_cycle_period);
+            assert_eq!(third_idx, expected_third_idx);
             hydrate_accruals_in_facility(&mut credit_facility);
 
             credit_facility.revert_interest_accruals_after(
@@ -1002,7 +1039,9 @@ mod test {
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
+            let idx_after_revert = credit_facility.next_interest_accrual_cycle_idx();
             assert_eq!(accrual_period_after_revert, second_accrual_cycle_period);
+            assert_eq!(idx_after_revert, expected_second_idx);
         }
 
         #[test]
