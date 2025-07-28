@@ -254,14 +254,9 @@ where
     pub async fn find_account_by_id_without_audit(
         &self,
         id: impl Into<DepositAccountId> + std::fmt::Debug,
-    ) -> Result<Option<DepositAccount>, CoreDepositError> {
+    ) -> Result<DepositAccount, CoreDepositError> {
         let id = id.into();
-
-        match self.accounts.find_by_id(id).await {
-            Ok(accounts) => Ok(Some(accounts)),
-            Err(e) if e.was_not_found() => Ok(None),
-            Err(e) => Err(e.into()),
-        }
+        Ok(self.accounts.find_by_id(id).await?)
     }
 
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]
