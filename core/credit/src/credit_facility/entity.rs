@@ -1059,12 +1059,12 @@ mod test {
         }
     }
 
-    mod interest_accrual_cycle {
+    mod start_interest_accrual_cycle {
 
         use super::*;
 
         #[test]
-        fn next_interest_accrual_cycle_period_handles_first_and_second_periods() {
+        fn can_start() {
             let mut events = initial_events();
             let activated_at = date_from("2021-01-15T12:00:00Z");
             events.extend([CreditFacilityEvent::Activated {
@@ -1074,166 +1074,118 @@ mod test {
             }]);
             let mut credit_facility = facility_from(events);
 
-            let first_accrual_cycle_period = credit_facility
+            let first_accrual_cycle_period @ InterestPeriod { start, .. } = credit_facility
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
-            let first_idx = credit_facility.next_interest_accrual_cycle_idx();
-            let InterestPeriod { start, .. } = first_accrual_cycle_period;
             assert_eq!(start, activated_at);
-            assert_eq!(first_idx, InterestAccrualCycleIdx::FIRST);
 
             credit_facility
                 .start_interest_accrual_cycle(dummy_audit_info())
                 .unwrap()
                 .unwrap();
-
             let second_accrual_period = credit_facility
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
-            let second_idx = credit_facility.next_interest_accrual_cycle_idx();
             assert_eq!(second_accrual_period, first_accrual_cycle_period.next());
-            assert_eq!(second_idx, InterestAccrualCycleIdx::FIRST.next());
         }
 
         #[test]
-        fn next_interest_accrual_cycle_period_handles_single_reverted_accrual() {
+        fn can_start_after_revert() {
             let mut events = initial_events();
             let activated_at = date_from("2021-01-15T12:00:00Z");
-            events.extend([CreditFacilityEvent::Activated {
+            let expected_first_cycle_period =
+                InterestInterval::EndOfMonth.period_from(activated_at);
+            let expected_second_cycle_period = expected_first_cycle_period.next();
+            events.push(CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),
                 audit_info: dummy_audit_info(),
                 activated_at,
-            }]);
+            });
             let mut credit_facility = facility_from(events);
 
-            let first_accrual_cycle_period = credit_facility
-                .next_interest_accrual_cycle_period()
-                .unwrap()
-                .unwrap();
-            let second_accrual_cycle_period = first_accrual_cycle_period.next();
-            let third_accrual_cycle_period = second_accrual_cycle_period.next();
-
-            let expected_first_idx = InterestAccrualCycleIdx::FIRST;
-            let expected_second_idx = expected_first_idx.next();
-            let expected_third_idx = expected_second_idx.next();
-
             credit_facility
                 .start_interest_accrual_cycle(dummy_audit_info())
                 .unwrap()
                 .unwrap();
             hydrate_accruals_in_facility(&mut credit_facility);
-            let accrual_1 = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Missing accrual in progress");
-            accrual_1.record_accrual(UsdCents::ONE, dummy_audit_info());
-
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
-            let accrual_2 = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Missing accrual in progress");
-            accrual_2.record_accrual(UsdCents::ONE, dummy_audit_info());
-
-            let third_accrual_period = credit_facility
+            let next_cycle_period = credit_facility
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
-            let third_idx = credit_facility.next_interest_accrual_cycle_idx();
-            assert_eq!(third_accrual_period, third_accrual_cycle_period);
-            assert_eq!(third_idx, expected_third_idx);
-            hydrate_accruals_in_facility(&mut credit_facility);
+            assert_eq!(next_cycle_period, expected_second_cycle_period);
 
             credit_facility.revert_interest_accruals_after(
-                first_accrual_cycle_period.end.date_naive(),
+                expected_first_cycle_period.end.date_naive(),
                 &dummy_audit_info(),
             );
-            let accrual_period_after_revert = credit_facility
+            let next_cycle_period = credit_facility
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
-            let idx_after_revert = credit_facility.next_interest_accrual_cycle_idx();
-            assert_eq!(accrual_period_after_revert, second_accrual_cycle_period);
-            assert_eq!(idx_after_revert, expected_second_idx);
+            assert_eq!(next_cycle_period, expected_first_cycle_period);
+
+            credit_facility
+                .start_interest_accrual_cycle(dummy_audit_info())
+                .unwrap()
+                .unwrap();
+            let next_cycle_period = credit_facility
+                .next_interest_accrual_cycle_period()
+                .unwrap()
+                .unwrap();
+            assert_eq!(next_cycle_period, expected_second_cycle_period);
         }
 
         #[test]
-        fn next_interest_accrual_cycle_period_handles_last_period() {
+        fn does_not_start_after_last_cycle() {
             let mut events = initial_events();
-            events.extend([CreditFacilityEvent::Activated {
+            let activated_at = date_from("2021-01-15T12:00:00Z");
+            events.push(CreditFacilityEvent::Activated {
                 ledger_tx_id: LedgerTxId::new(),
                 audit_info: dummy_audit_info(),
-                activated_at: Utc::now(),
-            }]);
+                activated_at: activated_at,
+            });
             let mut credit_facility = facility_from(events);
 
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
-
-            let mut accrual_period = credit_facility
-                .terms
-                .accrual_cycle_interval
-                .period_from(credit_facility.activated_at.expect("Not activated"));
-            let mut next_accrual_period = credit_facility
+            while credit_facility
                 .next_interest_accrual_cycle_period()
-                .unwrap();
-            while next_accrual_period.is_some() {
-                let new_idx = credit_facility
-                    .interest_accrual_cycle_in_progress()
-                    .expect("Interest accrual not found")
-                    .idx
-                    .next();
-                let _ = credit_facility.record_interest_accrual_cycle(dummy_audit_info());
-
-                let id = InterestAccrualCycleId::new();
-                credit_facility
-                    .events
-                    .push(CreditFacilityEvent::InterestAccrualCycleStarted {
-                        interest_accrual_id: id,
-                        interest_accrual_cycle_idx: new_idx,
-                        interest_period: next_accrual_period.unwrap(),
-                        audit_info: dummy_audit_info(),
-                    });
-                let new_accrual = NewInterestAccrualCycle::builder()
-                    .id(id)
-                    .credit_facility_id(credit_facility.id)
-                    .account_ids(credit_facility.account_ids.into())
-                    .idx(new_idx)
-                    .period(next_accrual_period.unwrap())
-                    .facility_matures_at(
-                        credit_facility
-                            .matures_at
-                            .expect("Facility is already approved"),
-                    )
-                    .terms(credit_facility.terms)
-                    .audit_info(dummy_audit_info())
-                    .build()
-                    .unwrap();
-                credit_facility.interest_accruals.add_new(new_accrual);
-                hydrate_accruals_in_facility(&mut credit_facility);
-
-                accrual_period = next_accrual_period.expect("Accrual period not found");
-                next_accrual_period = credit_facility
-                    .next_interest_accrual_cycle_period()
-                    .unwrap();
+                .unwrap()
+                .is_some()
+            {
+                assert!(
+                    credit_facility
+                        .start_interest_accrual_cycle(dummy_audit_info())
+                        .unwrap()
+                        .is_some(),
+                );
             }
-            assert_eq!(
-                accrual_period.start.format("%Y-%m").to_string(),
+            assert!(
                 credit_facility
-                    .matures_at
+                    .start_interest_accrual_cycle(dummy_audit_info())
                     .unwrap()
-                    .format("%Y-%m")
-                    .to_string()
+                    .is_none()
             );
         }
+
+        #[test]
+        fn errors_for_future_start_date() {
+            let mut events = initial_events();
+            let activated_at = Utc::now() + chrono::Duration::days(60);
+            events.push(CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                audit_info: dummy_audit_info(),
+                activated_at: activated_at,
+            });
+            let mut credit_facility = facility_from(events);
+
+            assert!(matches!(
+                credit_facility.start_interest_accrual_cycle(dummy_audit_info()),
+                Err(CreditFacilityError::InterestAccrualCycleWithInvalidFutureStartDate)
+            ));
+        }
     }
+
     #[test]
     fn check_activated_at() {
         let mut credit_facility = facility_from(initial_events());
