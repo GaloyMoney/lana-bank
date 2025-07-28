@@ -653,6 +653,7 @@ dependencies = [
  "base64 0.22.1",
  "bip32",
  "ccm",
+ "chrono",
  "hex",
  "hmac",
  "pbkdf2",

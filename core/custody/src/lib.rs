@@ -10,6 +10,7 @@ mod publisher;
 pub mod wallet;
 mod webhook_notification_repo;
 
+use chrono::{DateTime, Utc};
 use strum::IntoDiscriminant as _;
 use tracing::instrument;
 
@@ -341,8 +342,9 @@ where
                     CustodianNotification::WalletBalanceChanged {
                         external_wallet_id,
                         new_balance,
+                        changed_at,
                     } => {
-                        self.update_wallet_balance(external_wallet_id, new_balance)
+                        self.update_wallet_balance(external_wallet_id, new_balance, changed_at)
                             .await?;
                     }
                 }
@@ -357,6 +359,7 @@ where
         &self,
         external_wallet_id: String,
         new_balance: Satoshis,
+        update_time: DateTime<Utc>,
     ) -> Result<(), CoreCustodyError> {
         let mut db = self.wallets.begin_op().await?;
 
@@ -376,7 +379,7 @@ where
             .await?;
 
         if wallet
-            .update_balance(new_balance, &audit_info)
+            .update_balance(new_balance, update_time, &audit_info)
             .did_execute()
         {
             self.wallets.update_in_op(&mut db, &mut wallet).await?;

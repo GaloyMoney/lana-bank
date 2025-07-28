@@ -5,6 +5,7 @@ use ccm::{
     aead::{Aead as _, generic_array::GenericArray},
     consts::{U8, U13},
 };
+use chrono::{DateTime, Utc};
 use pbkdf2::pbkdf2_hmac_array;
 use rand::{TryRngCore as _, rngs::OsRng};
 use serde::{Deserialize, Serialize};
@@ -50,6 +51,7 @@ pub struct Transfer {
     pub wallet: String,
     pub txid: String,
     pub confirmations: u32,
+    pub confirmed_time: Option<DateTime<Utc>>,
     pub value: u64,
     #[serde(rename = "type")]
     pub transfer_type: TransferType,

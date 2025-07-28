@@ -3,6 +3,7 @@ pub mod error;
 use async_trait::async_trait;
 use bitgo::TransferState;
 use bytes::Bytes;
+use chrono::Utc;
 
 use core_money::Satoshis;
 
@@ -66,9 +67,12 @@ impl CustodianClient for bitgo::BitgoClient {
                         .await
                         .map_err(CustodianClientError::client)?;
 
+                    let changed_at = transfer.confirmed_time.unwrap_or_else(Utc::now);
+
                     Some(CustodianNotification::WalletBalanceChanged {
                         external_wallet_id: transfer.wallet,
                         new_balance: wallet.confirmed_balance.into(),
+                        changed_at,
                     })
                 } else {
                     None
@@ -119,9 +123,12 @@ impl CustodianClient for komainu::KomainuClient {
                 let new_balance = Satoshis::try_from_btc(wallet.balance.available)
                     .map_err(CustodianClientError::client)?;
 
+                let changed_at = wallet.balance.balance_updated_at.unwrap_or_else(Utc::now);
+
                 Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet.id,
                     new_balance,
+                    changed_at,
                 })
             }
         };
@@ -166,6 +173,7 @@ pub mod mock {
                 Ok(Some(CustodianNotification::WalletBalanceChanged {
                     external_wallet_id: wallet,
                     new_balance: balance.into(),
+                    changed_at: Utc::now(),
                 }))
             } else {
                 Ok(None)

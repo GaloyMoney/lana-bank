@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
@@ -25,6 +26,7 @@ pub enum WalletEvent {
     },
     BalanceChanged {
         new_balance: Satoshis,
+        changed_at: DateTime<Utc>,
         audit_info: AuditInfo,
     },
 }
@@ -68,6 +70,7 @@ impl Wallet {
     pub fn update_balance(
         &mut self,
         new_balance: Satoshis,
+        update_time: DateTime<Utc>,
         audit_info: &AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
@@ -78,6 +81,7 @@ impl Wallet {
 
         self.events.push(WalletEvent::BalanceChanged {
             new_balance,
+            changed_at: update_time,
             audit_info: audit_info.clone(),
         });
 

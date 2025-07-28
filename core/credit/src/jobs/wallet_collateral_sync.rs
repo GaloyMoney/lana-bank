@@ -87,17 +87,19 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustodyEvent::WalletBalanceChanged { id, new_balance }) =
-                message.as_ref().as_event()
+            if let Some(CoreCustodyEvent::WalletBalanceChanged {
+                id,
+                new_balance,
+                changed_at,
+            }) = message.as_ref().as_event()
             {
                 let credit_facility = self.facilities.find_by_custody_wallet(*id).await?;
 
-                let effective = crate::time::now().date_naive();
                 self.collaterals
                     .record_collateral_update_via_custodian_sync(
                         &credit_facility,
                         *new_balance,
-                        effective,
+                        changed_at.date_naive(),
                     )
                     .await?;
 
