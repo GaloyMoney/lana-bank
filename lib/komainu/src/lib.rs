@@ -40,14 +40,19 @@ pub struct KomainuClient {
 }
 
 impl KomainuClient {
-    pub fn new(config: KomainuConfig, directory_config: KomainuDirectoryConfig) -> Self {
+    pub fn try_new(
+        config: KomainuConfig,
+        directory_config: KomainuDirectoryConfig,
+    ) -> Result<Self, KomainuError> {
         let signing_key = match &config.secret_key {
             KomainuSecretKey::Encrypted { dem, passphrase } => {
                 SecretKey::from_pkcs8_encrypted_pem(dem, passphrase)
-                    .expect("valid passphrase")
+                    .map_err(|_| KomainuError::SecretKey)?
                     .into()
             }
-            KomainuSecretKey::Plain { dem } => SecretKey::from_pkcs8_pem(dem).unwrap().into(),
+            KomainuSecretKey::Plain { dem } => SecretKey::from_pkcs8_pem(dem)
+                .map_err(|_| KomainuError::SecretKey)?
+                .into(),
         };
 
         let get_token_request = GetToken {
@@ -61,14 +66,14 @@ impl KomainuClient {
             directory_config.production_url
         };
 
-        Self {
+        Ok(Self {
             http_client: Client::new(),
             access_token: Default::default(),
             signing_key,
             get_token_request,
             endpoint,
             webhook_secret: config.webhook_secret,
-        }
+        })
     }
 
     pub fn validate_webhook_notification(

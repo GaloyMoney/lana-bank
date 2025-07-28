@@ -95,10 +95,13 @@ impl Custodian {
         provider_config: &CustodyProviderConfig,
     ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
         match self.custodian_config(key) {
-            CustodianConfig::Komainu(config) => Ok(Box::new(komainu::KomainuClient::new(
-                config.into(),
-                provider_config.komainu_directory.clone(),
-            ))),
+            CustodianConfig::Komainu(config) => Ok(Box::new(
+                komainu::KomainuClient::try_new(
+                    config.into(),
+                    provider_config.komainu_directory.clone(),
+                )
+                .map_err(CustodianClientError::client)?,
+            )),
             CustodianConfig::Bitgo(config) => Ok(Box::new(bitgo::BitgoClient::new(
                 config.into(),
                 provider_config.bitgo_directory.clone(),
