@@ -103,7 +103,7 @@ we have the following convention:
 `try_new` -> might fail, sync
 `init` -> might fail, async
 
-function finishing with _without_audit suffix should always return -> Result<X, XError>, X should not be wrapped in an option
+function finishing with _without_audit suffix should always return -> Result<X, XError>, X should not be wrapped with Option<>
 
 ### otel
 
