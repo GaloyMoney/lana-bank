@@ -111,7 +111,9 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
 
   const [createCustodian, { loading }] = useCustodianCreateMutation()
 
-  const handleKomainuInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleKomainuInputChange = (
+    e: React.ChangeEvent<HTMLInputElement | HTMLTextAreaElement>,
+  ) => {
     const { name, value } = e.target
     setKomainuConfig((prev) => ({ ...prev, [name]: value }))
   }
@@ -254,7 +256,6 @@ export const CreateCustodianDialog: React.FC<CreateCustodianDialogProps> = ({
                 <Textarea
                   id="secretKey"
                   name="secretKey"
-                  type="password"
                   value={komainuConfig.secretKey}
                   onChange={handleKomainuInputChange}
                   placeholder={t("placeholders.secretKey")}
