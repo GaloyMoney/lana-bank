@@ -6,8 +6,6 @@ pub enum ContractCreationError {
     Rendering(#[from] rendering::RenderingError),
     #[error("Document storage error: {0}")]
     DocumentStorage(#[from] document_storage::error::DocumentStorageError),
-    #[error("Authorization error: {0}")]
-    Authorization(String),
     #[error("Template not found: {0}")]
     TemplateNotFound(String),
     #[error("Invalid template data: {0}")]
