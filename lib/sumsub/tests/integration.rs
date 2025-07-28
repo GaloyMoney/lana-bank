@@ -5,7 +5,7 @@ use sumsub::testing_utils;
 #[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_create_real_applicant() {
-    use sumsub::{testing::*, SumsubClient};
+    use sumsub::{SumsubClient, testing::*};
     use uuid::Uuid;
 
     // Load configuration from environment
@@ -50,7 +50,7 @@ async fn test_create_real_applicant() {
     );
     assert_eq!(
         applicant_details.fixed_info.full_name(),
-        Some(format!("{} {}", TEST_FIRST_NAME, TEST_LAST_NAME))
+        Some(format!("{TEST_FIRST_NAME} {TEST_LAST_NAME}"))
     );
 }
 
