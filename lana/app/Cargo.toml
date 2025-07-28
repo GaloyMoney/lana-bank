@@ -24,6 +24,7 @@ sumsub-testing = ["core-applicant/sumsub-testing"]
 rbac-types = { path = "../rbac-types" }
 lana-events = { path = "../events" }
 lana-ids = { path = "../ids", features = ["graphql"] }
+contract-creation = { path = "../contract-creation" }
 
 dashboard = { path = "../dashboard" }
 user-onboarding = { path = "../user-onboarding" }
@@ -49,7 +50,6 @@ outbox = { path = "../../lib/outbox" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 cloud-storage = { path = "../../lib/cloud-storage" }
-rendering = { path = "../../lib/rendering" }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
@@ -59,7 +59,8 @@ anyhow = { workspace = true }
 async-graphql = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true }
-handlebars = { workspace = true }
+reqwest = { workspace = true }
+derive_builder = { workspace = true }
 thiserror = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }

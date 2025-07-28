@@ -183,8 +183,6 @@ pub mod public_id {
     pub use public_id::{PublicId, PublicIdEntity, PublicIdTargetType, PublicIds, error};
 }
 
-pub mod contract_creation;
-
 pub mod report {
     pub use core_report::{
         CoreReportAction, CoreReportEvent, Report, ReportConfig, ReportError, ReportFile, ReportId,
@@ -193,4 +191,8 @@ pub mod report {
     };
     pub type Reports =
         core_report::CoreReports<crate::authorization::Authorization, lana_events::LanaEvent>;
+}
+
+pub mod contract_creation {
+    pub use contract_creation::*;
 }
