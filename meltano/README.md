@@ -28,3 +28,5 @@ From this dir, run `meltano install` to set up the different meltano plugins tha
 Once your app is running, you can run an EL from the app database to the Data Warehouse with: `meltano run tap-postgres target-bigquery`. After that, you should be able to see the loaded data in tour BQ development datasets.
 
 You can then proceed to run the `dbt` transformations on BQ by running: `meltano invoke dbt-bigquery run`. You can pass any other `dbt` CLI commands and options to `meltano invoke dbt-bigquery`.
+
+Reports can be generated and stored in a GCP bucket with `meltano invoke generate-es-reports run`.
