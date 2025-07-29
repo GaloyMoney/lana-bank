@@ -157,6 +157,8 @@ where
             current_job.update_execution_state(&state).await?;
         }
 
-        Ok(JobCompletion::RescheduleNow)
+        Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
+            60,
+        )))
     }
 }

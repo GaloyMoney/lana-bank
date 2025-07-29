@@ -13,9 +13,10 @@ services:
       timeout: 5s
       retries: 5
       start_period: 30s
-    depends_on:
-      airflow-pg: { condition: service_healthy }
-      core-pg: { condition: service_started }
+    # depends_on:
+    #   airflow-pg: { condition: service_healthy }
+    #   core-pg: { condition: service_started }
+    restart: on-failure
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg
@@ -40,9 +41,10 @@ services:
       - "meltano-metadata:/workspace/meltano/.meltano:rw"
       - "./meltano:/meltano:ro"
       - "./meltano/keyfile.json:/workspace/meltano/keyfile.json:ro"
-    depends_on: 
-      airflow-pg: { condition: service_healthy }
-      airflow-scheduler: { condition: service_healthy }
+    # depends_on: 
+    #   airflow-pg: { condition: service_healthy }
+    #   airflow-scheduler: { condition: service_healthy }
+    restart: on-failure
     environment:
       AIRFLOW__CORE__EXECUTOR: LocalExecutor
       AIRFLOW__DATABASE__SQL_ALCHEMY_CONN: postgresql+psycopg2://user:password@airflow-pg:5432/pg

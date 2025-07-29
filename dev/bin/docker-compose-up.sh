@@ -2,6 +2,7 @@
 set -euo pipefail
 
 BASE=docker-compose.yml
+DATA=docker-compose.data.yml
 OVERRIDE=docker-compose.docker.yml   # contains the extra_hosts entry
 
 # ── Pick container engine ───────────────────────────────────────────────────────
@@ -19,6 +20,7 @@ fi
 
 # ── Compose file set ────────────────────────────────────────────────────────────
 FILES=(-f "$BASE")
+FILES+=(-f "$DATA")
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker
 
 # ── Pull images first (prevents concurrent map writes) ─────────────────────────
