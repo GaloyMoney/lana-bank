@@ -52,7 +52,7 @@ services:
       DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
 
   airflow-pg:
-    image: ghcr.io/cloudnative-pg/postgresql:17.5
+    image: postgres:17.5
     ports: [5436:5432]
     environment:
       [POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg]
