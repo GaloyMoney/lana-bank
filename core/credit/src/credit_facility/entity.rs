@@ -930,6 +930,13 @@ mod test {
             .extend_entities(new_entities);
     }
 
+    fn start_interest_accrual_cycle(credit_facility: &mut CreditFacility) {
+        credit_facility
+            .start_interest_accrual_cycle(dummy_audit_info())
+            .unwrap();
+        hydrate_accruals_in_facility(credit_facility);
+    }
+
     fn iterate_in_progress_accrual_cycle_to_completion(credit_facility: &mut CreditFacility) {
         let accrual = credit_facility
             .interest_accrual_cycle_in_progress_mut()
@@ -1127,11 +1134,7 @@ mod test {
             });
             let mut credit_facility = facility_from(events);
 
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
+            start_interest_accrual_cycle(&mut credit_facility);
             let next_cycle_period = credit_facility
                 .next_interest_accrual_cycle_period()
                 .unwrap()
@@ -1243,11 +1246,7 @@ mod test {
             });
             let mut credit_facility = facility_from(events);
 
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
+            start_interest_accrual_cycle(&mut credit_facility);
 
             let reverted_count = credit_facility
                 .events()
@@ -1284,11 +1283,7 @@ mod test {
             });
             let mut credit_facility = facility_from(events);
 
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
+            start_interest_accrual_cycle(&mut credit_facility);
 
             let accrual = credit_facility
                 .interest_accrual_cycle_in_progress_mut()
@@ -1330,11 +1325,7 @@ mod test {
             });
             let mut credit_facility = facility_from(events);
 
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
+            start_interest_accrual_cycle(&mut credit_facility);
             iterate_in_progress_accrual_cycle_to_completion(&mut credit_facility);
 
             let reverted_count = credit_facility
@@ -1372,17 +1363,10 @@ mod test {
             });
             let mut credit_facility = facility_from(events);
 
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
+            start_interest_accrual_cycle(&mut credit_facility);
             iterate_in_progress_accrual_cycle_to_completion(&mut credit_facility);
-            credit_facility
-                .start_interest_accrual_cycle(dummy_audit_info())
-                .unwrap()
-                .unwrap();
-            hydrate_accruals_in_facility(&mut credit_facility);
+
+            start_interest_accrual_cycle(&mut credit_facility);
 
             let reverted_count = credit_facility
                 .events()
