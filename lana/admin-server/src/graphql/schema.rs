@@ -1788,7 +1788,7 @@ impl Mutation {
             ChartOfAccounts,
             ChartId,
             ctx,
-            app.accounting().add_node(
+            app.accounting().add_root_node(
                 sub,
                 input.chart_id.into(),
                 input.try_into()?,

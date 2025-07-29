@@ -99,34 +99,30 @@ impl Chart {
         })
     }
 
-    pub(super) fn create_node(
+    pub(super) fn create_child_node(
         &mut self,
-        spec: &AccountSpec,
+        parent_code: AccountCode,
+        code: AccountCode,
+        name: AccountName,
         journal_id: CalaJournalId,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<NewChartAccountDetails>, ChartOfAccountsError> {
-        let AccountSpec {
-            code, name, parent, ..
-        } = spec;
+        let parent_normal_balance_type = self
+            .all_accounts
+            .get(&parent_code)
+            .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
+            .ok_or(ChartOfAccountsError::ParentAccountNotFound(
+                parent_code.to_string(),
+            ))?;
 
-        let mut checked_spec = spec.clone();
-        if let Some(parent) = parent {
-            let parent_normal_balance_type = self
-                .all_accounts
-                .get(parent)
-                .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
-                .ok_or(ChartOfAccountsError::ParentAccountNotFound(
-                    parent.to_string(),
-                ))?;
-            checked_spec = AccountSpec::try_new(
-                Some(parent.clone()),
-                code.into(),
-                name.clone(),
-                parent_normal_balance_type,
-            )?;
-        }
+        let spec = AccountSpec::try_new(
+            Some(parent_code),
+            code.into(),
+            name,
+            parent_normal_balance_type,
+        )?;
 
-        Ok(self.create_node_without_verifying_parent(&checked_spec, journal_id, audit_info))
+        Ok(self.create_node_without_verifying_parent(&spec, journal_id, audit_info))
     }
 
     pub(super) fn trial_balance_account_ids_from_new_accounts(
@@ -236,16 +232,6 @@ impl Chart {
         };
 
         Ok(())
-    }
-
-    pub fn get_parent_balance_type(
-        &self,
-        parent_code: &AccountCode,
-    ) -> Result<cala_ledger::DebitOrCredit, ChartOfAccountsError> {
-        self.all_accounts
-            .get(parent_code)
-            .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
-            .ok_or_else(|| ChartOfAccountsError::ParentAccountNotFound(parent_code.to_string()))
     }
 
     fn manual_transaction_account_id_from_code(
@@ -528,16 +514,13 @@ mod test {
     }
 
     #[test]
-    fn errors_for_create_node_if_parent_node_does_not_exist() {
+    fn errors_for_create_child_node_if_parent_node_does_not_exist() {
         let (mut chart, _) = default_chart();
 
-        let res = chart.create_node(
-            &AccountSpec {
-                parent: Some(code("1.9")),
-                code: code("1.9.1"),
-                name: "Cash".parse::<AccountName>().unwrap(),
-                normal_balance_type: DebitOrCredit::Debit,
-            },
+        let res = chart.create_child_node(
+            code("1.9"),
+            code("1.9.1"),
+            "Cash".parse::<AccountName>().unwrap(),
             CalaJournalId::new(),
             dummy_audit_info(),
         );
