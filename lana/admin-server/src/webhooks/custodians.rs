@@ -9,7 +9,7 @@ use jwks_utils::JwtDecoderState;
 
 use lana_app::app::LanaApp;
 
-async fn handle_webhook(
+async fn webhook(
     Extension(app): Extension<LanaApp>,
     Path(provider): Path<String>,
     headers: HeaderMap,
@@ -22,8 +22,8 @@ async fn handle_webhook(
         .unwrap_or(())
 }
 
-pub fn webhook_routes() -> Router<JwtDecoderState> {
+pub fn routes() -> Router<JwtDecoderState> {
     Router::new()
-        .route("/webhook/{provider}", post(handle_webhook))
+        .route("/webhook/custodian/{provider}", post(webhook))
         .layer(DefaultBodyLimit::max(10 * 1024 * 1024))
 }
