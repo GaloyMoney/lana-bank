@@ -1405,7 +1405,7 @@
   "ChartOfAccounts": {
     "title": "Plan de Cuentas",
     "description": "Una lista estructurada de todas las cuentas utilizadas para categorizar y seguir los registros financieros.",
-    "addNode": "Agregar Cuenta",
+    "addRootNode": "Agregar Cuenta",
     "upload": {
       "dragAndDrop": "Arrastra y suelta tu archivo CSV aquí",
       "dropHere": "Suelta tu archivo aquí",
@@ -1418,34 +1418,60 @@
       "reset": "Reiniciar",
       "upload": "Subir"
     },
-    "AddNodeDialog": {
-      "title": "Agregar Nueva Cuenta",
+    "AddRootNodeDialog": {
+      "title": "Agregar Cuenta",
       "description": "Crear una nueva cuenta en el plan de cuentas",
       "success": "Cuenta agregada exitosamente",
-      "validating": "Validando",
-      "parentNotFound": "Cuenta padre no encontrada",
       "fields": {
         "code": "Código de Cuenta",
         "name": "Nombre de Cuenta",
-        "parent": "Código de Cuenta Padre",
         "normalBalanceType": "Tipo de Saldo Normal"
       },
       "placeholders": {
-        "code": "ej., 1001",
-        "name": "ej., Efectivo y Equivalentes de Efectivo",
-        "parent": "ej., 1000",
+        "code": "ej., 1000",
+        "name": "ej., Activos",
         "normalBalanceType": "Seleccionar tipo de saldo"
       },
       "balanceTypes": {
         "debit": "Débito",
         "credit": "Crédito"
       },
+      "codeHint": "{remaining} dígitos restantes (máx 14)",
       "errors": {
-        "noData": "No se recibieron datos del servidor",
+        "required": "Todos los campos son obligatorios",
+        "chartNotFound": "Plan de cuentas no encontrado",
         "unknown": "Ocurrió un error desconocido"
       },
       "buttons": {
-        "submit": "Agregar Cuenta"
+        "cancel": "Cancelar",
+        "add": "Agregar Cuenta",
+        "adding": "Agregando..."
+      }
+    },
+    "AddChildNodeDialog": {
+      "title": "Agregar Subcuenta",
+      "description": "Crear una nueva subcuenta bajo {parentCode} - {parentName}",
+      "success": "Subcuenta agregada exitosamente",
+      "fields": {
+        "code": "Código de Subcuenta",
+        "name": "Nombre de Cuenta"
+      },
+      "placeholders": {
+        "code": "ej., 01",
+        "name": "p. ej., Efectivo"
+      },
+      "codeHint": "{remaining} dígitos restantes (máximo 14 en total)",
+      "errors": {
+        "required": "Todos los campos son obligatorios",
+        "tooManyDigits": "El código de cuenta excede el máximo de 14 dígitos (incluyendo la cuenta principal)",
+        "childCodeRequired": "El código de subcuenta no puede estar vacío",
+        "chartNotFound": "Plan de cuentas no encontrado",
+        "unknown": "Ocurrió un error desconocido"
+      },
+      "buttons": {
+        "cancel": "Cancelar",
+        "add": "Agregar cuenta",
+        "adding": "Agregando..."
       }
     },
     "copied": "Código de cuenta copiado: \"{code}\""
@@ -1584,7 +1610,8 @@
       "committee": "Comité",
       "custodian": "Agregar Custodio",
       "executeManualTransaction": "Ejecutar transacción manual",
-      "role": "Rol"
+      "role": "Rol",
+      "account": "Cuenta"
     }
   },
   "DataTable": {
@@ -1706,6 +1733,8 @@
       "ancestors": "{n, plural, =0 {Sin ancestros} =1 {# Ancestro} other {# Ancestros}}",
       "children": "{n, plural, =0 {Sin hijos} =1 {# Hijo} other {# Hijos}}"
     },
+    "addChildNode": "Agregar subcuenta",
+    "addAccount": "Agregar cuenta",
     "table": {
       "noData": "No hay transacciones presentes en esta cuenta",
       "columns": {

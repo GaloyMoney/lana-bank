@@ -29,6 +29,8 @@ import Link from "next/link"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
+import { AddChildNodeDialog } from "../../chart-of-accounts/add-child-node-dialog"
+
 import { ExportCsvDialog } from "./export"
 
 import { isUUID } from "@/lib/utils"
@@ -144,6 +146,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   const router = useRouter()
   const t = useTranslations("ChartOfAccountsLedgerAccount")
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
+  const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false)
   const { "ledger-account-ref": ref } = use(params)
   const isRefUUID = isUUID(ref)
 
@@ -229,16 +232,33 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
     setIsExportDialogOpen(true)
   }
 
+  const handleOpenAddChildDialog = () => {
+    setIsAddChildDialogOpen(true)
+  }
+
   return (
     <>
       <Card>
         <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>
-            {ledgerAccount?.code
-              ? t("descriptionWithCode", { code: ledgerAccount?.code })
-              : t("description")}
-          </CardDescription>
+          <div className="flex justify-between items-start">
+            <div className="flex flex-col gap-1.5">
+              <CardTitle>{t("title")}</CardTitle>
+              <CardDescription>
+                {ledgerAccount?.code
+                  ? t("descriptionWithCode", { code: ledgerAccount?.code })
+                  : t("description")}
+              </CardDescription>
+            </div>
+            {ledgerAccount?.code && ledgerAccount.code.replace(/\./g, "").length < 14 && (
+              <Button
+                variant="outline"
+                onClick={handleOpenAddChildDialog}
+                data-testid="add-child-node-button"
+              >
+                {t("addChildNode")}
+              </Button>
+            )}
+          </div>
         </CardHeader>
         <CardContent>
           {error ? (
@@ -405,6 +425,15 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           isOpen={isExportDialogOpen}
           onClose={() => setIsExportDialogOpen(false)}
           ledgerAccountId={ledgerAccount.id}
+        />
+      )}
+
+      {ledgerAccount?.code && (
+        <AddChildNodeDialog
+          open={isAddChildDialogOpen}
+          onOpenChange={setIsAddChildDialogOpen}
+          parentCode={ledgerAccount.code}
+          parentName={ledgerAccount.name}
         />
       )}
     </>

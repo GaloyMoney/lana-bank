@@ -34,6 +34,7 @@ import { CreateCommitteeDialog } from "./committees/create"
 import { CreditFacilityDisbursalInitiateDialog } from "./disbursals/create"
 import { ExecuteManualTransactionDialog } from "./journal/execute-manual-transaction"
 import { CreateCustodianDialog } from "./custodians/create"
+import { AddRootNodeDialog } from "./chart-of-accounts/add-root-node-dialog"
 
 import {
   CreditFacility,
@@ -72,6 +73,9 @@ export const PATH_CONFIGS = {
   JOURNAL: "/journal",
 
   ROLES_AND_PERMISSIONS: "/roles-and-permissions",
+
+  CHART_OF_ACCOUNTS: "/chart-of-accounts",
+  LEDGER_ACCOUNTS: "/ledger-accounts",
 }
 
 const showCreateButton = (currentPath: string) => {
@@ -123,6 +127,7 @@ const CreateButton = () => {
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
   const [openCreateCustodianDialog, setOpenCreateCustodianDialog] = useState(false)
   const [openExecuteManualTransaction, setOpenExecuteManualTransaction] = useState(false)
+  const [openAddAccountDialog, setOpenAddAccountDialog] = useState(false)
   const [showMenu, setShowMenu] = useState(false)
 
   const { customer, facility, setCustomer } = useCreateContext()
@@ -241,6 +246,12 @@ const CreateButton = () => {
       dataTestId: "create-role-button",
       allowedPaths: [PATH_CONFIGS.ROLES_AND_PERMISSIONS],
     },
+    {
+      label: t("menuItems.account"),
+      onClick: () => setOpenAddAccountDialog(true),
+      dataTestId: "create-account-button",
+      allowedPaths: [PATH_CONFIGS.CHART_OF_ACCOUNTS, PATH_CONFIGS.LEDGER_ACCOUNTS],
+    },
   ]
 
   const getAvailableMenuItems = () => {
@@ -344,6 +355,11 @@ const CreateButton = () => {
       <ExecuteManualTransactionDialog
         openExecuteManualTransaction={openExecuteManualTransaction}
         setOpenExecuteManualTransaction={setOpenExecuteManualTransaction}
+      />
+
+      <AddRootNodeDialog
+        open={openAddAccountDialog}
+        onOpenChange={setOpenAddAccountDialog}
       />
 
       {customer && customer.depositAccount && (

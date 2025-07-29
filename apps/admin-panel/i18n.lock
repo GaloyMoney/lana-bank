@@ -792,7 +792,7 @@ checksums:
     AuditLogs/table/emptyMessage: b3ef7a5a76768db254c867944b84b04c
     ChartOfAccounts/title: 785b8862f83c931ce85f5939e38be7c0
     ChartOfAccounts/description: d386b72a014828c82a6218385dd8c27a
-    ChartOfAccounts/addNode: 180a55852a8b0f21e53512e344808a0a
+    ChartOfAccounts/addRootNode: 180a55852a8b0f21e53512e344808a0a
     ChartOfAccounts/upload/dragAndDrop: 4d24050d9792d5ee1d1229553a1a5cbe
     ChartOfAccounts/upload/dropHere: c396eb3e3cdc8788750150ca38725495
     ChartOfAccounts/upload/csvOnly: a7964b2b0e8676b4cd9e20c5a724a736
@@ -803,24 +803,40 @@ checksums:
     ChartOfAccounts/upload/uploading: a318ac63eb5403166dae52e92478fd18
     ChartOfAccounts/upload/reset: c19c53a05e21c7f3b395247809a14b51
     ChartOfAccounts/upload/upload: 4a6c84aa16db0f4e5697f49b45257bc7
-    ChartOfAccounts/AddNodeDialog/title: 9e9632273b9382bb58000eb4b87fcb6d
-    ChartOfAccounts/AddNodeDialog/description: 5130577ab0b6bd8d4dffe6ada8602ef4
-    ChartOfAccounts/AddNodeDialog/success: 6f0d0977e6b083f6fe8024b5479fe489
-    ChartOfAccounts/AddNodeDialog/validating: 53e19393c8139790da4d3337f4b981ab
-    ChartOfAccounts/AddNodeDialog/parentNotFound: c57cb0d4271badd3baea973cae31c566
-    ChartOfAccounts/AddNodeDialog/fields/code: 9218742c297d337fdc0f5f5dd985294d
-    ChartOfAccounts/AddNodeDialog/fields/name: 5a4c82f1bc517348b64c107345f94f65
-    ChartOfAccounts/AddNodeDialog/fields/parent: 955587051f628785f1fafe0ca8b68ee9
-    ChartOfAccounts/AddNodeDialog/fields/normalBalanceType: f1799262ce7320432b25a80767a5e8a7
-    ChartOfAccounts/AddNodeDialog/placeholders/code: ca52fd8d7fef091dfc71f793b0c39385
-    ChartOfAccounts/AddNodeDialog/placeholders/name: 8aa8588619db68c29ae184ec7e268aba
-    ChartOfAccounts/AddNodeDialog/placeholders/parent: 6f771967eadabae3b82b1a12a7ab9353
-    ChartOfAccounts/AddNodeDialog/placeholders/normalBalanceType: d5680178923a96e1a6f9a91d2f12162b
-    ChartOfAccounts/AddNodeDialog/balanceTypes/debit: 1b35db901aa1aeed8ee79aec6d807731
-    ChartOfAccounts/AddNodeDialog/balanceTypes/credit: 2d447a71ec815a039f175e94fbb12a56
-    ChartOfAccounts/AddNodeDialog/errors/noData: 3971eb9d292ce36fef0d69c871c1b31a
-    ChartOfAccounts/AddNodeDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
-    ChartOfAccounts/AddNodeDialog/buttons/submit: 180a55852a8b0f21e53512e344808a0a
+    ChartOfAccounts/AddRootNodeDialog/title: 180a55852a8b0f21e53512e344808a0a
+    ChartOfAccounts/AddRootNodeDialog/description: 5130577ab0b6bd8d4dffe6ada8602ef4
+    ChartOfAccounts/AddRootNodeDialog/success: 6f0d0977e6b083f6fe8024b5479fe489
+    ChartOfAccounts/AddRootNodeDialog/fields/code: 9218742c297d337fdc0f5f5dd985294d
+    ChartOfAccounts/AddRootNodeDialog/fields/name: 5a4c82f1bc517348b64c107345f94f65
+    ChartOfAccounts/AddRootNodeDialog/fields/normalBalanceType: f1799262ce7320432b25a80767a5e8a7
+    ChartOfAccounts/AddRootNodeDialog/placeholders/code: 6f771967eadabae3b82b1a12a7ab9353
+    ChartOfAccounts/AddRootNodeDialog/placeholders/name: f3c2024af39ce7c19eae9ecf4efa8e69
+    ChartOfAccounts/AddRootNodeDialog/placeholders/normalBalanceType: d5680178923a96e1a6f9a91d2f12162b
+    ChartOfAccounts/AddRootNodeDialog/balanceTypes/debit: 1b35db901aa1aeed8ee79aec6d807731
+    ChartOfAccounts/AddRootNodeDialog/balanceTypes/credit: 2d447a71ec815a039f175e94fbb12a56
+    ChartOfAccounts/AddRootNodeDialog/codeHint: fcb3a4437be8df11e5ac359cff6113d5
+    ChartOfAccounts/AddRootNodeDialog/errors/required: 01fe4fe061a783c06c001dd39c78053a
+    ChartOfAccounts/AddRootNodeDialog/errors/chartNotFound: 8c6d6e3dadc8220549ecb3eb25c4dad0
+    ChartOfAccounts/AddRootNodeDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    ChartOfAccounts/AddRootNodeDialog/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
+    ChartOfAccounts/AddRootNodeDialog/buttons/add: 180a55852a8b0f21e53512e344808a0a
+    ChartOfAccounts/AddRootNodeDialog/buttons/adding: 7d16e074064398614c282f10ea47adf4
+    ChartOfAccounts/AddChildNodeDialog/title: aee0a7b3cd53ce03d00724d4ab56ccbb
+    ChartOfAccounts/AddChildNodeDialog/description: 163c1463b2bc742e63a5eb480023d04c
+    ChartOfAccounts/AddChildNodeDialog/success: 41d574af17e9fcbe06b3d08094143449
+    ChartOfAccounts/AddChildNodeDialog/fields/code: a451483c48293202d040493b5f13525d
+    ChartOfAccounts/AddChildNodeDialog/fields/name: 5a4c82f1bc517348b64c107345f94f65
+    ChartOfAccounts/AddChildNodeDialog/placeholders/code: cdbc5efa763d21312514447dd9c7b694
+    ChartOfAccounts/AddChildNodeDialog/placeholders/name: b0365fd50bf67fdd74b4e8ab854739e1
+    ChartOfAccounts/AddChildNodeDialog/codeHint: b90f87d160e5f0150eaa4a44d3c44741
+    ChartOfAccounts/AddChildNodeDialog/errors/required: 01fe4fe061a783c06c001dd39c78053a
+    ChartOfAccounts/AddChildNodeDialog/errors/tooManyDigits: 92545c318149587127bdfdc43831331b
+    ChartOfAccounts/AddChildNodeDialog/errors/childCodeRequired: 6fceff20c69a0895e914bd1aaf582fab
+    ChartOfAccounts/AddChildNodeDialog/errors/chartNotFound: 8c6d6e3dadc8220549ecb3eb25c4dad0
+    ChartOfAccounts/AddChildNodeDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    ChartOfAccounts/AddChildNodeDialog/buttons/cancel: 2e2a849c2223911717de8caa2c71bade
+    ChartOfAccounts/AddChildNodeDialog/buttons/add: 180a55852a8b0f21e53512e344808a0a
+    ChartOfAccounts/AddChildNodeDialog/buttons/adding: 7d16e074064398614c282f10ea47adf4
     ChartOfAccounts/copied: e5fa151fba7800f5e76e25a1c6fe61e0
     BalanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3
@@ -903,6 +919,7 @@ checksums:
     CreateButton/menuItems/custodian: a8e359b8fcfb691a7c1bf2eb7129938b
     CreateButton/menuItems/executeManualTransaction: 53bf9bf8b9aba6e1ec1b0dcb70ca0ad8
     CreateButton/menuItems/role: 53743bbb6ca938f5b893552e839d067f
+    CreateButton/menuItems/account: 01215c12fb1cdb93bd0c84c1382bef56
     DataTable/view: 36a9b5e3dc153c036d320460d72a03c3
     DataTable/noData: d30b546a626d903d1ec1b466b2b4b865
     PaginatedTable/view: 36a9b5e3dc153c036d320460d72a03c3
@@ -1003,6 +1020,8 @@ checksums:
     ChartOfAccountsLedgerAccount/details/btcBalance: b31842ee7a4fedfd1ad43c64e8e772a1
     ChartOfAccountsLedgerAccount/details/ancestors: 450cae749d4800490d797c0887492115
     ChartOfAccountsLedgerAccount/details/children: f09021b02811dd9c354e8da8525ddf9f
+    ChartOfAccountsLedgerAccount/addChildNode: aee0a7b3cd53ce03d00724d4ab56ccbb
+    ChartOfAccountsLedgerAccount/addAccount: 180a55852a8b0f21e53512e344808a0a
     ChartOfAccountsLedgerAccount/table/noData: 65d8d992387f1b0dc757c22a4de109dc
     ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f

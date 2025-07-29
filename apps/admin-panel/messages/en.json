@@ -1405,7 +1405,7 @@
   "ChartOfAccounts": {
     "title": "Chart Of Accounts",
     "description": "A structured list of all accounts used to categorize and track financial records.",
-    "addNode": "Add Account",
+    "addRootNode": "Add Account",
     "upload": {
       "dragAndDrop": "Drag and drop your CSV file here",
       "dropHere": "Drop your file here",
@@ -1418,34 +1418,60 @@
       "reset": "Reset",
       "upload": "Upload"
     },
-    "AddNodeDialog": {
-      "title": "Add New Account",
+    "AddRootNodeDialog": {
+      "title": "Add Account",
       "description": "Create a new account in the chart of accounts",
       "success": "Account added successfully",
-      "validating": "Validating",
-      "parentNotFound": "Parent account not found",
       "fields": {
         "code": "Account Code",
         "name": "Account Name",
-        "parent": "Parent Account Code",
         "normalBalanceType": "Normal Balance Type"
       },
       "placeholders": {
-        "code": "e.g., 1001",
-        "name": "e.g., Cash and Cash Equivalents",
-        "parent": "e.g., 1000",
+        "code": "e.g., 1000",
+        "name": "e.g., Assets",
         "normalBalanceType": "Select balance type"
       },
       "balanceTypes": {
         "debit": "Debit",
         "credit": "Credit"
       },
+      "codeHint": "{remaining} digits remaining (max 14)",
       "errors": {
-        "noData": "No data returned from server",
+        "required": "All fields are required",
+        "chartNotFound": "Chart of accounts not found",
         "unknown": "An unknown error occurred"
       },
       "buttons": {
-        "submit": "Add Account"
+        "cancel": "Cancel",
+        "add": "Add Account",
+        "adding": "Adding..."
+      }
+    },
+    "AddChildNodeDialog": {
+      "title": "Add Sub Account",
+      "description": "Create a new sub account under {parentCode} - {parentName}",
+      "success": "Sub account added successfully",
+      "fields": {
+        "code": "Sub Account Code",
+        "name": "Account Name"
+      },
+      "placeholders": {
+        "code": "e.g., 01",
+        "name": "e.g., Cash"
+      },
+      "codeHint": "{remaining} digits remaining (max 14 total)",
+      "errors": {
+        "required": "All fields are required",
+        "tooManyDigits": "Account code exceeds maximum of 14 digits (including parent)",
+        "childCodeRequired": "Sub account code cannot be empty",
+        "chartNotFound": "Chart of accounts not found",
+        "unknown": "An unknown error occurred"
+      },
+      "buttons": {
+        "cancel": "Cancel",
+        "add": "Add Account",
+        "adding": "Adding..."
       }
     },
     "copied": "Copied Account Code: \"{code}\""
@@ -1584,7 +1610,8 @@
       "committee": "Committee",
       "custodian": "Add Custodian",
       "executeManualTransaction": "Execute Manual Transaction",
-      "role": "Role"
+      "role": "Role",
+      "account": "Account"
     }
   },
   "DataTable": {
@@ -1706,6 +1733,8 @@
       "ancestors": "{n, plural, =0 {No ancestors} =1 {# Ancestor} other {# Ancestors}}",
       "children": "{n, plural, =0 {No children} =1 {# Child} other {# Children}}"
     },
+    "addChildNode": "Add Sub Account",
+    "addAccount": "Add Account",
     "table": {
       "noData": "No transactions present in this account",
       "columns": {
