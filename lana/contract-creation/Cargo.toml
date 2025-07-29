@@ -12,7 +12,6 @@ fail-on-warnings = []
 lana-ids = { path = "../ids" }
 lana-events = { path = "../events" }
 rbac-types = { path = "../rbac-types" }
-core-credit = { path = "../../core/credit" }
 core-access = { path = "../../core/access" }
 core-customer = { path = "../../core/customer" }
 core-applicant = { path = "../../core/applicant" }

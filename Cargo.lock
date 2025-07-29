@@ -1179,7 +1179,6 @@ dependencies = [
  "chrono",
  "core-access",
  "core-applicant",
- "core-credit",
  "core-customer",
  "document-storage",
  "handlebars",
