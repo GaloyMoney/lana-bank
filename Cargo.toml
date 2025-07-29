@@ -101,7 +101,7 @@ opentelemetry-otlp = { version = "0.17.0", default-features = false, features = 
 ] }
 opentelemetry-http = "0.13"
 opentelemetry-semantic-conventions = "0.16.0"
-tokio = { version = "1.46.1", features = [
+tokio = { version = "1.47.0", features = [
   "rt-multi-thread",
   "macros",
   "time",
@@ -126,7 +126,7 @@ hex = "0.4.3"
 hmac = "0.12.1"
 sha2 = "0.10.8"
 tower-http = { version = "0.6.5", features = ["cors"] }
-lettre = { version = "0.11.17", default-features = false, features = ["builder", "tokio1", "tokio1-rustls-tls", "smtp-transport"] }
+lettre = { version = "0.11.18", default-features = false, features = ["builder", "tokio1", "tokio1-rustls-tls", "smtp-transport"] }
 sqlx-adapter = { version = "1.8", default-features = false, features = [
   "postgres",
   "runtime-tokio-rustls",
