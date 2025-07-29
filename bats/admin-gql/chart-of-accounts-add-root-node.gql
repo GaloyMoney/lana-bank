@@ -1,5 +1,5 @@
-mutation ChartOfAccountsAddNode($input: ChartOfAccountsAddNodeInput) {
-  chartOfAccountsAddNode(input: $input) {
+mutation ChartOfAccountsAddRootNode($input: ChartOfAccountsAddRootNodeInput!) {
+  chartOfAccountsAddRootNode(input: $input) {
     chartOfAccounts {
       chartId
       name
@@ -8,7 +8,7 @@ mutation ChartOfAccountsAddNode($input: ChartOfAccountsAddNodeInput) {
         children {
           ...child
           children {
-          ...child
+            ...child
             children {
               ...child
             }

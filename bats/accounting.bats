@@ -25,7 +25,33 @@ teardown_file() {
   [[ "$assets_code" -eq "1" ]] || exit 1
 }
 
-@test "accounting: add new node into chart of accounts" {
+@test "accounting: add new root node into chart of accounts" {
+  exec_admin_graphql 'chart-of-accounts'
+  chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
+  n_children_before=$(graphql_output '.data.chartOfAccounts.children | length')
+  
+  new_code="$(( RANDOM % 9000 + 1000 ))"
+  name="Root Account #$new_code"
+  variables=$(
+    jq -n \
+    --arg id "$chart_id" \
+    --arg code "$new_code" \
+    --arg name "$name" \
+    '{
+      input: {
+        chartId: $id,
+        code: $code,
+        name: $name,
+        normalBalanceType: "CREDIT"
+      }
+    }'
+  )
+  exec_admin_graphql 'chart-of-accounts-add-root-node' "$variables"
+  n_children_after=$(graphql_output '.data.chartOfAccountsAddRootNode.chartOfAccounts.children | length')
+  [[ "$n_children_after" -gt "$n_children_before" ]] || exit 1
+}
+
+@test "accounting: add new child node into chart of accounts" {
   exec_admin_graphql 'chart-of-accounts'
   chart_id=$(graphql_output '.data.chartOfAccounts.chartId')
   n_children_before=$(graphql_output '
@@ -50,14 +76,13 @@ teardown_file() {
         chartId: $id,
         parent: "11.01",
         code: $code,
-        name: $name,
-        normalBalanceType: "DEBIT",
+        name: $name
       }
     }'
   )
-  exec_admin_graphql 'chart-of-accounts-add-node' "$variables"
+  exec_admin_graphql 'chart-of-accounts-add-child-node' "$variables"
   n_children_after=$(graphql_output '
-    .data.chartOfAccountsAddNode.chartOfAccounts.children[]
+    .data.chartOfAccountsAddChildNode.chartOfAccounts.children[]
     | select(.accountCode == "1")
     | .children[]
     | select(.accountCode == "11")
