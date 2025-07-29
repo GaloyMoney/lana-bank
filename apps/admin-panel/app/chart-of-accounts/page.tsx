@@ -130,21 +130,11 @@ const getIndentLevel = (accountCode: string): number => {
   return accountCode.split(".").length - 1
 }
 
-const getIndentClass = (accountCode: string): string => {
+const getIndentStyle = (accountCode: string): React.CSSProperties => {
   const level = getIndentLevel(accountCode)
-  switch (level) {
-    case 0:
-      return ""
-    case 1:
-      return "pl-6"
-    case 2:
-      return "pl-12"
-    case 3:
-      return "pl-24"
-    case 4:
-      return "pl-32"
-    default:
-      return `pl-[${Math.min(level * 8, 56)}]`
+  const paddingLeft = level * 40
+  return {
+    paddingLeft: `${paddingLeft}px`,
   }
 }
 
@@ -196,7 +186,8 @@ const AccountRow = React.memo<AccountRowProps>(
     return (
       <TableRow className="cursor-pointer" onClick={onClick}>
         <TableCell
-          className={`${getIndentClass(account.accountCode)} flex justify-between`}
+          className="flex justify-between"
+          style={getIndentStyle(account.accountCode)}
         >
           <div className="grid grid-cols-[100px_40px_1fr] items-center">
             <div>
