@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for InterestAccrualCycleEvent
 CREATE TABLE core_interest_accrual_cycle_events_rollup (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
@@ -24,7 +24,8 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
 
   -- Toggle fields
   is_interest_accruals_posted BOOLEAN DEFAULT false
-
+,
+  PRIMARY KEY (id, version)
 );
 
 -- Auto-generated trigger function for InterestAccrualCycleEvent
@@ -37,14 +38,11 @@ DECLARE
 BEGIN
   event_type := NEW.event_type;
 
-  -- Load the current rollup state
-  SELECT * INTO current_row
-  FROM core_interest_accrual_cycle_events_rollup
-  WHERE id = NEW.id;
-
-  -- Early return if event is older than current state
-  IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
-    RETURN NEW;
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_interest_accrual_cycle_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
@@ -54,7 +52,7 @@ BEGIN
 
   -- Construct the new row based on event type
   new_row.id := NEW.id;
-  new_row.last_sequence := NEW.sequence;
+  new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
 
@@ -132,7 +130,7 @@ BEGIN
 
   INSERT INTO core_interest_accrual_cycle_events_rollup (
     id,
-    last_sequence,
+    version,
     created_at,
     modified_at,
     account_ids,
@@ -153,7 +151,7 @@ BEGIN
   )
   VALUES (
     new_row.id,
-    new_row.last_sequence,
+    new_row.version,
     new_row.created_at,
     new_row.modified_at,
     new_row.account_ids,
@@ -171,25 +169,7 @@ BEGIN
     new_row.terms,
     new_row.total,
     new_row.tx_ref
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    last_sequence = EXCLUDED.last_sequence,
-    modified_at = EXCLUDED.modified_at,
-    account_ids = EXCLUDED.account_ids,
-    accrued_at = EXCLUDED.accrued_at,
-    amount = EXCLUDED.amount,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    effective = EXCLUDED.effective,
-    facility_id = EXCLUDED.facility_id,
-    facility_matures_at = EXCLUDED.facility_matures_at,
-    idx = EXCLUDED.idx,
-    is_interest_accruals_posted = EXCLUDED.is_interest_accruals_posted,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    obligation_id = EXCLUDED.obligation_id,
-    period = EXCLUDED.period,
-    terms = EXCLUDED.terms,
-    total = EXCLUDED.total,
-    tx_ref = EXCLUDED.tx_ref;
+  );
 
   RETURN NEW;
 END;

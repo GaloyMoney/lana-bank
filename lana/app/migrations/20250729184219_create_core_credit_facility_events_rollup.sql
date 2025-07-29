@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for CreditFacilityEvent
 CREATE TABLE core_credit_facility_events_rollup (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
@@ -33,7 +33,8 @@ CREATE TABLE core_credit_facility_events_rollup (
   is_activated BOOLEAN DEFAULT false,
   is_approval_process_concluded BOOLEAN DEFAULT false,
   is_completed BOOLEAN DEFAULT false
-
+,
+  PRIMARY KEY (id, version)
 );
 
 -- Auto-generated trigger function for CreditFacilityEvent
@@ -46,14 +47,11 @@ DECLARE
 BEGIN
   event_type := NEW.event_type;
 
-  -- Load the current rollup state
-  SELECT * INTO current_row
-  FROM core_credit_facility_events_rollup
-  WHERE id = NEW.id;
-
-  -- Early return if event is older than current state
-  IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
-    RETURN NEW;
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_credit_facility_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
@@ -63,7 +61,7 @@ BEGIN
 
   -- Construct the new row based on event type
   new_row.id := NEW.id;
-  new_row.last_sequence := NEW.sequence;
+  new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
 
@@ -190,7 +188,7 @@ BEGIN
 
   INSERT INTO core_credit_facility_events_rollup (
     id,
-    last_sequence,
+    version,
     created_at,
     modified_at,
     account_ids,
@@ -220,7 +218,7 @@ BEGIN
   )
   VALUES (
     new_row.id,
-    new_row.last_sequence,
+    new_row.version,
     new_row.created_at,
     new_row.modified_at,
     new_row.account_ids,
@@ -247,34 +245,7 @@ BEGIN
     new_row.price,
     new_row.public_id,
     new_row.terms
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    last_sequence = EXCLUDED.last_sequence,
-    modified_at = EXCLUDED.modified_at,
-    account_ids = EXCLUDED.account_ids,
-    activated_at = EXCLUDED.activated_at,
-    amount = EXCLUDED.amount,
-    approval_process_id = EXCLUDED.approval_process_id,
-    approved = EXCLUDED.approved,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    collateral = EXCLUDED.collateral,
-    collateral_id = EXCLUDED.collateral_id,
-    collateralization_ratio = EXCLUDED.collateralization_ratio,
-    collateralization_state = EXCLUDED.collateralization_state,
-    customer_id = EXCLUDED.customer_id,
-    disbursal_credit_account_id = EXCLUDED.disbursal_credit_account_id,
-    interest_accrual_cycle_idx = EXCLUDED.interest_accrual_cycle_idx,
-    interest_accrual_ids = EXCLUDED.interest_accrual_ids,
-    interest_period = EXCLUDED.interest_period,
-    is_activated = EXCLUDED.is_activated,
-    is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
-    is_completed = EXCLUDED.is_completed,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    obligation_ids = EXCLUDED.obligation_ids,
-    outstanding = EXCLUDED.outstanding,
-    price = EXCLUDED.price,
-    public_id = EXCLUDED.public_id,
-    terms = EXCLUDED.terms;
+  );
 
   RETURN NEW;
 END;

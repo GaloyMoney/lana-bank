@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for CollateralEvent
 CREATE TABLE core_collateral_events_rollup (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
@@ -15,7 +15,8 @@ CREATE TABLE core_collateral_events_rollup (
   -- Collection rollups
   audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[]
-
+,
+  PRIMARY KEY (id, version)
 );
 
 -- Auto-generated trigger function for CollateralEvent
@@ -28,14 +29,11 @@ DECLARE
 BEGIN
   event_type := NEW.event_type;
 
-  -- Load the current rollup state
-  SELECT * INTO current_row
-  FROM core_collateral_events_rollup
-  WHERE id = NEW.id;
-
-  -- Early return if event is older than current state
-  IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
-    RETURN NEW;
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_collateral_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
@@ -45,7 +43,7 @@ BEGIN
 
   -- Construct the new row based on event type
   new_row.id := NEW.id;
-  new_row.last_sequence := NEW.sequence;
+  new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
 
@@ -102,7 +100,7 @@ BEGIN
 
   INSERT INTO core_collateral_events_rollup (
     id,
-    last_sequence,
+    version,
     created_at,
     modified_at,
     abs_diff,
@@ -116,7 +114,7 @@ BEGIN
   )
   VALUES (
     new_row.id,
-    new_row.last_sequence,
+    new_row.version,
     new_row.created_at,
     new_row.modified_at,
     new_row.abs_diff,
@@ -127,18 +125,7 @@ BEGIN
     new_row.credit_facility_id,
     new_row.custody_wallet_id,
     new_row.ledger_tx_ids
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    last_sequence = EXCLUDED.last_sequence,
-    modified_at = EXCLUDED.modified_at,
-    abs_diff = EXCLUDED.abs_diff,
-    account_id = EXCLUDED.account_id,
-    action = EXCLUDED.action,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    collateral_amount = EXCLUDED.collateral_amount,
-    credit_facility_id = EXCLUDED.credit_facility_id,
-    custody_wallet_id = EXCLUDED.custody_wallet_id,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids;
+  );
 
   RETURN NEW;
 END;

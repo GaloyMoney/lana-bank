@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for DocumentEvent
 CREATE TABLE core_document_events_rollup (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
@@ -21,7 +21,8 @@ CREATE TABLE core_document_events_rollup (
   is_archived BOOLEAN DEFAULT false,
   is_deleted BOOLEAN DEFAULT false,
   is_file_uploaded BOOLEAN DEFAULT false
-
+,
+  PRIMARY KEY (id, version)
 );
 
 -- Auto-generated trigger function for DocumentEvent
@@ -34,14 +35,11 @@ DECLARE
 BEGIN
   event_type := NEW.event_type;
 
-  -- Load the current rollup state
-  SELECT * INTO current_row
-  FROM core_document_events_rollup
-  WHERE id = NEW.id;
-
-  -- Early return if event is older than current state
-  IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
-    RETURN NEW;
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_document_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
@@ -51,7 +49,7 @@ BEGIN
 
   -- Construct the new row based on event type
   new_row.id := NEW.id;
-  new_row.last_sequence := NEW.sequence;
+  new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
 
@@ -117,7 +115,7 @@ BEGIN
 
   INSERT INTO core_document_events_rollup (
     id,
-    last_sequence,
+    version,
     created_at,
     modified_at,
     audit_entry_ids,
@@ -135,7 +133,7 @@ BEGIN
   )
   VALUES (
     new_row.id,
-    new_row.last_sequence,
+    new_row.version,
     new_row.created_at,
     new_row.modified_at,
     new_row.audit_entry_ids,
@@ -150,22 +148,7 @@ BEGIN
     new_row.reference_id,
     new_row.sanitized_filename,
     new_row.storage_identifier
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    last_sequence = EXCLUDED.last_sequence,
-    modified_at = EXCLUDED.modified_at,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    content_type = EXCLUDED.content_type,
-    document_type = EXCLUDED.document_type,
-    error = EXCLUDED.error,
-    is_archived = EXCLUDED.is_archived,
-    is_deleted = EXCLUDED.is_deleted,
-    is_file_uploaded = EXCLUDED.is_file_uploaded,
-    original_filename = EXCLUDED.original_filename,
-    path_in_storage = EXCLUDED.path_in_storage,
-    reference_id = EXCLUDED.reference_id,
-    sanitized_filename = EXCLUDED.sanitized_filename,
-    storage_identifier = EXCLUDED.storage_identifier;
+  );
 
   RETURN NEW;
 END;

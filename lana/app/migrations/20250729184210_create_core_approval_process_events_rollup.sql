@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for ApprovalProcessEvent
 CREATE TABLE core_approval_process_events_rollup (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
@@ -19,7 +19,8 @@ CREATE TABLE core_approval_process_events_rollup (
 
   -- Toggle fields
   is_concluded BOOLEAN DEFAULT false
-
+,
+  PRIMARY KEY (id, version)
 );
 
 -- Auto-generated trigger function for ApprovalProcessEvent
@@ -32,14 +33,11 @@ DECLARE
 BEGIN
   event_type := NEW.event_type;
 
-  -- Load the current rollup state
-  SELECT * INTO current_row
-  FROM core_approval_process_events_rollup
-  WHERE id = NEW.id;
-
-  -- Early return if event is older than current state
-  IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
-    RETURN NEW;
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_approval_process_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
@@ -49,7 +47,7 @@ BEGIN
 
   -- Construct the new row based on event type
   new_row.id := NEW.id;
-  new_row.last_sequence := NEW.sequence;
+  new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
 
@@ -122,7 +120,7 @@ BEGIN
 
   INSERT INTO core_approval_process_events_rollup (
     id,
-    last_sequence,
+    version,
     created_at,
     modified_at,
     approved,
@@ -138,7 +136,7 @@ BEGIN
   )
   VALUES (
     new_row.id,
-    new_row.last_sequence,
+    new_row.version,
     new_row.created_at,
     new_row.modified_at,
     new_row.approved,
@@ -151,20 +149,7 @@ BEGIN
     new_row.process_type,
     new_row.rules,
     new_row.target_ref
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    last_sequence = EXCLUDED.last_sequence,
-    modified_at = EXCLUDED.modified_at,
-    approved = EXCLUDED.approved,
-    approver_ids = EXCLUDED.approver_ids,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    denier_ids = EXCLUDED.denier_ids,
-    deny_reasons = EXCLUDED.deny_reasons,
-    is_concluded = EXCLUDED.is_concluded,
-    policy_id = EXCLUDED.policy_id,
-    process_type = EXCLUDED.process_type,
-    rules = EXCLUDED.rules,
-    target_ref = EXCLUDED.target_ref;
+  );
 
   RETURN NEW;
 END;

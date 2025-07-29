@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for {{entity_name}}
 CREATE TABLE {{rollup_table_name}} (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL{{#if regular_fields}},
   -- Flattened fields from the event JSON
@@ -15,5 +15,6 @@ CREATE TABLE {{rollup_table_name}} (
   -- Toggle fields
 {{#each toggle_fields}}
   {{this.name}} {{this.sql_type}} DEFAULT false{{#unless @last}},{{/unless}}
-{{/each}}{{/if}}
+{{/each}}{{/if}},
+  PRIMARY KEY (id, version)
 );

@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for PaymentEvent
 CREATE TABLE core_payment_events_rollup (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
@@ -15,7 +15,8 @@ CREATE TABLE core_payment_events_rollup (
 
   -- Toggle fields
   is_payment_allocated BOOLEAN DEFAULT false
-
+,
+  PRIMARY KEY (id, version)
 );
 
 -- Auto-generated trigger function for PaymentEvent
@@ -28,14 +29,11 @@ DECLARE
 BEGIN
   event_type := NEW.event_type;
 
-  -- Load the current rollup state
-  SELECT * INTO current_row
-  FROM core_payment_events_rollup
-  WHERE id = NEW.id;
-
-  -- Early return if event is older than current state
-  IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
-    RETURN NEW;
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_payment_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
@@ -45,7 +43,7 @@ BEGIN
 
   -- Construct the new row based on event type
   new_row.id := NEW.id;
-  new_row.last_sequence := NEW.sequence;
+  new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
 
@@ -87,7 +85,7 @@ BEGIN
 
   INSERT INTO core_payment_events_rollup (
     id,
-    last_sequence,
+    version,
     created_at,
     modified_at,
     amount,
@@ -99,7 +97,7 @@ BEGIN
   )
   VALUES (
     new_row.id,
-    new_row.last_sequence,
+    new_row.version,
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
@@ -108,16 +106,7 @@ BEGIN
     new_row.disbursal,
     new_row.interest,
     new_row.is_payment_allocated
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    last_sequence = EXCLUDED.last_sequence,
-    modified_at = EXCLUDED.modified_at,
-    amount = EXCLUDED.amount,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    credit_facility_id = EXCLUDED.credit_facility_id,
-    disbursal = EXCLUDED.disbursal,
-    interest = EXCLUDED.interest,
-    is_payment_allocated = EXCLUDED.is_payment_allocated;
+  );
 
   RETURN NEW;
 END;

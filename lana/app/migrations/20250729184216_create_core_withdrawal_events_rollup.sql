@@ -1,7 +1,7 @@
 -- Auto-generated rollup table for WithdrawalEvent
 CREATE TABLE core_withdrawal_events_rollup (
-  id UUID PRIMARY KEY,
-  last_sequence INT NOT NULL,
+  id UUID NOT NULL,
+  version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
@@ -19,7 +19,8 @@ CREATE TABLE core_withdrawal_events_rollup (
   is_approval_process_concluded BOOLEAN DEFAULT false,
   is_cancelled BOOLEAN DEFAULT false,
   is_confirmed BOOLEAN DEFAULT false
-
+,
+  PRIMARY KEY (id, version)
 );
 
 -- Auto-generated trigger function for WithdrawalEvent
@@ -32,14 +33,11 @@ DECLARE
 BEGIN
   event_type := NEW.event_type;
 
-  -- Load the current rollup state
-  SELECT * INTO current_row
-  FROM core_withdrawal_events_rollup
-  WHERE id = NEW.id;
-
-  -- Early return if event is older than current state
-  IF current_row.id IS NOT NULL AND NEW.sequence <= current_row.last_sequence THEN
-    RETURN NEW;
+  -- Load the previous version if this isn't the first event
+  IF NEW.sequence > 1 THEN
+    SELECT * INTO current_row
+    FROM core_withdrawal_events_rollup
+    WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
   -- Validate event type is known
@@ -49,7 +47,7 @@ BEGIN
 
   -- Construct the new row based on event type
   new_row.id := NEW.id;
-  new_row.last_sequence := NEW.sequence;
+  new_row.version := NEW.sequence;
   new_row.created_at := COALESCE(current_row.created_at, NEW.recorded_at);
   new_row.modified_at := NEW.recorded_at;
 
@@ -118,7 +116,7 @@ BEGIN
 
   INSERT INTO core_withdrawal_events_rollup (
     id,
-    last_sequence,
+    version,
     created_at,
     modified_at,
     amount,
@@ -134,7 +132,7 @@ BEGIN
   )
   VALUES (
     new_row.id,
-    new_row.last_sequence,
+    new_row.version,
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
@@ -147,20 +145,7 @@ BEGIN
     new_row.is_confirmed,
     new_row.ledger_tx_ids,
     new_row.reference
-  )
-  ON CONFLICT (id) DO UPDATE SET
-    last_sequence = EXCLUDED.last_sequence,
-    modified_at = EXCLUDED.modified_at,
-    amount = EXCLUDED.amount,
-    approval_process_id = EXCLUDED.approval_process_id,
-    approved = EXCLUDED.approved,
-    audit_entry_ids = EXCLUDED.audit_entry_ids,
-    deposit_account_id = EXCLUDED.deposit_account_id,
-    is_approval_process_concluded = EXCLUDED.is_approval_process_concluded,
-    is_cancelled = EXCLUDED.is_cancelled,
-    is_confirmed = EXCLUDED.is_confirmed,
-    ledger_tx_ids = EXCLUDED.ledger_tx_ids,
-    reference = EXCLUDED.reference;
+  );
 
   RETURN NEW;
 END;
