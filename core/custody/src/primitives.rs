@@ -1,4 +1,4 @@
-use authz::{AllOrOne, action_description::*};
+pub(crate) use authz::{AllOrOne, action_description::*};
 
 es_entity::entity_id! {
     CustodianId,
