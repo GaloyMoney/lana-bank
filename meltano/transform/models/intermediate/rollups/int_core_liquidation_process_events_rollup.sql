@@ -1,34 +1,23 @@
-with liquidation_process as (
+with latest_sequence as (
     select
-        id as liquidation_process_id,
-        credit_facility_id,
+        liquidation_process_id,
+        max(sequence) as sequence,
+    from {{ ref('int_core_liquidation_process_events_rollup_sequence') }}
+    group by liquidation_process_id
+)
 
-        cast(effective as timestamp) as effective,
-        is_completed,
-        cast(initial_amount as numeric) / {{ var('cents_per_usd') }} as initial_amount_usd,
-        created_at as liquidation_process_created_at,
-        modified_at as liquidation_process_modified_at,
+, all_event_sequence as (
+    select *
+    from {{ ref('int_core_liquidation_process_events_rollup_sequence') }}
+)
 
-        * except(
-            id,
-            credit_facility_id,
+, final as (
+    select
+        *
+    from all_event_sequence
+    inner join latest_sequence using (liquidation_process_id, sequence)
 
-            effective,
-            is_completed,
-            initial_amount,
-            created_at,
-            modified_at,
-
-            last_sequence,
-            _sdc_received_at,
-            _sdc_batched_at,
-            _sdc_extracted_at,
-            _sdc_deleted_at,
-            _sdc_sequence,
-            _sdc_table_version
-        )
-    from {{ ref('stg_core_liquidation_process_events_rollup') }}
 )
 
 
-select * from liquidation_process
+select * from final

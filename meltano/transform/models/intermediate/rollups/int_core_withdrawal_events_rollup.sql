@@ -1,37 +1,23 @@
-with withdrawal as (
+with latest_sequence as (
     select
-        id as withdrawal_id,
-        deposit_account_id,
+        withdrawal_id,
+        max(sequence) as sequence,
+    from {{ ref('int_core_withdrawal_events_rollup_sequence') }}
+    group by withdrawal_id
+)
 
-        cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
-        approved,
-        is_approval_process_concluded,
-        is_confirmed,
-        is_cancelled,
-        created_at as withdrawal_created_at,
-        modified_at as withdrawal_modified_at,
+, all_event_sequence as (
+    select *
+    from {{ ref('int_core_withdrawal_events_rollup_sequence') }}
+)
 
-        * except(
-            id,
-            deposit_account_id,
-            amount,
-            approved,
-            is_approval_process_concluded,
-            is_confirmed,
-            is_cancelled,
-            created_at,
-            modified_at,
+, final as (
+    select
+        *
+    from all_event_sequence
+    inner join latest_sequence using (withdrawal_id, sequence)
 
-            last_sequence,
-            _sdc_received_at,
-            _sdc_batched_at,
-            _sdc_extracted_at,
-            _sdc_deleted_at,
-            _sdc_sequence,
-            _sdc_table_version
-        )
-    from {{ ref('stg_core_withdrawal_events_rollup') }}
 )
 
 
-select * from withdrawal
+select * from final

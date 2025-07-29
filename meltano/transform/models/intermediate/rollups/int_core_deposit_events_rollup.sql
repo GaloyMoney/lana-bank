@@ -1,29 +1,23 @@
-with deposit as (
+with latest_sequence as (
     select
-        id as deposit_id,
-        deposit_account_id,
+        deposit_id,
+        max(sequence) as sequence,
+    from {{ ref('int_core_deposit_events_rollup_sequence') }}
+    group by deposit_id
+)
 
-        cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
-        created_at as deposit_created_at,
-        modified_at as deposit_modified_at,
+, all_event_sequence as (
+    select *
+    from {{ ref('int_core_deposit_events_rollup_sequence') }}
+)
 
-        * except(
-            id,
-            deposit_account_id,
-            amount,
-            created_at,
-            modified_at,
+, final as (
+    select
+        *
+    from all_event_sequence
+    inner join latest_sequence using (deposit_id, sequence)
 
-            last_sequence,
-            _sdc_received_at,
-            _sdc_batched_at,
-            _sdc_extracted_at,
-            _sdc_deleted_at,
-            _sdc_sequence,
-            _sdc_table_version
-        )
-    from {{ ref('stg_core_deposit_events_rollup') }}
 )
 
 
-select * from deposit
+select * from final

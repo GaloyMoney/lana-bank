@@ -1,37 +1,23 @@
-with collateral as (
+with latest_sequence as (
     select
-        id as collateral_id,
-        credit_facility_id,
+        collateral_id,
+        max(sequence) as sequence,
+    from {{ ref('int_core_collateral_events_rollup_sequence') }}
+    group by collateral_id
+)
 
-        action,
-        cast(abs_diff as numeric) as abs_diff_sats,
-        cast(abs_diff as numeric) / {{ var('sats_per_bitcoin') }} as abs_diff_btc,
-        cast(collateral_amount as numeric) as collateral_amount_sats,
-        cast(collateral_amount as numeric) / {{ var('sats_per_bitcoin') }} as collateral_amount_btc,
-        account_id,
-        created_at as collateral_created_at,
-        modified_at as collateral_modified_at,
+, all_event_sequence as (
+    select *
+    from {{ ref('int_core_collateral_events_rollup_sequence') }}
+)
 
-        * except(
-            id,
-            credit_facility_id,
-            action,
-            abs_diff,
-            collateral_amount,
-            account_id,
-            created_at,
-            modified_at,
+, final as (
+    select
+        *
+    from all_event_sequence
+    inner join latest_sequence using (collateral_id, sequence)
 
-            last_sequence,
-            _sdc_received_at,
-            _sdc_batched_at,
-            _sdc_extracted_at,
-            _sdc_deleted_at,
-            _sdc_sequence,
-            _sdc_table_version
-        )
-    from {{ ref('stg_core_collateral_events_rollup') }}
 )
 
 
-select * from collateral
+select * from final

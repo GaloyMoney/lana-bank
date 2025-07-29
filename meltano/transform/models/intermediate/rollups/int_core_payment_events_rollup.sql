@@ -1,34 +1,23 @@
-with payment as (
+with latest_sequence as (
     select
-        id as payment_id,
-        credit_facility_id,
-        cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
-        cast(interest as numeric) / {{ var('cents_per_usd') }} as interest_usd,
-        cast(disbursal as numeric) / {{ var('cents_per_usd') }} as disbursal_usd,
-        is_payment_allocated,
-        created_at as payment_created_at,
-        modified_at as payment_modified_at,
+        payment_id,
+        max(sequence) as sequence,
+    from {{ ref('int_core_payment_events_rollup_sequence') }}
+    group by payment_id
+)
 
-        * except(
-            id,
-            credit_facility_id,
-            amount,
-            interest,
-            disbursal,
-            is_payment_allocated,
-            created_at,
-            modified_at,
+, all_event_sequence as (
+    select *
+    from {{ ref('int_core_payment_events_rollup_sequence') }}
+)
 
-            last_sequence,
-            _sdc_received_at,
-            _sdc_batched_at,
-            _sdc_extracted_at,
-            _sdc_deleted_at,
-            _sdc_sequence,
-            _sdc_table_version
-        )
-    from {{ ref('stg_core_payment_events_rollup') }}
+, final as (
+    select
+        *
+    from all_event_sequence
+    inner join latest_sequence using (payment_id, sequence)
+
 )
 
 
-select * from payment
+select * from final

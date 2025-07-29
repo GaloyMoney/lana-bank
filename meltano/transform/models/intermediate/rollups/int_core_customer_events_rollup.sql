@@ -1,24 +1,23 @@
-with customer as (
+with latest_sequence as (
     select
-        id as customer_id,
-        created_at as customer_created_at,
-        modified_at as customer_modified_at,
+        customer_id,
+        max(sequence) as sequence,
+    from {{ ref('int_core_customer_events_rollup_sequence') }}
+    group by customer_id
+)
 
-        * except(
-            id,
-            created_at,
-            modified_at,
+, all_event_sequence as (
+    select *
+    from {{ ref('int_core_customer_events_rollup_sequence') }}
+)
 
-            last_sequence,
-            _sdc_received_at,
-            _sdc_batched_at,
-            _sdc_extracted_at,
-            _sdc_deleted_at,
-            _sdc_sequence,
-            _sdc_table_version
-        )
-    from {{ ref('stg_core_customer_events_rollup') }}
+, final as (
+    select
+        *
+    from all_event_sequence
+    inner join latest_sequence using (customer_id, sequence)
+
 )
 
 
-select * from customer
+select * from final
