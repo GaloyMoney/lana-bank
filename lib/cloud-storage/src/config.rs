@@ -16,10 +16,6 @@ impl Default for StorageConfig {
 }
 
 impl StorageConfig {
-    pub fn new_gcp_dev_mode(name_prefix: String) -> Self {
-        StorageConfig::Gcp(GcpConfig::new_dev_mode(name_prefix))
-    }
-
     pub fn new_gcp(bucket_name: String, root_folder: String) -> Self {
         StorageConfig::Gcp(GcpConfig {
             bucket_name,
