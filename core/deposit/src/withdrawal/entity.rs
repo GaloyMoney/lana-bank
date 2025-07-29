@@ -85,6 +85,22 @@ pub struct WithdrawalReversalData {
     pub external_id: String,
 }
 
+#[derive(Debug)]
+pub struct WithdrawalConfirmationData {
+    pub ledger_tx_id: CalaTransactionId,
+    pub correlation_id: String,
+    pub amount: UsdCents,
+    pub credit_account_id: DepositAccountId,
+    pub external_id: String,
+}
+
+#[derive(Debug)]
+pub struct WithdrawalCancellationData {
+    pub ledger_tx_id: CalaTransactionId,
+    pub amount: UsdCents,
+    pub credit_account_id: DepositAccountId,
+}
+
 impl Withdrawal {
     pub fn created_at(&self) -> chrono::DateTime<chrono::Utc> {
         self.events
@@ -95,7 +111,7 @@ impl Withdrawal {
     pub fn confirm(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
+    ) -> Result<Idempotent<WithdrawalConfirmationData>, WithdrawalError> {
         idempotency_guard!(self.events.iter_all(), WithdrawalEvent::Confirmed { .. });
 
         match self.is_approved_or_denied() {
@@ -118,7 +134,13 @@ impl Withdrawal {
             .update_status(WithdrawalStatus::Confirmed, audit_info)
             .did_execute()
         {
-            return Ok(Idempotent::Executed(ledger_tx_id));
+            return Ok(Idempotent::Executed(WithdrawalConfirmationData {
+                ledger_tx_id,
+                correlation_id: self.id.to_string(),
+                amount: self.amount,
+                credit_account_id: self.deposit_account_id,
+                external_id: format!("lana:withdraw:{}:confirm", self.id),
+            }));
         }
 
         Ok(Idempotent::Ignored)
@@ -167,7 +189,7 @@ impl Withdrawal {
     pub fn cancel(
         &mut self,
         audit_info: AuditInfo,
-    ) -> Result<Idempotent<CalaTransactionId>, WithdrawalError> {
+    ) -> Result<Idempotent<WithdrawalCancellationData>, WithdrawalError> {
         idempotency_guard!(self.events.iter_all(), WithdrawalEvent::Cancelled { .. });
         if self.is_confirmed() {
             return Err(WithdrawalError::AlreadyConfirmed(self.id));
@@ -187,7 +209,11 @@ impl Withdrawal {
             .update_status(WithdrawalStatus::Cancelled, audit_info)
             .did_execute()
         {
-            return Ok(Idempotent::Executed(ledger_tx_id));
+            return Ok(Idempotent::Executed(WithdrawalCancellationData {
+                ledger_tx_id,
+                amount: self.amount,
+                credit_account_id: self.deposit_account_id,
+            }));
         }
 
         Ok(Idempotent::Ignored)

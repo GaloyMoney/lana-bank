@@ -16,7 +16,8 @@ use cala_ledger::{
 };
 
 use crate::{
-    DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds, WithdrawalReversalData,
+    DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds,
+    WithdrawalCancellationData, WithdrawalConfirmationData, WithdrawalReversalData,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
 };
@@ -479,13 +480,14 @@ impl DepositLedger {
     pub async fn confirm_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
-        tx_id: impl Into<TransactionId>,
-        correlation_id: String,
-        amount: UsdCents,
-        credit_account_id: impl Into<AccountId>,
-        external_id: String,
+        WithdrawalConfirmationData {
+            ledger_tx_id: tx_id,
+            correlation_id,
+            amount,
+            credit_account_id,
+            external_id,
+        }: WithdrawalConfirmationData,
     ) -> Result<(), DepositLedgerError> {
-        let tx_id = tx_id.into();
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
         let params = templates::ConfirmWithdrawParams {
@@ -508,11 +510,12 @@ impl DepositLedger {
     pub async fn cancel_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
-        tx_id: impl Into<TransactionId>,
-        amount: UsdCents,
-        credit_account_id: impl Into<AccountId>,
+        WithdrawalCancellationData {
+            ledger_tx_id: tx_id,
+            amount,
+            credit_account_id,
+        }: WithdrawalCancellationData,
     ) -> Result<(), DepositLedgerError> {
-        let tx_id = tx_id.into();
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
         let params = templates::CancelWithdrawParams {
