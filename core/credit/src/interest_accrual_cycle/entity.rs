@@ -250,6 +250,19 @@ impl InterestAccrualCycle {
         .truncate(self.accrual_cycle_ends_at())
     }
 
+    pub(crate) fn is_completed(&self) -> bool {
+        self.events
+            .iter_all()
+            .rev()
+            .find(|event| match event {
+                InterestAccrualCycleEvent::InterestAccrualsPosted { .. }
+                | InterestAccrualCycleEvent::PostedInterestAccrualsReverted { .. }
+                | InterestAccrualCycleEvent::AccruedInterestReverted { .. } => true,
+                _ => false,
+            })
+            .is_some()
+    }
+
     fn is_reverted_event(&self, ledger_tx_id: &LedgerTxId) -> bool {
         self.reverted_ledger_tx_ids.contains(ledger_tx_id)
     }

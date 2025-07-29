@@ -42,6 +42,8 @@ pub enum CreditFacilityError {
     OutstandingAmount,
     #[error("CreditFacilityError - InterestAccrualCycleWithInvalidFutureStartDate")]
     InterestAccrualCycleWithInvalidFutureStartDate,
+    #[error("CreditFacilityError - InProgressInterestAccrualCycleNotCompletedYet")]
+    InProgressInterestAccrualCycleNotCompletedYet,
     #[error(
         "CreditFacilityError - DisbursalAmountTooLarge: amount '{0}' is larger than facility balance '{1}'"
     )]
