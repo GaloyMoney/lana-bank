@@ -16,7 +16,7 @@ Running the data stack locally also requires you to have a development instance 
 Additionally, you will also need a GCP keyfile for a Service Account to secure BigQuery (BQ) access for whatever environment you're working on and add its contents into your environment. Follow these steps:
 
 - Format your JSON keyfile into base 64 with `base64 -w0 /path/to/your/file.json`.
-- At the root `.env`, add this line: `TF_VAR_sa_creds=ewY3RfaWQiOiAogIY2eXBlIjogIn....`
+- At the root `.env`, add this line: `TF_VAR_sa_creds=ewY3RfaWQiOiAogIT2eXBlIjogIn....`
 - You will need to reload or start a new shell so `direnv` picks up the var.
 
 ### Install meltano deps
