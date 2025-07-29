@@ -9,12 +9,15 @@ Meltano project to run multiple data tasks, such as:
 
 ### Requirements
 
-We assume you've followed the `nix` and `direnv` instructions in Lana's root `README.md`, which prepare the Python environment for you. You can check by running `which meltano`, which show indicate that the meltano binary is reachable and pointing to a `nix` store (`/nix/store/...`). Running the data stack locally alsorequires you to have a development instance of `lana` available in your machine. Please refer to the root `README.md` to do that. 
+We assume you've followed the `nix` and `direnv` instructions in Lana's root `README.md`, which prepare the Python environment for you. You can check by running `which meltano`, which show indicate that the meltano binary is reachable and pointing to a `nix` store (`/nix/store/...`). 
+
+Running the data stack locally also requires you to have a development instance of `lana` available in your machine. Please refer to the root `README.md` to do that. 
 
 Additionally, you will also need a GCP keyfile for a Service Account to secure BigQuery (BQ) access for whatever environment you're working on and add its contents into your environment. Follow these steps:
 
 - Format your JSON keyfile into base 64 with `base64 -w0 /path/to/your/file.json`.
 - At the root `.env`, add this line: `TF_VAR_sa_creds=ewY3RfaWQiOiAogIY2eXBlIjogIn....`
+- You will need to reload or start a new shell so `direnv` picks up the var.
 
 ### Install meltano deps
 
