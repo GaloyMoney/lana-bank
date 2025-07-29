@@ -495,22 +495,23 @@ where
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.confirm(audit_info)?;
-        self.withdrawals
-            .update_in_op(&mut op, &mut withdrawal)
-            .await?;
+        if let es_entity::Idempotent::Executed(tx_id) = withdrawal.confirm(audit_info)? {
+            let mut op = self.withdrawals.begin_op().await?;
+            self.withdrawals
+                .update_in_op(&mut op, &mut withdrawal)
+                .await?;
 
-        self.ledger
-            .confirm_withdrawal(
-                op,
-                tx_id,
-                withdrawal.id.to_string(),
-                withdrawal.amount,
-                withdrawal.deposit_account_id,
-                format!("lana:withdraw:{}:confirm", withdrawal.id),
-            )
-            .await?;
+            self.ledger
+                .confirm_withdrawal(
+                    op,
+                    tx_id,
+                    withdrawal.id.to_string(),
+                    withdrawal.amount,
+                    withdrawal.deposit_account_id,
+                    format!("lana:withdraw:{}:confirm", withdrawal.id),
+                )
+                .await?;
+        }
 
         Ok(withdrawal)
     }
@@ -533,14 +534,16 @@ where
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
-        let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.cancel(audit_info)?;
-        self.withdrawals
-            .update_in_op(&mut op, &mut withdrawal)
-            .await?;
-        self.ledger
-            .cancel_withdrawal(op, tx_id, withdrawal.amount, withdrawal.deposit_account_id)
-            .await?;
+
+        if let es_entity::Idempotent::Executed(tx_id) = withdrawal.cancel(audit_info)? {
+            let mut op = self.withdrawals.begin_op().await?;
+            self.withdrawals
+                .update_in_op(&mut op, &mut withdrawal)
+                .await?;
+            self.ledger
+                .cancel_withdrawal(op, tx_id, withdrawal.amount, withdrawal.deposit_account_id)
+                .await?;
+        }
         Ok(withdrawal)
     }
 
