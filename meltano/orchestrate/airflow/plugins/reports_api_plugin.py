@@ -227,18 +227,18 @@ def health():
         return jsonify(status="healthy")
     return jsonify(status="unhealthy", airflow=airflow, storage=storage), 503
 
-@bp.route("/reports")
+@bp.route("/reports/")
 def list_runs():
     limit = int(request.args.get("limit", 100))
     after = request.args.get("after")
     return jsonify(svc.list_runs(limit, after))
 
-@bp.route("/report/<run_id>")
+@bp.route("/report/<run_id>/")
 def run_details(run_id: str):
     run = svc.get_run_details(run_id)
     return (jsonify(run), 200) if run else (jsonify(error="not found"), 404)
 
-@bp.route("/reports/generate", methods=["POST"])
+@bp.route("/reports/generate/", methods=["POST"])
 @csrf.exempt
 def generate():
     try:
