@@ -233,7 +233,7 @@ def list_runs():
     after = request.args.get("after")
     return jsonify(svc.list_runs(limit, after))
 
-@bp.route("/report/<run_id>/")
+@bp.route("/reports/<run_id>/")
 def run_details(run_id: str):
     run = svc.get_run_details(run_id)
     return (jsonify(run), 200) if run else (jsonify(error="not found"), 404)
