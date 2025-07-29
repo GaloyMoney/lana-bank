@@ -10,8 +10,6 @@ app:
   storage:
     provider: local
     root_folder: ".lana"
-  report:
-    dbt_output_dataset: "dbt_gha"
   credit:
     customer_active_check_enabled: false
   notification:
@@ -25,6 +23,8 @@ app:
   customer_sync:
     customer_status_sync_active: false
     create_deposit_account_on_customer_create: true
+  deposit_sync:
+    sumsub_export_enabled: false
   accounting_init:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
     credit_config_path: "./bats/accounting-init/credit-module-config.json"
