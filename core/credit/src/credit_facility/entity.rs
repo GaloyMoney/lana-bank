@@ -387,10 +387,22 @@ impl CreditFacility {
             .unwrap_or(InterestAccrualCycleIdx::FIRST)
     }
 
+    fn is_in_progress_interest_cycle_completed(&self) -> bool {
+        let accrual_cycle = self.interest_accrual_cycle_in_progress();
+        match accrual_cycle {
+            Some(accrual_cycle) => accrual_cycle.is_completed(),
+            None => true,
+        }
+    }
+
     pub(crate) fn start_interest_accrual_cycle(
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<Option<NewAccrualPeriods>, CreditFacilityError> {
+        if !self.is_in_progress_interest_cycle_completed() {
+            return Err(CreditFacilityError::InProgressInterestAccrualCycleNotCompletedYet);
+        }
+
         let accrual_cycle_period = match self.next_interest_accrual_cycle_period()? {
             Some(period) => period,
             None => return Ok(None),
@@ -918,6 +930,17 @@ mod test {
             .extend_entities(new_entities);
     }
 
+    fn iterate_in_progress_accrual_cycle_to_completion(credit_facility: &mut CreditFacility) {
+        let accrual = credit_facility
+            .interest_accrual_cycle_in_progress_mut()
+            .unwrap();
+        while accrual.next_accrual_period().is_some() {
+            accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+        }
+        let _ =
+            accrual.record_accrual_cycle(accrual.accrual_cycle_data().unwrap(), dummy_audit_info());
+    }
+
     #[test]
     fn can_progress_next_accrual_idx() {
         let mut events = initial_events();
@@ -1137,6 +1160,24 @@ mod test {
         }
 
         #[test]
+        fn errors_if_previous_cycle_not_completed() {
+            let mut events = initial_events();
+            let activated_at = date_from("2021-01-15T12:00:00Z");
+            events.extend([CreditFacilityEvent::Activated {
+                ledger_tx_id: LedgerTxId::new(),
+                audit_info: dummy_audit_info(),
+                activated_at,
+            }]);
+            let mut credit_facility = facility_from(events);
+
+            start_interest_accrual_cycle(&mut credit_facility);
+            assert!(matches!(
+                credit_facility.start_interest_accrual_cycle(dummy_audit_info()),
+                Err(CreditFacilityError::InProgressInterestAccrualCycleNotCompletedYet)
+            ));
+        }
+
+        #[test]
         fn does_not_start_after_last_cycle() {
             let mut events = initial_events();
             let activated_at = date_from("2021-01-15T12:00:00Z");
@@ -1158,6 +1199,8 @@ mod test {
                         .unwrap()
                         .is_some(),
                 );
+                hydrate_accruals_in_facility(&mut credit_facility);
+                iterate_in_progress_accrual_cycle_to_completion(&mut credit_facility);
             }
             assert!(
                 credit_facility
@@ -1292,15 +1335,7 @@ mod test {
                 .unwrap()
                 .unwrap();
             hydrate_accruals_in_facility(&mut credit_facility);
-
-            let accrual = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .unwrap();
-            while accrual.next_accrual_period().is_some() {
-                accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
-            }
-            let _ = accrual
-                .record_accrual_cycle(accrual.accrual_cycle_data().unwrap(), dummy_audit_info());
+            iterate_in_progress_accrual_cycle_to_completion(&mut credit_facility);
 
             let reverted_count = credit_facility
                 .events()
@@ -1342,6 +1377,7 @@ mod test {
                 .unwrap()
                 .unwrap();
             hydrate_accruals_in_facility(&mut credit_facility);
+            iterate_in_progress_accrual_cycle_to_completion(&mut credit_facility);
             credit_facility
                 .start_interest_accrual_cycle(dummy_audit_info())
                 .unwrap()
