@@ -1,17 +1,14 @@
 "use client"
 
-import { toast } from "sonner"
+import { Badge } from "@lana/web/ui/badge"
 
 export const PublicIdBadge = ({ publicId }: { publicId: string }) => {
   return (
-    <span
-      className="font-mono text-sm cursor-pointer"
-      onClick={() => {
-        navigator.clipboard.writeText(publicId)
-        toast.success("Public ID copied to clipboard")
-      }}
+    <Badge
+      variant="secondary"
+      className="font-mono text-[0.7rem] text-muted-foreground py-0 px-[10px] "
     >
-      #{publicId}
-    </span>
+      {publicId}
+    </Badge>
   )
 }

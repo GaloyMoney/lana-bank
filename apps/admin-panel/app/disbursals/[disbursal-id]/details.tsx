@@ -79,7 +79,6 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
   return (
     <>
       <DetailsCard
-        publicId={disbursal.publicId}
         title={t("title")}
         details={details}
         footerContent={footerContent}

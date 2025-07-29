@@ -1,6 +1,7 @@
 "use client"
 import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
+import { useTranslations } from "next-intl"
 
 import { DisbursalDetailsCard } from "./details"
 
@@ -9,6 +10,8 @@ import { VotersCard } from "./voters"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useGetDisbursalDetailsQuery } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   query GetDisbursalDetails($publicId: PublicId!) {
@@ -57,11 +60,29 @@ function DisbursalPage({
     variables: { publicId },
   })
   const { setDisbursal } = useCreateContext()
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   useEffect(() => {
     data?.disbursalByPublicId && setDisbursal(data.disbursalByPublicId)
     return () => setDisbursal(null)
   }, [data?.disbursalByPublicId, setDisbursal])
+
+  useEffect(() => {
+    if (data?.disbursalByPublicId) {
+      setCustomLinks([
+        { title: navTranslations("disbursals"), href: "/disbursals" },
+        {
+          title: <PublicIdBadge publicId={data.disbursalByPublicId.publicId} />,
+          isCurrentPage: true,
+        },
+      ])
+    }
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.disbursalByPublicId])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} detailItems={5} tabsCards={0} />

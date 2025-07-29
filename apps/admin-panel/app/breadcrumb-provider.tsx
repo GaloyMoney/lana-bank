@@ -34,7 +34,7 @@ function generateDefaultLinks(
     currentPath += "/" + segment
     const isLastSegment = index === segments.length - 1
     const navItem = findNavItemByUrl(currentPath)
-    let title: string
+    let title: string | React.ReactNode
 
     if (navItem) {
       title = navItem.title

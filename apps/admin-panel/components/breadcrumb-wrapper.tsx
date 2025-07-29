@@ -10,7 +10,7 @@ import {
 } from "@lana/web/ui/breadcrumb"
 
 interface BaseBreadcrumbLink {
-  title: string
+  title: string | React.ReactNode
 }
 
 interface ClickableBreadcrumbLink extends BaseBreadcrumbLink {

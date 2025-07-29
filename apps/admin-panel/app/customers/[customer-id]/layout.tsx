@@ -19,6 +19,7 @@ import {
 import { useCreateContext } from "@/app/create"
 import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   query GetCustomerBasicDetails($id: PublicId!) {
@@ -81,7 +82,10 @@ export default function CustomerLayout({
       const currentTabData = TABS.find((tab) => tab.url === currentTab)
       setCustomLinks([
         { title: navTranslations("customers"), href: "/customers" },
-        { title: data.customerByPublicId.email, href: `/customers/${customerId}` },
+        {
+          title: <PublicIdBadge publicId={data.customerByPublicId.publicId} />,
+          href: `/customers/${customerId}`,
+        },
         ...(currentTabData?.url === "/"
           ? []
           : [{ title: currentTabData?.tabLabel ?? "", isCurrentPage: true as const }]),

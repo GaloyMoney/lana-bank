@@ -159,7 +159,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   return (
     <>
       <DetailsCard
-        publicId={creditFacilityDetails.publicId}
         title={t("title")}
         details={details}
         columns={3}

@@ -12,6 +12,8 @@ import FacilityCard from "./facility-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 import {
   ApprovalProcessStatus,
@@ -131,10 +133,12 @@ export default function CreditFacilityLayout({
   params: Promise<{ "credit-facility-id": string }>
 }) {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.Layout")
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { "credit-facility-id": publicId } = use(params)
   const client = useApolloClient()
   const { setFacility } = useCreateContext()
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
   const TABS = [
     { id: "1", url: "/", tabLabel: t("tabs.history") },
@@ -154,6 +158,26 @@ export default function CreditFacilityLayout({
       setFacility(data?.creditFacilityByPublicId as CreditFacility)
     return () => setFacility(null)
   }, [data?.creditFacilityByPublicId, setFacility])
+
+  useEffect(() => {
+    if (data?.creditFacilityByPublicId) {
+      const currentTabData = TABS.find((tab) => tab.url === currentTab)
+      setCustomLinks([
+        { title: navTranslations("creditFacilities"), href: "/credit-facilities" },
+        {
+          title: <PublicIdBadge publicId={data.creditFacilityByPublicId.publicId} />,
+          href: `/credit-facilities/${publicId}`,
+        },
+        ...(currentTabData?.url === "/"
+          ? []
+          : [{ title: currentTabData?.tabLabel ?? "", isCurrentPage: true as const }]),
+      ])
+    }
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.creditFacilityByPublicId, currentTab])
 
   useEffect(() => {
     if (

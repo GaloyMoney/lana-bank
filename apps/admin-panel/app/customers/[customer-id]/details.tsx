@@ -97,12 +97,7 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
 
   return (
     <>
-      <DetailsCard
-        title={t("title")}
-        details={details}
-        className="w-full"
-        publicId={customer.publicId}
-      />
+      <DetailsCard title={t("title")} details={details} className="w-full" />
       <UpdateTelegramIdDialog
         customerId={customer.customerId}
         openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
