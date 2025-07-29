@@ -12,11 +12,9 @@ use job::*;
 use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
-    GovernanceObject,
-};
+use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use governance::GovernanceEvent;
+use governance::{GovernanceAction, GovernanceObject};
 use outbox::{Outbox, OutboxEventMarker};
 use sumsub::SumsubClient;
 

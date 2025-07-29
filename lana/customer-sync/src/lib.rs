@@ -12,11 +12,9 @@ use job::*;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
-use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
-    GovernanceObject,
-};
+use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use governance::GovernanceEvent;
+use governance::{GovernanceAction, GovernanceObject};
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct CustomerSync<Perms, E>

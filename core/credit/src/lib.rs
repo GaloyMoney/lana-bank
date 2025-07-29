@@ -31,13 +31,16 @@ use cala_ledger::CalaLedger;
 use core_custody::{
     CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
 };
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 use tracing::instrument;
+
+use cala_ledger::primitives::{AccountId as CalaAccountId, TransactionId as LedgerTxId};
+use core_money::{Satoshis, UsdCents};
 
 pub use chart_of_accounts_integration::{
     ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
@@ -58,6 +61,7 @@ pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
 pub use payment::*;
 pub use payment_allocation::*;
+// Now only re-exports primitives actually defined in this crate
 pub use primitives::*;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;

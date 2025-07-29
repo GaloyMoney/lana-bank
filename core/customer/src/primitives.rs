@@ -1,9 +1,10 @@
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
+pub(crate) use authz::{AllOrOne, action_description::*};
+pub(crate) use public_id::PublicId;
+
 pub use audit::AuditInfo;
-pub use authz::{AllOrOne, action_description::*};
-pub use public_id::PublicId;
 
 es_entity::entity_id! {
     AuthenticationId,
