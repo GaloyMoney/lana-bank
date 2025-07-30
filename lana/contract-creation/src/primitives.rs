@@ -77,6 +77,10 @@ impl ContractAction {
                 Self::Create => {
                     ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION])
                 }
+                Self::Find => ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION]),
+                Self::GenerateDownloadLink => {
+                    ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION])
+                }
             };
             res.push(action_description);
         }
