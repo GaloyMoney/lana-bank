@@ -57,10 +57,7 @@ sim-time = { workspace = true, optional = true }
 
 anyhow = { workspace = true }
 async-graphql = { workspace = true }
-async-trait = { workspace = true }
-chrono = { workspace = true }
-reqwest = { workspace = true }
-derive_builder = { workspace = true }
+
 thiserror = { workspace = true }
 sqlx = { workspace = true }
 serde = { workspace = true }

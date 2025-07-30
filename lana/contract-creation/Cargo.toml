@@ -11,7 +11,7 @@ fail-on-warnings = []
 # Core dependencies
 lana-ids = { path = "../ids" }
 lana-events = { path = "../events" }
-core-access = { path = "../../core/access" }
+
 core-customer = { path = "../../core/customer" }
 core-applicant = { path = "../../core/applicant" }
 document-storage = { path = "../../core/document-storage" }
