@@ -33,7 +33,7 @@ wait_for_collateral() {
   # Setup prerequisites
   customer_id=$(create_customer)
 
-  retry 30 1 wait_for_checking_account "$customer_id"
+  retry 45 1 wait_for_checking_account "$customer_id"
 
   variables=$(
     jq -n \
