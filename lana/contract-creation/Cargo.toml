@@ -11,7 +11,6 @@ fail-on-warnings = []
 # Core dependencies
 lana-ids = { path = "../ids" }
 lana-events = { path = "../events" }
-rbac-types = { path = "../rbac-types" }
 core-access = { path = "../../core/access" }
 core-customer = { path = "../../core/customer" }
 core-applicant = { path = "../../core/applicant" }
@@ -31,4 +30,5 @@ sqlx = { workspace = true }
 thiserror = { workspace = true }
 tokio = { workspace = true }
 tracing = { workspace = true }
-uuid = { workspace = true } 
+uuid = { workspace = true }
+strum = { workspace = true }

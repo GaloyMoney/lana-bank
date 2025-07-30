@@ -14,6 +14,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 dashboard = { path = "../dashboard" }
+contract-creation = { path = "../contract-creation" }
 
 governance = { path = "../../core/governance" }
 core-access = { path = "../../core/access" }
