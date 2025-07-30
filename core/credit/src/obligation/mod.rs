@@ -70,7 +70,6 @@ where
     pub(crate) fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        _cala: &CalaLedger,
         jobs: &Jobs,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {

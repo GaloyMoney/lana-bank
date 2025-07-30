@@ -355,17 +355,7 @@ where
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry_in_tx(
-                db.tx(),
-                CustomerObject::customer(customer_id),
-                CoreCustomerAction::CUSTOMER_DECLINE_KYC,
-            )
-            .await?;
-
-        if customer.decline_kyc(applicant_id, audit_info).did_execute() {
+        if customer.decline_kyc(applicant_id).did_execute() {
             self.repo.update_in_op(db, &mut customer).await?;
         }
 

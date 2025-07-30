@@ -32,11 +32,9 @@ pub enum CustomerEvent {
     KycApproved {
         applicant_id: String,
         level: KycLevel,
-        audit_info: AuditInfo,
     },
     KycDeclined {
         applicant_id: String,
-        audit_info: AuditInfo,
     },
     AccountStatusUpdated {
         status: AccountStatus,
@@ -136,18 +134,21 @@ impl Customer {
         self.update_account_status(AccountStatus::Active, audit_info)
     }
 
-    pub fn decline_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) -> Idempotent<()> {
+    pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
+        // is this correct?
+        // what if the customer get declined and then approved?
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::KycDeclined { .. },
             => CustomerEvent::KycApproved { .. }
         );
-        self.events.push(CustomerEvent::KycDeclined {
-            applicant_id,
-            audit_info: audit_info.clone(),
-        });
+        self.events
+            .push(CustomerEvent::KycDeclined { applicant_id });
         self.level = KycLevel::NotKyced;
-        self.update_account_status(AccountStatus::Inactive, audit_info)
+
+        // this is smelly to have 2 events at the same time
+        // inactive can be derived from KYC declined
+        self.update_account_status(AccountStatus::Inactive)
     }
 
     fn update_account_status(

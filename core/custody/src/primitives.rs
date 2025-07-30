@@ -103,10 +103,7 @@ impl CustodianAction {
                 Self::CreateWallet => {
                     ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER])
                 }
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CUSTODY_VIEWER, PERMISSION_SET_CUSTODY_WRITER],
-                ),
+                Self::List => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
                 Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
             };
             res.push(action_description);

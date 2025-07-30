@@ -174,30 +174,6 @@ where
         }
     }
 
-    pub async fn roles_for_subject(
-        &self,
-        sub: impl Into<Audit::Subject>,
-    ) -> Result<Vec<Role>, AuthorizationError>
-    where
-        Role: std::str::FromStr,
-    {
-        let sub = sub.into();
-        let sub_uuid = sub.to_string();
-        let enforcer = self.enforcer.read().await;
-
-        let roles = enforcer
-            .get_grouping_policy()
-            .into_iter()
-            .filter(|r| r[0] == sub_uuid)
-            .map(|r| {
-                r[1].parse::<Role>()
-                    .map_err(|_| AuthorizationError::RoleParseError(r[1].clone()))
-            })
-            .collect::<Result<Vec<_>, _>>()?;
-
-        Ok(roles)
-    }
-
     pub async fn check_all_permissions(
         &self,
         sub: &Audit::Subject,

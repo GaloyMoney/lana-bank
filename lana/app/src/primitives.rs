@@ -58,12 +58,14 @@ pub use cala_ledger::primitives::{
     TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
 };
 
+// why is this code here also?
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum ReportProgress {
     Running,
     Complete,
 }
 
+// why is this test here?
 #[cfg(test)]
 mod test {
     use super::*;

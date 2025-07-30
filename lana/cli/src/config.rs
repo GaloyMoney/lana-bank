@@ -71,14 +71,6 @@ impl Config {
         config.app.sumsub.sumsub_secret = sumsub_secret;
         config.app.notification.email.username = smtp_username;
         config.app.notification.email.password = smtp_password;
-        if let Some(dev_env_name_prefix) = dev_env_name_prefix {
-            eprintln!(
-                "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={dev_env_name_prefix}"
-            );
-            if config.app.storage.identifier().contains("gcp") {
-                config.app.storage = StorageConfig::new_gcp_dev_mode(dev_env_name_prefix);
-            }
-        }
 
         let key_bytes = hex::decode(encryption_key)?;
         if key_bytes.len() != 32 {

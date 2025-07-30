@@ -178,10 +178,6 @@ impl CoreCustomerAction {
         CoreCustomerAction::Customer(CustomerEntityAction::UpdateAuthenticationId);
     pub const CUSTOMER_START_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::StartKyc);
-    pub const CUSTOMER_APPROVE_KYC: Self =
-        CoreCustomerAction::Customer(CustomerEntityAction::ApproveKyc);
-    pub const CUSTOMER_DECLINE_KYC: Self =
-        CoreCustomerAction::Customer(CustomerEntityAction::DeclineKyc);
     pub const CUSTOMER_DOCUMENT_CREATE: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::Create);
     pub const CUSTOMER_DOCUMENT_READ: Self =

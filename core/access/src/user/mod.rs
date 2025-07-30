@@ -83,7 +83,7 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_access.create_user", skip(self, role))]
+    #[instrument(name = "core_access.create_user", skip(self))]
     pub async fn create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,

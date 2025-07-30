@@ -1,6 +1,7 @@
 use std::fmt::{Debug, Display};
 
 /// Marker for actions with no path segment provided.
+/// FullPath would then be injected with inject_path
 #[derive(Clone)]
 pub struct NoPath;
 
