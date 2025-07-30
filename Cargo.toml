@@ -47,9 +47,9 @@ members = [
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-es-entity = "0.6.11"
-sim-time = "0.6.11"
-cala-ledger = "0.6.11"
+es-entity = "0.6.12"
+sim-time = "0.6.12"
+cala-ledger = "0.6.12"
 
 aes = "0.8"
 anyhow = "1.0.98"
