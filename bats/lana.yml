@@ -5,8 +5,6 @@ app:
     job_lost_interval: 864000
   access:
     superuser_email: "admin@galoy.io"
-  service_account:
-    gcp_location: europe-west6
   storage:
     provider: local
     root_folder: ".lana"
