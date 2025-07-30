@@ -190,13 +190,16 @@ impl Withdrawal {
         &mut self,
         audit_info: AuditInfo,
     ) -> Result<Idempotent<WithdrawalCancellationData>, WithdrawalError> {
-        idempotency_guard!(self.events.iter_all(), WithdrawalEvent::Cancelled { .. });
+        idempotency_guard!(
+            self.events.iter_all(),
+            WithdrawalEvent::Cancelled { .. }
+                | WithdrawalEvent::StatusUpdated {
+                    status: WithdrawalStatus::Cancelled,
+                    ..
+                }
+        );
         if self.is_confirmed() {
             return Err(WithdrawalError::AlreadyConfirmed(self.id));
-        }
-
-        if self.is_cancelled() {
-            return Err(WithdrawalError::AlreadyCancelled(self.id));
         }
 
         let ledger_tx_id = CalaTransactionId::new();
