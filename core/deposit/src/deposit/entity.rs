@@ -25,9 +25,6 @@ pub enum DepositEvent {
     },
     Reverted {
         ledger_tx_id: CalaTransactionId,
-        audit_info: AuditInfo,
-    },
-    StatusUpdated {
         status: DepositStatus,
         audit_info: AuditInfo,
     },
@@ -62,11 +59,11 @@ impl Deposit {
         self.events
             .iter_all()
             .rev()
-            .find_map(|e| match e {
-                DepositEvent::StatusUpdated { status, .. } => Some(*status),
-                DepositEvent::Initialized { status, .. } => Some(*status),
-                _ => None,
+            .map(|event| match event {
+                DepositEvent::Initialized { status, .. } => *status,
+                DepositEvent::Reverted { status, .. } => *status,
             })
+            .next()
             .expect("status should always exist")
     }
 
@@ -79,35 +76,17 @@ impl Deposit {
         let ledger_tx_id = CalaTransactionId::new();
         self.events.push(DepositEvent::Reverted {
             ledger_tx_id,
+            status: DepositStatus::Reverted,
             audit_info: audit_info.clone(),
         });
 
-        if self
-            .update_status(DepositStatus::Reverted, audit_info)
-            .did_execute()
-        {
-            return Idempotent::Executed(DepositReversalData {
-                ledger_tx_id,
-                credit_account_id: self.deposit_account_id,
-                amount: self.amount,
-                correlation_id: self.id.to_string(),
-                external_id: format!("lana:deposit:{}:reverted", self.id),
-            });
-        }
-        Idempotent::Ignored
-    }
-
-    fn update_status(&mut self, status: DepositStatus, audit_info: AuditInfo) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events().iter_all().rev(),
-            DepositEvent::StatusUpdated { status: existing_status, ..  } if existing_status == &status,
-            => DepositEvent::StatusUpdated { .. }
-        );
-
-        self.events
-            .push(DepositEvent::StatusUpdated { status, audit_info });
-
-        Idempotent::Executed(())
+        Idempotent::Executed(DepositReversalData {
+            ledger_tx_id,
+            credit_account_id: self.deposit_account_id,
+            amount: self.amount,
+            correlation_id: self.id.to_string(),
+            external_id: format!("lana:deposit:{}:reverted", self.id),
+        })
     }
 }
 
@@ -130,7 +109,6 @@ impl TryFromEvents<DepositEvent> for Deposit {
                         .reference(reference.clone());
                 }
                 DepositEvent::Reverted { .. } => {}
-                DepositEvent::StatusUpdated { .. } => {}
             }
         }
         builder.events(events).build()
