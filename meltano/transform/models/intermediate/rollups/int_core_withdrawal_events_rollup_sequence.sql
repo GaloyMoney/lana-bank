@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['withdrawal_id', 'sequence'],
+    unique_key = ['withdrawal_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_withdrawal_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (withdrawal_id, sequence)
+        left join {{ this }} as t using (withdrawal_id, version)
         where t.withdrawal_id is null
     {% endif %}
 )

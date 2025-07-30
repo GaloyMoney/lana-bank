@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['obligation_id', 'sequence'],
+    unique_key = ['obligation_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_obligation_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (obligation_id, sequence)
+        left join {{ this }} as t using (obligation_id, version)
         where t.obligation_id is null
     {% endif %}
 )

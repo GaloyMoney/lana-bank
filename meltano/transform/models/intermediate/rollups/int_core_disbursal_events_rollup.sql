@@ -1,7 +1,7 @@
 with latest_sequence as (
     select
         disbursal_id,
-        max(sequence) as sequence,
+        max(version) as version,
     from {{ ref('int_core_disbursal_events_rollup_sequence') }}
     group by disbursal_id
 )
@@ -15,7 +15,7 @@ with latest_sequence as (
     select
         *
     from all_event_sequence
-    inner join latest_sequence using (disbursal_id, sequence)
+    inner join latest_sequence using (disbursal_id, version)
 
 )
 

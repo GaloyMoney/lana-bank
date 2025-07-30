@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['liquidation_process_id', 'sequence'],
+    unique_key = ['liquidation_process_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_liquidation_process_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (liquidation_process_id, sequence)
+        left join {{ this }} as t using (liquidation_process_id, version)
         where t.liquidation_process_id is null
     {% endif %}
 )

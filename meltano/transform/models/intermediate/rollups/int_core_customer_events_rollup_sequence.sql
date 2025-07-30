@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['customer_id', 'sequence'],
+    unique_key = ['customer_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_customer_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (customer_id, sequence)
+        left join {{ this }} as t using (customer_id, version)
         where t.customer_id is null
     {% endif %}
 )

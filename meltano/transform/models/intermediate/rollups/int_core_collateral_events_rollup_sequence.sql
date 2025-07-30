@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['collateral_id', 'sequence'],
+    unique_key = ['collateral_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_collateral_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (collateral_id, sequence)
+        left join {{ this }} as t using (collateral_id, version)
         where t.collateral_id is null
     {% endif %}
 )

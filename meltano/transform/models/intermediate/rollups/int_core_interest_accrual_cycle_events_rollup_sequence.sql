@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['interest_accrual_cycle_id', 'sequence'],
+    unique_key = ['interest_accrual_cycle_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_interest_accrual_cycle_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (interest_accrual_cycle_id, sequence)
+        left join {{ this }} as t using (interest_accrual_cycle_id, version)
         where t.interest_accrual_cycle_id is null
     {% endif %}
 )

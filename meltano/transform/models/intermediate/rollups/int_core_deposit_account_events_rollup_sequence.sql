@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['deposit_account_id', 'sequence'],
+    unique_key = ['deposit_account_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_deposit_account_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (deposit_account_id, sequence)
+        left join {{ this }} as t using (deposit_account_id, version)
         where t.deposit_account_id is null
     {% endif %}
 )

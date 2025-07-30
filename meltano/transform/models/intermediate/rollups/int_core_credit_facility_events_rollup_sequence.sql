@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['credit_facility_id', 'sequence'],
+    unique_key = ['credit_facility_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_credit_facility_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (credit_facility_id, sequence)
+        left join {{ this }} as t using (credit_facility_id, version)
         where t.credit_facility_id is null
     {% endif %}
 )
@@ -20,7 +20,7 @@ with source as (
 , transformed as (
     select
         credit_facility_id,
-        sequence,
+        version,
         customer_id,
 
         cast(amount as numeric) / {{ var('cents_per_usd') }} as facility_amount_usd,
@@ -85,7 +85,7 @@ with source as (
 
         * except(
             credit_facility_id,
-            sequence,
+            version,
             customer_id,
             amount,
             ledger_tx_ids,

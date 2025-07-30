@@ -1,7 +1,7 @@
 with latest_sequence as (
     select
         customer_id,
-        max(sequence) as sequence,
+        max(version) as version,
     from {{ ref('int_core_customer_events_rollup_sequence') }}
     group by customer_id
 )
@@ -15,7 +15,7 @@ with latest_sequence as (
     select
         *
     from all_event_sequence
-    inner join latest_sequence using (customer_id, sequence)
+    inner join latest_sequence using (customer_id, version)
 
 )
 

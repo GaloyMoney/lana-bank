@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['payment_allocation_id', 'sequence'],
+    unique_key = ['payment_allocation_id', 'version'],
     full_refresh = true,
 ) }}
 
@@ -11,7 +11,7 @@ with source as (
     from {{ ref('stg_core_payment_allocation_events_rollup') }} as s
 
     {% if is_incremental() %}
-        left join {{ this }} as t using (payment_allocation_id, sequence)
+        left join {{ this }} as t using (payment_allocation_id, version)
         where t.payment_allocation_id is null
     {% endif %}
 )
