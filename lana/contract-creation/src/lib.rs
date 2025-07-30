@@ -101,11 +101,7 @@ where
             .enforce_permission(
                 sub,
                 ContractModuleObject::all_contracts(),
-                ContractModuleAction::CONTRACT_CREATE,
-                // LanaObject::App(AppObject::all_contract_creation()),
-                // LanaAction::App(AppAction::ContractCreation(
-                //     rbac_types::ContractCreationAction::Generate,
-                // )),
+                ContractModuleAction::CONTRACT_GENERATE_DOWNLOAD_LINK,
             )
             .await?;
 
@@ -153,11 +149,7 @@ where
             .enforce_permission(
                 sub,
                 ContractModuleObject::all_contracts(),
-                ContractModuleAction::CONTRACT_CREATE,
-                // LanaObject::App(AppObject::all_contract_creation()),
-                // LanaAction::App(AppAction::ContractCreation(
-                //     rbac_types::ContractCreationAction::Find,
-                // )),
+                ContractModuleAction::CONTRACT_FIND,
             )
             .await?;
 
@@ -180,11 +172,7 @@ where
             .enforce_permission(
                 sub,
                 ContractModuleObject::all_contracts(),
-                ContractModuleAction::CONTRACT_CREATE,
-                // LanaObject::App(AppObject::all_contract_creation()),
-                // LanaAction::App(AppAction::ContractCreation(
-                //     rbac_types::ContractCreationAction::GenerateDownloadLink,
-                // )),
+                ContractModuleAction::CONTRACT_GENERATE_DOWNLOAD_LINK,
             )
             .await?;
 
