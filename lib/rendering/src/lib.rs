@@ -29,15 +29,8 @@ impl Renderer {
 
     /// Render a handlebars template and convert to PDF
     #[tracing::instrument(name = "rendering.render_template_to_pdf", skip_all, err)]
-    pub fn render_template_to_pdf<T: serde::Serialize>(
-        &self,
-        template_content: &str,
-        data: &T,
-    ) -> Result<Vec<u8>, RenderingError> {
-        let rendered_markdown = self.template_renderer.render(template_content, data)?;
-        let pdf_bytes = self
-            .pdf_generator
-            .generate_pdf_from_markdown(&rendered_markdown)?;
+    pub fn render_template_to_pdf(&self, content: &str) -> Result<Vec<u8>, RenderingError> {
+        let pdf_bytes = self.pdf_generator.generate_pdf_from_markdown(content)?;
         Ok(pdf_bytes)
     }
 
@@ -147,14 +140,10 @@ mod tests {
     }
 
     #[tokio::test]
-    async fn test_end_to_end_template_to_pdf() -> Result<(), RenderingError> {
+    async fn test_template_to_pdf() -> Result<(), RenderingError> {
         let renderer = Renderer::new();
-
-        let template_content = "# Loan Agreement\n\n- **Name:** {{name}}\n- **Email:** {{email}}\n\nThis is a test document.";
-        let test_data = TestData::new("john.doe@example.com".to_string());
-
-        // Test the complete flow from template to PDF
-        let pdf_bytes = renderer.render_template_to_pdf(template_content, &test_data)?;
+        let content = "# Loan Agreement\n\n- **Name:** abc@galoy.io\n";
+        let pdf_bytes = renderer.render_template_to_pdf(&content)?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));

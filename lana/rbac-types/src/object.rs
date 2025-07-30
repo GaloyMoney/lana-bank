@@ -3,6 +3,7 @@ use std::{fmt::Display, str::FromStr};
 use lana_ids::{ContractCreationId, ReportId};
 
 use authz::AllOrOne;
+use contract_creation::ContractModuleObject;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
 use core_credit::CoreCreditObject;
@@ -27,6 +28,7 @@ pub enum LanaObject {
     Custody(CoreCustodyObject),
     Dashboard(DashboardModuleObject),
     Report(ReportObject),
+    Contract(ContractModuleObject),
 }
 
 impl From<AppObject> for LanaObject {
@@ -81,6 +83,12 @@ impl From<ReportObject> for LanaObject {
     }
 }
 
+impl From<ContractModuleObject> for LanaObject {
+    fn from(object: ContractModuleObject) -> Self {
+        LanaObject::Contract(object)
+    }
+}
+
 impl Display for LanaObject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
@@ -96,6 +104,7 @@ impl Display for LanaObject {
             Custody(object) => object.fmt(f),
             Dashboard(object) => object.fmt(f),
             Report(object) => object.fmt(f),
+            Contract(object) => object.fmt(f),
         }
     }
 }
@@ -121,6 +130,11 @@ impl FromStr for LanaObject {
                     .map_err(|_| "could not parse DashboardModuleObject")?,
             ),
             Report => LanaObject::from(object.parse::<ReportObject>()?),
+            Contract => LanaObject::from(
+                object
+                    .parse::<ContractModuleObject>()
+                    .map_err(|_| "could not parse ContractModuleObject")?,
+            ),
         };
         Ok(res)
     }
@@ -142,20 +156,8 @@ pub enum AppObject {
 }
 
 impl AppObject {
-    pub const fn all_reports() -> Self {
-        Self::Report(AllOrOne::All)
-    }
-    pub const fn report(id: ReportId) -> Self {
-        Self::Report(AllOrOne::ById(id))
-    }
     pub const fn all_audits() -> Self {
         Self::Audit(AllOrOne::All)
-    }
-    pub const fn all_contract_creation() -> Self {
-        Self::ContractCreation(AllOrOne::All)
-    }
-    pub const fn contract_creation(id: ContractCreationId) -> Self {
-        Self::ContractCreation(AllOrOne::ById(id))
     }
 }
 

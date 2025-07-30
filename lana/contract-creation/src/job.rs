@@ -1,34 +1,63 @@
+use std::marker::PhantomData;
+
 use async_trait::async_trait;
+use authz::PermissionCheck;
+use lana_events::{CoreCustomerEvent, OutboxEventMarker};
 use serde::{Deserialize, Serialize};
 
-use core_customer::CustomerId;
+use audit::AuditSvc;
+use core_customer::{CoreCustomerAction, CustomerId, CustomerObject};
 use document_storage::{DocumentId, DocumentStorage};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 
-use super::{LoanAgreementData, error::ContractCreationError, templates::ContractTemplates};
+use super::{LoanAgreementData, templates::ContractTemplates};
 use crate::{Applicants, Customers};
 
-#[derive(Clone, Serialize, Deserialize)]
-pub struct GenerateLoanAgreementConfig {
+#[derive(Serialize, Deserialize)]
+pub struct GenerateLoanAgreementConfig<Perms, E>
+where
+    Perms: PermissionCheck,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
     pub customer_id: CustomerId,
+    #[serde(skip)]
+    pub phantom: PhantomData<(Perms, E)>,
 }
 
-impl JobConfig for GenerateLoanAgreementConfig {
-    type Initializer = GenerateLoanAgreementJobInitializer;
+impl<Perms, E> JobConfig for GenerateLoanAgreementConfig<Perms, E>
+where
+    Perms: PermissionCheck + Send + Sync,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+{
+    type Initializer = GenerateLoanAgreementJobInitializer<Perms, E>;
 }
 
-pub struct GenerateLoanAgreementJobInitializer {
-    customers: Customers,
-    applicants: Applicants,
+pub struct GenerateLoanAgreementJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    customers: Customers<Perms, E>,
+    applicants: Applicants<Perms, E>,
     document_storage: DocumentStorage,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
 }
 
-impl GenerateLoanAgreementJobInitializer {
+impl<Perms, E> GenerateLoanAgreementJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
     pub fn new(
-        customers: &Customers,
-        applicants: &Applicants,
+        customers: &Customers<Perms, E>,
+        applicants: &Applicants<Perms, E>,
         document_storage: &DocumentStorage,
         contract_templates: ContractTemplates,
         renderer: rendering::Renderer,
@@ -45,7 +74,13 @@ impl GenerateLoanAgreementJobInitializer {
 
 pub const GENERATE_LOAN_AGREEMENT_JOB: JobType = JobType::new("generate-loan-agreement");
 
-impl JobInitializer for GenerateLoanAgreementJobInitializer {
+impl<Perms, E> JobInitializer for GenerateLoanAgreementJobInitializer<Perms, E>
+where
+    Perms: PermissionCheck + Send + Sync,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+{
     fn job_type() -> JobType
     where
         Self: Sized,
@@ -65,38 +100,29 @@ impl JobInitializer for GenerateLoanAgreementJobInitializer {
     }
 }
 
-pub struct GenerateLoanAgreementJobRunner {
-    config: GenerateLoanAgreementConfig,
-    customers: Customers,
-    applicants: Applicants,
+pub struct GenerateLoanAgreementJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    config: GenerateLoanAgreementConfig<Perms, E>,
+    customers: Customers<Perms, E>,
+    applicants: Applicants<Perms, E>,
     document_storage: DocumentStorage,
     contract_templates: ContractTemplates,
     renderer: rendering::Renderer,
 }
 
-impl GenerateLoanAgreementJobRunner {
-    #[tracing::instrument(
-        name = "lana.contract_creation.generate_contract_pdf_from_template",
-        skip(self, data),
-        err
-    )]
-    async fn generate_contract_pdf_from_template<T: serde::Serialize>(
-        &self,
-        template_name: &str,
-        data: &T,
-    ) -> Result<Vec<u8>, ContractCreationError> {
-        let template_content = self
-            .contract_templates
-            .render_template(template_name, data)?;
-        let pdf_bytes = self
-            .renderer
-            .render_template_to_pdf(&template_content, data)?;
-        Ok(pdf_bytes)
-    }
-}
-
 #[async_trait]
-impl JobRunner for GenerateLoanAgreementJobRunner {
+impl<Perms, E> JobRunner for GenerateLoanAgreementJobRunner<Perms, E>
+where
+    Perms: PermissionCheck + Send + Sync,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
+    E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
+{
     #[tracing::instrument(
         name = "lana.contract_creation.generate_loan_agreement",
         skip_all,
@@ -145,10 +171,10 @@ impl JobRunner for GenerateLoanAgreementJobRunner {
             country,
         );
 
-        // Generate the PDF bytes
-        let pdf_bytes = self
-            .generate_contract_pdf_from_template("loan_agreement", &loan_data)
-            .await?;
+        let content = self
+            .contract_templates
+            .render_template("loan_agreement", &loan_data)?;
+        let pdf_bytes = self.renderer.render_template_to_pdf(&content)?;
 
         // Convert job ID to document ID (they should be the same as per the pattern)
         let document_id = DocumentId::from(uuid::Uuid::from(*current_job.id()));

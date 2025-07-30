@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::action_description::*;
 
+use contract_creation::ContractModuleAction;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
 use core_credit::CoreCreditAction;
@@ -29,6 +30,7 @@ pub enum LanaAction {
     Credit(CoreCreditAction),
     Custody(CoreCustodyAction),
     Report(CoreReportAction),
+    Contract(ContractModuleAction),
 }
 
 impl LanaAction {
@@ -64,6 +66,7 @@ impl LanaAction {
                 Credit => flatten(module, CoreCreditAction::entities()),
                 Custody => flatten(module, CoreCustodyAction::entities()),
                 Report => flatten(module, CoreReportAction::entities()),
+                Contract => flatten(module, ContractModuleAction::entities()),
             };
 
             result.extend(actions);
@@ -123,6 +126,11 @@ impl From<CoreReportAction> for LanaAction {
         LanaAction::Report(action)
     }
 }
+impl From<ContractModuleAction> for LanaAction {
+    fn from(action: ContractModuleAction) -> Self {
+        LanaAction::Contract(action)
+    }
+}
 
 impl Display for LanaAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -139,6 +147,7 @@ impl Display for LanaAction {
             Credit(action) => action.fmt(f),
             Custody(action) => action.fmt(f),
             Report(action) => action.fmt(f),
+            Contract(action) => action.fmt(f),
         }
     }
 }
@@ -160,6 +169,7 @@ impl FromStr for LanaAction {
             Credit => LanaAction::from(action.parse::<CoreCreditAction>()?),
             Custody => LanaAction::from(action.parse::<CoreCustodyAction>()?),
             Report => LanaAction::from(action.parse::<CoreReportAction>()?),
+            Contract => LanaAction::from(action.parse::<ContractModuleAction>()?),
         };
         Ok(res)
     }
@@ -186,7 +196,6 @@ macro_rules! impl_trivial_action {
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum AppAction {
     Audit(AuditAction),
-    ContractCreation(ContractCreationAction),
 }
 
 impl AppAction {
@@ -198,7 +207,6 @@ impl AppAction {
         for entity in <AppActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
                 Audit => AuditAction::describe(),
-                ContractCreation => ContractCreationAction::describe(),
             };
 
             result.push((*entity, actions));
@@ -214,7 +222,6 @@ impl Display for AppAction {
         use AppAction::*;
         match self {
             Audit(action) => action.fmt(f),
-            ContractCreation(action) => action.fmt(f),
         }
     }
 }
@@ -229,7 +236,6 @@ impl FromStr for AppAction {
         use AppActionDiscriminants::*;
         let res = match entity.parse()? {
             Audit => AppAction::from(action.parse::<AuditAction>()?),
-            ContractCreation => AppAction::from(action.parse::<ContractCreationAction>()?),
         };
         Ok(res)
     }
@@ -260,35 +266,6 @@ impl AuditAction {
 }
 
 impl_trivial_action!(AuditAction, Audit);
-
-#[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum ContractCreationAction {
-    Generate,
-    Find,
-    GenerateDownloadLink,
-}
-
-impl ContractCreationAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Generate => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::Find => ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER]),
-                Self::GenerateDownloadLink => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_APP_WRITER])
-                }
-            };
-            res.push(action_description);
-        }
-
-        res
-    }
-}
-
-impl_trivial_action!(ContractCreationAction, ContractCreation);
 
 #[cfg(test)]
 mod test {

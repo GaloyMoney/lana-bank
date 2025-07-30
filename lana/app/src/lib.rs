@@ -195,4 +195,8 @@ pub mod report {
 
 pub mod contract_creation {
     pub use contract_creation::*;
+    pub type ContractCreation = contract_creation::ContractCreation<
+        crate::authorization::Authorization,
+        lana_events::LanaEvent,
+    >;
 }
