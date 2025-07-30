@@ -14,6 +14,9 @@ pub enum ContractModuleAction {
 
 impl ContractModuleAction {
     pub const CONTRACT_CREATE: Self = ContractModuleAction::Contract(ContractAction::Create);
+    pub const CONTRACT_FIND: Self = ContractModuleAction::Contract(ContractAction::Find);
+    pub const CONTRACT_GENERATE_DOWNLOAD_LINK: Self =
+        ContractModuleAction::Contract(ContractAction::GenerateDownloadLink);
 
     pub fn entities() -> Vec<(
         ContractModuleActionDiscriminants,
@@ -61,6 +64,8 @@ impl FromStr for ContractModuleAction {
 #[strum(serialize_all = "kebab-case")]
 pub enum ContractAction {
     Create,
+    Find,
+    GenerateDownloadLink,
 }
 
 impl ContractAction {
