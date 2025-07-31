@@ -38,31 +38,11 @@ impl InterestAccrualCycleIdx {
     }
 }
 
-// Consider importing from cala
-#[derive(Debug)]
-pub enum LedgerAccountSetMemberType {
-    Account,
-    AccountSet,
-}
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
-pub enum LoanStatus {
-    New,
-    Active,
-    Closed,
-}
-
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
     DebitOrCredit as CalaDebitOrCredit, EntryId as CalaEntryId, JournalId as CalaJournalId,
     TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
 };
-
-#[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
-pub enum ReportProgress {
-    Running,
-    Complete,
-}
 
 #[cfg(test)]
 mod test {
