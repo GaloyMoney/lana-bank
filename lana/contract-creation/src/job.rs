@@ -2,13 +2,13 @@ use std::marker::PhantomData;
 
 use async_trait::async_trait;
 use authz::PermissionCheck;
-use lana_events::{CoreCustomerEvent, OutboxEventMarker};
 use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
-use core_customer::{CoreCustomerAction, CustomerId, CustomerObject};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject};
 use document_storage::{DocumentId, DocumentStorage};
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
+use outbox::OutboxEventMarker;
 
 use super::{LoanAgreementData, templates::ContractTemplates};
 use crate::{Applicants, Customers};

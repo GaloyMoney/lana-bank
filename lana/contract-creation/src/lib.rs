@@ -4,12 +4,12 @@ use ::job::{JobId, Jobs};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_applicant::Applicants;
-use core_customer::{CoreCustomerAction, CustomerId, CustomerObject, Customers};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerId, CustomerObject, Customers};
 use document_storage::{
     Document, DocumentId, DocumentStatus, DocumentStorage, DocumentType,
     GeneratedDocumentDownloadLink, ReferenceId,
 };
-use lana_events::{CoreCustomerEvent, OutboxEventMarker};
+use outbox::OutboxEventMarker;
 use uuid::Uuid;
 
 mod error;

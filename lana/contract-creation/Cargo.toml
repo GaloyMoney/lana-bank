@@ -7,15 +7,14 @@ edition = "2024"
 [features]
 fail-on-warnings = []
 graphql = ["es-entity/graphql", "dep:async-graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "outbox/json-schema"]
 
 [dependencies]
-lana-events = { path = "../events" }
-
 core-customer = { path = "../../core/customer" }
 core-applicant = { path = "../../core/applicant" }
 document-storage = { path = "../../core/document-storage" }
 job = { path = "../../lib/job" }
+outbox = { path = "../../lib/outbox" }
 authz = { path = "../../lib/authz" }
 audit = { path = "../../lib/audit" }
 rendering = { path = "../../lib/rendering" }

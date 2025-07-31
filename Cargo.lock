@@ -1184,7 +1184,7 @@ dependencies = [
  "es-entity",
  "handlebars",
  "job",
- "lana-events",
+ "outbox",
  "rendering",
  "schemars 1.0.4",
  "serde",
