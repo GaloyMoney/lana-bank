@@ -10,10 +10,8 @@ from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 
 
-
 class Constants:
-    """Simple namespace to store constants and avoid magic vars.
-    """
+    """Simple namespace to store constants and avoid magic vars."""
 
     TABLE_NAME_PATTERN = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
@@ -46,7 +44,7 @@ class ReportGeneratorConfig:
         run_id: str,
         keyfile: Path,
         use_gcs: bool,
-        use_local_fs: bool
+        use_local_fs: bool,
     ):
         self.project_id = project_id
         self.dataset = dataset
@@ -88,13 +86,13 @@ def get_config_from_env() -> ReportGeneratorConfig:
         raise FileNotFoundError(
             f"Can't read GCP credentials at: {str(keyfile.absolute())}"
         )
-    
+
     use_local_fs = bool(os.getenv(Constants.USE_LOCAL_FS_ENVVAR_KEY))
 
     use_gcs = True
     if use_local_fs:
         use_gcs = False
-        
+
     return ReportGeneratorConfig(
         project_id=os.getenv(Constants.DBT_BIGQUERY_PROJECT_ENVVAR_KEY),
         dataset=os.getenv(Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY),
@@ -102,12 +100,12 @@ def get_config_from_env() -> ReportGeneratorConfig:
         run_id=run_id,
         keyfile=keyfile,
         use_gcs=use_gcs,
-        use_local_fs=use_local_fs
+        use_local_fs=use_local_fs,
     )
 
+
 class StorableReport:
-    """The contents of a report file, together with their format.
-    """
+    """The contents of a report file, together with their format."""
 
     def __init__(self, report_content_type: str, report_content: str) -> None:
         self.content_type = report_content_type
@@ -115,8 +113,7 @@ class StorableReport:
 
 
 class ReportStorer(ABC):
-    """Abstract interface for an object that can store a report contents as a file somewhere.
-    """
+    """Abstract interface for an object that can store a report contents as a file somewhere."""
 
     @abstractmethod
     def store_report(self, path: str, report: StorableReport) -> None:
@@ -130,8 +127,7 @@ class ReportStorer(ABC):
 
 
 class GCSReportStorer(ReportStorer):
-    """A report storer that writes report files to a GCS bucket.
-    """
+    """A report storer that writes report files to a GCS bucket."""
 
     def __init__(
         self,
@@ -152,8 +148,7 @@ class GCSReportStorer(ReportStorer):
 
 
 class LocalReportStorer(ReportStorer):
-    """A report store that writes into the local filesystem.
-    """
+    """A report store that writes into the local filesystem."""
 
     def __init__(self, root_path: Path = Path("./report_files/")) -> None:
         self._root_path = root_path
@@ -166,6 +161,7 @@ class LocalReportStorer(ReportStorer):
         with open(target_path, "w", encoding="utf-8") as f:
             f.write(report.content)
         print("File stored")
+
 
 def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
     """Infer from the given config what is the right storer to use and set it up.
@@ -182,16 +178,16 @@ def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
 
     if config.use_local_fs:
         return LocalReportStorer()
-    
+
     if config.use_gcs:
         credentials = service_account.Credentials.from_service_account_file(
-        config.keyfile
+            config.keyfile
         )
         return GCSReportStorer(
-        gcp_project_id=config.project_id,
-        gcp_credentials=credentials,
-        target_bucket_name=config.bucket_name,
-    )
+            gcp_project_id=config.project_id,
+            gcp_credentials=credentials,
+            target_bucket_name=config.bucket_name,
+        )
 
     raise ValueError("Inconsitent config, can't figure out where to write reports to.")
 
@@ -206,9 +202,7 @@ def main():
         project=report_generator_config.project_id, credentials=credentials
     )
 
-    report_storer: ReportStorer = get_report_storer(
-        config=report_generator_config
-    )
+    report_storer: ReportStorer = get_report_storer(config=report_generator_config)
 
     gcs_report_storer = report_storer
 
