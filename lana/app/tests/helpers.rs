@@ -19,10 +19,7 @@ pub async fn init_access(
     pool: &sqlx::PgPool,
     authz: &Authorization,
 ) -> anyhow::Result<(Access, Subject)> {
-    let superuser_email = format!(
-        "superuser_{:05}@test.io",
-        rand::rng().random_range(0..100000)
-    );
+    let superuser_email = "superuser@test.io".to_string();
     let outbox = Outbox::init(pool).await?;
 
     let config = AccessConfig {
