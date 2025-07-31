@@ -1173,6 +1173,7 @@ checksum = "2f8a2ca5ac02d09563609681103aada9e1777d54fc57a5acd7a41404f9c93b6e"
 name = "contract-creation"
 version = "0.3.762-dev"
 dependencies = [
+ "async-graphql",
  "async-trait",
  "audit",
  "authz",
@@ -1180,11 +1181,12 @@ dependencies = [
  "core-applicant",
  "core-customer",
  "document-storage",
+ "es-entity",
  "handlebars",
  "job",
  "lana-events",
- "lana-ids",
  "rendering",
+ "schemars 1.0.4",
  "serde",
  "serde_json",
  "sqlx",

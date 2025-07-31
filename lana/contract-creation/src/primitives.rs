@@ -1,7 +1,12 @@
 use std::{fmt::Display, str::FromStr};
 
 use authz::{AllOrOne, action_description::*};
-use lana_ids::ContractCreationId;
+
+es_entity::entity_id! {
+    ContractCreationId;
+
+    ContractCreationId => document_storage::DocumentId,
+}
 
 pub const PERMISSION_SET_CONTRACT_CREATION: &str = "contract_creation";
 

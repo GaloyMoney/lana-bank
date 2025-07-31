@@ -10,7 +10,6 @@ use document_storage::{
     GeneratedDocumentDownloadLink, ReferenceId,
 };
 use lana_events::{CoreCustomerEvent, OutboxEventMarker};
-use lana_ids::ContractCreationId;
 use uuid::Uuid;
 
 mod error;
@@ -19,7 +18,7 @@ mod templates;
 
 pub use error::*;
 pub use job::*;
-pub use primitives::{ContractModuleAction, ContractModuleObject};
+pub use primitives::{ContractCreationId, ContractModuleAction, ContractModuleObject};
 
 use tracing::instrument;
 

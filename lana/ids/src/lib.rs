@@ -21,6 +21,4 @@ es_entity::entity_id! {
 
     DisbursalId => LedgerTransactionId,
     PaymentId => LedgerTransactionId,
-
-    ContractCreationId => document_storage::DocumentId,
 }

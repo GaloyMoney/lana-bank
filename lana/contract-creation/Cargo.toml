@@ -6,10 +6,10 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
+graphql = ["es-entity/graphql", "dep:async-graphql"]
+json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
 
 [dependencies]
-# Core dependencies
-lana-ids = { path = "../ids" }
 lana-events = { path = "../events" }
 
 core-customer = { path = "../../core/customer" }
@@ -21,6 +21,7 @@ audit = { path = "../../lib/audit" }
 rendering = { path = "../../lib/rendering" }
 
 # External dependencies
+es-entity = { workspace = true }
 async-trait = { workspace = true }
 chrono = { workspace = true }
 handlebars = { workspace = true }
@@ -32,3 +33,6 @@ tokio = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
 strum = { workspace = true }
+
+async-graphql = { workspace = true, optional = true }
+schemars = { workspace = true, optional = true }
