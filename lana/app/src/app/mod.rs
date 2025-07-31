@@ -162,7 +162,7 @@ impl LanaApp {
         .await?;
 
         let contract_creation =
-            ContractCreation::try_new(&customers, &applicants, &documents, &jobs, &authz)?;
+            ContractCreation::new(&customers, &applicants, &documents, &jobs, &authz);
 
         Notification::init(
             config.notification,

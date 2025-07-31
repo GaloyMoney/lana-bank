@@ -60,15 +60,15 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<ContractModuleObject> + From<CustomerObject>,
 {
-    pub fn try_new(
+    pub fn new(
         customers: &Customers<Perms, E>,
         applicants: &Applicants<Perms, E>,
         document_storage: &DocumentStorage,
         jobs: &Jobs,
         authz: &Perms,
-    ) -> Result<Self, ContractCreationError> {
+    ) -> Self {
         let renderer = rendering::Renderer::new();
-        let contract_templates = templates::ContractTemplates::try_new()?;
+        let contract_templates = templates::ContractTemplates::new();
 
         // Initialize the job system for contract creation
         jobs.add_initializer(GenerateLoanAgreementJobInitializer::new(
@@ -79,12 +79,12 @@ where
             renderer.clone(),
         ));
 
-        Ok(Self {
+        Self {
             document_storage: document_storage.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
             _phantom: std::marker::PhantomData,
-        })
+        }
     }
 
     #[instrument(name = "contract.initiate_loan_agreement_generation", skip(self), err)]
@@ -261,14 +261,14 @@ pub struct LoanAgreement {
 mod tests {
     use super::*;
 
-    #[tokio::test]
-    async fn test_contract_creation_config() -> Result<(), error::ContractCreationError> {
+    #[test]
+    fn test_contract_creation_config() -> Result<(), error::ContractCreationError> {
         // Test that the embedded PDF config works correctly
         // Verify that renderer can be created with embedded config
         let _renderer = rendering::Renderer::new();
 
         // Test embedded templates
-        let contract_templates = templates::ContractTemplates::try_new()?;
+        let contract_templates = templates::ContractTemplates::new();
         let data = serde_json::json!({
             "full_name": "Test User",
             "email": "test@example.com",

@@ -2,8 +2,6 @@ use thiserror::Error;
 
 #[derive(Error, Debug)]
 pub enum RenderingError {
-    #[error("Template error: {0}")]
-    Template(#[from] handlebars::TemplateError),
     #[error("Render error: {0}")]
     Render(#[from] handlebars::RenderError),
     #[error("PDF generation error: {0}")]
