@@ -43,13 +43,9 @@
       "label": "Editor de contabilidad",
       "description": "Puede crear y gestionar planes de cuentas, transacciones manuales y del libro mayor, balances, informes de pérdidas y ganancias, y datos contables relacionados"
     },
-    "app_viewer": {
-      "label": "Visualizador de aplicación",
-      "description": "Puede listar y ver documentos, informes y auditorías de la aplicación"
-    },
-    "app_writer": {
-      "label": "Editor de aplicación",
-      "description": "Puede crear, actualizar, archivar y eliminar documentos e informes de la aplicación"
+    "audit_viewer": {
+      "label": "Visor de auditoría",
+      "description": "Puede ver registros de auditoría y registros de actividad del sistema"
     },
     "contract_creation": {
       "label": "Creación de contratos",

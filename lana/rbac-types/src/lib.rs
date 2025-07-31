@@ -24,8 +24,6 @@ pub enum PermissionSetName {
     AccessWriter,
     AccountingViewer,
     AccountingWriter,
-    AppViewer,
-    AppWriter,
     ContractCreation,
     CreditViewer,
     CreditWriter,
@@ -40,6 +38,7 @@ pub enum PermissionSetName {
     GovernanceWriter,
     ReportViewer,
     ReportWriter,
+    AuditViewer,
 }
 
 impl std::str::FromStr for PermissionSetName {
@@ -53,9 +52,6 @@ impl std::str::FromStr for PermissionSetName {
 
             core_accounting::PERMISSION_SET_ACCOUNTING_VIEWER => Ok(AccountingViewer),
             core_accounting::PERMISSION_SET_ACCOUNTING_WRITER => Ok(AccountingWriter),
-
-            crate::action::PERMISSION_SET_APP_VIEWER => Ok(AppViewer),
-            crate::action::PERMISSION_SET_APP_WRITER => Ok(AppWriter),
 
             core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
             core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
@@ -78,6 +74,8 @@ impl std::str::FromStr for PermissionSetName {
             core_report::PERMISSION_SET_REPORT_WRITER => Ok(ReportWriter),
 
             contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
+
+            core_audit::PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
 
             _ => Err(strum::ParseError::VariantNotFound),
         }
