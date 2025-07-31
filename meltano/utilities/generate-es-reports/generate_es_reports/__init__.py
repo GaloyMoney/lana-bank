@@ -68,8 +68,8 @@ def get_config_from_env() -> ReportGeneratorConfig:
 
 class StorableReport:
 
-    def __init__(self, report_type: Any, report_content: Any) -> None:
-        self.type = report_type
+    def __init__(self, report_content_type: Any, report_content: Any) -> None:
+        self.content_type = report_content_type
         self.content = report_content
 
 
@@ -96,7 +96,7 @@ class GCSReportStorer:
     def store_report(self, path: str, report: StorableReport) -> None:
         blob = self._bucket.blob(path)
         print(f"Uploading to {path}...")
-        blob.upload_from_string(report.content, content_type=report.type)
+        blob.upload_from_string(report.content, content_type=report.content_type)
         print(f"Uploaded")
 
 
@@ -148,7 +148,7 @@ def main():
             gcs_report_storer.store_report(
                 path=full_blob_path,
                 report=StorableReport(
-                    report_content=report_content, report_type=report_content_type
+                    report_content=report_content, report_content_type=report_content_type
                 ),
             )
 
@@ -165,7 +165,7 @@ def main():
             gcs_report_storer.store_report(
                 path=full_blob_path,
                 report=StorableReport(
-                    report_content=report_content, report_type=report_content_type
+                    report_content=report_content, report_content_type=report_content_type
                 ),
             )
 
@@ -183,7 +183,7 @@ def main():
             gcs_report_storer.store_report(
                 path=full_blob_path,
                 report=StorableReport(
-                    report_content=report_content, report_type=report_content_type
+                    report_content=report_content, report_content_type=report_content_type
                 ),
             )
 
