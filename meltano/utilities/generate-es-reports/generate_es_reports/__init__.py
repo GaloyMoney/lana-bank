@@ -1,17 +1,19 @@
 import os
 import io
 import csv
-import argparse
+from enum import Enum
+from re import compile
+from pathlib import Path
 from abc import ABC, abstractmethod
-from datetime import datetime
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
-from re import compile
-from pathlib import Path
+
 
 
 class Constants:
+    """Simple namespace to store constants and avoid magic vars.
+    """
 
     TABLE_NAME_PATTERN = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
@@ -32,6 +34,9 @@ class Constants:
 
 
 class ReportGeneratorConfig:
+    """
+    The config for one execution of this script.
+    """
 
     def __init__(
         self,
@@ -53,7 +58,15 @@ class ReportGeneratorConfig:
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
+    """Read env vars, check that config is consistent and return it.
 
+    Raises:
+        RuntimeError: If a required env var is missing.
+        FileNotFoundError: If the GCP credentials file can't be found.
+
+    Returns:
+        ReportGeneratorConfig: a specific config instance for this run.
+    """
     required_envs = [
         Constants.DBT_BIGQUERY_PROJECT_ENVVAR_KEY,
         Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY,
@@ -92,8 +105,9 @@ def get_config_from_env() -> ReportGeneratorConfig:
         use_local_fs=use_local_fs
     )
 
-
 class StorableReport:
+    """The contents of a report file, together with their format.
+    """
 
     def __init__(self, report_content_type: str, report_content: str) -> None:
         self.content_type = report_content_type
@@ -101,13 +115,23 @@ class StorableReport:
 
 
 class ReportStorer(ABC):
+    """Abstract interface for an object that can store a report contents as a file somewhere.
+    """
 
     @abstractmethod
     def store_report(self, path: str, report: StorableReport) -> None:
+        """Store a report given a path and contents.
+
+        Args:
+            path (str): where to store the report.
+            report (StorableReport): a storable report specifying contents and their types.
+        """
         pass
 
 
 class GCSReportStorer(ReportStorer):
+    """A report storer that writes report files to a GCS bucket.
+    """
 
     def __init__(
         self,
@@ -128,6 +152,8 @@ class GCSReportStorer(ReportStorer):
 
 
 class LocalReportStorer(ReportStorer):
+    """A report store that writes into the local filesystem.
+    """
 
     def __init__(self, root_path: Path = Path("./report_files/")) -> None:
         self._root_path = root_path
@@ -142,6 +168,17 @@ class LocalReportStorer(ReportStorer):
         print("File stored")
 
 def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
+    """Infer from the given config what is the right storer to use and set it up.
+
+    Args:
+        config (ReportGeneratorConfig): the specific config for this run.
+
+    Raises:
+        ValueError: if the config is inconsistent and doesn't make it clear which storer should be used.
+
+    Returns:
+        ReportStorer: a concrete, ready to use storer instance for this run.
+    """
 
     if config.use_local_fs:
         return LocalReportStorer()
