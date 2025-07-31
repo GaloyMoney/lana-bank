@@ -32,8 +32,6 @@ def get_config_from_env() -> ReportGeneratorConfig:
             f"Missing required environment variables: {', '.join(missing)}"
         )
 
-    is_airflow_run = bool(os.getenv("AIRFLOW_CTX_DAG_RUN_ID"))
-
     run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID", "dev") # If no AIRFLOW, we assume dev env
 
     keyfile = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
@@ -59,8 +57,8 @@ def main():
     keyfile = report_generator_config.keyfile
 
     credentials = service_account.Credentials.from_service_account_file(keyfile)
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
-    storage_client = storage.Client(project=project_id, credentials=credentials)
+    bq_client = bigquery.Client(project=report_generator_config.project_id, credentials=credentials)
+    storage_client = storage.Client(project=report_generator_config.project_id, credentials=credentials)
 
     validator = Validator()
 
@@ -74,7 +72,7 @@ def main():
         norm_name = match.group(1)
         report_name = match.group(2)
 
-        query = f"SELECT * FROM `{project_id}.{dataset}.{table_name}`;"
+        query = f"SELECT * FROM `{report_generator_config.project_id}.{dataset}.{table_name}`;"
         query_job = bq_client.query(query)
         rows = query_job.result()
         field_names = [field.name for field in rows.schema]
