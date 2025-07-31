@@ -36,23 +36,28 @@ pub enum WithdrawalEvent {
         amount: UsdCents,
         reference: String,
         approval_process_id: ApprovalProcessId,
+        status: WithdrawalStatus,
         audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
         approved: bool,
+        status: WithdrawalStatus,
         audit_info: AuditInfo,
     },
     Confirmed {
         ledger_tx_id: CalaTransactionId,
+        status: WithdrawalStatus,
         audit_info: AuditInfo,
     },
     Cancelled {
         ledger_tx_id: CalaTransactionId,
+        status: WithdrawalStatus,
         audit_info: AuditInfo,
     },
     Reverted {
         ledger_tx_id: CalaTransactionId,
+        status: WithdrawalStatus,
         audit_info: AuditInfo,
     },
 }
@@ -105,6 +110,7 @@ impl Withdrawal {
         let ledger_tx_id = CalaTransactionId::new();
         self.events.push(WithdrawalEvent::Confirmed {
             ledger_tx_id,
+            status: WithdrawalStatus::Confirmed,
             audit_info,
         });
 
@@ -133,6 +139,7 @@ impl Withdrawal {
 
         self.events.push(WithdrawalEvent::Reverted {
             ledger_tx_id,
+            status: WithdrawalStatus::Reverted,
             audit_info,
         });
 
@@ -157,6 +164,7 @@ impl Withdrawal {
         let ledger_tx_id = CalaTransactionId::new();
         self.events.push(WithdrawalEvent::Cancelled {
             ledger_tx_id,
+            status: WithdrawalStatus::Cancelled,
             audit_info,
         });
         self.cancelled_tx_id = Some(ledger_tx_id);
@@ -188,19 +196,18 @@ impl Withdrawal {
     }
 
     pub fn status(&self) -> WithdrawalStatus {
-        if self.is_reverted() {
-            WithdrawalStatus::Reverted
-        } else if self.is_cancelled() {
-            WithdrawalStatus::Cancelled
-        } else if self.is_confirmed() {
-            WithdrawalStatus::Confirmed
-        } else {
-            match self.is_approved_or_denied() {
-                Some(true) => WithdrawalStatus::PendingConfirmation,
-                Some(false) => WithdrawalStatus::Denied,
-                None => WithdrawalStatus::PendingApproval,
-            }
-        }
+        self.events
+            .iter_all()
+            .rev()
+            .map(|e| match e {
+                WithdrawalEvent::Confirmed { status, .. } => *status,
+                WithdrawalEvent::Cancelled { status, .. } => *status,
+                WithdrawalEvent::Reverted { status, .. } => *status,
+                WithdrawalEvent::ApprovalProcessConcluded { status, .. } => *status,
+                WithdrawalEvent::Initialized { status, .. } => *status,
+            })
+            .next()
+            .expect("status should always exist")
     }
 
     pub fn approval_process_concluded(
@@ -212,9 +219,15 @@ impl Withdrawal {
             self.events.iter_all(),
             WithdrawalEvent::ApprovalProcessConcluded { .. }
         );
+        let status = if approved {
+            WithdrawalStatus::PendingConfirmation
+        } else {
+            WithdrawalStatus::Denied
+        };
         self.events.push(WithdrawalEvent::ApprovalProcessConcluded {
             approval_process_id: self.id.into(),
             approved,
+            status,
             audit_info,
         });
         Idempotent::Executed(())
@@ -301,6 +314,7 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                 deposit_account_id: self.deposit_account_id,
                 amount: self.amount,
                 approval_process_id: self.approval_process_id,
+                status: WithdrawalStatus::PendingApproval,
                 audit_info: self.audit_info,
             }],
         )

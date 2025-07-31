@@ -10,6 +10,7 @@ CREATE TABLE core_withdrawal_events_rollup (
   approved BOOLEAN,
   deposit_account_id UUID,
   reference VARCHAR,
+  status VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -73,6 +74,7 @@ BEGIN
      END
 ;
     new_row.reference := (NEW.event ->> 'reference');
+    new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
@@ -85,6 +87,7 @@ BEGIN
     new_row.is_confirmed := current_row.is_confirmed;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.reference := current_row.reference;
+    new_row.status := current_row.status;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -96,22 +99,27 @@ BEGIN
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.reference := (NEW.event ->> 'reference');
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_approval_process_concluded := true;
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'confirmed' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_confirmed := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'cancelled' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.is_cancelled := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
     WHEN 'reverted' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.status := (NEW.event ->> 'status');
   END CASE;
 
   INSERT INTO core_withdrawal_events_rollup (
@@ -128,7 +136,8 @@ BEGIN
     is_cancelled,
     is_confirmed,
     ledger_tx_ids,
-    reference
+    reference,
+    status
   )
   VALUES (
     new_row.id,
@@ -144,7 +153,8 @@ BEGIN
     new_row.is_cancelled,
     new_row.is_confirmed,
     new_row.ledger_tx_ids,
-    new_row.reference
+    new_row.reference,
+    new_row.status
   );
 
   RETURN NEW;
