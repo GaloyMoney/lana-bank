@@ -24,58 +24,26 @@ class ReportGeneratorConfig:
 
 def get_config_from_env() -> ReportGeneratorConfig:
 
-    if os.getenv("AIRFLOW_CTX_DAG_RUN_ID"):
-        required_envs = [
-            "DBT_BIGQUERY_PROJECT",
-            "DBT_BIGQUERY_DATASET",
-            "DOCS_BUCKET_NAME",
-            "AIRFLOW_CTX_DAG_RUN_ID",  # automatically set by Airflow
-        ]
-        missing = [var for var in required_envs if not os.getenv(var)]
-        if missing:
-            raise RuntimeError(
-                f"Missing required environment variables: {', '.join(missing)}"
-            )
-        project_id = os.getenv("DBT_BIGQUERY_PROJECT")
-        dataset = os.getenv("DBT_BIGQUERY_DATASET")
-        bucket_name = os.getenv("DOCS_BUCKET_NAME")
-        run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID")
-
-        keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-        if not keyfile or not os.path.isfile(keyfile):
-            raise RuntimeError(
-                "GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the path of a valid service account JSON file."
-            )
-
-        return ReportGeneratorConfig(
-            project_id=project_id,
-            dataset=dataset,
-            bucket_name=bucket_name,
-            run_id=run_id,
-            keyfile=keyfile,
+    required_envs = ["DBT_BIGQUERY_PROJECT", "DBT_BIGQUERY_DATASET", "DOCS_BUCKET_NAME"]
+    missing = [var for var in required_envs if not os.getenv(var)]
+    if missing:
+        raise RuntimeError(
+            f"Missing required environment variables: {', '.join(missing)}"
         )
 
-    if not os.getenv("AIRFLOW_CTX_DAG_RUN_ID"):
-        required_envs = ["DBT_BIGQUERY_PROJECT", "DBT_BIGQUERY_DATASET", "DOCS_BUCKET_NAME"]
-        missing = [var for var in required_envs if not os.getenv(var)]
-        if missing:
-            raise RuntimeError(
-                f"Missing required environment variables: {', '.join(missing)}"
-            )
-        project_id = os.getenv("DBT_BIGQUERY_PROJECT")
-        dataset = os.getenv("DBT_BIGQUERY_DATASET")
-        bucket_name = os.getenv("DOCS_BUCKET_NAME")
-        run_id = "dev"
+    is_airflow_run = bool(os.getenv("AIRFLOW_CTX_DAG_RUN_ID", False))
 
-        keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+    run_id = "dev"
+    if is_airflow_run:
+        run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID")     
 
-        return ReportGeneratorConfig(
-            project_id=project_id,
-            dataset=dataset,
-            bucket_name=bucket_name,
-            run_id=run_id,
-            keyfile=keyfile,
-        )
+    return ReportGeneratorConfig(
+        project_id=os.getenv("DBT_BIGQUERY_PROJECT"),
+        dataset=os.getenv("DBT_BIGQUERY_DATASET"),
+        bucket_name=os.getenv("DOCS_BUCKET_NAME"),
+        run_id=run_id,
+        keyfile=os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+    )
 
 
 def main():
