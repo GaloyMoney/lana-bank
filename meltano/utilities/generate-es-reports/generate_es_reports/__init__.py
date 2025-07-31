@@ -132,11 +132,15 @@ def main():
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
 
+        blob_path = (
+            f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}"
+        )
+
         if norm_name in ["nrp_41", "nrp_51"]:
             report_content_type = "text/xml"
             report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
             report_content = report_bytes.decode("utf-8")
-            blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.xml"
+            blob_path = blob_path + ".xml"
 
         if norm_name == "nrsf_03":
             report_content_type = "text/plain"
@@ -147,7 +151,7 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.txt"
+            blob_path = blob_path + ".txt"
 
         # CSV versions of all regulatory reports
         if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
@@ -159,7 +163,7 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.csv"
+            blob_path = blob_path + ".csv"
 
         gcs_report_storer.store_report(
             path=blob_path,
