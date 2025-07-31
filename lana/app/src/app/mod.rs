@@ -6,13 +6,15 @@ use tracing::instrument;
 
 use authz::PermissionCheck;
 
+use core_audit::{AuditAction, AuditEntityAction, AuditObject};
+
 use crate::{
     access::Access,
     accounting::Accounting,
     accounting_init::{ChartsInit, JournalInit, StatementsInit},
     applicant::Applicants,
     audit::{Audit, AuditCursor, AuditEntry},
-    authorization::{AppAction, AppObject, AuditAction, Authorization, seed},
+    authorization::{Authorization, seed},
     contract_creation::ContractCreation,
     credit::Credit,
     custody::Custody,
@@ -242,8 +244,8 @@ impl LanaApp {
         self.authz
             .enforce_permission(
                 sub,
-                AppObject::all_audits(),
-                AppAction::Audit(AuditAction::List),
+                AuditObject::all_audits(),
+                AuditAction::from(AuditEntityAction::List),
             )
             .await?;
 

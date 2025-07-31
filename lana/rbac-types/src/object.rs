@@ -1,9 +1,9 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::AllOrOne;
 use contract_creation::ContractModuleObject;
 use core_access::CoreAccessObject;
 use core_accounting::CoreAccountingObject;
+use core_audit::AuditObject;
 use core_credit::CoreCreditObject;
 use core_custody::CoreCustodyObject;
 use core_customer::CustomerObject;
@@ -16,7 +16,7 @@ use governance::GovernanceObject;
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaObject {
-    App(AppObject),
+    Audit(AuditObject),
     Governance(GovernanceObject),
     Access(CoreAccessObject),
     Customer(CustomerObject),
@@ -29,9 +29,9 @@ pub enum LanaObject {
     Contract(ContractModuleObject),
 }
 
-impl From<AppObject> for LanaObject {
-    fn from(object: AppObject) -> Self {
-        LanaObject::App(object)
+impl From<AuditObject> for LanaObject {
+    fn from(object: AuditObject) -> Self {
+        LanaObject::Audit(object)
     }
 }
 impl From<DashboardModuleObject> for LanaObject {
@@ -92,7 +92,7 @@ impl Display for LanaObject {
         write!(f, "{}/", LanaObjectDiscriminants::from(self))?;
         use LanaObject::*;
         match self {
-            App(object) => object.fmt(f),
+            Audit(object) => object.fmt(f),
             Governance(object) => object.fmt(f),
             Access(object) => object.fmt(f),
             Customer(object) => object.fmt(f),
@@ -114,7 +114,7 @@ impl FromStr for LanaObject {
         let (module, object) = s.split_once('/').expect("missing colon");
         use LanaObjectDiscriminants::*;
         let res = match module.parse().expect("invalid module") {
-            App => LanaObject::from(object.parse::<AppObject>()?),
+            Audit => LanaObject::from(object.parse::<AuditObject>()?),
             Governance => LanaObject::from(object.parse::<GovernanceObject>()?),
             Access => LanaObject::from(object.parse::<CoreAccessObject>()?),
             Customer => LanaObject::from(object.parse::<CustomerObject>()?),
@@ -138,51 +138,10 @@ impl FromStr for LanaObject {
     }
 }
 
-es_entity::entity_id!(AuditId);
-
-pub type AuditAllOrOne = AllOrOne<AuditId>;
-
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString))]
-#[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum AppObject {
-    Audit(AuditAllOrOne),
-}
-
-impl AppObject {
-    pub const fn all_audits() -> Self {
-        Self::Audit(AllOrOne::All)
-    }
-}
-
-impl Display for AppObject {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        let discriminant = AppObjectDiscriminants::from(self);
-        match self {
-            Self::Audit(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
-        }
-    }
-}
-
-impl FromStr for AppObject {
-    type Err = &'static str;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let (entity, id) = s.split_once('/').expect("missing slash");
-        use AppObjectDiscriminants::*;
-        let res = match entity.parse().expect("invalid entity") {
-            Audit => {
-                let obj_ref = id.parse().map_err(|_| "could not parse Audit")?;
-                Self::Audit(obj_ref)
-            }
-        };
-
-        Ok(res)
-    }
-}
-
 #[cfg(test)]
 mod test {
+    use authz::AllOrOne;
+
     use super::*;
 
     fn test_to_and_from_string(action: LanaObject, result: &str) -> anyhow::Result<()> {
@@ -201,6 +160,11 @@ mod test {
         test_to_and_from_string(
             LanaObject::Governance(GovernanceObject::Committee(AllOrOne::All)),
             "governance/committee/*",
+        )?;
+
+        test_to_and_from_string(
+            LanaObject::Audit(AuditObject::all_audits()),
+            "audit/audit/*",
         )?;
 
         Ok(())
