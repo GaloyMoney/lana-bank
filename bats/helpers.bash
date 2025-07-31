@@ -18,6 +18,44 @@ server_cmd() {
   nix run .
 }
 
+wait_for_kratos_user_ready() {
+  local email="admin@galoy.io"
+  echo "--- Waiting for Kratos user to be created ---"
+  
+  # First, check if the UserOnboarding job has processed the UserCreated event
+  # Look for specific log patterns indicating Kratos user creation
+  echo "--- Checking logs for user onboarding completion ---"
+  retry 30 1 grep -q "kratos_admin.*create_user\|user.*onboarding.*completed\|authentication.*id.*updated\|UserCreated.*processed" "$LOG_FILE" || true
+  
+  # Alternative method: Try to verify the admin user exists in Kratos
+  echo "--- Verifying Kratos user exists ---"
+  for i in {1..15}; do
+    echo "--- Checking if Kratos user exists (attempt ${i}) ---"
+    
+    # Get a login flow
+    flowId=$(curl -s -X GET -H "Accept: application/json" "http://admin.localhost:4455/self-service/login/api" 2>/dev/null | jq -r '.id' 2>/dev/null || echo "")
+    
+    if [[ -n "$flowId" && "$flowId" != "null" ]]; then
+      # Try to initiate login for the admin user
+      variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' 2>/dev/null || echo "")
+      response=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" \
+                 -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId" 2>/dev/null || echo "")
+      
+      # If we don't get "account does not exist" error, the user is ready
+      if [[ -n "$response" ]] && ! echo "$response" | grep -q "This account does not exist"; then
+        echo "--- Kratos user ready ---"
+        return 0
+      fi
+    fi
+    
+    echo "--- Kratos user not ready yet, waiting... ---"
+    sleep 1
+  done
+  
+  echo "--- Kratos user may not be ready, but proceeding anyway ---"
+  echo "--- Note: Login may require retries ---"
+}
+
 start_server() {
   echo "--- Starting server ---"
 
@@ -108,6 +146,10 @@ exec_customer_graphql() {
 login_superadmin() {
   local email="admin@galoy.io"
 
+  # Wait for Kratos user to be created before attempting login
+  wait_for_kratos_user_ready
+
+  echo "--- Attempting superadmin login ---"
   flowId=$(curl -s -X GET -H "Accept: application/json" "http://admin.localhost:4455/self-service/login/api" | jq -r '.id')
   variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
   curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId"
@@ -117,6 +159,7 @@ login_superadmin() {
   session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId")
   token=$(echo $session | jq -r '.session_token')
   cache_value "superadmin" $token
+  echo "--- Superadmin login completed ---"
 }
 
 exec_admin_graphql() {
