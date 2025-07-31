@@ -2,6 +2,8 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 mod action;
+mod audit_action;
+mod audit_object;
 mod object;
 
 use serde::{Deserialize, Serialize};
@@ -11,6 +13,8 @@ use core_access::UserId;
 use core_customer::CustomerId;
 
 pub use action::*;
+pub use audit_action::*;
+pub use audit_object::*;
 pub use object::*;
 
 const SYSTEM_SUBJECT_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000000");
@@ -24,8 +28,6 @@ pub enum PermissionSetName {
     AccessWriter,
     AccountingViewer,
     AccountingWriter,
-    AppViewer,
-    AppWriter,
     ContractCreation,
     CreditViewer,
     CreditWriter,
@@ -40,6 +42,7 @@ pub enum PermissionSetName {
     GovernanceWriter,
     ReportViewer,
     ReportWriter,
+    AuditViewer,
 }
 
 impl std::str::FromStr for PermissionSetName {
@@ -53,9 +56,6 @@ impl std::str::FromStr for PermissionSetName {
 
             core_accounting::PERMISSION_SET_ACCOUNTING_VIEWER => Ok(AccountingViewer),
             core_accounting::PERMISSION_SET_ACCOUNTING_WRITER => Ok(AccountingWriter),
-
-            crate::action::PERMISSION_SET_APP_VIEWER => Ok(AppViewer),
-            crate::action::PERMISSION_SET_APP_WRITER => Ok(AppWriter),
 
             core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
             core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
@@ -78,6 +78,8 @@ impl std::str::FromStr for PermissionSetName {
             core_report::PERMISSION_SET_REPORT_WRITER => Ok(ReportWriter),
 
             contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
+
+            PERMISSION_SET_AUDIT_VIEWER => Ok(AuditViewer),
 
             _ => Err(strum::ParseError::VariantNotFound),
         }

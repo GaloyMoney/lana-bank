@@ -2,6 +2,7 @@ use std::{fmt::Display, str::FromStr};
 
 use authz::action_description::*;
 
+use crate::audit_action::AuditAction;
 use contract_creation::ContractModuleAction;
 use core_access::CoreAccessAction;
 use core_accounting::CoreAccountingAction;
@@ -13,14 +14,11 @@ use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use governance::GovernanceAction;
 
-pub const PERMISSION_SET_APP_VIEWER: &str = "app_viewer";
-pub const PERMISSION_SET_APP_WRITER: &str = "app_writer";
-
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
 pub enum LanaAction {
-    App(AppAction),
+    Audit(AuditAction),
     Governance(GovernanceAction),
     Access(CoreAccessAction),
     Customer(CoreCustomerAction),
@@ -56,7 +54,7 @@ impl LanaAction {
 
         for module in <LanaActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match module {
-                App => flatten(module, AppAction::entities()),
+                Audit => flatten(module, AuditAction::entities()),
                 Governance => flatten(module, GovernanceAction::entities()),
                 Access => flatten(module, CoreAccessAction::entities()),
                 Customer => flatten(module, CoreCustomerAction::entities()),
@@ -76,9 +74,9 @@ impl LanaAction {
     }
 }
 
-impl From<AppAction> for LanaAction {
-    fn from(action: AppAction) -> Self {
-        LanaAction::App(action)
+impl From<AuditAction> for LanaAction {
+    fn from(action: AuditAction) -> Self {
+        LanaAction::Audit(action)
     }
 }
 impl From<DashboardModuleAction> for LanaAction {
@@ -137,7 +135,7 @@ impl Display for LanaAction {
         write!(f, "{}:", LanaActionDiscriminants::from(self))?;
         use LanaAction::*;
         match self {
-            App(action) => action.fmt(f),
+            Audit(action) => action.fmt(f),
             Governance(action) => action.fmt(f),
             Access(action) => action.fmt(f),
             Customer(action) => action.fmt(f),
@@ -159,7 +157,7 @@ impl FromStr for LanaAction {
         let (module, action) = s.split_once(':').expect("missing colon");
         use LanaActionDiscriminants::*;
         let res = match module.parse()? {
-            App => LanaAction::from(action.parse::<AppAction>()?),
+            Audit => LanaAction::from(action.parse::<AuditAction>()?),
             Governance => LanaAction::from(action.parse::<GovernanceAction>()?),
             Access => LanaAction::from(action.parse::<CoreAccessAction>()?),
             Customer => LanaAction::from(action.parse::<CoreCustomerAction>()?),
@@ -175,101 +173,10 @@ impl FromStr for LanaAction {
     }
 }
 
-macro_rules! impl_trivial_action {
-    ($from_type:ty, $variant:ident) => {
-        impl From<$from_type> for AppAction {
-            fn from(action: $from_type) -> Self {
-                AppAction::$variant(action)
-            }
-        }
-
-        impl From<$from_type> for LanaAction {
-            fn from(action: $from_type) -> Self {
-                LanaAction::App(AppAction::$variant(action))
-            }
-        }
-    };
-}
-
-#[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
-#[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
-#[strum_discriminants(strum(serialize_all = "kebab-case"))]
-pub enum AppAction {
-    Audit(AuditAction),
-}
-
-impl AppAction {
-    pub fn entities() -> Vec<(AppActionDiscriminants, Vec<ActionDescription<NoPath>>)> {
-        use AppActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <AppActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Audit => AuditAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-
-        result
-    }
-}
-
-impl Display for AppAction {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(f, "{}:", AppActionDiscriminants::from(self))?;
-        use AppAction::*;
-        match self {
-            Audit(action) => action.fmt(f),
-        }
-    }
-}
-
-impl FromStr for AppAction {
-    type Err = strum::ParseError;
-
-    fn from_str(s: &str) -> Result<Self, Self::Err> {
-        let mut elems = s.split(':');
-        let entity = elems.next().expect("missing first element");
-        let action = elems.next().expect("missing second element");
-        use AppActionDiscriminants::*;
-        let res = match entity.parse()? {
-            Audit => AppAction::from(action.parse::<AuditAction>()?),
-        };
-        Ok(res)
-    }
-}
-
-#[derive(Clone, PartialEq, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
-#[strum(serialize_all = "kebab-case")]
-pub enum AuditAction {
-    List,
-}
-
-impl AuditAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_APP_VIEWER, PERMISSION_SET_APP_WRITER],
-                ),
-            };
-            res.push(action_description);
-        }
-
-        res
-    }
-}
-
-impl_trivial_action!(AuditAction, Audit);
-
 #[cfg(test)]
 mod test {
     use super::*;
+    use crate::AuditEntityAction;
 
     fn test_to_and_from_string(action: LanaAction, result: &str) -> anyhow::Result<()> {
         let action_str = action.to_string();
@@ -284,8 +191,8 @@ mod test {
     #[test]
     fn action_serialization() -> anyhow::Result<()> {
         test_to_and_from_string(
-            LanaAction::App(AppAction::Audit(AuditAction::List)),
-            "app:audit:list",
+            LanaAction::Audit(AuditAction::from(AuditEntityAction::List)),
+            "audit:audit:list",
         )?;
 
         test_to_and_from_string(
