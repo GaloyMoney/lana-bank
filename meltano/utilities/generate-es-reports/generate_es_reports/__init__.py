@@ -20,6 +20,7 @@ class Constants:
     DOCS_BUCKET_NAME_ENVVAR_KEY = "DOCS_BUCKET_NAME"
     GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY = "GOOGLE_APPLICATION_CREDENTIALS"
     AIRFLOW_CTX_DAG_RUN_ID_ENVVAR_KEY = "AIRFLOW_CTX_DAG_RUN_ID"
+    USE_LOCAL_FS_ENVVAR_KEY = "USE_LOCAL_FS"
 
     NRP_41_ID = "nrp_41"
     NRP_51_ID = "nrp_51"
@@ -39,12 +40,16 @@ class ReportGeneratorConfig:
         bucket_name: str,
         run_id: str,
         keyfile: Path,
+        use_gcs: bool,
+        use_local_fs: bool
     ):
         self.project_id = project_id
         self.dataset = dataset
         self.bucket_name = bucket_name
         self.run_id = run_id
         self.keyfile = keyfile
+        self.use_gcs = use_gcs
+        self.use_local_fs = use_local_fs
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
@@ -70,13 +75,21 @@ def get_config_from_env() -> ReportGeneratorConfig:
         raise FileNotFoundError(
             f"Can't read GCP credentials at: {str(keyfile.absolute())}"
         )
+    
+    use_local_fs = bool(os.getenv(Constants.USE_LOCAL_FS_ENVVAR_KEY))
 
+    use_gcs = True
+    if use_local_fs:
+        use_gcs = False
+        
     return ReportGeneratorConfig(
         project_id=os.getenv(Constants.DBT_BIGQUERY_PROJECT_ENVVAR_KEY),
         dataset=os.getenv(Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY),
         bucket_name=os.getenv(Constants.DOCS_BUCKET_NAME_ENVVAR_KEY),
         run_id=run_id,
         keyfile=keyfile,
+        use_gcs=use_gcs,
+        use_local_fs=use_local_fs
     )
 
 
@@ -128,6 +141,23 @@ class LocalReportStorer(ReportStorer):
             f.write(report.content)
         print("File stored")
 
+def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
+
+    if config.use_local_fs:
+        return LocalReportStorer()
+    
+    if config.use_gcs:
+        credentials = service_account.Credentials.from_service_account_file(
+        config.keyfile
+        )
+        return GCSReportStorer(
+        gcp_project_id=config.project_id,
+        gcp_credentials=credentials,
+        target_bucket_name=config.bucket_name,
+    )
+
+    raise ValueError("Inconsitent config, can't figure out where to write reports to.")
+
 
 def main():
     report_generator_config = get_config_from_env()
@@ -139,11 +169,11 @@ def main():
         project=report_generator_config.project_id, credentials=credentials
     )
 
-    gcs_report_storer = GCSReportStorer(
-        gcp_project_id=report_generator_config.project_id,
-        gcp_credentials=credentials,
-        target_bucket_name=report_generator_config.bucket_name,
+    report_storer: ReportStorer = get_report_storer(
+        config=report_generator_config
     )
+
+    gcs_report_storer = report_storer
 
     tables_iter = bq_client.list_tables(report_generator_config.dataset)
 
