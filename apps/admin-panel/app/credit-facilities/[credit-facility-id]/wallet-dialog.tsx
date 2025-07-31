@@ -26,10 +26,12 @@ export const CreditFacilityWalletDialog: React.FC<CreditFacilityWalletDialogProp
     {
       label: t("details.walletId"),
       value: wallet?.walletId,
+      className: "break-all",
     },
     {
       label: t("details.address"),
       value: wallet?.address,
+      className: "break-all",
     },
   ]
 
@@ -39,7 +41,7 @@ export const CreditFacilityWalletDialog: React.FC<CreditFacilityWalletDialogProp
         <DialogHeader>
           <DialogTitle>{t("title")}</DialogTitle>
         </DialogHeader>
-        <DetailsCard columns={2} variant="container" details={details} />
+        <DetailsCard columns={1} variant="container" details={details} />
       </DialogContent>
     </Dialog>
   )
