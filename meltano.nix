@@ -202,6 +202,7 @@
       airflow-scheduler-healthcheck
       postgresql
       bash
+      pkgs.rsync
     ];
   };
 
