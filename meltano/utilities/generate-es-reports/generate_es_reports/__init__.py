@@ -189,7 +189,7 @@ def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
             target_bucket_name=config.bucket_name,
         )
 
-    raise ValueError("Inconsitent config, can't figure out where to write reports to.")
+    raise ValueError("Inconsistent config, can't figure out where to write reports to.")
 
 
 def main():
