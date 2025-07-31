@@ -9,6 +9,12 @@ pub struct ContractTemplates {
     handlebars: Handlebars<'static>,
 }
 
+impl Default for ContractTemplates {
+    fn default() -> Self {
+        Self::new()
+    }
+}
+
 impl ContractTemplates {
     /// Create a new contract templates instance with embedded templates
     pub fn new() -> Self {

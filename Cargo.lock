@@ -1173,7 +1173,6 @@ checksum = "2f8a2ca5ac02d09563609681103aada9e1777d54fc57a5acd7a41404f9c93b6e"
 name = "contract-creation"
 version = "0.3.762-dev"
 dependencies = [
- "async-graphql",
  "async-trait",
  "audit",
  "authz",
@@ -1192,7 +1191,6 @@ dependencies = [
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.12",
- "tokio",
  "tracing",
  "uuid",
 ]
@@ -3266,7 +3264,6 @@ name = "lana-ids"
 version = "0.3.772-dev"
 dependencies = [
  "cala-ledger",
- "document-storage",
  "es-entity",
  "governance",
  "job",
