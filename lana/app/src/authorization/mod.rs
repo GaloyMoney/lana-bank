@@ -10,7 +10,8 @@ use core_credit::{CoreCreditAction, CoreCreditObject};
 use core_customer::{CoreCustomerAction, CustomerObject};
 use core_deposit::{CoreDepositAction, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceObject};
-pub use rbac_types::{AppAction as Action, AppObject as Object, *};
+pub use rbac_types::*;
+pub use rbac_types::{AuditAction, AuditEntityAction, AuditObject};
 
 pub type Authorization = authz::Authorization<Audit, core_access::AuthRoleToken>;
 
@@ -74,8 +75,8 @@ pub async fn get_visible_navigation_items(
         audit: authz
             .check_all_permissions(
                 sub,
-                Object::all_audits(),
-                &[Action::Audit(AuditAction::List)],
+                AuditObject::all_audits(),
+                &[AuditAction::from(AuditEntityAction::List)],
             )
             .await?,
         financials: authz

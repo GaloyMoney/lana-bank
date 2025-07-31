@@ -22,7 +22,7 @@ impl PermissionSet {
         self.entity
             .name
             .parse()
-            .expect("Invalid permission set name")
+            .unwrap_or_else(|_| panic!("Invalid permission set name {}", self.entity.name))
     }
 }
 
