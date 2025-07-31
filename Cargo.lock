@@ -4529,7 +4529,6 @@ dependencies = [
  "dashboard",
  "es-entity",
  "governance",
- "lana-ids",
  "schemars 1.0.4",
  "serde",
  "sqlx",
