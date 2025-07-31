@@ -1,6 +1,7 @@
 import os
 import io
 import csv
+import argparse
 from abc import ABC, abstractmethod
 from datetime import datetime
 from google.cloud import bigquery, storage
@@ -8,13 +9,8 @@ from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from re import compile
 from pathlib import Path
-from typing import Any
-
-from .validation import Validator
-
 
 table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
-
 
 class ReportGeneratorConfig:
 
