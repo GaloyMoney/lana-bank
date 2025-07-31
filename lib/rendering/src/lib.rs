@@ -143,7 +143,7 @@ mod tests {
     async fn test_template_to_pdf() -> Result<(), RenderingError> {
         let renderer = Renderer::new();
         let content = "# Loan Agreement\n\n- **Name:** abc@galoy.io\n";
-        let pdf_bytes = renderer.render_template_to_pdf(&content)?;
+        let pdf_bytes = renderer.render_template_to_pdf(content)?;
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));
