@@ -138,9 +138,19 @@ def main():
 
         if norm_name in ["nrp_41", "nrp_51"]:
             report_content_type = "text/xml"
-            report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
-            report_content = report_bytes.decode("utf-8")
-            blob_path = blob_path + ".xml"
+            xml_string = dicttoxml(
+                rows_data, custom_root="rows", attr_type=False
+            ).decode("utf-8")
+            output = io.StringIO()
+            output.write(xml_string)
+            report_content = output.getvalue()
+            full_blob_path = blob_path + ".xml"
+            gcs_report_storer.store_report(
+                path=full_blob_path,
+                report=StorableReport(
+                    report_content=report_content, report_type=report_content_type
+                ),
+            )
 
         if norm_name == "nrsf_03":
             report_content_type = "text/plain"
@@ -151,7 +161,13 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = blob_path + ".txt"
+            full_blob_path = blob_path + ".txt"
+            gcs_report_storer.store_report(
+                path=full_blob_path,
+                report=StorableReport(
+                    report_content=report_content, report_type=report_content_type
+                ),
+            )
 
         # CSV versions of all regulatory reports
         if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
@@ -163,14 +179,13 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = blob_path + ".csv"
-
-        gcs_report_storer.store_report(
-            path=blob_path,
-            report=StorableReport(
-                report_content=report_content, report_type=report_content_type
-            ),
-        )
+            full_blob_path = blob_path + ".csv"
+            gcs_report_storer.store_report(
+                path=full_blob_path,
+                report=StorableReport(
+                    report_content=report_content, report_type=report_content_type
+                ),
+            )
 
 
 if __name__ == "__main__":
