@@ -17,6 +17,8 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
+import { MAX_ACCOUNT_CODE_DIGITS } from "./constants"
+
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 import {
@@ -73,7 +75,7 @@ export const AddChildNodeDialog: React.FC<AddChildNodeDialogProps> = ({
 
   const validateAccountCode = (value: string): string => {
     const cleaned = value.replace(/[^0-9.]/g, "")
-    const maxChildDigits = 14 - parentCode.replace(/\./g, "").length
+    const maxChildDigits = MAX_ACCOUNT_CODE_DIGITS - parentCode.replace(/\./g, "").length
 
     if (maxChildDigits <= 0) return ""
 
@@ -170,6 +172,14 @@ export const AddChildNodeDialog: React.FC<AddChildNodeDialogProps> = ({
               value={code}
               onChange={(e) => setCode(validateAccountCode(e.target.value))}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              {t("codeHint", {
+                remaining:
+                  MAX_ACCOUNT_CODE_DIGITS -
+                  (parentCode.replace(/\./g, "").length + code.replace(/\./g, "").length),
+                max: MAX_ACCOUNT_CODE_DIGITS,
+              })}
+            </p>
           </div>
 
           <div>

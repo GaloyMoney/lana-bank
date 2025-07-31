@@ -1436,7 +1436,7 @@
         "debit": "Debit",
         "credit": "Credit"
       },
-      "codeHint": "{remaining} digits remaining (max 14)",
+      "codeHint": "{remaining} digits remaining (max {max})",
       "errors": {
         "required": "All fields are required",
         "chartNotFound": "Chart of accounts not found",
@@ -1460,10 +1460,10 @@
         "code": "e.g., 01",
         "name": "e.g., Cash"
       },
-      "codeHint": "{remaining} digits remaining (max 14 total)",
+      "codeHint": "{remaining} digits remaining (max {max} total)",
       "errors": {
         "required": "All fields are required",
-        "tooManyDigits": "Account code exceeds maximum of 14 digits (including parent)",
+        "tooManyDigits": "Account code exceeds maximum of {max} digits (including parent)",
         "childCodeRequired": "Sub account code cannot be empty",
         "chartNotFound": "Chart of accounts not found",
         "unknown": "An unknown error occurred"

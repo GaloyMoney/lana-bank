@@ -814,7 +814,7 @@ checksums:
     ChartOfAccounts/AddRootNodeDialog/placeholders/normalBalanceType: d5680178923a96e1a6f9a91d2f12162b
     ChartOfAccounts/AddRootNodeDialog/balanceTypes/debit: 1b35db901aa1aeed8ee79aec6d807731
     ChartOfAccounts/AddRootNodeDialog/balanceTypes/credit: 2d447a71ec815a039f175e94fbb12a56
-    ChartOfAccounts/AddRootNodeDialog/codeHint: fcb3a4437be8df11e5ac359cff6113d5
+    ChartOfAccounts/AddRootNodeDialog/codeHint: f39d8538089115a814bed24ab95216b6
     ChartOfAccounts/AddRootNodeDialog/errors/required: 01fe4fe061a783c06c001dd39c78053a
     ChartOfAccounts/AddRootNodeDialog/errors/chartNotFound: 8c6d6e3dadc8220549ecb3eb25c4dad0
     ChartOfAccounts/AddRootNodeDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6
@@ -828,9 +828,9 @@ checksums:
     ChartOfAccounts/AddChildNodeDialog/fields/name: 5a4c82f1bc517348b64c107345f94f65
     ChartOfAccounts/AddChildNodeDialog/placeholders/code: cdbc5efa763d21312514447dd9c7b694
     ChartOfAccounts/AddChildNodeDialog/placeholders/name: b0365fd50bf67fdd74b4e8ab854739e1
-    ChartOfAccounts/AddChildNodeDialog/codeHint: b90f87d160e5f0150eaa4a44d3c44741
+    ChartOfAccounts/AddChildNodeDialog/codeHint: 703d32a9d0acfe9952439e9eeb14275c
     ChartOfAccounts/AddChildNodeDialog/errors/required: 01fe4fe061a783c06c001dd39c78053a
-    ChartOfAccounts/AddChildNodeDialog/errors/tooManyDigits: 92545c318149587127bdfdc43831331b
+    ChartOfAccounts/AddChildNodeDialog/errors/tooManyDigits: 6583a4e2b4ee4dee6a2b332825896c7e
     ChartOfAccounts/AddChildNodeDialog/errors/childCodeRequired: 6fceff20c69a0895e914bd1aaf582fab
     ChartOfAccounts/AddChildNodeDialog/errors/chartNotFound: 8c6d6e3dadc8220549ecb3eb25c4dad0
     ChartOfAccounts/AddChildNodeDialog/errors/unknown: 4fa139b42a7b7ed262b07bdda7cd2fb6

@@ -24,6 +24,8 @@ import {
   SelectValue,
 } from "@lana/web/ui/select"
 
+import { MAX_ACCOUNT_CODE_DIGITS } from "./constants"
+
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
 
 import {
@@ -69,7 +71,7 @@ export const AddRootNodeDialog: React.FC<AddRootNodeDialogProps> = ({
 
   const validateAccountCode = (value: string): string => {
     const cleaned = value.replace(/[^0-9]/g, "")
-    return cleaned.slice(0, 14)
+    return cleaned.slice(0, MAX_ACCOUNT_CODE_DIGITS)
   }
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -143,8 +145,14 @@ export const AddRootNodeDialog: React.FC<AddRootNodeDialogProps> = ({
               placeholder={t("placeholders.code")}
               value={code}
               onChange={(e) => setCode(validateAccountCode(e.target.value))}
-              maxLength={14}
+              maxLength={MAX_ACCOUNT_CODE_DIGITS}
             />
+            <p className="text-xs text-muted-foreground mt-1">
+              {t("codeHint", {
+                remaining: MAX_ACCOUNT_CODE_DIGITS - code.length,
+                max: MAX_ACCOUNT_CODE_DIGITS,
+              })}
+            </p>
           </div>
 
           <div>

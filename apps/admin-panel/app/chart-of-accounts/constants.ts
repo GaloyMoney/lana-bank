@@ -1,0 +1,1 @@
+export const MAX_ACCOUNT_CODE_DIGITS = 14

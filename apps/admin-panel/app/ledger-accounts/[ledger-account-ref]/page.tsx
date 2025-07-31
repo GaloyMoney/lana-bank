@@ -48,6 +48,7 @@ import PaginatedTable, {
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
+import { MAX_ACCOUNT_CODE_DIGITS } from "@/app/chart-of-accounts/constants"
 
 gql`
   fragment LedgerAccountDetails on LedgerAccount {
@@ -249,15 +250,16 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
                   : t("description")}
               </CardDescription>
             </div>
-            {ledgerAccount?.code && ledgerAccount.code.replace(/\./g, "").length < 14 && (
-              <Button
-                variant="outline"
-                onClick={handleOpenAddChildDialog}
-                data-testid="add-child-node-button"
-              >
-                {t("addChildNode")}
-              </Button>
-            )}
+            {ledgerAccount?.code &&
+              ledgerAccount.code.replace(/\./g, "").length < MAX_ACCOUNT_CODE_DIGITS && (
+                <Button
+                  variant="outline"
+                  onClick={handleOpenAddChildDialog}
+                  data-testid="add-child-node-button"
+                >
+                  {t("addChildNode")}
+                </Button>
+              )}
           </div>
         </CardHeader>
         <CardContent>

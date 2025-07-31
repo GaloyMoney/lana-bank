@@ -1436,7 +1436,7 @@
         "debit": "Débito",
         "credit": "Crédito"
       },
-      "codeHint": "{remaining} dígitos restantes (máx 14)",
+      "codeHint": "{remaining} dígitos restantes (máximo {max})",
       "errors": {
         "required": "Todos los campos son obligatorios",
         "chartNotFound": "Plan de cuentas no encontrado",
@@ -1460,10 +1460,10 @@
         "code": "ej., 01",
         "name": "p. ej., Efectivo"
       },
-      "codeHint": "{remaining} dígitos restantes (máximo 14 en total)",
+      "codeHint": "{remaining} dígitos restantes (máximo {max} en total)",
       "errors": {
         "required": "Todos los campos son obligatorios",
-        "tooManyDigits": "El código de cuenta excede el máximo de 14 dígitos (incluyendo la cuenta principal)",
+        "tooManyDigits": "El código de cuenta excede el máximo de {max} dígitos (incluyendo el padre)",
         "childCodeRequired": "El código de subcuenta no puede estar vacío",
         "chartNotFound": "Plan de cuentas no encontrado",
         "unknown": "Ocurrió un error desconocido"
