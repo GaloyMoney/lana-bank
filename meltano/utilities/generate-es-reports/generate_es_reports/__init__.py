@@ -8,6 +8,7 @@ from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from re import compile
 from pathlib import Path
+from typing import Any
 
 from .validation import Validator
 
@@ -65,6 +66,40 @@ def get_config_from_env() -> ReportGeneratorConfig:
     )
 
 
+class StorableReport:
+
+    def __init__(self, report_type: Any, report_content: Any) -> None:
+        self.type = report_type
+        self.content = report_content
+
+
+class ReportStorer:
+
+    @abstractmethod
+    def store_report(self, path: str, report: StorableReport) -> None:
+        pass
+
+
+class GCSReportStorer:
+
+    def __init__(
+        self,
+        gcp_project_id: str,
+        gcp_credentials: service_account.Credentials,
+        target_bucket_name: str,
+    ) -> None:
+        self._storage_client = storage.Client(
+            project=gcp_project_id, credentials=gcp_credentials
+        )
+        self._bucket = self._storage_client.bucket(bucket_name=target_bucket_name)
+
+    def store_report(self, path: str, report: StorableReport) -> None:
+        blob = self._bucket.blob(path)
+        print(f"Uploading to {path}...")
+        blob.upload_from_string(report.content, content_type=report.type)
+        print(f"Uploaded")
+
+
 def main():
     report_generator_config = get_config_from_env()
 
@@ -74,11 +109,12 @@ def main():
     bq_client = bigquery.Client(
         project=report_generator_config.project_id, credentials=credentials
     )
-    storage_client = storage.Client(
-        project=report_generator_config.project_id, credentials=credentials
-    )
 
-    validator = Validator()
+    gcs_report_storer = GCSReportStorer(
+        gcp_project_id=report_generator_config.project_id,
+        gcp_credentials=credentials,
+        target_bucket_name=report_generator_config.bucket_name,
+    )
 
     tables_iter = bq_client.list_tables(report_generator_config.dataset)
 
@@ -101,15 +137,6 @@ def main():
             report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
             report_content = report_bytes.decode("utf-8")
             blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.xml"
-            store_blob(
-                storage_client,
-                report_generator_config.bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
-            if report_name == "persona":
-                validator.validate(report_name, report_bytes)
 
         if norm_name == "nrsf_03":
             report_content_type = "text/plain"
@@ -121,13 +148,6 @@ def main():
             writer.writerows(rows_data)
             report_content = output.getvalue()
             blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.txt"
-            store_blob(
-                storage_client,
-                report_generator_config.bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
 
         # CSV versions of all regulatory reports
         if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
@@ -140,22 +160,13 @@ def main():
             writer.writerows(rows_data)
             report_content = output.getvalue()
             blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.csv"
-            store_blob(
-                storage_client,
-                report_generator_config.bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
 
-
-def store_blob(
-    storage_client, bucket_name, blob_path, report_content, report_content_type
-):
-    bucket = storage_client.bucket(bucket_name)
-    blob = bucket.blob(blob_path)
-    blob.upload_from_string(report_content, content_type=report_content_type)
-    print(f"Uploaded XML report to gs://{bucket_name}/{blob_path}")
+        gcs_report_storer.store_report(
+            path=blob_path,
+            report=StorableReport(
+                report_content=report_content, report_type=report_content_type
+            ),
+        )
 
 
 if __name__ == "__main__":
