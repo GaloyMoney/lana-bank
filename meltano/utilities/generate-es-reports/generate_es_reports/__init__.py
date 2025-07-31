@@ -1,6 +1,7 @@
 import os
 import io
 import csv
+from abc import ABC, abstractmethod
 from datetime import datetime
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
@@ -10,12 +11,20 @@ from pathlib import Path
 
 from .validation import Validator
 
+
 table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
 
 class ReportGeneratorConfig:
 
-    def __init__(self, project_id: str, dataset: str, bucket_name: str, run_id:str, keyfile: Path):
+    def __init__(
+        self,
+        project_id: str,
+        dataset: str,
+        bucket_name: str,
+        run_id: str,
+        keyfile: Path,
+    ):
         self.project_id = project_id
         self.dataset = dataset
         self.bucket_name = bucket_name
@@ -25,18 +34,27 @@ class ReportGeneratorConfig:
 
 def get_config_from_env() -> ReportGeneratorConfig:
 
-    required_envs = ["DBT_BIGQUERY_PROJECT", "DBT_BIGQUERY_DATASET", "DOCS_BUCKET_NAME", "GOOGLE_APPLICATION_CREDENTIALS"]
+    required_envs = [
+        "DBT_BIGQUERY_PROJECT",
+        "DBT_BIGQUERY_DATASET",
+        "DOCS_BUCKET_NAME",
+        "GOOGLE_APPLICATION_CREDENTIALS",
+    ]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
         raise RuntimeError(
             f"Missing required environment variables: {', '.join(missing)}"
         )
 
-    run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID", "dev") # If no AIRFLOW, we assume dev env
+    run_id = os.getenv(
+        "AIRFLOW_CTX_DAG_RUN_ID", "dev"
+    )  # If no AIRFLOW, we assume dev env
 
     keyfile = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
     if not keyfile.is_file():
-        raise FileNotFoundError(f"Can't read GCP credentials at: {str(keyfile.absolute)}")
+        raise FileNotFoundError(
+            f"Can't read GCP credentials at: {str(keyfile.absolute)}"
+        )
 
     return ReportGeneratorConfig(
         project_id=os.getenv("DBT_BIGQUERY_PROJECT"),
@@ -57,8 +75,12 @@ def main():
     keyfile = report_generator_config.keyfile
 
     credentials = service_account.Credentials.from_service_account_file(keyfile)
-    bq_client = bigquery.Client(project=report_generator_config.project_id, credentials=credentials)
-    storage_client = storage.Client(project=report_generator_config.project_id, credentials=credentials)
+    bq_client = bigquery.Client(
+        project=report_generator_config.project_id, credentials=credentials
+    )
+    storage_client = storage.Client(
+        project=report_generator_config.project_id, credentials=credentials
+    )
 
     validator = Validator()
 
