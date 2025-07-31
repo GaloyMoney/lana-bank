@@ -1282,6 +1282,19 @@ dependencies = [
 ]
 
 [[package]]
+name = "core-audit"
+version = "0.3.772-dev"
+dependencies = [
+ "authz",
+ "es-entity",
+ "schemars 1.0.4",
+ "serde",
+ "sqlx",
+ "strum 0.27.2",
+ "thiserror 2.0.12",
+]
+
+[[package]]
 name = "core-credit"
 version = "0.3.772-dev"
 dependencies = [
@@ -3187,6 +3200,7 @@ dependencies = [
  "core-access",
  "core-accounting",
  "core-applicant",
+ "core-audit",
  "core-credit",
  "core-custody",
  "core-customer",
@@ -4521,17 +4535,16 @@ dependencies = [
  "contract-creation",
  "core-access",
  "core-accounting",
+ "core-audit",
  "core-credit",
  "core-custody",
  "core-customer",
  "core-deposit",
  "core-report",
  "dashboard",
- "es-entity",
  "governance",
  "schemars 1.0.4",
  "serde",
- "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.12",
  "uuid",

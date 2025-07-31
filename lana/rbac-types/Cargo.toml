@@ -5,12 +5,12 @@ license = "FSL-1.1-ALv2"
 edition = "2024"
 
 [package.metadata.cargo-machete]
-ignored = ["sqlx", "schemars"]
+ignored = ["schemars"]
 
 [features]
 
 fail-on-warnings = []
-json-schema = ["dep:schemars", "es-entity/json-schema"]
+json-schema = ["dep:schemars"]
 
 [dependencies]
 dashboard = { path = "../dashboard" }
@@ -24,13 +24,12 @@ core-custody = { path = "../../core/custody" }
 core-deposit = { path = "../../core/deposit" }
 core-accounting = { path = "../../core/accounting" }
 core-report = { path = "../../core/report" }
+core-audit = { path = "../../core/audit" }
 
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
 
 async-graphql = { workspace = true }
-es-entity = { workspace = true }
-sqlx = { workspace = true }
 strum = { workspace = true }
 uuid = { workspace = true }
 serde = { workspace = true }
