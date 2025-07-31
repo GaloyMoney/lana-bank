@@ -2,7 +2,6 @@ use authz::action_description::*;
 use std::{fmt::Display, str::FromStr};
 
 pub const PERMISSION_SET_AUDIT_VIEWER: &str = "audit_viewer";
-pub const PERMISSION_SET_AUDIT_WRITER: &str = "audit_writer";
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
@@ -66,10 +65,7 @@ impl AuditEntityAction {
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_AUDIT_VIEWER, PERMISSION_SET_AUDIT_WRITER],
-                ),
+                Self::List => ActionDescription::new(variant, &[PERMISSION_SET_AUDIT_VIEWER]),
             };
             res.push(action_description);
         }
