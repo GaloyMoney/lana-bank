@@ -34,8 +34,6 @@ struct Cli {
     smtp_username: String,
     #[clap(env = "SMTP_PASSWORD", default_value = "")]
     smtp_password: String,
-    #[clap(env = "DEV_ENV_NAME_PREFIX")]
-    dev_env_name_prefix: Option<String>,
     #[clap(long, env = "ENCRYPTION_KEY", default_value = "")]
     encryption_key: String,
     #[clap(long, env = "LANA_HOME", default_value = ".lana")]
@@ -79,7 +77,6 @@ pub async fn run() -> anyhow::Result<()> {
                     smtp_password: cli.smtp_password,
                     encryption_key: cli.encryption_key,
                 },
-                cli.dev_env_name_prefix,
             )?;
 
             run_cmd(&cli.lana_home, config).await?;

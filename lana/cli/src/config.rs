@@ -14,7 +14,7 @@ use std::path::Path;
 use super::db::*;
 use admin_server::AdminServerConfig;
 use customer_server::CustomerServerConfig;
-use lana_app::{app::AppConfig, storage::config::StorageConfig};
+use lana_app::app::AppConfig;
 
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Config {
@@ -58,7 +58,6 @@ impl Config {
             smtp_password,
             encryption_key,
         }: EnvSecrets,
-        dev_env_name_prefix: Option<String>,
     ) -> anyhow::Result<Self> {
         let config_file = std::fs::read_to_string(&path)
             .context(format!("Couldn't read config file {:?}", path.as_ref()))?;
@@ -71,14 +70,6 @@ impl Config {
         config.app.sumsub.sumsub_secret = sumsub_secret;
         config.app.notification.email.username = smtp_username;
         config.app.notification.email.password = smtp_password;
-        if let Some(dev_env_name_prefix) = dev_env_name_prefix {
-            eprintln!(
-                "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={dev_env_name_prefix}"
-            );
-            if config.app.storage.identifier().contains("gcp") {
-                config.app.storage = StorageConfig::new_gcp_dev_mode(dev_env_name_prefix);
-            }
-        }
 
         let key_bytes = hex::decode(encryption_key)?;
         if key_bytes.len() != 32 {
