@@ -10,7 +10,25 @@ from google.oauth2 import service_account
 from re import compile
 from pathlib import Path
 
-table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
+
+class Constants:
+
+    TABLE_NAME_PATTERN = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
+
+    DBT_BIGQUERY_PROJECT_ENVVAR_KEY = "DBT_BIGQUERY_PROJECT"
+    DBT_BIGQUERY_DATASET_ENVVAR_KEY = "DBT_BIGQUERY_DATASET"
+    DOCS_BUCKET_NAME_ENVVAR_KEY = "DOCS_BUCKET_NAME"
+    GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY = "GOOGLE_APPLICATION_CREDENTIALS"
+    AIRFLOW_CTX_DAG_RUN_ID_ENVVAR_KEY = "AIRFLOW_CTX_DAG_RUN_ID"
+
+    NRP_41_ID = "nrp_41"
+    NRP_51_ID = "nrp_51"
+    NRSF_03_ID = "nrsf_03"
+
+    XML_FORMATTABLE_NORMS = (NRP_41_ID, NRP_51_ID)
+    TXT_FORMATTABLE_NORMS = (NRSF_03_ID,)
+    CSV_FORMATTABLE_NORMS = (NRP_41_ID, NRP_51_ID, NRSF_03_ID)
+
 
 class ReportGeneratorConfig:
 
@@ -32,10 +50,10 @@ class ReportGeneratorConfig:
 def get_config_from_env() -> ReportGeneratorConfig:
 
     required_envs = [
-        "DBT_BIGQUERY_PROJECT",
-        "DBT_BIGQUERY_DATASET",
-        "DOCS_BUCKET_NAME",
-        "GOOGLE_APPLICATION_CREDENTIALS",
+        Constants.DBT_BIGQUERY_PROJECT_ENVVAR_KEY,
+        Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY,
+        Constants.DOCS_BUCKET_NAME_ENVVAR_KEY,
+        Constants.GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY,
     ]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
@@ -44,19 +62,19 @@ def get_config_from_env() -> ReportGeneratorConfig:
         )
 
     run_id = os.getenv(
-        "AIRFLOW_CTX_DAG_RUN_ID", "dev"
+        Constants.AIRFLOW_CTX_DAG_RUN_ID_ENVVAR_KEY, "dev"
     )  # If no AIRFLOW, we assume dev env
 
-    keyfile = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    keyfile = Path(os.getenv(Constants.GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY))
     if not keyfile.is_file():
         raise FileNotFoundError(
             f"Can't read GCP credentials at: {str(keyfile.absolute())}"
         )
 
     return ReportGeneratorConfig(
-        project_id=os.getenv("DBT_BIGQUERY_PROJECT"),
-        dataset=os.getenv("DBT_BIGQUERY_DATASET"),
-        bucket_name=os.getenv("DOCS_BUCKET_NAME"),
+        project_id=os.getenv(Constants.DBT_BIGQUERY_PROJECT_ENVVAR_KEY),
+        dataset=os.getenv(Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY),
+        bucket_name=os.getenv(Constants.DOCS_BUCKET_NAME_ENVVAR_KEY),
         run_id=run_id,
         keyfile=keyfile,
     )
@@ -131,7 +149,7 @@ def main():
 
     for table in tables_iter:
         table_name = table.table_id
-        match = table_name_pattern.match(table_name)
+        match = Constants.TABLE_NAME_PATTERN.match(table_name)
         if not match:
             continue
         norm_name = match.group(1)
@@ -147,7 +165,7 @@ def main():
             f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}"
         )
 
-        if norm_name in ["nrp_41", "nrp_51"]:
+        if norm_name in Constants.XML_FORMATTABLE_NORMS:
             xml_string = dicttoxml(
                 rows_data, custom_root="rows", attr_type=False
             ).decode("utf-8")
@@ -163,7 +181,7 @@ def main():
                 ),
             )
 
-        if norm_name == "nrsf_03":
+        if norm_name == Constants.TXT_FORMATTABLE_NORMS:
             output = io.StringIO()
             writer = csv.DictWriter(
                 output, fieldnames=field_names, delimiter="|", lineterminator="\n"
@@ -181,7 +199,7 @@ def main():
             )
 
         # CSV versions of all regulatory reports
-        if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
+        if norm_name in Constants.CSV_FORMATTABLE_NORMS:
             output = io.StringIO()
             writer = csv.DictWriter(
                 output, fieldnames=field_names, delimiter=",", lineterminator="\n"
