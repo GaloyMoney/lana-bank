@@ -68,13 +68,9 @@ def get_config_from_env() -> ReportGeneratorConfig:
 def main():
     report_generator_config = get_config_from_env()
 
-    project_id = report_generator_config.project_id
-    dataset = report_generator_config.dataset
-    bucket_name = report_generator_config.bucket_name
-    run_id = report_generator_config.run_id
-    keyfile = report_generator_config.keyfile
-
-    credentials = service_account.Credentials.from_service_account_file(keyfile)
+    credentials = service_account.Credentials.from_service_account_file(
+        report_generator_config.keyfile
+    )
     bq_client = bigquery.Client(
         project=report_generator_config.project_id, credentials=credentials
     )
@@ -84,7 +80,7 @@ def main():
 
     validator = Validator()
 
-    tables_iter = bq_client.list_tables(dataset)
+    tables_iter = bq_client.list_tables(report_generator_config.dataset)
 
     for table in tables_iter:
         table_name = table.table_id
@@ -94,7 +90,7 @@ def main():
         norm_name = match.group(1)
         report_name = match.group(2)
 
-        query = f"SELECT * FROM `{report_generator_config.project_id}.{dataset}.{table_name}`;"
+        query = f"SELECT * FROM `{report_generator_config.project_id}.{report_generator_config.dataset}.{table_name}`;"
         query_job = bq_client.query(query)
         rows = query_job.result()
         field_names = [field.name for field in rows.schema]
@@ -104,10 +100,10 @@ def main():
             report_content_type = "text/xml"
             report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
             report_content = report_bytes.decode("utf-8")
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.xml"
+            blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.xml"
             store_blob(
                 storage_client,
-                bucket_name,
+                report_generator_config.bucket_name,
                 blob_path,
                 report_content,
                 report_content_type,
@@ -124,10 +120,10 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.txt"
+            blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.txt"
             store_blob(
                 storage_client,
-                bucket_name,
+                report_generator_config.bucket_name,
                 blob_path,
                 report_content,
                 report_content_type,
@@ -143,10 +139,10 @@ def main():
             writer.writeheader()
             writer.writerows(rows_data)
             report_content = output.getvalue()
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.csv"
+            blob_path = f"reports/{report_generator_config.run_id}/{norm_name}/{report_name}.csv"
             store_blob(
                 storage_client,
-                bucket_name,
+                report_generator_config.bucket_name,
                 blob_path,
                 report_content,
                 report_content_type,
