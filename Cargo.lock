@@ -29,7 +29,7 @@ checksum = "512761e0bb2578dd7380c6baaa0f4ce03e84f95e960231d1dec8bf4d7d6e2627"
 
 [[package]]
 name = "admin-server"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -366,7 +366,7 @@ checksum = "1505bd5d3d116872e7271a6d4e16d81d0c8570876c8de68093a09ac269d8aac0"
 
 [[package]]
 name = "audit"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "chrono",
@@ -379,7 +379,7 @@ dependencies = [
 
 [[package]]
 name = "authz"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "audit",
@@ -659,7 +659,7 @@ dependencies = [
 
 [[package]]
 name = "bitgo"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "aes",
  "base64 0.22.1",
@@ -1101,7 +1101,7 @@ checksum = "f46ad14479a25103f283c0f10005961cf086d8dc42205bb44c46ac563475dca6"
 
 [[package]]
 name = "cloud-storage"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -1180,7 +1180,7 @@ dependencies = [
 
 [[package]]
 name = "core-access"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "audit",
  "authz",
@@ -1200,7 +1200,7 @@ dependencies = [
 
 [[package]]
 name = "core-accounting"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1257,7 +1257,7 @@ dependencies = [
 
 [[package]]
 name = "core-credit"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1298,7 +1298,7 @@ dependencies = [
 
 [[package]]
 name = "core-custody"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "audit",
@@ -1328,7 +1328,7 @@ dependencies = [
 
 [[package]]
 name = "core-customer"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-graphql",
  "audit",
@@ -1350,7 +1350,7 @@ dependencies = [
 
 [[package]]
 name = "core-deposit"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1405,7 +1405,7 @@ checksum = "773648b94d0e5d620f64f280777445740e61fe701025087ec8b57f45c791888b"
 
 [[package]]
 name = "core-money"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-graphql",
  "rust_decimal",
@@ -1417,7 +1417,7 @@ dependencies = [
 
 [[package]]
 name = "core-price"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "cached",
@@ -1563,7 +1563,7 @@ dependencies = [
 
 [[package]]
 name = "customer-server"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -1587,7 +1587,7 @@ dependencies = [
 
 [[package]]
 name = "customer-sync"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "audit",
@@ -1641,7 +1641,7 @@ dependencies = [
 
 [[package]]
 name = "dashboard"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "audit",
@@ -1824,7 +1824,7 @@ dependencies = [
 
 [[package]]
 name = "document-storage"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-graphql",
  "audit",
@@ -2000,7 +2000,7 @@ dependencies = [
 
 [[package]]
 name = "entity-rollups"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "chrono",
@@ -2460,7 +2460,7 @@ dependencies = [
 
 [[package]]
 name = "governance"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -3012,7 +3012,7 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "job"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3060,7 +3060,7 @@ dependencies = [
 
 [[package]]
 name = "jwks-utils"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "axum 0.8.4",
  "axum-extra 0.10.1",
@@ -3085,7 +3085,7 @@ dependencies = [
 
 [[package]]
 name = "komainu"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "base64 0.22.1",
  "chrono",
@@ -3106,7 +3106,7 @@ dependencies = [
 
 [[package]]
 name = "kratos-admin"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "reqwest",
  "serde",
@@ -3149,7 +3149,7 @@ dependencies = [
 
 [[package]]
 name = "lana-app"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -3202,7 +3202,7 @@ dependencies = [
 
 [[package]]
 name = "lana-cli"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "admin-server",
  "anyhow",
@@ -3223,7 +3223,7 @@ dependencies = [
 
 [[package]]
 name = "lana-events"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "core-access",
  "core-credit",
@@ -3238,7 +3238,7 @@ dependencies = [
 
 [[package]]
 name = "lana-ids"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "cala-ledger",
  "document-storage",
@@ -3574,7 +3574,7 @@ dependencies = [
 
 [[package]]
 name = "notification"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-trait",
@@ -3813,7 +3813,7 @@ dependencies = [
 
 [[package]]
 name = "outbox"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "chrono",
  "es-entity",
@@ -4334,7 +4334,7 @@ dependencies = [
 
 [[package]]
 name = "public-id"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-graphql",
  "derive_builder",
@@ -4489,7 +4489,7 @@ dependencies = [
 
 [[package]]
 name = "rbac-types"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "async-graphql",
@@ -4609,7 +4609,7 @@ dependencies = [
 
 [[package]]
 name = "rendering"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "handlebars",
  "markdown2pdf",
@@ -5313,7 +5313,7 @@ dependencies = [
 
 [[package]]
 name = "sim-bootstrap"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "es-entity",
@@ -6464,7 +6464,7 @@ dependencies = [
 
 [[package]]
 name = "tracing-utils"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "anyhow",
  "axum-extra 0.10.1",
@@ -6637,7 +6637,7 @@ checksum = "daf8dba3b7eb870caf1ddeed7bc9d2a049f3cfdfae7cb521b087cc33ae4c49da"
 
 [[package]]
 name = "user-onboarding"
-version = "0.3.772-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "audit",
