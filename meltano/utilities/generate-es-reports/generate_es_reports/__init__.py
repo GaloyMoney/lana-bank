@@ -11,211 +11,158 @@ from .validation import Validator
 
 table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
-def airflow_run():
-    required_envs = [
-        "DBT_BIGQUERY_PROJECT",
-        "DBT_BIGQUERY_DATASET",
-        "DOCS_BUCKET_NAME",
-        "AIRFLOW_CTX_DAG_RUN_ID", # automatically set by Airflow
-    ]
-    missing = [var for var in required_envs if not os.getenv(var)]
-    if missing:
-        raise RuntimeError(
-            f"Missing required environment variables: {', '.join(missing)}"
+
+class ReportGeneratorConfig:
+
+    def __init__(self, project_id, dataset, bucket_name, run_id, keyfile):
+        self.project_id = project_id
+        self.dataset = dataset
+        self.bucket_name = bucket_name
+        self.run_id = run_id
+        self.keyfile = keyfile
+
+
+def get_config_from_env() -> ReportGeneratorConfig:
+
+    if os.getenv("AIRFLOW_CTX_DAG_RUN_ID"):
+        required_envs = [
+            "DBT_BIGQUERY_PROJECT",
+            "DBT_BIGQUERY_DATASET",
+            "DOCS_BUCKET_NAME",
+            "AIRFLOW_CTX_DAG_RUN_ID",  # automatically set by Airflow
+        ]
+        missing = [var for var in required_envs if not os.getenv(var)]
+        if missing:
+            raise RuntimeError(
+                f"Missing required environment variables: {', '.join(missing)}"
+            )
+        project_id = os.getenv("DBT_BIGQUERY_PROJECT")
+        dataset = os.getenv("DBT_BIGQUERY_DATASET")
+        bucket_name = os.getenv("DOCS_BUCKET_NAME")
+        run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID")
+
+        keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        if not keyfile or not os.path.isfile(keyfile):
+            raise RuntimeError(
+                "GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the path of a valid service account JSON file."
+            )
+
+        return ReportGeneratorConfig(
+            project_id=project_id,
+            dataset=dataset,
+            bucket_name=bucket_name,
+            run_id=run_id,
+            keyfile=keyfile,
         )
-    project_id = os.getenv("DBT_BIGQUERY_PROJECT")
-    dataset = os.getenv("DBT_BIGQUERY_DATASET")
-    bucket_name = os.getenv("DOCS_BUCKET_NAME")
-    run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID")
 
-    keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    if not keyfile or not os.path.isfile(keyfile):
-        raise RuntimeError(
-            "GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the path of a valid service account JSON file."
+    if not os.getenv("AIRFLOW_CTX_DAG_RUN_ID"):
+        required_envs = ["DBT_BIGQUERY_PROJECT", "DBT_BIGQUERY_DATASET", "DOCS_BUCKET_NAME"]
+        missing = [var for var in required_envs if not os.getenv(var)]
+        if missing:
+            raise RuntimeError(
+                f"Missing required environment variables: {', '.join(missing)}"
+            )
+        project_id = os.getenv("DBT_BIGQUERY_PROJECT")
+        dataset = os.getenv("DBT_BIGQUERY_DATASET")
+        bucket_name = os.getenv("DOCS_BUCKET_NAME")
+        run_id = "dev"
+
+        keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+
+        return ReportGeneratorConfig(
+            project_id=project_id,
+            dataset=dataset,
+            bucket_name=bucket_name,
+            run_id=run_id,
+            keyfile=keyfile,
         )
-    credentials = service_account.Credentials.from_service_account_file(keyfile)
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
-    storage_client = storage.Client(project=project_id, credentials=credentials)
-
-    validator = Validator()
-
-    tables_iter = bq_client.list_tables(dataset)
-    
-    for table in tables_iter:
-        table_name = table.table_id
-        match = table_name_pattern.match(table_name)
-        if not match:
-            continue
-        norm_name = match.group(1)
-        report_name = match.group(2)
-
-        query = f"SELECT * FROM `{project_id}.{dataset}.{table_name}`;"
-        query_job = bq_client.query(query)
-        rows = query_job.result()
-        field_names = [field.name for field in rows.schema]
-        rows_data = [{name: row[name] for name in field_names} for row in rows]
-
-        if norm_name in ["nrp_41", "nrp_51"]:
-            report_content_type = "text/xml"
-            report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
-            report_content = report_bytes.decode("utf-8")
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.xml"
-            store_blob(
-                storage_client,
-                bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
-            if report_name == "persona":
-                validator.validate(report_name, report_bytes)
-
-        if norm_name == "nrsf_03":
-            report_content_type = "text/plain"
-            output = io.StringIO()
-            writer = csv.DictWriter(
-                output, fieldnames=field_names, delimiter="|", lineterminator="\n"
-            )
-            writer.writeheader()
-            writer.writerows(rows_data)
-            report_content = output.getvalue()
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.txt"
-            store_blob(
-                storage_client,
-                bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
-
-        # CSV versions of all regulatory reports
-        if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
-            report_content_type = "text/plain"
-            output = io.StringIO()
-            writer = csv.DictWriter(
-                output, fieldnames=field_names, delimiter=",", lineterminator="\n"
-            )
-            writer.writeheader()
-            writer.writerows(rows_data)
-            report_content = output.getvalue()
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.csv"
-            store_blob(
-                storage_client,
-                bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
-
-
-def non_airflow_run():
-    required_envs = [
-        "DBT_BIGQUERY_PROJECT",
-        "DBT_BIGQUERY_DATASET",
-        "DOCS_BUCKET_NAME"
-    ]
-    missing = [var for var in required_envs if not os.getenv(var)]
-    if missing:
-        raise RuntimeError(
-            f"Missing required environment variables: {', '.join(missing)}"
-        )
-    project_id = os.getenv("DBT_BIGQUERY_PROJECT")
-    dataset = os.getenv("DBT_BIGQUERY_DATASET")
-    bucket_name = os.getenv("DOCS_BUCKET_NAME")
-    run_id = "dev"
-
-    keyfile = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-    if not keyfile or not os.path.isfile(keyfile):
-        raise RuntimeError(
-            "GOOGLE_APPLICATION_CREDENTIALS environment variable must be set to the path of a valid service account JSON file."
-        )
-    credentials = service_account.Credentials.from_service_account_file(keyfile)
-    bq_client = bigquery.Client(project=project_id, credentials=credentials)
-    storage_client = storage.Client(project=project_id, credentials=credentials)
-
-    validator = Validator()
-
-    tables_iter = bq_client.list_tables(dataset)
-    
-    for table in tables_iter:
-        table_name = table.table_id
-        match = table_name_pattern.match(table_name)
-        if not match:
-            continue
-        norm_name = match.group(1)
-        report_name = match.group(2)
-
-        query = f"SELECT * FROM `{project_id}.{dataset}.{table_name}`;"
-        query_job = bq_client.query(query)
-        rows = query_job.result()
-        field_names = [field.name for field in rows.schema]
-        rows_data = [{name: row[name] for name in field_names} for row in rows]
-
-        if norm_name in ["nrp_41", "nrp_51"]:
-            report_content_type = "text/xml"
-            report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
-            report_content = report_bytes.decode("utf-8")
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.xml"
-            store_blob(
-                storage_client,
-                bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
-            if report_name == "persona":
-                validator.validate(report_name, report_bytes)
-
-        if norm_name == "nrsf_03":
-            report_content_type = "text/plain"
-            output = io.StringIO()
-            writer = csv.DictWriter(
-                output, fieldnames=field_names, delimiter="|", lineterminator="\n"
-            )
-            writer.writeheader()
-            writer.writerows(rows_data)
-            report_content = output.getvalue()
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.txt"
-            store_blob(
-                storage_client,
-                bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )
-
-        # CSV versions of all regulatory reports
-        if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
-            report_content_type = "text/plain"
-            output = io.StringIO()
-            writer = csv.DictWriter(
-                output, fieldnames=field_names, delimiter=",", lineterminator="\n"
-            )
-            writer.writeheader()
-            writer.writerows(rows_data)
-            report_content = output.getvalue()
-            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.csv"
-            store_blob(
-                storage_client,
-                bucket_name,
-                blob_path,
-                report_content,
-                report_content_type,
-            )    
 
 
 def main():
-    if os.getenv("AIRFLOW_CTX_DAG_RUN_ID"):
+    report_generator_config = get_config_from_env()
 
-        print("We're running in Airflow")
-        airflow_run()
-        return
+    project_id = report_generator_config.project_id
+    dataset = report_generator_config.dataset
+    bucket_name = report_generator_config.bucket_name
+    run_id = report_generator_config.run_id
+    keyfile = report_generator_config.keyfile
 
-    if not os.getenv("AIRFLOW_CTX_DAG_RUN_ID"):
-        print("We're not running in Airflow")
-        non_airflow_run()
-        return
-    
+
+    credentials = service_account.Credentials.from_service_account_file(keyfile)
+    bq_client = bigquery.Client(project=project_id, credentials=credentials)
+    storage_client = storage.Client(project=project_id, credentials=credentials)
+
+    validator = Validator()
+
+    tables_iter = bq_client.list_tables(dataset)
+
+    for table in tables_iter:
+        table_name = table.table_id
+        match = table_name_pattern.match(table_name)
+        if not match:
+            continue
+        norm_name = match.group(1)
+        report_name = match.group(2)
+
+        query = f"SELECT * FROM `{project_id}.{dataset}.{table_name}`;"
+        query_job = bq_client.query(query)
+        rows = query_job.result()
+        field_names = [field.name for field in rows.schema]
+        rows_data = [{name: row[name] for name in field_names} for row in rows]
+
+        if norm_name in ["nrp_41", "nrp_51"]:
+            report_content_type = "text/xml"
+            report_bytes = dicttoxml(rows_data, custom_root="rows", attr_type=False)
+            report_content = report_bytes.decode("utf-8")
+            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.xml"
+            store_blob(
+                storage_client,
+                bucket_name,
+                blob_path,
+                report_content,
+                report_content_type,
+            )
+            if report_name == "persona":
+                validator.validate(report_name, report_bytes)
+
+        if norm_name == "nrsf_03":
+            report_content_type = "text/plain"
+            output = io.StringIO()
+            writer = csv.DictWriter(
+                output, fieldnames=field_names, delimiter="|", lineterminator="\n"
+            )
+            writer.writeheader()
+            writer.writerows(rows_data)
+            report_content = output.getvalue()
+            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.txt"
+            store_blob(
+                storage_client,
+                bucket_name,
+                blob_path,
+                report_content,
+                report_content_type,
+            )
+
+        # CSV versions of all regulatory reports
+        if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
+            report_content_type = "text/plain"
+            output = io.StringIO()
+            writer = csv.DictWriter(
+                output, fieldnames=field_names, delimiter=",", lineterminator="\n"
+            )
+            writer.writeheader()
+            writer.writerows(rows_data)
+            report_content = output.getvalue()
+            blob_path = f"reports/{run_id}/{norm_name}/{report_name}.csv"
+            store_blob(
+                storage_client,
+                bucket_name,
+                blob_path,
+                report_content,
+                report_content_type,
+            )
+
+
 
 def store_blob(
     storage_client, bucket_name, blob_path, report_content, report_content_type
