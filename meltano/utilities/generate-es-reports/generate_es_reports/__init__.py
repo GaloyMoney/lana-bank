@@ -6,6 +6,7 @@ from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from re import compile
+from pathlib import Path
 
 from .validation import Validator
 
@@ -14,7 +15,7 @@ table_name_pattern = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
 
 class ReportGeneratorConfig:
 
-    def __init__(self, project_id, dataset, bucket_name, run_id, keyfile):
+    def __init__(self, project_id: str, dataset: str, bucket_name: str, run_id:str, keyfile: Path):
         self.project_id = project_id
         self.dataset = dataset
         self.bucket_name = bucket_name
@@ -24,25 +25,27 @@ class ReportGeneratorConfig:
 
 def get_config_from_env() -> ReportGeneratorConfig:
 
-    required_envs = ["DBT_BIGQUERY_PROJECT", "DBT_BIGQUERY_DATASET", "DOCS_BUCKET_NAME"]
+    required_envs = ["DBT_BIGQUERY_PROJECT", "DBT_BIGQUERY_DATASET", "DOCS_BUCKET_NAME", "GOOGLE_APPLICATION_CREDENTIALS"]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
         raise RuntimeError(
             f"Missing required environment variables: {', '.join(missing)}"
         )
 
-    is_airflow_run = bool(os.getenv("AIRFLOW_CTX_DAG_RUN_ID", False))
+    is_airflow_run = bool(os.getenv("AIRFLOW_CTX_DAG_RUN_ID"))
 
-    run_id = "dev"
-    if is_airflow_run:
-        run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID")     
+    run_id = os.getenv("AIRFLOW_CTX_DAG_RUN_ID", "dev") # If no AIRFLOW, we assume dev env
+
+    keyfile = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
+    if not keyfile.is_file():
+        raise FileNotFoundError(f"Can't read GCP credentials at: {str(keyfile.absolute)}")
 
     return ReportGeneratorConfig(
         project_id=os.getenv("DBT_BIGQUERY_PROJECT"),
         dataset=os.getenv("DBT_BIGQUERY_DATASET"),
         bucket_name=os.getenv("DOCS_BUCKET_NAME"),
         run_id=run_id,
-        keyfile=os.getenv("GOOGLE_APPLICATION_CREDENTIALS"),
+        keyfile=keyfile,
     )
 
 
@@ -54,7 +57,6 @@ def main():
     bucket_name = report_generator_config.bucket_name
     run_id = report_generator_config.run_id
     keyfile = report_generator_config.keyfile
-
 
     credentials = service_account.Credentials.from_service_account_file(keyfile)
     bq_client = bigquery.Client(project=project_id, credentials=credentials)
@@ -129,7 +131,6 @@ def main():
                 report_content,
                 report_content_type,
             )
-
 
 
 def store_blob(
