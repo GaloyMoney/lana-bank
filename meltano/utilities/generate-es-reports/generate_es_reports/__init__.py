@@ -54,7 +54,7 @@ def get_config_from_env() -> ReportGeneratorConfig:
     keyfile = Path(os.getenv("GOOGLE_APPLICATION_CREDENTIALS"))
     if not keyfile.is_file():
         raise FileNotFoundError(
-            f"Can't read GCP credentials at: {str(keyfile.absolute)}"
+            f"Can't read GCP credentials at: {str(keyfile.absolute())}"
         )
 
     return ReportGeneratorConfig(
@@ -68,19 +68,19 @@ def get_config_from_env() -> ReportGeneratorConfig:
 
 class StorableReport:
 
-    def __init__(self, report_content_type: Any, report_content: Any) -> None:
+    def __init__(self, report_content_type: str, report_content: str) -> None:
         self.content_type = report_content_type
         self.content = report_content
 
 
-class ReportStorer:
+class ReportStorer(ABC):
 
     @abstractmethod
     def store_report(self, path: str, report: StorableReport) -> None:
         pass
 
 
-class GCSReportStorer:
+class GCSReportStorer(ReportStorer):
 
     def __init__(
         self,
@@ -98,6 +98,21 @@ class GCSReportStorer:
         print(f"Uploading to {path}...")
         blob.upload_from_string(report.content, content_type=report.content_type)
         print(f"Uploaded")
+
+
+class LocalReportStorer(ReportStorer):
+
+    def __init__(self, root_path: Path = Path("./report_files/")) -> None:
+        self._root_path = root_path
+
+    def store_report(self, path: str, report: StorableReport) -> None:
+        target_path = self._root_path / path
+
+        os.makedirs(os.path.dirname(target_path), exist_ok=True)
+        print(f"Storing locally at: {path}")
+        with open(target_path, "w", encoding="utf-8") as f:
+            f.write(report.content)
+        print("File stored")
 
 
 def main():
@@ -137,7 +152,6 @@ def main():
         )
 
         if norm_name in ["nrp_41", "nrp_51"]:
-            report_content_type = "text/xml"
             xml_string = dicttoxml(
                 rows_data, custom_root="rows", attr_type=False
             ).decode("utf-8")
@@ -148,12 +162,12 @@ def main():
             gcs_report_storer.store_report(
                 path=full_blob_path,
                 report=StorableReport(
-                    report_content=report_content, report_content_type=report_content_type
+                    report_content=report_content,
+                    report_content_type="text/xml",
                 ),
             )
 
         if norm_name == "nrsf_03":
-            report_content_type = "text/plain"
             output = io.StringIO()
             writer = csv.DictWriter(
                 output, fieldnames=field_names, delimiter="|", lineterminator="\n"
@@ -165,13 +179,13 @@ def main():
             gcs_report_storer.store_report(
                 path=full_blob_path,
                 report=StorableReport(
-                    report_content=report_content, report_content_type=report_content_type
+                    report_content=report_content,
+                    report_content_type="text/plain",
                 ),
             )
 
         # CSV versions of all regulatory reports
         if norm_name in ["nrp_41", "nrp_51", "nrsf_03"]:
-            report_content_type = "text/plain"
             output = io.StringIO()
             writer = csv.DictWriter(
                 output, fieldnames=field_names, delimiter=",", lineterminator="\n"
@@ -183,7 +197,8 @@ def main():
             gcs_report_storer.store_report(
                 path=full_blob_path,
                 report=StorableReport(
-                    report_content=report_content, report_content_type=report_content_type
+                    report_content=report_content,
+                    report_content_type="text/plain",
                 ),
             )
 
