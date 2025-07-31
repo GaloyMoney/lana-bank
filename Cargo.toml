@@ -1,10 +1,14 @@
 [workspace]
 resolver = "2"
-exclude = ["dev/check-dependency-dag"]
 members = [
   "lana/*",
   "core/*",
-  "lib/*"]
+  "lib/*"
+]
+exclude = [
+  "dev/check-dependency-dag",
+  "lib/js",
+]
 
 [workspace.dependencies]
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
