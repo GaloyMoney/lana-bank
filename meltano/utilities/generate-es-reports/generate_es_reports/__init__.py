@@ -227,6 +227,7 @@ def main():
 
     for table in tables_iter:
         table_name = table.table_id
+        logger.info(f"Working on table {table_name}.")
         match = Constants.TABLE_NAME_PATTERN.match(table_name)
         if not match:
             continue
