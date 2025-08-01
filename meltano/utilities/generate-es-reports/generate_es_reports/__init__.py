@@ -5,6 +5,7 @@ from re import compile
 from pathlib import Path
 import logging, logging.config
 from abc import ABC, abstractmethod
+
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
@@ -78,11 +79,10 @@ class FileOutputConfig(ABC):
 
     def __init_subclass__(cls):
 
-        getattr(cls.__class__, "file_extension")
         mandatory_class_attributes = ("file_extension", "content_type")
 
         for attribute in mandatory_class_attributes:
-            if getattr(cls.__class__, attribute) is NotImplemented:
+            if getattr(cls, attribute) is NotImplemented:
                 raise NotImplementedError(f"{cls.__name__} must define '{attribute}'")
 
 
@@ -90,6 +90,9 @@ class XMLFileOutputConfig(FileOutputConfig):
 
     file_extension = "xml"
     content_type = "text/xml"
+
+    def __init__(self) -> None:
+        pass
 
 
 class CSVFileOutputConfig(FileOutputConfig):
@@ -115,7 +118,7 @@ class TXTFileOutputConfig(FileOutputConfig):
 class ReportJobDefinition:
 
     def __init__(
-        self, norm: str, id: str, file_output_configs: tuple[FileOutputConfig]
+        self, norm: str, id: str, file_output_configs: tuple[FileOutputConfig, ...]
     ):
         self.norm = norm
         self.id = id
@@ -276,6 +279,32 @@ def main():
 
     tables_iter = bq_client.list_tables(report_generator_config.dataset)
 
+    report_jobs = (
+        ReportJobDefinition(
+            norm=Constants.NRP_41_ID,
+            id="06_garantia_aval",
+            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
+        ),
+        ReportJobDefinition(
+            norm=Constants.NRP_51_ID,
+            id="06_aval_garantizado",
+            file_output_configs=(XMLFileOutputConfig(), TXTFileOutputConfig()),
+        ),
+        ReportJobDefinition(
+            norm=Constants.NRSF_03_ID,
+            id="06_productos",
+            file_output_configs=(TXTFileOutputConfig(), CSVFileOutputConfig()),
+        ),
+    )
+
+    def get_rows_from_table(table_name: str):
+        query = f"SELECT * FROM `{report_generator_config.project_id}.{report_generator_config.dataset}.{table_name}`;"
+        query_job = bq_client.query(query)
+        rows = query_job.result()
+
+        return rows
+
+    # for report_job in report_jobs:
     for table in tables_iter:
         table_name = table.table_id
         match = Constants.TABLE_NAME_PATTERN.match(table_name)
@@ -285,9 +314,7 @@ def main():
         norm_name = match.group(1)
         report_name = match.group(2)
 
-        query = f"SELECT * FROM `{report_generator_config.project_id}.{report_generator_config.dataset}.{table_name}`;"
-        query_job = bq_client.query(query)
-        rows = query_job.result()
+        rows = get_rows_from_table(table_name=table_name)
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
 
