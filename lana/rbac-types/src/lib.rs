@@ -26,6 +26,7 @@ pub enum PermissionSetName {
     AccountingWriter,
     AppViewer,
     AppWriter,
+    ContractCreation,
     CreditViewer,
     CreditWriter,
     CustomerViewer,
@@ -75,6 +76,8 @@ impl std::str::FromStr for PermissionSetName {
 
             core_report::PERMISSION_SET_REPORT_VIEWER => Ok(ReportViewer),
             core_report::PERMISSION_SET_REPORT_WRITER => Ok(ReportWriter),
+
+            contract_creation::PERMISSION_SET_CONTRACT_CREATION => Ok(ContractCreation),
 
             _ => Err(strum::ParseError::VariantNotFound),
         }

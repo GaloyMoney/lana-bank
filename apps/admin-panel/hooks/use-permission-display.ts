@@ -42,6 +42,11 @@ export function usePermissionDisplay() {
           label: t("app_writer.label"),
           description: t("app_writer.description"),
         }
+      case PermissionSetName.ContractCreation:
+        return {
+          label: t("contract_creation.label"),
+          description: t("contract_creation.description"),
+        }
       case PermissionSetName.CreditViewer:
         return {
           label: t("credit_viewer.label"),

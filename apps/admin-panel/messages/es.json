@@ -51,6 +51,10 @@
       "label": "Editor de aplicación",
       "description": "Puede crear, actualizar, archivar y eliminar documentos e informes de la aplicación"
     },
+    "contract_creation": {
+      "label": "Creación de contratos",
+      "description": "Puede generar y gestionar acuerdos de préstamo y documentos contractuales"
+    },
     "credit_viewer": {
       "label": "Visualizador de crédito",
       "description": "Puede ver facilidades de crédito, desembolsos, obligaciones e información relacionada con préstamos"

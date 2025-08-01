@@ -51,6 +51,10 @@
       "label": "App Writer",
       "description": "Can create, update, archive, and delete application documents and reports"
     },
+    "contract_creation": {
+      "label": "Contract Creation",
+      "description": "Can generate and manage loan agreements and contract documents"
+    },
     "credit_viewer": {
       "label": "Credit Viewer",
       "description": "Can view credit facilities, disbursals, obligations, and related loan information"

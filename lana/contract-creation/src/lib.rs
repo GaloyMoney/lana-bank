@@ -18,7 +18,10 @@ mod templates;
 
 pub use error::*;
 pub use job::*;
-pub use primitives::{ContractCreationId, ContractModuleAction, ContractModuleObject};
+pub use primitives::{
+    ContractCreationId, ContractModuleAction, ContractModuleObject,
+    PERMISSION_SET_CONTRACT_CREATION,
+};
 
 use tracing::instrument;
 
