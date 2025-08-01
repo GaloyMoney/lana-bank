@@ -71,6 +71,57 @@ class ReportGeneratorConfig:
         self.use_local_fs = use_local_fs
 
 
+class FileOutputConfig(ABC):
+
+    file_extension = NotImplemented
+    content_type = NotImplemented
+
+    def __init_subclass__(cls):
+
+        getattr(cls.__class__, "file_extension")
+        mandatory_class_attributes = ("file_extension", "content_type")
+
+        for attribute in mandatory_class_attributes:
+            if getattr(cls.__class__, attribute) is NotImplemented:
+                raise NotImplementedError(f"{cls.__name__} must define '{attribute}'")
+
+
+class XMLFileOutputConfig(FileOutputConfig):
+
+    file_extension = "xml"
+    content_type = "text/xml"
+
+
+class CSVFileOutputConfig(FileOutputConfig):
+
+    file_extension = "csv"
+    content_type = "text/plain"
+
+    def __init__(self, delimiter: str = ",", lineterminator: str = "\n") -> None:
+        self.delimiter = delimiter
+        self.lineterminator = lineterminator
+
+
+class TXTFileOutputConfig(FileOutputConfig):
+
+    file_extension = "txt"
+    content_type = "text/plain"
+
+    def __init__(self, delimiter: str = "|", lineterminator: str = "\n") -> None:
+        self.delimiter = delimiter
+        self.lineterminator = lineterminator
+
+
+class ReportJobDefinition:
+
+    def __init__(
+        self, norm: str, id: str, file_output_configs: tuple[FileOutputConfig]
+    ):
+        self.norm = norm
+        self.id = id
+        self.file_output_configs = file_output_configs
+
+
 def get_config_from_env() -> ReportGeneratorConfig:
     """Read env vars, check that config is consistent and return it.
 
