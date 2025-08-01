@@ -237,7 +237,15 @@ class ReportGeneratorConfig:
         self.use_local_fs = use_local_fs
 
 
-class FileOutputConfig(ABC):
+class StorableReportOutput:
+    """The contents of a report file, together with their format."""
+
+    def __init__(self, report_content_type: str, report_content: str) -> None:
+        self.content_type = report_content_type
+        self.content = report_content
+
+
+class BaseFileOutputConfig(ABC):
 
     file_extension = NotImplemented
     content_type = NotImplemented
@@ -250,8 +258,12 @@ class FileOutputConfig(ABC):
             if getattr(cls, attribute) is NotImplemented:
                 raise NotImplementedError(f"{cls.__name__} must define '{attribute}'")
 
+    @abstractmethod
+    def rows_to_report_output(self, rows) -> StorableReportOutput:
+        pass
 
-class XMLFileOutputConfig(FileOutputConfig):
+
+class XMLFileOutputConfig(BaseFileOutputConfig):
 
     file_extension = "xml"
     content_type = "text/xml"
@@ -259,8 +271,23 @@ class XMLFileOutputConfig(FileOutputConfig):
     def __init__(self) -> None:
         pass
 
+    def rows_to_report_output(self, rows) -> StorableReportOutput:
+        field_names = [field.name for field in rows.schema]
+        rows_data = [{name: row[name] for name in field_names} for row in rows]
 
-class CSVFileOutputConfig(FileOutputConfig):
+        xml_string = dicttoxml(rows_data, custom_root="rows", attr_type=False).decode(
+            "utf-8"
+        )
+        output = io.StringIO()
+        output.write(xml_string)
+        report_content = output.getvalue()
+
+        return StorableReportOutput(
+            report_content=report_content, report_content_type=self.content_type
+        )
+
+
+class CSVFileOutputConfig(BaseFileOutputConfig):
 
     file_extension = "csv"
     content_type = "text/plain"
@@ -269,8 +296,28 @@ class CSVFileOutputConfig(FileOutputConfig):
         self.delimiter = delimiter
         self.lineterminator = lineterminator
 
+    def rows_to_report_output(self, rows) -> StorableReportOutput:
+        field_names = [field.name for field in rows.schema]
+        rows_data = [{name: row[name] for name in field_names} for row in rows]
 
-class TXTFileOutputConfig(FileOutputConfig):
+        output = io.StringIO()
+
+        writer = csv.DictWriter(
+            output,
+            fieldnames=field_names,
+            delimiter=self.delimiter,
+            lineterminator=self.lineterminator,
+        )
+        writer.writeheader()
+        writer.writerows(rows_data)
+        report_content = output.getvalue()
+
+        return StorableReportOutput(
+            report_content=report_content, report_content_type=self.content_type
+        )
+
+
+class TXTFileOutputConfig(BaseFileOutputConfig):
 
     file_extension = "txt"
     content_type = "text/plain"
@@ -279,15 +326,44 @@ class TXTFileOutputConfig(FileOutputConfig):
         self.delimiter = delimiter
         self.lineterminator = lineterminator
 
+    def rows_to_report_output(self, rows) -> StorableReportOutput:
+        field_names = [field.name for field in rows.schema]
+        rows_data = [{name: row[name] for name in field_names} for row in rows]
+
+        output = io.StringIO()
+
+        writer = csv.DictWriter(
+            output,
+            fieldnames=field_names,
+            delimiter=self.delimiter,
+            lineterminator=self.lineterminator,
+        )
+        writer.writeheader()
+        writer.writerows(rows_data)
+        report_content = output.getvalue()
+
+        return StorableReportOutput(
+            report_content=report_content, report_content_type=self.content_type
+        )
+
 
 class ReportJobDefinition:
 
     def __init__(
-        self, norm: str, id: str, file_output_configs: tuple[FileOutputConfig, ...]
+        self,
+        norm: str,
+        id: str,
+        friendly_name: str,
+        file_output_configs: tuple[BaseFileOutputConfig, ...],
     ):
         self.norm = norm
         self.id = id
+        self.friendly_name = friendly_name
         self.file_output_configs = file_output_configs
+
+    @property
+    def table_name(self) -> str:
+        return f"report_{self.norm}_{self.id}"
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
