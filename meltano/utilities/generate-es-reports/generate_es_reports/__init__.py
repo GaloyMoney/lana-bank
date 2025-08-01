@@ -3,10 +3,27 @@ import io
 import csv
 from re import compile
 from pathlib import Path
+import logging, logging.config
 from abc import ABC, abstractmethod
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
+
+logging.basicConfig(
+    level=logging.INFO,
+    format="%(asctime)s [%(levelname)s] - %(message)s",
+    handlers=[logging.StreamHandler()],
+)
+
+# Disable logging by external packages
+logging.config.dictConfig(
+    {
+        "version": 1,
+        "disable_existing_loggers": True,
+    }
+)
+
+logger = logging.getLogger(name="generate-es-reports")
 
 
 class Constants:
@@ -141,9 +158,9 @@ class GCSReportStorer(ReportStorer):
 
     def store_report(self, path: str, report: StorableReport) -> None:
         blob = self._bucket.blob(path)
-        print(f"Uploading to {path}...")
+        logger.info(f"Uploading to {path}...")
         blob.upload_from_string(report.content, content_type=report.content_type)
-        print(f"Uploaded")
+        logger.info(f"Uploaded")
 
 
 class LocalReportStorer(ReportStorer):
@@ -156,10 +173,10 @@ class LocalReportStorer(ReportStorer):
         target_path = self._root_path / path
 
         os.makedirs(os.path.dirname(target_path), exist_ok=True)
-        print(f"Storing locally at: {path}")
+        logger.info(f"Storing locally at: {path}")
         with open(target_path, "w", encoding="utf-8") as f:
             f.write(report.content)
-        print("File stored")
+        logger.info("File stored")
 
 
 def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
