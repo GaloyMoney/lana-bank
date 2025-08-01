@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-use authz::{AllOrOne, action_description::*};
+use authz::{ActionPermission, AllOrOne, ModuleName, action_description::*, auto_mappings};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -52,6 +52,11 @@ pub enum GovernanceAction {
     ApprovalProcess(ApprovalProcessAction),
 }
 
+// Define the module name once
+impl ModuleName for GovernanceAction {
+    const MODULE_NAME: &'static str = "governance";
+}
+
 impl GovernanceAction {
     pub const COMMITTEE_CREATE: Self = GovernanceAction::Committee(CommitteeAction::Create);
     pub const COMMITTEE_READ: Self = GovernanceAction::Committee(CommitteeAction::Read);
@@ -78,24 +83,17 @@ impl GovernanceAction {
     pub const APPROVAL_PROCESS_CONCLUDE: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude);
 
-    pub fn entities() -> Vec<(
-        GovernanceActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn entities() -> Vec<(GovernanceActionDiscriminants, Vec<ActionDescription>)> {
         use GovernanceActionDiscriminants::*;
 
-        let mut result = vec![];
-
-        for entity in <GovernanceActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Committee => CommitteeAction::describe(),
-                Policy => PolicyAction::describe(),
-                ApprovalProcess => ApprovalProcessAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-        result
+        vec![
+            (Committee, auto_mappings!(Committee => CommitteeAction)),
+            (Policy, auto_mappings!(Policy => PolicyAction)),
+            (
+                ApprovalProcess,
+                auto_mappings!(ApprovalProcess => ApprovalProcessAction),
+            ),
+        ]
     }
 }
 
@@ -136,40 +134,21 @@ pub enum CommitteeAction {
     List,
 }
 
-impl CommitteeAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for CommitteeAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            // Read operations use VIEWER permission
+            Self::Read | Self::List => PERMISSION_SET_GOVERNANCE_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-                Self::AddMember => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-                Self::RemoveMember => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_GOVERNANCE_VIEWER,
-                        PERMISSION_SET_GOVERNANCE_WRITER,
-                    ],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_GOVERNANCE_VIEWER,
-                        PERMISSION_SET_GOVERNANCE_WRITER,
-                    ],
-                ),
-            };
-            res.push(action_description);
+            // Write operations use WRITER permission
+            Self::Create | Self::AddMember | Self::RemoveMember => PERMISSION_SET_GOVERNANCE_WRITER,
         }
+    }
+}
 
-        res
+impl CommitteeAction {
+    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
+        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 
@@ -182,37 +161,21 @@ pub enum PolicyAction {
     UpdatePolicyRules,
 }
 
-impl PolicyAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for PolicyAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            // Read operations use VIEWER permission
+            Self::Read | Self::List => PERMISSION_SET_GOVERNANCE_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_GOVERNANCE_VIEWER,
-                        PERMISSION_SET_GOVERNANCE_WRITER,
-                    ],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_GOVERNANCE_VIEWER,
-                        PERMISSION_SET_GOVERNANCE_WRITER,
-                    ],
-                ),
-                Self::UpdatePolicyRules => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-            };
-            res.push(action_description);
+            // Write operations use WRITER permission
+            Self::Create | Self::UpdatePolicyRules => PERMISSION_SET_GOVERNANCE_WRITER,
         }
+    }
+}
 
-        res
+impl PolicyAction {
+    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
+        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 
@@ -227,41 +190,23 @@ pub enum ApprovalProcessAction {
     Conclude,
 }
 
-impl ApprovalProcessAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for ApprovalProcessAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            // Read operations use VIEWER permission
+            Self::Read | Self::List => PERMISSION_SET_GOVERNANCE_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_GOVERNANCE_VIEWER,
-                        PERMISSION_SET_GOVERNANCE_WRITER,
-                    ],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_GOVERNANCE_VIEWER,
-                        PERMISSION_SET_GOVERNANCE_WRITER,
-                    ],
-                ),
-                Self::Approve => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-                Self::Deny => ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER]),
-                Self::Conclude => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
-                }
-            };
-            res.push(action_description);
+            // Write operations use WRITER permission
+            Self::Create | Self::Approve | Self::Deny | Self::Conclude => {
+                PERMISSION_SET_GOVERNANCE_WRITER
+            }
         }
+    }
+}
 
-        res
+impl ApprovalProcessAction {
+    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
+        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 

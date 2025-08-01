@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
 
-use authz::{AllOrOne, action_description::*};
+use authz::{ActionPermission, AllOrOne, ModuleName, action_description::*, auto_mappings};
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,
@@ -370,34 +370,58 @@ pub enum CoreAccountingAction {
     TrialBalance(TrialBalanceAction),
 }
 
+impl ModuleName for CoreAccountingAction {
+    const MODULE_NAME: &'static str = "accounting";
+}
+
 impl CoreAccountingAction {
-    pub fn entities() -> Vec<(
-        CoreAccountingActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
-        use CoreAccountingActionDiscriminants as D;
+    pub fn entities() -> Vec<(CoreAccountingActionDiscriminants, Vec<ActionDescription>)> {
+        use CoreAccountingActionDiscriminants::*;
 
-        let mut result = vec![];
-
-        for entity in <CoreAccountingActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                D::Chart => ChartAction::describe(),
-                D::Journal => JournalAction::describe(),
-                D::LedgerAccount => LedgerAccountAction::describe(),
-                D::LedgerTransaction => LedgerTransactionAction::describe(),
-                D::TransactionTemplate => TransactionTemplateAction::describe(),
-                D::ManualTransaction => ManualTransactionAction::describe(),
-                D::ProfitAndLoss => ProfitAndLossAction::describe(),
-                D::ProfitAndLossConfiguration => ProfitAndLossConfigurationAction::describe(),
-                D::BalanceSheet => BalanceSheetAction::describe(),
-                D::BalanceSheetConfiguration => BalanceSheetConfigurationAction::describe(),
-                D::AccountingCsv => AccountingCsvAction::describe(),
-                D::TrialBalance => TrialBalanceAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-        result
+        vec![
+            (Chart, auto_mappings!(Chart => ChartAction)),
+            (Journal, auto_mappings!(Journal => JournalAction)),
+            (
+                LedgerAccount,
+                auto_mappings!(LedgerAccount => LedgerAccountAction),
+            ),
+            (
+                LedgerTransaction,
+                auto_mappings!(LedgerTransaction => LedgerTransactionAction),
+            ),
+            (
+                TransactionTemplate,
+                auto_mappings!(TransactionTemplate => TransactionTemplateAction),
+            ),
+            (
+                ManualTransaction,
+                auto_mappings!(ManualTransaction => ManualTransactionAction),
+            ),
+            (
+                ProfitAndLoss,
+                auto_mappings!(ProfitAndLoss => ProfitAndLossAction),
+            ),
+            (
+                ProfitAndLossConfiguration,
+                auto_mappings!(ProfitAndLossConfiguration => ProfitAndLossConfigurationAction),
+            ),
+            (
+                BalanceSheet,
+                auto_mappings!(BalanceSheet => BalanceSheetAction),
+            ),
+            (
+                BalanceSheetConfiguration,
+                auto_mappings!(BalanceSheetConfiguration => BalanceSheetConfigurationAction),
+            ),
+            (
+                AccountingCsv,
+                auto_mappings!(AccountingCsv => AccountingCsvAction),
+            ),
+            (
+                TrialBalance,
+                auto_mappings!(TrialBalance => TrialBalanceAction),
+            ),
+        ]
     }
 }
 
@@ -738,33 +762,15 @@ pub enum ChartAction {
     ImportAccounts,
 }
 
-impl ChartAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for ChartAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            // Read operations use VIEWER permission
+            Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-                Self::Update => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::ImportAccounts => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-            };
-            res.push(action_description);
+            // Write operations use WRITER permission
+            Self::Create | Self::Update | Self::ImportAccounts => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 
@@ -782,29 +788,12 @@ pub enum LedgerTransactionAction {
     ReadHistory,
 }
 
-impl LedgerTransactionAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Read => &[
-                    PERMISSION_SET_ACCOUNTING_VIEWER,
-                    PERMISSION_SET_ACCOUNTING_WRITER,
-                ],
-                Self::List => &[
-                    PERMISSION_SET_ACCOUNTING_VIEWER,
-                    PERMISSION_SET_ACCOUNTING_WRITER,
-                ],
-                Self::ReadHistory => &[
-                    PERMISSION_SET_ACCOUNTING_VIEWER,
-                    PERMISSION_SET_ACCOUNTING_WRITER,
-                ],
-            };
-            res.push(ActionDescription::new(variant, set));
+impl ActionPermission for LedgerTransactionAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            // All operations are read-only, use VIEWER permission
+            Self::Read | Self::List | Self::ReadHistory => PERMISSION_SET_ACCOUNTING_VIEWER,
         }
-
-        res
     }
 }
 
@@ -822,34 +811,12 @@ pub enum LedgerAccountAction {
     ReadHistory,
 }
 
-impl LedgerAccountAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-                Self::ReadHistory => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_VIEWER])
-                }
-            };
-            res.push(action_description);
+impl ActionPermission for LedgerAccountAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            // All operations are read-only, use VIEWER permission
+            Self::Read | Self::List | Self::ReadHistory => PERMISSION_SET_ACCOUNTING_VIEWER,
         }
-
-        res
     }
 }
 
@@ -865,21 +832,11 @@ pub enum JournalAction {
     ReadEntries,
 }
 
-impl JournalAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::ReadEntries => &[
-                    PERMISSION_SET_ACCOUNTING_VIEWER,
-                    PERMISSION_SET_ACCOUNTING_WRITER,
-                ],
-            };
-            res.push(ActionDescription::new(variant, set));
+impl ActionPermission for JournalAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::ReadEntries => PERMISSION_SET_ACCOUNTING_VIEWER,
         }
-
-        res
     }
 }
 
@@ -895,21 +852,11 @@ pub enum TransactionTemplateAction {
     List,
 }
 
-impl TransactionTemplateAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::List => &[
-                    PERMISSION_SET_ACCOUNTING_VIEWER,
-                    PERMISSION_SET_ACCOUNTING_WRITER,
-                ],
-            };
-            res.push(ActionDescription::new(variant, set));
+impl ActionPermission for TransactionTemplateAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
         }
-
-        res
     }
 }
 
@@ -927,34 +874,12 @@ pub enum ManualTransactionAction {
     List,
 }
 
-impl ManualTransactionAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for ManualTransactionAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::List | Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Create => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 
@@ -972,30 +897,12 @@ pub enum ProfitAndLossAction {
     Update,
 }
 
-impl ProfitAndLossAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Update => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for ProfitAndLossAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Update | Self::Create => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 
@@ -1012,27 +919,12 @@ pub enum ProfitAndLossConfigurationAction {
     Update,
 }
 
-impl ProfitAndLossConfigurationAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Update => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for ProfitAndLossConfigurationAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Update => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 
@@ -1049,27 +941,12 @@ pub enum BalanceSheetAction {
     Create,
 }
 
-impl BalanceSheetAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for BalanceSheetAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Create => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 
@@ -1086,27 +963,12 @@ pub enum BalanceSheetConfigurationAction {
     Update,
 }
 
-impl BalanceSheetConfigurationAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
-                Self::Update => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-            };
-            res.push(set);
+impl ActionPermission for BalanceSheetConfigurationAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Update => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 
@@ -1126,40 +988,12 @@ pub enum AccountingCsvAction {
     Download,
 }
 
-impl AccountingCsvAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Generate => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-                Self::Download => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_VIEWER])
-                }
-            };
-            res.push(action_description);
+impl ActionPermission for AccountingCsvAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List | Self::Download => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Create | Self::Generate => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 
@@ -1177,30 +1011,12 @@ pub enum TrialBalanceAction {
     Update,
 }
 
-impl TrialBalanceAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_ACCOUNTING_VIEWER,
-                        PERMISSION_SET_ACCOUNTING_WRITER,
-                    ],
-                ),
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
-                }
-                Self::Update => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_VIEWER])
-                }
-            };
-            res.push(action_description);
+impl ActionPermission for TrialBalanceAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::Update => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Create => PERMISSION_SET_ACCOUNTING_WRITER,
         }
-
-        res
     }
 }
 

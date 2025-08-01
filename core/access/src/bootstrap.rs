@@ -48,7 +48,7 @@ where
     pub(super) async fn bootstrap_access_control(
         &self,
         email: String,
-        actions: Vec<ActionDescription<FullPath>>,
+        actions: Vec<ActionDescription>,
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
         let mut db = self.role_repo.begin_op().await?;
@@ -112,6 +112,8 @@ where
 
     /// Creates a role with name “superuser” that will have all given permission sets.
     /// Used for bootstrapping the application.
+    ///
+    /// Also creates roles for all predefined roles.
     async fn bootstrap_roles(
         &self,
         db: &mut DbOp<'_>,
@@ -162,7 +164,7 @@ where
     async fn bootstrap_permission_sets(
         &self,
         db: &mut DbOp<'_>,
-        actions: &[ActionDescription<FullPath>],
+        actions: &[ActionDescription],
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
         let existing = self
             .permission_set_repo
@@ -180,9 +182,8 @@ where
         > = Default::default();
 
         for action in actions {
-            for set in action.permission_sets() {
-                permission_sets.entry(*set).or_default().push(action.into());
-            }
+            let set = action.permission_set();
+            permission_sets.entry(set).or_default().push(action.into());
         }
 
         // Create only those permission sets that do not exist yet. Don't remove anything.

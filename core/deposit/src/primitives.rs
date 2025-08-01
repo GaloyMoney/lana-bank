@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{fmt::Display, str::FromStr};
 
-use authz::{AllOrOne, action_description::*};
+use authz::{AllOrOne, action_description::*, auto_mappings};
 
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
@@ -151,6 +151,10 @@ pub enum CoreDepositAction {
     Withdrawal(WithdrawalAction),
 }
 
+impl ModuleName for CoreDepositAction {
+    const MODULE_NAME: &'static str = "deposit";
+}
+
 impl CoreDepositAction {
     pub const DEPOSIT_ACCOUNT_CREATE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Create);
@@ -186,27 +190,21 @@ impl CoreDepositAction {
     pub const WITHDRAWAL_LIST: Self = CoreDepositAction::Withdrawal(WithdrawalAction::List);
     pub const WITHDRAWAL_REVERT: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Revert);
 
-    pub fn entities() -> Vec<(
-        CoreDepositActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn entities() -> Vec<(CoreDepositActionDiscriminants, Vec<ActionDescription>)> {
         use CoreDepositActionDiscriminants::*;
 
-        let mut result = vec![];
-
-        for entity in <CoreDepositActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                DepositAccount => DepositAccountAction::describe(),
-                Deposit => DepositAction::describe(),
-                ChartOfAccountsIntegrationConfig => {
-                    ChartOfAccountsIntegrationConfigAction::describe()
-                }
-                Withdrawal => WithdrawalAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-        result
+        vec![
+            (
+                DepositAccount,
+                auto_mappings!(DepositAccount => DepositAccountAction),
+            ),
+            (Deposit, auto_mappings!(Deposit => DepositAction)),
+            (
+                ChartOfAccountsIntegrationConfig,
+                auto_mappings!(ChartOfAccountsIntegrationConfig => ChartOfAccountsIntegrationConfigAction),
+            ),
+            (Withdrawal, auto_mappings!(Withdrawal => WithdrawalAction)),
+        ]
     }
 }
 
@@ -253,37 +251,14 @@ pub enum DepositAccountAction {
     List,
 }
 
-impl DepositAccountAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
-                ),
-                Self::UpdateStatus => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER])
-                }
-                Self::ReadBalance => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
-                ),
-                Self::ReadTxHistory => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for DepositAccountAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List | Self::ReadBalance | Self::ReadTxHistory => {
+                PERMISSION_SET_DEPOSIT_VIEWER
+            }
+            Self::Create | Self::UpdateStatus => PERMISSION_SET_DEPOSIT_WRITER,
         }
-
-        res
     }
 }
 
@@ -302,27 +277,12 @@ pub enum DepositAction {
     Revert,
 }
 
-impl DepositAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-                Self::Revert => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for DepositAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_DEPOSIT_VIEWER,
+            Self::Create | Self::Revert => PERMISSION_SET_DEPOSIT_WRITER,
         }
-
-        res
     }
 }
 
@@ -344,32 +304,16 @@ pub enum WithdrawalAction {
     Revert,
 }
 
-impl WithdrawalAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Cancel => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
-                ),
-                Self::Initiate => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-                Self::ConcludeApprovalProcess => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER])
-                }
-                Self::Confirm => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-                Self::Revert => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-            };
-            res.push(action_description);
+impl ActionPermission for WithdrawalAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_DEPOSIT_VIEWER,
+            Self::Cancel
+            | Self::Initiate
+            | Self::ConcludeApprovalProcess
+            | Self::Confirm
+            | Self::Revert => PERMISSION_SET_DEPOSIT_WRITER,
         }
-
-        res
     }
 }
 
@@ -386,22 +330,12 @@ pub enum ChartOfAccountsIntegrationConfigAction {
     Update,
 }
 
-impl ChartOfAccountsIntegrationConfigAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
-                ),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
-            };
-            res.push(action_description);
+impl ActionPermission for ChartOfAccountsIntegrationConfigAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_DEPOSIT_VIEWER,
+            Self::Update => PERMISSION_SET_DEPOSIT_WRITER,
         }
-
-        res
     }
 }
 
