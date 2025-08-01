@@ -16,7 +16,8 @@ logging.basicConfig(
     handlers=[logging.StreamHandler()],
 )
 
-# Disable logging by external packages
+# Disable logging by external packages to prevent them from
+# bloating the console output
 logging.config.dictConfig(
     {
         "version": 1,
@@ -30,8 +31,6 @@ logger = logging.getLogger(name="generate-es-reports")
 class Constants:
     """Simple namespace to store constants and avoid magic vars."""
 
-    TABLE_NAME_PATTERN = compile(r"report_([0-9a-z_]+)_\d+_(.+)")
-
     DBT_BIGQUERY_PROJECT_ENVVAR_KEY = "DBT_BIGQUERY_PROJECT"
     DBT_BIGQUERY_DATASET_ENVVAR_KEY = "DBT_BIGQUERY_DATASET"
     DOCS_BUCKET_NAME_ENVVAR_KEY = "DOCS_BUCKET_NAME"
@@ -42,10 +41,6 @@ class Constants:
     NRP_41_ID = "nrp_41"
     NRP_51_ID = "nrp_51"
     NRSF_03_ID = "nrsf_03"
-
-    XML_FORMATTABLE_NORMS = (NRP_41_ID, NRP_51_ID)
-    TXT_FORMATTABLE_NORMS = (NRSF_03_ID,)
-    CSV_FORMATTABLE_NORMS = (NRP_41_ID, NRP_51_ID, NRSF_03_ID)
 
 
 class ReportGeneratorConfig:
@@ -73,7 +68,7 @@ class ReportGeneratorConfig:
 
 
 class StorableReportOutput:
-    """The contents of a report file, together with their format."""
+    """The contents of a report file, together with their content type."""
 
     def __init__(self, report_content_type: str, report_content: str) -> None:
         self.content_type = report_content_type
@@ -183,6 +178,10 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
 
 
 class ReportJobDefinition:
+    """
+    Defines a report that must be fetched and converted into
+    certain file formats.
+    """
 
     def __init__(
         self,
@@ -197,7 +196,7 @@ class ReportJobDefinition:
         self.file_output_configs = file_output_configs
 
     @property
-    def table_name(self) -> str:
+    def source_table_name(self) -> str:
         return f"report_{self.norm}_{self.id}"
 
 
@@ -342,8 +341,6 @@ def main():
     )
 
     report_storer: ReportStorer = get_report_storer(config=report_generator_config)
-
-    gcs_report_storer = report_storer
 
     report_jobs = (
         # NRP_41 Reports - XML & CSV
@@ -569,7 +566,7 @@ def main():
         for file_output_config in report_job.file_output_configs:
             logger.info(f"Storing as {file_output_config.file_extension}.")
             storable_report = file_output_config.rows_to_report_output(
-                rows=get_rows_from_table(table_name=report_job.table_name)
+                rows=get_rows_from_table(table_name=report_job.source_table_name)
             )
             full_path = path_without_extension + "." + file_output_config.file_extension
             report_storer.store_report(path=full_path, report=storable_report)
