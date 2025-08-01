@@ -5,10 +5,7 @@ from pathlib import Path
 import logging, logging.config
 from abc import ABC, abstractmethod
 
-<<<<<<< HEAD
 import yaml
-=======
->>>>>>> b3a0e0803 (chore: building up towards new approach)
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
@@ -238,7 +235,7 @@ class ReportGeneratorConfig:
 
 
 class StorableReportOutput:
-    """The contents of a report file, together with their format."""
+    """The contents of a report file, together with their content type."""
 
     def __init__(self, report_content_type: str, report_content: str) -> None:
         self.content_type = report_content_type
@@ -348,6 +345,10 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
 
 
 class ReportJobDefinition:
+    """
+    Defines a report that must be fetched and converted into
+    certain file formats.
+    """
 
     def __init__(
         self,
@@ -362,7 +363,7 @@ class ReportJobDefinition:
         self.file_output_configs = file_output_configs
 
     @property
-    def table_name(self) -> str:
+    def source_table_name(self) -> str:
         return f"report_{self.norm}_{self.id}"
 
 
