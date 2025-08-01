@@ -1,83 +1,124 @@
-use std::fmt::{Debug, Display};
+use std::fmt::Display;
 
-/// Marker for actions with no path segment provided.
-#[derive(Clone)]
-pub struct NoPath;
-
-/// Marker for actions with both module and entity name provided.
-#[derive(Clone)]
-pub struct FullPath(String, String);
-
-/// Description of a defined action. Each description consists
-/// of a portion of its path that was known during its construction,
-/// name of the action and assigned permission sets.
-///
-/// To obtain full name of the action and its related object, both
-/// segments of the path – module and entity – need to be present (i. e. `P = FullPath`).
-#[derive(Clone)]
-pub struct ActionDescription<P: Clone> {
-    path: P,
-    name: String,
-    permission_sets: &'static [&'static str],
+/// Trait for action enums to provide their permission set
+pub trait ActionPermission {
+    fn permission_set(&self) -> &'static str;
 }
 
-impl<P: Clone> ActionDescription<P> {
-    pub fn permission_sets(&self) -> &[&'static str] {
-        self.permission_sets
-    }
+/// Simple action mapping - just the essentials!
+#[derive(Clone, Debug)]
+pub struct ActionMapping {
+    pub full_action_name: String,     // "access:user:create"
+    pub object_name: String,          // "access/user/*"
+    pub permission_set: &'static str, // "access_writer"
 }
 
-impl ActionDescription<NoPath> {
-    pub fn new<D: core::fmt::Display, const N: usize>(
-        name: D,
-        permission_sets: &'static [&'static str; N],
+impl ActionMapping {
+    /// Create a complete action mapping with all context
+    pub fn new<M: Display, E: Display, A: Display>(
+        module: M,
+        entity: E,
+        action: A,
+        permission_set: &'static str,
     ) -> Self {
+        let module_str = module.to_string();
+        let entity_str = entity.to_string();
+        let action_str = action.to_string();
+
         Self {
-            path: NoPath,
-            name: name.to_string(),
-            permission_sets,
+            full_action_name: format!("{module_str}:{entity_str}:{action_str}"),
+            object_name: format!("{module_str}/{entity_str}/*"),
+            permission_set,
         }
     }
-}
 
-impl ActionDescription<NoPath> {
-    /// Returns new action derived from this action with `module_name` and `entity_name`
-    /// added to its path.
-    pub fn inject_path<M: Display, E: Display>(
-        self,
-        module_name: M,
-        entity_name: E,
-    ) -> ActionDescription<FullPath> {
-        ActionDescription {
-            path: FullPath(module_name.to_string(), entity_name.to_string()),
-            name: self.name,
-            permission_sets: self.permission_sets,
-        }
+    /// Returns the permission set for this action
+    pub fn permission_set(&self) -> &'static str {
+        self.permission_set
+    }
+
+    /// Returns full action name: "module:entity:action"
+    pub fn action_name(&self) -> &str {
+        &self.full_action_name
+    }
+
+    /// Returns object name: "module/entity/*"
+    pub fn all_objects_name(&self) -> &str {
+        &self.object_name
     }
 }
 
-impl ActionDescription<FullPath> {
-    /// Returns full name of this action, including module and entity
-    /// to which the action belongs. The format is `module:entity:action`.
-    pub fn action_name(&self) -> String {
-        format!("{}:{}:{}", self.path.0, self.path.1, self.name)
-    }
-
-    /// Returns full name of this action's object with catch-all reference `*`.
-    /// The format is `module/entity/*`.
-    pub fn all_objects_name(&self) -> String {
-        format!("{}/{}/*", self.path.0, self.path.1)
-    }
+/// Helper to generate action mappings from enum variants  
+pub fn generate_action_mappings<T, M: Display, E: Display>(
+    module: M,
+    entity: E,
+    variants: &[T],
+) -> Vec<ActionMapping>
+where
+    T: ActionPermission + Display + Clone,
+{
+    variants
+        .iter()
+        .map(|variant| ActionMapping::new(&module, &entity, variant, variant.permission_set()))
+        .collect()
 }
 
-impl Debug for ActionDescription<FullPath> {
-    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
-        write!(
-            f,
-            "{} -> {} : {:?}",
-            self.all_objects_name(),
-            self.action_name(),
-            self.permission_sets
+/// Auto-derive module and entity names from discriminant
+pub fn auto_generate_action_mappings<T, D>(
+    module_name: &str,
+    entity_discriminant: D,
+    variants: &[T],
+) -> Vec<ActionMapping>
+where
+    T: ActionPermission + Display + Clone,
+    D: Display,
+{
+    let entity_name = entity_discriminant.to_string();
+    generate_action_mappings(module_name, entity_name, variants)
+}
+
+/// Trait for modules to provide their name
+pub trait ModuleName {
+    const MODULE_NAME: &'static str;
+}
+
+/// Fully auto-derived action mappings - no hardcoding needed!
+pub fn fully_auto_generate_action_mappings<T, D, M>(
+    entity_discriminant: D,
+    variants: &[T],
+) -> Vec<ActionMapping>
+where
+    T: ActionPermission + Display + Clone,
+    D: Display,
+    M: ModuleName,
+{
+    auto_generate_action_mappings(M::MODULE_NAME, entity_discriminant, variants)
+}
+
+/// Simplified version - just takes module name directly
+pub fn simple_auto_mappings<T>(
+    module: &str,
+    entity: impl Display,
+    variants: &[T],
+) -> Vec<ActionMapping>
+where
+    T: ActionPermission + Display + Clone,
+{
+    generate_action_mappings(module, entity, variants)
+}
+
+/// Ultra-clean macro for generating action mappings
+/// Uses the ModuleName trait from Self to automatically derive the module name
+#[macro_export]
+macro_rules! auto_mappings {
+    ($entity:expr => $action_type:ty) => {
+        $crate::action_description::simple_auto_mappings(
+            Self::MODULE_NAME,
+            $entity,
+            <$action_type as strum::VariantArray>::VARIANTS,
         )
-    }
+    };
 }
+
+// Type alias for consistency across codebase
+pub type ActionDescription = ActionMapping;

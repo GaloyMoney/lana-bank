@@ -33,42 +33,29 @@ pub enum LanaAction {
 
 impl LanaAction {
     /// Returns description of all actions defined in `LanaAction`.
-    pub fn action_descriptions() -> Vec<ActionDescription<FullPath>> {
-        use LanaActionDiscriminants::*;
-
-        fn flatten<Entity: Display + Copy>(
-            module: &LanaActionDiscriminants,
-            entity_actions: Vec<(Entity, Vec<ActionDescription<NoPath>>)>,
-        ) -> Vec<ActionDescription<FullPath>> {
+    pub fn action_descriptions() -> Vec<ActionDescription> {
+        fn flatten_entities<Entity: Display + Copy>(
+            entity_actions: Vec<(Entity, Vec<ActionDescription>)>,
+        ) -> Vec<ActionDescription> {
             entity_actions
                 .into_iter()
-                .flat_map(|(entity, actions)| {
-                    actions
-                        .into_iter()
-                        .map(move |action| action.inject_path(module, entity))
-                })
+                .flat_map(|(_, actions)| actions)
                 .collect()
         }
 
         let mut result = vec![];
 
-        for module in <LanaActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match module {
-                Audit => flatten(module, AuditAction::entities()),
-                Governance => flatten(module, GovernanceAction::entities()),
-                Access => flatten(module, CoreAccessAction::entities()),
-                Customer => flatten(module, CoreCustomerAction::entities()),
-                Accounting => flatten(module, CoreAccountingAction::entities()),
-                Dashboard => flatten(module, DashboardModuleAction::entities()),
-                Deposit => flatten(module, CoreDepositAction::entities()),
-                Credit => flatten(module, CoreCreditAction::entities()),
-                Custody => flatten(module, CoreCustodyAction::entities()),
-                Report => flatten(module, CoreReportAction::entities()),
-                Contract => flatten(module, ContractModuleAction::entities()),
-            };
-
-            result.extend(actions);
-        }
+        result.extend(flatten_entities(AuditAction::entities()));
+        result.extend(flatten_entities(GovernanceAction::entities()));
+        result.extend(flatten_entities(CoreAccessAction::entities()));
+        result.extend(flatten_entities(CoreCustomerAction::entities()));
+        result.extend(flatten_entities(CoreAccountingAction::entities()));
+        result.extend(flatten_entities(DashboardModuleAction::entities()));
+        result.extend(flatten_entities(CoreDepositAction::entities()));
+        result.extend(flatten_entities(CoreCreditAction::entities()));
+        result.extend(flatten_entities(CoreCustodyAction::entities()));
+        result.extend(flatten_entities(CoreReportAction::entities()));
+        result.extend(flatten_entities(ContractModuleAction::entities()));
 
         result
     }

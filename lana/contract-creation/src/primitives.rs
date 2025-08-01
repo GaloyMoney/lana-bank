@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::{AllOrOne, action_description::*};
+use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 
 es_entity::entity_id! {
     ContractCreationId;
@@ -17,28 +17,21 @@ pub enum ContractModuleAction {
     Contract(ContractAction),
 }
 
+// Define the module name once
+impl ModuleName for ContractModuleAction {
+    const MODULE_NAME: &'static str = "contract";
+}
+
 impl ContractModuleAction {
     pub const CONTRACT_CREATE: Self = ContractModuleAction::Contract(ContractAction::Create);
     pub const CONTRACT_FIND: Self = ContractModuleAction::Contract(ContractAction::Find);
     pub const CONTRACT_GENERATE_DOWNLOAD_LINK: Self =
         ContractModuleAction::Contract(ContractAction::GenerateDownloadLink);
 
-    pub fn entities() -> Vec<(
-        ContractModuleActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn entities() -> Vec<(ContractModuleActionDiscriminants, Vec<ActionDescription>)> {
         use ContractModuleActionDiscriminants::*;
 
-        let mut result = vec![];
-
-        for entity in <ContractModuleActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Contract => ContractAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-        result
+        vec![(Contract, auto_mappings!(Contract => ContractAction))]
     }
 }
 
@@ -73,24 +66,20 @@ pub enum ContractAction {
     GenerateDownloadLink,
 }
 
-impl ContractAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION])
-                }
-                Self::Find => ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION]),
-                Self::GenerateDownloadLink => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION])
-                }
-            };
-            res.push(action_description);
+impl ActionPermission for ContractAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            // All contract actions use the same permission set
+            Self::Create | Self::Find | Self::GenerateDownloadLink => {
+                PERMISSION_SET_CONTRACT_CREATION
+            }
         }
+    }
+}
 
-        res
+impl ContractAction {
+    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
+        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 

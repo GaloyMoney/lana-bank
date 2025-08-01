@@ -1,4 +1,4 @@
-use authz::action_description::*;
+use authz::{ActionPermission, action_description::*, auto_mappings};
 use std::{fmt::Display, str::FromStr};
 
 pub const PERMISSION_SET_AUDIT_VIEWER: &str = "audit_viewer";
@@ -10,21 +10,16 @@ pub enum AuditAction {
     Audit(AuditEntityAction),
 }
 
+// Define the module name once
+impl ModuleName for AuditAction {
+    const MODULE_NAME: &'static str = "audit";
+}
+
 impl AuditAction {
-    pub fn entities() -> Vec<(AuditActionDiscriminants, Vec<ActionDescription<NoPath>>)> {
+    pub fn entities() -> Vec<(AuditActionDiscriminants, Vec<ActionDescription>)> {
         use AuditActionDiscriminants::*;
 
-        let mut result = vec![];
-
-        for entity in <AuditActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Audit => AuditEntityAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-
-        result
+        vec![(Audit, auto_mappings!(Audit => AuditEntityAction))]
     }
 }
 
@@ -59,18 +54,17 @@ pub enum AuditEntityAction {
     List,
 }
 
-impl AuditEntityAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::List => ActionDescription::new(variant, &[PERMISSION_SET_AUDIT_VIEWER]),
-            };
-            res.push(action_description);
+impl ActionPermission for AuditEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::List => PERMISSION_SET_AUDIT_VIEWER,
         }
+    }
+}
 
-        res
+impl AuditEntityAction {
+    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
+        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 
