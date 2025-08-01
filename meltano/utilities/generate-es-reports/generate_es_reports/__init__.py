@@ -209,6 +209,7 @@ def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
 
 
 def main():
+    logger.info("Starting run.")
     report_generator_config = get_config_from_env()
 
     credentials = service_account.Credentials.from_service_account_file(
@@ -226,6 +227,7 @@ def main():
 
     for table in tables_iter:
         table_name = table.table_id
+        logger.info(f"Working on table {table_name}.")
         match = Constants.TABLE_NAME_PATTERN.match(table_name)
         if not match:
             continue
@@ -292,6 +294,8 @@ def main():
                     report_content_type="text/plain",
                 ),
             )
+
+    logger.info("Finished run.")
 
 
 if __name__ == "__main__":
