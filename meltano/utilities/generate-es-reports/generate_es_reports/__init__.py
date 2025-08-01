@@ -1,7 +1,6 @@
 import os
 import io
 import csv
-from enum import Enum
 from re import compile
 from pathlib import Path
 from abc import ABC, abstractmethod
