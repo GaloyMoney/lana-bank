@@ -33,7 +33,7 @@ impl ContractModuleAction {
 
         for entity in <ContractModuleActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                Contract => ContractAction::describe(),
+                Contract => ContractAction::describe_v2(), // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -85,6 +85,25 @@ impl ContractAction {
                 Self::Find => ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION]),
                 Self::GenerateDownloadLink => {
                     ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_CONTRACT_CREATION),
+                Self::Find => ActionDescription::new2(variant, PERMISSION_SET_CONTRACT_CREATION),
+                Self::GenerateDownloadLink => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CONTRACT_CREATION)
                 }
             };
             res.push(action_description);

@@ -88,9 +88,9 @@ impl GovernanceAction {
 
         for entity in <GovernanceActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                Committee => CommitteeAction::describe(),
-                Policy => PolicyAction::describe(),
-                ApprovalProcess => ApprovalProcessAction::describe(),
+                Committee => CommitteeAction::describe_v2(), // ✅ Migrated
+                Policy => PolicyAction::describe_v2(),       // ✅ Migrated
+                ApprovalProcess => ApprovalProcessAction::describe_v2(), // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -171,6 +171,29 @@ impl CommitteeAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER),
+                Self::AddMember => {
+                    ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER)
+                }
+                Self::RemoveMember => {
+                    ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER)
+                }
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_VIEWER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
@@ -207,6 +230,26 @@ impl PolicyAction {
                 ),
                 Self::UpdatePolicyRules => {
                     ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_VIEWER),
+                Self::UpdatePolicyRules => {
+                    ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER)
                 }
             };
             res.push(action_description);
@@ -256,6 +299,28 @@ impl ApprovalProcessAction {
                 Self::Deny => ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER]),
                 Self::Conclude => {
                     ActionDescription::new(variant, &[PERMISSION_SET_GOVERNANCE_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_VIEWER),
+                Self::Approve => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER),
+                Self::Deny => ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER),
+                Self::Conclude => {
+                    ActionDescription::new2(variant, PERMISSION_SET_GOVERNANCE_WRITER)
                 }
             };
             res.push(action_description);

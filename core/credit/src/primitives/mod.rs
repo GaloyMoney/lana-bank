@@ -296,13 +296,13 @@ impl CoreCreditAction {
 
         for entity in <CoreCreditActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                CreditFacility => CreditFacilityAction::describe(),
+                CreditFacility => CreditFacilityAction::describe_v2(), // ✅ Migrated
                 ChartOfAccountsIntegrationConfig => {
-                    ChartOfAccountsIntegrationConfigAction::describe()
+                    ChartOfAccountsIntegrationConfigAction::describe_v2() // ✅ Migrated
                 }
-                Disbursal => DisbursalAction::describe(),
-                Obligation => ObligationAction::describe(),
-                TermsTemplate => TermsTemplateAction::describe(),
+                Disbursal => DisbursalAction::describe_v2(), // ✅ Migrated
+                Obligation => ObligationAction::describe_v2(), // ✅ Migrated
+                TermsTemplate => TermsTemplateAction::describe_v2(), // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -396,6 +396,37 @@ impl CreditFacilityAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
+                Self::ConcludeApprovalProcess => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER)
+                }
+                Self::Activate => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
+                Self::UpdateCollateral => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER)
+                }
+                Self::RecordInterest => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER)
+                }
+                Self::Complete => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
+                Self::UpdateCollateralizationState => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER)
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<CreditFacilityAction> for CoreCreditAction {
@@ -435,6 +466,24 @@ impl DisbursalAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Initiate => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
+                Self::Settle => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<DisbursalAction> for CoreCreditAction {
@@ -461,6 +510,22 @@ impl ChartOfAccountsIntegrationConfigAction {
                     &[PERMISSION_SET_CREDIT_WRITER, PERMISSION_SET_CREDIT_VIEWER],
                 ),
                 Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
             };
             res.push(action_description);
         }
@@ -505,6 +570,27 @@ impl ObligationAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
+                Self::UpdateStatus => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER)
+                }
+                Self::RecordPaymentAllocation => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER)
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<ObligationAction> for CoreCreditAction {
@@ -538,6 +624,24 @@ impl TermsTemplateAction {
                     variant,
                     &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
                 ),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_WRITER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_CREDIT_VIEWER),
             };
             res.push(action_description);
         }

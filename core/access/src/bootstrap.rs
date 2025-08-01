@@ -143,7 +143,12 @@ where
             .await?;
 
         for (name, sets) in predefined_roles {
-            let sets = sets
+            // Expand permission sets to include hierarchical permissions
+            // e.g., if role has "access_writer", automatically include "access_viewer"
+            let expanded_permission_names =
+                crate::primitives::expand_permission_sets_with_hierarchy(sets);
+
+            let sets = expanded_permission_names
                 .iter()
                 .map(|set| all_permission_sets.get(*set).unwrap())
                 .copied()

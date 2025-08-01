@@ -46,8 +46,8 @@ impl CoreCustodyAction {
 
         for entity in <CoreCustodyActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                Custodian => CustodianAction::describe(),
-                Wallet => WalletAction::describe(),
+                Custodian => CustodianAction::describe_v2(), // ✅ Migrated
+                Wallet => WalletAction::describe_v2(),       // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -114,6 +114,26 @@ impl CustodianAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_CUSTODY_WRITER),
+                Self::CreateWallet => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CUSTODY_WRITER)
+                }
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_CUSTODY_VIEWER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_CUSTODY_WRITER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<CustodianAction> for CoreCustodyAction {
@@ -135,6 +155,21 @@ impl WalletAction {
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
                 Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_CUSTODY_WRITER),
             };
             res.push(action_description);
         }

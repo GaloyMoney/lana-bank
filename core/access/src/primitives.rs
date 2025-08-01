@@ -19,6 +19,134 @@ pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 pub const PERMISSION_SET_ACCESS_WRITER: &str = "access_writer";
 pub const PERMISSION_SET_ACCESS_VIEWER: &str = "access_viewer";
 
+/// Expands permission set names to include hierarchical permissions.
+/// When a "writer" permission is requested, the corresponding "viewer" permission
+/// is automatically included, since writers should be able to read.
+pub fn expand_permission_sets_with_hierarchy<'a>(
+    permission_set_names: &'a [&'a str],
+) -> Vec<&'a str> {
+    let mut expanded = std::collections::HashSet::new();
+
+    for &permission in permission_set_names {
+        expanded.insert(permission);
+
+        // Add implied permissions: writer permissions include viewer permissions
+        match permission {
+            PERMISSION_SET_ACCESS_WRITER => {
+                expanded.insert(PERMISSION_SET_ACCESS_VIEWER);
+            }
+            "accounting_writer" => {
+                expanded.insert("accounting_viewer");
+            }
+            "deposit_writer" => {
+                expanded.insert("deposit_viewer");
+            }
+            "credit_writer" => {
+                expanded.insert("credit_viewer");
+            }
+            "customer_writer" => {
+                expanded.insert("customer_viewer");
+            }
+            "custody_writer" => {
+                expanded.insert("custody_viewer");
+            }
+            "governance_writer" => {
+                expanded.insert("governance_viewer");
+            }
+            "report_writer" => {
+                expanded.insert("report_viewer");
+            }
+            // TODO: Add other module hierarchies as we migrate them:
+            // etc.
+            _ => {} // No hierarchy for viewer permissions or other types
+        }
+    }
+
+    expanded.into_iter().collect()
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    #[test]
+    fn test_hierarchy_expansion_includes_viewer_for_writer() {
+        // Test that when we request ACCESS_WRITER, we automatically get ACCESS_VIEWER too
+        let input = &[PERMISSION_SET_ACCESS_WRITER];
+        let result = expand_permission_sets_with_hierarchy(input);
+
+        assert!(result.contains(&PERMISSION_SET_ACCESS_WRITER));
+        assert!(result.contains(&PERMISSION_SET_ACCESS_VIEWER));
+        assert_eq!(result.len(), 2);
+    }
+
+    #[test]
+    fn test_hierarchy_expansion_viewer_only() {
+        // Test that when we request ACCESS_VIEWER, we only get ACCESS_VIEWER
+        let input = &[PERMISSION_SET_ACCESS_VIEWER];
+        let result = expand_permission_sets_with_hierarchy(input);
+
+        assert!(result.contains(&PERMISSION_SET_ACCESS_VIEWER));
+        assert!(!result.contains(&PERMISSION_SET_ACCESS_WRITER));
+        assert_eq!(result.len(), 1);
+    }
+
+    #[test]
+    fn test_hierarchy_expansion_no_duplicates() {
+        // Test that if we request both writer and viewer, we don't get duplicates
+        let input = &[PERMISSION_SET_ACCESS_WRITER, PERMISSION_SET_ACCESS_VIEWER];
+        let result = expand_permission_sets_with_hierarchy(input);
+
+        assert!(result.contains(&PERMISSION_SET_ACCESS_WRITER));
+        assert!(result.contains(&PERMISSION_SET_ACCESS_VIEWER));
+        assert_eq!(result.len(), 2); // Should not have duplicates
+    }
+
+    #[test]
+    fn test_new_action_description_api() {
+        // Test the new simplified ActionDescription API
+        let action_desc = ActionDescription::new2(RoleAction::Read, PERMISSION_SET_ACCESS_VIEWER);
+
+        assert_eq!(action_desc.permission_sets().len(), 1);
+        assert_eq!(
+            action_desc.permission_sets()[0],
+            PERMISSION_SET_ACCESS_VIEWER
+        );
+    }
+
+    #[test]
+    fn test_complete_migration_simplified_permissions() {
+        // Test that all action types now use simplified single-permission approach
+        let user_actions = UserAction::describe_v2();
+        let role_actions = RoleAction::describe_v2();
+        let permission_set_actions = PermissionSetAction::describe_v2();
+
+        // All actions should now have exactly 1 permission set (no more arrays)
+        for action in user_actions {
+            assert_eq!(action.permission_sets().len(), 1);
+        }
+        for action in role_actions {
+            assert_eq!(action.permission_sets().len(), 1);
+        }
+        for action in permission_set_actions {
+            assert_eq!(action.permission_sets().len(), 1);
+        }
+
+        // Verify specific mappings: reads require viewer, writes require writer
+        let read_actions = [
+            UserAction::describe_v2()
+                .into_iter()
+                .find(|a| a.permission_sets()[0] == PERMISSION_SET_ACCESS_VIEWER),
+            RoleAction::describe_v2()
+                .into_iter()
+                .find(|a| a.permission_sets()[0] == PERMISSION_SET_ACCESS_VIEWER),
+        ];
+
+        // Should have read actions that only require viewer permission
+        assert!(read_actions.iter().any(|a| a.is_some()));
+    }
+}
+
 /// Type representing a role identifier for an underlying authorization subsystem.
 /// Any type that is convertible to `AuthRoleToken` can be used as such role.
 #[derive(Clone, Debug)]
@@ -142,9 +270,9 @@ impl CoreAccessAction {
 
         for entity in <CoreAccessActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                User => UserAction::describe(),
-                Role => RoleAction::describe(),
-                PermissionSet => PermissionSetAction::describe(),
+                User => UserAction::describe_v2(), // Using new simplified API
+                Role => RoleAction::describe_v2(), // Using new simplified API
+                PermissionSet => PermissionSetAction::describe_v2(), // Using new simplified API
             };
 
             result.push((*entity, actions));
@@ -185,6 +313,24 @@ impl RoleAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_WRITER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_VIEWER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
@@ -203,6 +349,21 @@ impl PermissionSetAction {
                     variant,
                     &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
                 ),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_VIEWER),
             };
             res.push(action_description);
         }
@@ -243,6 +404,28 @@ impl UserAction {
                 }
                 Self::UpdateAuthenticationId => {
                     ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_VIEWER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_WRITER),
+                Self::UpdateRole => ActionDescription::new2(variant, PERMISSION_SET_ACCESS_WRITER),
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new2(variant, PERMISSION_SET_ACCESS_WRITER)
                 }
             };
             res.push(action_description);

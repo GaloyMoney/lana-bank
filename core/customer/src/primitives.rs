@@ -203,8 +203,8 @@ impl CoreCustomerAction {
 
         for entity in <CoreCustomerActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                Customer => CustomerEntityAction::describe(),
-                CustomerDocument => CustomerDocumentEntityAction::describe(),
+                Customer => CustomerEntityAction::describe_v2(), // ✅ Migrated
+                CustomerDocument => CustomerDocumentEntityAction::describe_v2(), // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -267,6 +267,34 @@ impl CustomerEntityAction {
 
                 Self::DeclineKyc => {
                     ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_VIEWER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER),
+                Self::UpdateAuthenticationId => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER)
+                }
+                Self::StartKyc => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER),
+                Self::ApproveKyc => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER)
+                }
+                Self::DeclineKyc => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER)
                 }
             };
             res.push(action_description);
@@ -352,6 +380,27 @@ impl CustomerDocumentEntityAction {
                 ),
 
                 Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_VIEWER),
+                Self::GenerateDownloadLink => {
+                    ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_VIEWER)
+                }
+                Self::Delete => ActionDescription::new2(variant, PERMISSION_SET_CUSTOMER_WRITER),
             };
             res.push(action_description);
         }

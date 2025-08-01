@@ -18,12 +18,12 @@ pub struct FullPath(String, String);
 pub struct ActionDescription<P: Clone> {
     path: P,
     name: String,
-    permission_sets: &'static [&'static str],
+    permission_sets: Vec<&'static str>,
 }
 
 impl<P: Clone> ActionDescription<P> {
     pub fn permission_sets(&self) -> &[&'static str] {
-        self.permission_sets
+        &self.permission_sets
     }
 }
 
@@ -35,7 +35,17 @@ impl ActionDescription<NoPath> {
         Self {
             path: NoPath,
             name: name.to_string(),
-            permission_sets,
+            permission_sets: permission_sets.to_vec(),
+        }
+    }
+
+    /// Simplified constructor that takes a single permission instead of an array.
+    /// This is the new approach where hierarchy is handled at role assignment time.
+    pub fn new2<D: core::fmt::Display>(name: D, permission_set: &'static str) -> Self {
+        Self {
+            path: NoPath,
+            name: name.to_string(),
+            permission_sets: vec![permission_set],
         }
     }
 }

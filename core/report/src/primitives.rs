@@ -79,7 +79,7 @@ impl CoreReportAction {
 
         for entity in <CoreReportActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                Report => ReportEntityAction::describe(),
+                Report => ReportEntityAction::describe_v2(), // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -107,6 +107,22 @@ impl ReportEntityAction {
                     variant,
                     &[PERMISSION_SET_REPORT_VIEWER, PERMISSION_SET_REPORT_WRITER],
                 ),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Generate => ActionDescription::new2(variant, PERMISSION_SET_REPORT_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_REPORT_VIEWER),
             };
             res.push(action_description);
         }

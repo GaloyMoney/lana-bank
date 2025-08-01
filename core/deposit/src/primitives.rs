@@ -196,12 +196,12 @@ impl CoreDepositAction {
 
         for entity in <CoreDepositActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                DepositAccount => DepositAccountAction::describe(),
-                Deposit => DepositAction::describe(),
+                DepositAccount => DepositAccountAction::describe_v2(), // ✅ Migrated
+                Deposit => DepositAction::describe_v2(),               // ✅ Migrated
                 ChartOfAccountsIntegrationConfig => {
-                    ChartOfAccountsIntegrationConfigAction::describe()
+                    ChartOfAccountsIntegrationConfigAction::describe_v2() // ✅ Migrated
                 }
-                Withdrawal => WithdrawalAction::describe(),
+                Withdrawal => WithdrawalAction::describe_v2(), // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -285,6 +285,32 @@ impl DepositAccountAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER),
+                Self::UpdateStatus => {
+                    ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER)
+                }
+                Self::ReadBalance => {
+                    ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER)
+                }
+                Self::ReadTxHistory => {
+                    ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER)
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<DepositAccountAction> for CoreDepositAction {
@@ -318,6 +344,24 @@ impl DepositAction {
                     variant,
                     &[PERMISSION_SET_DEPOSIT_WRITER, PERMISSION_SET_DEPOSIT_VIEWER],
                 ),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
+                Self::Revert => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER),
             };
             res.push(action_description);
         }
@@ -371,6 +415,29 @@ impl WithdrawalAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Cancel => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER),
+                Self::Initiate => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
+                Self::ConcludeApprovalProcess => {
+                    ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER)
+                }
+                Self::Confirm => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
+                Self::Revert => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<WithdrawalAction> for CoreDepositAction {
@@ -397,6 +464,22 @@ impl ChartOfAccountsIntegrationConfigAction {
                     &[PERMISSION_SET_DEPOSIT_VIEWER, PERMISSION_SET_DEPOSIT_WRITER],
                 ),
                 Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_DEPOSIT_WRITER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_VIEWER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_DEPOSIT_WRITER),
             };
             res.push(action_description);
         }

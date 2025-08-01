@@ -381,18 +381,18 @@ impl CoreAccountingAction {
 
         for entity in <CoreAccountingActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                D::Chart => ChartAction::describe(),
-                D::Journal => JournalAction::describe(),
-                D::LedgerAccount => LedgerAccountAction::describe(),
-                D::LedgerTransaction => LedgerTransactionAction::describe(),
-                D::TransactionTemplate => TransactionTemplateAction::describe(),
-                D::ManualTransaction => ManualTransactionAction::describe(),
-                D::ProfitAndLoss => ProfitAndLossAction::describe(),
-                D::ProfitAndLossConfiguration => ProfitAndLossConfigurationAction::describe(),
-                D::BalanceSheet => BalanceSheetAction::describe(),
-                D::BalanceSheetConfiguration => BalanceSheetConfigurationAction::describe(),
-                D::AccountingCsv => AccountingCsvAction::describe(),
-                D::TrialBalance => TrialBalanceAction::describe(),
+                D::Chart => ChartAction::describe_v2(),
+                D::Journal => JournalAction::describe_v2(), // ✅ Migrated
+                D::LedgerAccount => LedgerAccountAction::describe_v2(), // ✅ Migrated
+                D::LedgerTransaction => LedgerTransactionAction::describe_v2(), // ✅ Migrated
+                D::TransactionTemplate => TransactionTemplateAction::describe_v2(), // ✅ Migrated
+                D::ManualTransaction => ManualTransactionAction::describe_v2(), // ✅ Migrated
+                D::ProfitAndLoss => ProfitAndLossAction::describe_v2(), // ✅ Migrated
+                D::ProfitAndLossConfiguration => ProfitAndLossConfigurationAction::describe_v2(), // ✅ Migrated
+                D::BalanceSheet => BalanceSheetAction::describe_v2(), // ✅ Migrated
+                D::BalanceSheetConfiguration => BalanceSheetConfigurationAction::describe_v2(), // ✅ Migrated
+                D::AccountingCsv => AccountingCsvAction::describe_v2(), // ✅ Migrated
+                D::TrialBalance => TrialBalanceAction::describe_v2(),   // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -766,6 +766,26 @@ impl ChartAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::ImportAccounts => {
+                    ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER)
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<ChartAction> for CoreAccountingAction {
@@ -802,6 +822,25 @@ impl LedgerTransactionAction {
                 ],
             };
             res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::ReadHistory => {
+                    ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER)
+                }
+            };
+            res.push(action_description);
         }
 
         res
@@ -851,6 +890,25 @@ impl LedgerAccountAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::ReadHistory => {
+                    ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER)
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<LedgerAccountAction> for CoreAccountingAction {
@@ -881,6 +939,23 @@ impl JournalAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::ReadEntries => {
+                    ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER)
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<JournalAction> for CoreAccountingAction {
@@ -907,6 +982,21 @@ impl TransactionTemplateAction {
                 ],
             };
             res.push(ActionDescription::new(variant, set));
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+            };
+            res.push(action_description);
         }
 
         res
@@ -956,6 +1046,23 @@ impl ManualTransactionAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<ManualTransactionAction> for CoreAccountingAction {
@@ -991,6 +1098,23 @@ impl ProfitAndLossAction {
                         PERMISSION_SET_ACCOUNTING_WRITER,
                     ],
                 ),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
             };
             res.push(action_description);
         }
@@ -1034,6 +1158,22 @@ impl ProfitAndLossConfigurationAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
@@ -1071,6 +1211,22 @@ impl BalanceSheetAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<BalanceSheetAction> for CoreAccountingAction {
@@ -1091,7 +1247,7 @@ impl BalanceSheetConfigurationAction {
         let mut res = vec![];
 
         for variant in <Self as strum::VariantArray>::VARIANTS {
-            let set = match variant {
+            let action_description = match variant {
                 Self::Update => {
                     ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_WRITER])
                 }
@@ -1103,7 +1259,23 @@ impl BalanceSheetConfigurationAction {
                     ],
                 ),
             };
-            res.push(set);
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+            };
+            res.push(action_description);
         }
 
         res
@@ -1161,6 +1333,29 @@ impl AccountingCsvAction {
 
         res
     }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Generate => {
+                    ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER)
+                }
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::Download => {
+                    ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER)
+                }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
 }
 
 impl From<AccountingCsvAction> for CoreAccountingAction {
@@ -1196,6 +1391,23 @@ impl TrialBalanceAction {
                 Self::Update => {
                     ActionDescription::new(variant, &[PERMISSION_SET_ACCOUNTING_VIEWER])
                 }
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::Read => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_VIEWER),
+                Self::Create => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
+                Self::Update => ActionDescription::new2(variant, PERMISSION_SET_ACCOUNTING_WRITER),
             };
             res.push(action_description);
         }

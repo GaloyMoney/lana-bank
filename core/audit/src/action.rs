@@ -18,7 +18,7 @@ impl AuditAction {
 
         for entity in <AuditActionDiscriminants as strum::VariantArray>::VARIANTS {
             let actions = match entity {
-                Audit => AuditEntityAction::describe(),
+                Audit => AuditEntityAction::describe_v2(), // ✅ Migrated
             };
 
             result.push((*entity, actions));
@@ -66,6 +66,21 @@ impl AuditEntityAction {
         for variant in <Self as strum::VariantArray>::VARIANTS {
             let action_description = match variant {
                 Self::List => ActionDescription::new(variant, &[PERMISSION_SET_AUDIT_VIEWER]),
+            };
+            res.push(action_description);
+        }
+
+        res
+    }
+
+    /// New simplified approach: each action specifies the minimum required permission.
+    /// Hierarchy is handled when assigning permissions to roles.
+    pub fn describe_v2() -> Vec<ActionDescription<NoPath>> {
+        let mut res = vec![];
+
+        for variant in <Self as strum::VariantArray>::VARIANTS {
+            let action_description = match variant {
+                Self::List => ActionDescription::new2(variant, PERMISSION_SET_AUDIT_VIEWER),
             };
             res.push(action_description);
         }
