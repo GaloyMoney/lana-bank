@@ -5,7 +5,10 @@ from pathlib import Path
 import logging, logging.config
 from abc import ABC, abstractmethod
 
+<<<<<<< HEAD
 import yaml
+=======
+>>>>>>> b3a0e0803 (chore: building up towards new approach)
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
@@ -241,11 +244,10 @@ class FileOutputConfig(ABC):
 
     def __init_subclass__(cls):
 
-        getattr(cls.__class__, "file_extension")
         mandatory_class_attributes = ("file_extension", "content_type")
 
         for attribute in mandatory_class_attributes:
-            if getattr(cls.__class__, attribute) is NotImplemented:
+            if getattr(cls, attribute) is NotImplemented:
                 raise NotImplementedError(f"{cls.__name__} must define '{attribute}'")
 
 
@@ -253,6 +255,9 @@ class XMLFileOutputConfig(FileOutputConfig):
 
     file_extension = "xml"
     content_type = "text/xml"
+
+    def __init__(self) -> None:
+        pass
 
 
 class CSVFileOutputConfig(FileOutputConfig):
@@ -278,7 +283,7 @@ class TXTFileOutputConfig(FileOutputConfig):
 class ReportJobDefinition:
 
     def __init__(
-        self, norm: str, id: str, file_output_configs: tuple[FileOutputConfig]
+        self, norm: str, id: str, file_output_configs: tuple[FileOutputConfig, ...]
     ):
         self.norm = norm
         self.id = id
