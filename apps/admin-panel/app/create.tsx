@@ -45,7 +45,6 @@ import {
   GetCommitteeDetailsQuery,
   TermsTemplateQuery,
   GetDisbursalDetailsQuery,
-  KycLevel,
 } from "@/lib/graphql/generated"
 
 export const PATH_CONFIGS = {
