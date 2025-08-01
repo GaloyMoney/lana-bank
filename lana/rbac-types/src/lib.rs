@@ -54,9 +54,6 @@ impl std::str::FromStr for PermissionSetName {
             core_accounting::PERMISSION_SET_ACCOUNTING_VIEWER => Ok(AccountingViewer),
             core_accounting::PERMISSION_SET_ACCOUNTING_WRITER => Ok(AccountingWriter),
 
-            crate::action::PERMISSION_SET_APP_VIEWER => Ok(AppViewer),
-            crate::action::PERMISSION_SET_APP_WRITER => Ok(AppWriter),
-
             core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
             core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
 

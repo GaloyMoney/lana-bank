@@ -14,9 +14,6 @@ use core_report::CoreReportAction;
 use dashboard::DashboardModuleAction;
 use governance::GovernanceAction;
 
-pub const PERMISSION_SET_APP_VIEWER: &str = "app_viewer";
-pub const PERMISSION_SET_APP_WRITER: &str = "app_writer";
-
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString, strum::VariantArray))]
 #[strum_discriminants(strum(serialize_all = "kebab-case"))]
