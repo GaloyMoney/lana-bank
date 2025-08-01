@@ -117,32 +117,27 @@ where
             .find_by_id(self.config.report_run_id)
             .await?;
 
-        let Some(details) = self
+        while let Some(details) = self
             .airflow
             .reports()
             .get_run(&report_run.external_id)
             .await?
-        else {
-            return Ok(JobCompletion::RescheduleNow);
-        };
+        {
+            if ReportRunState::from(details.state) == ReportRunState::Queued {
+                break;
+            }
 
-        if report_run.state == details.state.into() {
-            return Ok(JobCompletion::RescheduleNow);
-        }
+            if ReportRunState::from(details.state) != report_run.state {
+                report_run.update_state(
+                    details.state.into(),
+                    details.run_type.into(),
+                    details.execution_date,
+                    details.start_date,
+                    details.end_date,
+                );
+                self.report_run_repo.update(&mut report_run).await?;
+            }
 
-        report_run.update_state(
-            details.state.into(),
-            details.run_type.into(),
-            details.execution_date,
-            details.start_date,
-            details.end_date,
-        );
-        self.report_run_repo.update(&mut report_run).await?;
-
-        if matches!(
-            report_run.state,
-            ReportRunState::Failed | ReportRunState::Success
-        ) {
             if let Some(reports) = details.reports {
                 for report in reports {
                     let new_report = NewReport::builder()
@@ -152,12 +147,27 @@ where
                         .norm(report.norm)
                         .files(report.files.into_iter().map(Into::into).collect())
                         .build()?;
-                    self.report_repo.create(new_report).await?;
+
+                    match self.report_repo.create(new_report).await {
+                        Ok(_) => {}
+                        Err(e)
+                            if e.to_string()
+                                .contains("duplicate key value violates unique constraint") => {}
+                        Err(e) => {
+                            return Err(e.into());
+                        }
+                    }
                 }
             }
-            Ok(JobCompletion::Complete)
-        } else {
-            Ok(JobCompletion::RescheduleNow)
+
+            if matches!(
+                report_run.state,
+                ReportRunState::Failed | ReportRunState::Success
+            ) {
+                return Ok(JobCompletion::Complete);
+            }
         }
+
+        Ok(JobCompletion::RescheduleNow)
     }
 }

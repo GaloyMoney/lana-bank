@@ -14,5 +14,5 @@ pub struct ReportConfig {
 }
 
 fn default_find_new_report_run_job_interval() -> Duration {
-    Duration::from_secs(60 * 1)
+    Duration::from_secs(60)
 }
