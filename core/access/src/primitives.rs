@@ -139,9 +139,7 @@ impl CoreAccessAction {
             auto_mappings!(Role => RoleAction),
             auto_mappings!(PermissionSet => PermissionSetAction),
         ]
-        .into_iter()
-        .flatten()
-        .collect()
+        .concat()
     }
 }
 

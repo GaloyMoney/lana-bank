@@ -47,9 +47,7 @@ impl LanaAction {
             CoreReportAction::actions(),
             ContractModuleAction::actions(),
         ]
-        .into_iter()
-        .flatten()
-        .collect()
+        .concat()
     }
 }
 
