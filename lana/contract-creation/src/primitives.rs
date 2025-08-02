@@ -23,10 +23,9 @@ impl ContractModuleAction {
     pub const CONTRACT_GENERATE_DOWNLOAD_LINK: Self =
         ContractModuleAction::Contract(ContractAction::GenerateDownloadLink);
 
-    pub fn entities() -> Vec<(ContractModuleActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use ContractModuleActionDiscriminants::*;
-
-        vec![(Contract, auto_mappings!(Contract => ContractAction))]
+        auto_mappings!(Contract => ContractAction)
     }
 }
 

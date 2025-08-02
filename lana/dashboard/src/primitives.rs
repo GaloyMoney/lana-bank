@@ -14,10 +14,9 @@ pub enum DashboardModuleAction {
 impl DashboardModuleAction {
     pub const DASHBOARD_READ: Self = DashboardModuleAction::Dashboard(DashboardAction::Read);
 
-    pub fn entities() -> Vec<(DashboardModuleActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use DashboardModuleActionDiscriminants::*;
-
-        vec![(Dashboard, auto_mappings!(Dashboard => DashboardAction))]
+        auto_mappings!(Dashboard => DashboardAction)
     }
 }
 

@@ -193,16 +193,15 @@ impl CoreCustomerAction {
     pub const CUSTOMER_DOCUMENT_GENERATE_DOWNLOAD_LINK: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::GenerateDownloadLink);
 
-    pub fn entities() -> Vec<(CoreCustomerActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use CoreCustomerActionDiscriminants::*;
-
-        vec![
-            (Customer, auto_mappings!(Customer => CustomerEntityAction)),
-            (
-                CustomerDocument,
-                auto_mappings!(CustomerDocument => CustomerDocumentEntityAction),
-            ),
+        [
+            auto_mappings!(Customer => CustomerEntityAction),
+            auto_mappings!(CustomerDocument => CustomerDocumentEntityAction),
         ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 }
 
@@ -222,7 +221,6 @@ pub enum CustomerEntityAction {
 impl ActionPermission for CustomerEntityAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
 
             // All other operations use WRITER permission
@@ -282,10 +280,8 @@ pub enum CustomerDocumentEntityAction {
 impl ActionPermission for CustomerDocumentEntityAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::Read | Self::List | Self::GenerateDownloadLink => PERMISSION_SET_CUSTOMER_VIEWER,
 
-            // Write operations use WRITER permission
             Self::Create | Self::Delete => PERMISSION_SET_CUSTOMER_WRITER,
         }
     }

@@ -132,17 +132,16 @@ impl CoreAccessAction {
     pub const PERMISSION_SET_LIST: Self =
         CoreAccessAction::PermissionSet(PermissionSetAction::List);
 
-    pub fn entities() -> Vec<(CoreAccessActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use CoreAccessActionDiscriminants::*;
-
-        vec![
-            (User, auto_mappings!(User => UserAction)),
-            (Role, auto_mappings!(Role => RoleAction)),
-            (
-                PermissionSet,
-                auto_mappings!(PermissionSet => PermissionSetAction),
-            ),
+        [
+            auto_mappings!(User => UserAction),
+            auto_mappings!(Role => RoleAction),
+            auto_mappings!(PermissionSet => PermissionSetAction),
         ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 }
 
@@ -158,10 +157,8 @@ pub enum RoleAction {
 impl ActionPermission for RoleAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::Read | Self::List => PERMISSION_SET_ACCESS_VIEWER,
 
-            // Write operations use WRITER permission
             Self::Create | Self::Update => PERMISSION_SET_ACCESS_WRITER,
         }
     }
@@ -207,10 +204,8 @@ pub enum UserAction {
 impl ActionPermission for UserAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::Read | Self::List => PERMISSION_SET_ACCESS_VIEWER,
 
-            // Write operations use WRITER permission
             Self::Create | Self::Update | Self::UpdateRole | Self::UpdateAuthenticationId => {
                 PERMISSION_SET_ACCESS_WRITER
             }

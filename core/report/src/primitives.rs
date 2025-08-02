@@ -69,10 +69,9 @@ impl CoreReportAction {
     pub const REPORT_GENERATE: Self = CoreReportAction::Report(ReportEntityAction::Generate);
     pub const REPORT_READ: Self = CoreReportAction::Report(ReportEntityAction::Read);
 
-    pub fn entities() -> Vec<(CoreReportActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use CoreReportActionDiscriminants::*;
-
-        vec![(Report, auto_mappings!(Report => ReportEntityAction))]
+        auto_mappings!(Report => ReportEntityAction)
     }
 }
 

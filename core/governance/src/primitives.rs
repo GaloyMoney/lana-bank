@@ -78,17 +78,16 @@ impl GovernanceAction {
     pub const APPROVAL_PROCESS_CONCLUDE: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude);
 
-    pub fn entities() -> Vec<(GovernanceActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use GovernanceActionDiscriminants::*;
-
-        vec![
-            (Committee, auto_mappings!(Committee => CommitteeAction)),
-            (Policy, auto_mappings!(Policy => PolicyAction)),
-            (
-                ApprovalProcess,
-                auto_mappings!(ApprovalProcess => ApprovalProcessAction),
-            ),
+        [
+            auto_mappings!(Committee => CommitteeAction),
+            auto_mappings!(Policy => PolicyAction),
+            auto_mappings!(ApprovalProcess => ApprovalProcessAction),
         ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 }
 
@@ -132,10 +131,8 @@ pub enum CommitteeAction {
 impl ActionPermission for CommitteeAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::Read | Self::List => PERMISSION_SET_GOVERNANCE_VIEWER,
 
-            // Write operations use WRITER permission
             Self::Create | Self::AddMember | Self::RemoveMember => PERMISSION_SET_GOVERNANCE_WRITER,
         }
     }
@@ -159,10 +156,8 @@ pub enum PolicyAction {
 impl ActionPermission for PolicyAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::Read | Self::List => PERMISSION_SET_GOVERNANCE_VIEWER,
 
-            // Write operations use WRITER permission
             Self::Create | Self::UpdatePolicyRules => PERMISSION_SET_GOVERNANCE_WRITER,
         }
     }
@@ -188,10 +183,8 @@ pub enum ApprovalProcessAction {
 impl ActionPermission for ApprovalProcessAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::Read | Self::List => PERMISSION_SET_GOVERNANCE_VIEWER,
 
-            // Write operations use WRITER permission
             Self::Create | Self::Approve | Self::Deny | Self::Conclude => {
                 PERMISSION_SET_GOVERNANCE_WRITER
             }
