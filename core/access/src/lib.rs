@@ -58,6 +58,8 @@ where
         pool: &sqlx::PgPool,
         config: AccessConfig,
         action_descriptions: Vec<ActionMapping>,
+
+        // TODO: simplify or clarify this type
         predefined_roles: &'static [(&'static str, &'static [&'static str])],
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
