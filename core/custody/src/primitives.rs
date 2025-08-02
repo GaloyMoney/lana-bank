@@ -36,13 +36,15 @@ impl CoreCustodyAction {
 
     pub const WALLET_UPDATE: Self = CoreCustodyAction::Wallet(WalletAction::Update);
 
-    pub fn entities() -> Vec<(CoreCustodyActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use CoreCustodyActionDiscriminants::*;
-
-        vec![
-            (Custodian, auto_mappings!(Custodian => CustodianAction)),
-            (Wallet, auto_mappings!(Wallet => WalletAction)),
+        [
+            auto_mappings!(Custodian => CustodianAction),
+            auto_mappings!(Wallet => WalletAction),
         ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 }
 

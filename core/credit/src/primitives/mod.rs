@@ -286,25 +286,15 @@ impl CoreCreditAction {
     pub const TERMS_TEMPLATE_LIST: Self =
         CoreCreditAction::TermsTemplate(TermsTemplateAction::List);
 
-    pub fn entities() -> Vec<(CoreCreditActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use CoreCreditActionDiscriminants::*;
-
-        vec![
-            (
-                CreditFacility,
-                auto_mappings!(CreditFacility => CreditFacilityAction),
-            ),
-            (
-                ChartOfAccountsIntegrationConfig,
-                auto_mappings!(ChartOfAccountsIntegrationConfig => ChartOfAccountsIntegrationConfigAction),
-            ),
-            (Disbursal, auto_mappings!(Disbursal => DisbursalAction)),
-            (Obligation, auto_mappings!(Obligation => ObligationAction)),
-            (
-                TermsTemplate,
-                auto_mappings!(TermsTemplate => TermsTemplateAction),
-            ),
-        ]
+        [
+            auto_mappings!(CreditFacility => CreditFacilityAction),
+            auto_mappings!(ChartOfAccountsIntegrationConfig => ChartOfAccountsIntegrationConfigAction),
+            auto_mappings!(Disbursal => DisbursalAction),
+            auto_mappings!(Obligation => ObligationAction),
+            auto_mappings!(TermsTemplate => TermsTemplateAction),
+        ].concat()
     }
 }
 

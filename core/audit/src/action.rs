@@ -11,10 +11,9 @@ pub enum AuditAction {
 }
 
 impl AuditAction {
-    pub fn entities() -> Vec<(AuditActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use AuditActionDiscriminants::*;
-
-        vec![(Audit, auto_mappings!(Audit => AuditEntityAction))]
+        auto_mappings!(Audit => AuditEntityAction)
     }
 }
 

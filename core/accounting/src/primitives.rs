@@ -371,53 +371,25 @@ pub enum CoreAccountingAction {
 }
 
 impl CoreAccountingAction {
-    pub fn entities() -> Vec<(CoreAccountingActionDiscriminants, Vec<ActionDescription>)> {
+    pub fn actions() -> Vec<ActionDescription> {
         use CoreAccountingActionDiscriminants::*;
-
-        vec![
-            (Chart, auto_mappings!(Chart => ChartAction)),
-            (Journal, auto_mappings!(Journal => JournalAction)),
-            (
-                LedgerAccount,
-                auto_mappings!(LedgerAccount => LedgerAccountAction),
-            ),
-            (
-                LedgerTransaction,
-                auto_mappings!(LedgerTransaction => LedgerTransactionAction),
-            ),
-            (
-                TransactionTemplate,
-                auto_mappings!(TransactionTemplate => TransactionTemplateAction),
-            ),
-            (
-                ManualTransaction,
-                auto_mappings!(ManualTransaction => ManualTransactionAction),
-            ),
-            (
-                ProfitAndLoss,
-                auto_mappings!(ProfitAndLoss => ProfitAndLossAction),
-            ),
-            (
-                ProfitAndLossConfiguration,
-                auto_mappings!(ProfitAndLossConfiguration => ProfitAndLossConfigurationAction),
-            ),
-            (
-                BalanceSheet,
-                auto_mappings!(BalanceSheet => BalanceSheetAction),
-            ),
-            (
-                BalanceSheetConfiguration,
-                auto_mappings!(BalanceSheetConfiguration => BalanceSheetConfigurationAction),
-            ),
-            (
-                AccountingCsv,
-                auto_mappings!(AccountingCsv => AccountingCsvAction),
-            ),
-            (
-                TrialBalance,
-                auto_mappings!(TrialBalance => TrialBalanceAction),
-            ),
+        [
+            auto_mappings!(Chart => ChartAction),
+            auto_mappings!(Journal => JournalAction),
+            auto_mappings!(LedgerAccount => LedgerAccountAction),
+            auto_mappings!(LedgerTransaction => LedgerTransactionAction),
+            auto_mappings!(TransactionTemplate => TransactionTemplateAction),
+            auto_mappings!(ManualTransaction => ManualTransactionAction),
+            auto_mappings!(ProfitAndLoss => ProfitAndLossAction),
+            auto_mappings!(ProfitAndLossConfiguration => ProfitAndLossConfigurationAction),
+            auto_mappings!(BalanceSheet => BalanceSheetAction),
+            auto_mappings!(BalanceSheetConfiguration => BalanceSheetConfigurationAction),
+            auto_mappings!(AccountingCsv => AccountingCsvAction),
+            auto_mappings!(TrialBalance => TrialBalanceAction),
         ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 }
 
@@ -761,10 +733,8 @@ pub enum ChartAction {
 impl ActionPermission for ChartAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // Read operations use VIEWER permission
             Self::List => PERMISSION_SET_ACCOUNTING_VIEWER,
 
-            // Write operations use WRITER permission
             Self::Create | Self::Update | Self::ImportAccounts => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }

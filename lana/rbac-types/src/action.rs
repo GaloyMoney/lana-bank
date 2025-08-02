@@ -34,30 +34,22 @@ pub enum LanaAction {
 impl LanaAction {
     /// Returns description of all actions defined in `LanaAction`.
     pub fn action_descriptions() -> Vec<ActionDescription> {
-        fn flatten_entities<Entity: Display + Copy>(
-            entity_actions: Vec<(Entity, Vec<ActionDescription>)>,
-        ) -> Vec<ActionDescription> {
-            entity_actions
-                .into_iter()
-                .flat_map(|(_, actions)| actions)
-                .collect()
-        }
-
-        let mut result = vec![];
-
-        result.extend(flatten_entities(AuditAction::entities()));
-        result.extend(flatten_entities(GovernanceAction::entities()));
-        result.extend(flatten_entities(CoreAccessAction::entities()));
-        result.extend(flatten_entities(CoreCustomerAction::entities()));
-        result.extend(flatten_entities(CoreAccountingAction::entities()));
-        result.extend(flatten_entities(DashboardModuleAction::entities()));
-        result.extend(flatten_entities(CoreDepositAction::entities()));
-        result.extend(flatten_entities(CoreCreditAction::entities()));
-        result.extend(flatten_entities(CoreCustodyAction::entities()));
-        result.extend(flatten_entities(CoreReportAction::entities()));
-        result.extend(flatten_entities(ContractModuleAction::entities()));
-
-        result
+        [
+            AuditAction::actions(),
+            GovernanceAction::actions(),
+            CoreAccessAction::actions(),
+            CoreCustomerAction::actions(),
+            CoreAccountingAction::actions(),
+            DashboardModuleAction::actions(),
+            CoreDepositAction::actions(),
+            CoreCreditAction::actions(),
+            CoreCustodyAction::actions(),
+            CoreReportAction::actions(),
+            ContractModuleAction::actions(),
+        ]
+        .into_iter()
+        .flatten()
+        .collect()
     }
 }
 
