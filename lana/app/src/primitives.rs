@@ -23,5 +23,3 @@ pub use cala_ledger::primitives::{
     DebitOrCredit as CalaDebitOrCredit, EntryId as CalaEntryId, JournalId as CalaJournalId,
     TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
 };
-
-

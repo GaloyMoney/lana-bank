@@ -1,5 +1,5 @@
-use core_price::{Price, PriceOfOneBTC};
 use core_money::{Satoshis, UsdCents};
+use core_price::{Price, PriceOfOneBTC};
 use rust_decimal_macros::dec;
 
 #[tokio::test]
