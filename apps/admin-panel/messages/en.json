@@ -43,13 +43,9 @@
       "label": "Accounting Writer",
       "description": "Can create and manage charts of accounts, ledger and manual transactions, balance sheets, profit-and-loss reports, and related accounting data"
     },
-    "app_viewer": {
-      "label": "App Viewer",
-      "description": "Can list and view application documents, reports, and audits"
-    },
-    "app_writer": {
-      "label": "App Writer",
-      "description": "Can create, update, archive, and delete application documents and reports"
+    "audit_viewer": {
+      "label": "Audit Viewer",
+      "description": "Can view audit logs and system activity records"
     },
     "contract_creation": {
       "label": "Contract Creation",
