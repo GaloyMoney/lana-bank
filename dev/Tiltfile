@@ -1,6 +1,6 @@
 docker_compose(["../docker-compose.yml", "../docker-compose.data.yml", "../docker-compose.docker.yml"], project_name = "lana-bank")
 docker_groups = {
-    "auth": ["kratos-admin", "kratos-admin-pg", "kratos-customer", "kratos-customer-pg", "oathkeeper"],
+    "auth": ["kratos-admin", "kratos-admin-pg", "kratos-customer", "kratos-customer-pg", "keycloak", "keycloak-pg", "oathkeeper"],
     "otel": ["otel-agent"],
     "core": ["core-pg"],
     "airflow": ["airflow-scheduler", "airflow-webserver"]
@@ -32,6 +32,7 @@ local_resource(
     allow_parallel = True,
     resource_deps = [
         "core-pg",
+        "keycloak"
     ],
     links = [
         link("http://admin.localhost:4455/graphql", "playground"),
