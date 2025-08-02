@@ -193,7 +193,7 @@ impl CoreCustomerAction {
     pub const CUSTOMER_DOCUMENT_GENERATE_DOWNLOAD_LINK: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::GenerateDownloadLink);
 
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreCustomerActionDiscriminants::*;
         [
             auto_mappings!(Customer => CustomerEntityAction),

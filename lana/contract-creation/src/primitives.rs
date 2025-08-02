@@ -23,7 +23,7 @@ impl ContractModuleAction {
     pub const CONTRACT_GENERATE_DOWNLOAD_LINK: Self =
         ContractModuleAction::Contract(ContractAction::GenerateDownloadLink);
 
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use ContractModuleActionDiscriminants::*;
         auto_mappings!(Contract => ContractAction)
     }

@@ -186,7 +186,7 @@ impl CoreDepositAction {
     pub const WITHDRAWAL_LIST: Self = CoreDepositAction::Withdrawal(WithdrawalAction::List);
     pub const WITHDRAWAL_REVERT: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Revert);
 
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreDepositActionDiscriminants::*;
         [
             auto_mappings!(DepositAccount => DepositAccountAction),

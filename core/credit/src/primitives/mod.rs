@@ -286,7 +286,7 @@ impl CoreCreditAction {
     pub const TERMS_TEMPLATE_LIST: Self =
         CoreCreditAction::TermsTemplate(TermsTemplateAction::List);
 
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreCreditActionDiscriminants::*;
         [
             auto_mappings!(CreditFacility => CreditFacilityAction),

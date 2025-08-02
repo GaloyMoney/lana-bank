@@ -33,7 +33,7 @@ pub enum LanaAction {
 
 impl LanaAction {
     /// Returns description of all actions defined in `LanaAction`.
-    pub fn action_descriptions() -> Vec<ActionDescription> {
+    pub fn action_descriptions() -> Vec<ActionMapping> {
         [
             AuditAction::actions(),
             GovernanceAction::actions(),

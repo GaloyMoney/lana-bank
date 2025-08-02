@@ -371,7 +371,7 @@ pub enum CoreAccountingAction {
 }
 
 impl CoreAccountingAction {
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreAccountingActionDiscriminants::*;
         [
             auto_mappings!(Chart => ChartAction),

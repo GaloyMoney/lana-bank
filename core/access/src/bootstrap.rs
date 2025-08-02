@@ -48,7 +48,7 @@ where
     pub(super) async fn bootstrap_access_control(
         &self,
         email: String,
-        actions: Vec<ActionDescription>,
+        actions: Vec<ActionMapping>,
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
         let mut db = self.role_repo.begin_op().await?;
@@ -164,7 +164,7 @@ where
     async fn bootstrap_permission_sets(
         &self,
         db: &mut DbOp<'_>,
-        actions: &[ActionDescription],
+        actions: &[ActionMapping],
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
         let existing = self
             .permission_set_repo

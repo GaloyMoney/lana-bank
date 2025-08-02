@@ -75,6 +75,3 @@ macro_rules! auto_mappings {
         )
     };
 }
-
-// Type alias for consistency across codebase
-pub type ActionDescription = ActionMapping;
