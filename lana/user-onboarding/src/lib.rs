@@ -49,10 +49,10 @@ where
         users: &Users<Audit, E>,
         config: UserOnboardingConfig,
     ) -> Result<Self, UserOnboardingError> {
-        let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin);
+        let keycloak_admin = keycloak_admin::KeycloakAdmin::init(config.keycloak_admin).await?;
 
         jobs.add_initializer_and_spawn_unique(
-            UserOnboardingInit::new(outbox, users, kratos_admin),
+            UserOnboardingInit::new(outbox, users, keycloak_admin),
             UserOnboardingJobConfig::new(),
         )
         .await?;

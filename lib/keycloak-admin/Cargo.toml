@@ -1,0 +1,15 @@
+[package]
+name = "keycloak-admin"
+version = "0.3.772-dev"
+license = "FSL-1.1-ALv2"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+
+[dependencies]
+keycloak = { workspace = true }
+reqwest = { workspace = true }
+serde = { workspace = true }
+uuid = { workspace = true }
+thiserror = { workspace = true }
