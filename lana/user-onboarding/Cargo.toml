@@ -17,6 +17,7 @@ outbox = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
 kratos-admin = { workspace = true }
+keycloak-admin = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
 serde = { workspace = true }

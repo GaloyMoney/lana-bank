@@ -8,7 +8,7 @@ use audit::AuditSvc;
 use core_access::{CoreAccessAction, CoreAccessObject, UserId, user::Users};
 use outbox::{Outbox, OutboxEventMarker};
 
-use kratos_admin::KratosAdmin;
+use keycloak_admin::KeycloakAdmin;
 
 #[derive(serde::Serialize)]
 pub struct UserOnboardingJobConfig<Audit, E> {
@@ -38,7 +38,7 @@ where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     outbox: Outbox<E>,
-    kratos_admin: KratosAdmin,
+    keycloak_admin: KeycloakAdmin,
     users: Users<Audit, E>,
 }
 
@@ -50,11 +50,11 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, users: &Users<Audit, E>, kratos_admin: KratosAdmin) -> Self {
+    pub fn new(outbox: &Outbox<E>, users: &Users<Audit, E>, keycloak_admin: KeycloakAdmin) -> Self {
         Self {
             outbox: outbox.clone(),
             users: users.clone(),
-            kratos_admin,
+            keycloak_admin,
         }
     }
 }
@@ -79,7 +79,7 @@ where
         Ok(Box::new(UserOnboardingJobRunner {
             outbox: self.outbox.clone(),
             users: self.users.clone(),
-            kratos_admin: self.kratos_admin.clone(),
+            keycloak_admin: self.keycloak_admin.clone(),
         }))
     }
 
@@ -103,7 +103,7 @@ where
 {
     outbox: Outbox<E>,
     users: Users<Audit, E>,
-    kratos_admin: KratosAdmin,
+    keycloak_admin: KeycloakAdmin,
 }
 #[async_trait]
 impl<Audit, E> JobRunner for UserOnboardingJobRunner<Audit, E>
@@ -122,15 +122,12 @@ where
             .execution_state::<UserOnboardingJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
-
         while let Some(message) = stream.next().await {
             if let Some(CoreAccessEvent::UserCreated { id, email, .. }) =
                 &message.as_ref().as_event()
             {
-                let authentication_id = self
-                    .kratos_admin
-                    .create_user::<AuthenticationId>(email.clone())
-                    .await?;
+                let uuid = self.keycloak_admin.create_user(email.clone()).await?;
+                let authentication_id = AuthenticationId::from(uuid);
                 self.users
                     .update_authentication_id_for_user(*id, authentication_id)
                     .await?;
