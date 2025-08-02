@@ -20,6 +20,7 @@ bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
 job = { path = "lib/job" }
 jwks-utils = { path = "lib/jwks-utils" }
+keycloak-admin = { path = "lib/keycloak-admin" }
 komainu = { path = "lib/komainu" }
 kratos-admin = { path = "lib/kratos-admin" }
 outbox = { path = "lib/outbox" }
@@ -157,6 +158,7 @@ pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 markdown2pdf = { version = "0.1.6", features = ["rustls-tls"], default-features = false }
 bytes = "1.10"
+keycloak = "26.3.100"
 
 [profile.release]
 lto = true 
