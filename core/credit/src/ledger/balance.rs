@@ -131,7 +131,7 @@ impl CreditFacilityBalanceSummary {
     }
 
     pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        if self.disbursed > UsdCents::ZERO {
+        if self.total_outstanding() > UsdCents::ZERO {
             self.outstanding_amount_cvl(price)
         } else {
             self.facility_amount_cvl(price)
