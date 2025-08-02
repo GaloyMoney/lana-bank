@@ -136,12 +136,6 @@ impl ActionPermission for CommitteeAction {
     }
 }
 
-impl CommitteeAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
-    }
-}
-
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum PolicyAction {
@@ -158,12 +152,6 @@ impl ActionPermission for PolicyAction {
 
             Self::Create | Self::UpdatePolicyRules => PERMISSION_SET_GOVERNANCE_WRITER,
         }
-    }
-}
-
-impl PolicyAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 
@@ -187,12 +175,6 @@ impl ActionPermission for ApprovalProcessAction {
                 PERMISSION_SET_GOVERNANCE_WRITER
             }
         }
-    }
-}
-
-impl ApprovalProcessAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 

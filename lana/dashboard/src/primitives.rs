@@ -57,12 +57,6 @@ impl ActionPermission for DashboardAction {
     }
 }
 
-impl DashboardAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
-    }
-}
-
 es_entity::entity_id!(DashboardId);
 
 pub type DashboardAllOrOne = AllOrOne<DashboardId>;

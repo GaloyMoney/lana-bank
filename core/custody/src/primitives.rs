@@ -91,16 +91,6 @@ impl ActionPermission for CustodianAction {
     }
 }
 
-impl CustodianAction {
-    pub fn action_to_permission_set() -> Vec<ActionDescription> {
-        generate_action_mappings(
-            "custody",
-            "custodian",
-            <Self as strum::VariantArray>::VARIANTS,
-        )
-    }
-}
-
 impl From<CustodianAction> for CoreCustodyAction {
     fn from(action: CustodianAction) -> Self {
         Self::Custodian(action)
@@ -118,12 +108,6 @@ impl ActionPermission for WalletAction {
         match self {
             Self::Update => PERMISSION_SET_CUSTODY_WRITER,
         }
-    }
-}
-
-impl WalletAction {
-    pub fn action_to_permission_set() -> Vec<ActionDescription> {
-        generate_action_mappings("custody", "wallet", <Self as strum::VariantArray>::VARIANTS)
     }
 }
 

@@ -71,12 +71,6 @@ impl ActionPermission for ContractAction {
     }
 }
 
-impl ContractAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
-    }
-}
-
 pub type ContractAllOrOne = AllOrOne<ContractCreationId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
