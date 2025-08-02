@@ -91,12 +91,6 @@ impl ActionPermission for ReportEntityAction {
     }
 }
 
-impl ReportEntityAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
-    }
-}
-
 impl Display for CoreReportAction {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
         write!(f, "{}:", CoreReportActionDiscriminants::from(self))?;

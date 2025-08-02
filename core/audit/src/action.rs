@@ -56,12 +56,6 @@ impl ActionPermission for AuditEntityAction {
     }
 }
 
-impl AuditEntityAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
-    }
-}
-
 impl From<AuditEntityAction> for AuditAction {
     fn from(action: AuditEntityAction) -> Self {
         AuditAction::Audit(action)

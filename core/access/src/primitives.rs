@@ -162,12 +162,6 @@ impl ActionPermission for RoleAction {
     }
 }
 
-impl RoleAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
-    }
-}
-
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
 pub enum PermissionSetAction {
@@ -179,12 +173,6 @@ impl ActionPermission for PermissionSetAction {
         match self {
             Self::List => PERMISSION_SET_ACCESS_VIEWER,
         }
-    }
-}
-
-impl PermissionSetAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 
@@ -208,12 +196,6 @@ impl ActionPermission for UserAction {
                 PERMISSION_SET_ACCESS_WRITER
             }
         }
-    }
-}
-
-impl UserAction {
-    pub fn action_to_permission_set(module: &str, entity: &str) -> Vec<ActionDescription> {
-        generate_action_mappings(module, entity, <Self as strum::VariantArray>::VARIANTS)
     }
 }
 
