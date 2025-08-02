@@ -2,7 +2,10 @@
 
 import { Resolvers, ApolloClient, InMemoryCache } from "@apollo/client"
 import { relayStylePagination } from "@apollo/client/utilities"
+import { setContext } from "@apollo/client/link/context"
 import createUploadLink from "apollo-upload-client/createUploadLink.mjs"
+
+import { getToken } from "@/app/auth/keycloak"
 
 import {
   CreditFacility,
@@ -19,7 +22,22 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
     credentials: "include",
   })
 
-  const link = uploadLink
+  const authLink = setContext(async (_, { headers }) => {
+    try {
+      const token = getToken()
+      return {
+        headers: {
+          ...headers,
+          ...(token ? { authorization: `Bearer ${token}` } : {}),
+        },
+      }
+    } catch (error) {
+      console.error("Failed to update token in Apollo client:", error)
+      return { headers }
+    }
+  })
+
+  const link = authLink.concat(uploadLink)
 
   const cache = new InMemoryCache({
     typePolicies: {
