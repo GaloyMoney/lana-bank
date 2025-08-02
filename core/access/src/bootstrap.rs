@@ -49,12 +49,14 @@ where
     pub(super) async fn bootstrap_access_control(
         &self,
         email: String,
-        actions: Vec<ActionMapping>,
+        all_actions: Vec<ActionMapping>,
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
         let mut db = self.role_repo.begin_op().await?;
 
-        let permission_sets = self.bootstrap_permission_sets(&mut db, &actions).await?;
+        let permission_sets = self
+            .bootstrap_permission_sets(&mut db, &all_actions)
+            .await?;
         let superuser_role = self
             .bootstrap_roles(&mut db, &permission_sets, predefined_roles)
             .await?;
@@ -165,7 +167,7 @@ where
     async fn bootstrap_permission_sets(
         &self,
         db: &mut DbOp<'_>,
-        actions: &[ActionMapping],
+        all_actions: &[ActionMapping],
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
         let existing_permission_sets = self
             .permission_set_repo
@@ -180,14 +182,15 @@ where
 
         #[allow(clippy::type_complexity)]
         let mut permission_sets: HashMap<
-            &'static str,
+            &str,
             Vec<Permission<Audit::Object, Audit::Action>>,
-        > = Default::default();
-
-        for action in actions {
-            let set = action.permission_set();
-            permission_sets.entry(set).or_default().push(action.into());
-        }
+        > = all_actions
+            .iter()
+            .map(|action| (action.permission_set(), action.into()))
+            .fold(HashMap::new(), |mut acc, (set, permission)| {
+                acc.entry(set).or_default().push(permission);
+                acc
+            });
 
         // Create only those permission sets that do not exist yet. Don't remove anything.
         permission_sets.retain(|k, _| !existing_names.contains(*k));
