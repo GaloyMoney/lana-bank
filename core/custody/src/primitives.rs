@@ -1,4 +1,5 @@
-use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*};
+use strum::VariantArray;
 
 es_entity::entity_id! {
     CustodianId,
@@ -37,10 +38,9 @@ impl CoreCustodyAction {
     pub const WALLET_UPDATE: Self = CoreCustodyAction::Wallet(WalletAction::Update);
 
     pub fn actions() -> Vec<ActionMapping> {
-        use CoreCustodyActionDiscriminants::*;
         [
-            auto_mappings!(Custodian => CustodianAction),
-            auto_mappings!(Wallet => WalletAction),
+            generate_action_mappings("custody", "custodian", CustodianAction::VARIANTS),
+            generate_action_mappings("custody", "wallet", WalletAction::VARIANTS),
         ]
         .concat()
     }

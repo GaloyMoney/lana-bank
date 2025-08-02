@@ -3,7 +3,8 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
 
-use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*};
+use strum::VariantArray;
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,
@@ -372,20 +373,51 @@ pub enum CoreAccountingAction {
 
 impl CoreAccountingAction {
     pub fn actions() -> Vec<ActionMapping> {
-        use CoreAccountingActionDiscriminants::*;
         [
-            auto_mappings!(Chart => ChartAction),
-            auto_mappings!(Journal => JournalAction),
-            auto_mappings!(LedgerAccount => LedgerAccountAction),
-            auto_mappings!(LedgerTransaction => LedgerTransactionAction),
-            auto_mappings!(TransactionTemplate => TransactionTemplateAction),
-            auto_mappings!(ManualTransaction => ManualTransactionAction),
-            auto_mappings!(ProfitAndLoss => ProfitAndLossAction),
-            auto_mappings!(ProfitAndLossConfiguration => ProfitAndLossConfigurationAction),
-            auto_mappings!(BalanceSheet => BalanceSheetAction),
-            auto_mappings!(BalanceSheetConfiguration => BalanceSheetConfigurationAction),
-            auto_mappings!(AccountingCsv => AccountingCsvAction),
-            auto_mappings!(TrialBalance => TrialBalanceAction),
+            generate_action_mappings("accounting", "chart", ChartAction::VARIANTS),
+            generate_action_mappings("accounting", "journal", JournalAction::VARIANTS),
+            generate_action_mappings(
+                "accounting",
+                "ledger-account",
+                LedgerAccountAction::VARIANTS,
+            ),
+            generate_action_mappings(
+                "accounting",
+                "ledger-transaction",
+                LedgerTransactionAction::VARIANTS,
+            ),
+            generate_action_mappings(
+                "accounting",
+                "transaction-template",
+                TransactionTemplateAction::VARIANTS,
+            ),
+            generate_action_mappings(
+                "accounting",
+                "manual-transaction",
+                ManualTransactionAction::VARIANTS,
+            ),
+            generate_action_mappings(
+                "accounting",
+                "profit-and-loss",
+                ProfitAndLossAction::VARIANTS,
+            ),
+            generate_action_mappings(
+                "accounting",
+                "profit-and-loss-configuration",
+                ProfitAndLossConfigurationAction::VARIANTS,
+            ),
+            generate_action_mappings("accounting", "balance-sheet", BalanceSheetAction::VARIANTS),
+            generate_action_mappings(
+                "accounting",
+                "balance-sheet-configuration",
+                BalanceSheetConfigurationAction::VARIANTS,
+            ),
+            generate_action_mappings(
+                "accounting",
+                "accounting-csv",
+                AccountingCsvAction::VARIANTS,
+            ),
+            generate_action_mappings("accounting", "trial-balance", TrialBalanceAction::VARIANTS),
         ]
         .concat()
     }

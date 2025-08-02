@@ -8,7 +8,8 @@ use schemars::JsonSchema;
 
 use std::str::FromStr;
 
-use authz::{AllOrOne, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*};
+use strum::VariantArray;
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
@@ -287,14 +288,18 @@ impl CoreCreditAction {
         CoreCreditAction::TermsTemplate(TermsTemplateAction::List);
 
     pub fn actions() -> Vec<ActionMapping> {
-        use CoreCreditActionDiscriminants::*;
         [
-            auto_mappings!(CreditFacility => CreditFacilityAction),
-            auto_mappings!(ChartOfAccountsIntegrationConfig => ChartOfAccountsIntegrationConfigAction),
-            auto_mappings!(Disbursal => DisbursalAction),
-            auto_mappings!(Obligation => ObligationAction),
-            auto_mappings!(TermsTemplate => TermsTemplateAction),
-        ].concat()
+            generate_action_mappings("credit", "credit-facility", CreditFacilityAction::VARIANTS),
+            generate_action_mappings(
+                "credit",
+                "chart-of-accounts-integration-config",
+                ChartOfAccountsIntegrationConfigAction::VARIANTS,
+            ),
+            generate_action_mappings("credit", "disbursal", DisbursalAction::VARIANTS),
+            generate_action_mappings("credit", "obligation", ObligationAction::VARIANTS),
+            generate_action_mappings("credit", "terms-template", TermsTemplateAction::VARIANTS),
+        ]
+        .concat()
     }
 }
 

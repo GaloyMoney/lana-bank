@@ -4,7 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use std::{fmt::Display, str::FromStr};
 
-use authz::{AllOrOne, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*};
+use strum::VariantArray;
 
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
@@ -187,13 +188,17 @@ impl CoreDepositAction {
     pub const WITHDRAWAL_REVERT: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Revert);
 
     pub fn actions() -> Vec<ActionMapping> {
-        use CoreDepositActionDiscriminants::*;
         [
-            auto_mappings!(DepositAccount => DepositAccountAction),
-            auto_mappings!(Deposit => DepositAction),
-            auto_mappings!(ChartOfAccountsIntegrationConfig => ChartOfAccountsIntegrationConfigAction),
-            auto_mappings!(Withdrawal => WithdrawalAction),
-        ].concat()
+            generate_action_mappings("deposit", "deposit-account", DepositAccountAction::VARIANTS),
+            generate_action_mappings("deposit", "deposit", DepositAction::VARIANTS),
+            generate_action_mappings(
+                "deposit",
+                "chart-of-accounts-integration-config",
+                ChartOfAccountsIntegrationConfigAction::VARIANTS,
+            ),
+            generate_action_mappings("deposit", "withdrawal", WithdrawalAction::VARIANTS),
+        ]
+        .concat()
     }
 }
 

@@ -1,7 +1,8 @@
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
+pub use authz::{ActionPermission, AllOrOne, action_description::*};
+use strum::VariantArray;
 
 es_entity::entity_id! {
     ReportId,
@@ -70,8 +71,7 @@ impl CoreReportAction {
     pub const REPORT_READ: Self = CoreReportAction::Report(ReportEntityAction::Read);
 
     pub fn actions() -> Vec<ActionMapping> {
-        use CoreReportActionDiscriminants::*;
-        auto_mappings!(Report => ReportEntityAction)
+        generate_action_mappings("report", "report", ReportEntityAction::VARIANTS)
     }
 }
 
