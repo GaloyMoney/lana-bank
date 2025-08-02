@@ -166,14 +166,16 @@ where
         db: &mut DbOp<'_>,
         actions: &[ActionMapping],
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
-        let existing = self
+        let existing_permission_sets = self
             .permission_set_repo
             .list_by_id(Default::default(), Default::default())
             .await?
-            .entities
-            .into_iter()
-            .map(|ps| (ps.name.to_string(), ps))
-            .collect::<HashMap<_, _>>();
+            .entities;
+
+        let existing_names: std::collections::HashSet<_> = existing_permission_sets
+            .iter()
+            .map(|ps| ps.name.as_str())
+            .collect();
 
         #[allow(clippy::type_complexity)]
         let mut permission_sets: HashMap<
@@ -187,7 +189,7 @@ where
         }
 
         // Create only those permission sets that do not exist yet. Don't remove anything.
-        permission_sets.retain(|k, _| !existing.contains_key(*k));
+        permission_sets.retain(|k, _| !existing_names.contains(*k));
 
         let new_permission_sets = permission_sets
             .into_iter()
@@ -221,6 +223,9 @@ where
             }
         }
 
-        Ok(existing.into_values().chain(new.into_iter()).collect())
+        Ok(existing_permission_sets
+            .into_iter()
+            .chain(new.into_iter())
+            .collect())
     }
 }
