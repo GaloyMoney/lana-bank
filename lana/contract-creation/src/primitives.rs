@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::{AllOrOne, action_description::*};
+use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 
 es_entity::entity_id! {
     ContractCreationId;
@@ -23,22 +23,9 @@ impl ContractModuleAction {
     pub const CONTRACT_GENERATE_DOWNLOAD_LINK: Self =
         ContractModuleAction::Contract(ContractAction::GenerateDownloadLink);
 
-    pub fn entities() -> Vec<(
-        ContractModuleActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn actions() -> Vec<ActionMapping> {
         use ContractModuleActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <ContractModuleActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Contract => ContractAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-        result
+        auto_mappings!(Contract => ContractAction)
     }
 }
 
@@ -73,24 +60,13 @@ pub enum ContractAction {
     GenerateDownloadLink,
 }
 
-impl ContractAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION])
-                }
-                Self::Find => ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION]),
-                Self::GenerateDownloadLink => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CONTRACT_CREATION])
-                }
-            };
-            res.push(action_description);
+impl ActionPermission for ContractAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Create | Self::Find | Self::GenerateDownloadLink => {
+                PERMISSION_SET_CONTRACT_CREATION
+            }
         }
-
-        res
     }
 }
 

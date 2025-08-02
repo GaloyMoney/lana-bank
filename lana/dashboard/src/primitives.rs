@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::{AllOrOne, action_description::*};
+use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 
 pub const PERMISSION_SET_DASHBOARD_VIEWER: &str = "dashboard_viewer";
 
@@ -14,22 +14,9 @@ pub enum DashboardModuleAction {
 impl DashboardModuleAction {
     pub const DASHBOARD_READ: Self = DashboardModuleAction::Dashboard(DashboardAction::Read);
 
-    pub fn entities() -> Vec<(
-        DashboardModuleActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn actions() -> Vec<ActionMapping> {
         use DashboardModuleActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <DashboardModuleActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Dashboard => DashboardAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-        result
+        auto_mappings!(Dashboard => DashboardAction)
     }
 }
 
@@ -62,18 +49,11 @@ pub enum DashboardAction {
     Read,
 }
 
-impl DashboardAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Read => ActionDescription::new(variant, &[PERMISSION_SET_DASHBOARD_VIEWER]),
-            };
-            res.push(action_description);
+impl ActionPermission for DashboardAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_DASHBOARD_VIEWER,
         }
-
-        res
     }
 }
 

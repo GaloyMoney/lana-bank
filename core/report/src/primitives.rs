@@ -1,7 +1,7 @@
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{AllOrOne, action_description::*};
+pub use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 
 es_entity::entity_id! {
     ReportId,
@@ -69,23 +69,9 @@ impl CoreReportAction {
     pub const REPORT_GENERATE: Self = CoreReportAction::Report(ReportEntityAction::Generate);
     pub const REPORT_READ: Self = CoreReportAction::Report(ReportEntityAction::Read);
 
-    pub fn entities() -> Vec<(
-        CoreReportActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreReportActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <CoreReportActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Report => ReportEntityAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-
-        result
+        auto_mappings!(Report => ReportEntityAction)
     }
 }
 
@@ -96,22 +82,12 @@ pub enum ReportEntityAction {
     Read,
 }
 
-impl ReportEntityAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Generate => ActionDescription::new(variant, &[PERMISSION_SET_REPORT_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_REPORT_VIEWER, PERMISSION_SET_REPORT_WRITER],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for ReportEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_REPORT_VIEWER,
+            Self::Generate => PERMISSION_SET_REPORT_WRITER,
         }
-
-        res
     }
 }
 

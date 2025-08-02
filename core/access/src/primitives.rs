@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{AllOrOne, action_description::*};
+pub use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 
 #[cfg(feature = "governance")]
 es_entity::entity_id! {
@@ -86,12 +86,12 @@ impl<O, A> Permission<O, A> {
     }
 }
 
-impl<O, A> From<&ActionDescription<FullPath>> for Permission<O, A>
+impl<O, A> From<&ActionMapping> for Permission<O, A>
 where
     O: FromStr,
     A: FromStr,
 {
-    fn from(action: &ActionDescription<FullPath>) -> Self {
+    fn from(action: &ActionMapping) -> Self {
         Permission::new(
             action
                 .all_objects_name()
@@ -132,25 +132,14 @@ impl CoreAccessAction {
     pub const PERMISSION_SET_LIST: Self =
         CoreAccessAction::PermissionSet(PermissionSetAction::List);
 
-    pub fn entities() -> Vec<(
-        CoreAccessActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreAccessActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <CoreAccessActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                User => UserAction::describe(),
-                Role => RoleAction::describe(),
-                PermissionSet => PermissionSetAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-
-        result
+        [
+            auto_mappings!(User => UserAction),
+            auto_mappings!(Role => RoleAction),
+            auto_mappings!(PermissionSet => PermissionSetAction),
+        ]
+        .concat()
     }
 }
 
@@ -163,27 +152,13 @@ pub enum RoleAction {
     List,
 }
 
-impl RoleAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for RoleAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_ACCESS_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
-                ),
-            };
-            res.push(action_description);
+            Self::Create | Self::Update => PERMISSION_SET_ACCESS_WRITER,
         }
-
-        res
     }
 }
 
@@ -193,21 +168,11 @@ pub enum PermissionSetAction {
     List,
 }
 
-impl PermissionSetAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for PermissionSetAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::List => PERMISSION_SET_ACCESS_VIEWER,
         }
-
-        res
     }
 }
 
@@ -222,33 +187,15 @@ pub enum UserAction {
     UpdateAuthenticationId,
 }
 
-impl UserAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for UserAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_ACCESS_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_ACCESS_VIEWER, PERMISSION_SET_ACCESS_WRITER],
-                ),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER]),
-                Self::UpdateRole => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
-                }
-                Self::UpdateAuthenticationId => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_ACCESS_WRITER])
-                }
-            };
-            res.push(action_description);
+            Self::Create | Self::Update | Self::UpdateRole | Self::UpdateAuthenticationId => {
+                PERMISSION_SET_ACCESS_WRITER
+            }
         }
-
-        res
     }
 }
 

@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{AllOrOne, action_description::*};
+pub use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 pub use public_id::PublicId;
 
 es_entity::entity_id! {
@@ -193,24 +193,13 @@ impl CoreCustomerAction {
     pub const CUSTOMER_DOCUMENT_GENERATE_DOWNLOAD_LINK: Self =
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::GenerateDownloadLink);
 
-    pub fn entities() -> Vec<(
-        CoreCustomerActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreCustomerActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <CoreCustomerActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Customer => CustomerEntityAction::describe(),
-                CustomerDocument => CustomerDocumentEntityAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-
-        result
+        [
+            auto_mappings!(Customer => CustomerEntityAction),
+            auto_mappings!(CustomerDocument => CustomerDocumentEntityAction),
+        ]
+        .concat()
     }
 }
 
@@ -227,52 +216,19 @@ pub enum CustomerEntityAction {
     DeclineKyc,
 }
 
-impl CustomerEntityAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for CustomerEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
-
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_CUSTOMER_VIEWER,
-                        PERMISSION_SET_CUSTOMER_WRITER,
-                    ],
-                ),
-
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_CUSTOMER_WRITER,
-                        PERMISSION_SET_CUSTOMER_VIEWER,
-                    ],
-                ),
-
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
-
-                Self::UpdateAuthenticationId => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
-                }
-
-                Self::StartKyc => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
-                }
-
-                Self::ApproveKyc => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
-                }
-
-                Self::DeclineKyc => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER])
-                }
-            };
-            res.push(action_description);
+            // All other operations use WRITER permission
+            Self::Create
+            | Self::Update
+            | Self::UpdateAuthenticationId
+            | Self::StartKyc
+            | Self::ApproveKyc
+            | Self::DeclineKyc => PERMISSION_SET_CUSTOMER_WRITER,
         }
-
-        res
     }
 }
 
@@ -319,44 +275,13 @@ pub enum CustomerDocumentEntityAction {
     GenerateDownloadLink,
 }
 
-impl CustomerDocumentEntityAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
+impl ActionPermission for CustomerDocumentEntityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List | Self::GenerateDownloadLink => PERMISSION_SET_CUSTOMER_VIEWER,
 
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
-
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_CUSTOMER_VIEWER,
-                        PERMISSION_SET_CUSTOMER_WRITER,
-                    ],
-                ),
-
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_CUSTOMER_WRITER,
-                        PERMISSION_SET_CUSTOMER_VIEWER,
-                    ],
-                ),
-
-                Self::GenerateDownloadLink => ActionDescription::new(
-                    variant,
-                    &[
-                        PERMISSION_SET_CUSTOMER_VIEWER,
-                        PERMISSION_SET_CUSTOMER_WRITER,
-                    ],
-                ),
-
-                Self::Delete => ActionDescription::new(variant, &[PERMISSION_SET_CUSTOMER_WRITER]),
-            };
-            res.push(action_description);
+            Self::Create | Self::Delete => PERMISSION_SET_CUSTOMER_WRITER,
         }
-
-        res
     }
 }
 

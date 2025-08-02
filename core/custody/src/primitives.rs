@@ -1,4 +1,4 @@
-use authz::{AllOrOne, action_description::*};
+use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 
 es_entity::entity_id! {
     CustodianId,
@@ -36,24 +36,13 @@ impl CoreCustodyAction {
 
     pub const WALLET_UPDATE: Self = CoreCustodyAction::Wallet(WalletAction::Update);
 
-    pub fn entities() -> Vec<(
-        CoreCustodyActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreCustodyActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <CoreCustodyActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                Custodian => CustodianAction::describe(),
-                Wallet => WalletAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-
-        result
+        [
+            auto_mappings!(Custodian => CustodianAction),
+            auto_mappings!(Wallet => WalletAction),
+        ]
+        .concat()
     }
 }
 
@@ -93,26 +82,12 @@ pub enum CustodianAction {
     CreateWallet,
 }
 
-impl CustodianAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
-                Self::CreateWallet => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER])
-                }
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CUSTODY_VIEWER, PERMISSION_SET_CUSTODY_WRITER],
-                ),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
-            };
-            res.push(action_description);
+impl ActionPermission for CustodianAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Create | Self::CreateWallet | Self::Update => PERMISSION_SET_CUSTODY_WRITER,
+            Self::List => PERMISSION_SET_CUSTODY_VIEWER,
         }
-
-        res
     }
 }
 
@@ -128,18 +103,11 @@ pub enum WalletAction {
     Update,
 }
 
-impl WalletAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CUSTODY_WRITER]),
-            };
-            res.push(action_description);
+impl ActionPermission for WalletAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Update => PERMISSION_SET_CUSTODY_WRITER,
         }
-
-        res
     }
 }
 

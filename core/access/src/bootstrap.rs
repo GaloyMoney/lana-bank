@@ -43,17 +43,20 @@ where
         }
     }
 
-    /// Creates essential users, roles and permission sets for a running application.
-    /// User with `email` will have a role “superuser” that has all available permission sets.
+    /// Creates essential roles and permission sets for a running application.
+    /// Also creates a superuser user with the given email that will have the superuser role
+    /// with all available permission sets.
     pub(super) async fn bootstrap_access_control(
         &self,
         email: String,
-        actions: Vec<ActionDescription<FullPath>>,
+        all_actions: Vec<ActionMapping>,
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<(), CoreAccessError> {
         let mut db = self.role_repo.begin_op().await?;
 
-        let permission_sets = self.bootstrap_permission_sets(&mut db, &actions).await?;
+        let permission_sets = self
+            .bootstrap_permission_sets(&mut db, &all_actions)
+            .await?;
         let superuser_role = self
             .bootstrap_roles(&mut db, &permission_sets, predefined_roles)
             .await?;
@@ -112,6 +115,8 @@ where
 
     /// Creates a role with name “superuser” that will have all given permission sets.
     /// Used for bootstrapping the application.
+    ///
+    /// Also creates roles for all predefined roles.
     async fn bootstrap_roles(
         &self,
         db: &mut DbOp<'_>,
@@ -162,31 +167,33 @@ where
     async fn bootstrap_permission_sets(
         &self,
         db: &mut DbOp<'_>,
-        actions: &[ActionDescription<FullPath>],
+        all_actions: &[ActionMapping],
     ) -> Result<Vec<PermissionSet>, PermissionSetError> {
-        let existing = self
+        let existing_permission_sets = self
             .permission_set_repo
             .list_by_id(Default::default(), Default::default())
             .await?
-            .entities
-            .into_iter()
-            .map(|ps| (ps.name.to_string(), ps))
-            .collect::<HashMap<_, _>>();
+            .entities;
+
+        let existing_names: std::collections::HashSet<_> = existing_permission_sets
+            .iter()
+            .map(|ps| ps.name.as_str())
+            .collect();
 
         #[allow(clippy::type_complexity)]
         let mut permission_sets: HashMap<
-            &'static str,
+            &str,
             Vec<Permission<Audit::Object, Audit::Action>>,
-        > = Default::default();
-
-        for action in actions {
-            for set in action.permission_sets() {
-                permission_sets.entry(*set).or_default().push(action.into());
-            }
-        }
+        > = all_actions
+            .iter()
+            .map(|action| (action.permission_set(), action.into()))
+            .fold(HashMap::new(), |mut acc, (set, permission)| {
+                acc.entry(set).or_default().push(permission);
+                acc
+            });
 
         // Create only those permission sets that do not exist yet. Don't remove anything.
-        permission_sets.retain(|k, _| !existing.contains_key(*k));
+        permission_sets.retain(|k, _| !existing_names.contains(*k));
 
         let new_permission_sets = permission_sets
             .into_iter()
@@ -220,6 +227,9 @@ where
             }
         }
 
-        Ok(existing.into_values().chain(new.into_iter()).collect())
+        Ok(existing_permission_sets
+            .into_iter()
+            .chain(new.into_iter())
+            .collect())
     }
 }

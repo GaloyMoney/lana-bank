@@ -32,15 +32,10 @@ export function usePermissionDisplay() {
           label: t("accounting_writer.label"),
           description: t("accounting_writer.description"),
         }
-      case PermissionSetName.AppViewer:
+      case PermissionSetName.AuditViewer:
         return {
-          label: t("app_viewer.label"),
-          description: t("app_viewer.description"),
-        }
-      case PermissionSetName.AppWriter:
-        return {
-          label: t("app_writer.label"),
-          description: t("app_writer.description"),
+          label: t("audit_viewer.label"),
+          description: t("audit_viewer.description"),
         }
       case PermissionSetName.ContractCreation:
         return {

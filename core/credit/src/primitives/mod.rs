@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 
 use std::str::FromStr;
 
-use authz::{AllOrOne, action_description::*};
+use authz::{AllOrOne, action_description::*, auto_mappings};
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
@@ -286,29 +286,15 @@ impl CoreCreditAction {
     pub const TERMS_TEMPLATE_LIST: Self =
         CoreCreditAction::TermsTemplate(TermsTemplateAction::List);
 
-    pub fn entities() -> Vec<(
-        CoreCreditActionDiscriminants,
-        Vec<ActionDescription<NoPath>>,
-    )> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreCreditActionDiscriminants::*;
-
-        let mut result = vec![];
-
-        for entity in <CoreCreditActionDiscriminants as strum::VariantArray>::VARIANTS {
-            let actions = match entity {
-                CreditFacility => CreditFacilityAction::describe(),
-                ChartOfAccountsIntegrationConfig => {
-                    ChartOfAccountsIntegrationConfigAction::describe()
-                }
-                Disbursal => DisbursalAction::describe(),
-                Obligation => ObligationAction::describe(),
-                TermsTemplate => TermsTemplateAction::describe(),
-            };
-
-            result.push((*entity, actions));
-        }
-
-        result
+        [
+            auto_mappings!(CreditFacility => CreditFacilityAction),
+            auto_mappings!(ChartOfAccountsIntegrationConfig => ChartOfAccountsIntegrationConfigAction),
+            auto_mappings!(Disbursal => DisbursalAction),
+            auto_mappings!(Obligation => ObligationAction),
+            auto_mappings!(TermsTemplate => TermsTemplateAction),
+        ].concat()
     }
 }
 
@@ -361,40 +347,18 @@ pub enum CreditFacilityAction {
     UpdateCollateralizationState,
 }
 
-impl CreditFacilityAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
-                ),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
-                ),
-                Self::ConcludeApprovalProcess => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
-                }
-                Self::Activate => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-                Self::UpdateCollateral => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
-                }
-                Self::RecordInterest => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
-                }
-                Self::Complete => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-                Self::UpdateCollateralizationState => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
-                }
-            };
-            res.push(action_description);
+impl ActionPermission for CreditFacilityAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_CREDIT_VIEWER,
+            Self::Create
+            | Self::ConcludeApprovalProcess
+            | Self::Activate
+            | Self::UpdateCollateral
+            | Self::RecordInterest
+            | Self::Complete
+            | Self::UpdateCollateralizationState => PERMISSION_SET_CREDIT_WRITER,
         }
-
-        res
     }
 }
 
@@ -413,27 +377,12 @@ pub enum DisbursalAction {
     Read,
 }
 
-impl DisbursalAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Initiate => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-                Self::Settle => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
-                ),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for DisbursalAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::List | Self::Read => PERMISSION_SET_CREDIT_VIEWER,
+            Self::Initiate | Self::Settle => PERMISSION_SET_CREDIT_WRITER,
         }
-
-        res
     }
 }
 
@@ -450,22 +399,12 @@ pub enum ChartOfAccountsIntegrationConfigAction {
     Update,
 }
 
-impl ChartOfAccountsIntegrationConfigAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_WRITER, PERMISSION_SET_CREDIT_VIEWER],
-                ),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-            };
-            res.push(action_description);
+impl ActionPermission for ChartOfAccountsIntegrationConfigAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_CREDIT_VIEWER,
+            Self::Update => PERMISSION_SET_CREDIT_WRITER,
         }
-
-        res
     }
 }
 
@@ -483,27 +422,12 @@ pub enum ObligationAction {
     RecordPaymentAllocation,
 }
 
-impl ObligationAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
-                ),
-                Self::UpdateStatus => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
-                }
-                Self::RecordPaymentAllocation => {
-                    ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
-                }
-            };
-            res.push(action_description);
+impl ActionPermission for ObligationAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_CREDIT_VIEWER,
+            Self::UpdateStatus | Self::RecordPaymentAllocation => PERMISSION_SET_CREDIT_WRITER,
         }
-
-        res
     }
 }
 
@@ -522,27 +446,12 @@ pub enum TermsTemplateAction {
     List,
 }
 
-impl TermsTemplateAction {
-    pub fn describe() -> Vec<ActionDescription<NoPath>> {
-        let mut res = vec![];
-
-        for variant in <Self as strum::VariantArray>::VARIANTS {
-            let action_description = match variant {
-                Self::Create => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-                Self::Read => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
-                ),
-                Self::Update => ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER]),
-                Self::List => ActionDescription::new(
-                    variant,
-                    &[PERMISSION_SET_CREDIT_VIEWER, PERMISSION_SET_CREDIT_WRITER],
-                ),
-            };
-            res.push(action_description);
+impl ActionPermission for TermsTemplateAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read | Self::List => PERMISSION_SET_CREDIT_VIEWER,
+            Self::Create | Self::Update => PERMISSION_SET_CREDIT_WRITER,
         }
-
-        res
     }
 }
 
