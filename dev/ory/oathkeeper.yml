@@ -11,23 +11,13 @@ tracing:
       insecure: true
 
 authenticators:
-  bearer_token:
+  jwt:
     enabled: true
     config:
-      check_session_url: http://kratos:4433/sessions/whoami
-      preserve_path: true
-      preserve_query: true
-      subject_from: identity.id
-      extra_from: "@this"
-
-  cookie_session:
-    enabled: true
-    config:
-      check_session_url: http://kratos:4433/sessions/whoami
-      preserve_path: true
-      preserve_query: true
-      subject_from: identity.id
-      extra_from: "@this"
+      jwks_urls:
+        - http://keycloak:8080/realms/lana-admin/protocol/openid-connect/certs
+      trusted_issuers:
+        - http://localhost:8081/realms/lana-admin
 
   noop:
     enabled: true
