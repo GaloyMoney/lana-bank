@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 scalar AccountCode
 
 enum AccountStatus {
@@ -2124,3 +2125,5 @@ schema {
 	query: Query
 	mutation: Mutation
 }
+=======
+>>>>>>> d7bd3fac4 (chore: add keycloak admin-client in backend)
