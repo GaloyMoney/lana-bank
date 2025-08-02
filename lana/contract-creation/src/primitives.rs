@@ -63,7 +63,6 @@ pub enum ContractAction {
 impl ActionPermission for ContractAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            // All contract actions use the same permission set
             Self::Create | Self::Find | Self::GenerateDownloadLink => {
                 PERMISSION_SET_CONTRACT_CREATION
             }

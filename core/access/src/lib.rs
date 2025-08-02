@@ -57,9 +57,7 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         config: AccessConfig,
-        action_descriptions: Vec<ActionMapping>,
-
-        // TODO: simplify or clarify this type
+        all_actions: Vec<ActionMapping>,
         predefined_roles: &'static [(&'static str, &'static [&'static str])],
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,
@@ -73,7 +71,7 @@ where
             let bootstrap =
                 bootstrap::Bootstrap::new(authz, &role_repo, &users, &permission_set_repo);
             bootstrap
-                .bootstrap_access_control(email, action_descriptions, predefined_roles)
+                .bootstrap_access_control(email, all_actions, predefined_roles)
                 .await?;
         }
 
