@@ -42,9 +42,7 @@ impl CoreCustodyAction {
             auto_mappings!(Custodian => CustodianAction),
             auto_mappings!(Wallet => WalletAction),
         ]
-        .into_iter()
-        .flatten()
-        .collect()
+        .concat()
     }
 }
 

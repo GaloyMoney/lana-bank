@@ -387,9 +387,7 @@ impl CoreAccountingAction {
             auto_mappings!(AccountingCsv => AccountingCsvAction),
             auto_mappings!(TrialBalance => TrialBalanceAction),
         ]
-        .into_iter()
-        .flatten()
-        .collect()
+        .concat()
     }
 }
 

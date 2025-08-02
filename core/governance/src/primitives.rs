@@ -85,9 +85,7 @@ impl GovernanceAction {
             auto_mappings!(Policy => PolicyAction),
             auto_mappings!(ApprovalProcess => ApprovalProcessAction),
         ]
-        .into_iter()
-        .flatten()
-        .collect()
+        .concat()
     }
 }
 

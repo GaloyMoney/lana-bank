@@ -199,9 +199,7 @@ impl CoreCustomerAction {
             auto_mappings!(Customer => CustomerEntityAction),
             auto_mappings!(CustomerDocument => CustomerDocumentEntityAction),
         ]
-        .into_iter()
-        .flatten()
-        .collect()
+        .concat()
     }
 }
 
