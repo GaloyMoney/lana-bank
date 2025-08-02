@@ -27,7 +27,7 @@
     "@apollo/client-integration-nextjs": "^0.12.3",
     "@faker-js/faker": "^9.9.0",
     "@lana/web": "workspace:*",
-    "@ory/client": "^1.21.1",
+    "keycloak-js": "^26.0.7",
     "@t3-oss/env-nextjs": "^0.13.8",
     "apollo-upload-client": "^18.0.1",
     "axios": "^1.11.0",
