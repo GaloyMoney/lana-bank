@@ -11,11 +11,6 @@ pub enum DashboardModuleAction {
     Dashboard(DashboardAction),
 }
 
-// Define the module name once
-impl ModuleName for DashboardModuleAction {
-    const MODULE_NAME: &'static str = "dashboard";
-}
-
 impl DashboardModuleAction {
     pub const DASHBOARD_READ: Self = DashboardModuleAction::Dashboard(DashboardAction::Read);
 

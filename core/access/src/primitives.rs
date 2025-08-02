@@ -116,11 +116,6 @@ pub enum CoreAccessAction {
     PermissionSet(PermissionSetAction),
 }
 
-// Define the module name once
-impl ModuleName for CoreAccessAction {
-    const MODULE_NAME: &'static str = "access";
-}
-
 impl CoreAccessAction {
     pub const ROLE_CREATE: Self = CoreAccessAction::Role(RoleAction::Create);
     pub const ROLE_UPDATE: Self = CoreAccessAction::Role(RoleAction::Update);

@@ -65,11 +65,6 @@ pub enum CoreReportAction {
     Report(ReportEntityAction),
 }
 
-// Define the module name once
-impl ModuleName for CoreReportAction {
-    const MODULE_NAME: &'static str = "report";
-}
-
 impl CoreReportAction {
     pub const REPORT_GENERATE: Self = CoreReportAction::Report(ReportEntityAction::Generate);
     pub const REPORT_READ: Self = CoreReportAction::Report(ReportEntityAction::Read);

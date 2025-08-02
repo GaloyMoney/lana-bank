@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-use authz::{ActionPermission, AllOrOne, ModuleName, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -50,11 +50,6 @@ pub enum GovernanceAction {
     Committee(CommitteeAction),
     Policy(PolicyAction),
     ApprovalProcess(ApprovalProcessAction),
-}
-
-// Define the module name once
-impl ModuleName for GovernanceAction {
-    const MODULE_NAME: &'static str = "governance";
 }
 
 impl GovernanceAction {

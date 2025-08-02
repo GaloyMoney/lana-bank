@@ -151,10 +151,6 @@ pub enum CoreDepositAction {
     Withdrawal(WithdrawalAction),
 }
 
-impl ModuleName for CoreDepositAction {
-    const MODULE_NAME: &'static str = "deposit";
-}
-
 impl CoreDepositAction {
     pub const DEPOSIT_ACCOUNT_CREATE: Self =
         CoreDepositAction::DepositAccount(DepositAccountAction::Create);

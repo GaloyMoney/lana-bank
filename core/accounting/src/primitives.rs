@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
 
-use authz::{ActionPermission, AllOrOne, ModuleName, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,
@@ -368,10 +368,6 @@ pub enum CoreAccountingAction {
     BalanceSheetConfiguration(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
     TrialBalance(TrialBalanceAction),
-}
-
-impl ModuleName for CoreAccountingAction {
-    const MODULE_NAME: &'static str = "accounting";
 }
 
 impl CoreAccountingAction {

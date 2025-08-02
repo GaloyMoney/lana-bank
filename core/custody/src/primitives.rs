@@ -27,11 +27,6 @@ pub enum CoreCustodyAction {
     Wallet(WalletAction),
 }
 
-// Define the module name once
-impl ModuleName for CoreCustodyAction {
-    const MODULE_NAME: &'static str = "custody";
-}
-
 impl CoreCustodyAction {
     pub const CUSTODIAN_CREATE: Self = CoreCustodyAction::Custodian(CustodianAction::Create);
     pub const CUSTODIAN_LIST: Self = CoreCustodyAction::Custodian(CustodianAction::List);
