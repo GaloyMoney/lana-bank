@@ -43,8 +43,9 @@ where
         }
     }
 
-    /// Creates essential users, roles and permission sets for a running application.
-    /// User with `email` will have a role “superuser” that has all available permission sets.
+    /// Creates essential roles and permission sets for a running application.
+    /// Also creates a superuser user with the given email that will have the superuser role
+    /// with all available permission sets.
     pub(super) async fn bootstrap_access_control(
         &self,
         email: String,
