@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{ActionPermission, AllOrOne, ModuleName, action_description::*, auto_mappings};
+pub use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
 pub use public_id::PublicId;
 
 es_entity::entity_id! {
@@ -167,10 +167,6 @@ impl FromStr for CustomerObject {
 pub enum CoreCustomerAction {
     Customer(CustomerEntityAction),
     CustomerDocument(CustomerDocumentEntityAction),
-}
-
-impl ModuleName for CoreCustomerAction {
-    const MODULE_NAME: &'static str = "customer";
 }
 
 impl CoreCustomerAction {

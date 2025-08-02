@@ -8,7 +8,7 @@ use schemars::JsonSchema;
 
 use std::str::FromStr;
 
-use authz::{AllOrOne, ModuleName, action_description::*, auto_mappings};
+use authz::{AllOrOne, action_description::*, auto_mappings};
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
@@ -235,10 +235,6 @@ pub enum CoreCreditAction {
     Disbursal(DisbursalAction),
     Obligation(ObligationAction),
     TermsTemplate(TermsTemplateAction),
-}
-
-impl ModuleName for CoreCreditAction {
-    const MODULE_NAME: &'static str = "credit";
 }
 
 impl CoreCreditAction {

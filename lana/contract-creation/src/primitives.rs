@@ -17,11 +17,6 @@ pub enum ContractModuleAction {
     Contract(ContractAction),
 }
 
-// Define the module name once
-impl ModuleName for ContractModuleAction {
-    const MODULE_NAME: &'static str = "contract";
-}
-
 impl ContractModuleAction {
     pub const CONTRACT_CREATE: Self = ContractModuleAction::Contract(ContractAction::Create);
     pub const CONTRACT_FIND: Self = ContractModuleAction::Contract(ContractAction::Find);

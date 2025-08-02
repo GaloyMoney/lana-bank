@@ -10,11 +10,6 @@ pub enum AuditAction {
     Audit(AuditEntityAction),
 }
 
-// Define the module name once
-impl ModuleName for AuditAction {
-    const MODULE_NAME: &'static str = "audit";
-}
-
 impl AuditAction {
     pub fn entities() -> Vec<(AuditActionDiscriminants, Vec<ActionDescription>)> {
         use AuditActionDiscriminants::*;
