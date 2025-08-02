@@ -57,7 +57,7 @@ where
     pub async fn init(
         pool: &sqlx::PgPool,
         config: AccessConfig,
-        action_descriptions: Vec<ActionDescription>,
+        action_descriptions: Vec<ActionMapping>,
         predefined_roles: &'static [(&'static str, &'static [&'static str])],
         authz: &Authorization<Audit, AuthRoleToken>,
         outbox: &Outbox<E>,

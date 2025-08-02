@@ -78,7 +78,7 @@ impl GovernanceAction {
     pub const APPROVAL_PROCESS_CONCLUDE: Self =
         GovernanceAction::ApprovalProcess(ApprovalProcessAction::Conclude);
 
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use GovernanceActionDiscriminants::*;
         [
             auto_mappings!(Committee => CommitteeAction),

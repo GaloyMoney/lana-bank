@@ -36,7 +36,7 @@ impl CoreCustodyAction {
 
     pub const WALLET_UPDATE: Self = CoreCustodyAction::Wallet(WalletAction::Update);
 
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreCustodyActionDiscriminants::*;
         [
             auto_mappings!(Custodian => CustodianAction),

@@ -86,12 +86,12 @@ impl<O, A> Permission<O, A> {
     }
 }
 
-impl<O, A> From<&ActionDescription> for Permission<O, A>
+impl<O, A> From<&ActionMapping> for Permission<O, A>
 where
     O: FromStr,
     A: FromStr,
 {
-    fn from(action: &ActionDescription) -> Self {
+    fn from(action: &ActionMapping) -> Self {
         Permission::new(
             action
                 .all_objects_name()
@@ -132,7 +132,7 @@ impl CoreAccessAction {
     pub const PERMISSION_SET_LIST: Self =
         CoreAccessAction::PermissionSet(PermissionSetAction::List);
 
-    pub fn actions() -> Vec<ActionDescription> {
+    pub fn actions() -> Vec<ActionMapping> {
         use CoreAccessActionDiscriminants::*;
         [
             auto_mappings!(User => UserAction),
