@@ -60,6 +60,8 @@ pub enum CreditFacilityError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CreditFacilityError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
+    #[error("PaymentError - PaymentAllocationError: {0}")]
+    PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);

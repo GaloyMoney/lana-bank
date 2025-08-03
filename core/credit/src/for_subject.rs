@@ -16,7 +16,6 @@ where
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilities<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
-    payments: &'a Payments<Perms, E>,
     histories: &'a HistoryRepo,
     repayment_plans: &'a RepaymentPlanRepo,
     ledger: &'a CreditLedger,
@@ -38,7 +37,6 @@ where
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilities<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
-        payments: &'a Payments<Perms, E>,
         history: &'a HistoryRepo,
         repayment_plans: &'a RepaymentPlanRepo,
         ledger: &'a CreditLedger,
@@ -49,7 +47,6 @@ where
             authz,
             credit_facilities,
             disbursals,
-            payments,
             histories: history,
             repayment_plans,
             ledger,
@@ -215,7 +212,7 @@ where
         payment_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
     ) -> Result<PaymentAllocation, CoreCreditError> {
         let payment_allocation = self
-            .payments
+            .credit_facilities
             .find_allocation_by_id_without_audit(payment_id.into())
             .await?;
 

@@ -92,7 +92,7 @@ where
     authz: Perms,
     facilities: CreditFacilities<Perms, E>,
     disbursals: Disbursals<Perms, E>,
-    payments: Payments<Perms, E>,
+    payments: Payments<Perms>,
     history_repo: HistoryRepo,
     repayment_plan_repo: RepaymentPlanRepo,
     governance: Governance<Perms, E>,
@@ -191,7 +191,7 @@ where
         .await;
         let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
         let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
-        let payments = Payments::new(pool, authz, &obligations, &publisher);
+        let payments = Payments::new(pool, authz);
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
         let approve_disbursal =
@@ -353,7 +353,7 @@ where
         &self.facilities
     }
 
-    pub fn payments(&self) -> &Payments<Perms, E> {
+    pub fn payments(&self) -> &Payments<Perms> {
         &self.payments
     }
 
@@ -396,7 +396,6 @@ where
             &self.authz,
             &self.facilities,
             &self.disbursals,
-            &self.payments,
             &self.history_repo,
             &self.repayment_plan_repo,
             &self.ledger,
@@ -765,16 +764,22 @@ where
 
         let mut db = self.facilities.begin_op().await?;
 
-        let allocations = self
+        let payment = self
             .payments
-            .record_in_op(&mut db, audit_info, credit_facility_id, amount, effective)
+            .record_in_op(&mut db, credit_facility_id, amount, &audit_info)
             .await?;
 
-        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
-        tracing::Span::current().record(
-            "amount_allocated",
-            tracing::field::display(amount_allocated),
-        );
+        let allocations = self
+            .facilities()
+            .record_allocation_in_op(
+                &mut db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                effective,
+                &audit_info,
+            )
+            .await?;
 
         self.ledger
             .record_obligation_repayments(db, allocations)

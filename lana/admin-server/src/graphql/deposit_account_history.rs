@@ -133,7 +133,7 @@ impl PaymentEntry {
 
         let payment = app
             .credit()
-            .payments()
+            .facilities()
             .find_allocation_by_id(sub, self.tx_id)
             .await?;
 
