@@ -56,30 +56,6 @@
         "audit_info"
       ],
       "type": "object"
-    },
-    {
-      "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
-        "disbursal": {
-          "$ref": "#/$defs/UsdCents"
-        },
-        "interest": {
-          "$ref": "#/$defs/UsdCents"
-        },
-        "type": {
-          "const": "payment_allocated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "disbursal",
-        "interest",
-        "audit_info"
-      ],
-      "type": "object"
     }
   ],
   "title": "PaymentEvent"

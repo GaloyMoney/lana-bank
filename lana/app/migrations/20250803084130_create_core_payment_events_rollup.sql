@@ -7,8 +7,6 @@ CREATE TABLE core_payment_events_rollup (
   -- Flattened fields from the event JSON
   amount BIGINT,
   credit_facility_id UUID,
-  disbursal BIGINT,
-  interest BIGINT,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
@@ -37,7 +35,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'payment_allocated') THEN
+  IF event_type NOT IN ('initialized') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -57,16 +55,12 @@ BEGIN
      END
 ;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    new_row.disbursal := (NEW.event ->> 'disbursal')::BIGINT;
-    new_row.interest := (NEW.event ->> 'interest')::BIGINT;
     new_row.is_payment_allocated := false;
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.credit_facility_id := current_row.credit_facility_id;
-    new_row.disbursal := current_row.disbursal;
-    new_row.interest := current_row.interest;
     new_row.is_payment_allocated := current_row.is_payment_allocated;
   END IF;
 
@@ -76,11 +70,6 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    WHEN 'payment_allocated' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.disbursal := (NEW.event ->> 'disbursal')::BIGINT;
-      new_row.interest := (NEW.event ->> 'interest')::BIGINT;
-      new_row.is_payment_allocated := true;
   END CASE;
 
   INSERT INTO core_payment_events_rollup (
@@ -91,8 +80,6 @@ BEGIN
     amount,
     audit_entry_ids,
     credit_facility_id,
-    disbursal,
-    interest,
     is_payment_allocated
   )
   VALUES (
@@ -103,8 +90,6 @@ BEGIN
     new_row.amount,
     new_row.audit_entry_ids,
     new_row.credit_facility_id,
-    new_row.disbursal,
-    new_row.interest,
     new_row.is_payment_allocated
   );
 
