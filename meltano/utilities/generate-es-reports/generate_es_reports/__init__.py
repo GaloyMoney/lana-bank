@@ -376,7 +376,8 @@ def main():
 
     report_storer: ReportStorer = get_report_storer(config=report_generator_config)
 
-    report_jobs = load_report_jobs_from_yaml(Path("reports.yml"))
+    report_config_yaml_path = Path(__file__).resolve().parent / "reports.yml"
+    report_jobs = load_report_jobs_from_yaml(report_config_yaml_path)
 
     def get_rows_from_table(table_name: str):
         query = f"SELECT * FROM `{report_generator_config.project_id}.{report_generator_config.dataset}.{table_name}`;"
