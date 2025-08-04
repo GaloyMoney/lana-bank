@@ -21,18 +21,12 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
     credentials: "include",
   })
 
-  const authLink = setContext(async (_, { headers }) => {
-    try {
-      const token = getToken()
-      return {
-        headers: {
-          ...headers,
-          ...(token ? { authorization: `Bearer ${token}` } : {}),
-        },
-      }
-    } catch (error) {
-      console.error("Failed to update token in Apollo client:", error)
-      return { headers }
+  const authLink = setContext(() => {
+    const token = getToken()
+    return {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : "",
+      },
     }
   })
 
