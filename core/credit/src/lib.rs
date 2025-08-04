@@ -178,7 +178,7 @@ where
     ) -> Result<Self, CoreCreditError> {
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
-        let obligations = Obligations::new(pool, authz, cala, jobs, &publisher);
+        let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
         let credit_facilities = CreditFacilities::new(
             pool,
             authz,
@@ -770,20 +770,15 @@ where
             .record_in_op(&mut db, credit_facility_id, amount, &audit_info)
             .await?;
 
-        let allocations = self
-            .obligations
+        self.obligations
             .allocate_payment_in_op(
-                &mut db,
+                db,
                 credit_facility_id,
                 payment.id,
                 amount,
                 effective.into(),
                 &audit_info,
             )
-            .await?;
-
-        self.ledger
-            .record_obligation_repayments(db, allocations)
             .await?;
 
         Ok(credit_facility)

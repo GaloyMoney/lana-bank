@@ -7,13 +7,12 @@ use tracing::{Span, instrument};
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
 use es_entity::Idempotent;
 use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
-    PaymentAllocation, PaymentAllocationId, PaymentAllocationRepo,
+    CreditLedger, PaymentAllocation, PaymentAllocationId, PaymentAllocationRepo,
     event::CoreCreditEvent,
     jobs::obligation_due,
     liquidation_process::{LiquidationProcess, LiquidationProcessRepo},
@@ -42,6 +41,7 @@ where
     repo: ObligationRepo<E>,
     liquidation_process_repo: LiquidationProcessRepo<E>,
     payment_allocation_repo: PaymentAllocationRepo<E>,
+    ledger: CreditLedger,
     jobs: Jobs,
 }
 
@@ -56,6 +56,7 @@ where
             repo: self.repo.clone(),
             liquidation_process_repo: self.liquidation_process_repo.clone(),
             payment_allocation_repo: self.payment_allocation_repo.clone(),
+            ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
         }
     }
@@ -71,7 +72,7 @@ where
     pub(crate) fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
-        _cala: &CalaLedger,
+        ledger: &CreditLedger,
         jobs: &Jobs,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
@@ -83,6 +84,7 @@ where
             repo: obligation_repo,
             liquidation_process_repo,
             jobs: jobs.clone(),
+            ledger: ledger.clone(),
             payment_allocation_repo,
         }
     }
@@ -256,13 +258,13 @@ where
     )]
     pub async fn allocate_payment_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        mut db: es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         payment_id: PaymentId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
-    ) -> Result<Vec<PaymentAllocation>, ObligationError> {
+    ) -> Result<(), ObligationError> {
         let span = Span::current();
         let mut obligations = self.facility_obligations(credit_facility_id).await?;
         span.record("n_facility_obligations", obligations.len());
@@ -275,7 +277,7 @@ where
             if let es_entity::Idempotent::Executed(new_allocation) =
                 obligation.allocate_payment(remaining, payment_id, effective, audit_info)
             {
-                self.repo.update_in_op(db, obligation).await?;
+                self.repo.update_in_op(&mut db, obligation).await?;
                 remaining -= new_allocation.amount;
                 new_allocations.push(new_allocation);
                 if remaining == UsdCents::ZERO {
@@ -288,7 +290,7 @@ where
 
         let allocations = self
             .payment_allocation_repo
-            .create_all_in_op(db, new_allocations)
+            .create_all_in_op(&mut db, new_allocations)
             .await?;
 
         let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
@@ -297,7 +299,12 @@ where
             tracing::field::display(amount_allocated),
         );
 
-        Ok(allocations)
+        self.ledger
+            .record_obligation_repayments(db, allocations)
+            .await
+            .unwrap();
+
+        Ok(())
     }
 
     pub(super) async fn find_allocation_by_id_without_audit(
