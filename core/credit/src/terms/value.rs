@@ -265,7 +265,7 @@ impl TermValues {
         cvl >= self.margin_call_cvl
     }
 
-    pub fn is_approval_allowed(
+    pub fn is_activation_allowed(
         &self,
         balance: CreditFacilityBalanceSummary,
         price: PriceOfOneBTC,
@@ -854,10 +854,10 @@ mod test {
         let mut balance = default_balances(principal);
         balance.collateral = required_collateral - Satoshis::ONE;
 
-        assert!(!terms.is_approval_allowed(balance, price));
+        assert!(!terms.is_activation_allowed(balance, price));
 
         balance.collateral = required_collateral;
-        assert!(terms.is_approval_allowed(balance, price));
+        assert!(terms.is_activation_allowed(balance, price));
     }
 
     #[test]

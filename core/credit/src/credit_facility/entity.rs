@@ -306,7 +306,7 @@ impl CreditFacility {
             return Err(CreditFacilityError::Denied);
         }
 
-        if !self.terms.is_approval_allowed(balances, price) {
+        if !self.terms.is_activation_allowed(balances, price) {
             return Err(CreditFacilityError::BelowMarginLimit);
         }
 
