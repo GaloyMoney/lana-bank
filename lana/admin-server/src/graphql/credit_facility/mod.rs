@@ -93,7 +93,7 @@ impl CreditFacility {
             .unwrap_or_else(|| self.entity.status()))
     }
 
-    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<CVLPct>> {
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
         let (app, _) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.credit().current_cvl(&self.entity).await?)
     }

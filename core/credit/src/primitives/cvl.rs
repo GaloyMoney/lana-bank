@@ -24,6 +24,7 @@ async_graphql::scalar!(CVLPct);
 
 impl CVLPct {
     pub const ZERO: Self = Self(dec!(0));
+    pub const INFINITY: Self = Self(Decimal::MAX);
 
     pub fn new(value: u64) -> Self {
         Self(Decimal::from(value))

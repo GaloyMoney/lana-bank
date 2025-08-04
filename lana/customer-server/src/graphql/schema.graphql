@@ -40,7 +40,7 @@ type CreditFacility {
 	maturesAt: Timestamp
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
-	currentCvl: CVLPct
+	currentCvl: CVLPct!
 	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
