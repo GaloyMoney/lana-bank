@@ -365,6 +365,36 @@ class ReportJobDefinition:
     @property
     def source_table_name(self) -> str:
         return f"report_{self.norm}_{self.id}"
+    
+def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition]:
+    with open(yaml_path, "r", encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+
+
+    str_to_type_mapping = {
+        "xml": XMLFileOutputConfig,
+        "csv": CSVFileOutputConfig,
+        "txt": TXTFileOutputConfig
+    }
+
+    report_jobs = []
+    for report_job in data["report_jobs"]:
+        output_configs = []
+        for output in report_job["outputs"]:
+            output_config = str_to_type_mapping[output["type"].lower()]()
+            output_configs.append(output_config)
+        output_configs = tuple(output_configs)
+
+        report_jobs.append(
+            ReportJobDefinition(
+                norm=report_job["norm"],
+                id=report_job["id"],
+                friendly_name=report_job["friendly_name"],
+                file_output_configs=output_configs,
+            )
+        )
+
+    return tuple(report_jobs)
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
