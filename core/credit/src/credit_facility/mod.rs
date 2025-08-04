@@ -18,7 +18,6 @@ use crate::{
         CreditFacilityInterestAccrualCycle, CreditLedger,
     },
     obligation::Obligations,
-    payment_allocation::*,
     primitives::*,
     terms::InterestPeriod,
 };
@@ -41,7 +40,6 @@ where
 {
     repo: CreditFacilityRepo<E>,
     obligations: Obligations<Perms, E>,
-    payment_allocation_repo: PaymentAllocationRepo<E>,
     authz: Perms,
     ledger: CreditLedger,
     price: Price,
@@ -61,7 +59,6 @@ where
             ledger: self.ledger.clone(),
             price: self.price.clone(),
             governance: self.governance.clone(),
-            payment_allocation_repo: self.payment_allocation_repo.clone(),
         }
     }
 }
@@ -116,8 +113,6 @@ where
             .init_policy(crate::APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
 
-        let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
-
         Self {
             repo,
             obligations: obligations.clone(),
@@ -125,7 +120,6 @@ where
             ledger: ledger.clone(),
             price: price.clone(),
             governance: governance.clone(),
-            payment_allocation_repo,
         }
     }
 
@@ -339,40 +333,6 @@ where
             facility_accrual_cycle_data: (accrual_cycle_data, credit_facility.account_ids).into(),
             new_cycle_data,
         })
-    }
-
-    pub(super) async fn find_allocation_by_id_without_audit(
-        &self,
-        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
-    ) -> Result<PaymentAllocation, CreditFacilityError> {
-        let allocation = self
-            .payment_allocation_repo
-            .find_by_id(payment_allocation_id.into())
-            .await?;
-
-        Ok(allocation)
-    }
-
-    #[instrument(name = "core_credit.payment.find_allocation_by_id", skip(self), err)]
-    pub async fn find_allocation_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
-    ) -> Result<PaymentAllocation, CreditFacilityError> {
-        let payment_allocation = self
-            .payment_allocation_repo
-            .find_by_id(payment_allocation_id.into())
-            .await?;
-
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::credit_facility(payment_allocation.credit_facility_id),
-                CoreCreditAction::CREDIT_FACILITY_READ,
-            )
-            .await?;
-
-        Ok(payment_allocation)
     }
 
     pub async fn find_by_id_without_audit(

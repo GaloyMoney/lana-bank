@@ -15,6 +15,7 @@ where
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     authz: &'a Perms,
     credit_facilities: &'a CreditFacilities<Perms, E>,
+    obligations: &'a Obligations<Perms, E>,
     disbursals: &'a Disbursals<Perms, E>,
     histories: &'a HistoryRepo,
     repayment_plans: &'a RepaymentPlanRepo,
@@ -36,6 +37,7 @@ where
         customer_id: CustomerId,
         authz: &'a Perms,
         credit_facilities: &'a CreditFacilities<Perms, E>,
+        obligations: &'a Obligations<Perms, E>,
         disbursals: &'a Disbursals<Perms, E>,
         history: &'a HistoryRepo,
         repayment_plans: &'a RepaymentPlanRepo,
@@ -46,6 +48,7 @@ where
             subject,
             authz,
             credit_facilities,
+            obligations,
             disbursals,
             histories: history,
             repayment_plans,
@@ -212,7 +215,7 @@ where
         payment_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
     ) -> Result<PaymentAllocation, CoreCreditError> {
         let payment_allocation = self
-            .credit_facilities
+            .obligations
             .find_allocation_by_id_without_audit(payment_id.into())
             .await?;
 

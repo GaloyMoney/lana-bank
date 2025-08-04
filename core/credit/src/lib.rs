@@ -395,6 +395,7 @@ where
             customer_id,
             &self.authz,
             &self.facilities,
+            &self.obligations,
             &self.disbursals,
             &self.history_repo,
             &self.repayment_plan_repo,
