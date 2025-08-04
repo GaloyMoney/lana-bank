@@ -365,16 +365,16 @@ class ReportJobDefinition:
     @property
     def source_table_name(self) -> str:
         return f"report_{self.norm}_{self.id}"
-    
+
+
 def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition]:
     with open(yaml_path, "r", encoding="utf-8") as file:
         data = yaml.safe_load(file)
 
-
     str_to_type_mapping = {
         "xml": XMLFileOutputConfig,
         "csv": CSVFileOutputConfig,
-        "txt": TXTFileOutputConfig
+        "txt": TXTFileOutputConfig,
     }
 
     report_jobs = []
