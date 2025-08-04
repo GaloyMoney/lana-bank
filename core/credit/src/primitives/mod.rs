@@ -86,7 +86,7 @@ impl From<ObligationType> for BalanceUpdatedType {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum BalanceUpdatedSource {
     Obligation(ObligationId),
-    PaymentAllocation(ObligationFulfillmentId),
+    ObligationFulfillment(ObligationFulfillmentId),
 }
 
 impl From<ObligationId> for BalanceUpdatedSource {
@@ -97,7 +97,7 @@ impl From<ObligationId> for BalanceUpdatedSource {
 
 impl From<ObligationFulfillmentId> for BalanceUpdatedSource {
     fn from(allocation_id: ObligationFulfillmentId) -> Self {
-        Self::PaymentAllocation(allocation_id)
+        Self::ObligationFulfillment(allocation_id)
     }
 }
 

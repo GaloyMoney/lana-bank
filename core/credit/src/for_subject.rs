@@ -210,7 +210,7 @@ where
         Ok(disbursal)
     }
 
-    pub async fn find_payment_allocation_by_id(
+    pub async fn find_obligation_fulfillment_by_id(
         &self,
         payment_id: impl Into<ObligationFulfillmentId> + std::fmt::Debug,
     ) -> Result<ObligationFulfillment, CoreCreditError> {

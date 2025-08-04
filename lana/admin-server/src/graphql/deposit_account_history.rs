@@ -4,7 +4,8 @@ use crate::primitives::*;
 
 use super::{
     credit_facility::{
-        disbursal::CreditFacilityDisbursal, payment_allocation::CreditFacilityPaymentAllocation,
+        disbursal::CreditFacilityDisbursal,
+        obligation_fulfillment::CreditFacilityObligationFulfillment,
     },
     deposit::Deposit,
     withdrawal::Withdrawal,
@@ -128,7 +129,7 @@ impl PaymentEntry {
     async fn payment(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<CreditFacilityPaymentAllocation> {
+    ) -> async_graphql::Result<CreditFacilityObligationFulfillment> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let payment = app
@@ -137,7 +138,7 @@ impl PaymentEntry {
             .find_fulfillment_by_id(sub, self.tx_id)
             .await?;
 
-        Ok(CreditFacilityPaymentAllocation::from(payment))
+        Ok(CreditFacilityObligationFulfillment::from(payment))
     }
 }
 
