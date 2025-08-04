@@ -770,13 +770,13 @@ where
             .await?;
 
         let allocations = self
-            .facilities()
-            .record_allocation_in_op(
+            .obligations
+            .allocate_payment_in_op(
                 &mut db,
                 credit_facility_id,
                 payment.id,
                 amount,
-                effective,
+                effective.into(),
                 &audit_info,
             )
             .await?;

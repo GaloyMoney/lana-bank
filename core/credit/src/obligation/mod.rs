@@ -13,13 +13,12 @@ use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
+    PaymentAllocation, PaymentAllocationRepo,
     event::CoreCreditEvent,
     jobs::obligation_due,
     liquidation_process::{LiquidationProcess, LiquidationProcessRepo},
-    payment_allocation::NewPaymentAllocation,
     primitives::{
-        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, ObligationType,
-        PaymentId, UsdCents,
+        CoreCreditAction, CoreCreditObject, CreditFacilityId, ObligationId, PaymentId, UsdCents,
     },
     publisher::CreditFacilityPublisher,
 };
@@ -42,6 +41,7 @@ where
     authz: Perms,
     repo: ObligationRepo<E>,
     liquidation_process_repo: LiquidationProcessRepo<E>,
+    payment_allocation_repo: PaymentAllocationRepo<E>,
     jobs: Jobs,
 }
 
@@ -55,6 +55,7 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             liquidation_process_repo: self.liquidation_process_repo.clone(),
+            payment_allocation_repo: self.payment_allocation_repo.clone(),
             jobs: self.jobs.clone(),
         }
     }
@@ -76,11 +77,13 @@ where
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
         let liquidation_process_repo = LiquidationProcessRepo::new(pool, publisher);
+        let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
             repo: obligation_repo,
             liquidation_process_repo,
             jobs: jobs.clone(),
+            payment_allocation_repo,
         }
     }
 
@@ -259,7 +262,7 @@ where
         amount: UsdCents,
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
-    ) -> Result<PaymentAllocationResult, ObligationError> {
+    ) -> Result<Vec<PaymentAllocation>, ObligationError> {
         let span = Span::current();
         let mut obligations = self.facility_obligations(credit_facility_id).await?;
         span.record("n_facility_obligations", obligations.len());
@@ -282,7 +285,19 @@ where
         }
 
         span.record("n_new_allocations", new_allocations.len());
-        Ok(PaymentAllocationResult::new(new_allocations))
+
+        let allocations = self
+            .payment_allocation_repo
+            .create_all_in_op(db, new_allocations)
+            .await?;
+
+        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
+        tracing::Span::current().record(
+            "amount_allocated",
+            tracing::field::display(amount_allocated),
+        );
+
+        Ok(allocations)
     }
 
     pub async fn check_facility_obligations_status_updated(
@@ -325,47 +340,5 @@ where
         }
 
         Ok(obligations)
-    }
-}
-
-pub struct PaymentAllocationResult {
-    pub allocations: Vec<NewPaymentAllocation>,
-}
-
-impl PaymentAllocationResult {
-    fn new(allocations: Vec<NewPaymentAllocation>) -> Self {
-        Self { allocations }
-    }
-
-    pub fn disbursed_amount(&self) -> UsdCents {
-        self.allocations
-            .iter()
-            .fold(UsdCents::from(0), |mut total, allocation| {
-                if let NewPaymentAllocation {
-                    amount,
-                    obligation_type: ObligationType::Disbursal,
-                    ..
-                } = allocation
-                {
-                    total += *amount;
-                }
-                total
-            })
-    }
-
-    pub fn interest_amount(&self) -> UsdCents {
-        self.allocations
-            .iter()
-            .fold(UsdCents::from(0), |mut total, allocation| {
-                if let NewPaymentAllocation {
-                    amount,
-                    obligation_type: ObligationType::Interest,
-                    ..
-                } = allocation
-                {
-                    total += *amount;
-                }
-                total
-            })
     }
 }

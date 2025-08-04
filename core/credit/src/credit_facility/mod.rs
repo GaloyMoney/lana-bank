@@ -341,47 +341,6 @@ where
         })
     }
 
-    #[instrument(
-        name = "credit.credit_facility.record_allocation_in_op",
-        skip(self, db),
-        err
-    )]
-
-    pub async fn record_allocation_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        credit_facility_id: CreditFacilityId,
-        payment_id: PaymentId,
-        amount: UsdCents,
-        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-        audit_info: &audit::AuditInfo,
-    ) -> Result<Vec<PaymentAllocation>, CreditFacilityError> {
-        let res = self
-            .obligations
-            .allocate_payment_in_op(
-                db,
-                credit_facility_id,
-                payment_id,
-                amount,
-                effective.into(),
-                audit_info,
-            )
-            .await?;
-
-        let allocations = self
-            .payment_allocation_repo
-            .create_all_in_op(db, res.allocations)
-            .await?;
-
-        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
-        tracing::Span::current().record(
-            "amount_allocated",
-            tracing::field::display(amount_allocated),
-        );
-
-        Ok(allocations)
-    }
-
     pub(super) async fn find_allocation_by_id_without_audit(
         &self,
         payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
