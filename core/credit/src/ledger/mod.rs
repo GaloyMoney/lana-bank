@@ -184,7 +184,7 @@ impl CreditLedger {
         templates::CreateCreditFacility::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
-        templates::RecordPaymentAllocation::init(cala).await?;
+        templates::RecordObligationFulfillment::init(cala).await?;
         templates::RecordObligationDueBalance::init(cala).await?;
         templates::RecordObligationOverdueBalance::init(cala).await?;
         templates::RecordObligationDefaultedBalance::init(cala).await?;
@@ -1174,7 +1174,7 @@ impl CreditLedger {
             ..
         }: ObligationFulfillment,
     ) -> Result<(), CreditLedgerError> {
-        let params = templates::RecordPaymentAllocationParams {
+        let params = templates::RecordObligationFulfillmentParams {
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
@@ -1187,7 +1187,7 @@ impl CreditLedger {
             .post_transaction_in_op(
                 op,
                 id.into(),
-                templates::RECORD_PAYMENT_ALLOCATION_CODE,
+                templates::RECORD_OBLIGATION_FULFILLMENT_CODE,
                 params,
             )
             .await?;

@@ -311,20 +311,14 @@ pub fn update_schemas(
                         "DueRecorded".to_string(),
                         "OverdueRecorded".to_string(),
                         "DefaultedRecorded".to_string(),
-                        "PaymentAllocated".to_string(),
+                        "Fulfilled".to_string(),
                     ],
                     remove_events: vec![],
                 },
                 CollectionRollup {
-                    column_name: "payment_ids",
-                    values: "payment_id",
-                    add_events: vec!["PaymentAllocated".to_string()],
-                    remove_events: vec![],
-                },
-                CollectionRollup {
-                    column_name: "payment_allocation_ids",
-                    values: "payment_allocation_id",
-                    add_events: vec!["PaymentAllocated".to_string()],
+                    column_name: "obligation_fulfillment_ids",
+                    values: "obligation_fulfillment_id",
+                    add_events: vec!["Fulfilled".to_string()],
                     remove_events: vec![],
                 },
             ],
@@ -340,7 +334,7 @@ pub fn update_schemas(
         SchemaInfo {
             name: "PaymentEvent",
             filename: "payment_event_schema.json",
-            toggle_events: vec!["PaymentAllocated"],
+            toggle_events: vec![],
             generate_schema: || serde_json::to_value(schema_for!(PaymentEvent)).unwrap(),
             ..Default::default()
         },

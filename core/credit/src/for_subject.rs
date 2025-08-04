@@ -214,14 +214,14 @@ where
         &self,
         payment_id: impl Into<ObligationFulfillmentId> + std::fmt::Debug,
     ) -> Result<ObligationFulfillment, CoreCreditError> {
-        let payment_allocation = self
+        let fulfillments = self
             .obligations
             .find_fulfillment_by_id_without_audit(payment_id.into())
             .await?;
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id_without_audit(payment_allocation.credit_facility_id)
+            .find_by_id_without_audit(fulfillments.credit_facility_id)
             .await?;
 
         self.ensure_credit_facility_access(
@@ -231,6 +231,6 @@ where
         )
         .await?;
 
-        Ok(payment_allocation)
+        Ok(fulfillments)
     }
 }

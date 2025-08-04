@@ -275,7 +275,7 @@ impl CoreCreditAction {
     pub const OBLIGATION_UPDATE_STATUS: Self =
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
     pub const OBLIGATION_RECORD_PAYMENT: Self =
-        CoreCreditAction::Obligation(ObligationAction::RecordPaymentAllocation);
+        CoreCreditAction::Obligation(ObligationAction::RecordFulfillment);
 
     pub const TERMS_TEMPLATE_CREATE: Self =
         CoreCreditAction::TermsTemplate(TermsTemplateAction::Create);
@@ -480,7 +480,7 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
 pub enum ObligationAction {
     Read,
     UpdateStatus,
-    RecordPaymentAllocation,
+    RecordFulfillment,
 }
 
 impl ObligationAction {
@@ -496,7 +496,7 @@ impl ObligationAction {
                 Self::UpdateStatus => {
                     ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
                 }
-                Self::RecordPaymentAllocation => {
+                Self::RecordFulfillment => {
                     ActionDescription::new(variant, &[PERMISSION_SET_CREDIT_WRITER])
                 }
             };
