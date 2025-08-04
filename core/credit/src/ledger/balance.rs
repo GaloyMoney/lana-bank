@@ -130,11 +130,13 @@ impl CreditFacilityBalanceSummary {
         CVLData::new(self.collateral, self.total_outstanding()).cvl(price)
     }
 
-    pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        if self.total_outstanding() > UsdCents::ZERO {
-            self.outstanding_amount_cvl(price)
+    pub fn current_cvl(&self, price: PriceOfOneBTC) -> Option<CVLPct> {
+        if self.disbursed.is_zero() {
+            Some(self.facility_amount_cvl(price))
+        } else if self.total_outstanding().is_zero() {
+            None
         } else {
-            self.facility_amount_cvl(price)
+            Some(self.outstanding_amount_cvl(price))
         }
     }
 
@@ -215,11 +217,11 @@ mod test {
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
         assert_eq!(
-            balances.current_cvl(price),
+            balances.current_cvl(price).unwrap(),
             balances.facility_amount_cvl(price)
         );
         assert_ne!(
-            balances.current_cvl(price),
+            balances.current_cvl(price).unwrap(),
             balances.outstanding_amount_cvl(price)
         );
     }
@@ -246,11 +248,11 @@ mod test {
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
         assert_eq!(
-            balances.current_cvl(price),
+            balances.current_cvl(price).unwrap(),
             balances.outstanding_amount_cvl(price)
         );
         assert_ne!(
-            balances.current_cvl(price),
+            balances.current_cvl(price).unwrap(),
             balances.facility_amount_cvl(price)
         );
     }
