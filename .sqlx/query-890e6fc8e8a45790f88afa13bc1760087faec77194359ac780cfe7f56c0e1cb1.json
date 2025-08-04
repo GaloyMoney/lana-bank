@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT created_at, id FROM core_payment_allocations WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: PaymentAllocationId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_payment_allocation_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
+  "query": "WITH entities AS (SELECT created_at, id FROM core_obligation_fulfillments WHERE (COALESCE((created_at, id) > ($3, $2), $2 IS NULL)) ORDER BY created_at ASC, id ASC LIMIT $1) SELECT i.id AS \"entity_id: ObligationFulfillmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_obligation_fulfillment_events e ON i.id = e.id ORDER BY i.created_at asc, i.id asc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: PaymentAllocationId",
+        "name": "entity_id: ObligationFulfillmentId",
         "type_info": "Uuid"
       },
       {
@@ -38,5 +38,5 @@
       false
     ]
   },
-  "hash": "b155c87c9faec72e34519567803567fec2a64f80d2c1c8074eceda09a631601d"
+  "hash": "890e6fc8e8a45790f88afa13bc1760087faec77194359ac780cfe7f56c0e1cb1"
 }

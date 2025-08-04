@@ -1,7 +1,7 @@
 use thiserror::Error;
 
 #[derive(Error, Debug)]
-pub enum PaymentAllocationError {
+pub enum ObligationFulfillmentError {
     #[error("PaymentError - Sqlx: {0}")]
     Sqlx(#[from] sqlx::Error),
     #[error("PaymentError - EsEntityError: {0}")]
@@ -12,4 +12,4 @@ pub enum PaymentAllocationError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
-es_entity::from_es_entity_error!(PaymentAllocationError);
+es_entity::from_es_entity_error!(ObligationFulfillmentError);

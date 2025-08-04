@@ -37,7 +37,7 @@ pub enum CoreCreditEvent {
         credit_facility_id: CreditFacilityId,
         obligation_id: ObligationId,
         obligation_type: ObligationType,
-        payment_id: PaymentAllocationId,
+        payment_id: ObligationFulfillmentId,
         amount: UsdCents,
         recorded_at: DateTime<Utc>,
         effective: chrono::NaiveDate,

@@ -12,8 +12,10 @@ pub enum PaymentError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("PaymentError ObligationError: {0}")]
     ObligationError(#[from] crate::obligation::error::ObligationError),
-    #[error("PaymentError - PaymentAllocationError: {0}")]
-    PaymentAllocationError(#[from] crate::payment_allocation::error::PaymentAllocationError),
+    #[error("PaymentError - ObligationFulfillmentError: {0}")]
+    ObligationFulfillmentError(
+        #[from] crate::obligation_fulfillment::error::ObligationFulfillmentError,
+    ),
 }
 
 es_entity::from_es_entity_error!(PaymentError);

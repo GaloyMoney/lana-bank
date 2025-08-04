@@ -134,7 +134,7 @@ impl PaymentEntry {
         let payment = app
             .credit()
             .obligations()
-            .find_allocation_by_id(sub, self.tx_id)
+            .find_fulfillment_by_id(sub, self.tx_id)
             .await?;
 
         Ok(CreditFacilityPaymentAllocation::from(payment))

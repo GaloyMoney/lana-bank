@@ -23,7 +23,7 @@ use crate::{
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
     liquidation_process::LiquidationProcess,
-    payment_allocation::PaymentAllocation,
+    obligation_fulfillment::ObligationFulfillment,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
         CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
@@ -1165,14 +1165,14 @@ impl CreditLedger {
     async fn record_obligation_repayment_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        allocation @ PaymentAllocation {
+        allocation @ ObligationFulfillment {
             id,
             amount,
             account_to_be_debited_id,
             receivable_account_id,
             effective,
             ..
-        }: PaymentAllocation,
+        }: ObligationFulfillment,
     ) -> Result<(), CreditLedgerError> {
         let params = templates::RecordPaymentAllocationParams {
             journal_id: self.journal_id,
@@ -1195,10 +1195,10 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_obligation_repayments(
+    pub async fn record_obligation_fulfillments(
         &self,
         op: es_entity::DbOp<'_>,
-        payments: Vec<PaymentAllocation>,
+        payments: Vec<ObligationFulfillment>,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 

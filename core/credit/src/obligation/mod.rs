@@ -12,7 +12,7 @@ use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CreditLedger, PaymentAllocation, PaymentAllocationId, PaymentAllocationRepo,
+    CreditLedger, ObligationFulfillment, ObligationFulfillmentId, ObligationFulfillmentRepo,
     event::CoreCreditEvent,
     jobs::obligation_due,
     liquidation_process::{LiquidationProcess, LiquidationProcessRepo},
@@ -40,7 +40,7 @@ where
     authz: Perms,
     repo: ObligationRepo<E>,
     liquidation_process_repo: LiquidationProcessRepo<E>,
-    payment_allocation_repo: PaymentAllocationRepo<E>,
+    fulfillment_repo: ObligationFulfillmentRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
 }
@@ -55,7 +55,7 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             liquidation_process_repo: self.liquidation_process_repo.clone(),
-            payment_allocation_repo: self.payment_allocation_repo.clone(),
+            fulfillment_repo: self.fulfillment_repo.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
         }
@@ -78,14 +78,14 @@ where
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
         let liquidation_process_repo = LiquidationProcessRepo::new(pool, publisher);
-        let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
+        let obligation_fulfillment_repo = ObligationFulfillmentRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
             repo: obligation_repo,
             liquidation_process_repo,
             jobs: jobs.clone(),
             ledger: ledger.clone(),
-            payment_allocation_repo,
+            fulfillment_repo: obligation_fulfillment_repo,
         }
     }
 
@@ -252,11 +252,11 @@ where
     }
 
     #[instrument(
-        name = "credit.obligation.allocate_payment_in_op",
+        name = "credit.obligation.fulfill_in_op",
         skip(self, db),
-        fields(n_new_allocations, n_facility_obligations)
+        fields(n_new_fulfillments, n_facility_obligations, amount_fulfilled)
     )]
-    pub async fn allocate_payment_in_op(
+    pub async fn fulfill_in_op(
         &self,
         mut db: es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
@@ -272,73 +272,77 @@ where
         obligations.sort();
 
         let mut remaining = amount;
-        let mut new_allocations = Vec::new();
+        let mut new_fulfillments = Vec::new();
         for obligation in obligations.iter_mut() {
-            if let es_entity::Idempotent::Executed(new_allocation) =
-                obligation.allocate_payment(remaining, payment_id, effective, audit_info)
+            if let es_entity::Idempotent::Executed(new_fulfillment) =
+                obligation.fulfill(remaining, payment_id, effective, audit_info)
             {
                 self.repo.update_in_op(&mut db, obligation).await?;
-                remaining -= new_allocation.amount;
-                new_allocations.push(new_allocation);
+                remaining -= new_fulfillment.amount;
+                new_fulfillments.push(new_fulfillment);
                 if remaining == UsdCents::ZERO {
                     break;
                 }
             }
         }
 
-        span.record("n_new_allocations", new_allocations.len());
+        span.record("n_new_fulfillments", new_fulfillments.len());
 
-        let allocations = self
-            .payment_allocation_repo
-            .create_all_in_op(&mut db, new_allocations)
+        let fulfillments = self
+            .fulfillment_repo
+            .create_all_in_op(&mut db, new_fulfillments)
             .await?;
 
-        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
+        let amount_fulfilled = fulfillments
+            .iter()
+            .fold(UsdCents::ZERO, |c, a| c + a.amount);
         tracing::Span::current().record(
-            "amount_allocated",
-            tracing::field::display(amount_allocated),
+            "amount_fulfilled",
+            tracing::field::display(amount_fulfilled),
         );
 
         self.ledger
-            .record_obligation_repayments(db, allocations)
+            .record_obligation_fulfillments(db, fulfillments)
             .await
             .unwrap();
 
         Ok(())
     }
 
-    pub(super) async fn find_allocation_by_id_without_audit(
+    pub(super) async fn find_fulfillment_by_id_without_audit(
         &self,
-        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
-    ) -> Result<PaymentAllocation, ObligationError> {
-        let allocation = self
-            .payment_allocation_repo
-            .find_by_id(payment_allocation_id.into())
-            .await?;
-
-        Ok(allocation)
+        fulfillment_id: impl Into<ObligationFulfillmentId> + std::fmt::Debug,
+    ) -> Result<ObligationFulfillment, ObligationError> {
+        Ok(self
+            .fulfillment_repo
+            .find_by_id(fulfillment_id.into())
+            .await?)
     }
 
-    #[instrument(name = "core_credit.payment.find_allocation_by_id", skip(self), err)]
-    pub async fn find_allocation_by_id(
+    #[instrument(
+        name = "core_credit.obligation.find_fulfillment_by_id",
+        skip(self),
+        err
+    )]
+    pub async fn find_fulfillment_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        payment_allocation_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
-    ) -> Result<PaymentAllocation, ObligationError> {
-        let payment_allocation = self
-            .payment_allocation_repo
-            .find_by_id(payment_allocation_id.into())
+        fulfillment_id: impl Into<ObligationFulfillmentId> + std::fmt::Debug,
+    ) -> Result<ObligationFulfillment, ObligationError> {
+        let fulfillment = self
+            .fulfillment_repo
+            .find_by_id(fulfillment_id.into())
             .await?;
 
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::credit_facility(payment_allocation.credit_facility_id),
+                CoreCreditObject::credit_facility(fulfillment.credit_facility_id),
                 CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
 
-        Ok(payment_allocation)
+        Ok(fulfillment)
     }
 
     pub async fn check_facility_obligations_status_updated(

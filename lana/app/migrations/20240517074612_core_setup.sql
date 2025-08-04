@@ -366,7 +366,7 @@ CREATE TABLE core_payment_events (
   UNIQUE(id, sequence)
 );
 
-CREATE TABLE core_payment_allocations (
+CREATE TABLE core_obligation_fulfillments (
   id UUID PRIMARY KEY,
   payment_id UUID NOT NULL REFERENCES core_payments(id),
   obligation_id UUID NOT NULL REFERENCES core_obligations(id),
@@ -374,8 +374,8 @@ CREATE TABLE core_payment_allocations (
   created_at TIMESTAMPTZ NOT NULL
 );
 
-CREATE TABLE core_payment_allocation_events (
-  id UUID NOT NULL REFERENCES core_payment_allocations(id),
+CREATE TABLE core_obligation_fulfillment_events (
+  id UUID NOT NULL REFERENCES core_obligation_fulfillments(id),
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,

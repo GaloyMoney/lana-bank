@@ -19,8 +19,8 @@ mod jobs;
 pub mod ledger;
 mod liquidation_process;
 mod obligation;
+mod obligation_fulfillment;
 mod payment;
-mod payment_allocation;
 mod primitives;
 mod processes;
 mod publisher;
@@ -60,8 +60,8 @@ pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
+pub use obligation_fulfillment::*;
 pub use payment::*;
-pub use payment_allocation::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
 pub use processes::approve_credit_facility::*;
@@ -77,7 +77,7 @@ pub mod event_schema {
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         disbursal::DisbursalEvent, interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
-        payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
+        obligation_fulfillment::ObligationFulfillmentEvent, payment::PaymentEvent,
     };
 }
 
@@ -733,12 +733,7 @@ where
             .await?)
     }
 
-    #[instrument(
-        name = "credit.record_payment",
-        skip(self),
-        fields(amount_allocated),
-        err
-    )]
+    #[instrument(name = "credit.record_payment", skip(self), err)]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn record_payment(
         &self,
@@ -771,7 +766,7 @@ where
             .await?;
 
         self.obligations
-            .allocate_payment_in_op(
+            .fulfill_in_op(
                 db,
                 credit_facility_id,
                 payment.id,

@@ -7,9 +7,10 @@ pub use lana_app::{
     primitives::{
         AccountSpec, ApprovalProcessId, ChartId, CollateralId, CommitteeId, CreditFacilityId,
         CustodianId, CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId,
-        DisbursalStatus, DocumentId, LedgerTransactionId, ManualTransactionId, PaymentAllocationId,
-        PaymentId, PermissionSetId, PolicyId, ReportId, RoleId, Satoshis, SignedSatoshis,
-        SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId, WithdrawalId,
+        DisbursalStatus, DocumentId, LedgerTransactionId, ManualTransactionId,
+        ObligationFulfillmentId, PaymentId, PermissionSetId, PolicyId, ReportId, RoleId, Satoshis,
+        SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId,
+        WithdrawalId,
     },
     public_id::PublicId,
     report::ReportRunId,
@@ -133,7 +134,7 @@ impl_to_global_id! {
     ApprovalProcessId,
     DepositAccountId,
     LedgerTransactionId,
-    PaymentAllocationId,
+    ObligationFulfillmentId,
     PublicId
 }
 

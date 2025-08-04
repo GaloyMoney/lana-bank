@@ -10,7 +10,7 @@ use es_entity::*;
 
 use crate::{
     CreditFacilityId, liquidation_process::NewLiquidationProcess,
-    payment_allocation::NewPaymentAllocation, primitives::*,
+    obligation_fulfillment::NewObligationFulfillment, primitives::*,
 };
 
 use super::{error::ObligationError, primitives::*};
@@ -55,10 +55,10 @@ pub enum ObligationEvent {
         defaulted_amount: UsdCents,
         audit_info: AuditInfo,
     },
-    PaymentAllocated {
+    Fulfilled {
         ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
-        payment_allocation_id: PaymentAllocationId,
+        payment_allocation_id: ObligationFulfillmentId,
         payment_allocation_amount: UsdCents,
     },
     LiquidationProcessStarted {
@@ -313,7 +313,7 @@ impl Obligation {
                     ObligationEvent::Initialized { amount, .. } => {
                         total_sum += *amount;
                     }
-                    ObligationEvent::PaymentAllocated {
+                    ObligationEvent::Fulfilled {
                         payment_allocation_amount: amount,
                         ..
                     } => {
@@ -490,16 +490,16 @@ impl Obligation {
         Idempotent::Executed(new_liquidation_process)
     }
 
-    pub(crate) fn allocate_payment(
+    pub(crate) fn fulfill(
         &mut self,
         amount: UsdCents,
         payment_id: PaymentId,
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
-    ) -> Idempotent<NewPaymentAllocation> {
+    ) -> Idempotent<NewObligationFulfillment> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
+            ObligationEvent::Fulfilled {payment_id: id, .. }  if *id == payment_id
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
@@ -510,8 +510,8 @@ impl Obligation {
         }
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
-        let allocation_id = PaymentAllocationId::new();
-        self.events.push(ObligationEvent::PaymentAllocated {
+        let allocation_id = ObligationFulfillmentId::new();
+        self.events.push(ObligationEvent::Fulfilled {
             ledger_tx_id: allocation_id.into(),
             payment_id,
             payment_allocation_id: allocation_id,
@@ -521,9 +521,9 @@ impl Obligation {
         let payment_allocation_idx = self
             .events()
             .iter_all()
-            .filter(|e| matches!(e, ObligationEvent::PaymentAllocated { .. }))
+            .filter(|e| matches!(e, ObligationEvent::Fulfilled { .. }))
             .count();
-        let allocation = NewPaymentAllocation::builder()
+        let allocation = NewObligationFulfillment::builder()
             .id(allocation_id)
             .payment_id(payment_id)
             .credit_facility_id(self.credit_facility_id)
@@ -582,7 +582,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
-                ObligationEvent::PaymentAllocated { .. } => (),
+                ObligationEvent::Fulfilled { .. } => (),
                 ObligationEvent::LiquidationProcessStarted { .. } => (),
                 ObligationEvent::LiquidationProcessConcluded { .. } => (),
                 ObligationEvent::Completed { .. } => (),
@@ -888,7 +888,7 @@ mod test {
     fn completes_on_final_payment_allocation() {
         let mut obligation = obligation_from(initial_events());
         obligation
-            .allocate_payment(
+            .fulfill(
                 UsdCents::ONE,
                 PaymentId::new(),
                 Utc::now().date_naive(),
@@ -898,7 +898,7 @@ mod test {
         assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
 
         obligation
-            .allocate_payment(
+            .fulfill(
                 obligation.outstanding(),
                 PaymentId::new(),
                 Utc::now().date_naive(),
@@ -914,7 +914,7 @@ mod test {
         let _ = obligation.start_liquidation(Utc::now().date_naive(), &dummy_audit_info());
         assert!(
             obligation
-                .allocate_payment(
+                .fulfill(
                     UsdCents::ONE,
                     PaymentId::new(),
                     Utc::now().date_naive(),

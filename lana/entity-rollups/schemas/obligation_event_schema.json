@@ -240,7 +240,7 @@
           "type": "string"
         },
         "type": {
-          "const": "payment_allocated",
+          "const": "fulfilled",
           "type": "string"
         }
       },

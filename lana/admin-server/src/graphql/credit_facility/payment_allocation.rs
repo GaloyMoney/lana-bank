@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::credit::PaymentAllocation as DomainPaymentAllocation;
+pub use lana_app::credit::ObligationFulfillment as DomainPaymentAllocation;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

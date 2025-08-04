@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_payment_allocations WHERE id = $1) SELECT i.id AS \"entity_id: PaymentAllocationId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_payment_allocation_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT id FROM core_obligation_fulfillments WHERE id = $1) SELECT i.id AS \"entity_id: ObligationFulfillmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_obligation_fulfillment_events e ON i.id = e.id ORDER BY i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: PaymentAllocationId",
+        "name": "entity_id: ObligationFulfillmentId",
         "type_info": "Uuid"
       },
       {
@@ -36,5 +36,5 @@
       false
     ]
   },
-  "hash": "4a5b87224ce3c13cfa34c96208754f67e2cf1c826eaf9bd91fc517e1d552ace7"
+  "hash": "c6d07f8cb70c6520f2f68fc53b7788fa685023b83e6843cd5008ded77db281bb"
 }
