@@ -15,6 +15,8 @@ export const CollateralizationStateLabel = ({
       return t("fullyCollateralized")
     case CollateralizationState.NoCollateral:
       return t("noCollateral")
+    case CollateralizationState.NoExposure:
+      return t("noExposure")
     case CollateralizationState.UnderLiquidationThreshold:
       return t("underLiquidationThreshold")
     case CollateralizationState.UnderMarginCallThreshold:
