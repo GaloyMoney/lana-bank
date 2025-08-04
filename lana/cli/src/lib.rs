@@ -72,9 +72,8 @@ pub async fn run() -> anyhow::Result<()> {
         }
         Commands::DumpDefaultConfig => {
             let default_config = Config::default();
-            let yaml_output = serde_yaml::to_string(&default_config)
-                .context("Failed to serialize default config to YAML")?;
-            println!("{}", yaml_output);
+            let yaml_output = serde_yaml::to_string(&default_config)?;
+            println!("{yaml_output}");
             return Ok(());
         }
         Commands::Run => {
