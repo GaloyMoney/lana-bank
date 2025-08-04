@@ -24,6 +24,8 @@ pub enum ObligationError {
     ),
     #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]
     PaymentAmountGreaterThanOutstandingObligations,
+    #[error("CoreCreditError - ObligationError: {0}")]
+    CreditLedgerError(#[from] crate::ledger::error::CreditLedgerError),
 }
 
 es_entity::from_es_entity_error!(ObligationError);

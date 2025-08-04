@@ -303,8 +303,7 @@ where
 
         self.ledger
             .record_obligation_fulfillments(db, fulfillments)
-            .await
-            .unwrap();
+            .await?;
 
         Ok(())
     }
