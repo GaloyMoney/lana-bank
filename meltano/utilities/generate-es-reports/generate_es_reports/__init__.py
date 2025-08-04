@@ -38,34 +38,6 @@ class Constants:
     AIRFLOW_CTX_DAG_RUN_ID_ENVVAR_KEY = "AIRFLOW_CTX_DAG_RUN_ID"
     USE_LOCAL_FS_ENVVAR_KEY = "USE_LOCAL_FS"
 
-    NRP_41_ID = "nrp_41"
-    NRP_51_ID = "nrp_51"
-    NRSF_03_ID = "nrsf_03"
-
-
-class ReportGeneratorConfig:
-    """
-    The config for one execution of this script.
-    """
-
-    def __init__(
-        self,
-        project_id: str,
-        dataset: str,
-        bucket_name: str,
-        run_id: str,
-        keyfile: Path,
-        use_gcs: bool,
-        use_local_fs: bool,
-    ):
-        self.project_id = project_id
-        self.dataset = dataset
-        self.bucket_name = bucket_name
-        self.run_id = run_id
-        self.keyfile = keyfile
-        self.use_gcs = use_gcs
-        self.use_local_fs = use_local_fs
-
 
 class StorableReportOutput:
     """The contents of a report file, together with their content type."""
@@ -228,6 +200,30 @@ def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition]:
         )
 
     return tuple(report_jobs)
+
+
+class ReportGeneratorConfig:
+    """
+    The config for one execution of this script.
+    """
+
+    def __init__(
+        self,
+        project_id: str,
+        dataset: str,
+        bucket_name: str,
+        run_id: str,
+        keyfile: Path,
+        use_gcs: bool,
+        use_local_fs: bool,
+    ):
+        self.project_id = project_id
+        self.dataset = dataset
+        self.bucket_name = bucket_name
+        self.run_id = run_id
+        self.keyfile = keyfile
+        self.use_gcs = use_gcs
+        self.use_local_fs = use_local_fs
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
