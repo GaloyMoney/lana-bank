@@ -123,10 +123,6 @@ where
             .get_run(&report_run.external_id)
             .await?
         {
-            if ReportRunState::from(details.state) == ReportRunState::Queued {
-                break;
-            }
-
             if ReportRunState::from(details.state) != report_run.state {
                 report_run.update_state(
                     details.state.into(),
