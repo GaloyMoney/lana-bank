@@ -1,11 +1,11 @@
 import os
 import io
 import csv
-from re import compile
 from pathlib import Path
 import logging, logging.config
 from abc import ABC, abstractmethod
 
+import yaml
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
@@ -198,6 +198,36 @@ class ReportJobDefinition:
     @property
     def source_table_name(self) -> str:
         return f"report_{self.norm}_{self.id}"
+    
+def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition]:
+    with open(yaml_path, "r", encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+
+
+    str_to_type_mapping = {
+        "xml": XMLFileOutputConfig,
+        "csv": CSVFileOutputConfig,
+        "txt": TXTFileOutputConfig
+    }
+
+    report_jobs = []
+    for report_job in data["report_jobs"]:
+        output_configs = []
+        for output in report_job["outputs"]:
+            output_config = str_to_type_mapping[output["type"].lower()]()
+            output_configs.append(output_config)
+        output_configs = tuple(output_configs)
+
+        report_jobs.append(
+            ReportJobDefinition(
+                norm=report_job["norm"],
+                id=report_job["id"],
+                friendly_name=report_job["friendly_name"],
+                file_output_configs=output_configs,
+            )
+        )
+
+    return tuple(report_jobs)
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
@@ -342,215 +372,7 @@ def main():
 
     report_storer: ReportStorer = get_report_storer(config=report_generator_config)
 
-    report_jobs = (
-        # NRP_41 Reports - XML & CSV
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="01_persona",
-            friendly_name="persona",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="02_referencia",
-            friendly_name="referencia",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="03_referencia_garantia",
-            friendly_name="referencia_garantia",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="04_garantia_hipotecaria",
-            friendly_name="garantia_hipotecaria",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="05_garantia_fiduciaria",
-            friendly_name="garantia_fiduciaria",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="06_garantia_aval",
-            friendly_name="garantia_aval",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="07_garantia_pignorada",
-            friendly_name="garantia_pignorada",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="08_garantia_prenda",
-            friendly_name="garantia_prenda",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="09_garantia_bono",
-            friendly_name="garantia_bono",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="10_garantia_poliza",
-            friendly_name="garantia_poliza",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="11_garantia_fondo",
-            friendly_name="garantia_fondo",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="12_referencia_gasto",
-            friendly_name="referencia_gasto",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="13_referencia_unidad",
-            friendly_name="referencia_unidad",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="14_referencia_cancelada",
-            friendly_name="referencia_cancelada",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="15_socios_sociedades",
-            friendly_name="socios_sociedades",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="16_junta_directiva",
-            friendly_name="junta_directiva",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_41_ID,
-            id="17_garantia_prendaria",
-            friendly_name="garantia_prendaria",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        #NRP_51 Reports - XML & CSV
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="01_saldo_cuenta",
-            friendly_name="saldo_cuenta",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="02_deposito_extranjero",
-            friendly_name="deposito_extranjero",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="03_dato_extracontable",
-            friendly_name="dato_extracontable",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="04_titulo_valor_extranjero",
-            friendly_name="titulo_valor_extranjero",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="05_prestamo_garantizado",
-            friendly_name="prestamo_garantizado",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="06_aval_garantizado",
-            friendly_name="aval_garantizado",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="07_deuda_subordinada",
-            friendly_name="deuda_subordinada",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRP_51_ID,
-            id="08_balance_proyectado",
-            friendly_name="balance_proyectado",
-            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        ),
-        #NRSF_03 Reports - XML & TXT
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="01_cliente",
-            friendly_name="cliente",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="02_depósitos",
-            friendly_name="depósitos",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="03_documentos_clientes",
-            friendly_name="documentos_clientes",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="04_titulares",
-            friendly_name="titulares",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="05_agencias",
-            friendly_name="agencias",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="06_productos",
-            friendly_name="productos",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="07_funcionarios_y_empleados",
-            friendly_name="funcionarios_y_empleados",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="08_resumen_de_depósitos_garantizados",
-            friendly_name="resumen_de_depósitos_garantizados",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-        ReportJobDefinition(
-            norm=Constants.NRSF_03_ID,
-            id="09_ajustes",
-            friendly_name="ajustes",
-            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        ),
-    )
+    report_jobs = load_report_jobs_from_yaml(Path("reports.yml"))
 
     def get_rows_from_table(table_name: str):
         query = f"SELECT * FROM `{report_generator_config.project_id}.{report_generator_config.dataset}.{table_name}`;"
