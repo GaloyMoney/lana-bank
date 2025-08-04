@@ -272,25 +272,25 @@ where
         obligations.sort();
 
         let mut remaining = amount;
-        let mut new_obligations = Vec::new();
+        let mut new_allocations = Vec::new();
         for obligation in obligations.iter_mut() {
             if let es_entity::Idempotent::Executed(new_allocation) =
                 obligation.allocate(remaining, payment_id, effective, audit_info)
             {
                 self.repo.update_in_op(&mut db, obligation).await?;
                 remaining -= new_allocation.amount;
-                new_obligations.push(new_allocation);
+                new_allocations.push(new_allocation);
                 if remaining == UsdCents::ZERO {
                     break;
                 }
             }
         }
 
-        span.record("n_new_allocations", new_obligations.len());
+        span.record("n_new_allocations", new_allocations.len());
 
         let allocations = self
             .allocation_repo
-            .create_all_in_op(&mut db, new_obligations)
+            .create_all_in_op(&mut db, new_allocations)
             .await?;
 
         let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
