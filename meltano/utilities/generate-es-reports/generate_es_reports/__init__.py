@@ -4,11 +4,13 @@ import csv
 from pathlib import Path
 import logging, logging.config
 from abc import ABC, abstractmethod
+from typing import Union
 
 import yaml
 from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
+from xmlschema import XMLSchema
 
 logging.basicConfig(
     level=logging.INFO,
@@ -70,8 +72,8 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
     file_extension = "xml"
     content_type = "text/xml"
 
-    def __init__(self) -> None:
-        pass
+    def __init__(self, xml_schema: Union[XMLSchema, None] = None) -> None:
+        self.xml_schema = XMLSchema
 
     def rows_to_report_output(self, rows) -> StorableReportOutput:
         field_names = [field.name for field in rows.schema]
