@@ -13,7 +13,7 @@ from google.oauth2 import service_account
 from xmlschema import XMLSchema
 
 logging.basicConfig(
-    level=logging.INFO,
+    level=logging.DEBUG,
     format="%(asctime)s [%(levelname)s] - %(message)s",
     handlers=[logging.StreamHandler()],
 )
@@ -87,6 +87,16 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         output = io.StringIO()
         output.write(xml_string)
         report_content = output.getvalue()
+
+        if self.xml_schema is not None:
+            is_xml_valid = self.xml_schema.is_valid(
+                source=report_content
+            )
+            if not is_xml_valid:
+                logger.warning(f"Schema validation for report failed. Listing errors.")
+                for err in self.xml_schema.iter_errors(report_content):
+                    logger.debug(f"Path: {err.path}, Reason: {err.reason}")
+                    logger.debug(f"  Source: {err.source}")
 
         return StorableReportOutput(
             report_content=report_content, report_content_type=self.content_type
@@ -165,7 +175,7 @@ class XMLSchemaRepository:
 
     def get_schema(self, schema_id: str) -> XMLSchema:
         full_schema_file_path = (
-            self.schema_folder_path / schema_id / self.xml_schema_extension
+            self.schema_folder_path / (schema_id + self.xml_schema_extension)
         )
         return XMLSchema(full_schema_file_path)
 
@@ -217,8 +227,10 @@ def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition, ..
     for report_job in data["report_jobs"]:
         output_configs = []
         for output in report_job["outputs"]:
+
             output_config = str_to_type_mapping[output["type"].lower()]()
-            if output["validation_schema_id"]:
+            validation_schema_specified = output.get("validation_schema_id", False)
+            if validation_schema_specified:
                 output_config.set_validation_schema(
                     xml_schema=xml_schema_repository.get_schema(
                         schema_id=output["validation_schema_id"]
