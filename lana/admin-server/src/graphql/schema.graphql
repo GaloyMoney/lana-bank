@@ -387,7 +387,7 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
-	currentCvl: CVLPct
+	currentCvl: CVLPct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!

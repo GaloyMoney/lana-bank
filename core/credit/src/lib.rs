@@ -841,10 +841,7 @@ where
         Ok(self.outstanding(entity).await?.is_zero())
     }
 
-    pub async fn current_cvl(
-        &self,
-        entity: &CreditFacility,
-    ) -> Result<Option<CVLPct>, CoreCreditError> {
+    pub async fn current_cvl(&self, entity: &CreditFacility) -> Result<CVLPct, CoreCreditError> {
         let balances = self
             .ledger
             .get_credit_facility_balance(entity.account_ids)
