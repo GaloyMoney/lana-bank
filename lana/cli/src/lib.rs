@@ -52,6 +52,12 @@ enum Commands {
     Genencryptionkey,
     /// Generate default configuration file (lana.yml) with all default values
     DumpDefaultConfig,
+    /// Load configuration file and output merged config (loaded + defaults)
+    DumpMergedConfig {
+        /// Path to the configuration file to load and merge with defaults
+        #[clap(value_name = "FILE")]
+        config_file: PathBuf,
+    },
     /// Run the main server (default when no subcommand is specified)
     Run,
 }
@@ -73,6 +79,12 @@ pub async fn run() -> anyhow::Result<()> {
         Commands::DumpDefaultConfig => {
             let default_config = Config::default();
             let yaml_output = serde_yaml::to_string(&default_config)?;
+            println!("{yaml_output}");
+            return Ok(());
+        }
+        Commands::DumpMergedConfig { config_file } => {
+            let merged_config = load_and_merge_config(&config_file)?;
+            let yaml_output = serde_yaml::to_string(&merged_config)?;
             println!("{yaml_output}");
             return Ok(());
         }
@@ -150,6 +162,16 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     }
 
     reason
+}
+
+fn load_and_merge_config(config_path: &PathBuf) -> anyhow::Result<Config> {
+    let config_file = std::fs::read_to_string(config_path)
+        .context(format!("Couldn't read config file {config_path:?}"))?;
+
+    let config: Config =
+        serde_yaml::from_str(&config_file).context("Couldn't parse config file")?;
+
+    Ok(config)
 }
 
 pub fn store_server_pid(lana_home: &str, pid: u32) -> anyhow::Result<()> {
