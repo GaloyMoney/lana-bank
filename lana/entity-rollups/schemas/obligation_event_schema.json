@@ -228,10 +228,10 @@
           "format": "uuid",
           "type": "string"
         },
-        "payment_allocation_amount": {
+        "obligation_fulfillment_amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "payment_allocation_id": {
+        "obligation_fulfillment_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -248,8 +248,8 @@
         "type",
         "ledger_tx_id",
         "payment_id",
-        "payment_allocation_id",
-        "payment_allocation_amount"
+        "obligation_fulfillment_id",
+        "obligation_fulfillment_amount"
       ],
       "type": "object"
     },

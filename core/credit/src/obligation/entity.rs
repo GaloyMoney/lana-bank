@@ -58,8 +58,8 @@ pub enum ObligationEvent {
     Fulfilled {
         ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
-        payment_allocation_id: ObligationFulfillmentId,
-        payment_allocation_amount: UsdCents,
+        obligation_fulfillment_id: ObligationFulfillmentId,
+        obligation_fulfillment_amount: UsdCents,
     },
     LiquidationProcessStarted {
         liquidation_process_id: LiquidationProcessId,
@@ -314,7 +314,7 @@ impl Obligation {
                         total_sum += *amount;
                     }
                     ObligationEvent::Fulfilled {
-                        payment_allocation_amount: amount,
+                        obligation_fulfillment_amount: amount,
                         ..
                     } => {
                         total_sum -= *amount;
@@ -514,8 +514,8 @@ impl Obligation {
         self.events.push(ObligationEvent::Fulfilled {
             ledger_tx_id: allocation_id.into(),
             payment_id,
-            payment_allocation_id: allocation_id,
-            payment_allocation_amount: payment_amount,
+            obligation_fulfillment_id: allocation_id,
+            obligation_fulfillment_amount: payment_amount,
         });
 
         let payment_allocation_idx = self

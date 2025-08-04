@@ -19,17 +19,18 @@ CREATE TABLE core_obligation_events_rollup (
   liquidation_date TIMESTAMPTZ,
   liquidation_process_id UUID,
   not_yet_due_accounts JSONB,
+  obligation_fulfillment_amount BIGINT,
+  obligation_fulfillment_id UUID,
   obligation_type VARCHAR,
   overdue_accounts JSONB,
   overdue_amount BIGINT,
   overdue_date TIMESTAMPTZ,
-  payment_allocation_amount BIGINT,
   reference VARCHAR,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[],
-  payment_allocation_ids UUID[],
+  payment_allocation_ids VARCHAR[],
   payment_ids UUID[],
 
   -- Toggle fields
@@ -101,15 +102,16 @@ BEGIN
     new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
     new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
     new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
+    new_row.obligation_fulfillment_amount := (NEW.event ->> 'obligation_fulfillment_amount')::BIGINT;
+    new_row.obligation_fulfillment_id := (NEW.event ->> 'obligation_fulfillment_id')::UUID;
     new_row.obligation_type := (NEW.event ->> 'obligation_type');
     new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
     new_row.overdue_amount := (NEW.event ->> 'overdue_amount')::BIGINT;
     new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
-    new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
     new_row.payment_allocation_ids := CASE
        WHEN NEW.event ? 'payment_allocation_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'payment_allocation_ids'))
-       ELSE ARRAY[]::UUID[]
+         ARRAY(SELECT value::text FROM jsonb_array_elements_text(NEW.event -> 'payment_allocation_ids'))
+       ELSE ARRAY[]::VARCHAR[]
      END
 ;
     new_row.payment_ids := CASE
@@ -141,11 +143,12 @@ BEGIN
     new_row.liquidation_date := current_row.liquidation_date;
     new_row.liquidation_process_id := current_row.liquidation_process_id;
     new_row.not_yet_due_accounts := current_row.not_yet_due_accounts;
+    new_row.obligation_fulfillment_amount := current_row.obligation_fulfillment_amount;
+    new_row.obligation_fulfillment_id := current_row.obligation_fulfillment_id;
     new_row.obligation_type := current_row.obligation_type;
     new_row.overdue_accounts := current_row.overdue_accounts;
     new_row.overdue_amount := current_row.overdue_amount;
     new_row.overdue_date := current_row.overdue_date;
-    new_row.payment_allocation_amount := current_row.payment_allocation_amount;
     new_row.payment_allocation_ids := current_row.payment_allocation_ids;
     new_row.payment_ids := current_row.payment_ids;
     new_row.reference := current_row.reference;
@@ -186,7 +189,8 @@ BEGIN
       new_row.is_defaulted_recorded := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
     WHEN 'fulfilled' THEN
-      new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
+      new_row.obligation_fulfillment_amount := (NEW.event ->> 'obligation_fulfillment_amount')::BIGINT;
+      new_row.obligation_fulfillment_id := (NEW.event ->> 'obligation_fulfillment_id')::UUID;
     WHEN 'liquidation_process_started' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.effective := (NEW.event ->> 'effective');
@@ -201,7 +205,7 @@ BEGIN
       new_row.is_completed := true;
     WHEN 'payment_allocated' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.payment_allocation_ids := array_append(COALESCE(current_row.payment_allocation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_allocation_id')::UUID);
+      new_row.payment_allocation_ids := array_append(COALESCE(current_row.payment_allocation_ids, ARRAY[]::VARCHAR[]), (NEW.event ->> 'payment_allocation_id'));
       new_row.payment_ids := array_append(COALESCE(current_row.payment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_id')::UUID);
   END CASE;
 
@@ -230,11 +234,12 @@ BEGIN
     liquidation_date,
     liquidation_process_id,
     not_yet_due_accounts,
+    obligation_fulfillment_amount,
+    obligation_fulfillment_id,
     obligation_type,
     overdue_accounts,
     overdue_amount,
     overdue_date,
-    payment_allocation_amount,
     payment_allocation_ids,
     payment_ids,
     reference
@@ -264,11 +269,12 @@ BEGIN
     new_row.liquidation_date,
     new_row.liquidation_process_id,
     new_row.not_yet_due_accounts,
+    new_row.obligation_fulfillment_amount,
+    new_row.obligation_fulfillment_id,
     new_row.obligation_type,
     new_row.overdue_accounts,
     new_row.overdue_amount,
     new_row.overdue_date,
-    new_row.payment_allocation_amount,
     new_row.payment_allocation_ids,
     new_row.payment_ids,
     new_row.reference
