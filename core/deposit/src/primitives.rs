@@ -4,8 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use std::{fmt::Display, str::FromStr};
 
-use authz::{ActionPermission, AllOrOne, action_description::*};
-use strum::VariantArray;
+use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub use core_accounting::ChartId;
 pub use core_customer::CustomerType;
@@ -188,17 +187,24 @@ impl CoreDepositAction {
     pub const WITHDRAWAL_REVERT: Self = CoreDepositAction::Withdrawal(WithdrawalAction::Revert);
 
     pub fn actions() -> Vec<ActionMapping> {
-        [
-            generate_action_mappings("deposit", "deposit-account", DepositAccountAction::VARIANTS),
-            generate_action_mappings("deposit", "deposit", DepositAction::VARIANTS),
-            generate_action_mappings(
-                "deposit",
-                "chart-of-accounts-integration-config",
-                ChartOfAccountsIntegrationConfigAction::VARIANTS,
-            ),
-            generate_action_mappings("deposit", "withdrawal", WithdrawalAction::VARIANTS),
-        ]
-        .concat()
+        use CoreDepositActionDiscriminants::*;
+        use strum::VariantArray;
+
+        CoreDepositActionDiscriminants::VARIANTS
+            .iter()
+            .flat_map(|&discriminant| match discriminant {
+                DepositAccount => {
+                    map_action!(deposit, DepositAccount, DepositAccountAction)
+                }
+                Deposit => map_action!(deposit, Deposit, DepositAction),
+                ChartOfAccountsIntegrationConfig => map_action!(
+                    deposit,
+                    ChartOfAccountsIntegrationConfig,
+                    ChartOfAccountsIntegrationConfigAction
+                ),
+                Withdrawal => map_action!(deposit, Withdrawal, WithdrawalAction),
+            })
+            .collect()
     }
 }
 

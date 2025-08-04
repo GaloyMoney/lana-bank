@@ -1,6 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub const PERMISSION_SET_DASHBOARD_VIEWER: &str = "dashboard_viewer";
 
@@ -16,7 +16,7 @@ impl DashboardModuleAction {
 
     pub fn actions() -> Vec<ActionMapping> {
         use DashboardModuleActionDiscriminants::*;
-        auto_mappings!(Dashboard => DashboardAction)
+        map_action!(dashboard, Dashboard, DashboardAction)
     }
 }
 

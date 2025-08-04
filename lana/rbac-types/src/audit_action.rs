@@ -1,6 +1,5 @@
-use authz::{ActionPermission, action_description::*};
+use authz::{ActionPermission, action_description::*, map_action};
 use std::{fmt::Display, str::FromStr};
-use strum::VariantArray;
 
 pub const PERMISSION_SET_AUDIT_VIEWER: &str = "audit_viewer";
 
@@ -13,7 +12,8 @@ pub enum AuditAction {
 
 impl AuditAction {
     pub fn actions() -> Vec<ActionMapping> {
-        generate_action_mappings("audit", "audit", AuditEntityAction::VARIANTS)
+        use AuditActionDiscriminants::*;
+        map_action!(audit, Audit, AuditEntityAction)
     }
 }
 

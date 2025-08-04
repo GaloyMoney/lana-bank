@@ -1,8 +1,8 @@
-use audit::AuditId;
+use audit::AuditEntryId;
 use authz::AllOrOne;
 use std::{fmt::Display, str::FromStr};
 
-pub type AuditAllOrOne = AllOrOne<AuditId>;
+pub type AuditAllOrOne = AllOrOne<AuditEntryId>;
 
 #[derive(Clone, Copy, Debug, PartialEq, strum::EnumDiscriminants)]
 #[strum_discriminants(derive(strum::Display, strum::EnumString))]

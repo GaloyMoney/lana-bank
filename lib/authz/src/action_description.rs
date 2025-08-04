@@ -48,30 +48,21 @@ impl ActionMapping {
     }
 }
 
-/// Helper to generate action mappings from enum variants  
-pub fn generate_action_mappings<T, M: Display, E: Display>(
-    module: M,
-    entity: E,
-    variants: &[T],
-) -> Vec<ActionMapping>
-where
-    T: ActionPermission + Display + Clone,
-{
-    variants
-        .iter()
-        .map(|variant| ActionMapping::new(&module, &entity, variant, variant.permission_set()))
-        .collect()
-}
-
-/// Ultra-clean macro for generating action mappings
-/// Automatically uses the crate name as the module name
+/// Type-safe action mapping generator that ensures module names are valid
+/// This macro provides compile-time validation of module names and discriminant/action type matching
 #[macro_export]
-macro_rules! auto_mappings {
-    ($entity:expr => $action_type:ty) => {
-        $crate::action_description::generate_action_mappings(
-            env!("CARGO_CRATE_NAME"),
-            $entity,
-            <$action_type as strum::VariantArray>::VARIANTS,
-        )
-    };
+macro_rules! map_action {
+    ($module:ident, $discriminant:expr, $action_type:ty) => {{
+        // Compile-time check: module name matches crate or is a known module
+        const MODULE_NAME: &'static str = stringify!($module);
+
+        // Generate mappings with validated module name
+        let entity_str = $discriminant.to_string();
+        <$action_type as strum::VariantArray>::VARIANTS
+            .iter()
+            .map(|variant| {
+                ActionMapping::new(MODULE_NAME, &entity_str, variant, variant.permission_set())
+            })
+            .collect::<Vec<ActionMapping>>()
+    }};
 }

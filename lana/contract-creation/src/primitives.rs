@@ -1,7 +1,6 @@
 use std::{fmt::Display, str::FromStr};
 
-use authz::{ActionPermission, AllOrOne, action_description::*};
-use strum::VariantArray;
+use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 es_entity::entity_id! {
     ContractCreationId;
@@ -25,7 +24,8 @@ impl ContractModuleAction {
         ContractModuleAction::Contract(ContractAction::GenerateDownloadLink);
 
     pub fn actions() -> Vec<ActionMapping> {
-        generate_action_mappings("contract", "contract", ContractAction::VARIANTS)
+        use ContractModuleActionDiscriminants::*;
+        map_action!(contract, Contract, ContractAction)
     }
 }
 

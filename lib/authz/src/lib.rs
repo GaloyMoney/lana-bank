@@ -24,7 +24,7 @@ use audit::{AuditInfo, AuditSvc};
 
 use error::AuthorizationError;
 
-pub use action_description::{ActionMapping, ActionPermission, generate_action_mappings};
+pub use action_description::{ActionMapping, ActionPermission};
 pub use all_or_one::*;
 pub use check_trait::PermissionCheck;
 

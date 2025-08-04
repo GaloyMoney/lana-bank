@@ -2,8 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{ActionPermission, AllOrOne, action_description::*};
-use strum::VariantArray;
+pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 #[cfg(feature = "governance")]
 es_entity::entity_id! {
@@ -134,12 +133,19 @@ impl CoreAccessAction {
         CoreAccessAction::PermissionSet(PermissionSetAction::List);
 
     pub fn actions() -> Vec<ActionMapping> {
-        [
-            generate_action_mappings("access", "user", UserAction::VARIANTS),
-            generate_action_mappings("access", "role", RoleAction::VARIANTS),
-            generate_action_mappings("access", "permission-set", PermissionSetAction::VARIANTS),
-        ]
-        .concat()
+        use CoreAccessActionDiscriminants::*;
+        use strum::VariantArray;
+
+        CoreAccessActionDiscriminants::VARIANTS
+            .iter()
+            .flat_map(|&discriminant| match discriminant {
+                User => map_action!(access, User, UserAction),
+                Role => map_action!(access, Role, RoleAction),
+                PermissionSet => {
+                    map_action!(access, PermissionSet, PermissionSetAction)
+                }
+            })
+            .collect()
     }
 }
 

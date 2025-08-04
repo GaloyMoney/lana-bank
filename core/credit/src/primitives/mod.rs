@@ -8,8 +8,7 @@ use schemars::JsonSchema;
 
 use std::str::FromStr;
 
-use authz::{ActionPermission, AllOrOne, action_description::*};
-use strum::VariantArray;
+use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
@@ -288,18 +287,23 @@ impl CoreCreditAction {
         CoreCreditAction::TermsTemplate(TermsTemplateAction::List);
 
     pub fn actions() -> Vec<ActionMapping> {
-        [
-            generate_action_mappings("credit", "credit-facility", CreditFacilityAction::VARIANTS),
-            generate_action_mappings(
-                "credit",
-                "chart-of-accounts-integration-config",
-                ChartOfAccountsIntegrationConfigAction::VARIANTS,
-            ),
-            generate_action_mappings("credit", "disbursal", DisbursalAction::VARIANTS),
-            generate_action_mappings("credit", "obligation", ObligationAction::VARIANTS),
-            generate_action_mappings("credit", "terms-template", TermsTemplateAction::VARIANTS),
-        ]
-        .concat()
+        use CoreCreditActionDiscriminants::*;
+        use strum::VariantArray;
+
+        CoreCreditActionDiscriminants::VARIANTS
+            .iter()
+            .flat_map(|&discriminant| match discriminant {
+                CreditFacility => map_action!(credit, CreditFacility, CreditFacilityAction),
+                ChartOfAccountsIntegrationConfig => map_action!(
+                    credit,
+                    ChartOfAccountsIntegrationConfig,
+                    ChartOfAccountsIntegrationConfigAction
+                ),
+                Disbursal => map_action!(credit, Disbursal, DisbursalAction),
+                Obligation => map_action!(credit, Obligation, ObligationAction),
+                TermsTemplate => map_action!(credit, TermsTemplate, TermsTemplateAction),
+            })
+            .collect()
     }
 }
 

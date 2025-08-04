@@ -2,9 +2,8 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
 pub use audit::AuditInfo;
-pub use authz::{ActionPermission, AllOrOne, action_description::*};
+pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 pub use public_id::PublicId;
-use strum::VariantArray;
 
 es_entity::entity_id! {
     AuthenticationId,
@@ -195,15 +194,18 @@ impl CoreCustomerAction {
         CoreCustomerAction::CustomerDocument(CustomerDocumentEntityAction::GenerateDownloadLink);
 
     pub fn actions() -> Vec<ActionMapping> {
-        [
-            generate_action_mappings("customer", "customer", CustomerEntityAction::VARIANTS),
-            generate_action_mappings(
-                "customer",
-                "customer-document",
-                CustomerDocumentEntityAction::VARIANTS,
-            ),
-        ]
-        .concat()
+        use CoreCustomerActionDiscriminants::*;
+        use strum::VariantArray;
+
+        CoreCustomerActionDiscriminants::VARIANTS
+            .iter()
+            .flat_map(|&discriminant| match discriminant {
+                Customer => map_action!(customer, Customer, CustomerEntityAction),
+                CustomerDocument => {
+                    map_action!(customer, CustomerDocument, CustomerDocumentEntityAction)
+                }
+            })
+            .collect()
     }
 }
 

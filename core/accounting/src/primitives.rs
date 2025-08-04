@@ -3,8 +3,7 @@ use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 use thiserror::Error;
 
-use authz::{ActionPermission, AllOrOne, action_description::*};
-use strum::VariantArray;
+use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 
 pub use cala_ledger::{
     Currency as CalaCurrency, DebitOrCredit,
@@ -373,53 +372,50 @@ pub enum CoreAccountingAction {
 
 impl CoreAccountingAction {
     pub fn actions() -> Vec<ActionMapping> {
-        [
-            generate_action_mappings("accounting", "chart", ChartAction::VARIANTS),
-            generate_action_mappings("accounting", "journal", JournalAction::VARIANTS),
-            generate_action_mappings(
-                "accounting",
-                "ledger-account",
-                LedgerAccountAction::VARIANTS,
-            ),
-            generate_action_mappings(
-                "accounting",
-                "ledger-transaction",
-                LedgerTransactionAction::VARIANTS,
-            ),
-            generate_action_mappings(
-                "accounting",
-                "transaction-template",
-                TransactionTemplateAction::VARIANTS,
-            ),
-            generate_action_mappings(
-                "accounting",
-                "manual-transaction",
-                ManualTransactionAction::VARIANTS,
-            ),
-            generate_action_mappings(
-                "accounting",
-                "profit-and-loss",
-                ProfitAndLossAction::VARIANTS,
-            ),
-            generate_action_mappings(
-                "accounting",
-                "profit-and-loss-configuration",
-                ProfitAndLossConfigurationAction::VARIANTS,
-            ),
-            generate_action_mappings("accounting", "balance-sheet", BalanceSheetAction::VARIANTS),
-            generate_action_mappings(
-                "accounting",
-                "balance-sheet-configuration",
-                BalanceSheetConfigurationAction::VARIANTS,
-            ),
-            generate_action_mappings(
-                "accounting",
-                "accounting-csv",
-                AccountingCsvAction::VARIANTS,
-            ),
-            generate_action_mappings("accounting", "trial-balance", TrialBalanceAction::VARIANTS),
-        ]
-        .concat()
+        use CoreAccountingActionDiscriminants::*;
+        use strum::VariantArray;
+
+        CoreAccountingActionDiscriminants::VARIANTS
+            .iter()
+            .flat_map(|&discriminant| match discriminant {
+                Chart => map_action!(accounting, Chart, ChartAction),
+                Journal => map_action!(accounting, Journal, JournalAction),
+                LedgerAccount => {
+                    map_action!(accounting, LedgerAccount, LedgerAccountAction)
+                }
+                LedgerTransaction => {
+                    map_action!(accounting, LedgerTransaction, LedgerTransactionAction)
+                }
+                TransactionTemplate => {
+                    map_action!(accounting, TransactionTemplate, TransactionTemplateAction)
+                }
+                ManualTransaction => {
+                    map_action!(accounting, ManualTransaction, ManualTransactionAction)
+                }
+                ProfitAndLoss => {
+                    map_action!(accounting, ProfitAndLoss, ProfitAndLossAction)
+                }
+                ProfitAndLossConfiguration => map_action!(
+                    accounting,
+                    ProfitAndLossConfiguration,
+                    ProfitAndLossConfigurationAction
+                ),
+                BalanceSheet => {
+                    map_action!(accounting, BalanceSheet, BalanceSheetAction)
+                }
+                BalanceSheetConfiguration => map_action!(
+                    accounting,
+                    BalanceSheetConfiguration,
+                    BalanceSheetConfigurationAction
+                ),
+                AccountingCsv => {
+                    map_action!(accounting, AccountingCsv, AccountingCsvAction)
+                }
+                TrialBalance => {
+                    map_action!(accounting, TrialBalance, TrialBalanceAction)
+                }
+            })
+            .collect()
     }
 }
 

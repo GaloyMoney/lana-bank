@@ -28,6 +28,15 @@ impl From<AuditEntryId> for i64 {
     }
 }
 
+impl std::str::FromStr for AuditEntryId {
+    type Err = std::num::ParseIntError;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let id = s.parse::<i64>()?;
+        Ok(AuditEntryId(id))
+    }
+}
+
 pub struct AuditEntry<S, O, A> {
     pub id: AuditEntryId,
     pub subject: S,

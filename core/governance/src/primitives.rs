@@ -1,7 +1,7 @@
 use serde::{Deserialize, Serialize};
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 
-use authz::{ActionPermission, AllOrOne, action_description::*, auto_mappings};
+use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 es_entity::entity_id! { ApprovalProcessId, CommitteeId, PolicyId, CommitteeMemberId }
 
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
@@ -80,12 +80,16 @@ impl GovernanceAction {
 
     pub fn actions() -> Vec<ActionMapping> {
         use GovernanceActionDiscriminants::*;
-        [
-            auto_mappings!(Committee => CommitteeAction),
-            auto_mappings!(Policy => PolicyAction),
-            auto_mappings!(ApprovalProcess => ApprovalProcessAction),
-        ]
-        .concat()
+        use strum::VariantArray;
+
+        GovernanceActionDiscriminants::VARIANTS
+            .iter()
+            .flat_map(|&discriminant| match discriminant {
+                Committee => map_action!(governance, Committee, CommitteeAction),
+                Policy => map_action!(governance, Policy, PolicyAction),
+                ApprovalProcess => map_action!(governance, ApprovalProcess, ApprovalProcessAction),
+            })
+            .collect()
     }
 }
 
