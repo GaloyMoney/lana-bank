@@ -12,9 +12,9 @@ pub enum PaymentError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("PaymentError ObligationError: {0}")]
     ObligationError(#[from] crate::obligation::error::ObligationError),
-    #[error("PaymentError - ObligationFulfillmentError: {0}")]
-    ObligationFulfillmentError(
-        #[from] crate::obligation_fulfillment::error::ObligationFulfillmentError,
+    #[error("PaymentError - ObligationAllocationError: {0}")]
+    ObligationAllocationError(
+        #[from] crate::obligation_allocation::error::ObligationAllocationError,
     ),
 }
 

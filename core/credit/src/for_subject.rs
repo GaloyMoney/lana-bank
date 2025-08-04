@@ -210,18 +210,18 @@ where
         Ok(disbursal)
     }
 
-    pub async fn find_obligation_fulfillment_by_id(
+    pub async fn find_obligation_allocation_by_id(
         &self,
-        payment_id: impl Into<ObligationFulfillmentId> + std::fmt::Debug,
-    ) -> Result<ObligationFulfillment, CoreCreditError> {
-        let fulfillments = self
+        payment_id: impl Into<ObligationAllocationId> + std::fmt::Debug,
+    ) -> Result<ObligationAllocation, CoreCreditError> {
+        let allocations = self
             .obligations
-            .find_fulfillment_by_id_without_audit(payment_id.into())
+            .find_allocation_by_id_without_audit(payment_id.into())
             .await?;
 
         let credit_facility = self
             .credit_facilities
-            .find_by_id_without_audit(fulfillments.credit_facility_id)
+            .find_by_id_without_audit(allocations.credit_facility_id)
             .await?;
 
         self.ensure_credit_facility_access(
@@ -231,6 +231,6 @@ where
         )
         .await?;
 
-        Ok(fulfillments)
+        Ok(allocations)
     }
 }

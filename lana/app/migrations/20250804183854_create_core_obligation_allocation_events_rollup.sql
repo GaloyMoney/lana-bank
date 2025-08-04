@@ -1,5 +1,5 @@
--- Auto-generated rollup table for ObligationFulfillmentEvent
-CREATE TABLE core_obligation_fulfillment_events_rollup (
+-- Auto-generated rollup table for ObligationAllocationEvent
+CREATE TABLE core_obligation_allocation_events_rollup (
   id UUID NOT NULL,
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
@@ -22,20 +22,20 @@ CREATE TABLE core_obligation_fulfillment_events_rollup (
   PRIMARY KEY (id, version)
 );
 
--- Auto-generated trigger function for ObligationFulfillmentEvent
-CREATE OR REPLACE FUNCTION core_obligation_fulfillment_events_rollup_trigger()
+-- Auto-generated trigger function for ObligationAllocationEvent
+CREATE OR REPLACE FUNCTION core_obligation_allocation_events_rollup_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
   event_type TEXT;
-  current_row core_obligation_fulfillment_events_rollup%ROWTYPE;
-  new_row core_obligation_fulfillment_events_rollup%ROWTYPE;
+  current_row core_obligation_allocation_events_rollup%ROWTYPE;
+  new_row core_obligation_allocation_events_rollup%ROWTYPE;
 BEGIN
   event_type := NEW.event_type;
 
   -- Load the previous version if this isn't the first event
   IF NEW.sequence > 1 THEN
     SELECT * INTO current_row
-    FROM core_obligation_fulfillment_events_rollup
+    FROM core_obligation_allocation_events_rollup
     WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
@@ -99,7 +99,7 @@ BEGIN
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
   END CASE;
 
-  INSERT INTO core_obligation_fulfillment_events_rollup (
+  INSERT INTO core_obligation_allocation_events_rollup (
     id,
     version,
     created_at,
@@ -138,8 +138,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Auto-generated trigger for ObligationFulfillmentEvent
-CREATE TRIGGER core_obligation_fulfillment_events_rollup_trigger
-  AFTER INSERT ON core_obligation_fulfillment_events
+-- Auto-generated trigger for ObligationAllocationEvent
+CREATE TRIGGER core_obligation_allocation_events_rollup_trigger
+  AFTER INSERT ON core_obligation_allocation_events
   FOR EACH ROW
-  EXECUTE FUNCTION core_obligation_fulfillment_events_rollup_trigger();
+  EXECUTE FUNCTION core_obligation_allocation_events_rollup_trigger();

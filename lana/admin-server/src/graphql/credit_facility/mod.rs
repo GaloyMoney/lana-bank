@@ -3,7 +3,7 @@ mod collateral;
 pub(super) mod disbursal;
 mod error;
 mod history;
-pub(super) mod obligation_fulfillment;
+pub(super) mod obligation_allocation;
 mod repayment;
 
 use async_graphql::*;

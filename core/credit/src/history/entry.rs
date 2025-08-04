@@ -15,7 +15,7 @@ pub struct IncrementalPayment {
     pub cents: UsdCents,
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
-    pub payment_id: ObligationFulfillmentId,
+    pub payment_id: ObligationAllocationId,
 }
 
 #[derive(Debug, serde::Deserialize, serde::Serialize)]

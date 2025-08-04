@@ -7,12 +7,12 @@ use crate::primitives::*;
 
 use crate::{event::CoreCreditEvent, publisher::CreditFacilityPublisher};
 
-use super::{entity::*, error::ObligationFulfillmentError};
+use super::{entity::*, error::ObligationAllocationError};
 
 #[derive(EsRepo)]
 #[es_repo(
-    entity = "ObligationFulfillment",
-    err = "ObligationFulfillmentError",
+    entity = "ObligationAllocation",
+    err = "ObligationAllocationError",
     columns(
         credit_facility_id(ty = "CreditFacilityId", list_for, update(persist = false)),
         payment_id(ty = "PaymentId", list_for, update(persist = false)),
@@ -21,7 +21,7 @@ use super::{entity::*, error::ObligationFulfillmentError};
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]
-pub struct ObligationFulfillmentRepo<E>
+pub struct ObligationAllocationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -30,7 +30,7 @@ where
     publisher: CreditFacilityPublisher<E>,
 }
 
-impl<E> Clone for ObligationFulfillmentRepo<E>
+impl<E> Clone for ObligationAllocationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -41,7 +41,7 @@ where
         }
     }
 }
-impl<E> ObligationFulfillmentRepo<E>
+impl<E> ObligationAllocationRepo<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
@@ -55,11 +55,11 @@ where
     async fn publish(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        entity: &ObligationFulfillment,
-        new_events: es_entity::LastPersisted<'_, ObligationFulfillmentEvent>,
-    ) -> Result<(), ObligationFulfillmentError> {
+        entity: &ObligationAllocation,
+        new_events: es_entity::LastPersisted<'_, ObligationAllocationEvent>,
+    ) -> Result<(), ObligationAllocationError> {
         self.publisher
-            .publish_obligation_fulfillment(db, entity, new_events)
+            .publish_obligation_allocation(db, entity, new_events)
             .await
     }
 }

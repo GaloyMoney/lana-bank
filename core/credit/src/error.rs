@@ -28,9 +28,9 @@ pub enum CoreCreditError {
     CustodyError(#[from] core_custody::error::CoreCustodyError),
     #[error("CoreCreditError - PaymentError: {0}")]
     PaymentError(#[from] super::payment::error::PaymentError),
-    #[error("CoreCreditError - ObligationFulfillmentError: {0}")]
-    ObligationFulfillmentError(
-        #[from] super::obligation_fulfillment::error::ObligationFulfillmentError,
+    #[error("CoreCreditError - ObligationAllocationError: {0}")]
+    ObligationAllocationError(
+        #[from] super::obligation_allocation::error::ObligationAllocationError,
     ),
     #[error("CoreCreditError - DisbursalError: {0}")]
     DisbursalError(#[from] super::disbursal::error::DisbursalError),

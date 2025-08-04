@@ -574,9 +574,9 @@ type CreditFacilityLiquidationAmountReserved {
 	txId: UUID!
 }
 
-type CreditFacilityObligationFulfillment {
+type CreditFacilityObligationAllocation {
 	id: ID!
-	obligationFulfillmentId: UUID!
+	obligationAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
@@ -1429,7 +1429,7 @@ type PageInfo {
 
 type PaymentEntry {
 	recordedAt: Timestamp!
-	payment: CreditFacilityObligationFulfillment!
+	payment: CreditFacilityObligationAllocation!
 }
 
 enum Period {

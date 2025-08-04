@@ -7,7 +7,7 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{ChartEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    LiquidationProcessEvent, ObligationEvent, ObligationFulfillmentEvent, PaymentEvent,
+    LiquidationProcessEvent, ObligationAllocationEvent, ObligationEvent, PaymentEvent,
     TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
@@ -311,14 +311,14 @@ pub fn update_schemas(
                         "DueRecorded".to_string(),
                         "OverdueRecorded".to_string(),
                         "DefaultedRecorded".to_string(),
-                        "Fulfilled".to_string(),
+                        "Allocated".to_string(),
                     ],
                     remove_events: vec![],
                 },
                 CollectionRollup {
-                    column_name: "obligation_fulfillment_ids",
-                    values: "obligation_fulfillment_id",
-                    add_events: vec!["Fulfilled".to_string()],
+                    column_name: "obligation_allocation_ids",
+                    values: "obligation_allocation_id",
+                    add_events: vec!["Allocated".to_string()],
                     remove_events: vec![],
                 },
             ],
@@ -339,10 +339,10 @@ pub fn update_schemas(
             ..Default::default()
         },
         SchemaInfo {
-            name: "ObligationFulfillmentEvent",
-            filename: "obligation_fulfillment_event_schema.json",
+            name: "ObligationAllocationEvent",
+            filename: "obligation_allocation_event_schema.json",
             generate_schema: || {
-                serde_json::to_value(schema_for!(ObligationFulfillmentEvent)).unwrap()
+                serde_json::to_value(schema_for!(ObligationAllocationEvent)).unwrap()
             },
             ..Default::default()
         },

@@ -12,10 +12,10 @@ use crate::primitives::*;
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "ObligationFulfillmentId")]
-pub enum ObligationFulfillmentEvent {
+#[es_event(id = "ObligationAllocationId")]
+pub enum ObligationAllocationEvent {
     Initialized {
-        id: ObligationFulfillmentId,
+        id: ObligationAllocationId,
         ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
         obligation_id: ObligationId,
@@ -32,8 +32,8 @@ pub enum ObligationFulfillmentEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct ObligationFulfillment {
-    pub id: ObligationFulfillmentId,
+pub struct ObligationAllocation {
+    pub id: ObligationAllocationId,
     pub obligation_id: ObligationId,
     pub obligation_allocation_idx: usize,
     pub obligation_type: ObligationType,
@@ -44,10 +44,10 @@ pub struct ObligationFulfillment {
     pub receivable_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
 
-    events: EntityEvents<ObligationFulfillmentEvent>,
+    events: EntityEvents<ObligationAllocationEvent>,
 }
 
-impl ObligationFulfillment {
+impl ObligationAllocation {
     pub(crate) fn tx_ref(&self) -> String {
         format!(
             "obligation-{}-idx-{}",
@@ -56,14 +56,14 @@ impl ObligationFulfillment {
     }
 }
 
-impl TryFromEvents<ObligationFulfillmentEvent> for ObligationFulfillment {
+impl TryFromEvents<ObligationAllocationEvent> for ObligationAllocation {
     fn try_from_events(
-        events: EntityEvents<ObligationFulfillmentEvent>,
+        events: EntityEvents<ObligationAllocationEvent>,
     ) -> Result<Self, EsEntityError> {
-        let mut builder = ObligationFulfillmentBuilder::default();
+        let mut builder = ObligationAllocationBuilder::default();
         for event in events.iter_all() {
             match event {
-                ObligationFulfillmentEvent::Initialized {
+                ObligationAllocationEvent::Initialized {
                     id,
                     obligation_id,
                     obligation_allocation_idx,
@@ -94,7 +94,7 @@ impl TryFromEvents<ObligationFulfillmentEvent> for ObligationFulfillment {
     }
 }
 
-impl ObligationFulfillment {
+impl ObligationAllocation {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at()
@@ -103,9 +103,9 @@ impl ObligationFulfillment {
 }
 
 #[derive(Debug, Builder, Clone)]
-pub struct NewObligationFulfillment {
+pub struct NewObligationAllocation {
     #[builder(setter(into))]
-    pub(crate) id: ObligationFulfillmentId,
+    pub(crate) id: ObligationAllocationId,
     pub(crate) payment_id: PaymentId,
     pub(crate) obligation_id: ObligationId,
     pub(crate) obligation_type: ObligationType,
@@ -120,16 +120,16 @@ pub struct NewObligationFulfillment {
     pub(super) audit_info: AuditInfo,
 }
 
-impl NewObligationFulfillment {
-    pub fn builder() -> NewObligationFulfillmentBuilder {
-        NewObligationFulfillmentBuilder::default()
+impl NewObligationAllocation {
+    pub fn builder() -> NewObligationAllocationBuilder {
+        NewObligationAllocationBuilder::default()
     }
 }
-impl IntoEvents<ObligationFulfillmentEvent> for NewObligationFulfillment {
-    fn into_events(self) -> EntityEvents<ObligationFulfillmentEvent> {
+impl IntoEvents<ObligationAllocationEvent> for NewObligationAllocation {
+    fn into_events(self) -> EntityEvents<ObligationAllocationEvent> {
         EntityEvents::init(
             self.id,
-            [ObligationFulfillmentEvent::Initialized {
+            [ObligationAllocationEvent::Initialized {
                 id: self.id,
                 ledger_tx_id: self.id.into(),
                 payment_id: self.payment_id,

@@ -46,7 +46,7 @@ const RECORD_DEPOSIT: &str = "RECORD_DEPOSIT_CR";
 const INITIATE_WITHDRAW: &str = "INITIATE_WITHDRAW_SETTLED_DR";
 const CANCEL_WITHDRAW: &str = "CANCEL_WITHDRAW_SETTLED_CR";
 const CONFIRM_DISBURSAL: &str = "CONFIRM_DISBURSAL_SETTLED_CR";
-const RECORD_OBLIGATION_FULFILLMENT: &str = "RECORD_OBLIGATION_FULFILLMENT_DR";
+const RECORD_OBLIGATION_ALLOCATION: &str = "RECORD_OBLIGATION_ALLOCATION_DR";
 
 const IGNORE_INITIATE_WITHDRAW_PENDING: &str = "INITIATE_WITHDRAW_PENDING_CR";
 const IGNORE_CONFIRM_WITHDRAWAL_PENDING: &str = "CONFIRM_WITHDRAW_PENDING_DR";
@@ -75,7 +75,7 @@ impl From<cala_ledger::entry::Entry> for DepositAccountHistoryEntry {
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),
             }),
-            RECORD_OBLIGATION_FULFILLMENT => DepositAccountHistoryEntry::Payment(PaymentEntry {
+            RECORD_OBLIGATION_ALLOCATION => DepositAccountHistoryEntry::Payment(PaymentEntry {
                 tx_id: entry.values().transaction_id,
                 entry_id: entry.id,
                 recorded_at: entry.created_at(),

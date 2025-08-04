@@ -8,10 +8,10 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const RECORD_OBLIGATION_FULFILLMENT_CODE: &str = "RECORD_OBLIGATION_FULFILLMENT";
+pub const RECORD_OBLIGATION_ALLOCATION_CODE: &str = "RECORD_OBLIGATION_ALLOCATION_CODE";
 
 #[derive(Debug)]
-pub struct RecordObligationFulfillmentParams {
+pub struct RecordObligationAllocationParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -21,7 +21,7 @@ pub struct RecordObligationFulfillmentParams {
     pub effective: chrono::NaiveDate,
 }
 
-impl RecordObligationFulfillmentParams {
+impl RecordObligationAllocationParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -62,9 +62,9 @@ impl RecordObligationFulfillmentParams {
         ]
     }
 }
-impl From<RecordObligationFulfillmentParams> for Params {
+impl From<RecordObligationAllocationParams> for Params {
     fn from(
-        RecordObligationFulfillmentParams {
+        RecordObligationAllocationParams {
             journal_id,
             currency,
             amount,
@@ -72,7 +72,7 @@ impl From<RecordObligationFulfillmentParams> for Params {
             receivable_account_id,
             tx_ref,
             effective,
-        }: RecordObligationFulfillmentParams,
+        }: RecordObligationAllocationParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("external_id", tx_ref);
@@ -87,10 +87,10 @@ impl From<RecordObligationFulfillmentParams> for Params {
     }
 }
 
-pub struct RecordObligationFulfillment;
+pub struct RecordObligationAllocation;
 
-impl RecordObligationFulfillment {
-    #[instrument(name = "ledger.record_payment.init", skip_all)]
+impl RecordObligationAllocation {
+    #[instrument(name = "ledger.record_obligation_allocation.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
@@ -101,7 +101,7 @@ impl RecordObligationFulfillment {
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_OBLIGATION_FULFILLMENT_DR'")
+                .entry_type("'RECORD_OBLIGATION_ALLOCATION_DR'")
                 .currency("params.currency")
                 .account_id("params.account_to_be_debited_id")
                 .direction("DEBIT")
@@ -110,7 +110,7 @@ impl RecordObligationFulfillment {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_OBLIGATION_FULFILLMENT_CR'")
+                .entry_type("'RECORD_OBLIGATION_ALLOCATION_CR'")
                 .currency("params.currency")
                 .account_id("params.receivable_account_id")
                 .direction("CREDIT")
@@ -120,10 +120,10 @@ impl RecordObligationFulfillment {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordObligationFulfillmentParams::defs();
+        let params = RecordObligationAllocationParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(RECORD_OBLIGATION_FULFILLMENT_CODE)
+            .code(RECORD_OBLIGATION_ALLOCATION_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

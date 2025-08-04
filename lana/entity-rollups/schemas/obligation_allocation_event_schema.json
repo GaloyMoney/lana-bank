@@ -105,5 +105,5 @@
       "type": "object"
     }
   ],
-  "title": "ObligationFulfillmentEvent"
+  "title": "ObligationAllocationEvent"
 }
