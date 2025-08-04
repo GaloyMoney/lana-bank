@@ -436,7 +436,8 @@
       "fullyCollateralized": "Fully Collateralized",
       "noCollateral": "No Collateral",
       "underLiquidationThreshold": "Under Liquidation Threshold",
-      "underMarginCallThreshold": "Under Margin Call Threshold"
+      "underMarginCallThreshold": "Under Margin Call Threshold",
+      "noExposure": "No Exposure"
     },
     "errors": {
       "fetchError": "An error occurred while fetching data.",
