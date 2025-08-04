@@ -40,6 +40,8 @@ class Constants:
     AIRFLOW_CTX_DAG_RUN_ID_ENVVAR_KEY = "AIRFLOW_CTX_DAG_RUN_ID"
     USE_LOCAL_FS_ENVVAR_KEY = "USE_LOCAL_FS"
 
+    DEFAULT_XML_SCHEMAS_PATH = Path(__file__).resolve().parent / "schemas"
+
 
 class StorableReportOutput:
     """The contents of a report file, together with their content type."""
@@ -150,6 +152,17 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
             report_content=report_content, report_content_type=self.content_type
         )
 
+
+class XMLSchemaRepository():
+
+    xml_schema_extension = ".xsd"
+    
+    def __init__(self, schema_folder_path: Path = Constants.DEFAULT_XML_SCHEMAS_PATH):
+        self.schema_folder_path = schema_folder_path
+
+    def get_schema(self, schema_id: str) -> XMLSchema:
+        full_schema_file_path = self.schema_folder_path / schema_id / self.xml_schema_extension
+        return XMLSchema(full_schema_file_path)
 
 class ReportJobDefinition:
     """
