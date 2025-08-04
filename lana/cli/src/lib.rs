@@ -50,6 +50,8 @@ enum Commands {
     BuildInfo,
     /// Generate encryption key
     Genencryptionkey,
+    /// Generate default configuration file (lana.yml) with all default values
+    DumpDefaultConfig,
     /// Run the main server (default when no subcommand is specified)
     Run,
 }
@@ -66,6 +68,13 @@ pub async fn run() -> anyhow::Result<()> {
         Commands::Genencryptionkey => {
             let key = ChaCha20Poly1305::generate_key(&mut OsRng);
             println!("{}", hex::encode(key));
+            return Ok(());
+        }
+        Commands::DumpDefaultConfig => {
+            let default_config = Config::default();
+            let yaml_output = serde_yaml::to_string(&default_config)
+                .context("Failed to serialize default config to YAML")?;
+            println!("{}", yaml_output);
             return Ok(());
         }
         Commands::Run => {

@@ -67,10 +67,11 @@ check-code-rust: sdl-rust update-schemas
 	nix build .#check-code -L --option sandbox false
 
 # Cargo alternative for faster compilation during development
-check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
+check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo generate-default-config
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
 	git diff --exit-code lana/entity-rollups/schemas
+	git diff --exit-code dev/lana.default.yml
 	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
@@ -108,6 +109,10 @@ sdl-rust:
 sdl-rust-cargo:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
+
+# Generate default configuration file
+generate-default-config:
+	SQLX_OFFLINE=true cargo run -p lana-cli -- dump-default-config > dev/lana.default.yml
 
 sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen
