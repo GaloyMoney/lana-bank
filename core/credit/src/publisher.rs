@@ -116,16 +116,8 @@ where
                     action,
                     ledger_tx_id,
                     ..
-                } => Some(CoreCreditEvent::FacilityCollateralUpdated {
-                    ledger_tx_id: *ledger_tx_id,
-                    abs_diff: *abs_diff,
-                    action: *action,
-                    recorded_at: event.recorded_at,
-                    effective: event.recorded_at.date_naive(),
-                    new_amount: entity.amount,
-                    credit_facility_id: entity.credit_facility_id,
-                }),
-                UpdatedViaCustodianSync {
+                }
+                | UpdatedViaCustodianSync {
                     abs_diff,
                     action,
                     ledger_tx_id,
