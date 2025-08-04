@@ -548,6 +548,7 @@ pub enum CollateralizationState {
     UnderLiquidationThreshold,
     #[default]
     NoCollateral,
+    NoExposure,
 }
 
 pub struct CollateralUpdate {

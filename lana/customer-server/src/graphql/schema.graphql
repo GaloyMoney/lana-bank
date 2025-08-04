@@ -26,6 +26,7 @@ enum CollateralizationState {
 	UNDER_MARGIN_CALL_THRESHOLD
 	UNDER_LIQUIDATION_THRESHOLD
 	NO_COLLATERAL
+	NO_EXPOSURE
 }
 
 type CreditFacility {
@@ -39,7 +40,7 @@ type CreditFacility {
 	maturesAt: Timestamp
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
-	currentCvl: CVLPct!
+	currentCvl: CVLPct
 	history: [CreditFacilityHistoryEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!

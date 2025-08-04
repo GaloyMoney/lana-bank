@@ -24,7 +24,8 @@
         "FullyCollateralized",
         "UnderMarginCallThreshold",
         "UnderLiquidationThreshold",
-        "NoCollateral"
+        "NoCollateral",
+        "NoExposure"
       ],
       "type": "string"
     },

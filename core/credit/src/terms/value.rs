@@ -287,24 +287,28 @@ impl TermValues {
         price.cents_to_sats_round_up(collateral_value)
     }
 
-    pub fn collateralization(&self, cvl: CVLPct) -> CollateralizationState {
+    pub fn collateralization(&self, cvl: Option<CVLPct>) -> CollateralizationState {
         let margin_call_cvl = self.margin_call_cvl;
         let liquidation_cvl = self.liquidation_cvl;
 
-        if cvl == CVLPct::ZERO {
-            CollateralizationState::NoCollateral
-        } else if cvl >= margin_call_cvl {
-            CollateralizationState::FullyCollateralized
-        } else if cvl >= liquidation_cvl {
-            CollateralizationState::UnderMarginCallThreshold
+        if let Some(cvl) = cvl {
+            if cvl == CVLPct::ZERO {
+                CollateralizationState::NoCollateral
+            } else if cvl >= margin_call_cvl {
+                CollateralizationState::FullyCollateralized
+            } else if cvl >= liquidation_cvl {
+                CollateralizationState::UnderMarginCallThreshold
+            } else {
+                CollateralizationState::UnderLiquidationThreshold
+            }
         } else {
-            CollateralizationState::UnderLiquidationThreshold
+            CollateralizationState::NoExposure
         }
     }
 
     pub fn collateralization_update(
         &self,
-        current_cvl: CVLPct,
+        current_cvl: Option<CVLPct>,
         last_collateralization_state: CollateralizationState,
         upgrade_buffer_cvl_pct: Option<CVLPct>,
         liquidation_upgrade_blocked: bool,
@@ -325,7 +329,8 @@ impl TermValues {
             | (
                 CollateralizationState::UnderLiquidationThreshold,
                 CollateralizationState::UnderLiquidationThreshold,
-            ) => None,
+            )
+            | (CollateralizationState::NoExposure, CollateralizationState::NoExposure) => None,
 
             // Validated liquidation changes
             (CollateralizationState::UnderLiquidationThreshold, _) => {
@@ -344,7 +349,7 @@ impl TermValues {
                 Some(buffer) => {
                     if self
                         .margin_call_cvl
-                        .is_significantly_lower_than(current_cvl, buffer)
+                        .is_significantly_lower_than(current_cvl.unwrap_or(CVLPct::ZERO), buffer)
                     {
                         Some(*calculated_collateralization)
                     } else {
@@ -355,7 +360,8 @@ impl TermValues {
             },
 
             // Valid other collateral changes
-            (CollateralizationState::NoCollateral, _)
+            (CollateralizationState::NoExposure, _)
+            | (CollateralizationState::NoCollateral, _)
             | (CollateralizationState::FullyCollateralized, _)
             | (CollateralizationState::UnderMarginCallThreshold, _) => {
                 Some(*calculated_collateralization)
@@ -674,7 +680,7 @@ mod test {
             last_state: CollateralizationState,
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
-            default_terms().collateralization_update(cvl, last_state, None, false)
+            default_terms().collateralization_update(Some(cvl), last_state, None, false)
         }
 
         fn collateralization_update_with_buffer(
@@ -682,7 +688,7 @@ mod test {
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
             default_terms().collateralization_update(
-                cvl,
+                Some(cvl),
                 last_state,
                 Some(default_upgrade_buffer_cvl_pct()),
                 false,
@@ -693,7 +699,7 @@ mod test {
             last_state: CollateralizationState,
             cvl: CVLPct,
         ) -> Option<CollateralizationState> {
-            default_terms().collateralization_update(cvl, last_state, None, true)
+            default_terms().collateralization_update(Some(cvl), last_state, None, true)
         }
 
         fn all_collaterization_update_fns()

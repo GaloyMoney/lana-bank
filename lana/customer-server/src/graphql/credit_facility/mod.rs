@@ -73,7 +73,7 @@ impl CreditFacility {
         Ok(CreditFacilityBalance::from(balance))
     }
 
-    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {
+    async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<CVLPct>> {
         let app = ctx.data_unchecked::<LanaApp>();
         Ok(app.credit().current_cvl(&self.entity).await?)
     }
