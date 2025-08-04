@@ -268,7 +268,7 @@ where
     ) -> Result<Vec<RevertedInterestEventData>, CreditFacilityError> {
         let mut credit_facility = self.repo.find_by_id(id).await?;
         let reverted_interest_data =
-            credit_facility.revert_interest_accruals_after(effective, audit_info);
+            credit_facility.revert_interest_accruals_on_or_after(effective, audit_info);
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
         Ok(reverted_interest_data)

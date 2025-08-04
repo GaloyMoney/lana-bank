@@ -543,7 +543,7 @@ impl CreditFacility {
             .collect::<Vec<_>>()
     }
 
-    pub(crate) fn revert_interest_accruals_after(
+    pub(crate) fn revert_interest_accruals_on_or_after(
         &mut self,
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
@@ -556,7 +556,7 @@ impl CreditFacility {
                 .expect("Accrual Cycle not found");
 
             if let Idempotent::Executed(res) =
-                accrual_cycle.revert_after(effective, audit_info.clone())
+                accrual_cycle.revert_on_or_after(effective, audit_info.clone())
             {
                 data.extend(res);
             };
@@ -1141,7 +1141,7 @@ mod test {
                 .unwrap();
             assert_eq!(next_cycle_period, expected_second_cycle_period);
 
-            credit_facility.revert_interest_accruals_after(
+            credit_facility.revert_interest_accruals_on_or_after(
                 expected_first_cycle_period.end.date_naive(),
                 &dummy_audit_info(),
             );
@@ -1231,7 +1231,7 @@ mod test {
         }
     }
 
-    mod revert_interest_accruals_after {
+    mod revert_interest_accruals_on_or_after {
 
         use super::*;
 
@@ -1258,8 +1258,10 @@ mod test {
                 .count();
             assert_eq!(reverted_count, 0);
 
-            credit_facility
-                .revert_interest_accruals_after(activated_at.date_naive(), &dummy_audit_info());
+            credit_facility.revert_interest_accruals_on_or_after(
+                activated_at.date_naive(),
+                &dummy_audit_info(),
+            );
 
             let reverted_count = credit_facility
                 .events()
@@ -1300,8 +1302,10 @@ mod test {
                 .count();
             assert_eq!(reverted_count, 0);
 
-            credit_facility
-                .revert_interest_accruals_after(activated_at.date_naive(), &dummy_audit_info());
+            credit_facility.revert_interest_accruals_on_or_after(
+                activated_at.date_naive(),
+                &dummy_audit_info(),
+            );
 
             let reverted_count = credit_facility
                 .events()
@@ -1338,8 +1342,10 @@ mod test {
                 .count();
             assert_eq!(reverted_count, 0);
 
-            credit_facility
-                .revert_interest_accruals_after(activated_at.date_naive(), &dummy_audit_info());
+            credit_facility.revert_interest_accruals_on_or_after(
+                activated_at.date_naive(),
+                &dummy_audit_info(),
+            );
 
             let reverted_count = credit_facility
                 .events()
@@ -1378,8 +1384,10 @@ mod test {
                 .count();
             assert_eq!(reverted_count, 0);
 
-            credit_facility
-                .revert_interest_accruals_after(activated_at.date_naive(), &dummy_audit_info());
+            credit_facility.revert_interest_accruals_on_or_after(
+                activated_at.date_naive(),
+                &dummy_audit_info(),
+            );
 
             let reverted_count = credit_facility
                 .events()
