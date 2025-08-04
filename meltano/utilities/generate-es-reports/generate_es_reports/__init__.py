@@ -92,6 +92,9 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
             report_content=report_content, report_content_type=self.content_type
         )
 
+    def set_validation_schema(self, xml_schema: XMLSchema) -> None:
+        self.xml_schema = xml_schema
+
 
 class CSVFileOutputConfig(BaseFileOutputConfig):
 
@@ -153,16 +156,19 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
         )
 
 
-class XMLSchemaRepository():
+class XMLSchemaRepository:
 
     xml_schema_extension = ".xsd"
-    
+
     def __init__(self, schema_folder_path: Path = Constants.DEFAULT_XML_SCHEMAS_PATH):
         self.schema_folder_path = schema_folder_path
 
     def get_schema(self, schema_id: str) -> XMLSchema:
-        full_schema_file_path = self.schema_folder_path / schema_id / self.xml_schema_extension
+        full_schema_file_path = (
+            self.schema_folder_path / schema_id / self.xml_schema_extension
+        )
         return XMLSchema(full_schema_file_path)
+
 
 class ReportJobDefinition:
     """
@@ -205,11 +211,19 @@ def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition, ..
         "txt": TXTFileOutputConfig,
     }
 
+    xml_schema_repository = XMLSchemaRepository()
+
     report_jobs = []
     for report_job in data["report_jobs"]:
         output_configs = []
         for output in report_job["outputs"]:
             output_config = str_to_type_mapping[output["type"].lower()]()
+            if output["validation_schema_id"]:
+                output_config.set_validation_schema(
+                    xml_schema=xml_schema_repository.get_schema(
+                        schema_id=output["validation_schema_id"]
+                    )
+                )
             output_configs.append(output_config)
         output_configs = tuple(output_configs)
 
