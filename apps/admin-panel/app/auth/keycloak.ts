@@ -2,69 +2,49 @@
 
 import Keycloak from "keycloak-js"
 
-let keycloakInstance: Keycloak | null = null
+import { env } from "@/env"
 
-export interface KeycloakConfig {
-  url: string
-  realm: string
-  clientId: string
+const keycloakConfig = {
+  url: env.NEXT_PUBLIC_KEYCLOAK_URL,
+  realm: env.NEXT_PUBLIC_KEYCLOAK_REALM,
+  clientId: env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
 }
 
-const getKeycloakConfig = (): KeycloakConfig => ({
-  url: "http://localhost:8081",
-  realm: "lana-admin",
-  clientId: "lana-admin-panel",
-})
+let keycloak: null | Keycloak = null
 
-const getKeycloakInstance = (): Keycloak => {
-  if (!keycloakInstance) {
-    keycloakInstance = new Keycloak(getKeycloakConfig())
-  }
-  return keycloakInstance
+if (typeof window !== "undefined") {
+  keycloak = new Keycloak(keycloakConfig)
 }
 
-export const initKeycloak = async (): Promise<boolean> => {
-  if (typeof window === "undefined") return false
-  const keycloak = getKeycloakInstance()
-  if (keycloak.didInitialize) {
-    return !!keycloak.authenticated
+let isInitialized = false
+export const initKeycloak = () => {
+  if (!isInitialized && keycloak) {
+    isInitialized = true
+    return keycloak
+      .init({ onLoad: "login-required", checkLoginIframe: false, pkceMethod: "S256" })
+      .then((authenticated) => authenticated)
+      .catch((err) => {
+        isInitialized = false
+        console.error("Failed to initialize Keycloak", err)
+        throw err
+      })
   }
+  return Promise.resolve(keycloak?.authenticated ?? false)
+}
 
-  try {
-    const authenticated = await keycloak.init({
-      onLoad: "check-sso",
-      silentCheckSsoRedirectUri: window.location.origin + "/silent-check-sso.html",
-      checkLoginIframe: false,
-      pkceMethod: "S256",
+export const logout = () => {
+  if (keycloak) {
+    keycloak.logout({
+      redirectUri: `${window.location.origin}/`,
     })
-
-    return authenticated
-  } catch (error) {
-    console.error("Failed to initialize Keycloak", error)
-    return false
   }
 }
 
-export const login = async (): Promise<void> => {
-  const keycloak = getKeycloakInstance()
-  await keycloak.login({
-    redirectUri: "http://admin.localhost:4455/dashboard",
-  })
+export const getToken = () => {
+  if (keycloak) {
+    return keycloak.token
+  }
+  return null
 }
 
-export const logout = async (): Promise<void> => {
-  const keycloak = getKeycloakInstance()
-  await keycloak.logout({
-    redirectUri: "http://admin.localhost:4455/",
-  })
-}
-
-export const getToken = (): string | undefined => {
-  const keycloak = getKeycloakInstance()
-  return keycloak.authenticated ? keycloak.token : undefined
-}
-
-export const isAuthenticated = (): boolean => {
-  const keycloak = getKeycloakInstance()
-  return !!keycloak.authenticated && !!keycloak.token
-}
+export { keycloak }

@@ -1,8 +1,7 @@
 "use client"
 
 import { useEffect, useState } from "react"
-import { usePathname, useRouter } from "next/navigation"
-import dynamic from "next/dynamic"
+import { useRouter } from "next/navigation"
 
 import { ApolloProvider } from "@apollo/client"
 
@@ -19,61 +18,40 @@ type Props = {
   children: React.ReactNode
 }
 
-const AuthGuard: React.FC<Props> = ({ children }) => {
-  const router = useRouter()
-  const pathName = usePathname()
+export const Authenticated: React.FC<Props> = ({ children }) => {
+  const [initialized, setInitialized] = useState(false)
+  const [authenticated, setAuthenticated] = useState(false)
   const { stopAppLoadingAnimation } = useAppLoading()
-  const [authenticated, setAuthenticated] = useState<boolean | null>(null)
 
   useEffect(() => {
-    const checkAuth = async () => {
-      try {
-        const isAuthenticated = await initKeycloak()
-        if (isAuthenticated) {
-          setAuthenticated(true)
-          if (pathName === "/" || pathName.startsWith("/auth")) {
-            router.push("/dashboard")
-          }
-        } else {
-          setAuthenticated(false)
-          if (!pathName.startsWith("/auth")) {
-            router.push("/auth/login")
-          }
-        }
-      } catch (error) {
-        setAuthenticated(false)
-        if (!pathName.startsWith("/auth")) router.push("/auth/login")
-      } finally {
-        stopAppLoadingAnimation()
-      }
+    if (typeof window !== "undefined") {
+      initKeycloak()
+        .then((auth) => {
+          setAuthenticated(auth)
+          setInitialized(true)
+          stopAppLoadingAnimation()
+        })
+        .catch((err) => console.error("Failed to initialize Keycloak", err))
     }
+  }, [])
 
-    checkAuth()
-  }, [pathName, router, stopAppLoadingAnimation])
+  if (!initialized || !authenticated) {
+    return null
+  }
 
   const client = makeClient({ coreAdminGqlUrl: "/graphql" })
-
   return (
     <BreadcrumbProvider>
       <ApolloProvider client={client}>
         <Toast />
-        {authenticated ? (
-          <AppLayout>{children}</AppLayout>
-        ) : (
-          <main className="h-screen w-full flex flex-col">{children}</main>
-        )}
+        <AppLayout>{children}</AppLayout>
       </ApolloProvider>
     </BreadcrumbProvider>
   )
 }
 
-export const Authenticated = dynamic(() => Promise.resolve(AuthGuard), {
-  ssr: false,
-})
-
 export const useLogout = () => {
   const router = useRouter()
-
   return {
     logout: async () => {
       await logout()
