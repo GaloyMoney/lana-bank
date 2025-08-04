@@ -367,7 +367,15 @@ class ReportJobDefinition:
         return f"report_{self.norm}_{self.id}"
 
 
-def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition]:
+def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition, ...]:
+    """Read report jobs to do from a YAML file.
+
+    Args:
+        yaml_path (Path): path to the YAML that holds the config.
+
+    Returns:
+        tuple[ReportJobDefinition, ...]: All the report jobs that must be run.
+    """
     with open(yaml_path, "r", encoding="utf-8") as file:
         data = yaml.safe_load(file)
 
