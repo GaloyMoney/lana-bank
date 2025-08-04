@@ -73,7 +73,7 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
     content_type = "text/xml"
 
     def __init__(self, xml_schema: Union[XMLSchema, None] = None) -> None:
-        self.xml_schema = XMLSchema
+        self.xml_schema = xml_schema
 
     def rows_to_report_output(self, rows) -> StorableReportOutput:
         field_names = [field.name for field in rows.schema]
