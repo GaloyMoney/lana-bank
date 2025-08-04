@@ -120,6 +120,12 @@ pub(crate) struct NewAccrualPeriods {
     pub(super) _accrual_cycle: InterestPeriod,
 }
 
+struct InterestAccrualCycleInCreditFacility {
+    id: InterestAccrualCycleId,
+    idx: InterestAccrualCycleIdx,
+    period: InterestPeriod,
+}
+
 impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInterestAccrual {
     fn from(data: (InterestAccrualData, CreditFacilityAccountIds)) -> Self {
         let (
@@ -184,7 +190,6 @@ pub struct CreditFacility {
     #[es_entity(nested)]
     #[builder(default)]
     interest_accruals: Nested<InterestAccrualCycle>,
-    reverted_accrual_cycles: Vec<InterestAccrualCycleId>,
     events: EntityEvents<CreditFacilityEvent>,
 }
 
@@ -344,21 +349,71 @@ impl CreditFacility {
         initiated_at < self.matures_at.expect("Facility not activated yet")
     }
 
-    fn is_reverted_accrual(&self, interest_accrual_id: &InterestAccrualCycleId) -> bool {
-        self.reverted_accrual_cycles.contains(interest_accrual_id)
+    fn last_started_unreverted_accrual_cycle(
+        &self,
+    ) -> Option<InterestAccrualCycleInCreditFacility> {
+        let mut reverted = vec![];
+        self.events.iter_all().rev().find_map(|event| match event {
+            CreditFacilityEvent::InterestAccrualCycleReverted {
+                interest_accrual_id,
+                ..
+            } => {
+                reverted.push(*interest_accrual_id);
+                None
+            }
+            CreditFacilityEvent::InterestAccrualCycleStarted {
+                interest_accrual_id,
+                interest_accrual_cycle_idx,
+                interest_period,
+                ..
+            } if !reverted.contains(interest_accrual_id) => {
+                Some(InterestAccrualCycleInCreditFacility {
+                    id: *interest_accrual_id,
+                    idx: *interest_accrual_cycle_idx,
+                    period: *interest_period,
+                })
+            }
+            _ => None,
+        })
+    }
+
+    fn in_progress_unreverted_accrual_cycle(&self) -> Option<InterestAccrualCycleInCreditFacility> {
+        let mut reverted = vec![];
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualCycleReverted {
+                    interest_accrual_id,
+                    ..
+                } => {
+                    reverted.push(*interest_accrual_id);
+                    None
+                }
+                CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => Some(None),
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_id,
+                    interest_accrual_cycle_idx,
+                    interest_period,
+                    ..
+                } if !reverted.contains(interest_accrual_id) => {
+                    Some(Some(InterestAccrualCycleInCreditFacility {
+                        id: *interest_accrual_id,
+                        idx: *interest_accrual_cycle_idx,
+                        period: *interest_period,
+                    }))
+                }
+                _ => None,
+            })
+            .flatten()
     }
 
     fn next_interest_accrual_cycle_period(
         &self,
     ) -> Result<Option<InterestPeriod>, CreditFacilityError> {
-        let last_accrual_start_date = self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::InterestAccrualCycleStarted {
-                interest_period: period,
-                interest_accrual_id,
-                ..
-            } if !self.is_reverted_accrual(interest_accrual_id) => Some(period.start),
-            _ => None,
-        });
+        let last_accrual_start_date = self
+            .last_started_unreverted_accrual_cycle()
+            .and_then(|cycle| Some(cycle.period.start));
 
         let interval = self.terms.accrual_cycle_interval;
         let full_period = match last_accrual_start_date {
@@ -373,17 +428,8 @@ impl CreditFacility {
     }
 
     fn next_interest_accrual_cycle_idx(&self) -> InterestAccrualCycleIdx {
-        self.events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleStarted {
-                    interest_accrual_id,
-                    interest_accrual_cycle_idx: idx,
-                    ..
-                } if !self.is_reverted_accrual(interest_accrual_id) => Some(idx.next()),
-                _ => None,
-            })
+        self.last_started_unreverted_accrual_cycle()
+            .map(|cycle| cycle.idx.next())
             .unwrap_or(InterestAccrualCycleIdx::FIRST)
     }
 
@@ -481,66 +527,19 @@ impl CreditFacility {
     }
 
     pub fn interest_accrual_cycle_in_progress(&self) -> Option<&InterestAccrualCycle> {
-        if let Some(id) = self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => Some(None),
-                CreditFacilityEvent::InterestAccrualCycleStarted {
-                    interest_accrual_id: id,
-                    ..
-                } if !self.is_reverted_accrual(id) => Some(Some(id)),
-                _ => None,
-            })
-            .flatten()
-        {
-            Some(
-                self.interest_accruals
-                    .get_persisted(id)
-                    .expect("Interest accrual not found"),
-            )
-        } else {
-            None
-        }
+        self.in_progress_unreverted_accrual_cycle().map(|cycle| {
+            self.interest_accruals
+                .get_persisted(&cycle.id)
+                .expect("Interest accrual not found")
+        })
     }
 
     pub fn interest_accrual_cycle_in_progress_mut(&mut self) -> Option<&mut InterestAccrualCycle> {
-        if let Some(id) = self
-            .events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => Some(None),
-                CreditFacilityEvent::InterestAccrualCycleStarted {
-                    interest_accrual_id: id,
-                    ..
-                } if !self.is_reverted_accrual(id) => Some(Some(id)),
-                _ => None,
-            })
-            .flatten()
-        {
-            Some(
-                self.interest_accruals
-                    .get_persisted_mut(id)
-                    .expect("Interest accrual not found"),
-            )
-        } else {
-            None
-        }
-    }
-
-    fn interest_accrual_ids(&self) -> Vec<InterestAccrualCycleId> {
-        self.events
-            .iter_all()
-            .filter_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleStarted {
-                    interest_accrual_id: id,
-                    ..
-                } if !self.is_reverted_accrual(id) => Some(*id),
-                _ => None,
-            })
-            .collect::<Vec<_>>()
+        self.in_progress_unreverted_accrual_cycle().map(|cycle| {
+            self.interest_accruals
+                .get_persisted_mut(&cycle.id)
+                .expect("Interest accrual not found")
+        })
     }
 
     pub(crate) fn revert_interest_accruals_on_or_after(
@@ -548,28 +547,52 @@ impl CreditFacility {
         effective: chrono::NaiveDate,
         audit_info: &AuditInfo,
     ) -> Vec<RevertedInterestEventData> {
-        let mut data = vec![];
-        for id in self.interest_accrual_ids().iter().rev() {
-            let accrual_cycle = self
-                .interest_accruals
-                .get_persisted_mut(id)
-                .expect("Accrual Cycle not found");
+        let mut reverted = vec![];
+        let mut new_reverted_events = vec![];
 
-            if let Idempotent::Executed(res) =
-                accrual_cycle.revert_on_or_after(effective, audit_info.clone())
-            {
-                data.extend(res);
-            };
+        let res = self
+            .events
+            .iter_all()
+            .filter_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualCycleReverted {
+                    interest_accrual_id: id,
+                    ..
+                } => {
+                    reverted.push(*id);
+                    None
+                }
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_id: id,
+                    interest_period,
+                    ..
+                } if !reverted.contains(id) && interest_period.end.date_naive() >= effective => {
+                    let accrual_cycle = self
+                        .interest_accruals
+                        .get_persisted_mut(id)
+                        .expect("Accrual Cycle not found");
 
-            self.events
-                .push(CreditFacilityEvent::InterestAccrualCycleReverted {
-                    interest_accrual_id: accrual_cycle.id,
-                    audit_info: audit_info.clone(),
-                });
-            self.reverted_accrual_cycles.push(accrual_cycle.id);
-        }
+                    let res = match accrual_cycle.revert_on_or_after(effective, audit_info.clone())
+                    {
+                        Idempotent::Executed(res) => Some(res),
+                        _ => None,
+                    };
 
-        data
+                    new_reverted_events.push(CreditFacilityEvent::InterestAccrualCycleReverted {
+                        interest_accrual_id: accrual_cycle.id,
+                        audit_info: audit_info.clone(),
+                    });
+
+                    res
+                }
+                _ => None,
+            })
+            .flatten()
+            .collect::<Vec<_>>();
+
+        dbg!(&new_reverted_events);
+        self.events.extend(new_reverted_events);
+
+        res
     }
 
     pub fn last_collateralization_state(&self) -> CollateralizationState {
@@ -713,7 +736,6 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
     fn try_from_events(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CreditFacilityBuilder::default();
         let mut terms = None;
-        let mut reverted_accrual_cycles = Vec::new();
         for event in events.iter_all() {
             match event {
                 CreditFacilityEvent::Initialized {
@@ -749,22 +771,14 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                 }
                 CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
-                CreditFacilityEvent::InterestAccrualCycleReverted {
-                    interest_accrual_id,
-                    ..
-                } => {
-                    reverted_accrual_cycles.push(*interest_accrual_id);
-                }
+                CreditFacilityEvent::InterestAccrualCycleReverted { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
                 CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
                 CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
                 CreditFacilityEvent::Completed { .. } => (),
             }
         }
-        builder
-            .reverted_accrual_cycles(reverted_accrual_cycles)
-            .events(events)
-            .build()
+        builder.events(events).build()
     }
 }
 

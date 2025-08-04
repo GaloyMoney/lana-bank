@@ -562,6 +562,7 @@ impl InterestAccrualCycle {
         audit_info: AuditInfo,
     ) -> Idempotent<Vec<RevertedInterestEventData>> {
         let mut all_reverted_data = vec![];
+        dbg!(effective);
 
         let posted_entry_after_effective_exists = self
             .last_unreverted_accrual_cycle()
@@ -1241,7 +1242,7 @@ mod test {
                         ledger_tx_id: LedgerTxId::new(),
                         tx_ref: "".to_string(),
                         obligation_id: Some(ObligationId::new()),
-                        total: UsdCents::from(3),
+                        total: UsdCents::from(2),
                         effective: second_accrual_at.date_naive(),
                         audit_info: dummy_audit_info(),
                     },
