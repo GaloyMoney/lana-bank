@@ -8,7 +8,7 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const RECORD_OBLIGATION_ALLOCATION_CODE: &str = "RECORD_OBLIGATION_ALLOCATION_CODE";
+pub const RECORD_OBLIGATION_ALLOCATION_CODE: &str = "RECORD_OBLIGATION_ALLOCATION";
 
 #[derive(Debug)]
 pub struct RecordObligationAllocationParams {
