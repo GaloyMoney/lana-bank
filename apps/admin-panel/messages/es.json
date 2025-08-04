@@ -434,10 +434,10 @@
     },
     "collateralizationState": {
       "fullyCollateralized": "Totalmente garantizado",
-      "noExposure": "Sin exposición",
       "noCollateral": "Sin garantía",
       "underLiquidationThreshold": "Por debajo del umbral de liquidación",
-      "underMarginCallThreshold": "Por debajo del umbral de llamada de margen"
+      "underMarginCallThreshold": "Por debajo del umbral de llamada de margen",
+      "noExposure": "Sin exposición"
     },
     "errors": {
       "fetchError": "Ocurrió un error al obtener los datos.",

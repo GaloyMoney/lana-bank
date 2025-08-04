@@ -275,6 +275,7 @@ checksums:
     CreditFacilities/collateralizationState/noCollateral: 498c3e9228e7a29cc8571a0fb53d4be9
     CreditFacilities/collateralizationState/underLiquidationThreshold: 9df678e2f798a4c7a056e783c686bce5
     CreditFacilities/collateralizationState/underMarginCallThreshold: 56f8da43160ce599d62c6530ed97c233
+    CreditFacilities/collateralizationState/noExposure: 25de75d010cf97f834518f4bbacb9d75
     CreditFacilities/errors/fetchError: 97f7c28b3288c6bbf454f0a28198730a
     CreditFacilities/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/title: 416716dbfa4883b589c792610e827d74
