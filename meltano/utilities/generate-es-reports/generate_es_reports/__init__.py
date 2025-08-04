@@ -344,12 +344,12 @@ def main():
 
     report_jobs = (
         # NRP_41 Reports - XML & CSV
-        # ReportJobDefinition(
-        #     norm=Constants.NRP_41_ID,
-        #     id="01_persona",
-        #     friendly_name="persona",
-        #     file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
-        # ),
+        ReportJobDefinition(
+            norm=Constants.NRP_41_ID,
+            id="01_persona",
+            friendly_name="persona",
+            file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
+        ),
         ReportJobDefinition(
             norm=Constants.NRP_41_ID,
             id="02_referencia",
@@ -446,7 +446,7 @@ def main():
             friendly_name="garantia_prendaria",
             file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
         ),
-        # NRP_51 Reports - XML & CSV
+        #NRP_51 Reports - XML & CSV
         ReportJobDefinition(
             norm=Constants.NRP_51_ID,
             id="01_saldo_cuenta",
@@ -495,55 +495,55 @@ def main():
             friendly_name="balance_proyectado",
             file_output_configs=(XMLFileOutputConfig(), CSVFileOutputConfig()),
         ),
-        # NRSF_03 Reports - XML & TXT
-        # ReportJobDefinition(
-        #     norm=Constants.NRSF_03_ID,
-        #     id="01_cliente",
-        #     friendly_name="cliente",
-        #     file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        # ),
-        # ReportJobDefinition(
-        #     norm=Constants.NRSF_03_ID,
-        #     id="02_depósitos",
-        #     friendly_name="depósitos",
-        #     file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        # ),
-        # ReportJobDefinition(
-        #     norm=Constants.NRSF_03_ID,
-        #     id="03_documentos_clientes",
-        #     friendly_name="documentos_clientes",
-        #     file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        # ),
+        #NRSF_03 Reports - XML & TXT
+        ReportJobDefinition(
+            norm=Constants.NRSF_03_ID,
+            id="01_cliente",
+            friendly_name="cliente",
+            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
+        ),
+        ReportJobDefinition(
+            norm=Constants.NRSF_03_ID,
+            id="02_depósitos",
+            friendly_name="depósitos",
+            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
+        ),
+        ReportJobDefinition(
+            norm=Constants.NRSF_03_ID,
+            id="03_documentos_clientes",
+            friendly_name="documentos_clientes",
+            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
+        ),
         ReportJobDefinition(
             norm=Constants.NRSF_03_ID,
             id="04_titulares",
             friendly_name="titulares",
             file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
         ),
-        # ReportJobDefinition(
-        #     norm=Constants.NRSF_03_ID,
-        #     id="05_agencias",
-        #     friendly_name="agencias",
-        #     file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        # ),
+        ReportJobDefinition(
+            norm=Constants.NRSF_03_ID,
+            id="05_agencias",
+            friendly_name="agencias",
+            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
+        ),
         ReportJobDefinition(
             norm=Constants.NRSF_03_ID,
             id="06_productos",
             friendly_name="productos",
             file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
         ),
-        # ReportJobDefinition(
-        #     norm=Constants.NRSF_03_ID,
-        #     id="07_funcionarios_y_empleados",
-        #     friendly_name="funcionarios_y_empleados",
-        #     file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        # ),
-        # ReportJobDefinition(
-        #     norm=Constants.NRSF_03_ID,
-        #     id="08_resumen_de_depósitos_garantizados",
-        #     friendly_name="resumen_de_depósitos_garantizados",
-        #     file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
-        # ),
+        ReportJobDefinition(
+            norm=Constants.NRSF_03_ID,
+            id="07_funcionarios_y_empleados",
+            friendly_name="funcionarios_y_empleados",
+            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
+        ),
+        ReportJobDefinition(
+            norm=Constants.NRSF_03_ID,
+            id="08_resumen_de_depósitos_garantizados",
+            friendly_name="resumen_de_depósitos_garantizados",
+            file_output_configs=(CSVFileOutputConfig(), TXTFileOutputConfig()),
+        ),
         ReportJobDefinition(
             norm=Constants.NRSF_03_ID,
             id="09_ajustes",
