@@ -128,12 +128,12 @@ class AirflowAdapter(AirflowPort):
         mapped: list[tuple[datetime, Run]] = [
             (_run_id_to_dt(dr.run_id), self._to_run(dr)) for dr in dag_runs
         ]
+        mapped.sort(key=lambda pair: pair[0])
 
         if after:
             after_dt = _run_id_to_dt(after)
-            mapped = [t for t in mapped if t[0] < after_dt]
+            mapped = [t for t in mapped if t[0] > after_dt]
 
-        mapped.sort(key=lambda pair: pair[0], reverse=True)
         return [run for _, run in mapped[:limit]]
 
     @provide_session
