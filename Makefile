@@ -162,6 +162,8 @@ test-cypress-in-ci:
 	@$${ENGINE_DEFAULT:-docker} ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "Failed to check container status"
 	@echo "--- End Health Checks ---"
 	@echo "--- Running Cypress Tests ---"
+	@echo "Installing Cypress binary if missing..."
+	cd apps/admin-panel && pnpm exec cypress install
 	cd apps/admin-panel && CI=true pnpm cypress:run-headless
 
 # Meltano
