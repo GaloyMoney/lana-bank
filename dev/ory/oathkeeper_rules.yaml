@@ -43,3 +43,41 @@
     handler: allow
   mutators:
     - handler: noop
+
+# CUSTOMER PORTAL
+- id: kratos-customer
+  upstream:
+    url: http://host.containers.internal:4435
+  match:
+    url: <(http|https)>://<app.localhost:4455>/<(sessions|self-service)>/<.*>
+    methods: [GET, POST, PUT, OPTIONS, DELETE, PATCH]
+  authenticators:
+    - handler: noop
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: noop
+
+- id: app-api # lana/customer-server
+  upstream:
+    url: http://host.containers.internal:5254
+  match:
+    url: <(http|https)>://<app.localhost:4455>/graphql
+    methods: [GET, POST, OPTIONS]
+  authenticators:
+    - handler: cookie_session
+      config:
+        check_session_url: http://kratos-customer:4433/sessions/whoami
+    - handler: bearer_token
+      config:
+        check_session_url: http://kratos-customer:4433/sessions/whoami
+  authorizer:
+    handler: allow
+  mutators:
+    - handler: hydrator
+      config:
+        api:
+          url: http://host.containers.internal:5254/customer/customer-id-from-authentication-id
+    - handler: id_token
+      config:
+        claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'

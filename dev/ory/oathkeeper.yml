@@ -19,6 +19,24 @@ authenticators:
       trusted_issuers:
         - http://localhost:8081/realms/lana-admin
 
+  bearer_token:
+    enabled: true
+    config:
+      check_session_url: http://kratos:4433/sessions/whoami
+      preserve_path: true
+      preserve_query: true
+      subject_from: identity.id
+      extra_from: "@this"
+
+  cookie_session:
+    enabled: true
+    config:
+      check_session_url: http://kratos:4433/sessions/whoami
+      preserve_path: true
+      preserve_query: true
+      subject_from: identity.id
+      extra_from: "@this"
+
   noop:
     enabled: true
 
