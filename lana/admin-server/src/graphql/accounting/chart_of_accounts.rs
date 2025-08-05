@@ -2,8 +2,8 @@ use async_graphql::*;
 
 use crate::{graphql::accounting::AccountCode, primitives::*};
 
-use lana_app::primitives::DebitOrCredit;
 use lana_app::accounting::Chart as DomainChart;
+use lana_app::primitives::DebitOrCredit;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

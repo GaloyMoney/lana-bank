@@ -3,12 +3,12 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use lana_app::primitives::DebitOrCredit;
 use lana_app::accounting::{
     AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
     journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
 };
 use lana_app::primitives::Currency;
+use lana_app::primitives::DebitOrCredit;
 
 use crate::{graphql::loader::*, primitives::*};
 
