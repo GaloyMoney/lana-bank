@@ -19,6 +19,32 @@
       ],
       "type": "object"
     },
+    "CVLPct": {
+      "oneOf": [
+        {
+          "enum": [
+            "Infinite"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "Finite": {
+              "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          },
+          "required": [
+            "Finite"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "CollateralizationState": {
       "enum": [
         "FullyCollateralized",
@@ -236,28 +262,16 @@
           "$ref": "#/$defs/FacilityDuration"
         },
         "initial_cvl": {
-          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
-          "type": [
-            "string",
-            "number"
-          ]
+          "$ref": "#/$defs/CVLPct"
         },
         "interest_due_duration_from_accrual": {
           "$ref": "#/$defs/ObligationDuration"
         },
         "liquidation_cvl": {
-          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
-          "type": [
-            "string",
-            "number"
-          ]
+          "$ref": "#/$defs/CVLPct"
         },
         "margin_call_cvl": {
-          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
-          "type": [
-            "string",
-            "number"
-          ]
+          "$ref": "#/$defs/CVLPct"
         },
         "obligation_liquidation_duration_from_due": {
           "anyOf": [

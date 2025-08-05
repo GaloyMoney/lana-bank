@@ -15,40 +15,48 @@ pub struct FacilityCVL {
     pub disbursed: CVLPct,
 }
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-#[serde(transparent)]
-pub struct CVLPct(Decimal);
+pub enum CVLPct {
+    Finite(Decimal),
+    Infinite,
+}
+
 #[cfg(feature = "graphql")]
 async_graphql::scalar!(CVLPct);
 
+impl PartialOrd for CVLPct {
+    fn partial_cmp(&self, other: &Self) -> Option<std::cmp::Ordering> {
+        use std::cmp::Ordering;
+        match (self, other) {
+            (Self::Infinite, Self::Infinite) => Some(Ordering::Equal),
+            (Self::Infinite, Self::Finite(_)) => Some(Ordering::Greater),
+            (Self::Finite(_), Self::Infinite) => Some(Ordering::Less),
+            (Self::Finite(a), Self::Finite(b)) => a.partial_cmp(b),
+        }
+    }
+}
+
 impl CVLPct {
-    pub const ZERO: Self = Self(dec!(0));
-    pub const INFINITY: Self = Self(Decimal::MAX);
+    pub const ZERO: Self = Self::Finite(dec!(0));
 
     pub fn new(value: u64) -> Self {
-        Self(Decimal::from(value))
-    }
-
-    pub fn is_zero(&self) -> bool {
-        *self == Self::ZERO
-    }
-
-    pub fn scale(&self, value: UsdCents) -> UsdCents {
-        let cents = value.to_usd() * dec!(100) * (self.0 / dec!(100));
-        UsdCents::from(
-            cents
-                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                .to_u64()
-                .expect("should return a valid integer"),
-        )
+        Self::Finite(Decimal::from(value))
     }
 
     pub fn from_loan_amounts(
         collateral_value: UsdCents,
         total_outstanding_amount: UsdCents,
     ) -> Self {
-        if collateral_value == UsdCents::ZERO || total_outstanding_amount == UsdCents::ZERO {
+        if total_outstanding_amount == UsdCents::ZERO {
+            if collateral_value == UsdCents::ZERO {
+                return CVLPct::ZERO;
+            } else {
+                return CVLPct::Infinite;
+            }
+        }
+
+        if collateral_value == UsdCents::ZERO {
             return CVLPct::ZERO;
         }
 
@@ -56,7 +64,26 @@ impl CVLPct {
             .round_dp_with_strategy(2, RoundingStrategy::ToZero)
             * dec!(100);
 
-        CVLPct::from(ratio)
+        CVLPct::Finite(ratio)
+    }
+
+    pub fn is_zero(&self) -> bool {
+        matches!(self, Self::Finite(value) if *value == dec!(0))
+    }
+
+    pub fn scale(&self, value: UsdCents) -> UsdCents {
+        match self {
+            Self::Finite(pct) => {
+                let cents = value.to_usd() * dec!(100) * (pct / dec!(100));
+                UsdCents::from(
+                    cents
+                        .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                        .to_u64()
+                        .expect("should return a valid integer"),
+                )
+            }
+            Self::Infinite => panic!("Cannot scale with infinite CVL percentage"),
+        }
     }
 
     pub fn is_significantly_lower_than(&self, other: CVLPct, buffer: CVLPct) -> bool {
@@ -65,19 +92,27 @@ impl CVLPct {
 
     #[cfg(test)]
     pub fn target_value_given_outstanding(&self, outstanding: UsdCents) -> UsdCents {
-        let target_in_usd = self.0 / dec!(100) * outstanding.to_usd();
-        UsdCents::from(
-            (target_in_usd * dec!(100))
-                .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
-                .to_u64()
-                .expect("should return a valid integer"),
-        )
+        match self {
+            Self::Finite(pct) => {
+                let target_in_usd = pct / dec!(100) * outstanding.to_usd();
+                UsdCents::from(
+                    (target_in_usd * dec!(100))
+                        .round_dp_with_strategy(0, RoundingStrategy::AwayFromZero)
+                        .to_u64()
+                        .expect("should return a valid integer"),
+                )
+            }
+            Self::Infinite => panic!("Cannot calculate target value for infinite CVL percentage"),
+        }
     }
 }
 
 impl fmt::Display for CVLPct {
     fn fmt(&self, f: &mut std::fmt::Formatter) -> fmt::Result {
-        write!(f, "{}", self.0)
+        match self {
+            Self::Finite(value) => write!(f, "{value}"),
+            Self::Infinite => write!(f, "∞"),
+        }
     }
 }
 
@@ -85,7 +120,10 @@ impl std::ops::Add for CVLPct {
     type Output = Self;
 
     fn add(self, other: Self) -> Self {
-        CVLPct(self.0 + other.0)
+        match (self, other) {
+            (Self::Infinite, _) | (_, Self::Infinite) => Self::Infinite,
+            (Self::Finite(a), Self::Finite(b)) => Self::Finite(a + b),
+        }
     }
 }
 
@@ -93,13 +131,18 @@ impl std::ops::Sub for CVLPct {
     type Output = Self;
 
     fn sub(self, other: Self) -> Self {
-        CVLPct(self.0 - other.0)
+        match (self, other) {
+            (Self::Infinite, Self::Finite(_)) => Self::Infinite,
+            (Self::Finite(_), Self::Infinite) => panic!("Cannot subtract infinite from finite"),
+            (Self::Infinite, Self::Infinite) => panic!("Infinite - Infinite is undefined"),
+            (Self::Finite(a), Self::Finite(b)) => Self::Finite(a - b),
+        }
     }
 }
 
 impl From<Decimal> for CVLPct {
     fn from(value: Decimal) -> Self {
-        CVLPct(value)
+        CVLPct::Finite(value)
     }
 }
 
@@ -111,12 +154,12 @@ mod test {
 
     #[test]
     fn loan_cvl_pct_scale() {
-        let cvl = CVLPct(dec!(140));
+        let cvl = CVLPct::Finite(dec!(140));
         let value = UsdCents::from(100000);
         let scaled = cvl.scale(value);
         assert_eq!(scaled, UsdCents::try_from_usd(dec!(1400)).unwrap());
 
-        let cvl = CVLPct(dec!(50));
+        let cvl = CVLPct::Finite(dec!(50));
         let value = UsdCents::from(333333);
         let scaled = cvl.scale(value);
         assert_eq!(scaled, UsdCents::try_from_usd(dec!(1666.67)).unwrap());
@@ -124,13 +167,13 @@ mod test {
 
     #[test]
     fn current_cvl_from_loan_amounts() {
-        let expected_cvl = CVLPct(dec!(125));
+        let expected_cvl = CVLPct::Finite(dec!(125));
         let collateral_value = UsdCents::from(125000);
         let outstanding_amount = UsdCents::from(100000);
         let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
         assert_eq!(cvl, expected_cvl);
 
-        let expected_cvl = CVLPct(dec!(75));
+        let expected_cvl = CVLPct::Finite(dec!(75));
         let collateral_value = UsdCents::from(75000);
         let outstanding_amount = UsdCents::from(100000);
         let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
@@ -145,8 +188,14 @@ mod test {
         let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
         assert_eq!(cvl, expected_cvl);
 
-        let expected_cvl = CVLPct::ZERO;
+        let expected_cvl = CVLPct::Infinite;
         let collateral_value = UsdCents::from(75000);
+        let outstanding_amount = UsdCents::ZERO;
+        let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
+        assert_eq!(cvl, expected_cvl);
+
+        let expected_cvl = CVLPct::ZERO;
+        let collateral_value = UsdCents::ZERO;
         let outstanding_amount = UsdCents::ZERO;
         let cvl = CVLPct::from_loan_amounts(collateral_value, outstanding_amount);
         assert_eq!(cvl, expected_cvl);
