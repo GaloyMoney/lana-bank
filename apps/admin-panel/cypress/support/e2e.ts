@@ -34,18 +34,19 @@ beforeEach(() => {
   cy.session(
     "loginSession",
     () => {
-      const cookies = JSON.parse(
-        Buffer.from(Cypress.env("COOKIES"), "base64").toString("utf-8"),
-      )
-      cy.setCookie(cookies["cookie1_name"], cookies["cookie1_value"])
-      cy.setCookie(cookies["cookie2_name"], cookies["cookie2_value"])
+      cy.KcLogin("admin@galoy.io")
       cy.setCookie("NEXT_LOCALE", testLanguage)
       cy.visit("/dashboard")
-
       cy.contains(t("Sidebar.navItems.dashboard"), {
         timeout: 60000,
       })
     },
-    { cacheAcrossSpecs: true },
+    {
+      cacheAcrossSpecs: true,
+      validate: () => {
+        cy.getCookie("KEYCLOAK_SESSION").should("exist")
+        cy.getCookie("KEYCLOAK_IDENTITY").should("exist")
+      },
+    },
   )
 })
