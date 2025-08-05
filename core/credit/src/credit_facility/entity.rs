@@ -113,7 +113,6 @@ impl CreditFacilityReceivable {
 #[derive(Debug)]
 pub(crate) struct NewAccrualPeriods {
     pub(crate) accrual: InterestPeriod,
-    pub(super) _accrual_cycle: InterestPeriod,
 }
 
 impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInterestAccrual {
@@ -412,7 +411,6 @@ impl CreditFacility {
                 .interest_accruals
                 .add_new(new_accrual)
                 .first_accrual_cycle_period(),
-            _accrual_cycle: accrual_cycle_period,
         }))
     }
 
