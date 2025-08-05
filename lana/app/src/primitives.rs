@@ -20,6 +20,7 @@ pub use rbac_types::Subject;
 
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency,
-    DebitOrCredit as CalaDebitOrCredit, EntryId as CalaEntryId, JournalId as CalaJournalId,
+    EntryId as CalaEntryId, JournalId as CalaJournalId,
     TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,
 };
+pub use cala_ledger::{DebitOrCredit, EntryId, Layer};

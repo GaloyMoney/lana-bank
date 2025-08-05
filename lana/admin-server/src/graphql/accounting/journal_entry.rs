@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use cala_ledger::{DebitOrCredit, Layer};
+use lana_app::primitives::{DebitOrCredit, Layer};
 pub use lana_app::accounting::journal::JournalEntryCursor;
 use lana_app::accounting::journal::{
     JournalEntry as DomainJournalEntry, JournalEntryAmount as DomainJournalEntryAmount,

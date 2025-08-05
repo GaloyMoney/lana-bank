@@ -5,7 +5,7 @@ pub use lana_app::accounting::manual_transaction::ManualEntryInput;
 use crate::graphql::primitives::*;
 use crate::primitives::Date;
 
-use cala_ledger::DebitOrCredit;
+use lana_app::primitives::DebitOrCredit;
 
 use super::ledger_transaction::LedgerTransaction;
 

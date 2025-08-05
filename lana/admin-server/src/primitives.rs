@@ -138,5 +138,5 @@ impl_to_global_id! {
     PublicId
 }
 
-use cala_ledger::EntryId;
+use lana_app::primitives::EntryId;
 impl_to_global_id!(EntryId);

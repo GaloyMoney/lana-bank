@@ -38,7 +38,6 @@ dependencies = [
  "axum 0.8.4",
  "axum-extra 0.10.1",
  "base64 0.22.1",
- "cala-ledger",
  "chrono",
  "es-entity",
  "jwks-utils",

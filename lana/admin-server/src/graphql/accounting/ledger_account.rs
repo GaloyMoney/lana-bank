@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use cala_ledger::DebitOrCredit;
+use lana_app::primitives::DebitOrCredit;
 use lana_app::accounting::{
     AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
     journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
@@ -212,8 +212,8 @@ pub(super) struct UsdLedgerAccountBalance {
     encumbrance: UsdBalanceDetails,
 }
 
-impl From<Option<&cala_ledger::balance::AccountBalance>> for UsdLedgerAccountBalance {
-    fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
+impl From<Option<&lana_app::accounting::CalaAccountBalance>> for UsdLedgerAccountBalance {
+    fn from(balance: Option<&lana_app::accounting::CalaAccountBalance>) -> Self {
         match balance {
             None => UsdLedgerAccountBalance {
                 settled: UsdBalanceDetails::default(),
@@ -261,8 +261,8 @@ pub(super) struct BtcLedgerAccountBalance {
     encumbrance: BtcBalanceDetails,
 }
 
-impl From<Option<&cala_ledger::balance::AccountBalance>> for BtcLedgerAccountBalance {
-    fn from(balance: Option<&cala_ledger::balance::AccountBalance>) -> Self {
+impl From<Option<&lana_app::accounting::CalaAccountBalance>> for BtcLedgerAccountBalance {
+    fn from(balance: Option<&lana_app::accounting::CalaAccountBalance>) -> Self {
         match balance {
             None => BtcLedgerAccountBalance {
                 settled: BtcBalanceDetails::default(),

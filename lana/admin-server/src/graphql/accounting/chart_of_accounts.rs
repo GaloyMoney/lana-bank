@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::accounting::AccountCode, primitives::*};
 
-use cala_ledger::DebitOrCredit;
+use lana_app::primitives::DebitOrCredit;
 use lana_app::accounting::Chart as DomainChart;
 
 #[derive(SimpleObject, Clone)]

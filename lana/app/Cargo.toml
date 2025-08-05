@@ -51,7 +51,7 @@ outbox = { path = "../../lib/outbox" }
 authz = { path = "../../lib/authz" }
 cloud-storage = { path = "../../lib/cloud-storage" }
 
-cala-ledger = { workspace = true }
+cala-ledger = { workspace = true, features = ["graphql"] }
 es-entity = { workspace = true, features = ["graphql"] }
 sim-time = { workspace = true, optional = true }
 
