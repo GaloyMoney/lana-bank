@@ -165,6 +165,8 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
 
 
 class XMLSchemaRepository:
+    """Provides access to the xsd schemas in the schemas folder.
+    """
 
     xml_schema_extension = ".xsd"
 
