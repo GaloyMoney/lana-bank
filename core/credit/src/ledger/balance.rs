@@ -134,7 +134,7 @@ impl CreditFacilityBalanceSummary {
         if self.disbursed.is_zero() {
             self.facility_amount_cvl(price)
         } else if self.total_outstanding().is_zero() {
-            CVLPct::INFINITY
+            CVLPct::Infinite
         } else {
             self.outstanding_amount_cvl(price)
         }
@@ -278,7 +278,7 @@ mod test {
         };
 
         let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
-        assert_eq!(balances.current_cvl(price), CVLPct::INFINITY);
+        assert_eq!(balances.current_cvl(price), CVLPct::Infinite);
     }
 
     #[test]

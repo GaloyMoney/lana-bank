@@ -291,7 +291,7 @@ impl TermValues {
         let margin_call_cvl = self.margin_call_cvl;
         let liquidation_cvl = self.liquidation_cvl;
 
-        if cvl == CVLPct::INFINITY {
+        if cvl == CVLPct::Infinite {
             CollateralizationState::NoExposure
         } else if cvl == CVLPct::ZERO {
             CollateralizationState::NoCollateral
