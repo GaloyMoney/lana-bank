@@ -318,7 +318,7 @@ pub fn update_schemas(
                 CollectionRollup {
                     column_name: "obligation_installment_ids",
                     values: "obligation_installment_id",
-                    add_events: vec!["Allocated".to_string()],
+                    add_events: vec!["InstallmentApplied".to_string()],
                     remove_events: vec![],
                 },
             ],

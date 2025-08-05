@@ -59,7 +59,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'installment_applied', 'liquidation_process_started', 'liquidation_process_concluded', 'completed', 'allocated') THEN
+  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'installment_applied', 'liquidation_process_started', 'liquidation_process_concluded', 'completed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -183,6 +183,7 @@ BEGIN
     WHEN 'installment_applied' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.obligation_installment_amount := (NEW.event ->> 'obligation_installment_amount')::BIGINT;
+      new_row.obligation_installment_ids := array_append(COALESCE(current_row.obligation_installment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_installment_id')::UUID);
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     WHEN 'liquidation_process_started' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -196,8 +197,6 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.effective := (NEW.event ->> 'effective');
       new_row.is_completed := true;
-    WHEN 'allocated' THEN
-      new_row.obligation_installment_ids := array_append(COALESCE(current_row.obligation_installment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_installment_id')::UUID);
   END CASE;
 
   INSERT INTO core_obligation_events_rollup (
