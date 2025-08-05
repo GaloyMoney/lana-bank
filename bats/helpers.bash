@@ -18,41 +18,56 @@ server_cmd() {
   nix run .
 }
 
-wait_for_kratos_user_ready() {
+wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
-  echo "--- Waiting for Kratos user to be created ---"
-  
-  # First, check if the UserOnboarding job has processed the UserCreated event
-  # Look for specific log patterns indicating Kratos user creation
-  echo "--- Checking logs for user onboarding completion ---"
-  retry 30 1 grep -q "kratos_admin.*create_user\|user.*onboarding.*completed\|authentication.*id.*updated\|UserCreated.*processed" "$LOG_FILE" || true
-  
-  # Alternative method: Try to verify the admin user exists in Kratos
-  echo "--- Verifying Kratos user exists ---"
-  for i in {1..15}; do
-    echo "--- Checking if Kratos user exists (attempt ${i}) ---"
+
+  echo "--- Waiting for Keycloak service to be ready ---"
+  for i in {1..10}; do
+    echo "--- Checking if Keycloak is responding (attempt ${i}) ---"
     
-    # Get a login flow
-    flowId=$(curl -s -X GET -H "Accept: application/json" "http://admin.localhost:4455/self-service/login/api" 2>/dev/null | jq -r '.id' 2>/dev/null || echo "")
-    
-    if [[ -n "$flowId" && "$flowId" != "null" ]]; then
-      # Try to initiate login for the admin user
-      variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' 2>/dev/null || echo "")
-      response=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" \
-                 -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId" 2>/dev/null || echo "")
-      
-      # If we don't get "account does not exist" error, the user is ready
-      if [[ -n "$response" ]] && ! echo "$response" | grep -q "This account does not exist"; then
-        echo "--- Kratos user ready ---"
-        return 0
-      fi
+    # Check if Keycloak realms are accessible (better indicator than health endpoints)
+    if curl -s -f "http://localhost:8081/realms/master" >/dev/null 2>&1 && \
+       curl -s -f "http://localhost:8081/realms/lana-admin" >/dev/null 2>&1; then
+      echo "--- Keycloak service is ready ---"
+      break
     fi
     
-    echo "--- Kratos user not ready yet, waiting... ---"
-    sleep 1
+    if [[ $i -eq 10 ]]; then
+      echo "--- Keycloak service not ready after 10 attempts, proceeding anyway ---"
+    else
+      echo "--- Keycloak service not ready yet, waiting... ---"
+      sleep 2
+    fi
   done
   
-  echo "--- Kratos user may not be ready, but proceeding anyway ---"
+  # Verify the admin user exists in Keycloak
+  echo "--- Verifying Keycloak admin user exists ---"
+  for i in {1..20}; do
+    echo "--- Checking if Keycloak admin user exists (attempt ${i}) ---"
+    admin_token=$(get_keycloak_admin_token 2>/dev/null || echo "")
+    if [[ -n "$admin_token" && "$admin_token" != "null" ]]; then
+      user_id=$(find_user_by_email "$admin_token" "$email" 2>/dev/null || echo "")
+      if [[ -n "$user_id" && "$user_id" != "null" ]]; then
+        echo "--- Keycloak admin user found with ID: ${user_id} ---"
+        access_token=$(get_user_access_token "$admin_token" "$user_id" "$email" 2>/dev/null || echo "")
+        if [[ -n "$access_token" && "$access_token" != "null" ]]; then
+          echo "--- Keycloak user is ready and can authenticate ---"
+          return 0
+        else
+          echo "--- Keycloak user found but cannot authenticate yet ---"
+        fi
+      else
+        echo "--- Keycloak admin user not found, may still be creating ---"
+      fi
+    else
+      echo "--- Cannot get Keycloak admin token yet ---"
+    fi
+    
+    echo "--- Keycloak user not ready yet, waiting... ---"
+    sleep 2
+  done
+  
+  echo "--- Keycloak user may not be ready, but proceeding anyway ---"
   echo "--- Note: Login may require retries ---"
 }
 
@@ -110,16 +125,30 @@ graphql_output() {
 
 login_customer() {
   local email=$1
-
-  flowId=$(curl -s -X GET -H "Accept: application/json" "http://app.localhost:4455/self-service/login/api" | jq -r '.id')
-  variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
-  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://app.localhost:4455/self-service/login?flow=$flowId"
-
-  code=$(getEmailCode $email)
-  variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
-  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://app.localhost:4455/self-service/login?flow=$flowId")
-  token=$(echo $session | jq -r '.session_token')
-  cache_value "$email" $token
+  local cached_token=$(read_value "$email" 2>/dev/null || echo "")
+  if [[ -n "$cached_token" && "$cached_token" != "" ]]; then
+    return 0
+  fi
+  
+  local admin_token=$(get_keycloak_admin_token)
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to get Keycloak admin token for customer login" >&2
+    return 1
+  fi
+  
+  local user_id=$(find_user_by_email "$admin_token" "$email")
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to find customer: $email" >&2
+    return 1
+  fi
+  
+  local access_token=$(get_user_access_token "$admin_token" "$user_id" "$email")
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to get access token for customer: $email" >&2
+    return 1
+  fi
+  
+  cache_value "$email" "$access_token"
 }
 
 exec_customer_graphql() {
@@ -143,30 +172,113 @@ exec_customer_graphql() {
     "${GQL_APP_ENDPOINT}"
 }
 
+
+get_keycloak_admin_token() {
+  local response=$(curl -s -X POST \
+    "http://localhost:8081/realms/master/protocol/openid-connect/token" \
+    -H "Content-Type: application/x-www-form-urlencoded" \
+    -d "client_id=admin-cli" \
+    -d "username=admin" \
+    -d "password=admin" \
+    -d "grant_type=password")
+  
+  local token=$(echo "$response" | jq -r '.access_token')
+  if [[ "$token" == "null" || -z "$token" ]]; then
+    echo "Failed to get Keycloak admin token: $response" >&2
+    return 1
+  fi
+  echo "$token"
+}
+
+find_user_by_email() {
+  local admin_token=$1
+  local email=$2
+  
+  local response=$(curl -s -X GET \
+    "http://localhost:8081/admin/realms/lana-admin/users?email=${email}&exact=true" \
+    -H "Authorization: Bearer ${admin_token}" \
+    -H "Content-Type: application/json")
+  
+  local user_id=$(echo "$response" | jq -r '.[0].id')
+  if [[ "$user_id" == "null" || -z "$user_id" ]]; then
+    echo "User not found: $email" >&2
+    return 1
+  fi
+  echo "$user_id"
+}
+
+
+set_user_password() {
+  local admin_token=$1
+  local user_id=$2
+  local password="admin"
+  
+  curl -s -X PUT \
+    "http://localhost:8081/admin/realms/lana-admin/users/${user_id}/reset-password" \
+    -H "Authorization: Bearer ${admin_token}" \
+    -H "Content-Type: application/json" \
+      -d "{\"type\":\"password\",\"value\":\"${password}\",\"temporary\":false}" >/dev/null
+  
+  echo "$password"
+}
+
+get_user_access_token() {
+  local admin_token=$1
+  local user_id=$2
+  local email=$3
+  
+  local password=$(set_user_password "$admin_token" "$user_id")
+  local response=$(curl -s -X POST \
+      "http://localhost:8081/realms/lana-admin/protocol/openid-connect/token" \
+      -H "Content-Type: application/x-www-form-urlencoded" \
+      -d "client_id=lana-admin-panel" \
+      -d "username=${email}" \
+      -d "password=${password}" \
+      -d "grant_type=password" \
+      -d "scope=openid profile email")
+    
+  local access_token=$(echo "$response" | jq -r '.access_token')
+  
+  if [[ "$access_token" == "null" || -z "$access_token" ]]; then
+    echo "Failed to get user access token for $email: $response" >&2
+    return 1
+  fi
+  echo "$access_token"
+}
+
 login_superadmin() {
   local email="admin@galoy.io"
+  wait_for_keycloak_user_ready
+  local cached_token=$(read_value "superadmin" 2>/dev/null || echo "")
+  if [[ -n "$cached_token" && "$cached_token" != "" ]]; then
+    return 0
+  fi
+  
+  local admin_token=$(get_keycloak_admin_token)
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to get Keycloak admin token" >&2
+    return 1
+  fi
+    
+  local user_id=$(find_user_by_email "$admin_token" "$email")
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to find user: $email" >&2
+    return 1
+  fi
 
-  # Wait for Kratos user to be created before attempting login
-  wait_for_kratos_user_ready
+  local access_token=$(get_user_access_token "$admin_token" "$user_id" "$email")
+  if [[ $? -ne 0 ]]; then
+    echo "Failed to get access token for: $email" >&2
+    return 1
+  fi
 
-  echo "--- Attempting superadmin login ---"
-  flowId=$(curl -s -X GET -H "Accept: application/json" "http://admin.localhost:4455/self-service/login/api" | jq -r '.id')
-  variables=$(jq -n --arg email "$email" '{ identifier: $email, method: "code" }' )
-  curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId"
-
-  code=$(getEmailCode $email)
-  variables=$(jq -n --arg email "$email" --arg code "$code" '{ identifier: $email, method: "code", code: $code }' )
-  session=$(curl -s -X POST -H "Accept: application/json" -H "Content-Type: application/json" -d "$variables" "http://admin.localhost:4455/self-service/login?flow=$flowId")
-  token=$(echo $session | jq -r '.session_token')
-  cache_value "superadmin" $token
-  echo "--- Superadmin login completed ---"
+  cache_value "superadmin" "$access_token"
 }
 
 exec_admin_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}
-
-  AUTH_HEADER="Authorization: Bearer $(read_value "superadmin")"
+  local token=$(read_value "superadmin")
 
   if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
     run_cmd="run"
@@ -176,7 +288,7 @@ exec_admin_graphql() {
 
   ${run_cmd} curl -s \
     -X POST \
-    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
+    -H "Authorization: Bearer ${token}" \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     "${GQL_ADMIN_ENDPOINT}"
@@ -187,11 +299,10 @@ exec_admin_graphql_upload() {
   local variables=$2
   local file_path=$3
   local file_var_name=${4:-"file"}
-
-  AUTH_HEADER="Authorization: Bearer $(read_value "superadmin")"
+  local token=$(read_value "superadmin")
 
   curl -s -X POST \
-    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
+    -H "Authorization: Bearer ${token}" \
     -H "Content-Type: multipart/form-data" \
     -F "operations={\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     -F "map={\"0\":[\"variables.$file_var_name\"]}" \
@@ -243,7 +354,7 @@ random_uuid() {
 }
 
 cache_value() {
-  echo $2 >${CACHE_DIR}/$1
+  echo -n $2 >${CACHE_DIR}/$1
 }
 
 read_value() {
@@ -260,53 +371,6 @@ reset_log_files() {
   done
 }
 
-getEmailCode() {
-  local email="$1"
-
-  local container_name="${COMPOSE_PROJECT_NAME}-kratos-admin-pg-1"
-  local query="SELECT body FROM courier_messages WHERE recipient='${email}' ORDER BY created_at DESC LIMIT 1;"
-  
-  for i in {1..10}; do
-    echo "--- Checking for email code for ${email} (attempt ${i}) ---" >&2
-    
-    local result=""
-    local code=""
-    
-    # Try podman exec first (for containerized environments like GitHub Actions)
-    if command -v podman >/dev/null 2>&1; then
-      result=$(podman exec "${container_name}" psql -U dbuser -d default -t -c "${query}" 2>/dev/null || echo "")
-    fi
-    
-    # If we got a result from container exec, extract the code
-    if [[ -n "$result" ]]; then
-      code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
-      if [[ -n "$code" ]]; then
-        echo "--- Email code found: ${code} ---" >&2
-        echo "$code"
-        return 0
-      fi
-    fi
-    
-    # Fallback to direct connection (for development environments)
-    local KRATOS_PG_CON="postgres://dbuser:secret@localhost:5434/default?sslmode=disable"
-    result=$(psql $KRATOS_PG_CON -t -c "${query}" 2>/dev/null || echo "")
-
-    if [[ -n "$result" ]]; then
-      code=$(echo "$result" | grep -Eo '[0-9]{6}' | head -n1)
-      if [[ -n "$code" ]]; then
-        echo "--- Email code found: ${code} ---" >&2
-        echo "$code"
-        return 0
-      fi
-    fi
-    
-    echo "--- No email code found yet, waiting... ---" >&2
-    sleep 1
-  done
-
-  echo "No message for email ${email} after 10 attempts" >&2
-  exit 1
-}
 
 generate_email() {
   echo "user$(date +%s%N)@example.com" | tr '[:upper:]' '[:lower:]'
