@@ -66,13 +66,38 @@ echo "Starting admin panel..."
 export NEXT_PUBLIC_CORE_ADMIN_URL="/graphql"
 
 cd apps/admin-panel
-nohup nix develop -c bash -c "pnpm install --frozen-lockfile && pnpm dev" > "../../admin-panel.log" 2>&1 &
+
+# Build first (synchronously to catch build errors)
+echo "Installing dependencies and building admin panel..."
+if ! nix develop -c bash -c "pnpm install --frozen-lockfile && pnpm build"; then
+    echo "ERROR: Admin panel build failed"
+    exit 1
+fi
+
+# Then start server in background
+echo "Starting admin panel server..."
+nohup nix develop -c pnpm start --port 3001 > "../../admin-panel.log" 2>&1 &
 echo $! > "../../$ADMIN_PANEL_PID_FILE"
 cd ../..
 
 # Step 6: Wait for admin panel to be ready
-echo "Waiting for admin panel to be ready..."
-wait4x http http://admin.localhost:4455/api/health --timeout 60s
+echo "Waiting for admin panel to build and start on port 3001..."
+
+# First wait for admin panel to be ready on port 3001 directly
+if ! wait4x http http://localhost:3001/api/health --timeout 200s; then
+    echo "ERROR: Admin panel not starting on port 3001"
+    echo "Check admin-panel.log for build/start errors"
+    exit 1
+fi
+
+echo "Admin panel is ready, now checking proxy access..."
+
+# Then check proxy access
+if ! wait4x http http://admin.localhost:4455/api/health --timeout 30s; then
+    echo "ERROR: Admin panel proxy not accessible"
+    echo "Oathkeeper may have networking issues"
+    exit 1
+fi
 
 echo "All services are ready!"
 exit 0
