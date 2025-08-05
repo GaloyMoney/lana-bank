@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
 
 import { ApolloProvider } from "@apollo/client"
@@ -24,22 +24,41 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
   const { stopAppLoadingAnimation } = useAppLoading()
 
   useEffect(() => {
-    if (typeof window !== "undefined") {
+    let isMounted = true
+
+    if (typeof window !== "undefined" && !initialized) {
       initKeycloak()
         .then((auth) => {
-          setAuthenticated(auth)
-          setInitialized(true)
-          stopAppLoadingAnimation()
+          if (isMounted) {
+            setAuthenticated(auth)
+            setInitialized(true)
+            stopAppLoadingAnimation()
+          }
         })
-        .catch((err) => console.error("Failed to initialize Keycloak", err))
+        .catch((err) => {
+          if (isMounted) {
+            console.error("Failed to initialize Keycloak", err)
+            setInitialized(true)
+          }
+        })
     }
-  }, [])
 
-  if (!initialized || !authenticated) {
+    return () => {
+      isMounted = false
+    }
+  }, [initialized, stopAppLoadingAnimation])
+
+  const client = useMemo(() => {
+    if (initialized && authenticated) {
+      return makeClient({ coreAdminGqlUrl: "/graphql" })
+    }
+    return null
+  }, [initialized, authenticated])
+
+  if (!initialized || !authenticated || !client) {
     return null
   }
 
-  const client = makeClient({ coreAdminGqlUrl: "/graphql" })
   return (
     <BreadcrumbProvider>
       <ApolloProvider client={client}>
