@@ -23,7 +23,7 @@ use crate::{
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
     liquidation_process::LiquidationProcess,
-    obligation_allocation::ObligationAllocation,
+    obligation_installment::ObligationInstallment,
     primitives::{
         CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
         CustomerType, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
@@ -184,7 +184,7 @@ impl CreditLedger {
         templates::CreateCreditFacility::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
-        templates::RecordObligationAllocation::init(cala).await?;
+        templates::RecordObligationInstallment::init(cala).await?;
         templates::RecordObligationDueBalance::init(cala).await?;
         templates::RecordObligationOverdueBalance::init(cala).await?;
         templates::RecordObligationDefaultedBalance::init(cala).await?;
@@ -1165,29 +1165,29 @@ impl CreditLedger {
     async fn record_obligation_repayment_in_op(
         &self,
         op: &mut LedgerOperation<'_>,
-        allocation @ ObligationAllocation {
+        installment @ ObligationInstallment {
             id,
             amount,
             account_to_be_debited_id,
             receivable_account_id,
             effective,
             ..
-        }: ObligationAllocation,
+        }: ObligationInstallment,
     ) -> Result<(), CreditLedgerError> {
-        let params = templates::RecordObligationAllocationParams {
+        let params = templates::RecordObligationInstallmentParams {
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
             receivable_account_id,
             account_to_be_debited_id,
-            tx_ref: allocation.tx_ref(),
+            tx_ref: installment.tx_ref(),
             effective,
         };
         self.cala
             .post_transaction_in_op(
                 op,
                 id.into(),
-                templates::RECORD_OBLIGATION_ALLOCATION_CODE,
+                templates::RECORD_OBLIGATION_INSTALLMENT_CODE,
                 params,
             )
             .await?;
@@ -1195,10 +1195,10 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn record_obligation_allocations(
+    pub async fn record_obligation_installments(
         &self,
         op: es_entity::DbOp<'_>,
-        payments: Vec<ObligationAllocation>,
+        payments: Vec<ObligationInstallment>,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 

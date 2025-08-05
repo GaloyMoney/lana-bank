@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "INSERT INTO core_obligation_allocations (id, credit_facility_id, payment_id, obligation_id, created_at) VALUES ($1, $2, $3, $4, $5)",
+  "query": "INSERT INTO core_obligation_installments (id, credit_facility_id, payment_id, obligation_id, created_at) VALUES ($1, $2, $3, $4, $5)",
   "describe": {
     "columns": [],
     "parameters": {
@@ -14,5 +14,5 @@
     },
     "nullable": []
   },
-  "hash": "3e21f72c3208ed5e983a2fdcf927a51843714d06df427ebe00442a8d7a239064"
+  "hash": "69922ed03b67001104a7b446846bc57fbad1f3a313a028c2bc18b973f2bb2a72"
 }

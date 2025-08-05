@@ -1,11 +1,11 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_obligation_allocations WHERE id = $1) SELECT i.id AS \"entity_id: ObligationAllocationId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_obligation_allocation_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT payment_id, id FROM core_obligation_installments WHERE ((payment_id = $1) AND (COALESCE(id < $3, true))) ORDER BY id DESC LIMIT $2) SELECT i.id AS \"entity_id: ObligationInstallmentId\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_obligation_installment_events e ON i.id = e.id ORDER BY i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
         "ordinal": 0,
-        "name": "entity_id: ObligationAllocationId",
+        "name": "entity_id: ObligationInstallmentId",
         "type_info": "Uuid"
       },
       {
@@ -26,6 +26,8 @@
     ],
     "parameters": {
       "Left": [
+        "Uuid",
+        "Int8",
         "Uuid"
       ]
     },
@@ -36,5 +38,5 @@
       false
     ]
   },
-  "hash": "b446199b104dd8ed79eddd550f1499eb109470f69dea542afc9a8cbef8368ef7"
+  "hash": "66673cdf4c5b9608df21692d2614824ad6a319dde020bea11d6869ed83509b12"
 }

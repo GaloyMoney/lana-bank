@@ -18,9 +18,9 @@ pub enum ObligationError {
     InvalidStatusTransitionToOverdue,
     #[error("ObligationError - InvalidStatusTransitionToDefaulted")]
     InvalidStatusTransitionToDefaulted,
-    #[error("ObligationError - ObligationAllocationError: {0}")]
-    ObligationAllocationError(
-        #[from] crate::obligation_allocation::error::ObligationAllocationError,
+    #[error("ObligationError - ObligationInstallmentError: {0}")]
+    ObligationInstallmentError(
+        #[from] crate::obligation_installment::error::ObligationInstallmentError,
     ),
     #[error("ObligationError - PaymentAmountGreaterThanOutstandingObligations")]
     PaymentAmountGreaterThanOutstandingObligations,

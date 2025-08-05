@@ -1,5 +1,5 @@
--- Auto-generated rollup table for ObligationAllocationEvent
-CREATE TABLE core_obligation_allocation_events_rollup (
+-- Auto-generated rollup table for ObligationInstallmentEvent
+CREATE TABLE core_obligation_installment_events_rollup (
   id UUID NOT NULL,
   version INT NOT NULL,
   created_at TIMESTAMPTZ NOT NULL,
@@ -10,8 +10,8 @@ CREATE TABLE core_obligation_allocation_events_rollup (
   credit_facility_id UUID,
   effective VARCHAR,
   ledger_tx_id UUID,
-  obligation_allocation_idx INTEGER,
   obligation_id UUID,
+  obligation_installment_idx INTEGER,
   obligation_type VARCHAR,
   payment_id UUID,
   receivable_account_id UUID,
@@ -22,20 +22,20 @@ CREATE TABLE core_obligation_allocation_events_rollup (
   PRIMARY KEY (id, version)
 );
 
--- Auto-generated trigger function for ObligationAllocationEvent
-CREATE OR REPLACE FUNCTION core_obligation_allocation_events_rollup_trigger()
+-- Auto-generated trigger function for ObligationInstallmentEvent
+CREATE OR REPLACE FUNCTION core_obligation_installment_events_rollup_trigger()
 RETURNS TRIGGER AS $$
 DECLARE
   event_type TEXT;
-  current_row core_obligation_allocation_events_rollup%ROWTYPE;
-  new_row core_obligation_allocation_events_rollup%ROWTYPE;
+  current_row core_obligation_installment_events_rollup%ROWTYPE;
+  new_row core_obligation_installment_events_rollup%ROWTYPE;
 BEGIN
   event_type := NEW.event_type;
 
   -- Load the previous version if this isn't the first event
   IF NEW.sequence > 1 THEN
     SELECT * INTO current_row
-    FROM core_obligation_allocation_events_rollup
+    FROM core_obligation_installment_events_rollup
     WHERE id = NEW.id AND version = NEW.sequence - 1;
   END IF;
 
@@ -63,8 +63,8 @@ BEGIN
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-    new_row.obligation_allocation_idx := (NEW.event ->> 'obligation_allocation_idx')::INTEGER;
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
+    new_row.obligation_installment_idx := (NEW.event ->> 'obligation_installment_idx')::INTEGER;
     new_row.obligation_type := (NEW.event ->> 'obligation_type');
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
@@ -76,8 +76,8 @@ BEGIN
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.effective := current_row.effective;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
-    new_row.obligation_allocation_idx := current_row.obligation_allocation_idx;
     new_row.obligation_id := current_row.obligation_id;
+    new_row.obligation_installment_idx := current_row.obligation_installment_idx;
     new_row.obligation_type := current_row.obligation_type;
     new_row.payment_id := current_row.payment_id;
     new_row.receivable_account_id := current_row.receivable_account_id;
@@ -92,14 +92,14 @@ BEGIN
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-      new_row.obligation_allocation_idx := (NEW.event ->> 'obligation_allocation_idx')::INTEGER;
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
+      new_row.obligation_installment_idx := (NEW.event ->> 'obligation_installment_idx')::INTEGER;
       new_row.obligation_type := (NEW.event ->> 'obligation_type');
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
       new_row.receivable_account_id := (NEW.event ->> 'receivable_account_id')::UUID;
   END CASE;
 
-  INSERT INTO core_obligation_allocation_events_rollup (
+  INSERT INTO core_obligation_installment_events_rollup (
     id,
     version,
     created_at,
@@ -110,8 +110,8 @@ BEGIN
     credit_facility_id,
     effective,
     ledger_tx_id,
-    obligation_allocation_idx,
     obligation_id,
+    obligation_installment_idx,
     obligation_type,
     payment_id,
     receivable_account_id
@@ -127,8 +127,8 @@ BEGIN
     new_row.credit_facility_id,
     new_row.effective,
     new_row.ledger_tx_id,
-    new_row.obligation_allocation_idx,
     new_row.obligation_id,
+    new_row.obligation_installment_idx,
     new_row.obligation_type,
     new_row.payment_id,
     new_row.receivable_account_id
@@ -138,8 +138,8 @@ BEGIN
 END;
 $$ LANGUAGE plpgsql;
 
--- Auto-generated trigger for ObligationAllocationEvent
-CREATE TRIGGER core_obligation_allocation_events_rollup_trigger
-  AFTER INSERT ON core_obligation_allocation_events
+-- Auto-generated trigger for ObligationInstallmentEvent
+CREATE TRIGGER core_obligation_installment_events_rollup_trigger
+  AFTER INSERT ON core_obligation_installment_events
   FOR EACH ROW
-  EXECUTE FUNCTION core_obligation_allocation_events_rollup_trigger();
+  EXECUTE FUNCTION core_obligation_installment_events_rollup_trigger();

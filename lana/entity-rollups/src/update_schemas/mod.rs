@@ -7,7 +7,7 @@ use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{ChartEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    LiquidationProcessEvent, ObligationAllocationEvent, ObligationEvent, PaymentEvent,
+    LiquidationProcessEvent, ObligationEvent, ObligationInstallmentEvent, PaymentEvent,
     TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
@@ -316,8 +316,8 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
                 CollectionRollup {
-                    column_name: "obligation_allocation_ids",
-                    values: "obligation_allocation_id",
+                    column_name: "obligation_installment_ids",
+                    values: "obligation_installment_id",
                     add_events: vec!["Allocated".to_string()],
                     remove_events: vec![],
                 },
@@ -339,10 +339,10 @@ pub fn update_schemas(
             ..Default::default()
         },
         SchemaInfo {
-            name: "ObligationAllocationEvent",
-            filename: "obligation_allocation_event_schema.json",
+            name: "ObligationInstallmentEvent",
+            filename: "obligation_installment_event_schema.json",
             generate_schema: || {
-                serde_json::to_value(schema_for!(ObligationAllocationEvent)).unwrap()
+                serde_json::to_value(schema_for!(ObligationInstallmentEvent)).unwrap()
             },
             ..Default::default()
         },

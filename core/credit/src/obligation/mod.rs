@@ -12,7 +12,7 @@ use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CreditLedger, ObligationAllocation, ObligationAllocationId, ObligationAllocationRepo,
+    CreditLedger, ObligationInstallment, ObligationInstallmentId, ObligationInstallmentRepo,
     event::CoreCreditEvent,
     jobs::obligation_due,
     liquidation_process::{LiquidationProcess, LiquidationProcessRepo},
@@ -40,7 +40,7 @@ where
     authz: Perms,
     repo: ObligationRepo<E>,
     liquidation_process_repo: LiquidationProcessRepo<E>,
-    allocation_repo: ObligationAllocationRepo<E>,
+    installment_repo: ObligationInstallmentRepo<E>,
     ledger: CreditLedger,
     jobs: Jobs,
 }
@@ -55,7 +55,7 @@ where
             authz: self.authz.clone(),
             repo: self.repo.clone(),
             liquidation_process_repo: self.liquidation_process_repo.clone(),
-            allocation_repo: self.allocation_repo.clone(),
+            installment_repo: self.installment_repo.clone(),
             ledger: self.ledger.clone(),
             jobs: self.jobs.clone(),
         }
@@ -78,14 +78,14 @@ where
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
         let liquidation_process_repo = LiquidationProcessRepo::new(pool, publisher);
-        let obligation_allocation_repo = ObligationAllocationRepo::new(pool, publisher);
+        let obligation_installment_repo = ObligationInstallmentRepo::new(pool, publisher);
         Self {
             authz: authz.clone(),
             repo: obligation_repo,
             liquidation_process_repo,
             jobs: jobs.clone(),
             ledger: ledger.clone(),
-            allocation_repo: obligation_allocation_repo,
+            installment_repo: obligation_installment_repo,
         }
     }
 
@@ -254,9 +254,9 @@ where
     #[instrument(
         name = "credit.obligation.allocate_in_op",
         skip(self, db),
-        fields(n_new_allocations, n_facility_obligations, amount_allocated)
+        fields(n_new_installments, n_facility_obligations, amount_allocated)
     )]
-    pub async fn allocate_in_op(
+    pub async fn apply_installment_in_op(
         &self,
         mut db: es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
@@ -272,70 +272,76 @@ where
         obligations.sort();
 
         let mut remaining = amount;
-        let mut new_allocations = Vec::new();
+        let mut new_installments = Vec::new();
         for obligation in obligations.iter_mut() {
-            if let es_entity::Idempotent::Executed(new_allocation) =
-                obligation.allocate(remaining, payment_id, effective, audit_info)
+            if let es_entity::Idempotent::Executed(new_installment) =
+                obligation.apply_installment(remaining, payment_id, effective, audit_info)
             {
                 self.repo.update_in_op(&mut db, obligation).await?;
-                remaining -= new_allocation.amount;
-                new_allocations.push(new_allocation);
+                remaining -= new_installment.amount;
+                new_installments.push(new_installment);
                 if remaining == UsdCents::ZERO {
                     break;
                 }
             }
         }
 
-        span.record("n_new_allocations", new_allocations.len());
+        span.record("n_new_installments", new_installments.len());
 
-        let allocations = self
-            .allocation_repo
-            .create_all_in_op(&mut db, new_allocations)
+        let installments = self
+            .installment_repo
+            .create_all_in_op(&mut db, new_installments)
             .await?;
 
-        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
+        let amount_allocated = installments
+            .iter()
+            .fold(UsdCents::ZERO, |c, a| c + a.amount);
         tracing::Span::current().record(
             "amount_allocated",
             tracing::field::display(amount_allocated),
         );
 
         self.ledger
-            .record_obligation_allocations(db, allocations)
+            .record_obligation_installments(db, installments)
             .await?;
 
         Ok(())
     }
 
-    pub(super) async fn find_allocation_by_id_without_audit(
+    pub(super) async fn find_installment_by_id_without_audit(
         &self,
-        allocation_id: impl Into<ObligationAllocationId> + std::fmt::Debug,
-    ) -> Result<ObligationAllocation, ObligationError> {
+        installment_id: impl Into<ObligationInstallmentId> + std::fmt::Debug,
+    ) -> Result<ObligationInstallment, ObligationError> {
         Ok(self
-            .allocation_repo
-            .find_by_id(allocation_id.into())
+            .installment_repo
+            .find_by_id(installment_id.into())
             .await?)
     }
 
-    #[instrument(name = "core_credit.obligation.find_allocation_by_id", skip(self), err)]
-    pub async fn find_allocation_by_id(
+    #[instrument(
+        name = "core_credit.obligation.find_installment_by_id",
+        skip(self),
+        err
+    )]
+    pub async fn find_installment_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        allocation_id: impl Into<ObligationAllocationId> + std::fmt::Debug,
-    ) -> Result<ObligationAllocation, ObligationError> {
-        let allocation = self
-            .allocation_repo
-            .find_by_id(allocation_id.into())
+        installment_id: impl Into<ObligationInstallmentId> + std::fmt::Debug,
+    ) -> Result<ObligationInstallment, ObligationError> {
+        let installment = self
+            .installment_repo
+            .find_by_id(installment_id.into())
             .await?;
 
         self.authz
             .enforce_permission(
                 sub,
-                CoreCreditObject::credit_facility(allocation.credit_facility_id),
+                CoreCreditObject::credit_facility(installment.credit_facility_id),
                 CoreCreditAction::CREDIT_FACILITY_READ,
             )
             .await?;
 
-        Ok(allocation)
+        Ok(installment)
     }
 
     pub async fn check_facility_obligations_status_updated(

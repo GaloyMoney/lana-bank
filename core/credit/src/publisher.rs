@@ -12,8 +12,8 @@ use crate::{
         LiquidationProcess, LiquidationProcessEvent, error::LiquidationProcessError,
     },
     obligation::{Obligation, ObligationEvent, error::ObligationError},
-    obligation_allocation::{
-        ObligationAllocation, ObligationAllocationEvent, error::ObligationAllocationError,
+    obligation_installment::{
+        ObligationInstallment, ObligationInstallmentEvent, error::ObligationInstallmentError,
     },
 };
 
@@ -198,13 +198,13 @@ where
         Ok(())
     }
 
-    pub async fn publish_obligation_allocation(
+    pub async fn publish_obligation_installment(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        entity: &ObligationAllocation,
-        new_events: es_entity::LastPersisted<'_, ObligationAllocationEvent>,
-    ) -> Result<(), ObligationAllocationError> {
-        use ObligationAllocationEvent::*;
+        entity: &ObligationInstallment,
+        new_events: es_entity::LastPersisted<'_, ObligationInstallmentEvent>,
+    ) -> Result<(), ObligationInstallmentError> {
+        use ObligationInstallmentEvent::*;
         let publish_events = new_events
             .map(|event| match &event.event {
                 Initialized {

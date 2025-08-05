@@ -1,7 +1,7 @@
 mod balance;
 pub mod disbursal;
 mod history;
-pub(super) mod obligation_allocation;
+pub(super) mod obligation_installment;
 mod repayment;
 
 use async_graphql::*;

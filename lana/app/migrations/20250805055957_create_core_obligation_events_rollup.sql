@@ -19,7 +19,7 @@ CREATE TABLE core_obligation_events_rollup (
   liquidation_date TIMESTAMPTZ,
   liquidation_process_id UUID,
   not_yet_due_accounts JSONB,
-  obligation_allocation_amount BIGINT,
+  obligation_installment_amount BIGINT,
   obligation_type VARCHAR,
   overdue_accounts JSONB,
   overdue_amount BIGINT,
@@ -30,7 +30,7 @@ CREATE TABLE core_obligation_events_rollup (
   -- Collection rollups
   audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[],
-  obligation_allocation_ids UUID[],
+  obligation_installment_ids UUID[],
 
   -- Toggle fields
   is_completed BOOLEAN DEFAULT false,
@@ -59,7 +59,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'allocated', 'liquidation_process_started', 'liquidation_process_concluded', 'completed') THEN
+  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'installment_applied', 'liquidation_process_started', 'liquidation_process_concluded', 'completed', 'allocated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -101,10 +101,10 @@ BEGIN
     new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
     new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
     new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
-    new_row.obligation_allocation_amount := (NEW.event ->> 'obligation_allocation_amount')::BIGINT;
-    new_row.obligation_allocation_ids := CASE
-       WHEN NEW.event ? 'obligation_allocation_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_allocation_ids'))
+    new_row.obligation_installment_amount := (NEW.event ->> 'obligation_installment_amount')::BIGINT;
+    new_row.obligation_installment_ids := CASE
+       WHEN NEW.event ? 'obligation_installment_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'obligation_installment_ids'))
        ELSE ARRAY[]::UUID[]
      END
 ;
@@ -136,8 +136,8 @@ BEGIN
     new_row.liquidation_date := current_row.liquidation_date;
     new_row.liquidation_process_id := current_row.liquidation_process_id;
     new_row.not_yet_due_accounts := current_row.not_yet_due_accounts;
-    new_row.obligation_allocation_amount := current_row.obligation_allocation_amount;
-    new_row.obligation_allocation_ids := current_row.obligation_allocation_ids;
+    new_row.obligation_installment_amount := current_row.obligation_installment_amount;
+    new_row.obligation_installment_ids := current_row.obligation_installment_ids;
     new_row.obligation_type := current_row.obligation_type;
     new_row.overdue_accounts := current_row.overdue_accounts;
     new_row.overdue_amount := current_row.overdue_amount;
@@ -180,10 +180,8 @@ BEGIN
       new_row.defaulted_amount := (NEW.event ->> 'defaulted_amount')::BIGINT;
       new_row.is_defaulted_recorded := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-    WHEN 'allocated' THEN
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.obligation_allocation_amount := (NEW.event ->> 'obligation_allocation_amount')::BIGINT;
-      new_row.obligation_allocation_ids := array_append(COALESCE(current_row.obligation_allocation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_allocation_id')::UUID);
+    WHEN 'installment_applied' THEN
+      new_row.obligation_installment_amount := (NEW.event ->> 'obligation_installment_amount')::BIGINT;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     WHEN 'liquidation_process_started' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -197,6 +195,9 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.effective := (NEW.event ->> 'effective');
       new_row.is_completed := true;
+    WHEN 'allocated' THEN
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.obligation_installment_ids := array_append(COALESCE(current_row.obligation_installment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_installment_id')::UUID);
   END CASE;
 
   INSERT INTO core_obligation_events_rollup (
@@ -224,8 +225,8 @@ BEGIN
     liquidation_date,
     liquidation_process_id,
     not_yet_due_accounts,
-    obligation_allocation_amount,
-    obligation_allocation_ids,
+    obligation_installment_amount,
+    obligation_installment_ids,
     obligation_type,
     overdue_accounts,
     overdue_amount,
@@ -258,8 +259,8 @@ BEGIN
     new_row.liquidation_date,
     new_row.liquidation_process_id,
     new_row.not_yet_due_accounts,
-    new_row.obligation_allocation_amount,
-    new_row.obligation_allocation_ids,
+    new_row.obligation_installment_amount,
+    new_row.obligation_installment_ids,
     new_row.obligation_type,
     new_row.overdue_accounts,
     new_row.overdue_amount,

@@ -72,7 +72,7 @@ gql`
                   recordedAt
                   payment {
                     id
-                    obligationAllocationId
+                    obligationInstallmentId
                     amount
                     createdAt
                   }

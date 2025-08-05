@@ -19,7 +19,7 @@ mod jobs;
 pub mod ledger;
 mod liquidation_process;
 mod obligation;
-mod obligation_allocation;
+mod obligation_installment;
 mod payment;
 mod primitives;
 mod processes;
@@ -60,7 +60,7 @@ pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
-pub use obligation_allocation::*;
+pub use obligation_installment::*;
 pub use payment::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
@@ -77,7 +77,7 @@ pub mod event_schema {
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
         disbursal::DisbursalEvent, interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
-        obligation_allocation::ObligationAllocationEvent, payment::PaymentEvent,
+        obligation_installment::ObligationInstallmentEvent, payment::PaymentEvent,
     };
 }
 
@@ -766,7 +766,7 @@ where
             .await?;
 
         self.obligations
-            .allocate_in_op(
+            .apply_installment_in_op(
                 db,
                 credit_facility_id,
                 payment.id,
