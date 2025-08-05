@@ -1006,8 +1006,8 @@ pub enum TrialBalanceAction {
 impl ActionPermission for TrialBalanceAction {
     fn permission_set(&self) -> &'static str {
         match self {
-            Self::Read | Self::Update => PERMISSION_SET_ACCOUNTING_VIEWER,
-            Self::Create => PERMISSION_SET_ACCOUNTING_WRITER,
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Create | Self::Update => PERMISSION_SET_ACCOUNTING_WRITER,
         }
     }
 }
