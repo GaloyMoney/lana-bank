@@ -120,7 +120,7 @@ wait_for_collateral() {
   [[ "$collateral" -eq 0 ]] || exit 1
 
   # external wallet ID 123 is hard coded in mock custodian
-  curl -s -X POST --json '{"wallet": "123", "balance": 1000}' http://localhost:5253/webhook/mock
+  curl -s -X POST --json '{"wallet": "123", "balance": 1000}' http://localhost:5253/webhook/custodian/mock
 
   retry 10 1 wait_for_collateral "$credit_facility_id"
 }
