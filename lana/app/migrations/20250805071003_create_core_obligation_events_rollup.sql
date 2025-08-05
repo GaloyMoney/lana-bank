@@ -181,6 +181,7 @@ BEGIN
       new_row.is_defaulted_recorded := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
     WHEN 'installment_applied' THEN
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.obligation_installment_amount := (NEW.event ->> 'obligation_installment_amount')::BIGINT;
       new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     WHEN 'liquidation_process_started' THEN
@@ -196,7 +197,6 @@ BEGIN
       new_row.effective := (NEW.event ->> 'effective');
       new_row.is_completed := true;
     WHEN 'allocated' THEN
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.obligation_installment_ids := array_append(COALESCE(current_row.obligation_installment_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_installment_id')::UUID);
   END CASE;
 

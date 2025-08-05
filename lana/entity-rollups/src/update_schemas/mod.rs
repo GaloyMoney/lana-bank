@@ -311,7 +311,7 @@ pub fn update_schemas(
                         "DueRecorded".to_string(),
                         "OverdueRecorded".to_string(),
                         "DefaultedRecorded".to_string(),
-                        "Allocated".to_string(),
+                        "InstallmentApplied".to_string(),
                     ],
                     remove_events: vec![],
                 },
