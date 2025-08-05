@@ -89,9 +89,7 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         report_content = output.getvalue()
 
         if self.xml_schema is not None:
-            is_xml_valid = self.xml_schema.is_valid(
-                source=report_content
-            )
+            is_xml_valid = self.xml_schema.is_valid(source=report_content)
             if not is_xml_valid:
                 logger.warning(f"Schema validation for report failed. Listing errors.")
                 for err in self.xml_schema.iter_errors(report_content):
@@ -174,8 +172,8 @@ class XMLSchemaRepository:
         self.schema_folder_path = schema_folder_path
 
     def get_schema(self, schema_id: str) -> XMLSchema:
-        full_schema_file_path = (
-            self.schema_folder_path / (schema_id + self.xml_schema_extension)
+        full_schema_file_path = self.schema_folder_path / (
+            schema_id + self.xml_schema_extension
         )
         return XMLSchema(full_schema_file_path)
 
@@ -249,9 +247,6 @@ def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition, ..
         )
 
     return tuple(report_jobs)
-
-
-
 
 
 class ReportGeneratorConfig:
