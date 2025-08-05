@@ -25,6 +25,7 @@ declare global {
       createDeposit(amount: number, depositAccountId: string): Chainable<string>
       initiateWithdrawal(amount: number, depositAccountId: string): Chainable<string>
       uploadChartOfAccounts(): Chainable<void>
+      waitForKeycloak(): Chainable<void>
       KcLogin(email: string): Chainable<void>
     }
   }
@@ -300,6 +301,66 @@ Cypress.Commands.add("uploadChartOfAccounts", () => {
   cy.get("body")
     .contains(/Assets/i)
     .should("be.visible")
+})
+
+Cypress.Commands.add("waitForKeycloak", () => {
+  const root = "http://localhost:8081"
+  const maxAttempts = 30
+
+  const checkKeycloak = (attempt: number) => {
+    if (attempt > maxAttempts) {
+      throw new Error(`Keycloak not ready after ${maxAttempts} attempts`)
+    }
+    cy.log(`Checking Keycloak readiness (attempt ${attempt}/${maxAttempts})`)
+    cy.task("checkUrl", `${root}/realms/master`).then((masterReady: any) => {
+      if (masterReady) {
+        cy.task("checkUrl", `${root}/realms/lana-admin`).then((adminReady: any) => {
+          if (adminReady) {
+            cy.request({
+              method: "POST",
+              url: `${root}/realms/master/protocol/openid-connect/token`,
+              form: true,
+              body: {
+                client_id: "admin-cli",
+                username: "admin",
+                password: "admin",
+                grant_type: "password",
+              },
+              failOnStatusCode: false,
+            }).then((tokenResponse) => {
+              if (tokenResponse.status === 200) {
+                const adminToken = tokenResponse.body.access_token
+                cy.request({
+                  method: "GET",
+                  url: `${root}/admin/realms/lana-admin/users`,
+                  qs: { email: "admin@galoy.io", exact: true },
+                  headers: { Authorization: `Bearer ${adminToken}` },
+                  failOnStatusCode: false,
+                }).then((userResponse) => {
+                  if (userResponse.status === 200 && userResponse.body.length > 0) {
+                    cy.log("Keycloak and admin user are ready")
+                  } else {
+                    cy.log(`Admin user not found, retrying...`)
+                    cy.wait(2000).then(() => checkKeycloak(attempt + 1))
+                  }
+                })
+              } else {
+                cy.log(`Cannot get admin token, retrying...`)
+                cy.wait(2000).then(() => checkKeycloak(attempt + 1))
+              }
+            })
+          } else {
+            cy.log(`Lana-admin realm not ready, retrying...`)
+            cy.wait(2000).then(() => checkKeycloak(attempt + 1))
+          }
+        })
+      } else {
+        cy.log(`Master realm not ready, retrying...`)
+        cy.wait(2000).then(() => checkKeycloak(attempt + 1))
+      }
+    })
+  }
+  checkKeycloak(1)
 })
 
 Cypress.Commands.add("KcLogin", (email: string) => {
