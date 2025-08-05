@@ -124,7 +124,7 @@ describe("Customers", () => {
 
     cy.request({
       method: "POST",
-      url: "http://localhost:5253/sumsub/callback",
+      url: "http://localhost:5253/webhook/sumsub",
       headers: {
         "Content-Type": "application/json",
       },
