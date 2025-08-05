@@ -54,7 +54,7 @@ pub async fn user_id_from_authentication_id(
     }
 }
 
-pub fn auth_routes() -> Router<JwtDecoderState> {
+pub fn routes() -> Router<JwtDecoderState> {
     Router::new().route(
         "/user/user-id-from-authentication-id",
         post(user_id_from_authentication_id),
