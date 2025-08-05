@@ -296,7 +296,7 @@ login_superadmin() {
     return 1
   fi
 
-  cache_value "superadmin" "$access_token"
+  cache_value "superadmin" $access_token
 }
 
 exec_admin_graphql() {
@@ -378,7 +378,7 @@ random_uuid() {
 }
 
 cache_value() {
-  echo -n $2 >${CACHE_DIR}/$1
+  echo $2 >${CACHE_DIR}/$1
 }
 
 read_value() {
