@@ -16,10 +16,9 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
-    "cypress:run": "./cypress/run.sh",
-    "cypress:run-local": "COOKIES=$COOKIES cypress open --env COOKIES=$COOKIES",
-    "cypress:run-headless": "COOKIES=$COOKIES cypress run --env COOKIES=$COOKIES",
-    "cypress:run-browserstack": "COOKIES=$COOKIES browserstack-cypress run  --env COOKIES=$COOKIES",
+    "cypress:run-local": "cypress open",
+    "cypress:run-headless": "cypress run",
+    "cypress:run-browserstack": "browserstack-cypress run",
     "local:pdf": "cd cypress/manuals && ./local-pdf.sh"
   },
   "dependencies": {
