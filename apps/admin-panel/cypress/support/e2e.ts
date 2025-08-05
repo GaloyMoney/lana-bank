@@ -31,6 +31,7 @@ Cypress.on("window:before:load", (win) => {
 
 const testLanguage = Cypress.env("TEST_LANGUAGE")
 beforeEach(() => {
+  cy.waitForKeycloak()
   cy.session(
     "loginSession",
     () => {
