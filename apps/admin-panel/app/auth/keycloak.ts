@@ -17,19 +17,34 @@ if (typeof window !== "undefined") {
 }
 
 let isInitialized = false
+let initializationPromise: Promise<boolean> | null = null
+
 export const initKeycloak = () => {
-  if (!isInitialized && keycloak) {
-    isInitialized = true
-    return keycloak
-      .init({ onLoad: "login-required", checkLoginIframe: false, pkceMethod: "S256" })
-      .then((authenticated) => authenticated)
-      .catch((err) => {
-        isInitialized = false
-        console.error("Failed to initialize Keycloak", err)
-        throw err
-      })
+  if (!keycloak) {
+    return Promise.resolve(false)
   }
-  return Promise.resolve(keycloak?.authenticated ?? false)
+
+  if (isInitialized) {
+    return Promise.resolve(keycloak.authenticated ?? false)
+  }
+
+  if (initializationPromise) {
+    return initializationPromise
+  }
+
+  initializationPromise = keycloak
+    .init({ onLoad: "login-required", checkLoginIframe: false, pkceMethod: "S256" })
+    .then((authenticated) => {
+      isInitialized = true
+      return authenticated
+    })
+    .catch((err) => {
+      initializationPromise = null
+      console.error("Failed to initialize Keycloak", err)
+      throw err
+    })
+
+  return initializationPromise
 }
 
 export const logout = () => {
