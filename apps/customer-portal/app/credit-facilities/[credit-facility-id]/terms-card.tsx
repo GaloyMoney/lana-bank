@@ -3,7 +3,7 @@ import { DetailItemProps, DetailsCard } from "@lana/web/components/details"
 import React from "react"
 
 import { CreditFacility } from "@/lib/graphql/generated"
-import { formatPeriod, removeUnderscore } from "@/lib/kratos/utils"
+import { formatPeriod, removeUnderscore } from "@/lib/utils"
 
 function TermsCard({ data }: { data: NonNullable<CreditFacility> }) {
   const terms: DetailItemProps[] = [

@@ -10,7 +10,8 @@ import { ThemeProvider } from "next-themes"
 import { Toaster } from "@lana/web/ui/toast"
 
 import NavBar from "@/components/nav-bar"
-import { meQuery } from "@/lib/graphql/query/me"
+import { SessionProvider } from "@/components/auth/session-provider"
+import { getSessionWithData } from "@/lib/auth/get-session-with-data"
 
 export const metadata: Metadata = {
   title: "Lana Bank",
@@ -25,7 +26,8 @@ export default async function RootLayout({
 }: Readonly<{
   children: React.ReactNode
 }>) {
-  const session = await meQuery()
+  const { session, meData } = await getSessionWithData()
+  
   return (
     <html lang="en">
       {process.env.NODE_ENV === "development" ||
@@ -35,16 +37,18 @@ export default async function RootLayout({
         </head>
       )}
       <body className={`${inter.className} mb-8`}>
-        <ThemeProvider
-          attribute="class"
-          defaultTheme="light"
-          enableSystem
-          disableTransitionOnChange
-        >
-          {session instanceof Error ? null : <NavBar meQueryData={session} />}
-          {children}
-          <Toaster />
-        </ThemeProvider>
+        <SessionProvider session={session}>
+          <ThemeProvider
+            attribute="class"
+            defaultTheme="light"
+            enableSystem
+            disableTransitionOnChange
+          >
+            {meData ? <NavBar meQueryData={meData} /> : null}
+            {children}
+            <Toaster />
+          </ThemeProvider>
+        </SessionProvider>
       </body>
     </html>
   )

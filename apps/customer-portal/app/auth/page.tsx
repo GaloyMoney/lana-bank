@@ -1,10 +1,10 @@
-import { AuthForm } from "@/components/auth/email-form"
+import { KeycloakAuthForm } from "@/components/auth/keycloak-form"
 import { AuthTemplateCard } from "@/components/auth/auth-template-card"
 
 function Auth() {
   return (
     <AuthTemplateCard>
-      <AuthForm />
+      <KeycloakAuthForm />
     </AuthTemplateCard>
   )
 }
