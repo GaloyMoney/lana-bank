@@ -61,9 +61,9 @@ pub(super) struct TermsTemplateCreateInput {
     pub interest_due_duration_from_accrual: DurationInput,
     pub obligation_overdue_duration_from_due: DurationInput,
     pub obligation_liquidation_duration_from_due: DurationInput,
-    pub liquidation_cvl: CVLPct,
-    pub margin_call_cvl: CVLPct,
-    pub initial_cvl: CVLPct,
+    pub liquidation_cvl: CVLPctInput,
+    pub margin_call_cvl: CVLPctInput,
+    pub initial_cvl: CVLPctInput,
 }
 crate::mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemplate }
 
@@ -74,12 +74,12 @@ pub(super) struct TermsTemplateUpdateInput {
     pub accrual_interval: InterestInterval,
     pub accrual_cycle_interval: InterestInterval,
     pub one_time_fee_rate: OneTimeFeeRatePct,
-    pub liquidation_cvl: CVLPct,
+    pub liquidation_cvl: CVLPctInput,
     pub duration: DurationInput,
     pub interest_due_duration_from_accrual: DurationInput,
     pub obligation_overdue_duration_from_due: DurationInput,
     pub obligation_liquidation_duration_from_due: DurationInput,
-    pub margin_call_cvl: CVLPct,
-    pub initial_cvl: CVLPct,
+    pub margin_call_cvl: CVLPctInput,
+    pub initial_cvl: CVLPctInput,
 }
 crate::mutation_payload! { TermsTemplateUpdatePayload, terms_template: TermsTemplate }
