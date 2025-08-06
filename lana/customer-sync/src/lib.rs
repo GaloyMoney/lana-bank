@@ -63,18 +63,20 @@ where
         deposit: &CoreDeposit<Perms, E>,
         config: CustomerSyncConfig,
     ) -> Result<Self, CustomerSyncError> {
+        let keycloak_admin = keycloak_admin::KeycloakAdmin::init(config.keycloak_admin.clone())?;
+
         jobs.add_initializer_and_spawn_unique(
             CreateDepositAccountInit::new(outbox, deposit, config.clone()),
             CreateDepositAccountJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreateKratosUserInit::new(outbox, customers, config.clone()),
-            CreateKratosUserJobConfig::new(),
+            CreateKeycloakUserInit::new(outbox, customers, keycloak_admin.clone()),
+            CreateKeycloakUserJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            SyncEmailInit::new(outbox, customers, config.clone()),
+            SyncEmailInit::new(outbox, customers, keycloak_admin),
             SyncEmailJobConfig::new(),
         )
         .await?;

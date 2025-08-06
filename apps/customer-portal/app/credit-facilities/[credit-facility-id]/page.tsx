@@ -25,7 +25,7 @@ import { CreditFacilityRepaymentPlan } from "./repayment-plan"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facility"
 
 import { getCreditFacility } from "@/lib/graphql/query/get-cf"
-import { removeUnderscore } from "@/lib/kratos/utils"
+import { removeUnderscore } from "@/lib/utils"
 
 gql`
   query GetCreditFacility($id: UUID!) {
