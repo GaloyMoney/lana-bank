@@ -235,9 +235,6 @@ importers:
       '@lana/web':
         specifier: workspace:*
         version: link:../shared-web
-      '@ory/client':
-        specifier: ^1.21.1
-        version: 1.21.2
       '@sumsub/websdk-react':
         specifier: ^2.3.19
         version: 2.3.19(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -2093,9 +2090,6 @@ packages:
   '@nolyfill/is-core-module@1.0.39':
     resolution: {integrity: sha512-nn5ozdjYQpUCZlWGuxcJY/KpxkWQs4DcbMCmKojjyrYDEAGy4Ce19NN4v5MduafTwJlbKc99UA8YhSVqq9yPZA==}
     engines: {node: '>=12.4.0'}
-
-  '@ory/client@1.21.2':
-    resolution: {integrity: sha512-pCBXG5LT6MzIi3wZKE7E5eQSWKS85ChzGltWOEWWAzJe7ee4DC5ghOCruuQGiJDNdqbXnL7hbAcIS/1yABG3SA==}
 
   '@otplib/core@12.0.1':
     resolution: {integrity: sha512-4sGntwbA/AC+SbPhbsziRiD+jNDdIzsZ3JUyfZwjtKyc/wufl1pnSIaG4Uqx8ymPagujub0o92kgBnB89cuAMA==}
@@ -10957,12 +10951,6 @@ snapshots:
       fastq: 1.19.1
 
   '@nolyfill/is-core-module@1.0.39': {}
-
-  '@ory/client@1.21.2':
-    dependencies:
-      axios: 1.11.0
-    transitivePeerDependencies:
-      - debug
 
   '@otplib/core@12.0.1': {}
 

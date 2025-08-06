@@ -1,5 +1,4 @@
 import { ArrowDownUp, CreditCard, Wallet } from "lucide-react"
-import { redirect } from "next/navigation"
 
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@lana/web/ui/tab"
 
@@ -14,15 +13,8 @@ import { meQuery } from "@/lib/graphql/query/me"
 import { BalanceCard } from "@/components/balance-card"
 import Balance from "@/components/balance"
 import { getTransactionHistoryQuery } from "@/lib/graphql/query/transaction-history"
-import { auth } from "@/auth"
 
 export default async function Home() {
-  const session = await auth()
-
-  if (!session) {
-    redirect("/auth")
-  }
-
   const data = await meQuery()
   const transactionHistory = await getTransactionHistoryQuery()
 

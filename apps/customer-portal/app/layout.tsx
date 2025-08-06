@@ -27,7 +27,7 @@ export default async function RootLayout({
   children: React.ReactNode
 }>) {
   const { session, meData } = await getSessionWithData()
-  
+
   return (
     <html lang="en">
       {process.env.NODE_ENV === "development" ||

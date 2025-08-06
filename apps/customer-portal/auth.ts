@@ -7,7 +7,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
   secret: env.AUTH_SECRET,
   providers: [
     Keycloak({
-      clientId: env.AUTH_KEYCLOAK_ID,
+      clientId: env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
       clientSecret: env.AUTH_KEYCLOAK_SECRET,
       issuer: env.AUTH_KEYCLOAK_ISSUER,
     }),
@@ -25,8 +25,8 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
       session.accessToken = token.accessToken as string
       return session
     },
-  },
-  pages: {
-    signIn: "/auth",
+    authorized({ auth }) {
+      return !!auth
+    },
   },
 })

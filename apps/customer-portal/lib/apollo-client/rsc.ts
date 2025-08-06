@@ -13,7 +13,7 @@ export const { getClient } = registerApolloClient(async () => {
   const requestHeaders = Object.fromEntries(
     Array.from(headersObj).map(([key, value]) => [key, value]),
   )
-  
+
   if (session?.accessToken) {
     requestHeaders["Authorization"] = `Bearer ${session.accessToken}`
   }
