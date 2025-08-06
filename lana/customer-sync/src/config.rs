@@ -27,7 +27,7 @@ impl Default for CustomerSyncConfig {
 
 fn default_keycloak_admin_config() -> KeycloakAdminConfig {
     KeycloakAdminConfig {
-        realm: "lana-customer".to_string(),
+        realm: "customer".to_string(),
         ..KeycloakAdminConfig::default()
     }
 }

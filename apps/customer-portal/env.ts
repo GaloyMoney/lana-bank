@@ -5,15 +5,13 @@ export const env = createEnv({
   server: {
     AUTH_SECRET: z.string().default("secret"),
     AUTH_KEYCLOAK_SECRET: z.string().default("41jv8RepY6r797jIyucj30OiZsFJXCls"),
-    AUTH_KEYCLOAK_ISSUER: z
-      .string()
-      .default("http://localhost:8081/realms/lana-customer"),
+    AUTH_KEYCLOAK_ISSUER: z.string().default("http://localhost:8081/realms/customer"),
   },
   shared: {
     NEXT_PUBLIC_CORE_URL: z.string().default("http://app.localhost:4455"),
     NEXT_PUBLIC_KEYCLOAK_URL: z.string().default("http://localhost:8081"),
-    NEXT_PUBLIC_KEYCLOAK_REALM: z.string().default("lana-customer"),
-    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: z.string().default("lana-customer-portal"),
+    NEXT_PUBLIC_KEYCLOAK_REALM: z.string().default("customer"),
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: z.string().default("customer-portal"),
   },
   runtimeEnv: {
     AUTH_SECRET: process.env.AUTH_SECRET,

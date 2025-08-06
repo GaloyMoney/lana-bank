@@ -16,11 +16,10 @@ authenticators:
     config:
       jwks_urls:
         - http://keycloak:8080/realms/lana-admin/protocol/openid-connect/certs
-        - http://keycloak:8080/realms/lana-customer/protocol/openid-connect/certs
+        - http://keycloak:8080/realms/customer/protocol/openid-connect/certs
       trusted_issuers:
         - http://localhost:8081/realms/lana-admin
-        - http://localhost:8081/realms/lana-customer
-
+        - http://localhost:8081/realms/customer
 
   noop:
     enabled: true

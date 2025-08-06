@@ -212,7 +212,7 @@ find_customer_by_email() {
   local email=$2
   
   local response=$(curl -s -X GET \
-    "http://localhost:8081/admin/realms/lana-customer/users?email=${email}&exact=true" \
+    "http://localhost:8081/admin/realms/customer/users?email=${email}&exact=true" \
     -H "Authorization: Bearer ${admin_token}" \
     -H "Content-Type: application/json")
   
@@ -269,7 +269,7 @@ set_customer_password() {
   local password="customer"
   
   curl -s -X PUT \
-    "http://localhost:8081/admin/realms/lana-customer/users/${user_id}/reset-password" \
+    "http://localhost:8081/admin/realms/customer/users/${user_id}/reset-password" \
     -H "Authorization: Bearer ${admin_token}" \
     -H "Content-Type: application/json" \
       -d "{\"type\":\"password\",\"value\":\"${password}\",\"temporary\":false}" >/dev/null
@@ -284,9 +284,9 @@ get_customer_access_token() {
   
   local password=$(set_customer_password "$admin_token" "$user_id")
   local response=$(curl -s -X POST \
-      "http://localhost:8081/realms/lana-customer/protocol/openid-connect/token" \
+      "http://localhost:8081/realms/customer/protocol/openid-connect/token" \
       -H "Content-Type: application/x-www-form-urlencoded" \
-      -d "client_id=lana-customer-portal" \
+      -d "client_id=customer-portal" \
       -d "username=${email}" \
       -d "password=${password}" \
       -d "grant_type=password" \
