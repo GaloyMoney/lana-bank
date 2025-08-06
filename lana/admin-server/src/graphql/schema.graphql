@@ -217,7 +217,7 @@ type BtcLedgerAccountBalanceRange {
 	close: BtcLedgerAccountBalance!
 }
 
-scalar CVLPct
+scalar CVLPctInput
 
 type CancelledWithdrawalEntry {
 	recordedAt: Timestamp!
@@ -387,7 +387,7 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
-	currentCvl: CVLPct!
+	currentCvl: Cvlpct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
@@ -926,6 +926,11 @@ enum CustomersSortBy {
 	TELEGRAM_ID
 }
 
+type Cvlpct {
+	kind: Kind!
+	value: Decimal
+}
+
 type Dashboard {
 	activeFacilities: Int!
 	pendingFacilities: Int!
@@ -1184,6 +1189,11 @@ type JournalEntryEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum Kind {
+	INFINITE
+	FINITE
 }
 
 input KomainuConfig {
@@ -1814,23 +1824,23 @@ type TermValues {
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: Duration!
-	liquidationCvl: CVLPct!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
+	liquidationCvl: Cvlpct!
+	marginCallCvl: Cvlpct!
+	initialCvl: Cvlpct!
 }
 
 input TermsInput {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
-	liquidationCvl: CVLPct!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
+	marginCallCvl: CVLPctInput!
+	initialCvl: CVLPctInput!
+	liquidationCvl: CVLPctInput!
 }
 
 type TermsTemplate {
@@ -1852,9 +1862,9 @@ input TermsTemplateCreateInput {
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
-	liquidationCvl: CVLPct!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
+	liquidationCvl: CVLPctInput!
+	marginCallCvl: CVLPctInput!
+	initialCvl: CVLPctInput!
 }
 
 type TermsTemplateCreatePayload {
@@ -1867,13 +1877,13 @@ input TermsTemplateUpdateInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
-	liquidationCvl: CVLPct!
+	liquidationCvl: CVLPctInput!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
-	marginCallCvl: CVLPct!
-	initialCvl: CVLPct!
+	marginCallCvl: CVLPctInput!
+	initialCvl: CVLPctInput!
 }
 
 type TermsTemplateUpdatePayload {
