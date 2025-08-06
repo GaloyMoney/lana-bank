@@ -78,4 +78,13 @@ impl KeycloakAdmin {
             .map_err(KeycloakAdminError::KeycloakError)?;
         Ok(())
     }
+
+    pub async fn get_user(&self, user_id: Uuid) -> Result<UserRepresentation, KeycloakAdminError> {
+        let client = self.get_client().await?;
+        let user = client
+            .realm_users_with_user_id_get(&self.config.realm, &user_id.to_string(), None)
+            .await
+            .map_err(KeycloakAdminError::KeycloakError)?;
+        Ok(user)
+    }
 }
