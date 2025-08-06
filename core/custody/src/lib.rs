@@ -83,14 +83,9 @@ where
     }
 
     #[cfg(feature = "mock-custodian")]
-    #[instrument(
-        name = "credit_facility.ensure_mock_custodian_in_op",
-        skip(self, db),
-        err
-    )]
-    pub async fn ensure_mock_custodian_in_op(
+    #[instrument(name = "credit_facility.ensure_mock_custodian", skip(self), err)]
+    pub async fn ensure_mock_custodian(
         &self,
-        db: &mut DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<(), CoreCustodyError> {
         let mock_custodian = self
@@ -100,9 +95,8 @@ where
         match mock_custodian {
             Err(CoreCustodyError::Custodian(e)) if e.was_not_found() => {
                 let _ = self
-                    .create_custodian_in_op(db, sub, "Mock Custodian", CustodianConfig::Mock)
+                    .create_custodian(sub, "Mock Custodian", CustodianConfig::Mock)
                     .await?;
-
                 Ok(())
             }
             Err(e) => Err(e),
@@ -110,10 +104,13 @@ where
         }
     }
 
-    #[instrument(name = "core_custody.created_custodian_in_op", skip(self, db), err)]
-    pub async fn create_custodian_in_op(
+    #[instrument(
+        name = "core_custody.create_custodian",
+        skip(self, custodian_config),
+        err
+    )]
+    pub async fn create_custodian(
         &self,
-        db: &mut DbOp<'_>,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         custodian_name: impl AsRef<str> + std::fmt::Debug,
         custodian_config: CustodianConfig,
@@ -146,27 +143,9 @@ where
             .build()
             .expect("should always build a new custodian");
 
-        let custodian = self.custodians.create_in_op(db, new_custodian).await?;
-
-        Ok(custodian)
-    }
-
-    #[instrument(
-        name = "core_custody.create_custodian",
-        skip(self, custodian_config),
-        err
-    )]
-    pub async fn create_custodian(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        custodian_name: impl AsRef<str> + std::fmt::Debug,
-        custodian_config: CustodianConfig,
-    ) -> Result<Custodian, CoreCustodyError> {
         let mut db = self.custodians.begin_op().await?;
 
-        let custodian = self
-            .create_custodian_in_op(&mut db, sub, custodian_name, custodian_config)
-            .await?;
+        let custodian = self.custodians.create_in_op(&mut db, new_custodian).await?;
 
         db.commit().await?;
 
