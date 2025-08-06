@@ -44,7 +44,7 @@ impl TermsTemplate {
         Ok(app
             .credit()
             .terms_templates()
-            .user_can_update_terms_template(sub, false)
+            .subject_can_update_terms_template(sub, false)
             .await
             .is_ok())
     }

@@ -74,7 +74,7 @@ impl ApprovalProcess {
 
         Ok(app
             .governance()
-            .user_can_submit_decision(sub, &self.entity, committee.as_ref().map(AsRef::as_ref))
+            .subject_can_submit_decision(sub, &self.entity, committee.as_ref().map(AsRef::as_ref))
             .await?)
     }
 

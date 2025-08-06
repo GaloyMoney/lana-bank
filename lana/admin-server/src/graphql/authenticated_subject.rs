@@ -26,7 +26,7 @@ impl AuthenticatedSubject {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .customers()
-            .user_can_create_customer(sub, false)
+            .subject_can_create_customer(sub, false)
             .await
             .is_ok())
     }
@@ -36,7 +36,7 @@ impl AuthenticatedSubject {
         Ok(app
             .access()
             .users()
-            .user_can_create_user(sub, false)
+            .subject_can_create_user(sub, false)
             .await
             .is_ok())
     }
@@ -49,7 +49,7 @@ impl AuthenticatedSubject {
         Ok(app
             .credit()
             .terms_templates()
-            .user_can_create_terms_template(sub, false)
+            .subject_can_create_terms_template(sub, false)
             .await
             .is_ok())
     }

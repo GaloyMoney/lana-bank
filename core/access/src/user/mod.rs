@@ -67,7 +67,7 @@ where
         })
     }
 
-    pub async fn user_can_create_user(
+    pub async fn subject_can_create_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -91,7 +91,7 @@ where
         role: &Role,
     ) -> Result<User, UserError> {
         let audit_info = self
-            .user_can_create_user(sub, true)
+            .subject_can_create_user(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -243,7 +243,7 @@ where
         self.repo.list_by_created_at(query, direction).await
     }
 
-    pub async fn user_can_update_role_of_user(
+    pub async fn subject_can_update_role_of_user(
         &self,
         sub: &<Audit as AuditSvc>::Subject,
         user_id: impl Into<Option<UserId>>,
@@ -269,7 +269,7 @@ where
         let id = user_id.into();
 
         let audit_info = self
-            .user_can_update_role_of_user(sub, id, true)
+            .subject_can_update_role_of_user(sub, id, true)
             .await?
             .expect("audit info missing");
 

@@ -124,7 +124,7 @@ impl Customer {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().user_can_create(sub, false).await.is_ok())
+        Ok(app.credit().subject_can_create(sub, false).await.is_ok())
     }
 }
 

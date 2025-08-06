@@ -61,7 +61,7 @@ impl User {
         Ok(app
             .access()
             .users()
-            .user_can_update_role_of_user(sub, None, false)
+            .subject_can_update_role_of_user(sub, None, false)
             .await
             .is_ok())
     }
