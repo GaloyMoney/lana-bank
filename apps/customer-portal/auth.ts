@@ -9,7 +9,7 @@ export const { handlers, auth, signIn, signOut } = NextAuth({
     Keycloak({
       clientId: env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
       clientSecret: env.AUTH_KEYCLOAK_SECRET,
-      issuer: env.AUTH_KEYCLOAK_ISSUER,
+      issuer: `${env.NEXT_PUBLIC_KEYCLOAK_URL}/realms/${env.NEXT_PUBLIC_KEYCLOAK_REALM}`,
     }),
   ],
   callbacks: {
