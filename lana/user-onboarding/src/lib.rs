@@ -49,7 +49,7 @@ where
         users: &Users<Audit, E>,
         config: UserOnboardingConfig,
     ) -> Result<Self, UserOnboardingError> {
-        let keycloak_admin = keycloak_admin::KeycloakAdmin::init(config.keycloak_admin).await?;
+        let keycloak_admin = keycloak_admin::KeycloakAdmin::init(config.keycloak_admin)?;
 
         jobs.add_initializer_and_spawn_unique(
             UserOnboardingInit::new(outbox, users, keycloak_admin),

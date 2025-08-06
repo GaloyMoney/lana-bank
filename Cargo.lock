@@ -1623,7 +1623,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "kratos-admin",
+ "keycloak-admin",
  "outbox",
  "serde",
  "thiserror 2.0.14",
@@ -3130,6 +3130,7 @@ dependencies = [
  "reqwest",
  "serde",
  "thiserror 2.0.12",
+ "tokio",
  "uuid",
 ]
 
@@ -3152,18 +3153,6 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
-]
-
-[[package]]
-name = "kratos-admin"
-version = "0.3.772-dev"
-dependencies = [
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.14",
- "tracing",
- "uuid",
 ]
 
 [[package]]
