@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
-use kratos_admin::KratosAdmin;
+use keycloak_admin::KeycloakAdmin;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -15,20 +15,18 @@ use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
-use crate::config::*;
-
 #[derive(serde::Serialize)]
-pub struct CreateKratosUserJobConfig<Perms, E> {
+pub struct CreateKeycloakUserJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CreateKratosUserJobConfig<Perms, E> {
+impl<Perms, E> CreateKeycloakUserJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CreateKratosUserJobConfig<Perms, E>
+impl<Perms, E> JobConfig for CreateKeycloakUserJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -37,20 +35,20 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    type Initializer = CreateKratosUserInit<Perms, E>;
+    type Initializer = CreateKeycloakUserInit<Perms, E>;
 }
 
-pub struct CreateKratosUserInit<Perms, E>
+pub struct CreateKeycloakUserInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
-    kratos_admin: KratosAdmin,
+    keycloak_admin: KeycloakAdmin,
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> CreateKratosUserInit<Perms, E>
+impl<Perms, E> CreateKeycloakUserInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
@@ -58,20 +56,19 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
-        config: CustomerSyncConfig,
+        keycloak_admin: KeycloakAdmin,
     ) -> Self {
-        let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin.clone());
-
         Self {
             outbox: outbox.clone(),
             customers: customers.clone(),
-            kratos_admin,
+            keycloak_admin,
         }
     }
 }
 
-const CUSTOMER_SYNC_CREATE_KRATOS_USER: JobType = JobType::new("customer-sync-create-kratos-user");
-impl<Perms, E> JobInitializer for CreateKratosUserInit<Perms, E>
+const CUSTOMER_SYNC_CREATE_KEYCLOAK_USER: JobType =
+    JobType::new("customer-sync-create-keycloak-user");
+impl<Perms, E> JobInitializer for CreateKeycloakUserInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -84,14 +81,14 @@ where
     where
         Self: Sized,
     {
-        CUSTOMER_SYNC_CREATE_KRATOS_USER
+        CUSTOMER_SYNC_CREATE_KEYCLOAK_USER
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateKratosUserJobRunner {
+        Ok(Box::new(CreateKeycloakUserJobRunner {
             outbox: self.outbox.clone(),
             customers: self.customers.clone(),
-            kratos_admin: self.kratos_admin.clone(),
+            keycloak_admin: self.keycloak_admin.clone(),
         }))
     }
 
@@ -104,21 +101,21 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CreateKratosUserJobData {
+struct CreateKeycloakUserJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreateKratosUserJobRunner<Perms, E>
+pub struct CreateKeycloakUserJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
-    kratos_admin: KratosAdmin,
+    keycloak_admin: KeycloakAdmin,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CreateKratosUserJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CreateKeycloakUserJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -132,13 +129,13 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreateKratosUserJobData>()?
+            .execution_state::<CreateKeycloakUserJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
             if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
-                self.handle_create_kratos_user(message.as_ref()).await?;
+                self.handle_create_keycloak_user(message.as_ref()).await?;
             }
 
             state.sequence = message.sequence;
@@ -149,7 +146,7 @@ where
     }
 }
 
-impl<Perms, E> CreateKratosUserJobRunner<Perms, E>
+impl<Perms, E> CreateKeycloakUserJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -158,8 +155,8 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    #[instrument(name = "customer_sync.create_kratos_user", skip(self, message))]
-    async fn handle_create_kratos_user(
+    #[instrument(name = "customer_sync.create_keycloak_user", skip(self, message))]
+    async fn handle_create_keycloak_user(
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>>
@@ -169,10 +166,8 @@ where
         if let Some(CoreCustomerEvent::CustomerCreated { id, email, .. }) = message.as_event() {
             message.inject_trace_parent();
 
-            let authentication_id = self
-                .kratos_admin
-                .create_user::<AuthenticationId>(email.clone())
-                .await?;
+            let uuid = self.keycloak_admin.create_user(email.clone()).await?;
+            let authentication_id = AuthenticationId::from(uuid);
             self.customers
                 .update_authentication_id_for_customer(*id, authentication_id)
                 .await?;
