@@ -36,7 +36,10 @@ gql`
     maturesAt
     collateralizationState
     createdAt
-    currentCvl
+    currentCvl {
+      kind
+      value
+    }
     publicId
     collateralToMatchInitialCvl @client
     disbursals {
@@ -74,9 +77,18 @@ gql`
     }
     creditFacilityTerms {
       annualRate
-      liquidationCvl
-      marginCallCvl
-      initialCvl
+      liquidationCvl {
+        kind
+        value
+      }
+      marginCallCvl {
+        kind
+        value
+      }
+      initialCvl {
+        kind
+        value
+      }
       oneTimeFeeRate
       duration {
         period

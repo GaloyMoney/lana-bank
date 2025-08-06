@@ -31,9 +31,18 @@ gql`
     userCanUpdateTermsTemplate
     values {
       annualRate
-      liquidationCvl
-      marginCallCvl
-      initialCvl
+      liquidationCvl {
+        kind
+        value
+      }
+      marginCallCvl {
+        kind
+        value
+      }
+      initialCvl {
+        kind
+        value
+      }
       oneTimeFeeRate
       duration {
         period
@@ -73,17 +82,20 @@ const columns = (
   {
     key: "values",
     header: t("table.headers.initialCvl"),
-    render: (values) => `${values.initialCvl}%`,
+    render: (values) =>
+      values.initialCvl.kind === "INFINITE" ? "∞" : `${values.initialCvl.value}%`,
   },
   {
     key: "values",
     header: t("table.headers.marginCallCvl"),
-    render: (values) => `${values.marginCallCvl}%`,
+    render: (values) =>
+      values.marginCallCvl.kind === "INFINITE" ? "∞" : `${values.marginCallCvl.value}%`,
   },
   {
     key: "values",
     header: t("table.headers.liquidationCvl"),
-    render: (values) => `${values.liquidationCvl}%`,
+    render: (values) =>
+      values.liquidationCvl.kind === "INFINITE" ? "∞" : `${values.liquidationCvl.value}%`,
   },
 ]
 

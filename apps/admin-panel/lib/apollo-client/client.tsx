@@ -82,7 +82,10 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
 
         const basisAmountInUsd = calculateBaseAmountInCents(facility) / CENTS_PER_USD
 
-        const initialCvlDecimal = facility.creditFacilityTerms.initialCvl / 100
+        const initialCvlDecimal =
+          facility.creditFacilityTerms.initialCvl.kind === "INFINITE"
+            ? Infinity
+            : (facility.creditFacilityTerms.initialCvl.value || 0) / 100
 
         const requiredCollateralInSats =
           (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /

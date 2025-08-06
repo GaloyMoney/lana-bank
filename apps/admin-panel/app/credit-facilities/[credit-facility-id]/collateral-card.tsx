@@ -12,6 +12,16 @@ import {
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
 import { Satoshis, UsdCents } from "@/types"
 
+// Helper function to get CVL value from the new Cvlpct structure
+const getCvlValue = (cvl: { kind: string; value?: number | null }): number => {
+  return cvl.kind === "INFINITE" ? Infinity : cvl.value || 0
+}
+
+// Helper function to format CVL for display
+const formatCvl = (cvl: { kind: string; value?: number | null }): string => {
+  return cvl.kind === "INFINITE" ? "∞" : `${cvl.value || 0}%`
+}
+
 type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<
     GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
@@ -19,25 +29,29 @@ type CreditFacilityOverviewProps = {
 }
 
 const getCvlStatus = (
-  currentCvl: number,
-  initialCvl: number,
-  marginCallCvl: number,
-  liquidationCvl: number,
+  currentCvl: { kind: string; value?: number | null },
+  initialCvl: { kind: string; value?: number | null },
+  marginCallCvl: { kind: string; value?: number | null },
+  liquidationCvl: { kind: string; value?: number | null },
   t: (key: string) => string,
 ) => {
-  if (currentCvl >= initialCvl) return { label: null, color: null }
-  if (currentCvl >= marginCallCvl)
+  const currentVal = getCvlValue(currentCvl)
+  const initialVal = getCvlValue(initialCvl)
+  const marginVal = getCvlValue(marginCallCvl)
+  const liquidationVal = getCvlValue(liquidationCvl)
+  if (currentVal >= initialVal) return { label: null, color: null }
+  if (currentVal >= marginVal)
     return { label: t("status.moderate"), color: "text-warning" }
-  if (currentCvl >= liquidationCvl)
+  if (currentVal >= liquidationVal)
     return { label: t("status.high"), color: "text-warning" }
   return { label: t("status.critical"), color: "text-destructive" }
 }
 
 const CvlStatusText: React.FC<{
-  currentCvl: number
-  initialCvl: number
-  marginCallCvl: number
-  liquidationCvl: number
+  currentCvl: { kind: string; value?: number | null }
+  initialCvl: { kind: string; value?: number | null }
+  marginCallCvl: { kind: string; value?: number | null }
+  liquidationCvl: { kind: string; value?: number | null }
   t: (key: string) => string
 }> = ({ currentCvl, initialCvl, marginCallCvl, liquidationCvl, t }) => {
   const { label, color } = getCvlStatus(
@@ -58,12 +72,12 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
 
   const basisAmountInCents = calculateBaseAmountInCents(creditFacility)
   const MarginCallPrice = calculatePrice({
-    cvlPercentage: creditFacility.creditFacilityTerms.marginCallCvl,
+    cvlPercentage: getCvlValue(creditFacility.creditFacilityTerms.marginCallCvl),
     basisAmountInCents,
     collateralInSatoshis: creditFacility.balance.collateral.btcBalance,
   })
   const LiquidationCallPrice = calculatePrice({
-    cvlPercentage: creditFacility.creditFacilityTerms.liquidationCvl,
+    cvlPercentage: getCvlValue(creditFacility.creditFacilityTerms.liquidationCvl),
     basisAmountInCents,
     collateralInSatoshis: creditFacility.balance.collateral.btcBalance,
   })
@@ -98,19 +112,19 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
     },
     {
       label: t("details.marginCallPrice", {
-        percentage: creditFacility.creditFacilityTerms.marginCallCvl,
+        percentage: formatCvl(creditFacility.creditFacilityTerms.marginCallCvl),
       }),
       value: <Balance amount={MarginCallPrice as UsdCents} currency="usd" />,
     },
     {
       label: t("details.liquidationPrice", {
-        percentage: creditFacility.creditFacilityTerms.liquidationCvl,
+        percentage: formatCvl(creditFacility.creditFacilityTerms.liquidationCvl),
       }),
       value: <Balance amount={LiquidationCallPrice as UsdCents} currency="usd" />,
     },
     {
       label: t("details.collateralToReachTarget", {
-        percentage: creditFacility.creditFacilityTerms.initialCvl,
+        percentage: formatCvl(creditFacility.creditFacilityTerms.initialCvl),
       }),
       value: (
         <Balance
@@ -124,7 +138,7 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
       label: t("details.currentCvl"),
       value: (
         <div className="flex items-center gap-2">
-          <span>{creditFacility.currentCvl}%</span>
+          <span>{formatCvl(creditFacility.currentCvl)}</span>
           {creditFacility.status === CreditFacilityStatus.Active && (
             <CvlStatusText
               currentCvl={creditFacility.currentCvl}
