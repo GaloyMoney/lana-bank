@@ -15,4 +15,5 @@ extend-exclude = [
 	"meltano/utilities/generate-es-reports/generate_es_reports/schemas",
 	"meltano/utilities/generate-es-reports/generate_es_reports/reports.yml",
 	"dev/keycloak/lana-admin-realm.json",
+	"dev/keycloak/customer-realm.json"
 ]
