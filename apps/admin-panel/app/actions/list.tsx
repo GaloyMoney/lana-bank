@@ -37,7 +37,7 @@ gql`
           id
           approvalProcessType
           status
-          subjectCanSubmitDecision
+          userCanSubmitDecision
           createdAt
           target {
             __typename
@@ -95,7 +95,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
   const approvalProcesses =
     data?.approvalProcesses.edges
-      .filter((e) => e.node.subjectCanSubmitDecision)
+      .filter((e) => e.node.userCanSubmitDecision)
       .filter((e) => e.node.status === ApprovalProcessStatus.InProgress)
       .map((e) => e.node) || []
 

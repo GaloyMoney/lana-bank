@@ -56,7 +56,7 @@ impl User {
         &self.entity.email
     }
 
-    async fn subject_can_update_role_of_user(
+    async fn user_can_update_role_of_user(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
@@ -64,7 +64,7 @@ impl User {
         Ok(app
             .access()
             .users()
-            .subject_can_update_role_of_user(sub, None, false)
+            .user_can_update_role_of_user(sub, None, false)
             .await
             .is_ok())
     }

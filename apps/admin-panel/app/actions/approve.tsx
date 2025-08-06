@@ -30,7 +30,7 @@ gql`
     deniedReason
     approvalProcessType
     createdAt
-    subjectCanSubmitDecision
+    userCanSubmitDecision
     status
     rules {
       ... on CommitteeThreshold {

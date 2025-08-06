@@ -47,7 +47,7 @@ const createActions = (args: DashboardStoryArgs) => {
     return {
       node: mockApprovalProcess({
         status: ApprovalProcessStatus.InProgress,
-        subjectCanSubmitDecision: true,
+        userCanSubmitDecision: true,
       }),
     }
   })

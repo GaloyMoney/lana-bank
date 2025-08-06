@@ -106,16 +106,16 @@ gql`
       id
       deniedReason
       status
-      subjectCanSubmitDecision
+      userCanSubmitDecision
       approvalProcessId
       approvalProcessType
       createdAt
       ...ApprovalProcessFields
     }
-    subjectCanUpdateCollateral
-    subjectCanInitiateDisbursal
-    subjectCanRecordPayment
-    subjectCanComplete
+    userCanUpdateCollateral
+    userCanInitiateDisbursal
+    userCanRecordPayment
+    userCanComplete
   }
 
   query GetCreditFacilityLayoutDetails($publicId: PublicId!) {

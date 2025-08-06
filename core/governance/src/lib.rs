@@ -550,7 +550,7 @@ where
         Ok(self.process_repo.find_all(ids).await?)
     }
 
-    pub async fn subject_can_submit_decision(
+    pub async fn user_can_submit_decision(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         process: &ApprovalProcess,

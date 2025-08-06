@@ -216,7 +216,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       },
       allowedPaths: [PATH_CONFIGS.CREDIT_FACILITY_DETAILS],
       condition: () =>
-        facility?.subjectCanUpdateCollateral &&
+        facility?.userCanUpdateCollateral &&
         facility?.status !== CreditFacilityStatus.Closed &&
         facility?.status !== CreditFacilityStatus.Matured,
     },
@@ -260,7 +260,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
         setOpen(false)
       },
       allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATE_DETAILS],
-      condition: () => termsTemplate?.subjectCanUpdateTermsTemplate,
+      condition: () => termsTemplate?.userCanUpdateTermsTemplate,
     },
     {
       label: t("actions.createTermsTemplate"),
@@ -338,7 +338,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
         const entity = getActiveEntity()
         return (
           entity?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
-          entity?.approvalProcess?.subjectCanSubmitDecision
+          entity?.approvalProcess?.userCanSubmitDecision
         )
       },
     },
@@ -358,7 +358,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
         const entity = getActiveEntity()
         return (
           entity?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
-          entity?.approvalProcess?.subjectCanSubmitDecision
+          entity?.approvalProcess?.userCanSubmitDecision
         )
       },
     },

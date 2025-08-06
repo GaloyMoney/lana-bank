@@ -38,7 +38,7 @@ type ApprovalProcess {
 	rules: ApprovalRules!
 	deniedReason: String
 	policy: Policy!
-	subjectCanSubmitDecision: Boolean!
+	userCanSubmitDecision: Boolean!
 	voters: [ApprovalProcessVoter!]!
 	target: ApprovalProcessTarget!
 }
@@ -391,10 +391,10 @@ type CreditFacility {
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
 	approvalProcess: ApprovalProcess!
-	subjectCanUpdateCollateral: Boolean!
-	subjectCanInitiateDisbursal: Boolean!
-	subjectCanRecordPayment: Boolean!
-	subjectCanComplete: Boolean!
+	userCanUpdateCollateral: Boolean!
+	userCanInitiateDisbursal: Boolean!
+	userCanRecordPayment: Boolean!
+	userCanComplete: Boolean!
 	customer: Customer!
 	balance: CreditFacilityBalance!
 	wallet: Wallet
@@ -793,7 +793,7 @@ type Customer {
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
 	documents: [CustomerDocument!]!
-	subjectCanCreateCreditFacility: Boolean!
+	userCanCreateCreditFacility: Boolean!
 }
 
 type CustomerConnection {
@@ -1786,9 +1786,9 @@ enum SortDirection {
 type Subject {
 	user: User!
 	visibleNavigationItems: VisibleNavigationItems!
-	subjectCanCreateCustomer: Boolean!
-	subjectCanCreateUser: Boolean!
-	subjectCanCreateTermsTemplate: Boolean!
+	userCanCreateCustomer: Boolean!
+	userCanCreateUser: Boolean!
+	userCanCreateTermsTemplate: Boolean!
 }
 
 input SumsubPermalinkCreateInput {
@@ -1838,7 +1838,7 @@ type TermsTemplate {
 	values: TermValues!
 	createdAt: Timestamp!
 	name: String!
-	subjectCanUpdateTermsTemplate: Boolean!
+	userCanUpdateTermsTemplate: Boolean!
 }
 
 input TermsTemplateCreateInput {
@@ -1964,7 +1964,7 @@ type User {
 	createdAt: Timestamp!
 	role: Role!
 	email: String!
-	subjectCanUpdateRoleOfUser: Boolean!
+	userCanUpdateRoleOfUser: Boolean!
 }
 
 input UserCreateInput {

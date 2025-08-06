@@ -119,12 +119,12 @@ impl Customer {
         Ok(documents.into_iter().map(CustomerDocument::from).collect())
     }
 
-    async fn subject_can_create_credit_facility(
+    async fn user_can_create_credit_facility(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app.credit().subject_can_create(sub, false).await.is_ok())
+        Ok(app.credit().user_can_create(sub, false).await.is_ok())
     }
 }
 

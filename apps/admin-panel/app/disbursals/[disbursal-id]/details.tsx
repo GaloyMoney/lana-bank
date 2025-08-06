@@ -52,7 +52,7 @@ export const DisbursalDetailsCard: React.FC<DisbursalDetailsProps> = ({ disbursa
   const footerContent = (
     <>
       {disbursal.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
-        disbursal.approvalProcess.subjectCanSubmitDecision && (
+        disbursal.approvalProcess.userCanSubmitDecision && (
           <>
             <Button
               data-testid="disbursal-approve-button"

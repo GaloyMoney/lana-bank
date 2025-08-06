@@ -40,7 +40,7 @@ where
         }
     }
 
-    pub async fn subject_can_create_terms_template(
+    pub async fn user_can_create_terms_template(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -63,7 +63,7 @@ where
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
-            .subject_can_create_terms_template(sub, true)
+            .user_can_create_terms_template(sub, true)
             .await?
             .expect("audit info missing");
         let new_terms_template = NewTermsTemplate::builder()
@@ -78,7 +78,7 @@ where
         Ok(terms_template)
     }
 
-    pub async fn subject_can_update_terms_template(
+    pub async fn user_can_update_terms_template(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -101,7 +101,7 @@ where
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
         let audit_info = self
-            .subject_can_update_terms_template(sub, true)
+            .user_can_update_terms_template(sub, true)
             .await?
             .expect("audit info missing");
 

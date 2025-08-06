@@ -115,7 +115,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       >
         {t("buttons.loanAgreement")}
       </Button>
-      {creditFacilityDetails.subjectCanUpdateCollateral && (
+      {creditFacilityDetails.userCanUpdateCollateral && (
         <Button
           variant="outline"
           data-testid="update-collateral-button"
@@ -126,7 +126,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       )}
       {creditFacilityDetails.approvalProcess.status ===
         ApprovalProcessStatus.InProgress &&
-        creditFacilityDetails.approvalProcess.subjectCanSubmitDecision && (
+        creditFacilityDetails.approvalProcess.userCanSubmitDecision && (
           <>
             <Button
               data-testid="credit-facility-approve-button"

@@ -36,7 +36,7 @@ impl TermsTemplate {
         &self.entity.name
     }
 
-    async fn subject_can_update_terms_template(
+    async fn user_can_update_terms_template(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
@@ -44,7 +44,7 @@ impl TermsTemplate {
         Ok(app
             .credit()
             .terms_templates()
-            .subject_can_update_terms_template(sub, false)
+            .user_can_update_terms_template(sub, false)
             .await
             .is_ok())
     }

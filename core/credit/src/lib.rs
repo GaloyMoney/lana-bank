@@ -365,7 +365,7 @@ where
         &self.terms_templates
     }
 
-    pub async fn subject_can_create(
+    pub async fn user_can_create(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -414,7 +414,7 @@ where
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let audit_info = self
-            .subject_can_create(sub, true)
+            .user_can_create(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -538,7 +538,7 @@ where
         Ok(repayment_plan.entries.into_iter().map(T::from).collect())
     }
 
-    pub async fn subject_can_initiate_disbursal(
+    pub async fn user_can_initiate_disbursal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -562,7 +562,7 @@ where
         amount: UsdCents,
     ) -> Result<Disbursal, CoreCreditError> {
         let audit_info = self
-            .subject_can_initiate_disbursal(sub, true)
+            .user_can_initiate_disbursal(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -655,7 +655,7 @@ where
             .await
     }
 
-    pub async fn subject_can_update_collateral(
+    pub async fn user_can_update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -683,7 +683,7 @@ where
         let effective = effective.into();
 
         let audit_info = self
-            .subject_can_update_collateral(sub, true)
+            .user_can_update_collateral(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -717,7 +717,7 @@ where
         Ok(credit_facility)
     }
 
-    pub async fn subject_can_record_payment(
+    pub async fn user_can_record_payment(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -779,7 +779,7 @@ where
         Ok(credit_facility)
     }
 
-    pub async fn subject_can_complete(
+    pub async fn user_can_complete(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -805,7 +805,7 @@ where
         let id = credit_facility_id.into();
 
         let audit_info = self
-            .subject_can_complete(sub, true)
+            .user_can_complete(sub, true)
             .await?
             .expect("audit info missing");
 

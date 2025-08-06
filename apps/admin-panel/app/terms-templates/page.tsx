@@ -28,7 +28,7 @@ gql`
     name
     termsId
     createdAt
-    subjectCanUpdateTermsTemplate
+    userCanUpdateTermsTemplate
     values {
       annualRate
       liquidationCvl

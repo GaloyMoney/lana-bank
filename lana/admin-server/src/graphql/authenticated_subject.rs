@@ -22,26 +22,26 @@ impl AuthenticatedSubject {
         Ok(permissions)
     }
 
-    async fn subject_can_create_customer(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn user_can_create_customer(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .customers()
-            .subject_can_create_customer(sub, false)
+            .user_can_create_customer(sub, false)
             .await
             .is_ok())
     }
 
-    async fn subject_can_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn user_can_create_user(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app
             .access()
             .users()
-            .subject_can_create_user(sub, false)
+            .user_can_create_user(sub, false)
             .await
             .is_ok())
     }
 
-    async fn subject_can_create_terms_template(
+    async fn user_can_create_terms_template(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<bool> {
@@ -49,7 +49,7 @@ impl AuthenticatedSubject {
         Ok(app
             .credit()
             .terms_templates()
-            .subject_can_create_terms_template(sub, false)
+            .user_can_create_terms_template(sub, false)
             .await
             .is_ok())
     }

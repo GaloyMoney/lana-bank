@@ -58,7 +58,7 @@ impl ApprovalProcess {
         Ok(policy)
     }
 
-    async fn subject_can_submit_decision(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
+    async fn user_can_submit_decision(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
 
         let committee = if let Some(committee_id) = self.entity.committee_id() {
@@ -74,7 +74,7 @@ impl ApprovalProcess {
 
         Ok(app
             .governance()
-            .subject_can_submit_decision(sub, &self.entity, committee.as_ref().map(AsRef::as_ref))
+            .user_can_submit_decision(sub, &self.entity, committee.as_ref().map(AsRef::as_ref))
             .await?)
     }
 

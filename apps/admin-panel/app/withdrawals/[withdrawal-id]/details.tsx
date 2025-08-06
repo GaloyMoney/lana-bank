@@ -108,7 +108,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
         </Button>
       )}
       {withdrawal?.approvalProcess.status === ApprovalProcessStatus.InProgress &&
-        withdrawal.approvalProcess.subjectCanSubmitDecision && (
+        withdrawal.approvalProcess.userCanSubmitDecision && (
           <>
             <Button
               variant="outline"

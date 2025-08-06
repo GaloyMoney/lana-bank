@@ -88,7 +88,7 @@ where
         }
     }
 
-    pub async fn subject_can_create_customer(
+    pub async fn user_can_create_customer(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         enforce: bool,
@@ -113,7 +113,7 @@ where
         customer_type: impl Into<CustomerType> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
         let audit_info = self
-            .subject_can_create_customer(sub, true)
+            .user_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
 

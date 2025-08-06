@@ -114,8 +114,8 @@ export const mockApprovalProcess = (overrides?: Partial<ApprovalProcess>, _relat
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),
         rules: overrides && overrides.hasOwnProperty('rules') ? overrides.rules! : relationshipsToOmit.has('CommitteeThreshold') ? {} as CommitteeThreshold : mockCommitteeThreshold({}, relationshipsToOmit),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.approvalProcessStatus(),
-        subjectCanSubmitDecision: overrides && overrides.hasOwnProperty('subjectCanSubmitDecision') ? overrides.subjectCanSubmitDecision! : faker.datatype.boolean(),
         target: overrides && overrides.hasOwnProperty('target') ? overrides.target! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        userCanSubmitDecision: overrides && overrides.hasOwnProperty('userCanSubmitDecision') ? overrides.userCanSubmitDecision! : faker.datatype.boolean(),
         voters: overrides && overrides.hasOwnProperty('voters') ? overrides.voters! : [relationshipsToOmit.has('ApprovalProcessVoter') ? {} as ApprovalProcessVoter : mockApprovalProcessVoter({}, relationshipsToOmit)],
     };
 };
@@ -570,10 +570,10 @@ export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relatio
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
         repaymentPlan: overrides && overrides.hasOwnProperty('repaymentPlan') ? overrides.repaymentPlan! : [relationshipsToOmit.has('CreditFacilityRepaymentPlanEntry') ? {} as CreditFacilityRepaymentPlanEntry : mockCreditFacilityRepaymentPlanEntry({}, relationshipsToOmit)],
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.creditFacilityStatus(),
-        subjectCanComplete: overrides && overrides.hasOwnProperty('subjectCanComplete') ? overrides.subjectCanComplete! : faker.datatype.boolean(),
-        subjectCanInitiateDisbursal: overrides && overrides.hasOwnProperty('subjectCanInitiateDisbursal') ? overrides.subjectCanInitiateDisbursal! : faker.datatype.boolean(),
-        subjectCanRecordPayment: overrides && overrides.hasOwnProperty('subjectCanRecordPayment') ? overrides.subjectCanRecordPayment! : faker.datatype.boolean(),
-        subjectCanUpdateCollateral: overrides && overrides.hasOwnProperty('subjectCanUpdateCollateral') ? overrides.subjectCanUpdateCollateral! : faker.datatype.boolean(),
+        userCanComplete: overrides && overrides.hasOwnProperty('userCanComplete') ? overrides.userCanComplete! : faker.datatype.boolean(),
+        userCanInitiateDisbursal: overrides && overrides.hasOwnProperty('userCanInitiateDisbursal') ? overrides.userCanInitiateDisbursal! : faker.datatype.boolean(),
+        userCanRecordPayment: overrides && overrides.hasOwnProperty('userCanRecordPayment') ? overrides.userCanRecordPayment! : faker.datatype.boolean(),
+        userCanUpdateCollateral: overrides && overrides.hasOwnProperty('userCanUpdateCollateral') ? overrides.userCanUpdateCollateral! : faker.datatype.boolean(),
         wallet: overrides && overrides.hasOwnProperty('wallet') ? overrides.wallet! : relationshipsToOmit.has('Wallet') ? {} as Wallet : mockWallet({}, relationshipsToOmit),
     };
 };
@@ -1065,9 +1065,9 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
         level: overrides && overrides.hasOwnProperty('level') ? overrides.level! : mockEnums.kycLevel(),
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.accountStatus(),
-        subjectCanCreateCreditFacility: overrides && overrides.hasOwnProperty('subjectCanCreateCreditFacility') ? overrides.subjectCanCreateCreditFacility! : faker.datatype.boolean(),
         telegramId: overrides && overrides.hasOwnProperty('telegramId') ? overrides.telegramId! : generateMockValue.telegramId(),
         transactions: overrides && overrides.hasOwnProperty('transactions') ? overrides.transactions! : [relationshipsToOmit.has('Deposit') ? {} as Deposit : mockDeposit({}, relationshipsToOmit)],
+        userCanCreateCreditFacility: overrides && overrides.hasOwnProperty('userCanCreateCreditFacility') ? overrides.userCanCreateCreditFacility! : faker.datatype.boolean(),
     };
 };
 
@@ -2208,10 +2208,10 @@ export const mockSubject = (overrides?: Partial<Subject>, _relationshipsToOmit: 
     relationshipsToOmit.add('Subject');
     return {
         __typename: 'Subject',
-        subjectCanCreateCustomer: overrides && overrides.hasOwnProperty('subjectCanCreateCustomer') ? overrides.subjectCanCreateCustomer! : faker.datatype.boolean(),
-        subjectCanCreateTermsTemplate: overrides && overrides.hasOwnProperty('subjectCanCreateTermsTemplate') ? overrides.subjectCanCreateTermsTemplate! : faker.datatype.boolean(),
-        subjectCanCreateUser: overrides && overrides.hasOwnProperty('subjectCanCreateUser') ? overrides.subjectCanCreateUser! : faker.datatype.boolean(),
         user: overrides && overrides.hasOwnProperty('user') ? overrides.user! : relationshipsToOmit.has('User') ? {} as User : mockUser({}, relationshipsToOmit),
+        userCanCreateCustomer: overrides && overrides.hasOwnProperty('userCanCreateCustomer') ? overrides.userCanCreateCustomer! : faker.datatype.boolean(),
+        userCanCreateTermsTemplate: overrides && overrides.hasOwnProperty('userCanCreateTermsTemplate') ? overrides.userCanCreateTermsTemplate! : faker.datatype.boolean(),
+        userCanCreateUser: overrides && overrides.hasOwnProperty('userCanCreateUser') ? overrides.userCanCreateUser! : faker.datatype.boolean(),
         visibleNavigationItems: overrides && overrides.hasOwnProperty('visibleNavigationItems') ? overrides.visibleNavigationItems! : relationshipsToOmit.has('VisibleNavigationItems') ? {} as VisibleNavigationItems : mockVisibleNavigationItems({}, relationshipsToOmit),
     };
 };
@@ -2293,8 +2293,8 @@ export const mockTermsTemplate = (overrides?: Partial<TermsTemplate>, _relations
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
-        subjectCanUpdateTermsTemplate: overrides && overrides.hasOwnProperty('subjectCanUpdateTermsTemplate') ? overrides.subjectCanUpdateTermsTemplate! : faker.datatype.boolean(),
         termsId: overrides && overrides.hasOwnProperty('termsId') ? overrides.termsId! : generateMockValue.uuid(),
+        userCanUpdateTermsTemplate: overrides && overrides.hasOwnProperty('userCanUpdateTermsTemplate') ? overrides.userCanUpdateTermsTemplate! : faker.datatype.boolean(),
         values: overrides && overrides.hasOwnProperty('values') ? overrides.values! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
     };
 };
@@ -2467,7 +2467,7 @@ export const mockUser = (overrides?: Partial<User>, _relationshipsToOmit: Set<st
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         role: overrides && overrides.hasOwnProperty('role') ? overrides.role! : relationshipsToOmit.has('Role') ? {} as Role : mockRole({}, relationshipsToOmit),
-        subjectCanUpdateRoleOfUser: overrides && overrides.hasOwnProperty('subjectCanUpdateRoleOfUser') ? overrides.subjectCanUpdateRoleOfUser! : faker.datatype.boolean(),
+        userCanUpdateRoleOfUser: overrides && overrides.hasOwnProperty('userCanUpdateRoleOfUser') ? overrides.userCanUpdateRoleOfUser! : faker.datatype.boolean(),
         userId: overrides && overrides.hasOwnProperty('userId') ? overrides.userId! : generateMockValue.uuid(),
     };
 };
