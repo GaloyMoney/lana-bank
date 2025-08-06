@@ -1,11 +1,11 @@
 #[macro_use]
 pub mod macros;
-mod me;
 mod credit_facility;
 mod customer;
 mod deposit;
 mod deposit_account;
 mod deposit_account_history;
+mod me;
 mod price;
 mod schema;
 mod terms;
