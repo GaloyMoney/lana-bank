@@ -2,12 +2,22 @@ import { createEnv } from "@t3-oss/env-nextjs"
 import { z } from "zod"
 
 export const env = createEnv({
+  server: {
+    AUTH_SECRET: z.string(),
+    AUTH_KEYCLOAK_SECRET: z.string(),
+  },
   shared: {
-    NEXT_PUBLIC_CORE_URL: z.string().url().default("http://app.localhost:4455"),
-    NEXT_PUBLIC_KRATOS_PUBLIC_API: z.string().url().default("http://app.localhost:4455"),
+    NEXT_PUBLIC_CORE_URL: z.string(),
+    NEXT_PUBLIC_KEYCLOAK_URL: z.string(),
+    NEXT_PUBLIC_KEYCLOAK_REALM: z.string(),
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: z.string(),
   },
   runtimeEnv: {
+    AUTH_SECRET: process.env.AUTH_SECRET,
+    AUTH_KEYCLOAK_SECRET: process.env.AUTH_KEYCLOAK_SECRET,
     NEXT_PUBLIC_CORE_URL: process.env.NEXT_PUBLIC_CORE_URL,
-    NEXT_PUBLIC_KRATOS_PUBLIC_API: process.env.NEXT_PUBLIC_KRATOS_PUBLIC_API,
+    NEXT_PUBLIC_KEYCLOAK_URL: process.env.NEXT_PUBLIC_KEYCLOAK_URL,
+    NEXT_PUBLIC_KEYCLOAK_REALM: process.env.NEXT_PUBLIC_KEYCLOAK_REALM,
+    NEXT_PUBLIC_KEYCLOAK_CLIENT_ID: process.env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
   },
 })

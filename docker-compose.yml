@@ -9,17 +9,6 @@ services:
     command: --config=/etc/otel-agent-config.yaml
     volumes: ["./dev/otel-agent-config.yaml:/etc/otel-agent-config.yaml"]
 
-  #! Auth Services (ORY Stack)
-  kratos-customer:
-    image: oryd/kratos:v1.3.1
-    ports: [4435:4433, 4436:4434]
-    entrypoint: sh -c
-    command: '"kratos migrate sql up -y -e && kratos serve -c /home/ory/customer/kratos.yml --watch-courier --sqa-opt-out --dev"'
-    environment:
-      DSN: postgres://dbuser:secret@kratos-customer-pg:5432/default?sslmode=disable
-    volumes: ["./dev/ory:/home/ory"]
-    depends_on: [kratos-customer-pg]
-
   keycloak:
     image: quay.io/keycloak/keycloak:26.3.2
     ports: [8081:8080]
@@ -47,7 +36,7 @@ services:
     ports: [4455:4455, 4456:4456]
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: ["./dev/ory:/home/ory"]
-    depends_on: [kratos-customer, keycloak, otel-agent]
+    depends_on: [keycloak, otel-agent]
 
   mailcrab:
     image: marlonb/mailcrab:latest
@@ -59,12 +48,6 @@ services:
     ports: [5433:5432]
     environment:
       [POSTGRES_USER=user, POSTGRES_PASSWORD=password, POSTGRES_DB=pg]
-
-  kratos-customer-pg:
-    image: postgres:17.5
-    ports: [5435:5432]
-    environment:
-      [POSTGRES_USER=dbuser, POSTGRES_PASSWORD=secret, POSTGRES_DB=default]
 
   keycloak-pg:
     image: postgres:17.5
