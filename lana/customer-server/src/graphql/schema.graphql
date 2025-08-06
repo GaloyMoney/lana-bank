@@ -293,6 +293,10 @@ enum KycLevel {
 	ADVANCED
 }
 
+type Me {
+	customer: Customer!
+}
+
 scalar OneTimeFeeRatePct
 
 type Outstanding {
@@ -331,7 +335,7 @@ enum Period {
 }
 
 type Query {
-	me: Subject!
+	me: Me!
 	creditFacility(id: UUID!): CreditFacility
 	realtimePrice: RealtimePrice!
 }
@@ -341,10 +345,6 @@ type RealtimePrice {
 }
 
 scalar Satoshis
-
-type Subject {
-	customer: Customer!
-}
 
 type TermValues {
 	annualRate: AnnualRatePct!

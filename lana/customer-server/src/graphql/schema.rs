@@ -2,16 +2,16 @@ use async_graphql::{Context, Object};
 
 use crate::{LanaApp, primitives::*};
 
-use super::{authenticated_subject::*, credit_facility::*, price::*};
+use super::{credit_facility::*, me::*, price::*};
 
 pub struct Query;
 
 #[Object]
 impl Query {
-    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<AuthenticatedSubject> {
+    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeCustomer> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let customer = app.customers().find_for_subject(sub).await?;
-        Ok(AuthenticatedSubject::from(customer))
+        Ok(MeCustomer::from(customer))
     }
 
     async fn credit_facility(

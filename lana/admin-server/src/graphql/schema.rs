@@ -12,23 +12,23 @@ use lana_app::{
 use crate::primitives::*;
 
 use super::{
-    access::*, accounting::*, approval_process::*, audit::*, authenticated_subject::*,
-    balance_sheet_config::*, committee::*, contract_creation::*, credit_config::*,
-    credit_facility::*, custody::*, customer::*, dashboard::*, deposit::*, deposit_config::*,
-    document::*, loader::*, policy::*, price::*, profit_and_loss_config::*, public_id::*,
-    reports::*, sumsub::*, terms_template::*, withdrawal::*,
+    access::*, accounting::*, approval_process::*, audit::*, balance_sheet_config::*, committee::*,
+    contract_creation::*, credit_config::*, credit_facility::*, custody::*, customer::*,
+    dashboard::*, deposit::*, deposit_config::*, document::*, loader::*, me::*, policy::*,
+    price::*, profit_and_loss_config::*, public_id::*, reports::*, sumsub::*, terms_template::*,
+    withdrawal::*,
 };
 
 pub struct Query;
 
 #[Object]
 impl Query {
-    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<AuthenticatedSubject> {
+    async fn me(&self, ctx: &Context<'_>) -> async_graphql::Result<MeUser> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         let user = Arc::new(app.access().users().find_for_subject(sub).await?);
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         loader.feed_one(user.id, User::from(user.clone())).await;
-        Ok(AuthenticatedSubject::from(user))
+        Ok(MeUser::from(user))
     }
 
     async fn dashboard(&self, ctx: &Context<'_>) -> async_graphql::Result<Dashboard> {

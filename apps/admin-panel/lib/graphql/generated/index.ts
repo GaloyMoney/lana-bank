@@ -1355,6 +1355,15 @@ export type ManualTransactionExecutePayload = {
   transaction: LedgerTransaction;
 };
 
+export type Me = {
+  __typename?: 'Me';
+  user: User;
+  userCanCreateCustomer: Scalars['Boolean']['output'];
+  userCanCreateTermsTemplate: Scalars['Boolean']['output'];
+  userCanCreateUser: Scalars['Boolean']['output'];
+  visibleNavigationItems: VisibleNavigationItems;
+};
+
 export type Mutation = {
   __typename?: 'Mutation';
   accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
@@ -1821,7 +1830,7 @@ export type Query = {
   ledgerTransaction?: Maybe<LedgerTransaction>;
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   loanAgreement?: Maybe<LoanAgreement>;
-  me: Subject;
+  me: Me;
   permissionSets: PermissionSetConnection;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -2225,15 +2234,6 @@ export enum SortDirection {
   Asc = 'ASC',
   Desc = 'DESC'
 }
-
-export type Subject = {
-  __typename?: 'Subject';
-  user: User;
-  userCanCreateCustomer: Scalars['Boolean']['output'];
-  userCanCreateTermsTemplate: Scalars['Boolean']['output'];
-  userCanCreateUser: Scalars['Boolean']['output'];
-  visibleNavigationItems: VisibleNavigationItems;
-};
 
 export type SumsubPermalinkCreateInput = {
   customerId: Scalars['UUID']['input'];
@@ -3266,7 +3266,7 @@ export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename
 export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Subject', user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } } } };
+export type AvatarQuery = { __typename?: 'Query', me: { __typename?: 'Me', user: { __typename?: 'User', userId: string, email: string, role: { __typename?: 'Role', roleId: string, name: string } } } };
 
 export type GetRealtimePriceUpdatesQueryVariables = Exact<{ [key: string]: never; }>;
 

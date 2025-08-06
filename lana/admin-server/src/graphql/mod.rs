@@ -2,7 +2,7 @@ mod accounting;
 mod approval_process;
 mod approval_rules;
 mod audit;
-mod authenticated_subject;
+mod me;
 mod balance_sheet_config;
 mod committee;
 mod contract_creation;

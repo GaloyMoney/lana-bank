@@ -6,13 +6,13 @@ use lana_app::{access::user::User as DomainUser, authorization::VisibleNavigatio
 use crate::primitives::*;
 
 #[derive(SimpleObject)]
-#[graphql(name = "Subject", complex)]
-pub struct AuthenticatedSubject {
+#[graphql(name = "Me", complex)]
+pub struct MeUser {
     user: User,
 }
 
 #[ComplexObject]
-impl AuthenticatedSubject {
+impl MeUser {
     async fn visible_navigation_items(
         &self,
         ctx: &Context<'_>,
@@ -55,7 +55,7 @@ impl AuthenticatedSubject {
     }
 }
 
-impl From<Arc<DomainUser>> for AuthenticatedSubject {
+impl From<Arc<DomainUser>> for MeUser {
     fn from(entity: Arc<DomainUser>) -> Self {
         Self {
             user: User::from(entity),

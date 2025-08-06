@@ -1,6 +1,6 @@
 #[macro_use]
 pub mod macros;
-mod authenticated_subject;
+mod me;
 mod credit_facility;
 mod customer;
 mod deposit;

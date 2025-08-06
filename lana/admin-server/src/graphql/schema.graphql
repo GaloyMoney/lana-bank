@@ -1348,6 +1348,14 @@ type ManualTransactionExecutePayload {
 	transaction: LedgerTransaction!
 }
 
+type Me {
+	user: User!
+	visibleNavigationItems: VisibleNavigationItems!
+	userCanCreateCustomer: Boolean!
+	userCanCreateUser: Boolean!
+	userCanCreateTermsTemplate: Boolean!
+}
+
 type Mutation {
 	customerDocumentAttach(input: CustomerDocumentCreateInput!): CustomerDocumentCreatePayload!
 	sumsubPermalinkCreate(input: SumsubPermalinkCreateInput!): SumsubPermalinkCreatePayload!
@@ -1568,7 +1576,7 @@ scalar PublicId
 union PublicIdTarget = Customer | DepositAccount | CreditFacility | CreditFacilityDisbursal
 
 type Query {
-	me: Subject!
+	me: Me!
 	dashboard: Dashboard!
 	user(id: UUID!): User
 	users: [User!]!
@@ -1781,14 +1789,6 @@ scalar SignedUsdCents
 enum SortDirection {
 	ASC
 	DESC
-}
-
-type Subject {
-	user: User!
-	visibleNavigationItems: VisibleNavigationItems!
-	userCanCreateCustomer: Boolean!
-	userCanCreateUser: Boolean!
-	userCanCreateTermsTemplate: Boolean!
 }
 
 input SumsubPermalinkCreateInput {
