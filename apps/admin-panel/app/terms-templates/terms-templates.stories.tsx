@@ -3,7 +3,7 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import TermPage from "./page"
 
-import { TermsTemplatesDocument } from "@/lib/graphql/generated"
+import { TermsTemplatesDocument, Kind } from "@/lib/graphql/generated"
 import {
   mockDuration,
   mockTermsTemplate,
@@ -68,9 +68,18 @@ const createTermsTemplates = () => {
       name: template.name,
       values: mockTermValues({
         annualRate: riskProfile.annualRate,
-        liquidationCvl: riskProfile.liquidationCvl,
-        marginCallCvl: riskProfile.marginCallCvl,
-        initialCvl: riskProfile.initialCvl,
+        liquidationCvl: {
+          kind: Kind.Finite,
+          value: riskProfile.liquidationCvl,
+        },
+        marginCallCvl: {
+          kind: Kind.Finite,
+          value: riskProfile.marginCallCvl,
+        },
+        initialCvl: {
+          kind: Kind.Finite,
+          value: riskProfile.initialCvl,
+        },
         oneTimeFeeRate: 0.5,
         duration: mockDuration({
           units: riskProfile.duration.units,
