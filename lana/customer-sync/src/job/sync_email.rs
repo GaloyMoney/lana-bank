@@ -5,12 +5,10 @@ use tracing::instrument;
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
-use kratos_admin::KratosAdmin;
+use keycloak_admin::KeycloakAdmin;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
-
-use crate::config::*;
 
 #[derive(serde::Serialize)]
 pub struct SyncEmailJobConfig<Perms, E> {
@@ -42,7 +40,7 @@ where
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
-    kratos_admin: KratosAdmin,
+    keycloak_admin: KeycloakAdmin,
 }
 
 impl<Perms, E> SyncEmailInit<Perms, E>
@@ -53,14 +51,12 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
-        config: CustomerSyncConfig,
+        keycloak_admin: KeycloakAdmin,
     ) -> Self {
-        let kratos_admin = kratos_admin::KratosAdmin::init(config.kratos_admin.clone());
-
         Self {
             outbox: outbox.clone(),
             customers: customers.clone(),
-            kratos_admin,
+            keycloak_admin,
         }
     }
 }
@@ -84,7 +80,7 @@ where
         Ok(Box::new(SyncEmailJobRunner {
             outbox: self.outbox.clone(),
             customers: self.customers.clone(),
-            kratos_admin: self.kratos_admin.clone(),
+            keycloak_admin: self.keycloak_admin.clone(),
         }))
     }
 
@@ -108,7 +104,7 @@ where
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
-    kratos_admin: KratosAdmin,
+    keycloak_admin: KeycloakAdmin,
 }
 
 #[async_trait]
@@ -170,7 +166,7 @@ where
 
             if let Some(customer) = customer {
                 if let Some(authentication_id) = customer.authentication_id {
-                    self.kratos_admin
+                    self.keycloak_admin
                         .update_user_email(authentication_id.into(), email.clone())
                         .await?;
                 }

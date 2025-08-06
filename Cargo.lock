@@ -1623,7 +1623,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "kratos-admin",
+ "keycloak-admin",
  "outbox",
  "serde",
  "thiserror 2.0.12",

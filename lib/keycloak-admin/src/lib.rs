@@ -19,12 +19,10 @@ pub struct KeycloakAdmin {
 }
 
 impl KeycloakAdmin {
-    pub async fn init(config: KeycloakAdminConfig) -> Result<Self, KeycloakAdminError> {
-        let http_client = Client::new();
-
+    pub fn init(config: KeycloakAdminConfig) -> Result<Self, KeycloakAdminError> {
         Ok(Self {
             config,
-            http_client,
+            http_client: Client::new(),
         })
     }
 
@@ -61,5 +59,23 @@ impl KeycloakAdmin {
         })?;
         let uuid = user_id_str.parse::<Uuid>()?;
         Ok(uuid)
+    }
+
+    pub async fn update_user_email(
+        &self,
+        user_id: Uuid,
+        email: String,
+    ) -> Result<(), KeycloakAdminError> {
+        let user = UserRepresentation {
+            email: Some(email),
+            email_verified: Some(true),
+            ..Default::default()
+        };
+        let client = self.get_client().await?;
+        client
+            .realm_users_with_user_id_put(&self.config.realm, &user_id.to_string(), user)
+            .await
+            .map_err(KeycloakAdminError::KeycloakError)?;
+        Ok(())
     }
 }
