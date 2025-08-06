@@ -1593,12 +1593,13 @@ impl Mutation {
         input: CustodianCreateInput,
     ) -> async_graphql::Result<CustodianCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let name = input.name().to_owned();
+        let config = input.into();
         exec_mutation!(
             CustodianCreatePayload,
             Custodian,
             ctx,
-            app.custody()
-                .create_custodian(sub, input.name().to_owned(), input.into())
+            app.custody().create_custodian(sub, name, config)
         )
     }
 
@@ -1783,6 +1784,8 @@ impl Mutation {
         input: ChartOfAccountsAddRootNodeInput,
     ) -> async_graphql::Result<ChartOfAccountsAddRootNodePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let chart_id = input.chart_id.into();
+        let account_spec = input.try_into()?;
         exec_mutation!(
             ChartOfAccountsAddRootNodePayload,
             ChartOfAccounts,
@@ -1790,9 +1793,9 @@ impl Mutation {
             ctx,
             app.accounting().add_root_node(
                 sub,
-                input.chart_id.into(),
-                input.try_into()?,
-                TRIAL_BALANCE_STATEMENT_NAME,
+                chart_id,
+                account_spec,
+                TRIAL_BALANCE_STATEMENT_NAME
             )
         )
     }
@@ -1803,6 +1806,10 @@ impl Mutation {
         input: ChartOfAccountsAddChildNodeInput,
     ) -> async_graphql::Result<ChartOfAccountsAddChildNodePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let chart_id = input.chart_id.into();
+        let parent = input.parent.try_into()?;
+        let code = input.code.try_into()?;
+        let name = input.name.parse()?;
         exec_mutation!(
             ChartOfAccountsAddChildNodePayload,
             ChartOfAccounts,
@@ -1810,11 +1817,11 @@ impl Mutation {
             ctx,
             app.accounting().add_child_node(
                 sub,
-                input.chart_id.into(),
-                input.parent.try_into()?,
-                input.code.try_into()?,
-                input.name.parse()?,
-                TRIAL_BALANCE_STATEMENT_NAME,
+                chart_id,
+                parent,
+                code,
+                name,
+                TRIAL_BALANCE_STATEMENT_NAME
             )
         )
     }

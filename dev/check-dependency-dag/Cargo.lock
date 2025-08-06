@@ -151,7 +151,6 @@ dependencies = [
  "anyhow",
  "cargo_metadata",
  "clap",
- "serde_json",
  "syn",
  "tokio",
 ]

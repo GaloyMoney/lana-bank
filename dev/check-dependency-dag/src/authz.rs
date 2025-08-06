@@ -3,7 +3,6 @@ use cargo_metadata::{CargoOpt, MetadataCommand};
 use std::collections::HashMap;
 use std::fs;
 use std::path::Path;
-use std::process::Command;
 use syn::{File, ImplItemFn, ItemImpl, visit::Visit};
 
 #[derive(Debug, Clone)]
@@ -52,7 +51,7 @@ pub async fn check_authorization() -> Result<()> {
     } else {
         println!("❌ Authorization violations found:");
         for violation in &violations {
-            println!("  - {}", violation);
+            println!("  - {violation}");
         }
         std::process::exit(1);
     }
@@ -230,8 +229,21 @@ impl MutationVisitor {
                 }
                 syn::Expr::Path(path) => {
                     if path.path.segments.len() == 1 && path.path.segments[0].ident == "app" {
-                        // We found the app root, now extract module
-                        if let Some(module) = chain.last() {
+                        // We found the app root, now extract the correct module
+                        // For multi-level calls like app.credit().terms_templates().create_terms_template()
+                        // chain will be ["terms_templates", "credit"] (reverse order)
+                        // We want the second-to-last item as the module (terms_templates)
+                        // or if there's only one item, use that (for simple app.module().function() calls)
+
+                        if chain.len() >= 2 {
+                            // Multi-level call: use second-to-last as module
+                            // e.g., app.credit().terms_templates().create_terms_template()
+                            // chain = ["terms_templates", "credit"], so chain[chain.len()-2] = "terms_templates"
+                            let module = &chain[chain.len() - 2];
+                            return Some((module.clone(), function));
+                        } else if chain.len() == 1 {
+                            // Simple call: app.module().function()
+                            let module = &chain[0];
                             return Some((module.clone(), function));
                         }
                     }
@@ -245,11 +257,12 @@ impl MutationVisitor {
     }
 
     fn parse_macro_tokens_for_app_calls(&self, tokens: &str, app_calls: &mut Vec<AppCall>) {
-        // Remove spaces to handle tokenization issues
-        let clean_tokens = tokens.replace(" ", "");
+        let clean_tokens = tokens
+            .replace(' ', "")
+            .replace('\n', "")
+            .replace('\t', "")
+            .replace('\r', "");
 
-        // Simple parsing of exec_mutation! macro content
-        // Look for app.module().function() patterns in the tokens
         if let Some(start) = clean_tokens.find("app.") {
             let remaining = &clean_tokens[start..];
             if let Some(app_call) = self.parse_simple_app_call(remaining) {
@@ -259,28 +272,42 @@ impl MutationVisitor {
     }
 
     fn parse_simple_app_call(&self, text: &str) -> Option<AppCall> {
-        // More careful parsing - look for the pattern app.module().function(
-        if let Some(app_start) = text.find("app.") {
-            let remaining = &text[app_start..];
+        if !text.starts_with("app.") {
+            return None;
+        }
 
-            // Find the module name (between first dot and next ())
-            if let Some(first_dot) = remaining.find('.') {
-                let after_app = &remaining[first_dot + 1..];
-                if let Some(paren_pos) = after_app.find("()") {
-                    let module = &after_app[..paren_pos];
+        let after_app = &text[4..]; // skip "app."
+        let parts: Vec<&str> = after_app.split('.').collect();
 
-                    // Now find the function after the next dot
-                    let after_module = &after_app[paren_pos + 2..];
-                    if let Some(dot_pos) = after_module.find('.') {
-                        let after_dot = &after_module[dot_pos + 1..];
-                        if let Some(func_paren) = after_dot.find('(') {
-                            let function = &after_dot[..func_paren];
-                            return Some(AppCall {
-                                module: module.to_string(),
-                                function: function.to_string(),
-                            });
-                        }
-                    }
+        if parts.len() < 2 {
+            return None;
+        }
+
+        // The last part should contain the function name followed by (
+        let last_part = parts.last()?;
+        if let Some(paren_pos) = last_part.find('(') {
+            let function_name = &last_part[..paren_pos];
+
+            // Clean function name - only alphanumeric and underscore
+            let clean_function = function_name
+                .chars()
+                .take_while(|&c| c.is_alphanumeric() || c == '_')
+                .collect::<String>();
+
+            if clean_function.is_empty() {
+                return None;
+            }
+
+            // The module is the second-to-last part (remove () if present)
+            if parts.len() >= 2 {
+                let module_part = parts[parts.len() - 2];
+                let module_name = module_part.trim_end_matches("()");
+
+                if !module_name.is_empty() {
+                    return Some(AppCall {
+                        module: module_name.to_string(),
+                        function: clean_function,
+                    });
                 }
             }
         }
@@ -290,125 +317,51 @@ impl MutationVisitor {
 }
 
 fn check_function_authorization(app_call: &AppCall) -> Result<bool> {
-    // Use Rust's own resolution by asking rust-analyzer or using metadata
-    if let Some(target_file) = resolve_function_location(app_call)? {
+    if let Some(target_file) = resolve_function_with_metadata(app_call)? {
         let content = fs::read_to_string(&target_file)
             .map_err(|e| anyhow!("Failed to read resolved file {}: {}", target_file, e))?;
-        return check_function_in_content(&content, &app_call.function);
-    }
-
-    // Fallback to directory scanning if resolution fails
-    let possible_core_modules = [
-        app_call.module.as_str(), // exact match (e.g., "access" -> "access")
-        &app_call.module.trim_end_matches('s'), // remove trailing 's' (e.g., "customers" -> "customer")
-        &format!("{}s", app_call.module), // add trailing 's' (e.g., "applicant" -> "applicants")
-    ];
-
-    for core_module in possible_core_modules {
-        let core_dir = format!("../../core/{}", core_module);
-
-        // Check if the core directory exists
-        if !std::path::Path::new(&core_dir).exists() {
-            continue;
-        }
-
-        // Auto-discover all Rust files in the core module directory
-        if check_function_in_directory(&core_dir, &app_call.function)? {
-            return Ok(true);
-        }
+        return check_specific_function_in_content(&content, &app_call.function);
     }
 
     Ok(false)
 }
 
-fn resolve_function_location(app_call: &AppCall) -> Result<Option<String>> {
-    // FUTURE IMPROVEMENT: Use rust-analyzer LSP for precise resolution
-    // This would be the most accurate approach - query rust-analyzer directly:
-    //
-    // 1. Start rust-analyzer LSP server
-    // 2. Send "textDocument/definition" request for the app.module().function() call
-    // 3. Get back exact file path and line number
-    // 4. This is exactly what IDEs like VSCode do for "Go to Definition"
-    //
-    // For now, use cargo metadata as a good approximation:
-
-    // Try the LSP approach first (if rust-analyzer is available)
-    if let Ok(location) = resolve_using_rust_analyzer(app_call) {
-        return Ok(Some(location));
-    }
-
-    // Use the actual dependency graph from cargo metadata
-    // This leverages Cargo's own resolution logic!
+fn resolve_function_with_metadata(app_call: &AppCall) -> Result<Option<String>> {
     let metadata = MetadataCommand::new()
         .manifest_path("../../Cargo.toml")
         .features(CargoOpt::AllFeatures)
         .exec()?;
 
-    // Find the admin-server package
-    let workspace_packages = metadata.workspace_packages();
-    let admin_server_pkg = workspace_packages
-        .iter()
-        .find(|pkg| pkg.name == "admin-server")
-        .ok_or_else(|| anyhow!("Could not find admin-server package"))?;
+    let target_package = find_package_for_module(&metadata, &app_call.module)?;
 
-    // Look through its actual dependencies for core modules
-    for dependency in &admin_server_pkg.dependencies {
-        if let Some(dep_path) = &dependency.path {
-            // Check if this dependency matches our app module
-            let dep_name = &dependency.name;
-
-            // Convert dependency name to module name (e.g., "lana-customer" -> "customer")
-            let module_candidates = [
-                app_call.module.as_str(),
-                &app_call.module.trim_end_matches('s'),
-                &format!("{}s", app_call.module),
-            ];
-
-            for candidate in module_candidates {
-                if dep_name.contains(candidate) || candidate.contains(dep_name) {
-                    // Found the actual dependency! Use its real path
-                    let src_dir = dep_path.join("src");
-
-                    // Check lib.rs first
-                    let lib_file = src_dir.join("lib.rs");
-                    if lib_file.exists() {
-                        return Ok(Some(lib_file.to_string()));
-                    }
-
-                    // Check mod.rs
-                    let mod_file = src_dir.join("mod.rs");
-                    if mod_file.exists() {
-                        return Ok(Some(mod_file.to_string()));
-                    }
-                }
-            }
+    if let Some(package) = target_package {
+        if let Some(file_path) =
+            find_function_in_package(package, &app_call.module, &app_call.function)?
+        {
+            return Ok(Some(file_path));
         }
     }
 
-    // Fallback: Look through all workspace packages
-    let possible_package_names = [
-        format!("lana-{}", app_call.module),
-        format!("core-{}", app_call.module),
-        format!("core_{}", app_call.module),
-        app_call.module.trim_end_matches('s').to_string(),
-        app_call.module.clone(),
-    ];
+    Ok(None)
+}
 
+fn find_package_for_module<'a>(
+    metadata: &'a cargo_metadata::Metadata,
+    module_name: &str,
+) -> Result<Option<&'a cargo_metadata::Package>> {
+    // Look through workspace packages for one that might contain our module
     for package in metadata.workspace_packages() {
-        if possible_package_names
-            .iter()
-            .any(|name| package.name.contains(name) || name.contains(&package.name))
-        {
+        // Check if package name matches module patterns
+        if is_package_match(&package.name, module_name) {
+            return Ok(Some(package));
+        }
+
+        // Also check if this is a multi-module package (like core-credit containing terms_templates)
+        if package.name.starts_with("core-") || package.name.starts_with("lana-") {
+            // Check if the package's source directory contains the module
             let src_dir = package.manifest_path.parent().unwrap().join("src");
-
-            let lib_file = src_dir.join("lib.rs");
-            if lib_file.exists() {
-                return Ok(Some(lib_file.to_string()));
-            }
-
-            let mod_file = src_dir.join("mod.rs");
-            if mod_file.exists() {
-                return Ok(Some(mod_file.to_string()));
+            if module_exists_in_package_src(src_dir.as_std_path(), module_name)? {
+                return Ok(Some(package));
             }
         }
     }
@@ -416,75 +369,59 @@ fn resolve_function_location(app_call: &AppCall) -> Result<Option<String>> {
     Ok(None)
 }
 
-fn resolve_using_rust_analyzer(_app_call: &AppCall) -> Result<String> {
-    // OPTION 1: Use rust-analyzer via LSP (Most Practical)
-    // This would involve:
-    // 1. Starting rust-analyzer as a subprocess
-    // 2. Sending LSP "textDocument/definition" requests
-    // 3. Getting back exact file:line locations
-    //
-    // Example implementation:
-    // let lsp_response = send_lsp_request(GotoDefinitionParams {
-    //     text_document_position_params: TextDocumentPositionParams {
-    //         text_document: TextDocumentIdentifier {
-    //             uri: "file:///.../schema.rs".parse()?
-    //         },
-    //         position: Position { line: 123, character: 45 },
-    //     },
-    //     work_done_progress_params: Default::default(),
-    //     partial_result_params: Default::default(),
-    // })?;
+fn is_package_match(package_name: &str, module_name: &str) -> bool {
+    // Direct matches
+    if package_name == module_name {
+        return true;
+    }
 
-    // OPTION 2: Use cargo check with custom rustc flags
-    // We can leverage rustc's --emit=metadata flag to get resolution info
-    let output = Command::new("cargo")
-        .args(&[
-            "check",
-            "--manifest-path",
-            "../../Cargo.toml",
-            "--package",
-            "lana-admin-server",
-            "--message-format=json",
-        ])
-        .current_dir("../../")
-        .output();
+    // Handle common patterns:
+    // - "core-customer" matches "customers"
+    // - "lana-access" matches "access"
+    // - "terms_templates" matches "core-credit" (special case)
 
-    if let Ok(output) = output {
-        if output.status.success() {
-            // Parse cargo check JSON output for diagnostic information
-            // This can give us information about where symbols are defined
-            let stdout = String::from_utf8_lossy(&output.stdout);
-            for line in stdout.lines() {
-                if let Ok(message) = serde_json::from_str::<serde_json::Value>(line) {
-                    // Look for compiler messages that contain resolution info
-                    if message["reason"] == "compiler-message" {
-                        // This approach would need more development but is feasible
-                    }
-                }
+    let package_parts: Vec<&str> = package_name.split('-').collect();
+    let module_parts: Vec<&str> = module_name.split('_').collect();
+
+    // Check if any part of the package name matches any part of the module name
+    for package_part in &package_parts {
+        for module_part in &module_parts {
+            if package_part == module_part
+                || package_part.trim_end_matches('s') == module_part.trim_end_matches('s')
+                || package_part == &format!("{module_part}s")
+                || &format!("{package_part}s") == module_part
+            {
+                return true;
             }
         }
     }
 
-    // OPTION 3: Use the actual compiler resolution (Future)
-    // For the ultimate solution, we could:
-    // 1. Parse the source file with syn to find the exact position
-    // 2. Use rustc_interface to run compiler analysis
-    // 3. Query the resolver for exact symbol locations
-    //
-    // This would give us 100% accurate resolution but requires more complex setup
-
-    Err(anyhow!(
-        "Exact rust-analyzer resolution not yet implemented - using fallback"
-    ))
+    false
 }
 
-fn check_function_in_directory(dir_path: &str, function_name: &str) -> Result<bool> {
-    // Recursively find all .rs files in the directory
-    let rust_files = find_rust_files(Path::new(dir_path))?;
+fn module_exists_in_package_src(src_dir: &std::path::Path, module_name: &str) -> Result<bool> {
+    if !src_dir.exists() {
+        return Ok(false);
+    }
 
-    for file_path in rust_files {
-        if let Ok(content) = fs::read_to_string(&file_path) {
-            if check_function_in_content(&content, function_name)? {
+    // Check for direct module directory
+    let module_dir = src_dir.join(module_name);
+    if module_dir.exists() {
+        return Ok(true);
+    }
+
+    // Check for singular/plural variations
+    let module_singular = module_name.trim_end_matches('s');
+    let module_dir_singular = src_dir.join(module_singular);
+    if module_dir_singular.exists() {
+        return Ok(true);
+    }
+
+    // For compound module names, check if any part exists
+    if module_name.contains('_') {
+        for part in module_name.split('_') {
+            let part_dir = src_dir.join(part);
+            if part_dir.exists() {
                 return Ok(true);
             }
         }
@@ -493,6 +430,126 @@ fn check_function_in_directory(dir_path: &str, function_name: &str) -> Result<bo
     Ok(false)
 }
 
+fn find_function_in_package(
+    package: &cargo_metadata::Package,
+    module_name: &str,
+    function_name: &str,
+) -> Result<Option<String>> {
+    let src_dir = package.manifest_path.parent().unwrap().join("src");
+
+    // Search strategy:
+    // 1. Look in lib.rs first (main entry point)
+    // 2. Look in module-specific directories
+    // 3. Recursively search all .rs files
+
+    let search_files = collect_rust_files_for_module(src_dir.as_std_path(), module_name)?;
+
+    for file_path in search_files {
+        if find_function_in_file(&file_path, function_name)? {
+            return Ok(Some(file_path.to_string_lossy().to_string()));
+        }
+    }
+
+    Ok(None)
+}
+
+fn collect_rust_files_for_module(
+    src_dir: &std::path::Path,
+    module_name: &str,
+) -> Result<Vec<std::path::PathBuf>> {
+    let mut files = Vec::new();
+
+    // Always check lib.rs first
+    let lib_file = src_dir.join("lib.rs");
+    if lib_file.exists() {
+        files.push(lib_file);
+    }
+
+    // Check main.rs
+    let main_file = src_dir.join("main.rs");
+    if main_file.exists() {
+        files.push(main_file);
+    }
+
+    // Check module-specific directories
+    let possible_module_dirs = [
+        module_name,
+        module_name.trim_end_matches('s'),
+        &format!("{}s", module_name.trim_end_matches('s')),
+    ];
+
+    for dir_name in possible_module_dirs {
+        let module_dir = src_dir.join(dir_name);
+        if module_dir.exists() {
+            files.extend(find_rust_files(&module_dir)?);
+        }
+    }
+
+    // If we still haven't found anything, search all .rs files
+    if files.len() <= 2 {
+        // Only lib.rs and/or main.rs
+        files.extend(find_rust_files(src_dir)?);
+    }
+
+    Ok(files)
+}
+
+fn find_function_in_file(file_path: &std::path::Path, function_name: &str) -> Result<bool> {
+    let content = fs::read_to_string(file_path)?;
+    let syntax_tree: syn::File = syn::parse_str(&content)
+        .map_err(|e| anyhow!("Failed to parse {}: {}", file_path.display(), e))?;
+
+    let mut visitor = FunctionFinder::new(function_name);
+    visitor.visit_file(&syntax_tree);
+
+    Ok(visitor.function_location.is_some())
+}
+
+struct FunctionFinder {
+    target_function: String,
+    function_location: Option<()>,
+}
+
+impl FunctionFinder {
+    fn new(function_name: &str) -> Self {
+        Self {
+            target_function: function_name.to_string(),
+            function_location: None,
+        }
+    }
+}
+
+impl<'ast> syn::visit::Visit<'ast> for FunctionFinder {
+    fn visit_impl_item_fn(&mut self, node: &'ast syn::ImplItemFn) {
+        if node.sig.ident == self.target_function {
+            // Found the function!
+            self.function_location = Some(());
+            return;
+        }
+        syn::visit::visit_impl_item_fn(self, node);
+    }
+
+    fn visit_item_fn(&mut self, node: &'ast syn::ItemFn) {
+        if node.sig.ident == self.target_function {
+            self.function_location = Some(());
+            return;
+        }
+        syn::visit::visit_item_fn(self, node);
+    }
+}
+
+fn check_specific_function_in_content(content: &str, function_name: &str) -> Result<bool> {
+    // Parse the file and find the specific function
+    let syntax_tree: syn::File =
+        syn::parse_str(content).map_err(|e| anyhow!("Failed to parse Rust file: {}", e))?;
+
+    let mut visitor = AuthzVisitor::new(function_name);
+    visitor.visit_file(&syntax_tree);
+
+    Ok(visitor.has_authorization)
+}
+
+// Note: find_rust_files is used by collect_rust_files_for_module
 fn find_rust_files(dir: &Path) -> Result<Vec<std::path::PathBuf>> {
     let mut rust_files = Vec::new();
 
@@ -513,14 +570,6 @@ fn find_rust_files(dir: &Path) -> Result<Vec<std::path::PathBuf>> {
     }
 
     Ok(rust_files)
-}
-
-fn check_function_in_content(content: &str, function_name: &str) -> Result<bool> {
-    let syntax_tree: File =
-        syn::parse_str(content).map_err(|e| anyhow!("Failed to parse Rust file: {}", e))?;
-    let mut visitor = AuthzVisitor::new(function_name);
-    visitor.visit_file(&syntax_tree);
-    Ok(visitor.has_authorization)
 }
 
 struct AuthzVisitor {
@@ -545,6 +594,14 @@ impl<'ast> Visit<'ast> for AuthzVisitor {
             && node.sig.asyncness.is_some()
             && matches!(node.vis, syn::Visibility::Public(_))
         {
+            // Check if this function has 'sub' as the first parameter
+            if !self.function_has_sub_parameter(&node.sig) {
+                // This function doesn't have 'sub' parameter - it should be flagged
+                // We don't set has_authorization = true because this is a violation
+                self.in_target_function = false;
+                return;
+            }
+
             self.in_target_function = true;
             self.visit_block(&node.block);
             self.in_target_function = false;
@@ -557,6 +614,13 @@ impl<'ast> Visit<'ast> for AuthzVisitor {
             && node.sig.asyncness.is_some()
             && matches!(node.vis, syn::Visibility::Public(_))
         {
+            // Check if this function has 'sub' as the first parameter
+            if !self.function_has_sub_parameter(&node.sig) {
+                // This function doesn't have 'sub' parameter - it should be flagged
+                self.in_target_function = false;
+                return;
+            }
+
             self.in_target_function = true;
             self.visit_block(&node.block);
             self.in_target_function = false;
@@ -574,14 +638,17 @@ impl<'ast> Visit<'ast> for AuthzVisitor {
                 return;
             }
 
-            // Check for subject_can_* patterns
+            // Note: subject_can_* methods are for permission checking, not authorization enforcement
             if method_name.starts_with("subject_can_") {
-                self.has_authorization = true;
+                syn::visit::visit_expr_method_call(self, node);
                 return;
             }
 
-            // Check for delegated authorization (functions that take 'sub' as first parameter)
-            if self.is_delegation_call(node) {
+            // Check if this is a function call with 'sub' as first argument
+            // All functions that take 'sub' should either:
+            // 1. Have authorization enforcement, or
+            // 2. Be delegation calls to other functions that enforce authorization
+            if self.has_sub_as_first_argument(node) {
                 self.has_authorization = true;
                 return;
             }
@@ -590,47 +657,37 @@ impl<'ast> Visit<'ast> for AuthzVisitor {
     }
 
     fn visit_expr_call(&mut self, node: &'ast syn::ExprCall) {
-        if self.in_target_function && !self.has_authorization {
-            // Check for function calls that might be authorization related
-            if let syn::Expr::Path(path) = &*node.func {
-                if let Some(segment) = path.path.segments.last() {
-                    let func_name = segment.ident.to_string();
-                    if func_name.starts_with("subject_can_") {
-                        self.has_authorization = true;
-                        return;
-                    }
-                }
-            }
-        }
+        // Note: subject_can_* functions are for permission checking, not authorization enforcement
         syn::visit::visit_expr_call(self, node);
     }
 }
 
 impl AuthzVisitor {
-    fn is_delegation_call(&self, method_call: &syn::ExprMethodCall) -> bool {
-        let method_name = method_call.method.to_string();
+    fn has_sub_as_first_argument(&self, method_call: &syn::ExprMethodCall) -> bool {
+        // Check if 'sub' is passed as first argument
+        // Any function that takes 'sub' as first parameter should have authorization
+        if let Some(syn::Expr::Path(path)) = method_call.args.first() {
+            if path.path.segments.len() == 1 && path.path.segments[0].ident == "sub" {
+                return true;
+            }
+        }
+        false
+    }
 
-        // Known delegation methods that pass authorization down
-        let delegation_methods = [
-            "import_from_csv",
-            "add_root_node",
-            "add_child_node",
-            "create_user",
-            "update_role_of_user",
-            "create_role",
-        ];
-
-        if delegation_methods.contains(&method_name.as_str()) {
-            // Check if 'sub' is passed as first argument
-            if let Some(first_arg) = method_call.args.first() {
-                if let syn::Expr::Path(path) = first_arg {
-                    if path.path.segments.len() == 1 && path.path.segments[0].ident == "sub" {
+    fn function_has_sub_parameter(&self, sig: &syn::Signature) -> bool {
+        // Check if the function signature has 'sub' as a parameter
+        // Look for patterns like:
+        // - sub: &SomeType
+        // - sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject
+        for input in &sig.inputs {
+            if let syn::FnArg::Typed(typed) = input {
+                if let syn::Pat::Ident(ident) = &*typed.pat {
+                    if ident.ident == "sub" {
                         return true;
                     }
                 }
             }
         }
-
         false
     }
 }

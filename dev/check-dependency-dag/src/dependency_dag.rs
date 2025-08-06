@@ -21,7 +21,7 @@ pub async fn check_dependency_dag() -> Result<()> {
         let relative_path = package_path.strip_prefix(&metadata.workspace_root).unwrap();
 
         // Skip packages that don't follow our tier structure (like tools and scripts)
-        let tier = match get_tier(&relative_path.to_string()) {
+        let tier = match get_tier(relative_path.as_ref()) {
             Ok(tier) => tier,
             Err(_) => continue, // Skip packages not in our tier structure
         };
@@ -29,7 +29,7 @@ pub async fn check_dependency_dag() -> Result<()> {
         for dependency in &package.dependencies {
             if let Some(dep_path) = &dependency.path {
                 let dep_relative = dep_path.strip_prefix(&metadata.workspace_root).unwrap();
-                let dep_tier = match get_tier(&dep_relative.to_string()) {
+                let dep_tier = match get_tier(dep_relative.as_ref()) {
                     Ok(tier) => tier,
                     Err(_) => continue, // Skip dependencies not in our tier structure
                 };
@@ -50,7 +50,7 @@ pub async fn check_dependency_dag() -> Result<()> {
     } else {
         println!("❌ Dependency DAG violations found:");
         for violation in &violations {
-            println!("  - {}", violation);
+            println!("  - {violation}");
         }
         std::process::exit(1);
     }
