@@ -4,6 +4,8 @@ import Keycloak from "keycloak-js"
 
 import { env } from "@/env"
 
+const PKCE_METHOD = "S256"
+
 const keycloakConfig = {
   url: env.NEXT_PUBLIC_KEYCLOAK_URL,
   realm: env.NEXT_PUBLIC_KEYCLOAK_REALM,
@@ -33,7 +35,7 @@ export const initKeycloak = () => {
   }
 
   initializationPromise = keycloak
-    .init({ onLoad: "login-required", checkLoginIframe: false, pkceMethod: "S256" })
+    .init({ onLoad: "login-required", checkLoginIframe: false, pkceMethod: PKCE_METHOD })
     .then((authenticated) => {
       isInitialized = true
       return authenticated
