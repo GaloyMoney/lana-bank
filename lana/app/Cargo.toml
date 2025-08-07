@@ -50,6 +50,7 @@ job = { path = "../../lib/job" }
 outbox = { path = "../../lib/outbox" }
 authz = { path = "../../lib/authz" }
 cloud-storage = { path = "../../lib/cloud-storage" }
+keycloak-admin = { path = "../../lib/keycloak-admin" }
 
 cala-ledger = { workspace = true, features = ["graphql"] }
 es-entity = { workspace = true, features = ["graphql"] }
