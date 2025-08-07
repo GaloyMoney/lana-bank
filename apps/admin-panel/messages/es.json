@@ -599,6 +599,7 @@
           "labels": {
             "facilityAmount": "Monto de Facilidad",
             "custodian": "Custodio",
+            "manualCustodian": "Manual",
             "termsTemplate": "Plantilla de Términos",
             "creditFacilityTerms": "Términos de Línea de Crédito",
             "interestRate": "Tasa de interés nominal",

@@ -339,6 +339,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           <div>
             <Label>{t("form.labels.custodian")}</Label>
             <Select
+              defaultValue="manual-custodian"
               value={formValues.custodianId}
               onValueChange={(value) =>
                 setFormValues((prev) => ({ ...prev, custodianId: value }))
