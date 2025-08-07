@@ -23,25 +23,14 @@ wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
 
   echo "--- Waiting for Keycloak service to be ready ---"
-  for i in {1..10}; do
-    echo "--- Checking if Keycloak is responding (attempt ${i}) ---"
-    
-    # Check if Keycloak realms are accessible (better indicator than health endpoints)
-    if curl -s -f "http://localhost:8081/realms/master" >/dev/null 2>&1 && \
-       curl -s -f "http://localhost:8081/realms/internal" >/dev/null 2>&1; then
-      echo "--- Keycloak service is ready ---"
-      break
-    fi
-    
-    if [[ $i -eq 10 ]]; then
-      echo "--- Keycloak service not ready after 10 attempts, proceeding anyway ---"
-    else
-      echo "--- Keycloak service not ready yet, waiting... ---"
-      sleep 2
-    fi
-  done
+  if ! wait4x http localhost:8081/realms/master --timeout 10s --interval 1s; then
+    echo "--- Keycloak master realm not ready after timeout, proceeding anyway ---"
+  elif ! wait4x http localhost:8081/realms/internal --timeout 10s --interval 1s; then
+    echo "--- Keycloak internal realm not ready after timeout, proceeding anyway ---"
+  else
+    echo "--- Keycloak service is ready ---"
+  fi
   
-  # Verify the admin user exists in Keycloak
   echo "--- Verifying Keycloak admin user exists ---"
   for i in {1..20}; do
     echo "--- Checking if Keycloak admin user exists (attempt ${i}) ---"
@@ -65,7 +54,7 @@ wait_for_keycloak_user_ready() {
     fi
     
     echo "--- Keycloak user not ready yet, waiting... ---"
-    sleep 2
+    sleep 1
   done
   
   echo "--- Keycloak user may not be ready, but proceeding anyway ---"
