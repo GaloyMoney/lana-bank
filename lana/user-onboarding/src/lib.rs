@@ -5,12 +5,13 @@ pub mod config;
 pub mod error;
 mod job;
 
-use config::*;
+use config::UserOnboardingConfig;
 use error::*;
 use job::*;
 
 use audit::AuditSvc;
 use core_access::{CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId, user::Users};
+use keycloak_admin::KeycloakConnectionConfig;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct UserOnboarding<Audit, E>
@@ -47,9 +48,11 @@ where
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,
         users: &Users<Audit, E>,
+        keycloak_connection: KeycloakConnectionConfig,
         config: UserOnboardingConfig,
     ) -> Result<Self, UserOnboardingError> {
-        let keycloak_admin = keycloak_admin::KeycloakAdmin::new(config.keycloak_admin);
+        let keycloak_admin =
+            keycloak_admin::KeycloakAdmin::new(keycloak_connection, config.keycloak_realm);
 
         jobs.add_initializer_and_spawn_unique(
             UserOnboardingInit::new(outbox, users, keycloak_admin),
