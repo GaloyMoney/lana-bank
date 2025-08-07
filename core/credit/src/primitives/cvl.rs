@@ -121,8 +121,8 @@ impl std::ops::Add for CVLPct {
 
     fn add(self, other: Self) -> Self {
         match (self, other) {
-            (Self::Infinite, _) | (_, Self::Infinite) => Self::Infinite,
             (Self::Finite(a), Self::Finite(b)) => Self::Finite(a + b),
+            _ => Self::Infinite,
         }
     }
 }

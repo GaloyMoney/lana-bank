@@ -217,7 +217,7 @@ type BtcLedgerAccountBalanceRange {
 	close: BtcLedgerAccountBalance!
 }
 
-scalar CVLPctInput
+scalar CVLPctValue
 
 type CancelledWithdrawalEntry {
 	recordedAt: Timestamp!
@@ -926,10 +926,7 @@ enum CustomersSortBy {
 	TELEGRAM_ID
 }
 
-type Cvlpct {
-	kind: Kind!
-	value: Decimal
-}
+union Cvlpct = FiniteCVLPct | InfiniteCVLPct
 
 type Dashboard {
 	activeFacilities: Int!
@@ -1129,10 +1126,18 @@ type FacilityRemaining {
 	usdBalance: UsdCents!
 }
 
+type FiniteCVLPct {
+	value: CVLPctValue!
+}
+
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
 	approvalProcess: Boolean!
+}
+
+type InfiniteCVLPct {
+	phantom: String!
 }
 
 type Interest {
@@ -1189,11 +1194,6 @@ type JournalEntryEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
-}
-
-enum Kind {
-	INFINITE
-	FINITE
 }
 
 input KomainuConfig {
@@ -1838,9 +1838,9 @@ input TermsInput {
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
-	marginCallCvl: CVLPctInput!
-	initialCvl: CVLPctInput!
-	liquidationCvl: CVLPctInput!
+	marginCallCvl: CVLPctValue!
+	initialCvl: CVLPctValue!
+	liquidationCvl: CVLPctValue!
 }
 
 type TermsTemplate {
@@ -1862,9 +1862,9 @@ input TermsTemplateCreateInput {
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
-	liquidationCvl: CVLPctInput!
-	marginCallCvl: CVLPctInput!
-	initialCvl: CVLPctInput!
+	liquidationCvl: CVLPctValue!
+	marginCallCvl: CVLPctValue!
+	initialCvl: CVLPctValue!
 }
 
 type TermsTemplateCreatePayload {
@@ -1877,13 +1877,13 @@ input TermsTemplateUpdateInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
-	liquidationCvl: CVLPctInput!
+	liquidationCvl: CVLPctValue!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
-	marginCallCvl: CVLPctInput!
-	initialCvl: CVLPctInput!
+	marginCallCvl: CVLPctValue!
+	initialCvl: CVLPctValue!
 }
 
 type TermsTemplateUpdatePayload {

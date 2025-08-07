@@ -43,9 +43,9 @@ pub struct TermsInput {
     pub interest_due_duration_from_accrual: DurationInput,
     pub obligation_overdue_duration_from_due: DurationInput,
     pub obligation_liquidation_duration_from_due: DurationInput,
-    pub margin_call_cvl: CVLPctInput,
-    pub initial_cvl: CVLPctInput,
-    pub liquidation_cvl: CVLPctInput,
+    pub margin_call_cvl: CVLPctValue,
+    pub initial_cvl: CVLPctValue,
+    pub liquidation_cvl: CVLPctValue,
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
@@ -116,39 +116,40 @@ impl From<DurationInput> for Option<DomainObligationDuration> {
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
-pub struct CVLPctInput(rust_decimal::Decimal);
-async_graphql::scalar!(CVLPctInput);
+pub struct CVLPctValue(rust_decimal::Decimal);
+async_graphql::scalar!(CVLPctValue);
 
-impl From<CVLPctInput> for DomainCVLPct {
-    fn from(input: CVLPctInput) -> Self {
+impl From<CVLPctValue> for DomainCVLPct {
+    fn from(input: CVLPctValue) -> Self {
         DomainCVLPct::from(input.0)
     }
 }
 
-#[derive(Enum, Copy, Clone, Eq, PartialEq)]
-pub enum Kind {
-    Infinite,
-    Finite,
+#[derive(async_graphql::Union, Clone)]
+pub enum CVLPct {
+    Finite(FiniteCVLPct),
+    Infinite(InfiniteCVLPct),
 }
 
 #[derive(SimpleObject, Clone)]
-pub(super) struct CVLPct {
-    kind: Kind,
-    value: Option<super::primitives::Decimal>,
+pub struct FiniteCVLPct {
+    value: CVLPctValue,
+}
+
+#[derive(SimpleObject, Clone)]
+pub struct InfiniteCVLPct {
+    _phantom: String,
 }
 
 impl From<DomainCVLPct> for CVLPct {
     fn from(cvl: DomainCVLPct) -> Self {
         match cvl {
-            DomainCVLPct::Finite(value) => Self {
-                kind: Kind::Finite,
-                value: Some(value.into()),
-            },
-
-            DomainCVLPct::Infinite => Self {
-                kind: Kind::Infinite,
-                value: None,
-            },
+            DomainCVLPct::Finite(value) => CVLPct::Finite(FiniteCVLPct {
+                value: CVLPctValue(value.into()),
+            }),
+            DomainCVLPct::Infinite => CVLPct::Infinite(InfiniteCVLPct {
+                _phantom: String::new(),
+            }),
         }
     }
 }

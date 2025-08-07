@@ -258,7 +258,7 @@ mod test {
     }
 
     #[test]
-    fn current_cvl_returns_none_when_disbursals_with_no_outstanding() {
+    fn current_cvl_returns_infinite_when_disbursals_with_no_outstanding() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
