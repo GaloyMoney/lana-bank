@@ -435,9 +435,7 @@ where
 
             #[cfg(feature = "mock-custodian")]
             if custodian_id.is_mock_custodian() {
-                self.custody
-                    .ensure_mock_custodian_in_op(&mut db, sub)
-                    .await?;
+                self.custody.ensure_mock_custodian(sub).await?;
             }
 
             let wallet = self

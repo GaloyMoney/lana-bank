@@ -56,7 +56,12 @@ check-code-nix:
 # Dependency DAG validation targets
 check-dag:
 	@echo "🔍 Checking dependency DAG..."
-	@cd dev/check-dependency-dag && cargo run --quiet
+	@cd dev/check-dependency-dag && cargo run check-dag
+
+# Dependency DAG validation targets
+check-authz:
+	@echo "🔍 Checking dependency DAG..."
+	@cd dev/check-dependency-dag && cargo run check-authz
 
 # Default (nix-based) code checking
 check-code-rust: sdl-rust update-schemas
@@ -79,6 +84,7 @@ check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo
 	cargo deny check --hide-inclusion-graph
 	cargo machete
 	make check-dag
+	make check-authz
 
 # Default (nix-based) schema update
 update-schemas:
