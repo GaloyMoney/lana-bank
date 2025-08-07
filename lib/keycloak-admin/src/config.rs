@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct KeycloakConnectionConfig {
-    #[serde(default = "default_url", alias = "keycloak_url")]
+    #[serde(default = "default_url")]
     pub url: String,
     #[serde(default = "default_client_id")]
     pub client_id: String,
