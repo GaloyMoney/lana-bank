@@ -77,64 +77,38 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
 
     def __init__(self, xml_schema: Union[XMLSchema, None] = None) -> None:
         self.xml_schema = xml_schema
+        self.target_namespace = self.xml_schema.target_namespace
+        self.root_element_tag = next(iter(self.xml_schema.elements), None)
+        self.sequence_elements_tag = self._extract_sequence_elements_tag()
 
     def rows_to_report_output(self, rows) -> StorableReportOutput:
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
 
-        def parse_xsd(schema):
-            # 1. target namespace
-            target_namespace = schema.target_namespace
-
-            # 2. root element name (first top-level element in the schema)
-            root_element_name = next(iter(schema.elements), None)
-
-            # 3. children sequence elements
-            child_name = None
-            if root_element_name:
-                elem = schema.elements[root_element_name]
-                model = elem.type.content
-                if model and model.model == 'sequence':
-                    first_child = next(model.iter_elements(), None)
-                    if first_child:
-                        # Strip namespace if present
-                        qname = first_child.name
-                        child_name = qname.split('}', 1)[-1] if qname.startswith('{') else qname
-
-
-            return {
-                "target_namespace": target_namespace,
-                "root_element_name": root_element_name,
-                "children_sequence_names": child_name,
-            }
-
-        schema_lolies = parse_xsd(self.xml_schema)
-
-        xml_root = ElementTree.Element(
-            f"{{{schema_lolies['target_namespace']}}}"
-            + f"{schema_lolies['root_element_name']}"
+        xml_root_element = ElementTree.Element(
+            f"{{{self.target_namespace}}}"
+            + f"{self.root_element_tag}"
         )
 
         for row in rows_data:
             sequence_level_element = ElementTree.SubElement(
-                xml_root,
-                f"{{{schema_lolies['target_namespace']}}}"
-                + f"{schema_lolies['children_sequence_names']}",
+                xml_root_element,
+                f"{{{self.target_namespace}}}"
+                + f"{self.sequence_elements_tag}",
             )
             for field, value in row.items():
 
                 new_field_element = ElementTree.SubElement(
                     sequence_level_element,
-                    f"{{{schema_lolies['target_namespace']}}}" + f"{field}",
+                    f"{{{self.target_namespace}}}" + f"{field}",
                 )
                 new_field_element.text = value
 
-        xml_string = ElementTree.tostring(xml_root, encoding="unicode")
+        xml_string = ElementTree.tostring(xml_root_element, encoding="unicode")
 
         output = io.StringIO()
         output.write(xml_string)
         report_content = output.getvalue()
-
         
         report_has_content = len(rows_data) > 0
         is_xml_valid = self.xml_schema.is_valid(source=report_content)
@@ -148,9 +122,30 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
             report_content=report_content, report_content_type=self.content_type
         )
 
-    def set_validation_schema(self, xml_schema: XMLSchema) -> None:
-        self.xml_schema = xml_schema
+    
+    def _extract_sequence_elements_tag(self) -> str:
+        """Extract the tag of the sequence elements of the schema.
 
+        This makes a strong assumption that the XSD follows the common
+        structure of SSF reports: one root element followed by a sequence
+        of children elements, all within the same namespace. 
+
+        This will 100% break on XSD that follow other patterns.
+
+        Returns:
+            str: the tag for the sequence elements of this XSD.
+        """
+        elem = self.xml_schema.elements[self.root_element_tag]
+        model = elem.type.content
+
+        first_child = next(model.iter_elements(), None)
+
+        # Strip namespace if present
+        qname = first_child.name
+        child_name = qname.split('}', 1)[-1] if qname.startswith('{') else qname
+
+        return child_name
+        
 
 class CSVFileOutputConfig(BaseFileOutputConfig):
 
@@ -275,16 +270,16 @@ def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition, ..
     for report_job in data["report_jobs"]:
         output_configs = []
         for output in report_job["outputs"]:
-
-            output_config = str_to_type_mapping[output["type"].lower()]()
-            validation_schema_specified = output.get("validation_schema_id", False)
-            if validation_schema_specified:
-                output_config.set_validation_schema(
-                    xml_schema=xml_schema_repository.get_schema(
+            if output["type"] == "xml":
+                output_config = XMLFileOutputConfig(xml_schema=xml_schema_repository.get_schema(
                         schema_id=output["validation_schema_id"]
-                    )
-                )
+                    ))
+                output_configs.append(output_config)
+                continue
+            
+            output_config = str_to_type_mapping[output["type"].lower()]()
             output_configs.append(output_config)
+
         output_configs = tuple(output_configs)
 
         report_jobs.append(
