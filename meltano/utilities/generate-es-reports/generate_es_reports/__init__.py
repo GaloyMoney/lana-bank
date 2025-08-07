@@ -11,6 +11,7 @@ from google.cloud import bigquery, storage
 from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from xmlschema import XMLSchema
+from xml.etree import ElementTree
 
 logging.basicConfig(
     level=logging.DEBUG,
@@ -81,9 +82,55 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         field_names = [field.name for field in rows.schema]
         rows_data = [{name: row[name] for name in field_names} for row in rows]
 
-        xml_string = dicttoxml(rows_data, custom_root="rows", attr_type=False).decode(
-            "utf-8"
+        def parse_xsd(schema):
+            # 1. target namespace
+            target_namespace = schema.target_namespace
+
+            # 2. root element name (first top-level element in the schema)
+            root_element_name = next(iter(schema.elements), None)
+
+            # 3. children sequence elements
+            child_name = None
+            if root_element_name:
+                elem = schema.elements[root_element_name]
+                model = elem.type.content
+                if model and model.model == 'sequence':
+                    first_child = next(model.iter_elements(), None)
+                    if first_child:
+                        # Strip namespace if present
+                        qname = first_child.name
+                        child_name = qname.split('}', 1)[-1] if qname.startswith('{') else qname
+
+
+            return {
+                "target_namespace": target_namespace,
+                "root_element_name": root_element_name,
+                "children_sequence_names": child_name,
+            }
+
+        schema_lolies = parse_xsd(self.xml_schema)
+
+        xml_root = ElementTree.Element(
+            f"{{{schema_lolies['target_namespace']}}}"
+            + f"{schema_lolies['root_element_name']}"
         )
+
+        for row in rows_data:
+            sequence_level_element = ElementTree.SubElement(
+                xml_root,
+                f"{{{schema_lolies['target_namespace']}}}"
+                + f"{schema_lolies['children_sequence_names']}",
+            )
+            for field, value in row.items():
+
+                new_field_element = ElementTree.SubElement(
+                    sequence_level_element,
+                    f"{{{schema_lolies['target_namespace']}}}" + f"{field}",
+                )
+                new_field_element.text = value
+
+        xml_string = ElementTree.tostring(xml_root, encoding="unicode")
+
         output = io.StringIO()
         output.write(xml_string)
         report_content = output.getvalue()
