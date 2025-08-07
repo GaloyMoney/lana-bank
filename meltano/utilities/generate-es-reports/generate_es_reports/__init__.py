@@ -8,7 +8,6 @@ from typing import Union
 
 import yaml
 from google.cloud import bigquery, storage
-from dicttoxml import dicttoxml
 from google.oauth2 import service_account
 from xmlschema import XMLSchema
 from xml.etree import ElementTree
