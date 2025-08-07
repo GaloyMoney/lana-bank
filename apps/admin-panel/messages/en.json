@@ -599,6 +599,7 @@
           "labels": {
             "facilityAmount": "Facility Amount",
             "custodian": "Custodian",
+            "manualCustodian": "Manual",
             "termsTemplate": "Terms Template",
             "creditFacilityTerms": "Credit Facility Terms",
             "interestRate": "Nominal Interest Rate",

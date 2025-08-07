@@ -215,7 +215,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
             disbursalCreditAccountId,
             customerId,
             facility: currencyConverter.usdToCents(Number(facility)),
-            ...(custodianId && { custodianId }),
+            custodianId: custodianId === "manual-custodian" ? null : custodianId,
             terms: {
               annualRate: parseFloat(annualRate),
               accrualCycleInterval: DEFAULT_TERMS.ACCRUAL_CYCLE_INTERVAL,
@@ -349,6 +349,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
                 <SelectValue placeholder={t("form.placeholders.custodian")} />
               </SelectTrigger>
               <SelectContent>
+                <SelectItem key="manual-custodian" value="manual-custodian">
+                  {t("form.labels.manualCustodian")}
+                </SelectItem>
                 {custodiansData?.custodians.edges.map(({ node: custodian }) => (
                   <SelectItem key={custodian.id} value={custodian.custodianId}>
                     {custodian.name}
