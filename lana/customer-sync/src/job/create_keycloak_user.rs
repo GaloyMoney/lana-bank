@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
-use keycloak_admin::KeycloakAdmin;
+use keycloak_client::KeycloakClient;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -44,7 +44,7 @@ where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
-    keycloak_admin: KeycloakAdmin,
+    keycloak_client: KeycloakClient,
     customers: Customers<Perms, E>,
 }
 
@@ -56,12 +56,12 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
-        keycloak_admin: KeycloakAdmin,
+        keycloak_client: KeycloakClient,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             customers: customers.clone(),
-            keycloak_admin,
+            keycloak_client,
         }
     }
 }
@@ -88,7 +88,7 @@ where
         Ok(Box::new(CreateKeycloakUserJobRunner {
             outbox: self.outbox.clone(),
             customers: self.customers.clone(),
-            keycloak_admin: self.keycloak_admin.clone(),
+            keycloak_client: self.keycloak_client.clone(),
         }))
     }
 
@@ -112,7 +112,7 @@ where
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
-    keycloak_admin: KeycloakAdmin,
+    keycloak_client: KeycloakClient,
 }
 #[async_trait]
 impl<Perms, E> JobRunner for CreateKeycloakUserJobRunner<Perms, E>
@@ -166,7 +166,7 @@ where
         if let Some(CoreCustomerEvent::CustomerCreated { id, email, .. }) = message.as_event() {
             message.inject_trace_parent();
 
-            let uuid = self.keycloak_admin.create_user(email.clone()).await?;
+            let uuid = self.keycloak_client.create_user(email.clone()).await?;
             let authentication_id = AuthenticationId::from(uuid);
             self.customers
                 .update_authentication_id_for_customer(*id, authentication_id)
