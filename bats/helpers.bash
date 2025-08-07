@@ -17,8 +17,6 @@ LOG_FILE=".e2e-logs"
 server_cmd() {
   nix run .
 }
-
-
 wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
 
@@ -26,11 +24,8 @@ wait_for_keycloak_user_ready() {
   wait4x http http://localhost:8081/realms/internal --timeout 10s --interval 1s
 
   for i in {1..60}; do
-    admin_token=$(get_keycloak_admin_token 2>/dev/null || true)
-    if [[ -n "$admin_token" && "$admin_token" != "null" ]]; then
-      user_id=$(find_user_by_email "$admin_token" "$email" 2>/dev/null || true)
-      [[ -n "$user_id" && "$user_id" != "null" ]] && { echo "✅ User exists"; return 0; }
-    fi
+    access_token=$(get_user_access_token "$email" 2>/dev/null || true)
+    [[ -n "$access_token" && "$access_token" != "null" ]] && { echo "✅ User ready"; return 0; }
     sleep 1
   done
 
@@ -94,19 +89,8 @@ login_customer() {
   echo "--- Logging in customer: $email ---"
   
   wait_for_keycloak_user_ready
-  local admin_token=$(get_keycloak_admin_token)
-  if [[ $? -ne 0 ]]; then
-    echo "Failed to get Keycloak admin token" >&2
-    return 1
-  fi
   
-  local user_id=$(find_customer_by_email "$admin_token" "$email")
-  if [[ $? -ne 0 ]]; then
-    echo "Failed to find customer user: $email" >&2
-    return 1
-  fi
-  
-  local access_token=$(get_customer_access_token "$admin_token" "$user_id" "$email")
+  local access_token=$(get_customer_access_token "$email")
   if [[ $? -ne 0 ]]; then
     echo "Failed to get access token for customer: $email" >&2
     return 1
@@ -137,85 +121,14 @@ exec_customer_graphql() {
     "${GQL_APP_ENDPOINT}"
 }
 
-
-get_keycloak_admin_token() {
-  local response=$(curl -s -X POST \
-    "http://localhost:8081/realms/master/protocol/openid-connect/token" \
-    -H "Content-Type: application/x-www-form-urlencoded" \
-    -d "client_id=admin-cli" \
-    -d "username=admin" \
-    -d "password=admin" \
-    -d "grant_type=password")
-  
-  local token=$(echo "$response" | jq -r '.access_token')
-  if [[ "$token" == "null" || -z "$token" ]]; then
-    echo "Failed to get Keycloak admin token: $response" >&2
-    return 1
-  fi
-  echo "$token"
-}
-
-find_user_by_email() {
-  local admin_token=$1
-  local email=$2
-  
-  local response=$(curl -s -X GET \
-    "http://localhost:8081/admin/realms/internal/users?email=${email}&exact=true" \
-    -H "Authorization: Bearer ${admin_token}" \
-    -H "Content-Type: application/json")
-  
-  local user_id=$(echo "$response" | jq -r '.[0].id')
-  if [[ "$user_id" == "null" || -z "$user_id" ]]; then
-    echo "User not found: $email" >&2
-    return 1
-  fi
-  echo "$user_id"
-}
-
-find_customer_by_email() {
-  local admin_token=$1
-  local email=$2
-  
-  local response=$(curl -s -X GET \
-    "http://localhost:8081/admin/realms/customer/users?email=${email}&exact=true" \
-    -H "Authorization: Bearer ${admin_token}" \
-    -H "Content-Type: application/json")
-  
-  local user_id=$(echo "$response" | jq -r '.[0].id')
-  if [[ "$user_id" == "null" || -z "$user_id" ]]; then
-    echo "Customer user not found: $email" >&2
-    return 1
-  fi
-  echo "$user_id"
-}
-
-
-set_user_password() {
-  local admin_token=$1
-  local user_id=$2
-  local password="admin"
-  
-  curl -s -X PUT \
-    "http://localhost:8081/admin/realms/internal/users/${user_id}/reset-password" \
-    -H "Authorization: Bearer ${admin_token}" \
-    -H "Content-Type: application/json" \
-      -d "{\"type\":\"password\",\"value\":\"${password}\",\"temporary\":false}" >/dev/null
-  
-  echo "$password"
-}
-
 get_user_access_token() {
-  local admin_token=$1
-  local user_id=$2
-  local email=$3
+  local email=$1
   
-  local password=$(set_user_password "$admin_token" "$user_id")
   local response=$(curl -s -X POST \
       "http://localhost:8081/realms/internal/protocol/openid-connect/token" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -d "client_id=admin-panel" \
       -d "username=${email}" \
-      -d "password=${password}" \
       -d "grant_type=password" \
       -d "scope=openid profile email")
     
@@ -227,33 +140,14 @@ get_user_access_token() {
   fi
   echo "$access_token"
 }
-
-set_customer_password() {
-  local admin_token=$1
-  local user_id=$2
-  local password="customer"
-  
-  curl -s -X PUT \
-    "http://localhost:8081/admin/realms/customer/users/${user_id}/reset-password" \
-    -H "Authorization: Bearer ${admin_token}" \
-    -H "Content-Type: application/json" \
-      -d "{\"type\":\"password\",\"value\":\"${password}\",\"temporary\":false}" >/dev/null
-  
-  echo "$password"
-}
-
 get_customer_access_token() {
-  local admin_token=$1
-  local user_id=$2
-  local email=$3
+  local email=$1
   
-  local password=$(set_customer_password "$admin_token" "$user_id")
   local response=$(curl -s -X POST \
       "http://localhost:8081/realms/customer/protocol/openid-connect/token" \
       -H "Content-Type: application/x-www-form-urlencoded" \
       -d "client_id=customer-portal" \
       -d "username=${email}" \
-      -d "password=${password}" \
       -d "grant_type=password" \
       -d "scope=openid profile email")
     
@@ -269,24 +163,8 @@ get_customer_access_token() {
 login_superadmin() {
   local email="admin@galoy.io"
   wait_for_keycloak_user_ready
-  local cached_token=$(read_value "superadmin" 2>/dev/null || echo "")
-  if [[ -n "$cached_token" && "$cached_token" != "" ]]; then
-    return 0
-  fi
-  
-  local admin_token=$(get_keycloak_admin_token)
-  if [[ $? -ne 0 ]]; then
-    echo "Failed to get Keycloak admin token" >&2
-    return 1
-  fi
-    
-  local user_id=$(find_user_by_email "$admin_token" "$email")
-  if [[ $? -ne 0 ]]; then
-    echo "Failed to find user: $email" >&2
-    return 1
-  fi
 
-  local access_token=$(get_user_access_token "$admin_token" "$user_id" "$email")
+  local access_token=$(get_user_access_token "$email")
   if [[ $? -ne 0 ]]; then
     echo "Failed to get access token for: $email" >&2
     return 1
