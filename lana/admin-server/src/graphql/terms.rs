@@ -138,7 +138,7 @@ pub struct FiniteCVLPct {
 
 #[derive(SimpleObject, Clone)]
 pub struct InfiniteCVLPct {
-    _phantom: String,
+    is_infinite: bool,
 }
 
 impl From<DomainCVLPct> for CVLPct {
@@ -147,9 +147,7 @@ impl From<DomainCVLPct> for CVLPct {
             DomainCVLPct::Finite(value) => CVLPct::Finite(FiniteCVLPct {
                 value: CVLPctValue(value.into()),
             }),
-            DomainCVLPct::Infinite => CVLPct::Infinite(InfiniteCVLPct {
-                _phantom: String::new(),
-            }),
+            DomainCVLPct::Infinite => CVLPct::Infinite(InfiniteCVLPct { is_infinite: true }),
         }
     }
 }
