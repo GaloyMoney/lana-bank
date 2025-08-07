@@ -1,6 +1,6 @@
 {
   "id": "802325c1-8e73-47c5-84ec-c5fba27937a7",
-  "realm": "lana-admin",
+  "realm": "internal",
   "notBefore": 0,
   "defaultSignatureAlgorithm": "RS256",
   "revokeRefreshToken": false,
@@ -49,7 +49,7 @@
     "realm": [
       {
         "id": "4569dd4f-ab02-483d-8df7-e29d183504ff",
-        "name": "default-roles-lana-admin",
+        "name": "default-roles-internal",
         "description": "${role_default-roles}",
         "composite": true,
         "composites": {
@@ -387,13 +387,13 @@
           "attributes": {}
         }
       ],
-      "lana-admin-panel": []
+      "admin-panel": []
     }
   },
   "groups": [],
   "defaultRole": {
     "id": "4569dd4f-ab02-483d-8df7-e29d183504ff",
-    "name": "default-roles-lana-admin",
+    "name": "default-roles-internal",
     "description": "${role_default-roles}",
     "composite": true,
     "clientRole": false,
@@ -455,12 +455,12 @@
       "clientId": "account",
       "name": "${client_account}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/lana-admin/account/",
+      "baseUrl": "/realms/internal/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "redirectUris": ["/realms/lana-admin/account/*"],
+      "redirectUris": ["/realms/internal/account/*"],
       "webOrigins": [],
       "notBefore": 0,
       "bearerOnly": false,
@@ -500,12 +500,12 @@
       "clientId": "account-console",
       "name": "${client_account-console}",
       "rootUrl": "${authBaseUrl}",
-      "baseUrl": "/realms/lana-admin/account/",
+      "baseUrl": "/realms/internal/account/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "redirectUris": ["/realms/lana-admin/account/*"],
+      "redirectUris": ["/realms/internal/account/*"],
       "webOrigins": [],
       "notBefore": 0,
       "bearerOnly": false,
@@ -640,7 +640,7 @@
     },
     {
       "id": "c616106a-f6b3-453f-a05d-6004b6834b02",
-      "clientId": "lana-admin-panel",
+      "clientId": "admin-panel",
       "name": "",
       "description": "",
       "rootUrl": "http://admin.localhost:4455/",
@@ -758,12 +758,12 @@
       "clientId": "security-admin-console",
       "name": "${client_security-admin-console}",
       "rootUrl": "${authAdminUrl}",
-      "baseUrl": "/admin/lana-admin/console/",
+      "baseUrl": "/admin/internal/console/",
       "surrogateAuthRequired": false,
       "enabled": true,
       "alwaysDisplayInConsole": false,
       "clientAuthenticatorType": "client-secret",
-      "redirectUris": ["/admin/lana-admin/console/*"],
+      "redirectUris": ["/admin/internal/console/*"],
       "webOrigins": ["+"],
       "notBefore": 0,
       "bearerOnly": false,

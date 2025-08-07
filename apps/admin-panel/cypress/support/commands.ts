@@ -35,7 +35,7 @@ Cypress.Commands.add(
   "graphqlRequest",
   <T>(query: string, variables?: Record<string, unknown>): Cypress.Chainable<T> => {
     const root = "http://localhost:8081"
-    const realm = "lana-admin"
+    const realm = "internal"
     const userEmail = "admin@galoy.io"
     const userPassword = "admin"
 
@@ -45,7 +45,7 @@ Cypress.Commands.add(
         url: `${root}/realms/${realm}/protocol/openid-connect/token`,
         form: true,
         body: {
-          client_id: "lana-admin-panel",
+          client_id: "admin-panel",
           grant_type: "password",
           username: userEmail,
           password: userPassword,
@@ -314,7 +314,7 @@ Cypress.Commands.add("waitForKeycloak", () => {
     cy.log(`Checking Keycloak readiness (attempt ${attempt}/${maxAttempts})`)
     cy.task("checkUrl", `${root}/realms/master`).then((masterReady: any) => {
       if (masterReady) {
-        cy.task("checkUrl", `${root}/realms/lana-admin`).then((adminReady: any) => {
+        cy.task("checkUrl", `${root}/realms/internal`).then((adminReady: any) => {
           if (adminReady) {
             cy.request({
               method: "POST",
@@ -332,7 +332,7 @@ Cypress.Commands.add("waitForKeycloak", () => {
                 const adminToken = tokenResponse.body.access_token
                 cy.request({
                   method: "GET",
-                  url: `${root}/admin/realms/lana-admin/users`,
+                  url: `${root}/admin/realms/internal/users`,
                   qs: { email: "admin@galoy.io", exact: true },
                   headers: { Authorization: `Bearer ${adminToken}` },
                   failOnStatusCode: false,
@@ -350,7 +350,7 @@ Cypress.Commands.add("waitForKeycloak", () => {
               }
             })
           } else {
-            cy.log(`Lana-admin realm not ready, retrying...`)
+            cy.log(`internal realm not ready, retrying...`)
             cy.wait(2000).then(() => checkKeycloak(attempt + 1))
           }
         })
@@ -365,7 +365,7 @@ Cypress.Commands.add("waitForKeycloak", () => {
 
 Cypress.Commands.add("KcLogin", (email: string) => {
   const root = "http://localhost:8081"
-  const realm = "lana-admin"
+  const realm = "internal"
   const adminU = "admin"
   const adminP = "admin"
 
@@ -428,7 +428,7 @@ Cypress.Commands.add("KcLogin", (email: string) => {
           ) {
             const cookieOptions: Record<string, unknown> = {
               domain: "localhost",
-              path: "/realms/lana-admin/",
+              path: "/realms/internal/",
             }
             attributes.forEach((attr) => {
               const [key, val] = attr.trim().split("=")
