@@ -29,7 +29,7 @@ fn default_keycloak_url() -> String {
 }
 
 fn default_realm() -> String {
-    "lana-admin".to_string()
+    "internal".to_string()
 }
 
 fn default_client_id() -> String {
