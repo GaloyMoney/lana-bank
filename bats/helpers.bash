@@ -28,7 +28,7 @@ wait_for_keycloak_user_ready() {
     
     # Check if Keycloak realms are accessible (better indicator than health endpoints)
     if curl -s -f "http://localhost:8081/realms/master" >/dev/null 2>&1 && \
-       curl -s -f "http://localhost:8081/realms/lana-admin" >/dev/null 2>&1; then
+       curl -s -f "http://localhost:8081/realms/internal" >/dev/null 2>&1; then
       echo "--- Keycloak service is ready ---"
       break
     fi
@@ -195,7 +195,7 @@ find_user_by_email() {
   local email=$2
   
   local response=$(curl -s -X GET \
-    "http://localhost:8081/admin/realms/lana-admin/users?email=${email}&exact=true" \
+    "http://localhost:8081/admin/realms/internal/users?email=${email}&exact=true" \
     -H "Authorization: Bearer ${admin_token}" \
     -H "Content-Type: application/json")
   
@@ -231,7 +231,7 @@ set_user_password() {
   local password="admin"
   
   curl -s -X PUT \
-    "http://localhost:8081/admin/realms/lana-admin/users/${user_id}/reset-password" \
+    "http://localhost:8081/admin/realms/internal/users/${user_id}/reset-password" \
     -H "Authorization: Bearer ${admin_token}" \
     -H "Content-Type: application/json" \
       -d "{\"type\":\"password\",\"value\":\"${password}\",\"temporary\":false}" >/dev/null
@@ -246,9 +246,9 @@ get_user_access_token() {
   
   local password=$(set_user_password "$admin_token" "$user_id")
   local response=$(curl -s -X POST \
-      "http://localhost:8081/realms/lana-admin/protocol/openid-connect/token" \
+      "http://localhost:8081/realms/internal/protocol/openid-connect/token" \
       -H "Content-Type: application/x-www-form-urlencoded" \
-      -d "client_id=lana-admin-panel" \
+      -d "client_id=admin-panel" \
       -d "username=${email}" \
       -d "password=${password}" \
       -d "grant_type=password" \
