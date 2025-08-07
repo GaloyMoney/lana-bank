@@ -4,7 +4,7 @@ use uuid::Uuid;
 #[tokio::test]
 async fn test_create_user() {
     let config = KeycloakAdminConfig::default();
-    let admin = KeycloakAdmin::init(config).expect("Failed to initialize KeycloakAdmin");
+    let admin = KeycloakAdmin::new(config);
     let test_email = format!("test-user-{}@example.com", Uuid::new_v4());
     let user_id = admin
         .create_user(test_email.clone())
@@ -17,7 +17,7 @@ async fn test_create_user() {
 #[tokio::test]
 async fn test_update_user_email() {
     let config = KeycloakAdminConfig::default();
-    let admin = KeycloakAdmin::init(config).expect("Failed to initialize KeycloakAdmin");
+    let admin = KeycloakAdmin::new(config);
     let initial_email = format!("test-user-initial-{}@example.com", Uuid::new_v4());
     let updated_email = format!("test-user-updated-{}@example.com", Uuid::new_v4());
     let user_id = admin
@@ -33,7 +33,7 @@ async fn test_update_user_email() {
 #[tokio::test]
 async fn test_get_user() {
     let config = KeycloakAdminConfig::default();
-    let admin = KeycloakAdmin::init(config).expect("Failed to initialize KeycloakAdmin");
+    let admin = KeycloakAdmin::new(config);
     let test_email = format!("test-get-user-{}@example.com", Uuid::new_v4());
     let user_id = admin
         .create_user(test_email.clone())

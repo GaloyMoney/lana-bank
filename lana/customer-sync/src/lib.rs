@@ -63,7 +63,7 @@ where
         deposit: &CoreDeposit<Perms, E>,
         config: CustomerSyncConfig,
     ) -> Result<Self, CustomerSyncError> {
-        let keycloak_admin = keycloak_admin::KeycloakAdmin::init(config.keycloak_admin.clone())?;
+        let keycloak_admin = keycloak_admin::KeycloakAdmin::new(config.keycloak_admin.clone());
 
         jobs.add_initializer_and_spawn_unique(
             CreateDepositAccountInit::new(outbox, deposit, config.clone()),
