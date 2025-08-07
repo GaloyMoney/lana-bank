@@ -5,7 +5,7 @@ use tracing::instrument;
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
-use keycloak_admin::KeycloakAdmin;
+use keycloak_client::KeycloakClient;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
@@ -40,7 +40,7 @@ where
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
-    keycloak_admin: KeycloakAdmin,
+    keycloak_client: KeycloakClient,
 }
 
 impl<Perms, E> SyncEmailInit<Perms, E>
@@ -51,12 +51,12 @@ where
     pub fn new(
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
-        keycloak_admin: KeycloakAdmin,
+        keycloak_client: KeycloakClient,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             customers: customers.clone(),
-            keycloak_admin,
+            keycloak_client,
         }
     }
 }
@@ -80,7 +80,7 @@ where
         Ok(Box::new(SyncEmailJobRunner {
             outbox: self.outbox.clone(),
             customers: self.customers.clone(),
-            keycloak_admin: self.keycloak_admin.clone(),
+            keycloak_client: self.keycloak_client.clone(),
         }))
     }
 
@@ -104,7 +104,7 @@ where
 {
     outbox: Outbox<E>,
     customers: Customers<Perms, E>,
-    keycloak_admin: KeycloakAdmin,
+    keycloak_client: KeycloakClient,
 }
 
 #[async_trait]
@@ -164,12 +164,21 @@ where
                 )
                 .await?;
 
+<<<<<<< HEAD
             if let Some(customer) = customer
                 && let Some(authentication_id) = customer.authentication_id
             {
                 self.keycloak_admin
                     .update_user_email(authentication_id.into(), email.clone())
                     .await?;
+=======
+            if let Some(customer) = customer {
+                if let Some(authentication_id) = customer.authentication_id {
+                    self.keycloak_client
+                        .update_user_email(authentication_id.into(), email.clone())
+                        .await?;
+                }
+>>>>>>> dee27811a (chore: rename Keycloak-admin -> Keycloak-client)
             }
         }
         Ok(())
