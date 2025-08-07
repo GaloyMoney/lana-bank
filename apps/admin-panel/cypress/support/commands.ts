@@ -37,7 +37,6 @@ Cypress.Commands.add(
     const root = "http://localhost:8081"
     const realm = "internal"
     const userEmail = "admin@galoy.io"
-    const userPassword = "admin"
 
     return cy
       .request({
@@ -48,7 +47,6 @@ Cypress.Commands.add(
           client_id: "admin-panel",
           grant_type: "password",
           username: userEmail,
-          password: userPassword,
         },
       })
       .then(({ body: tokenBody }) => {
@@ -318,34 +316,19 @@ Cypress.Commands.add("waitForKeycloak", () => {
           if (adminReady) {
             cy.request({
               method: "POST",
-              url: `${root}/realms/master/protocol/openid-connect/token`,
+              url: `${root}/realms/internal/protocol/openid-connect/token`,
               form: true,
               body: {
-                client_id: "admin-cli",
-                username: "admin",
-                password: "admin",
+                client_id: "admin-panel",
+                username: "admin@galoy.io",
                 grant_type: "password",
               },
               failOnStatusCode: false,
             }).then((tokenResponse) => {
-              if (tokenResponse.status === 200) {
-                const adminToken = tokenResponse.body.access_token
-                cy.request({
-                  method: "GET",
-                  url: `${root}/admin/realms/internal/users`,
-                  qs: { email: "admin@galoy.io", exact: true },
-                  headers: { Authorization: `Bearer ${adminToken}` },
-                  failOnStatusCode: false,
-                }).then((userResponse) => {
-                  if (userResponse.status === 200 && userResponse.body.length > 0) {
-                    cy.log("Keycloak and admin user are ready")
-                  } else {
-                    cy.log(`Admin user not found, retrying...`)
-                    cy.wait(2000).then(() => checkKeycloak(attempt + 1))
-                  }
-                })
+              if (tokenResponse.status === 200 && tokenResponse.body.access_token) {
+                cy.log("Keycloak and admin user are ready")
               } else {
-                cy.log(`Cannot get admin token, retrying...`)
+                cy.log(`Cannot get user token, retrying...`)
                 cy.wait(2000).then(() => checkKeycloak(attempt + 1))
               }
             })
@@ -395,25 +378,12 @@ Cypress.Commands.add("KcLogin", (email: string) => {
           }
           const user = users[0]
           const userId = user.id
-          return cy
-            .request({
-              method: "PUT",
-              url: `${root}/admin/realms/${realm}/users/${userId}/reset-password`,
-              headers: { Authorization: `Bearer ${adminToken}` },
-              body: {
-                type: "password",
-                value: "admin",
-                temporary: false,
-              },
-            })
-            .then(() => {
-              return cy.request({
-                method: "POST",
-                url: `${root}/admin/realms/${realm}/users/${userId}/impersonation`,
-                headers: { Authorization: `Bearer ${adminToken}` },
-                followRedirect: false,
-              })
-            })
+          return cy.request({
+            method: "POST",
+            url: `${root}/admin/realms/${realm}/users/${userId}/impersonation`,
+            headers: { Authorization: `Bearer ${adminToken}` },
+            followRedirect: false,
+          })
         })
     })
     .then(({ headers }) => {
