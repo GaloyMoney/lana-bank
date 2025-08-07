@@ -22,17 +22,19 @@ server_cmd() {
 wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
 
-  wait4x http localhost:8081/realms/master   --timeout 30s --interval 1s || exit 1
-  wait4x http localhost:8081/realms/internal --timeout 10s --interval 1s || exit 1
+  wait4x http http://localhost:8081/realms/master   --timeout 60s --interval 1s
+  wait4x http http://localhost:8081/realms/internal --timeout 10s --interval 1s
 
-  for i in {1..30}; do
+  for i in {1..60}; do
     admin_token=$(get_keycloak_admin_token 2>/dev/null || true)
-    user_id=$(find_user_by_email "$admin_token" "$email" 2>/dev/null || true)
-    [[ -n "$user_id" && "$user_id" != "null" ]] && { echo "✅ User exists"; return 0; }
+    if [[ -n "$admin_token" && "$admin_token" != "null" ]]; then
+      user_id=$(find_user_by_email "$admin_token" "$email" 2>/dev/null || true)
+      [[ -n "$user_id" && "$user_id" != "null" ]] && { echo "✅ User exists"; return 0; }
+    fi
     sleep 1
   done
 
-  echo "❌ Admin user not ready after 20 s"; exit 1
+  echo "admin user not ready"; exit 1
 }
 
 start_server() {
