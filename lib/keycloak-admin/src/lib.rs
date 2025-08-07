@@ -19,11 +19,11 @@ pub struct KeycloakAdmin {
 }
 
 impl KeycloakAdmin {
-    pub fn init(config: KeycloakAdminConfig) -> Result<Self, KeycloakAdminError> {
-        Ok(Self {
+    pub fn new(config: KeycloakAdminConfig) -> Self {
+        Self {
             config,
             http_client: Client::new(),
-        })
+        }
     }
 
     async fn get_client(&self) -> Result<KeycloakClient, KeycloakAdminError> {
@@ -33,8 +33,7 @@ impl KeycloakAdmin {
             &self.config.admin_password,
             &self.http_client,
         )
-        .await
-        .map_err(KeycloakAdminError::KeycloakError)?;
+        .await?;
         Ok(KeycloakClient::new(
             &self.config.keycloak_url,
             admin_token,
@@ -50,10 +49,7 @@ impl KeycloakAdmin {
             ..Default::default()
         };
         let client = self.get_client().await?;
-        let response = client
-            .realm_users_post(&self.config.realm, user)
-            .await
-            .map_err(KeycloakAdminError::KeycloakError)?;
+        let response = client.realm_users_post(&self.config.realm, user).await?;
         let user_id_str = response.to_id().ok_or_else(|| {
             KeycloakAdminError::ParseError("User ID not found in response".to_string())
         })?;
@@ -74,8 +70,7 @@ impl KeycloakAdmin {
         let client = self.get_client().await?;
         client
             .realm_users_with_user_id_put(&self.config.realm, &user_id.to_string(), user)
-            .await
-            .map_err(KeycloakAdminError::KeycloakError)?;
+            .await?;
         Ok(())
     }
 
@@ -83,8 +78,7 @@ impl KeycloakAdmin {
         let client = self.get_client().await?;
         let user = client
             .realm_users_with_user_id_get(&self.config.realm, &user_id.to_string(), None)
-            .await
-            .map_err(KeycloakAdminError::KeycloakError)?;
+            .await?;
         Ok(user)
     }
 }
