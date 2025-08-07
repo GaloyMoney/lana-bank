@@ -136,9 +136,9 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         report_content = output.getvalue()
 
         
-        
+        report_has_content = len(rows_data) > 0
         is_xml_valid = self.xml_schema.is_valid(source=report_content)
-        if not is_xml_valid:
+        if report_has_content and not is_xml_valid:
             logger.warning(f"Schema validation for report failed. Listing errors.")
             for err in self.xml_schema.iter_errors(report_content):
                 logger.debug(f"Path: {err.path}, Reason: {err.reason}")
