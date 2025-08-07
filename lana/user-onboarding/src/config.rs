@@ -1,7 +1,19 @@
-use keycloak_admin::KeycloakAdminConfig;
 use serde::{Deserialize, Serialize};
 
-#[derive(Debug, Default, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct UserOnboardingConfig {
-    pub keycloak_admin: KeycloakAdminConfig,
+    #[serde(default = "default_keycloak_realm")]
+    pub keycloak_realm: String,
+}
+
+impl Default for UserOnboardingConfig {
+    fn default() -> Self {
+        Self {
+            keycloak_realm: default_keycloak_realm(),
+        }
+    }
+}
+
+fn default_keycloak_realm() -> String {
+    "internal".to_string()
 }
