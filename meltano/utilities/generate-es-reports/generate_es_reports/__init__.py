@@ -135,13 +135,14 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         output.write(xml_string)
         report_content = output.getvalue()
 
-        if self.xml_schema is not None:
-            is_xml_valid = self.xml_schema.is_valid(source=report_content)
-            if not is_xml_valid:
-                logger.warning(f"Schema validation for report failed. Listing errors.")
-                for err in self.xml_schema.iter_errors(report_content):
-                    logger.debug(f"Path: {err.path}, Reason: {err.reason}")
-                    logger.debug(f"  Source: {err.source}")
+        
+        
+        is_xml_valid = self.xml_schema.is_valid(source=report_content)
+        if not is_xml_valid:
+            logger.warning(f"Schema validation for report failed. Listing errors.")
+            for err in self.xml_schema.iter_errors(report_content):
+                logger.debug(f"Path: {err.path}, Reason: {err.reason}")
+                logger.debug(f"  Source: {err.source}")
 
         return StorableReportOutput(
             report_content=report_content, report_content_type=self.content_type
