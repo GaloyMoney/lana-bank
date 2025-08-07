@@ -85,15 +85,13 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         rows_data = [{name: row[name] for name in field_names} for row in rows]
 
         xml_root_element = ElementTree.Element(
-            f"{{{self.target_namespace}}}"
-            + f"{self.root_element_tag}"
+            f"{{{self.target_namespace}}}" + f"{self.root_element_tag}"
         )
 
         for row in rows_data:
             sequence_level_element = ElementTree.SubElement(
                 xml_root_element,
-                f"{{{self.target_namespace}}}"
-                + f"{self.sequence_elements_tag}",
+                f"{{{self.target_namespace}}}" + f"{self.sequence_elements_tag}",
             )
             for field, value in row.items():
 
@@ -108,7 +106,7 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         output = io.StringIO()
         output.write(xml_string)
         report_content = output.getvalue()
-        
+
         report_has_content = len(rows_data) > 0
         is_xml_valid = self.xml_schema.is_valid(source=report_content)
         if report_has_content and not is_xml_valid:
@@ -121,13 +119,12 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
             report_content=report_content, report_content_type=self.content_type
         )
 
-    
     def _extract_sequence_elements_tag(self) -> str:
         """Extract the tag of the sequence elements of the schema.
 
         This makes a strong assumption that the XSD follows the common
         structure of SSF reports: one root element followed by a sequence
-        of children elements, all within the same namespace. 
+        of children elements, all within the same namespace.
 
         This will 100% break on XSD that follow other patterns.
 
@@ -141,10 +138,10 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
 
         # Strip namespace if present
         qname = first_child.name
-        child_name = qname.split('}', 1)[-1] if qname.startswith('{') else qname
+        child_name = qname.split("}", 1)[-1] if qname.startswith("{") else qname
 
         return child_name
-        
+
 
 class CSVFileOutputConfig(BaseFileOutputConfig):
 
@@ -207,8 +204,7 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
 
 
 class XMLSchemaRepository:
-    """Provides access to the xsd schemas in the schemas folder.
-    """
+    """Provides access to the xsd schemas in the schemas folder."""
 
     xml_schema_extension = ".xsd"
 
@@ -270,12 +266,14 @@ def load_report_jobs_from_yaml(yaml_path: Path) -> tuple[ReportJobDefinition, ..
         output_configs = []
         for output in report_job["outputs"]:
             if output["type"] == "xml":
-                output_config = XMLFileOutputConfig(xml_schema=xml_schema_repository.get_schema(
+                output_config = XMLFileOutputConfig(
+                    xml_schema=xml_schema_repository.get_schema(
                         schema_id=output["validation_schema_id"]
-                    ))
+                    )
+                )
                 output_configs.append(output_config)
                 continue
-            
+
             output_config = str_to_type_mapping[output["type"].lower()]()
             output_configs.append(output_config)
 
