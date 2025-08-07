@@ -1622,7 +1622,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "keycloak-admin",
+ "keycloak-client",
  "outbox",
  "serde",
  "thiserror 2.0.12",
@@ -3123,7 +3123,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "keycloak-admin"
+name = "keycloak-client"
 version = "0.3.772-dev"
 dependencies = [
  "keycloak",
@@ -3214,7 +3214,7 @@ dependencies = [
  "es-entity",
  "governance",
  "job",
- "keycloak-admin",
+ "keycloak-client",
  "lana-events",
  "lana-ids",
  "notification",
@@ -6679,7 +6679,7 @@ dependencies = [
  "es-entity",
  "futures",
  "job",
- "keycloak-admin",
+ "keycloak-client",
  "outbox",
  "serde",
  "thiserror 2.0.12",

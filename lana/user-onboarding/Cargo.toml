@@ -16,7 +16,7 @@ core-access = { path = "../../core/access" }
 outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 audit = { path = "../../lib/audit" }
-keycloak-admin = { path = "../../lib/keycloak-admin" }
+keycloak-client = { path = "../../lib/keycloak-client" }
 
 es-entity = { workspace = true, features = ["graphql"] }
 serde = { workspace = true }

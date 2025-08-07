@@ -17,7 +17,7 @@ outbox = { path = "../../lib/outbox" }
 job = { path = "../../lib/job" }
 audit = { path = "../../lib/audit" }
 authz = { path = "../../lib/authz" }
-keycloak-admin = { path = "../../lib/keycloak-admin" }
+keycloak-client = { path = "../../lib/keycloak-client" }
 
 tracing = { workspace = true }
 serde = { workspace = true }

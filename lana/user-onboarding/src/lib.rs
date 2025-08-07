@@ -11,7 +11,7 @@ use job::*;
 
 use audit::AuditSvc;
 use core_access::{CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId, user::Users};
-use keycloak_admin::KeycloakConnectionConfig;
+use keycloak_client::KeycloakConnectionConfig;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct UserOnboarding<Audit, E>
@@ -51,11 +51,11 @@ where
         keycloak_connection: KeycloakConnectionConfig,
         config: UserOnboardingConfig,
     ) -> Result<Self, UserOnboardingError> {
-        let keycloak_admin =
-            keycloak_admin::KeycloakAdmin::new(keycloak_connection, config.keycloak_realm);
+        let keycloak_client =
+            keycloak_client::KeycloakClient::new(keycloak_connection, config.keycloak_realm);
 
         jobs.add_initializer_and_spawn_unique(
-            UserOnboardingInit::new(outbox, users, keycloak_admin),
+            UserOnboardingInit::new(outbox, users, keycloak_client),
             UserOnboardingJobConfig::new(),
         )
         .await?;

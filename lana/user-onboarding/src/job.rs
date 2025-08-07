@@ -8,7 +8,7 @@ use audit::AuditSvc;
 use core_access::{CoreAccessAction, CoreAccessObject, UserId, user::Users};
 use outbox::{Outbox, OutboxEventMarker};
 
-use keycloak_admin::KeycloakAdmin;
+use keycloak_client::KeycloakClient;
 
 #[derive(serde::Serialize)]
 pub struct UserOnboardingJobConfig<Audit, E> {
@@ -38,7 +38,7 @@ where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     outbox: Outbox<E>,
-    keycloak_admin: KeycloakAdmin,
+    keycloak_client: KeycloakClient,
     users: Users<Audit, E>,
 }
 
@@ -50,11 +50,15 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, users: &Users<Audit, E>, keycloak_admin: KeycloakAdmin) -> Self {
+    pub fn new(
+        outbox: &Outbox<E>,
+        users: &Users<Audit, E>,
+        keycloak_client: KeycloakClient,
+    ) -> Self {
         Self {
             outbox: outbox.clone(),
             users: users.clone(),
-            keycloak_admin,
+            keycloak_client,
         }
     }
 }
@@ -79,7 +83,7 @@ where
         Ok(Box::new(UserOnboardingJobRunner {
             outbox: self.outbox.clone(),
             users: self.users.clone(),
-            keycloak_admin: self.keycloak_admin.clone(),
+            keycloak_client: self.keycloak_client.clone(),
         }))
     }
 
@@ -103,7 +107,7 @@ where
 {
     outbox: Outbox<E>,
     users: Users<Audit, E>,
-    keycloak_admin: KeycloakAdmin,
+    keycloak_client: KeycloakClient,
 }
 #[async_trait]
 impl<Audit, E> JobRunner for UserOnboardingJobRunner<Audit, E>
@@ -126,7 +130,7 @@ where
             if let Some(CoreAccessEvent::UserCreated { id, email, .. }) =
                 &message.as_ref().as_event()
             {
-                let uuid = self.keycloak_admin.create_user(email.clone()).await?;
+                let uuid = self.keycloak_client.create_user(email.clone()).await?;
                 let authentication_id = AuthenticationId::from(uuid);
                 self.users
                     .update_authentication_id_for_user(*id, authentication_id)

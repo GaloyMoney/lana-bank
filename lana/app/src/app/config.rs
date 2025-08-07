@@ -8,7 +8,7 @@ use crate::{
     job::JobsConfig, notification::NotificationConfig, report::ReportConfig,
     storage::config::StorageConfig, user_onboarding::UserOnboardingConfig,
 };
-use keycloak_admin::KeycloakConnectionConfig;
+use keycloak_client::KeycloakConnectionConfig;
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
 pub struct AppConfig {
