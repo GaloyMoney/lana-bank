@@ -32,16 +32,13 @@ gql`
     values {
       annualRate
       liquidationCvl {
-        kind
-        value
+        ...CVLPctData
       }
       marginCallCvl {
-        kind
-        value
+        ...CVLPctData
       }
       initialCvl {
-        kind
-        value
+        ...CVLPctData
       }
       oneTimeFeeRate
       duration {
@@ -83,19 +80,25 @@ const columns = (
     key: "values",
     header: t("table.headers.initialCvl"),
     render: (values) =>
-      values.initialCvl.kind === "INFINITE" ? "∞" : `${values.initialCvl.value}%`,
+      values.initialCvl.__typename === "FiniteCVLPct"
+        ? `${values.initialCvl.value}%`
+        : "∞",
   },
   {
     key: "values",
     header: t("table.headers.marginCallCvl"),
     render: (values) =>
-      values.marginCallCvl.kind === "INFINITE" ? "∞" : `${values.marginCallCvl.value}%`,
+      values.marginCallCvl.__typename === "FiniteCVLPct"
+        ? `${values.marginCallCvl.value}%`
+        : "∞",
   },
   {
     key: "values",
     header: t("table.headers.liquidationCvl"),
     render: (values) =>
-      values.liquidationCvl.kind === "INFINITE" ? "∞" : `${values.liquidationCvl.value}%`,
+      values.liquidationCvl.__typename === "FiniteCVLPct"
+        ? `${values.liquidationCvl.value}%`
+        : "∞",
   },
 ]
 
