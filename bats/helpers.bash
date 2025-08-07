@@ -22,43 +22,17 @@ server_cmd() {
 wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
 
-  echo "--- Waiting for Keycloak service to be ready ---"
-  if ! wait4x http localhost:8081/realms/master --timeout 10s --interval 1s; then
-    echo "--- Keycloak master realm not ready after timeout, proceeding anyway ---"
-  elif ! wait4x http localhost:8081/realms/internal --timeout 10s --interval 1s; then
-    echo "--- Keycloak internal realm not ready after timeout, proceeding anyway ---"
-  else
-    echo "--- Keycloak service is ready ---"
-  fi
-  
-  echo "--- Verifying Keycloak admin user exists ---"
-  for i in {1..20}; do
-    echo "--- Checking if Keycloak admin user exists (attempt ${i}) ---"
-    admin_token=$(get_keycloak_admin_token 2>/dev/null || echo "")
-    if [[ -n "$admin_token" && "$admin_token" != "null" ]]; then
-      user_id=$(find_user_by_email "$admin_token" "$email" 2>/dev/null || echo "")
-      if [[ -n "$user_id" && "$user_id" != "null" ]]; then
-        echo "--- Keycloak admin user found with ID: ${user_id} ---"
-        access_token=$(get_user_access_token "$admin_token" "$user_id" "$email" 2>/dev/null || echo "")
-        if [[ -n "$access_token" && "$access_token" != "null" ]]; then
-          echo "--- Keycloak user is ready and can authenticate ---"
-          return 0
-        else
-          echo "--- Keycloak user found but cannot authenticate yet ---"
-        fi
-      else
-        echo "--- Keycloak admin user not found, may still be creating ---"
-      fi
-    else
-      echo "--- Cannot get Keycloak admin token yet ---"
-    fi
-    
-    echo "--- Keycloak user not ready yet, waiting... ---"
+  wait4x http localhost:8081/realms/master   --timeout 30s --interval 1s || exit 1
+  wait4x http localhost:8081/realms/internal --timeout 10s --interval 1s || exit 1
+
+  for i in {1..30}; do
+    admin_token=$(get_keycloak_admin_token 2>/dev/null || true)
+    user_id=$(find_user_by_email "$admin_token" "$email" 2>/dev/null || true)
+    [[ -n "$user_id" && "$user_id" != "null" ]] && { echo "✅ User exists"; return 0; }
     sleep 1
   done
-  
-  echo "--- Keycloak user may not be ready, but proceeding anyway ---"
-  echo "--- Note: Login may require retries ---"
+
+  echo "❌ Admin user not ready after 20 s"; exit 1
 }
 
 start_server() {
