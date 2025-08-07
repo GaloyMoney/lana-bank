@@ -37,8 +37,7 @@ gql`
     collateralizationState
     createdAt
     currentCvl {
-      kind
-      value
+      ...CVLPctData
     }
     publicId
     collateralToMatchInitialCvl @client
@@ -78,16 +77,13 @@ gql`
     creditFacilityTerms {
       annualRate
       liquidationCvl {
-        kind
-        value
+        ...CVLPctData
       }
       marginCallCvl {
-        kind
-        value
+        ...CVLPctData
       }
       initialCvl {
-        kind
-        value
+        ...CVLPctData
       }
       oneTimeFeeRate
       duration {

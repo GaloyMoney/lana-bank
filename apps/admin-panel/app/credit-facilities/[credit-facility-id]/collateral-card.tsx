@@ -5,6 +5,7 @@ import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   CreditFacilityStatus,
+  CvlPctDataFragment,
   DisbursalStatus,
   GetCreditFacilityLayoutDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
@@ -12,15 +13,11 @@ import {
 import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
 import { Satoshis, UsdCents } from "@/types"
 
-// Helper function to get CVL value from the new Cvlpct structure
-const getCvlValue = (cvl: { kind: string; value?: number | null }): number => {
-  return cvl.kind === "INFINITE" ? Infinity : cvl.value || 0
-}
+const getCvlValue = (cvl: CvlPctDataFragment): number =>
+  cvl.__typename === "FiniteCVLPct" ? cvl.value : Infinity
 
-// Helper function to format CVL for display
-const formatCvl = (cvl: { kind: string; value?: number | null }): string => {
-  return cvl.kind === "INFINITE" ? "∞" : `${cvl.value || 0}%`
-}
+const formatCvl = (cvl: CvlPctDataFragment): string =>
+  cvl.__typename === "FiniteCVLPct" ? `${cvl.value || 0}%` : "∞"
 
 type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<
@@ -29,10 +26,10 @@ type CreditFacilityOverviewProps = {
 }
 
 const getCvlStatus = (
-  currentCvl: { kind: string; value?: number | null },
-  initialCvl: { kind: string; value?: number | null },
-  marginCallCvl: { kind: string; value?: number | null },
-  liquidationCvl: { kind: string; value?: number | null },
+  currentCvl: CvlPctDataFragment,
+  initialCvl: CvlPctDataFragment,
+  marginCallCvl: CvlPctDataFragment,
+  liquidationCvl: CvlPctDataFragment,
   t: (key: string) => string,
 ) => {
   const currentVal = getCvlValue(currentCvl)
@@ -48,10 +45,10 @@ const getCvlStatus = (
 }
 
 const CvlStatusText: React.FC<{
-  currentCvl: { kind: string; value?: number | null }
-  initialCvl: { kind: string; value?: number | null }
-  marginCallCvl: { kind: string; value?: number | null }
-  liquidationCvl: { kind: string; value?: number | null }
+  currentCvl: CvlPctDataFragment
+  initialCvl: CvlPctDataFragment
+  marginCallCvl: CvlPctDataFragment
+  liquidationCvl: CvlPctDataFragment
   t: (key: string) => string
 }> = ({ currentCvl, initialCvl, marginCallCvl, liquidationCvl, t }) => {
   const { label, color } = getCvlStatus(

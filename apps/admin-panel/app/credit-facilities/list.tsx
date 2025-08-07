@@ -29,6 +29,15 @@ import Balance from "@/components/balance/balance"
 import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
+  fragment CVLPctData on Cvlpct {
+    ... on FiniteCVLPct {
+      value
+    }
+    ... on InfiniteCVLPct {
+      isInfinite
+    }
+  }
+
   query CreditFacilities(
     $first: Int!
     $after: String
@@ -47,8 +56,7 @@ gql`
           status
           facilityAmount
           currentCvl {
-            kind
-            value
+            ...CVLPctData
           }
           balance {
             collateral {
@@ -151,7 +159,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "currentCvl",
     label: t("table.headers.cvl"),
-    render: (cvl) => (cvl.kind === "INFINITE" ? "∞" : `${cvl.value}%`),
+    render: (cvl) => (cvl.__typename === "FiniteCVLPct" ? `${cvl.value}%` : "∞"),
     sortable: true,
   },
   {
