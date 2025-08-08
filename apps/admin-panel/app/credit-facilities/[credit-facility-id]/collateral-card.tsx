@@ -10,14 +10,8 @@ import {
   GetCreditFacilityLayoutDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
-import { CENTS_PER_USD, SATS_PER_BTC } from "@/lib/utils"
+import { CENTS_PER_USD, formatCvl, getCvlValue, SATS_PER_BTC } from "@/lib/utils"
 import { Satoshis, UsdCents } from "@/types"
-
-const getCvlValue = (cvl: CvlPctDataFragment): number =>
-  cvl.__typename === "FiniteCVLPct" ? cvl.value : Infinity
-
-const formatCvl = (cvl: CvlPctDataFragment): string =>
-  cvl.__typename === "FiniteCVLPct" ? `${cvl.value || 0}%` : "∞"
 
 type CreditFacilityOverviewProps = {
   creditFacility: NonNullable<

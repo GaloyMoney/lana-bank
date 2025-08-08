@@ -30,6 +30,7 @@ import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
   fragment CVLPctData on Cvlpct {
+    __typename
     ... on FiniteCVLPct {
       value
     }
@@ -56,7 +57,13 @@ gql`
           status
           facilityAmount
           currentCvl {
-            ...CVLPctData
+            __typename
+            ... on FiniteCVLPct {
+              value
+            }
+            ... on InfiniteCVLPct {
+              isInfinite
+            }
           }
           balance {
             collateral {
