@@ -9,12 +9,6 @@ use core_money::UsdCents;
 
 use std::fmt;
 
-#[cfg_attr(feature = "graphql", derive(async_graphql::SimpleObject))]
-pub struct FacilityCVL {
-    pub total: CVLPct,
-    pub disbursed: CVLPct,
-}
-
 #[derive(Debug, Clone, Copy, PartialEq, Eq, Hash, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CVLPct {
@@ -22,7 +16,6 @@ pub enum CVLPct {
     Infinite,
 }
 
-#[cfg(feature = "graphql")]
 async_graphql::scalar!(CVLPct);
 
 impl PartialOrd for CVLPct {
