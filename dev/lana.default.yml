@@ -20,7 +20,7 @@ app:
   access:
     superuser_email: null
   credit:
-    upgrade_buffer_cvl_pct: '5'
+    upgrade_buffer_cvl_pct: !Finite '5'
     customer_active_check_enabled: true
   storage:
     provider: local
