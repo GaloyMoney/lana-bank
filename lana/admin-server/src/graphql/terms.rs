@@ -145,7 +145,7 @@ impl From<DomainCVLPct> for CVLPct {
     fn from(cvl: DomainCVLPct) -> Self {
         match cvl {
             DomainCVLPct::Finite(value) => CVLPct::Finite(FiniteCVLPct {
-                value: CVLPctValue(value.into()),
+                value: CVLPctValue(value),
             }),
             DomainCVLPct::Infinite => CVLPct::Infinite(InfiniteCVLPct { is_infinite: true }),
         }
