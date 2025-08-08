@@ -1133,6 +1133,11 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
+export enum FacilityDisbursalRule {
+  OnCreditFacilityActivation = 'ON_CREDIT_FACILITY_ACTIVATION',
+  Revolver = 'REVOLVER'
+}
+
 export type FacilityRemaining = {
   __typename?: 'FacilityRemaining';
   usdBalance: Scalars['UsdCents']['output'];
@@ -2260,6 +2265,7 @@ export type TermValues = {
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['output'];
   duration: Duration;
+  facilityDisbursalRule?: Maybe<FacilityDisbursalRule>;
   initialCvl: Scalars['CVLPct']['output'];
   liquidationCvl: Scalars['CVLPct']['output'];
   marginCallCvl: Scalars['CVLPct']['output'];
@@ -2271,6 +2277,7 @@ export type TermsInput = {
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
+  facilityDisbursalRule?: InputMaybe<FacilityDisbursalRule>;
   initialCvl: Scalars['CVLPct']['input'];
   interestDueDurationFromAccrual: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];
@@ -2295,6 +2302,7 @@ export type TermsTemplateCreateInput = {
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
+  facilityDisbursalRule?: InputMaybe<FacilityDisbursalRule>;
   initialCvl: Scalars['CVLPct']['input'];
   interestDueDurationFromAccrual: DurationInput;
   liquidationCvl: Scalars['CVLPct']['input'];

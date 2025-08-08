@@ -12,17 +12,17 @@ sim-time = ["dep:sim-time", "es-entity/sim-time"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "job/json-schema", "core-money/json-schema", "outbox/json-schema", "public-id/json-schema"]
 
 [dependencies]
-core-money = { path = "../money" }
-governance = { path = "../governance" }
-core-customer = { path = "../customer" }
-core-accounting = { path = "../accounting" }
-public-id = { path = "../public-id" }
+core-money = { workspace = true }
+governance = { workspace = true }
+core-customer = { workspace = true }
+core-accounting = { workspace = true }
+public-id = { workspace = true }
 
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-cloud-storage = { path = "../../lib/cloud-storage" }
+audit = { workspace = true }
+authz = { workspace = true }
+outbox = { workspace = true }
+job = { workspace = true }
+cloud-storage = { workspace = true }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }
@@ -45,8 +45,8 @@ base64 = { workspace = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
-authz = { path = "../../lib/authz", features = ["test-dummy"] }
-document-storage = { path = "../document-storage" }
+authz = { workspace = true, features = ["test-dummy"] }
+document-storage = { workspace = true }
 
 tokio = { workspace = true }
 anyhow = { workspace = true }

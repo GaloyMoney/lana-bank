@@ -17,7 +17,7 @@ use crate::{
     event::CoreCreditEvent,
     jobs::interest_accruals,
     ledger::CreditLedger,
-    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId},
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId, DisbursalType},
 };
 
 pub use job::*;
@@ -108,8 +108,10 @@ where
                     .terms
                     .obligation_liquidation_duration_from_due
                     .map(|d| d.end_date(due_date));
-
-                if credit_facility.has_structuring_fee() {
+                let disbursal_rule = DisbursalType::from(credit_facility.terms.disbursal_rule());
+                
+                if credit_facility.has_structuring_fee() && 
+                    disbursal_rule == DisbursalType::Revolver {
                     let disbursal_id = DisbursalId::new();
                     let public_id = self
                         .public_ids
@@ -119,12 +121,12 @@ where
                             disbursal_id,
                         )
                         .await?;
-
+                    
                     let new_disbursal = NewDisbursal::builder()
                         .id(disbursal_id)
                         .credit_facility_id(credit_facility.id)
                         .approval_process_id(credit_facility.approval_process_id)
-                        .amount(credit_facility.structuring_fee())
+                        .amount(credit_facility.amount - credit_facility.structuring_fee())
                         .account_ids(credit_facility.account_ids)
                         .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
                         .due_date(due_date)
@@ -138,6 +140,40 @@ where
                     self.disbursals
                         .create_first_disbursal_in_op(&mut db, new_disbursal, &audit_info)
                         .await?;
+                }
+
+                match disbursal_rule {
+                    DisbursalType::OnCreditFacilityActivation => {
+                        let disbursal_id = DisbursalId::new();
+                        let public_id = self
+                            .public_ids
+                            .create_in_op(
+                                &mut db,
+                                crate::primitives::DISBURSAL_REF_TARGET,
+                                disbursal_id,
+                            )
+                            .await?;
+                        let full_disbursal = credit_facility.amount + credit_facility.structuring_fee();
+                        let new_disbursal = NewDisbursal::builder()
+                            .id(disbursal_id)
+                            .credit_facility_id(credit_facility.id)
+                            .approval_process_id(credit_facility.approval_process_id)
+                            .amount(full_disbursal)
+                            .account_ids(credit_facility.account_ids)
+                            .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
+                            .due_date(due_date)
+                            .overdue_date(overdue_date)
+                            .liquidation_date(liquidation_date)
+                            .audit_info(audit_info.clone())
+                            .public_id(public_id.id)
+                            .build()
+                            .expect("could not build new one-time disbursal");
+    
+                        self.disbursals
+                            .create_first_disbursal_in_op(&mut db, new_disbursal, &audit_info)
+                            .await?;
+                    }
+                    _ => {}
                 }
 
                 let accrual_id = credit_facility

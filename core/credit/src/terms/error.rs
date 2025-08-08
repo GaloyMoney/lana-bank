@@ -21,4 +21,6 @@ pub enum TermsError {
     MarginCallBelowLiquidationLimit(CVLPct, CVLPct),
     #[error("TermsError - UninitializedField: {0}")]
     UninitializedField(#[from] derive_builder::UninitializedFieldError),
+    #[error("TermsError - UnAppliedStructuringFee: structuring fee needs to handled for the active disbursement rule")]
+    UnAppliedStructuringFee,
 }

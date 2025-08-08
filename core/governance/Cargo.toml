@@ -11,9 +11,9 @@ graphql = ["es-entity/graphql", "dep:async-graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "authz/json-schema", "outbox/json-schema"]
 
 [dependencies]
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
+audit = { workspace = true }
+authz = { workspace = true }
+outbox = { workspace = true }
 
 es-entity = { workspace = true }
 uuid = { workspace = true }

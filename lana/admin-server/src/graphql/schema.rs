@@ -1285,6 +1285,7 @@ impl Mutation {
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
+            .facility_disbursal_rule(input.facility_disbursal_rule)
             .build()?;
 
         exec_mutation!(
@@ -1501,6 +1502,7 @@ impl Mutation {
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)
+            .facility_disbursal_rule(terms.facility_disbursal_rule)
             .build()?;
 
         exec_mutation!(

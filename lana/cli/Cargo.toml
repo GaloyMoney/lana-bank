@@ -20,13 +20,13 @@ fail-on-warnings = []
 chrono = { workspace = true }
 
 [dependencies]
-lana-app = { path = "../app" }
-admin-server = { path = "../admin-server" }
-customer-server = { path = "../customer-server" }
+lana-app = { workspace = true }
+admin-server = { workspace = true }
+customer-server = { workspace = true }
 
-sim-bootstrap = { path = "../sim-bootstrap", optional = true }
+sim-bootstrap = { workspace = true, optional = true }
 
-tracing-utils = { path = "../../lib/tracing-utils", features = ["http"] }
+tracing-utils = { workspace = true, features = ["http"] }
 
 sim-time = { workspace = true, optional = true }
 

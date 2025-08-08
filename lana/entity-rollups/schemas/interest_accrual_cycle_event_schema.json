@@ -19,6 +19,34 @@
       ],
       "type": "object"
     },
+    "FacilityDisbursalRule": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "on_credit_facility_activation",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "revolver",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "FacilityDuration": {
       "oneOf": [
         {
@@ -166,6 +194,16 @@
         },
         "duration": {
           "$ref": "#/$defs/FacilityDuration"
+        },
+        "facility_disbursal_rule": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/FacilityDisbursalRule"
+            },
+            {
+              "type": "null"
+            }
+          ]
         },
         "initial_cvl": {
           "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",

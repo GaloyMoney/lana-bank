@@ -8,16 +8,16 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-lana-events = { path = "../events" }
-core-access = { path = "../../core/access" }
-core-credit = { path = "../../core/credit" }
-core-customer = { path = "../../core/customer" }
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-core-money = { path = "../../core/money" }
-rbac-types = { path = "../rbac-types" }
+outbox = { workspace = true }
+job = { workspace = true }
+lana-events = { workspace = true }
+core-access = { workspace = true }
+core-credit = { workspace = true }
+core-customer = { workspace = true }
+audit = { workspace = true }
+authz = { workspace = true }
+core-money = { workspace = true }
+rbac-types = { workspace = true }
 
 es-entity = { workspace = true }
 serde = { workspace = true }

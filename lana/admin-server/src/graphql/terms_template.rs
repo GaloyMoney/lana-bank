@@ -64,6 +64,7 @@ pub(super) struct TermsTemplateCreateInput {
     pub liquidation_cvl: CVLPct,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
+    pub facility_disbursal_rule: Option<DomainFacilityDisbursalRule>,
 }
 crate::mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemplate }
 

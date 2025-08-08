@@ -14,7 +14,7 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 es-entity = { workspace = true }
-tracing-utils = { path = "../tracing-utils", features = ["persistence"] }
+tracing-utils = { workspace = true, features = ["persistence"] }
 
 serde = { workspace = true }
 serde_json = { workspace = true }

@@ -3,7 +3,7 @@ use async_graphql::*;
 pub use lana_app::terms::{
     AnnualRatePct, CVLPct, FacilityDuration as DomainDuration, InterestInterval,
     ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
-    TermValues as DomainTermValues,
+    TermValues as DomainTermValues, FacilityDisbursalRule as DomainFacilityDisbursalRule,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -16,6 +16,7 @@ pub struct TermValues {
     liquidation_cvl: CVLPct,
     margin_call_cvl: CVLPct,
     initial_cvl: CVLPct,
+    facility_disbursal_rule: Option<DomainFacilityDisbursalRule>,
 }
 
 impl From<DomainTermValues> for TermValues {
@@ -29,6 +30,7 @@ impl From<DomainTermValues> for TermValues {
             liquidation_cvl: values.liquidation_cvl,
             margin_call_cvl: values.margin_call_cvl,
             initial_cvl: values.initial_cvl,
+            facility_disbursal_rule: values.facility_disbursal_rule,
         }
     }
 }
@@ -46,6 +48,7 @@ pub struct TermsInput {
     pub obligation_liquidation_duration_from_due: DurationInput,
     pub margin_call_cvl: CVLPct,
     pub initial_cvl: CVLPct,
+    pub facility_disbursal_rule: Option<DomainFacilityDisbursalRule>,
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]

@@ -631,3 +631,16 @@ impl EffectiveDate {
         )
     }
 }
+
+#[derive(PartialEq)]
+pub enum DisbursalType {
+    OnCreditFacilityActivation,
+    Revolver,
+}
+
+impl Default for DisbursalType {
+    fn default() -> Self {
+        Self::Revolver
+    }
+}
+

@@ -44,6 +44,6 @@ export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
 
 # ── Up ──────────────────────────────────────────────────────────────────────────
 echo "Starting services..."
-"$ENGINE" compose "${FILES[@]}" up -d "$@"
+docker-compose "${FILES[@]}" up -d "$@"
 
 wait4x postgresql ${PG_CON} --timeout 120s

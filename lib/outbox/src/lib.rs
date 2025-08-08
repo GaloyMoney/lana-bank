@@ -124,15 +124,14 @@ where
         listener.listen("persistent_outbox_events").await?;
         tokio::spawn(async move {
             loop {
-                if let Ok(notification) = listener.recv().await {
-                    if let Ok(event) =
+                if let Ok(notification) = listener.recv().await
+                    && let Ok(event) =
                         serde_json::from_str::<PersistentOutboxEvent<P>>(notification.payload())
-                    {
-                        let new_highest_sequence = u64::from(event.sequence);
-                        highest_known_sequence.fetch_max(new_highest_sequence, Ordering::AcqRel);
-                        if sender.send(event.into()).is_err() {
-                            break;
-                        }
+                {
+                    let new_highest_sequence = u64::from(event.sequence);
+                    highest_known_sequence.fetch_max(new_highest_sequence, Ordering::AcqRel);
+                    if sender.send(event.into()).is_err() {
+                        break;
                     }
                 }
             }

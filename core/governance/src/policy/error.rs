@@ -20,12 +20,11 @@ es_entity::from_es_entity_error!(PolicyError);
 
 impl From<sqlx::Error> for PolicyError {
     fn from(error: sqlx::Error) -> Self {
-        if let Some(err) = error.as_database_error() {
-            if let Some(constraint) = err.constraint() {
-                if constraint.contains("type") {
-                    return Self::DuplicateApprovalProcessType;
-                }
-            }
+        if let Some(err) = error.as_database_error()
+            && let Some(constraint) = err.constraint()
+            && constraint.contains("type")
+        {
+            return Self::DuplicateApprovalProcessType;
         }
         Self::Sqlx(error)
     }

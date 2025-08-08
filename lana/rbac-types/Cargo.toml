@@ -8,19 +8,19 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-dashboard = { path = "../dashboard" }
-contract-creation = { path = "../contract-creation" }
+dashboard = { workspace = true }
+contract-creation = { workspace = true }
 
-governance = { path = "../../core/governance" }
-core-access = { path = "../../core/access" }
-core-customer = { path = "../../core/customer" }
-core-credit = { path = "../../core/credit" }
-core-custody = { path = "../../core/custody" }
-core-deposit = { path = "../../core/deposit" }
-core-accounting = { path = "../../core/accounting" }
-core-report = { path = "../../core/report" }
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
+governance = { workspace = true }
+core-access = { workspace = true }
+core-customer = { workspace = true }
+core-credit = { workspace = true }
+core-custody = { workspace = true }
+core-deposit = { workspace = true }
+core-accounting = { workspace = true }
+core-report = { workspace = true }
+audit = { workspace = true }
+authz = { workspace = true }
 
 async-graphql = { workspace = true }
 strum = { workspace = true }

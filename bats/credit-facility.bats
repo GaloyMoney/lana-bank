@@ -291,3 +291,64 @@ ymd() {
 
   # assert_accounts_balanced
 }
+
+@test "credit-facility: can create-with-rule" {
+  # Setup prerequisites
+  customer_id=$(create_customer)
+
+  retry 45 1 wait_for_checking_account "$customer_id"
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+
+  deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
+  [[ "$deposit_account_id" != "null" ]] || exit 1
+
+
+  facility=100000
+  variables=$(
+    jq -n \
+    --arg customerId "$customer_id" \
+    --arg disbursal_credit_account_id "$deposit_account_id" \
+    --argjson facility "$facility" \
+    '{
+      input: {
+        customerId: $customerId,
+        facility: $facility,
+        disbursalCreditAccountId: $disbursal_credit_account_id,
+        terms: {
+          annualRate: "12",
+          accrualCycleInterval: "END_OF_MONTH",
+          accrualInterval: "END_OF_DAY",
+          oneTimeFeeRate: "5",
+          duration: { period: "MONTHS", units: 3 },
+          interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
+          obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
+          obligationLiquidationDurationFromDue: { period: "DAYS", units: 360 },
+          liquidationCvl: "105",
+          marginCallCvl: "125",
+          initialCvl: "140"
+          facilityDisbursalRule: "ON_CREDIT_FACILITY_ACTIVATION"
+        }
+      }
+    }'
+  )
+
+  exec_admin_graphql 'credit-facility-create' "$variables"
+
+  address=$(graphql_output '.data.creditFacilityCreate.creditFacility.wallet.address')
+  [[ "$address" == "null" ]] || exit 1
+
+  credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
+  [[ "$credit_facility_id" != "null" ]] || exit 1
+
+  disbursal_rule=$(graphql_output '.data.creditFacilityCreate.creditFacility.terms.facilityDisbursalRule')
+  [[ "$disbursal_rule" != "null" ]] || exit 1
+  [[ "$disbursal_rule" != "REVOLVER" ]]
+}

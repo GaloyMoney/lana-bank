@@ -13,19 +13,19 @@ sim-time = ["dep:sim-time", "es-entity/sim-time"]
 mock-custodian = ["core-custody/mock-custodian"]
 
 [dependencies]
-core-money = { path = "../money" }
-core-price = { path = "../price" }
-core-customer = { path = "../customer" }
-core-custody = { path = "../custody" }
-governance = { path = "../governance" }
-core-accounting = { path = "../accounting" }
+core-money = { workspace = true }
+core-price = { workspace = true }
+core-customer = { workspace = true }
+core-custody = { workspace = true }
+governance = { workspace = true }
+core-accounting = { workspace = true }
 
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-cloud-storage = { path = "../../lib/cloud-storage" }
-public-id = { path = "../public-id" }
+audit = { workspace = true }
+authz = { workspace = true }
+outbox = { workspace = true }
+job = { workspace = true }
+cloud-storage = { workspace = true }
+public-id = { workspace = true }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true }
@@ -49,8 +49,8 @@ sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 [dev-dependencies]
-document-storage = { path = "../document-storage" }
-authz = { path = "../../lib/authz", features = ["test-dummy"] }
+document-storage = { workspace = true }
+authz = { workspace = true, features = ["test-dummy"] }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 rand = { workspace = true }

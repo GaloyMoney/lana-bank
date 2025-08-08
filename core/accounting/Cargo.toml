@@ -10,12 +10,12 @@ graphql = [ "dep:async-graphql" ]
 json-schema = ["dep:schemars", "es-entity/json-schema", "cala-ledger/json-schema", "document-storage/json-schema"]
 
 [dependencies]
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-core-money = { path = "../money" }
-document-storage = { path = "../document-storage" }
-job = { path = "../../lib/job" }
-cloud-storage = { path = "../../lib/cloud-storage" }
+audit = { workspace = true }
+authz = { workspace = true }
+core-money = { workspace = true }
+document-storage = { workspace = true }
+job = { workspace = true }
+cloud-storage = { workspace = true }
 
 cala-ledger = { workspace = true }
 es-entity = { workspace = true, features = ["graphql"] }
@@ -40,6 +40,6 @@ tokio = { workspace = true }
 anyhow = { workspace = true }
 
 [dev-dependencies]
-authz = { path = "../../lib/authz", features = ["test-dummy"] }
+authz = { workspace = true, features = ["test-dummy"] }
 rand = { workspace = true }
 rust_decimal_macros = { workspace = true }

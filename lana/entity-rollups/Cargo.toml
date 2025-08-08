@@ -22,14 +22,14 @@ name = "entity-rollups"
 path = "src/main.rs"
 
 [dependencies]
-core-access = { path = "../../core/access" }
-governance = { path = "../../core/governance" }
-core-custody = { path = "../../core/custody" }
-core-customer = { path = "../../core/customer", default-features = false }
-core-deposit = { path = "../../core/deposit" }
-core-credit = { path = "../../core/credit" }
-core-accounting = { path = "../../core/accounting" }
-document-storage = { path = "../../core/document-storage" }
+core-access = { workspace = true }
+governance = { workspace = true }
+core-custody = { workspace = true }
+core-customer = { workspace = true }
+core-deposit = { workspace = true }
+core-credit = { workspace = true }
+core-accounting = { workspace = true }
+document-storage = { workspace = true }
 
 clap = { workspace = true }
 schemars = { workspace = true }

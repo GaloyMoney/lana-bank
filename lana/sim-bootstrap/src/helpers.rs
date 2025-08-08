@@ -52,10 +52,9 @@ pub async fn create_customer(
                     account_holder_id,
                     id,
                 })) = &msg.payload
+                    && CustomerId::from(*account_holder_id) == customer.id
                 {
-                    if CustomerId::from(*account_holder_id) == customer.id {
-                        return Ok((customer.id, *id));
-                    }
+                    return Ok((customer.id, *id));
                 }
             }
             unreachable!()

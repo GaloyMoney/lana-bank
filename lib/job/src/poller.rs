@@ -143,16 +143,15 @@ impl JobPoller {
                 )
                 .fetch_all(&pool)
                 .await
+                    && !rows.is_empty()
                 {
-                    if !rows.is_empty() {
-                        eprintln!(
-                            "job.lost_job: {}",
-                            rows.into_iter()
-                                .map(|r| r.id.to_string())
-                                .collect::<Vec<_>>()
-                                .join(", ")
-                        );
-                    }
+                    eprintln!(
+                        "job.lost_job: {}",
+                        rows.into_iter()
+                            .map(|r| r.id.to_string())
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    );
                 }
             }
         }))

@@ -17,18 +17,16 @@ pub enum AuthorizationError {
 
 impl From<CasbinError> for AuthorizationError {
     fn from(error: CasbinError) -> Self {
-        if let CasbinError::AdapterError(adapter_error) = &error {
-            if let Some(sqlx::Error::Database(db_error)) = adapter_error
+        if let CasbinError::AdapterError(adapter_error) = &error
+            && let Some(sqlx::Error::Database(db_error)) = adapter_error
                 .0
                 .source()
                 .and_then(|e| e.downcast_ref::<sqlx::Error>())
-            {
-                if db_error.code() == Some("23505".into()) {
-                    return AuthorizationError::PermissionAlreadyExistsForRole(
-                        db_error.message().to_string(),
-                    );
-                }
-            }
+            && db_error.code() == Some("23505".into())
+        {
+            return AuthorizationError::PermissionAlreadyExistsForRole(
+                db_error.message().to_string(),
+            );
         }
         AuthorizationError::Casbin(error)
     }

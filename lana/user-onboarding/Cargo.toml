@@ -11,12 +11,12 @@ ignored = ["es-entity"]
 fail-on-warnings = []
 
 [dependencies]
-core-access = { path = "../../core/access" }
+core-access = { workspace = true }
 
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-audit = { path = "../../lib/audit" }
-kratos-admin = { path = "../../lib/kratos-admin" }
+outbox = { workspace = true }
+job = { workspace = true }
+audit = { workspace = true }
+kratos-admin = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
 serde = { workspace = true }
