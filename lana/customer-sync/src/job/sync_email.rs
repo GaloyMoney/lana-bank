@@ -164,21 +164,12 @@ where
                 )
                 .await?;
 
-<<<<<<< HEAD
             if let Some(customer) = customer
                 && let Some(authentication_id) = customer.authentication_id
             {
-                self.keycloak_admin
+                self.keycloak_client
                     .update_user_email(authentication_id.into(), email.clone())
                     .await?;
-=======
-            if let Some(customer) = customer {
-                if let Some(authentication_id) = customer.authentication_id {
-                    self.keycloak_client
-                        .update_user_email(authentication_id.into(), email.clone())
-                        .await?;
-                }
->>>>>>> dee27811a (chore: rename Keycloak-admin -> Keycloak-client)
             }
         }
         Ok(())
