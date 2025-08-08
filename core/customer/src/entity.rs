@@ -19,6 +19,7 @@ pub enum CustomerEvent {
         email: String,
         telegram_id: String,
         customer_type: CustomerType,
+        activity: AccountActivity,
         public_id: PublicId,
         audit_info: AuditInfo,
     },
@@ -50,6 +51,10 @@ pub enum CustomerEvent {
         email: String,
         audit_info: AuditInfo,
     },
+    AccountActivityUpdated {
+        activity: AccountActivity,
+        audit_info: AuditInfo,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -62,6 +67,8 @@ pub struct Customer {
     pub telegram_id: String,
     #[builder(default)]
     pub status: AccountStatus,
+    #[builder(default)]
+    pub activity: AccountActivity,
     pub level: KycLevel,
     pub customer_type: CustomerType,
     #[builder(setter(strip_option, into), default)]
@@ -165,6 +172,23 @@ impl Customer {
         Idempotent::Executed(())
     }
 
+    pub(crate) fn update_account_activity(
+        &mut self,
+        activity: AccountActivity,
+        audit_info: AuditInfo,
+    ) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            CustomerEvent::AccountActivityUpdated { activity: existing_activity, .. } if existing_activity == &activity
+        );
+        self.events.push(CustomerEvent::AccountActivityUpdated {
+            activity,
+            audit_info,
+        });
+        self.activity = activity;
+        Idempotent::Executed(())
+    }
+
     pub fn update_telegram_id(
         &mut self,
         new_telegram_id: String,
@@ -209,6 +233,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                     telegram_id,
                     customer_type,
                     public_id,
+                    activity,
                     ..
                 } => {
                     builder = builder
@@ -217,6 +242,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .telegram_id(telegram_id.clone())
                         .customer_type(*customer_type)
                         .public_id(public_id.clone())
+                        .activity(*activity)
                         .level(KycLevel::NotKyced);
                 }
                 CustomerEvent::AuthenticationIdUpdated { authentication_id } => {
@@ -242,6 +268,9 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::EmailUpdated { email, .. } => {
                     builder = builder.email(email.clone());
                 }
+                CustomerEvent::AccountActivityUpdated { activity, .. } => {
+                    builder = builder.activity(*activity);
+                }
             }
         }
 
@@ -261,6 +290,8 @@ pub struct NewCustomer {
     pub(super) customer_type: CustomerType,
     #[builder(setter(skip), default)]
     pub(super) status: AccountStatus,
+    #[builder(setter(skip), default)]
+    pub(super) activity: AccountActivity,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     pub(super) audit_info: AuditInfo,
@@ -281,6 +312,7 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 email: self.email,
                 telegram_id: self.telegram_id,
                 customer_type: self.customer_type,
+                activity: self.activity,
                 public_id: self.public_id,
                 audit_info: self.audit_info,
             }],

@@ -79,8 +79,13 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CustomerActiveSyncInit::new(outbox, deposit, config),
+            CustomerActiveSyncInit::new(outbox, deposit, config.clone()),
             CustomerActiveSyncJobConfig::new(),
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            CustomerActivityCheckInit::new(customers, deposit, config),
+            CustomerActivityCheckJobConfig::new(),
         )
         .await?;
         Ok(Self {
