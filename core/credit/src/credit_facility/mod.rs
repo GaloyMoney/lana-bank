@@ -235,24 +235,25 @@ where
 
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
-        let confirmed_accrual = {
-            let account_ids = credit_facility.account_ids;
-            let balances = self.ledger.get_credit_facility_balance(account_ids).await?;
+        let account_ids = credit_facility.account_ids;
+        let balances = self.ledger.get_credit_facility_balance(account_ids).await?;
 
-            let accrual = credit_facility
-                .interest_accrual_cycle_in_progress_mut()
-                .expect("Accrual in progress should exist for scheduled job");
+        let accrual = credit_facility
+            .interest_accrual_cycle_in_progress_mut()
+            .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_accrual =
-                accrual.record_accrual(balances.disbursed_outstanding(), audit_info);
-
-            ConfirmedAccrual {
-                accrual: (interest_accrual, account_ids).into(),
-                next_period: accrual.next_accrual_period(),
-                accrual_idx: accrual.idx,
-                accrued_count: accrual.count_accrued(),
-            }
-        };
+        let confirmed_accrual =
+            match accrual.record_accrual(balances.disbursed_outstanding(), audit_info) {
+                es_entity::Idempotent::Executed(interest_accrual) => ConfirmedAccrual {
+                    accrual: (interest_accrual, account_ids).into(),
+                    next_period: accrual.next_accrual_period(),
+                    accrual_idx: accrual.idx,
+                    accrued_count: accrual.count_accrued(),
+                },
+                _ => {
+                    return Err(CreditFacilityError::InterestAccrualAlreadyRecorded);
+                }
+            };
 
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
