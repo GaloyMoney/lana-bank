@@ -291,7 +291,9 @@ impl TermValues {
         let margin_call_cvl = self.margin_call_cvl;
         let liquidation_cvl = self.liquidation_cvl;
 
-        if cvl == CVLPct::ZERO {
+        if cvl == CVLPct::Infinite {
+            CollateralizationState::NoExposure
+        } else if cvl == CVLPct::ZERO {
             CollateralizationState::NoCollateral
         } else if cvl >= margin_call_cvl {
             CollateralizationState::FullyCollateralized
@@ -325,7 +327,8 @@ impl TermValues {
             | (
                 CollateralizationState::UnderLiquidationThreshold,
                 CollateralizationState::UnderLiquidationThreshold,
-            ) => None,
+            )
+            | (CollateralizationState::NoExposure, CollateralizationState::NoExposure) => None,
 
             // Validated liquidation changes
             (CollateralizationState::UnderLiquidationThreshold, _) => {
@@ -355,7 +358,8 @@ impl TermValues {
             },
 
             // Valid other collateral changes
-            (CollateralizationState::NoCollateral, _)
+            (CollateralizationState::NoExposure, _)
+            | (CollateralizationState::NoCollateral, _)
             | (CollateralizationState::FullyCollateralized, _)
             | (CollateralizationState::UnderMarginCallThreshold, _) => {
                 Some(*calculated_collateralization)

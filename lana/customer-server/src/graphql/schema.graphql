@@ -26,6 +26,7 @@ enum CollateralizationState {
 	UNDER_MARGIN_CALL_THRESHOLD
 	UNDER_LIQUIDATION_THRESHOLD
 	NO_COLLATERAL
+	NO_EXPOSURE
 }
 
 type CreditFacility {

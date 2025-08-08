@@ -131,10 +131,12 @@ impl CreditFacilityBalanceSummary {
     }
 
     pub fn current_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        if self.disbursed > UsdCents::ZERO {
-            self.outstanding_amount_cvl(price)
-        } else {
+        if self.disbursed.is_zero() {
             self.facility_amount_cvl(price)
+        } else if self.total_outstanding().is_zero() {
+            CVLPct::Infinite
+        } else {
+            self.outstanding_amount_cvl(price)
         }
     }
 
@@ -225,13 +227,13 @@ mod test {
     }
 
     #[test]
-    fn current_cvl_returns_disbursed_amount_when_disbursals() {
+    fn current_cvl_returns_disbursed_amount_when_disbursals_with_outstanding() {
         let balances = CreditFacilityBalanceSummary {
             collateral: Satoshis::from(100),
             facility: UsdCents::from(2),
             disbursed: UsdCents::from(1),
 
-            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            not_yet_due_disbursed_outstanding: UsdCents::ONE,
             due_disbursed_outstanding: UsdCents::ZERO,
             overdue_disbursed_outstanding: UsdCents::ZERO,
             disbursed_defaulted: UsdCents::ZERO,
@@ -253,6 +255,30 @@ mod test {
             balances.current_cvl(price),
             balances.facility_amount_cvl(price)
         );
+    }
+
+    #[test]
+    fn current_cvl_returns_infinite_when_disbursals_with_no_outstanding() {
+        let balances = CreditFacilityBalanceSummary {
+            collateral: Satoshis::from(100),
+            facility: UsdCents::from(2),
+            disbursed: UsdCents::from(1),
+
+            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+            due_disbursed_outstanding: UsdCents::ZERO,
+            overdue_disbursed_outstanding: UsdCents::ZERO,
+            disbursed_defaulted: UsdCents::ZERO,
+            not_yet_due_interest_outstanding: UsdCents::ZERO,
+            due_interest_outstanding: UsdCents::ZERO,
+            overdue_interest_outstanding: UsdCents::ZERO,
+            interest_defaulted: UsdCents::ZERO,
+
+            facility_remaining: UsdCents::from(1),
+            interest_posted: UsdCents::from(1),
+        };
+
+        let price = PriceOfOneBTC::new(UsdCents::from(100_000_00));
+        assert_eq!(balances.current_cvl(price), CVLPct::Infinite);
     }
 
     #[test]

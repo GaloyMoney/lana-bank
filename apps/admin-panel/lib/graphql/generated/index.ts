@@ -24,7 +24,7 @@ export type Scalars = {
   AccountCode: { input: any; output: any; }
   AnnualRatePct: { input: any; output: any; }
   AuditEntryId: { input: any; output: any; }
-  CVLPct: { input: any; output: any; }
+  CVLPctValue: { input: any; output: any; }
   Date: { input: any; output: any; }
   Decimal: { input: any; output: any; }
   OneTimeFeeRatePct: { input: any; output: any; }
@@ -314,6 +314,7 @@ export type CollateralBalance = {
 export enum CollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   NoCollateral = 'NO_COLLATERAL',
+  NoExposure = 'NO_EXPOSURE',
   UnderLiquidationThreshold = 'UNDER_LIQUIDATION_THRESHOLD',
   UnderMarginCallThreshold = 'UNDER_MARGIN_CALL_THRESHOLD'
 }
@@ -414,7 +415,7 @@ export type CreditFacility = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
-  currentCvl: Scalars['CVLPct']['output'];
+  currentCvl: Cvlpct;
   customer: Customer;
   disbursals: Array<CreditFacilityDisbursal>;
   facilityAmount: Scalars['UsdCents']['output'];
@@ -945,6 +946,8 @@ export enum CustomersSortBy {
   TelegramId = 'TELEGRAM_ID'
 }
 
+export type Cvlpct = FiniteCvlPct | InfiniteCvlPct;
+
 export type Dashboard = {
   __typename?: 'Dashboard';
   activeFacilities: Scalars['Int']['output'];
@@ -1138,11 +1141,21 @@ export type FacilityRemaining = {
   usdBalance: Scalars['UsdCents']['output'];
 };
 
+export type FiniteCvlPct = {
+  __typename?: 'FiniteCVLPct';
+  value: Scalars['CVLPctValue']['output'];
+};
+
 export type GovernanceNavigationItems = {
   __typename?: 'GovernanceNavigationItems';
   approvalProcess: Scalars['Boolean']['output'];
   committee: Scalars['Boolean']['output'];
   policy: Scalars['Boolean']['output'];
+};
+
+export type InfiniteCvlPct = {
+  __typename?: 'InfiniteCVLPct';
+  isInfinite: Scalars['Boolean']['output'];
 };
 
 export type Interest = {
@@ -2260,9 +2273,9 @@ export type TermValues = {
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['output'];
   duration: Duration;
-  initialCvl: Scalars['CVLPct']['output'];
-  liquidationCvl: Scalars['CVLPct']['output'];
-  marginCallCvl: Scalars['CVLPct']['output'];
+  initialCvl: Cvlpct;
+  liquidationCvl: Cvlpct;
+  marginCallCvl: Cvlpct;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['output'];
 };
 
@@ -2271,10 +2284,10 @@ export type TermsInput = {
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
-  initialCvl: Scalars['CVLPct']['input'];
+  initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
-  liquidationCvl: Scalars['CVLPct']['input'];
-  marginCallCvl: Scalars['CVLPct']['input'];
+  liquidationCvl: Scalars['CVLPctValue']['input'];
+  marginCallCvl: Scalars['CVLPctValue']['input'];
   obligationLiquidationDurationFromDue: DurationInput;
   obligationOverdueDurationFromDue: DurationInput;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
@@ -2295,10 +2308,10 @@ export type TermsTemplateCreateInput = {
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
-  initialCvl: Scalars['CVLPct']['input'];
+  initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
-  liquidationCvl: Scalars['CVLPct']['input'];
-  marginCallCvl: Scalars['CVLPct']['input'];
+  liquidationCvl: Scalars['CVLPctValue']['input'];
+  marginCallCvl: Scalars['CVLPctValue']['input'];
   name: Scalars['String']['input'];
   obligationLiquidationDurationFromDue: DurationInput;
   obligationOverdueDurationFromDue: DurationInput;
@@ -2316,10 +2329,10 @@ export type TermsTemplateUpdateInput = {
   annualRate: Scalars['AnnualRatePct']['input'];
   duration: DurationInput;
   id: Scalars['UUID']['input'];
-  initialCvl: Scalars['CVLPct']['input'];
+  initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
-  liquidationCvl: Scalars['CVLPct']['input'];
-  marginCallCvl: Scalars['CVLPct']['input'];
+  liquidationCvl: Scalars['CVLPctValue']['input'];
+  marginCallCvl: Scalars['CVLPctValue']['input'];
   obligationLiquidationDurationFromDue: DurationInput;
   obligationOverdueDurationFromDue: DurationInput;
   oneTimeFeeRate: Scalars['OneTimeFeeRatePct']['input'];
@@ -2671,14 +2684,14 @@ export type GetCreditFacilityDisbursalsQueryVariables = Exact<{
 
 export type GetCreditFacilityDisbursalsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any }> } | null };
 
-export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } };
+export type CreditFacilityLayoutFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, currentCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } };
 
 export type GetCreditFacilityLayoutDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } | null };
+export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, currentCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } | null };
 
 export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }> };
 
@@ -2703,7 +2716,7 @@ export type CreditFacilityCollateralUpdateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
+export type CreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityCollateralUpdate: { __typename?: 'CreditFacilityCollateralUpdatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }>, currentCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
 
 export type CreditFacilityCreateMutationVariables = Exact<{
   input: CreditFacilityCreateInput;
@@ -2711,6 +2724,12 @@ export type CreditFacilityCreateMutationVariables = Exact<{
 
 
 export type CreditFacilityCreateMutation = { __typename?: 'Mutation', creditFacilityCreate: { __typename?: 'CreditFacilityCreatePayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, customer: { __typename?: 'Customer', id: string, creditFacilities: Array<{ __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, createdAt: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } } }> } } } };
+
+type CvlPctData_FiniteCvlPct_Fragment = { __typename: 'FiniteCVLPct', value: any };
+
+type CvlPctData_InfiniteCvlPct_Fragment = { __typename: 'InfiniteCVLPct', isInfinite: boolean };
+
+export type CvlPctDataFragment = CvlPctData_FiniteCvlPct_Fragment | CvlPctData_InfiniteCvlPct_Fragment;
 
 export type CreditFacilitiesQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2720,14 +2739,14 @@ export type CreditFacilitiesQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl: any, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilitiesQuery = { __typename?: 'Query', creditFacilities: { __typename?: 'CreditFacilityConnection', edges: Array<{ __typename?: 'CreditFacilityEdge', cursor: string, node: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, publicId: any, collateralizationState: CollateralizationState, createdAt: any, status: CreditFacilityStatus, facilityAmount: UsdCents, currentCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, balance: { __typename?: 'CreditFacilityBalance', collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CreditFacilityPartialPaymentMutationVariables = Exact<{
   input: CreditFacilityPartialPaymentInput;
 }>;
 
 
-export type CreditFacilityPartialPaymentMutation = { __typename?: 'Mutation', creditFacilityPartialPayment: { __typename?: 'CreditFacilityPartialPaymentPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }>, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
+export type CreditFacilityPartialPaymentMutation = { __typename?: 'Mutation', creditFacilityPartialPayment: { __typename?: 'CreditFacilityPartialPaymentPayload', creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }>, currentCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
 
 export type CustodianCreateMutationVariables = Exact<{
   input: CustodianCreateInput;
@@ -2893,7 +2912,7 @@ export type CreditFacilityDisbursalInitiateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, currentCvl: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus, id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any }>, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }>, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } } };
+export type CreditFacilityDisbursalInitiateMutation = { __typename?: 'Mutation', creditFacilityDisbursalInitiate: { __typename?: 'CreditFacilityDisbursalInitiatePayload', disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, status: DisbursalStatus, createdAt: any, creditFacility: { __typename?: 'CreditFacility', id: string, creditFacilityId: string, status: CreditFacilityStatus, facilityAmount: UsdCents, maturesAt?: any | null, collateralizationState: CollateralizationState, createdAt: any, publicId: any, collateralToMatchInitialCvl?: Satoshis | null, userCanUpdateCollateral: boolean, userCanInitiateDisbursal: boolean, userCanRecordPayment: boolean, userCanComplete: boolean, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', status: DisbursalStatus, id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any }>, history: Array<{ __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any } | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any } | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any } | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any } | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }>, currentCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: UsdCents }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: UsdCents }, outstandingPayable: { __typename?: 'Outstanding', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: UsdCents }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents } }, outstanding: { __typename?: 'Outstanding', usdBalance: UsdCents }, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address?: string | null } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, deniedReason?: string | null, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, approvalProcessId: string, approvalProcessType: ApprovalProcessType, createdAt: any, rules: { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } } | { __typename?: 'SystemApproval', autoApprove: boolean }, voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } } };
 
 export type DisbursalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3138,28 +3157,28 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } } } | null };
 
 export type UpdateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateUpdateInput;
 }>;
 
 
-export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
 export type CreateTermsTemplateMutationVariables = Exact<{
   input: TermsTemplateCreateInput;
 }>;
 
 
-export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
-export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } };
+export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } } };
 
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, marginCallCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, initialCvl: { __typename: 'FiniteCVLPct', value: any } | { __typename: 'InfiniteCVLPct', isInfinite: boolean }, duration: { __typename?: 'Duration', period: Period, units: number } } }> };
 
 export type LedgerTransactionsForTemplateCodeQueryVariables = Exact<{
   templateCode: Scalars['String']['input'];
@@ -3516,7 +3535,15 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
   maturesAt
   collateralizationState
   createdAt
-  currentCvl
+  currentCvl {
+    __typename
+    ... on FiniteCVLPct {
+      value
+    }
+    ... on InfiniteCVLPct {
+      isInfinite
+    }
+  }
   publicId
   collateralToMatchInitialCvl @client
   disbursals {
@@ -3554,9 +3581,33 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
   }
   creditFacilityTerms {
     annualRate
-    liquidationCvl
-    marginCallCvl
-    initialCvl
+    liquidationCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+    marginCallCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+    initialCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
     oneTimeFeeRate
     duration {
       period
@@ -3661,6 +3712,17 @@ export const RepaymentOnFacilityPageFragmentDoc = gql`
   outstanding
   accrualAt
   dueAt
+}
+    `;
+export const CvlPctDataFragmentDoc = gql`
+    fragment CVLPctData on Cvlpct {
+  __typename
+  ... on FiniteCVLPct {
+    value
+  }
+  ... on InfiniteCVLPct {
+    isInfinite
+  }
 }
     `;
 export const CustodianFieldsFragmentDoc = gql`
@@ -3795,9 +3857,33 @@ export const TermsTemplateFieldsFragmentDoc = gql`
   userCanUpdateTermsTemplate
   values {
     annualRate
-    liquidationCvl
-    marginCallCvl
-    initialCvl
+    liquidationCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+    marginCallCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+    initialCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
     oneTimeFeeRate
     duration {
       period
@@ -4812,7 +4898,15 @@ export const CreditFacilitiesDocument = gql`
         createdAt
         status
         facilityAmount
-        currentCvl
+        currentCvl {
+          __typename
+          ... on FiniteCVLPct {
+            value
+          }
+          ... on InfiniteCVLPct {
+            isInfinite
+          }
+        }
         balance {
           collateral {
             btcBalance

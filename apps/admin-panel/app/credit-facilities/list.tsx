@@ -29,6 +29,16 @@ import Balance from "@/components/balance/balance"
 import { camelToScreamingSnake } from "@/lib/utils"
 
 gql`
+  fragment CVLPctData on Cvlpct {
+    __typename
+    ... on FiniteCVLPct {
+      value
+    }
+    ... on InfiniteCVLPct {
+      isInfinite
+    }
+  }
+
   query CreditFacilities(
     $first: Int!
     $after: String
@@ -46,7 +56,15 @@ gql`
           createdAt
           status
           facilityAmount
-          currentCvl
+          currentCvl {
+            __typename
+            ... on FiniteCVLPct {
+              value
+            }
+            ... on InfiniteCVLPct {
+              isInfinite
+            }
+          }
           balance {
             collateral {
               btcBalance
@@ -148,7 +166,7 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
     key: "currentCvl",
     label: t("table.headers.cvl"),
-    render: (cvl) => `${cvl}%`,
+    render: (cvl) => (cvl.__typename === "FiniteCVLPct" ? `${cvl.value}%` : "∞"),
     sortable: true,
   },
   {

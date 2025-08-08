@@ -51,6 +51,7 @@ export enum CollateralAction {
 export enum CollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   NoCollateral = 'NO_COLLATERAL',
+  NoExposure = 'NO_EXPOSURE',
   UnderLiquidationThreshold = 'UNDER_LIQUIDATION_THRESHOLD',
   UnderMarginCallThreshold = 'UNDER_MARGIN_CALL_THRESHOLD'
 }

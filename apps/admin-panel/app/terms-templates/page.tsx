@@ -15,12 +15,13 @@ import {
 import DataTable, { Column } from "../../components/data-table"
 
 import {
-  TermsTemplate,
+  TermsTemplateFieldsFragment,
   TermsTemplatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
+import { formatCvl } from "@/lib/utils"
 
 gql`
   fragment TermsTemplateFields on TermsTemplate {
@@ -31,9 +32,33 @@ gql`
     userCanUpdateTermsTemplate
     values {
       annualRate
-      liquidationCvl
-      marginCallCvl
-      initialCvl
+      liquidationCvl {
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
+      }
+      marginCallCvl {
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
+      }
+      initialCvl {
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
+      }
       oneTimeFeeRate
       duration {
         period
@@ -73,17 +98,17 @@ const columns = (
   {
     key: "values",
     header: t("table.headers.initialCvl"),
-    render: (values) => `${values.initialCvl}%`,
+    render: (values) => formatCvl(values.initialCvl),
   },
   {
     key: "values",
     header: t("table.headers.marginCallCvl"),
-    render: (values) => `${values.marginCallCvl}%`,
+    render: (values) => formatCvl(values.marginCallCvl),
   },
   {
     key: "values",
     header: t("table.headers.liquidationCvl"),
-    render: (values) => `${values.liquidationCvl}%`,
+    render: (values) => formatCvl(values.liquidationCvl),
   },
 ]
 
@@ -92,7 +117,7 @@ function TermPage() {
 
   const { data, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
-    useState<TermsTemplate | null>(null)
+    useState<TermsTemplateFieldsFragment | null>(null)
 
   if (error) {
     return (

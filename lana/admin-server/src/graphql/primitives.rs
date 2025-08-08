@@ -16,7 +16,7 @@ impl From<SortDirection> for es_entity::ListDirection {
     }
 }
 
-#[derive(Serialize, Deserialize)]
+#[derive(Serialize, Deserialize, Clone)]
 #[serde(transparent)]
 pub struct Decimal(rust_decimal::Decimal);
 async_graphql::scalar!(Decimal);

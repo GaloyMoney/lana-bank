@@ -1,7 +1,8 @@
 use async_graphql::*;
+use serde::{Deserialize, Serialize};
 
 pub use lana_app::terms::{
-    AnnualRatePct, CVLPct, FacilityDuration as DomainDuration, InterestInterval,
+    AnnualRatePct, CVLPct as DomainCVLPct, FacilityDuration as DomainDuration, InterestInterval,
     ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
     TermValues as DomainTermValues,
 };
@@ -26,26 +27,25 @@ impl From<DomainTermValues> for TermValues {
             accrual_cycle_interval: values.accrual_cycle_interval,
             one_time_fee_rate: values.one_time_fee_rate,
             duration: values.duration.into(),
-            liquidation_cvl: values.liquidation_cvl,
-            margin_call_cvl: values.margin_call_cvl,
-            initial_cvl: values.initial_cvl,
+            liquidation_cvl: values.liquidation_cvl.into(),
+            margin_call_cvl: values.margin_call_cvl.into(),
+            initial_cvl: values.initial_cvl.into(),
         }
     }
 }
-
 #[derive(InputObject)]
 pub struct TermsInput {
     pub annual_rate: AnnualRatePct,
     pub accrual_interval: InterestInterval,
     pub accrual_cycle_interval: InterestInterval,
-    pub liquidation_cvl: CVLPct,
     pub one_time_fee_rate: OneTimeFeeRatePct,
     pub duration: DurationInput,
     pub interest_due_duration_from_accrual: DurationInput,
     pub obligation_overdue_duration_from_due: DurationInput,
     pub obligation_liquidation_duration_from_due: DurationInput,
-    pub margin_call_cvl: CVLPct,
-    pub initial_cvl: CVLPct,
+    pub margin_call_cvl: CVLPctValue,
+    pub initial_cvl: CVLPctValue,
+    pub liquidation_cvl: CVLPctValue,
 }
 
 #[derive(Enum, Copy, Clone, Eq, PartialEq)]
@@ -111,6 +111,43 @@ impl From<DurationInput> for Option<DomainObligationDuration> {
         match duration.period {
             Period::Months => todo!(),
             Period::Days => Some(DomainObligationDuration::Days(duration.units.into())),
+        }
+    }
+}
+
+#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+pub struct CVLPctValue(rust_decimal::Decimal);
+async_graphql::scalar!(CVLPctValue);
+
+impl From<CVLPctValue> for DomainCVLPct {
+    fn from(input: CVLPctValue) -> Self {
+        DomainCVLPct::from(input.0)
+    }
+}
+
+#[derive(async_graphql::Union, Clone)]
+pub enum CVLPct {
+    Finite(FiniteCVLPct),
+    Infinite(InfiniteCVLPct),
+}
+
+#[derive(SimpleObject, Clone)]
+pub struct FiniteCVLPct {
+    value: CVLPctValue,
+}
+
+#[derive(SimpleObject, Clone)]
+pub struct InfiniteCVLPct {
+    is_infinite: bool,
+}
+
+impl From<DomainCVLPct> for CVLPct {
+    fn from(cvl: DomainCVLPct) -> Self {
+        match cvl {
+            DomainCVLPct::Finite(value) => CVLPct::Finite(FiniteCVLPct {
+                value: CVLPctValue(value),
+            }),
+            DomainCVLPct::Infinite => CVLPct::Infinite(InfiniteCVLPct { is_infinite: true }),
         }
     }
 }

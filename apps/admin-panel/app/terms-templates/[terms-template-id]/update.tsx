@@ -20,7 +20,7 @@ import { Label } from "@lana/web/ui/label"
 
 import {
   useUpdateTermsTemplateMutation,
-  TermsTemplateQuery,
+  TermsTemplateFieldsFragment,
 } from "@/lib/graphql/generated"
 import { DEFAULT_TERMS } from "@/lib/constants/terms"
 
@@ -37,7 +37,7 @@ gql`
 type UpdateTermsTemplateDialogProps = {
   setOpenUpdateTermsTemplateDialog: (isOpen: boolean) => void
   openUpdateTermsTemplateDialog: boolean
-  termsTemplate: NonNullable<TermsTemplateQuery["termsTemplate"]>
+  termsTemplate: TermsTemplateFieldsFragment
 }
 
 export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps> = ({
