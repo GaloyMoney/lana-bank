@@ -1,4 +1,7 @@
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> c65accc41 (chore: rebase changes)
 scalar AccountCode
 
 enum AccountStatus {
@@ -218,7 +221,11 @@ type BtcLedgerAccountBalanceRange {
 	close: BtcLedgerAccountBalance!
 }
 
+<<<<<<< HEAD
 scalar CVLPctValue
+=======
+scalar CVLPct
+>>>>>>> c65accc41 (chore: rebase changes)
 
 type CancelledWithdrawalEntry {
 	recordedAt: Timestamp!
@@ -283,7 +290,10 @@ enum CollateralizationState {
 	UNDER_MARGIN_CALL_THRESHOLD
 	UNDER_LIQUIDATION_THRESHOLD
 	NO_COLLATERAL
+<<<<<<< HEAD
 	NO_EXPOSURE
+=======
+>>>>>>> c65accc41 (chore: rebase changes)
 }
 
 type Committee {
@@ -388,7 +398,11 @@ type CreditFacility {
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
 	status: CreditFacilityStatus!
+<<<<<<< HEAD
 	currentCvl: Cvlpct!
+=======
+	currentCvl: CVLPct!
+>>>>>>> c65accc41 (chore: rebase changes)
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
@@ -927,8 +941,11 @@ enum CustomersSortBy {
 	TELEGRAM_ID
 }
 
+<<<<<<< HEAD
 union Cvlpct = FiniteCVLPct | InfiniteCVLPct
 
+=======
+>>>>>>> c65accc41 (chore: rebase changes)
 type Dashboard {
 	activeFacilities: Int!
 	pendingFacilities: Int!
@@ -1127,20 +1144,26 @@ type FacilityRemaining {
 	usdBalance: UsdCents!
 }
 
+<<<<<<< HEAD
 type FiniteCVLPct {
 	value: CVLPctValue!
 }
 
+=======
+>>>>>>> c65accc41 (chore: rebase changes)
 type GovernanceNavigationItems {
 	committee: Boolean!
 	policy: Boolean!
 	approvalProcess: Boolean!
 }
 
+<<<<<<< HEAD
 type InfiniteCVLPct {
 	isInfinite: Boolean!
 }
 
+=======
+>>>>>>> c65accc41 (chore: rebase changes)
 type Interest {
 	total: Total!
 	outstanding: Outstanding!
@@ -1825,23 +1848,38 @@ type TermValues {
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: Duration!
+<<<<<<< HEAD
 	liquidationCvl: Cvlpct!
 	marginCallCvl: Cvlpct!
 	initialCvl: Cvlpct!
+=======
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+>>>>>>> c65accc41 (chore: rebase changes)
 }
 
 input TermsInput {
 	annualRate: AnnualRatePct!
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
+<<<<<<< HEAD
+=======
+	liquidationCvl: CVLPct!
+>>>>>>> c65accc41 (chore: rebase changes)
 	oneTimeFeeRate: OneTimeFeeRatePct!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
+<<<<<<< HEAD
 	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
 	liquidationCvl: CVLPctValue!
+=======
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+>>>>>>> c65accc41 (chore: rebase changes)
 }
 
 type TermsTemplate {
@@ -1863,9 +1901,15 @@ input TermsTemplateCreateInput {
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
+<<<<<<< HEAD
 	liquidationCvl: CVLPctValue!
 	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
+=======
+	liquidationCvl: CVLPct!
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+>>>>>>> c65accc41 (chore: rebase changes)
 }
 
 type TermsTemplateCreatePayload {
@@ -1878,13 +1922,22 @@ input TermsTemplateUpdateInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+<<<<<<< HEAD
 	liquidationCvl: CVLPctValue!
+=======
+	liquidationCvl: CVLPct!
+>>>>>>> c65accc41 (chore: rebase changes)
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
 	obligationLiquidationDurationFromDue: DurationInput!
+<<<<<<< HEAD
 	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
+=======
+	marginCallCvl: CVLPct!
+	initialCvl: CVLPct!
+>>>>>>> c65accc41 (chore: rebase changes)
 }
 
 type TermsTemplateUpdatePayload {
@@ -2125,5 +2178,8 @@ schema {
 	query: Query
 	mutation: Mutation
 }
+<<<<<<< HEAD
 =======
 >>>>>>> d7bd3fac4 (chore: add keycloak admin-client in backend)
+=======
+>>>>>>> c65accc41 (chore: rebase changes)
