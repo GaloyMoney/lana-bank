@@ -44,7 +44,7 @@ start_server() {
   # Start server if not already running
   background server_cmd > "$LOG_FILE" 2>&1
   for i in {1..20}; do
-    echo "--- Checking if server is running ${i} ---"
+    echo "--- Checking server ${i} ---"
     if grep -q 'Starting' "$LOG_FILE"; then
       break
     elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
@@ -89,12 +89,7 @@ login_customer() {
   echo "--- Logging in customer: $email ---"
   
   wait_for_keycloak_user_ready
-  
-  local access_token=$(get_customer_access_token "$email")
-  if [[ $? -ne 0 ]]; then
-    echo "Failed to get access token for customer: $email" >&2
-    return 1
-  fi
+  local access_token=$(get_customer_access_token "$email") || { echo "Get token failed: $email" >&2; return 1; }
   
   cache_value "$email" $access_token
   echo "--- Customer login successful ---"
@@ -104,18 +99,10 @@ exec_customer_graphql() {
   local token_name=$1
   local query_name=$2
   local variables=${3:-"{}"}
+  local run_cmd="${BATS_TEST_DIRNAME:+run}"
 
-  AUTH_HEADER="Authorization: Bearer $(read_value "$token_name")"
-
-  if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
-    run_cmd="run"
-  else
-    run_cmd=""
-  fi
-
-  ${run_cmd} curl -s \
-    -X POST \
-    ${AUTH_HEADER:+ -H "$AUTH_HEADER"} \
+  ${run_cmd} curl -s -X POST \
+    -H "Authorization: Bearer $(read_value "$token_name")" \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_query $query_name)\", \"variables\": $variables}" \
     "${GQL_APP_ENDPOINT}"
@@ -135,7 +122,7 @@ get_user_access_token() {
   local access_token=$(echo "$response" | jq -r '.access_token')
   
   if [[ "$access_token" == "null" || -z "$access_token" ]]; then
-    echo "Failed to get user access token for $email: $response" >&2
+    echo "User token failed for $email: $response" >&2
     return 1
   fi
   echo "$access_token"
@@ -154,7 +141,7 @@ get_customer_access_token() {
   local access_token=$(echo "$response" | jq -r '.access_token')
   
   if [[ "$access_token" == "null" || -z "$access_token" ]]; then
-    echo "Failed to get customer access token for $email: $response" >&2
+    echo "Customer token failed for $email: $response" >&2
     return 1
   fi
   echo "$access_token"
@@ -164,11 +151,7 @@ login_superadmin() {
   local email="admin@galoy.io"
   wait_for_keycloak_user_ready
 
-  local access_token=$(get_user_access_token "$email")
-  if [[ $? -ne 0 ]]; then
-    echo "Failed to get access token for: $email" >&2
-    return 1
-  fi
+  local access_token=$(get_user_access_token "$email") || { echo "Get token failed: $email" >&2; return 1; }
 
   cache_value "superadmin" $access_token
 }
@@ -176,17 +159,10 @@ login_superadmin() {
 exec_admin_graphql() {
   local query_name=$1
   local variables=${2:-"{}"}
-  local token=$(read_value "superadmin")
+  local run_cmd="${BATS_TEST_DIRNAME:+run}"
 
-  if [[ "${BATS_TEST_DIRNAME}" != "" ]]; then
-    run_cmd="run"
-  else
-    run_cmd=""
-  fi
-
-  ${run_cmd} curl -s \
-    -X POST \
-    -H "Authorization: Bearer ${token}" \
+  ${run_cmd} curl -s -X POST \
+    -H "Authorization: Bearer $(read_value "superadmin")" \
     -H "Content-Type: application/json" \
     -d "{\"query\": \"$(gql_admin_query $query_name)\", \"variables\": $variables}" \
     "${GQL_ADMIN_ENDPOINT}"

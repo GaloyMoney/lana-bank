@@ -31,6 +31,10 @@ impl KeycloakClient {
     async fn get_client(&self) -> Result<KeycloakAdmin, KeycloakClientError> {
         let admin_token = KeycloakAdminToken::acquire(
             &self.connection.url,
+            // should not use admin username and password, use client secret instead
+            // but it seems KeycloakAdmin plugin doesn't export this at the top level
+            // because maybe only at the "sub level" in generated code
+            // https://github.com/kilork/keycloak/tree/master/src/rest/generated_rest
             &self.connection.admin_username,
             &self.connection.admin_password,
             &self.http_client,

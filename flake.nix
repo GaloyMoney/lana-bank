@@ -324,6 +324,7 @@
           procps
           meltanoPkgs.meltano
           poppler_utils
+          keycloak
           # Font packages for PDF generation
           fontconfig
           dejavu_fonts # Provides serif, sans-serif, and monospace
@@ -370,12 +371,17 @@
           // {
             inherit nativeBuildInputs;
             shellHook = ''
-                export LANA_CONFIG="$(pwd)/bats/lana.yml"
-                export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
+              export LANA_CONFIG="$(pwd)/bats/lana.yml"
+              export MELTANO_PROJECT_ROOT="$(pwd)/meltano"
 
               # Font configuration for PDF generation
               export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
               export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
+
+              export KC_URL="http://localhost:8081"
+              export REALM="master"
+              export ADMIN_USER="admin"
+              export ADMIN_PASS="admin"
 
               # Container engine setup
               # Clear DOCKER_HOST at the start to avoid stale values
