@@ -13,22 +13,14 @@ core-customer = { workspace = true }
 core-deposit = { workspace = true }
 governance = { workspace = true }
 
-<<<<<<< HEAD
 outbox = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
-kratos-admin = { workspace = true }
-=======
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-keycloak-client = { path = "../../lib/keycloak-client" }
->>>>>>> dee27811a (chore: rename Keycloak-admin -> Keycloak-client)
 
 tracing = { workspace = true }
 serde = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
+keycloak-client = { workspace = true }

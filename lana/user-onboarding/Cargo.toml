@@ -13,18 +13,10 @@ fail-on-warnings = []
 [dependencies]
 core-access = { workspace = true }
 
-<<<<<<< HEAD
 outbox = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
-kratos-admin = { workspace = true }
-keycloak-admin = { workspace = true }
-=======
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-audit = { path = "../../lib/audit" }
-keycloak-client = { path = "../../lib/keycloak-client" }
->>>>>>> dee27811a (chore: rename Keycloak-admin -> Keycloak-client)
+keycloak-client = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
 serde = { workspace = true }
