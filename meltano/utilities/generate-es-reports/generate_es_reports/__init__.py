@@ -4,7 +4,7 @@ import csv
 from pathlib import Path
 import logging, logging.config
 from abc import ABC, abstractmethod
-from typing import Union
+from typing import Union, Any
 
 import yaml
 from google.cloud import bigquery, storage
@@ -41,6 +41,56 @@ class Constants:
     USE_LOCAL_FS_ENVVAR_KEY = "USE_LOCAL_FS"
 
     DEFAULT_XML_SCHEMAS_PATH = Path(__file__).resolve().parent / "schemas"
+
+
+class TabularReportContents:
+
+    def __init__(self, field_names: tuple[str, ...], records: dict[str, Any]):
+        self.fields = field_names
+        self.records = records
+
+
+class BaseTableFetcher(ABC):
+    """
+    An interface to somewhere we can read tabular data from to get records for
+    a report.
+    """
+
+    @abstractmethod
+    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        pass
+
+
+class BigQueryTableFetcher(BaseTableFetcher):
+
+    def __init__(self, keyfile_path: Path, project_id: str, dataset):
+
+        self.project_id = project_id
+        self.dataset = dataset
+
+        credentials = service_account.Credentials.from_service_account_file(
+            keyfile_path
+        )
+
+        self._bq_client = bigquery.Client(
+            project=self.project_id, credentials=credentials
+        )
+
+    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
+        query_job = self._bq_client.query(query)
+        rows = query_job.result()
+
+        field_names = [field.name for field in rows.schema]
+        records = [{name: row[name] for name in field_names} for row in rows]
+
+        TabularReportContents(field_names=field_names, records=records)
+
+        return TabularReportContents
+
+
+class MockTableFetcher(BaseTableFetcher):
+    pass
 
 
 class StorableReportOutput:
