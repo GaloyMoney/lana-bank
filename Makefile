@@ -210,3 +210,19 @@ test-in-ci-cargo: start-deps setup-db
 build-x86_64-unknown-linux-musl-release:
 	SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
 
+auth-kcadm:
+	kcadm.sh config credentials --server "$$KC_URL" --realm "$$REALM" --user "$$ADMIN_USER" --password "$$ADMIN_PASS"
+
+### this is what is passed on to the server
+auth-secret:
+	source <(./dev/keycloak/create-client-local-dev.sh --emit-env)
+
+### token is fetched from the server using the client secret
+auth-token:
+	curl -s -X POST "$$KC_URL/realms/$$KC_REALM/protocol/openid-connect/token" \
+		-d grant_type=client_credentials \
+		-d client_id="$$KC_CLIENT_ID" \
+		-d client_secret="$$KC_CLIENT_SECRET" | jq -r .access_token
+
+create-user:
+	./dev/keycloak/create-user.sh
