@@ -268,16 +268,14 @@ impl Obligation {
             return ObligationStatus::Paid;
         }
 
-        if let Some(defaulted_date) = defaulted_date {
-            if now >= defaulted_date {
-                return ObligationStatus::Defaulted;
-            }
+        if let Some(defaulted_date) = defaulted_date
+            && now >= defaulted_date {
+            return ObligationStatus::Defaulted;
         }
 
-        if let Some(overdue_date) = overdue_date {
-            if now >= overdue_date {
-                return ObligationStatus::Overdue;
-            }
+        if let Some(overdue_date) = overdue_date
+            && now >= overdue_date {
+            return ObligationStatus::Overdue;
         }
 
         if now >= due_date {

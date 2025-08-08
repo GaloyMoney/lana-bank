@@ -81,17 +81,6 @@ impl From<audit::AuditEntryId> for AuditEntryId {
     }
 }
 
-#[derive(SimpleObject)]
-pub struct SuccessPayload {
-    pub success: bool,
-}
-
-impl From<()> for SuccessPayload {
-    fn from(_: ()) -> Self {
-        SuccessPayload { success: true }
-    }
-}
-
 pub trait ToGlobalId {
     fn to_global_id(&self) -> async_graphql::types::ID;
 }

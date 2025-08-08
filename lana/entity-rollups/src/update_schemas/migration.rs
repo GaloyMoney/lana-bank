@@ -908,10 +908,9 @@ fn is_primitive_wrapper(schema: &Value) -> bool {
             }
 
             // If it's an array type, it's not a primitive wrapper
-            if let Value::String(s) = type_value {
-                if s == "array" || s == "object" {
-                    return false;
-                }
+            if let Value::String(s) = type_value
+                && (s == "array" || s == "object") {
+                return false;
             }
 
             return true;
@@ -966,41 +965,40 @@ fn json_schema_to_sql_type_with_definitions(
         if let Value::Array(type_array) = type_value {
             // For nullable types, find the non-null type
             for type_item in type_array {
-                if let Value::String(type_str) = type_item {
-                    if type_str != "null" {
-                        let sql_type = match type_str.as_str() {
-                            "string" => {
-                                // Check if this is an enum first
-                                if schema.get("enum").is_some() {
-                                    "VARCHAR"
-                                } else if let Some(Value::String(format)) = schema.get("format") {
-                                    match format.as_str() {
-                                        "uuid" => "UUID",
-                                        "date-time" => "TIMESTAMPTZ",
-                                        _ => "VARCHAR",
-                                    }
-                                } else {
-                                    "VARCHAR"
+                if let Value::String(type_str) = type_item
+                    && type_str != "null" {
+                    let sql_type = match type_str.as_str() {
+                        "string" => {
+                            // Check if this is an enum first
+                            if schema.get("enum").is_some() {
+                                "VARCHAR"
+                            } else if let Some(Value::String(format)) = schema.get("format") {
+                                match format.as_str() {
+                                    "uuid" => "UUID",
+                                    "date-time" => "TIMESTAMPTZ",
+                                    _ => "VARCHAR",
                                 }
+                            } else {
+                                "VARCHAR"
                             }
-                            "integer" => {
-                                if let Some(Value::String(format)) = schema.get("format") {
-                                    match format.as_str() {
-                                        "int64" | "uint64" => "BIGINT",
-                                        _ => "INTEGER",
-                                    }
-                                } else {
-                                    "INTEGER"
+                        }
+                        "integer" => {
+                            if let Some(Value::String(format)) = schema.get("format") {
+                                match format.as_str() {
+                                    "int64" | "uint64" => "BIGINT",
+                                    _ => "INTEGER",
                                 }
+                            } else {
+                                "INTEGER"
                             }
-                            "number" => "NUMERIC",
-                            "boolean" => "BOOLEAN",
-                            "object" => "JSONB",
-                            "array" => "JSONB",
-                            _ => return Err(anyhow!("Unknown JSON schema type: {}", type_str)),
-                        };
-                        return Ok(sql_type.to_string());
-                    }
+                        }
+                        "number" => "NUMERIC",
+                        "boolean" => "BOOLEAN",
+                        "object" => "JSONB",
+                        "array" => "JSONB",
+                        _ => return Err(anyhow!("Unknown JSON schema type: {}", type_str)),
+                    };
+                    return Ok(sql_type.to_string());
                 }
             }
         } else if let Value::String(type_str) = type_value {
@@ -1101,30 +1099,22 @@ fn lookup_nested_field_type(schema: &Value, field_path: &str) -> anyhow::Result<
     // Search through oneOf variants to find the parent field
     if let Some(Value::Array(one_of)) = schema.get("oneOf") {
         for variant in one_of {
-            if let Some(Value::Object(properties)) = variant.get("properties") {
-                if let Some(parent_field_schema) = properties.get(*parent_field) {
-                    // Found the parent field, now look up its type in definitions
-                    if let Some(Value::String(ref_path)) = parent_field_schema.get("$ref") {
-                        if let Some(type_name) = ref_path.strip_prefix("#/definitions/") {
-                            if let Some(Value::Object(definitions)) = schema.get("definitions") {
-                                if let Some(type_def) = definitions.get(type_name) {
-                                    if let Some(Value::Object(type_properties)) =
-                                        type_def.get("properties")
-                                    {
-                                        if let Some(nested_field_schema) =
-                                            type_properties.get(*nested_field)
-                                        {
-                                            return json_schema_to_sql_type_with_definitions(
-                                                nested_field_schema,
-                                                Some(schema),
-                                            );
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
+            if let Some(Value::Object(properties)) = variant.get("properties")
+                && let Some(parent_field_schema) = properties.get(*parent_field)
+                // Found the parent field, now look up its type in definitions
+                && let Some(Value::String(ref_path)) = parent_field_schema.get("$ref")
+                && let Some(type_name) = ref_path.strip_prefix("#/definitions/")
+                && let Some(Value::Object(definitions)) = schema.get("definitions")
+                && let Some(type_def) = definitions.get(type_name)
+                && let Some(Value::Object(type_properties)) =
+                    type_def.get("properties")
+                && let Some(nested_field_schema) =
+                    type_properties.get(*nested_field)
+            {
+                return json_schema_to_sql_type_with_definitions(
+                    nested_field_schema,
+                    Some(schema),
+                );
             }
         }
     }

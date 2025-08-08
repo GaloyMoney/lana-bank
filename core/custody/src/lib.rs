@@ -331,22 +331,21 @@ where
             .persist(custodian_id, &uri, &headers, &payload)
             .await?;
 
-        if let Ok(custodian) = custodian {
-            if let Some(notification) = custodian
+        if let Ok(custodian) = custodian
+            && let Some(notification) = custodian
                 .custodian_client(self.config.encryption.key, &self.config.custody_providers)
                 .await?
                 .process_webhook(&headers, payload)
                 .await?
-            {
-                match notification {
-                    CustodianNotification::WalletBalanceChanged {
-                        external_wallet_id,
-                        new_balance,
-                        changed_at,
-                    } => {
-                        self.update_wallet_balance(external_wallet_id, new_balance, changed_at)
-                            .await?;
-                    }
+        {
+            match notification {
+                CustodianNotification::WalletBalanceChanged {
+                    external_wallet_id,
+                    new_balance,
+                    changed_at,
+                } => {
+                    self.update_wallet_balance(external_wallet_id, new_balance, changed_at)
+                        .await?;
                 }
             }
         }
