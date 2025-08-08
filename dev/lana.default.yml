@@ -26,14 +26,12 @@ app:
     provider: local
     root_folder: ''
   user_onboarding:
-    kratos_admin:
-      kratos_admin_url: http://localhost:4434
+    keycloak_realm: internal
   customer_sync:
     auto_create_deposit_account: true
     customer_status_sync_active: true
-    kratos_admin:
-      kratos_admin_url: http://localhost:4436
     create_deposit_account_on_customer_create: false
+    keycloak_realm: customer
   deposit_sync:
     sumsub_export_enabled: true
   accounting_init:
@@ -66,6 +64,11 @@ app:
   report:
     airflow:
       uri: http://localhost:8080/
+  keycloak:
+    url: http://localhost:8081
+    client_id: admin-cli
+    admin_username: admin
+    admin_password: admin
 tracing:
   service_name: lana-dev
 

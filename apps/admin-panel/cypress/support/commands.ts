@@ -25,6 +25,8 @@ declare global {
       createDeposit(amount: number, depositAccountId: string): Chainable<string>
       initiateWithdrawal(amount: number, depositAccountId: string): Chainable<string>
       uploadChartOfAccounts(): Chainable<void>
+      waitForKeycloak(): Chainable<void>
+      KcLogin(email: string): Chainable<void>
     }
   }
 }
@@ -32,31 +34,43 @@ declare global {
 Cypress.Commands.add(
   "graphqlRequest",
   <T>(query: string, variables?: Record<string, unknown>): Cypress.Chainable<T> => {
-    const cookies = JSON.parse(
-      Buffer.from(Cypress.env("COOKIES"), "base64").toString("utf-8"),
-    )
-    const cookieHeader = `${cookies["cookie1_name"]}=${cookies["cookie1_value"]}; ${cookies["cookie2_name"]}=${cookies["cookie2_value"]}`
+    const root = "http://localhost:8081"
+    const realm = "internal"
+    const userEmail = "admin@galoy.io"
 
     return cy
       .request({
         method: "POST",
-        url: "http://admin.localhost:4455/graphql",
+        url: `${root}/realms/${realm}/protocol/openid-connect/token`,
+        form: true,
         body: {
-          query,
-          variables,
-        },
-        headers: {
-          "Content-Type": "application/json",
-          "Cookie": cookieHeader,
+          client_id: "admin-panel",
+          grant_type: "password",
+          username: userEmail,
         },
       })
-      .then((response) => {
-        if (response.body.errors) {
-          throw new Error(
-            `GraphQL Error: ${JSON.stringify(response.body.errors)} variables: ${JSON.stringify(variables)}`,
-          )
-        }
-        return response.body
+      .then(({ body: tokenBody }) => {
+        return cy
+          .request({
+            method: "POST",
+            url: "http://admin.localhost:4455/graphql",
+            body: {
+              query,
+              variables,
+            },
+            headers: {
+              "Content-Type": "application/json",
+              "Authorization": `Bearer ${tokenBody.access_token}`,
+            },
+          })
+          .then((response) => {
+            if (response.body.errors) {
+              throw new Error(
+                `GraphQL Error: ${JSON.stringify(response.body.errors)} variables: ${JSON.stringify(variables)}`,
+              )
+            }
+            return response.body
+          })
       })
   },
 )
@@ -285,6 +299,121 @@ Cypress.Commands.add("uploadChartOfAccounts", () => {
   cy.get("body")
     .contains(/Assets/i)
     .should("be.visible")
+})
+
+Cypress.Commands.add("waitForKeycloak", () => {
+  const root = "http://localhost:8081"
+  const maxAttempts = 30
+
+  const checkKeycloak = (attempt: number) => {
+    if (attempt > maxAttempts) {
+      throw new Error(`Keycloak not ready after ${maxAttempts} attempts`)
+    }
+    cy.log(`Checking Keycloak readiness (attempt ${attempt}/${maxAttempts})`)
+    cy.task("checkUrl", `${root}/realms/master`).then((masterReady: any) => {
+      if (masterReady) {
+        cy.task("checkUrl", `${root}/realms/internal`).then((adminReady: any) => {
+          if (adminReady) {
+            cy.request({
+              method: "POST",
+              url: `${root}/realms/internal/protocol/openid-connect/token`,
+              form: true,
+              body: {
+                client_id: "admin-panel",
+                username: "admin@galoy.io",
+                grant_type: "password",
+              },
+              failOnStatusCode: false,
+            }).then((tokenResponse) => {
+              if (tokenResponse.status === 200 && tokenResponse.body.access_token) {
+                cy.log("Keycloak and admin user are ready")
+              } else {
+                cy.log(`Cannot get user token, retrying...`)
+                cy.wait(2000).then(() => checkKeycloak(attempt + 1))
+              }
+            })
+          } else {
+            cy.log(`internal realm not ready, retrying...`)
+            cy.wait(2000).then(() => checkKeycloak(attempt + 1))
+          }
+        })
+      } else {
+        cy.log(`Master realm not ready, retrying...`)
+        cy.wait(2000).then(() => checkKeycloak(attempt + 1))
+      }
+    })
+  }
+  checkKeycloak(1)
+})
+
+Cypress.Commands.add("KcLogin", (email: string) => {
+  const root = "http://localhost:8081"
+  const realm = "internal"
+  const adminU = "admin"
+  const adminP = "admin"
+
+  cy.request({
+    method: "POST",
+    url: `${root}/realms/master/protocol/openid-connect/token`,
+    form: true,
+    body: {
+      client_id: "admin-cli",
+      username: adminU,
+      password: adminP,
+      grant_type: "password",
+    },
+  })
+    .then(({ body }) => {
+      const adminToken = body.access_token
+      return cy
+        .request({
+          method: "GET",
+          url: `${root}/admin/realms/${realm}/users`,
+          qs: { search: email },
+          headers: { Authorization: `Bearer ${adminToken}` },
+        })
+        .then(({ body: users }) => {
+          if (!users.length) {
+            throw new Error(`No Keycloak user found for ${email}`)
+          }
+          const user = users[0]
+          const userId = user.id
+          return cy.request({
+            method: "POST",
+            url: `${root}/admin/realms/${realm}/users/${userId}/impersonation`,
+            headers: { Authorization: `Bearer ${adminToken}` },
+            followRedirect: false,
+          })
+        })
+    })
+    .then(({ headers }) => {
+      if (headers["set-cookie"]) {
+        ;(headers["set-cookie"] as string[]).forEach((cookieString) => {
+          const [nameValue, ...attributes] = cookieString.split(";")
+          const [name, value] = nameValue.split("=")
+          if (
+            name &&
+            value &&
+            (name === "KEYCLOAK_SESSION" || name === "KEYCLOAK_IDENTITY")
+          ) {
+            const cookieOptions: Record<string, unknown> = {
+              domain: "localhost",
+              path: "/realms/internal/",
+            }
+            attributes.forEach((attr) => {
+              const [key, val] = attr.trim().split("=")
+              if (key.toLowerCase() === "httponly") cookieOptions.httpOnly = true
+              if (key.toLowerCase() === "secure") cookieOptions.secure = true
+              if (key.toLowerCase() === "samesite") cookieOptions.sameSite = val
+            })
+            cy.setCookie(name, value, cookieOptions)
+          }
+        })
+      }
+    })
+    .then(() => {
+      cy.visit("/")
+    })
 })
 
 export {}

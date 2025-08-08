@@ -16,10 +16,9 @@
     "storybook": "storybook dev -p 6006",
     "build-storybook": "storybook build",
     "lint:fix": "eslint --max-warnings 0 --fix --ext .ts,.tsx .",
-    "cypress:run": "./cypress/run.sh",
-    "cypress:run-local": "COOKIES=$COOKIES cypress open --env COOKIES=$COOKIES",
-    "cypress:run-headless": "COOKIES=$COOKIES cypress run --env COOKIES=$COOKIES",
-    "cypress:run-browserstack": "COOKIES=$COOKIES browserstack-cypress run  --env COOKIES=$COOKIES",
+    "cypress:run-local": "cypress open",
+    "cypress:run-headless": "cypress run",
+    "cypress:run-browserstack": "browserstack-cypress run",
     "local:pdf": "cd cypress/manuals && ./local-pdf.sh"
   },
   "dependencies": {
@@ -27,7 +26,7 @@
     "@apollo/client-integration-nextjs": "^0.12.3",
     "@faker-js/faker": "^9.9.0",
     "@lana/web": "workspace:*",
-    "@ory/client": "^1.21.1",
+    "keycloak-js": "^26.0.7",
     "@t3-oss/env-nextjs": "^0.13.8",
     "apollo-upload-client": "^18.0.1",
     "axios": "^1.11.0",

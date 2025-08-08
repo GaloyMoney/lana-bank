@@ -5,11 +5,5 @@ x-hostgw: &hostgw
     - "host.containers.internal:host-gateway"
 
 services:
-  kratos-admin:
-    <<: *hostgw
-
-  kratos-customer:
-    <<: *hostgw
-
   oathkeeper:
     <<: *hostgw

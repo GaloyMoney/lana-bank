@@ -16,7 +16,7 @@ core-access = { workspace = true }
 outbox = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
-kratos-admin = { workspace = true }
+keycloak-client = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
 serde = { workspace = true }

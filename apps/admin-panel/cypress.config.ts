@@ -5,6 +5,15 @@ const multiplier = 10 // Browserstack local tunnel on GHA Runner can be quite sl
 export default defineConfig({
   e2e: {
     setupNodeEvents(on) {
+      on('task', {
+        checkUrl(url: string) {
+          return new Promise((resolve) => {
+            fetch(url)
+              .then(response => resolve(response.ok))
+              .catch(() => resolve(false))
+          })
+        }
+      })
       on("before:browser:launch", (browser, launchOptions) => {
         if (browser.name === "chrome") {
           launchOptions.args.push("--window-size=1920,1080")

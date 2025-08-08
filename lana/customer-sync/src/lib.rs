@@ -17,6 +17,7 @@ use core_deposit::{
     GovernanceObject,
 };
 use governance::GovernanceEvent;
+use keycloak_client::KeycloakConnectionConfig;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct CustomerSync<Perms, E>
@@ -61,20 +62,26 @@ where
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
+        keycloak_connection: KeycloakConnectionConfig,
         config: CustomerSyncConfig,
     ) -> Result<Self, CustomerSyncError> {
+        let keycloak_client = keycloak_client::KeycloakClient::new(
+            keycloak_connection,
+            config.keycloak_realm.clone(),
+        );
+
         jobs.add_initializer_and_spawn_unique(
             CreateDepositAccountInit::new(outbox, deposit, config.clone()),
             CreateDepositAccountJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreateKratosUserInit::new(outbox, customers, config.clone()),
-            CreateKratosUserJobConfig::new(),
+            CreateKeycloakUserInit::new(outbox, customers, keycloak_client.clone()),
+            CreateKeycloakUserJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            SyncEmailInit::new(outbox, customers, config.clone()),
+            SyncEmailInit::new(outbox, customers, keycloak_client),
             SyncEmailJobConfig::new(),
         )
         .await?;

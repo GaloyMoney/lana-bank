@@ -1622,7 +1622,7 @@ dependencies = [
  "futures",
  "governance",
  "job",
- "kratos-admin",
+ "keycloak-client",
  "outbox",
  "serde",
  "thiserror 2.0.12",
@@ -3109,6 +3109,32 @@ dependencies = [
 ]
 
 [[package]]
+name = "keycloak"
+version = "26.3.100"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "e7909fea553cd883f21f831285f76a64da512f4acdef8915b91ed05cf0faace3"
+dependencies = [
+ "async-trait",
+ "percent-encoding",
+ "reqwest",
+ "serde",
+ "serde_json",
+ "serde_with",
+]
+
+[[package]]
+name = "keycloak-client"
+version = "0.3.772-dev"
+dependencies = [
+ "keycloak",
+ "reqwest",
+ "serde",
+ "thiserror 2.0.12",
+ "tokio",
+ "uuid",
+]
+
+[[package]]
 name = "komainu"
 version = "0.3.772-dev"
 dependencies = [
@@ -3127,18 +3153,6 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
-]
-
-[[package]]
-name = "kratos-admin"
-version = "0.3.772-dev"
-dependencies = [
- "reqwest",
- "serde",
- "serde_json",
- "thiserror 2.0.12",
- "tracing",
- "uuid",
 ]
 
 [[package]]
@@ -3200,6 +3214,7 @@ dependencies = [
  "es-entity",
  "governance",
  "job",
+ "keycloak-client",
  "lana-events",
  "lana-ids",
  "notification",
@@ -6664,7 +6679,7 @@ dependencies = [
  "es-entity",
  "futures",
  "job",
- "kratos-admin",
+ "keycloak-client",
  "outbox",
  "serde",
  "thiserror 2.0.12",

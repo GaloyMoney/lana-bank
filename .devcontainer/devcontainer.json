@@ -31,7 +31,6 @@
     },
     "forwardPorts": [
         5433, // core-pg database
-        4433, // kratos-admin api
         4455, // oathkeeper proxy
         3000, // frontend dev server
         5253 // lana backend

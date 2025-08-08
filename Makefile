@@ -155,14 +155,16 @@ test-cypress-in-ci:
 	@echo "GraphQL endpoint status:" 
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:5253/graphql || echo "GraphQL endpoint check failed"
 	@echo "Admin panel status:"
-	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:3001 || echo "Admin panel direct check failed"
-	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://admin.localhost:4455 || echo "Admin panel via proxy failed"
+	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:3001/api/health || echo "Admin panel direct check failed"
+	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://admin.localhost:4455/api/health || echo "Admin panel via proxy failed"
 	@echo "Database connectivity check:"
 	@echo "Container status:"
 	@$${ENGINE_DEFAULT:-docker} ps --filter "label=com.docker.compose.project=lana-bank" --format "table {{.Names}}\t{{.Status}}\t{{.Ports}}" || echo "Failed to check container status"
 	@echo "--- End Health Checks ---"
 	@echo "--- Running Cypress Tests ---"
-	cd apps/admin-panel && CI=true pnpm cypress:run headless
+	@echo "Installing Cypress binary if missing..."
+	cd apps/admin-panel && pnpm exec cypress install
+	cd apps/admin-panel && CI=true pnpm cypress:run-headless
 
 # Meltano
 bitfinex-run:
@@ -213,12 +215,19 @@ test-in-ci-cargo: start-deps setup-db
 build-x86_64-unknown-linux-musl-release:
 	SQLX_OFFLINE=true cargo build --release --all-features --locked --bin lana-cli --target x86_64-unknown-linux-musl
 
-# Login code retrieval
-get-admin-login-code:
-	@$${ENGINE_DEFAULT:-docker} exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+auth-kcadm:
+	kcadm.sh config credentials --server "$$KC_URL" --realm "$$REALM" --user "$$ADMIN_USER" --password "$$ADMIN_PASS"
 
-get-customer-login-code:
-	@$${ENGINE_DEFAULT:-docker} exec lana-bank-kratos-customer-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='$(EMAIL)' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+### this is what is passed on to the server
+auth-secret:
+	source <(./dev/keycloak/create-client-local-dev.sh --emit-env)
 
-get-superadmin-login-code:
-	@$${ENGINE_DEFAULT:-docker} exec lana-bank-kratos-admin-pg-1 psql -U dbuser -d default -t -c "SELECT body FROM courier_messages WHERE recipient='admin@galoy.io' ORDER BY created_at DESC LIMIT 1;" | grep -Eo '[0-9]{6}' | head -n1
+### token is fetched from the server using the client secret
+auth-token:
+	curl -s -X POST "$$KC_URL/realms/$$KC_REALM/protocol/openid-connect/token" \
+		-d grant_type=client_credentials \
+		-d client_id="$$KC_CLIENT_ID" \
+		-d client_secret="$$KC_CLIENT_SECRET" | jq -r .access_token
+
+create-user:
+	./dev/keycloak/create-user.sh

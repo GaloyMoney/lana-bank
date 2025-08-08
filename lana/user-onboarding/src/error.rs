@@ -4,4 +4,6 @@ use thiserror::Error;
 pub enum UserOnboardingError {
     #[error("UserOnboardingError - JobError: {0}")]
     Job(#[from] ::job::error::JobError),
+    #[error("UserOnboardingError - KeycloakClientError: {0}")]
+    KeycloakClient(#[from] keycloak_client::KeycloakClientError),
 }

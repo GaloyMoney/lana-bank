@@ -1,0 +1,186 @@
+{
+  "realm": "customer",
+  "enabled": true,
+  "browserFlow": "DEV browser",
+  "registrationEmailAsUsername": true,
+  "directGrantFlow": "DEV direct grant",
+  "components": {
+    "org.keycloak.userprofile.UserProfileProvider": [
+      {
+        "providerId": "declarative-user-profile",
+        "subComponents": {},
+        "config": {
+          "kc.user.profile.config": [
+            "{\"attributes\":[{\"name\":\"username\",\"displayName\":\"${username}\",\"validations\":{\"length\":{\"min\":3,\"max\":255},\"username-prohibited-characters\":{},\"up-username-not-idn-homograph\":{}},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false},{\"name\":\"email\",\"displayName\":\"${email}\",\"validations\":{\"email\":{},\"length\":{\"max\":255}},\"required\":{\"roles\":[\"user\"]},\"permissions\":{\"view\":[\"admin\",\"user\"],\"edit\":[\"admin\",\"user\"]},\"multivalued\":false}],\"groups\":[{\"name\":\"user-metadata\",\"displayHeader\":\"User metadata\",\"displayDescription\":\"Attributes, which refer to user metadata\"}]}"
+          ]
+        }
+      }
+    ]
+  },
+  "authenticationFlows": [
+    {
+      "alias": "DEV browser",
+      "description": "Browser based authentication",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-cookie",
+          "requirement": "ALTERNATIVE",
+          "priority": 10
+        },
+        {
+          "authenticator": "identity-provider-redirector",
+          "requirement": "ALTERNATIVE",
+          "priority": 25
+        },
+        {
+          "flowAlias": "DEV browser Organization",
+          "authenticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 26
+        },
+        {
+          "flowAlias": "DEV browser forms",
+          "authenticatorFlow": true,
+          "requirement": "ALTERNATIVE",
+          "priority": 30
+        }
+      ]
+    },
+    {
+      "alias": "DEV browser Organization",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "flowAlias": "DEV browser Browser - Conditional Organization",
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 10
+        }
+      ]
+    },
+    {
+      "alias": "DEV browser Browser - Conditional Organization",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-configured",
+          "requirement": "REQUIRED",
+          "priority": 10
+        },
+        {
+          "authenticator": "organization",
+          "requirement": "ALTERNATIVE",
+          "priority": 20
+        }
+      ]
+    },
+    {
+      "alias": "DEV browser forms",
+      "description": "Username, password, otp and other auth forms.",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "auth-username-form",
+          "requirement": "REQUIRED",
+          "priority": 20
+        },
+        {
+          "flowAlias": "DEV browser Browser - Conditional 2FA",
+          "authenticatorFlow": true,
+          "requirement": "CONDITIONAL",
+          "priority": 21
+        }
+      ]
+    },
+    {
+      "alias": "DEV browser Browser - Conditional 2FA",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "conditional-user-configured",
+          "requirement": "REQUIRED",
+          "priority": 10
+        },
+        {
+          "authenticator": "auth-otp-form",
+          "requirement": "ALTERNATIVE",
+          "priority": 20
+        }
+      ]
+    },
+    {
+      "alias": "DEV direct grant",
+      "description": "OpenID Connect Resource Owner Grant",
+      "providerId": "basic-flow",
+      "topLevel": true,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "direct-grant-validate-username",
+          "requirement": "REQUIRED",
+          "priority": 10
+        }
+      ]
+    }
+  ],
+  "clients": [
+    {
+      "clientId": "customer-portal",
+      "surrogateAuthRequired": false,
+      "enabled": true,
+      "alwaysDisplayInConsole": false,
+      "clientAuthenticatorType": "client-secret",
+      "secret": "secret",
+      "redirectUris": ["http://app.localhost:4455/*"],
+      "webOrigins": ["http://app.localhost:4455"],
+      "notBefore": 0,
+      "bearerOnly": false,
+      "consentRequired": false,
+      "standardFlowEnabled": true,
+      "implicitFlowEnabled": false,
+      "directAccessGrantsEnabled": false,
+      "serviceAccountsEnabled": false,
+      "publicClient": false,
+      "frontchannelLogout": true,
+      "protocol": "openid-connect",
+      "attributes": {
+        "realm_client": "false",
+        "post.logout.redirect.uris": "http://app.localhost:4455/"
+      },
+      "authenticationFlowBindingOverrides": {},
+      "fullScopeAllowed": true,
+      "nodeReRegistrationTimeout": -1,
+      "defaultClientScopes": [
+        "web-origins",
+        "acr",
+        "profile",
+        "roles",
+        "basic",
+        "email"
+      ],
+      "optionalClientScopes": [
+        "address",
+        "phone",
+        "organization",
+        "offline_access",
+        "microprofile-jwt"
+      ],
+      "access": {
+        "view": true,
+        "configure": true,
+        "manage": true
+      }
+    }
+  ]
+}
