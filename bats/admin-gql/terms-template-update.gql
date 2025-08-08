@@ -10,9 +10,30 @@ mutation TermsTemplateUpdate($input: TermsTemplateUpdateInput!) {
           period
           units
         }
-        liquidationCvl
-        marginCallCvl
-        initialCvl
+        liquidationCvl {
+          ... on FiniteCVLPct {
+            value
+          }
+          ... on InfiniteCVLPct {
+            isInfinite
+          }
+        }
+        marginCallCvl {
+          ... on FiniteCVLPct {
+            value
+          }
+          ... on InfiniteCVLPct {
+            isInfinite
+          }
+        }
+        initialCvl {
+          ... on FiniteCVLPct {
+            value
+          }
+          ... on InfiniteCVLPct {
+            isInfinite
+          }
+        }
       }
     }
   }
