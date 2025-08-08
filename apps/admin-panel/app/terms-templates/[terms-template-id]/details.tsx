@@ -10,6 +10,7 @@ import { TermsTemplateQuery } from "@/lib/graphql/generated"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
+import { formatCvl } from "@/lib/utils"
 
 type TermsTemplateDetailsProps = {
   termsTemplate: NonNullable<TermsTemplateQuery["termsTemplate"]>
@@ -41,15 +42,15 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
     },
     {
       label: t("fields.initialCvl"),
-      value: `${termsTemplate.values.initialCvl}%`,
+      value: formatCvl(termsTemplate.values.initialCvl),
     },
     {
       label: t("fields.marginCallCvl"),
-      value: `${termsTemplate.values.marginCallCvl}%`,
+      value: formatCvl(termsTemplate.values.marginCallCvl),
     },
     {
       label: t("fields.liquidationCvl"),
-      value: `${termsTemplate.values.liquidationCvl}%`,
+      value: formatCvl(termsTemplate.values.liquidationCvl),
     },
     {
       label: t("fields.oneTimeFeeRate"),

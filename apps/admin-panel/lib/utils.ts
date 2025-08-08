@@ -5,6 +5,7 @@ import {
   ApprovalProcessType,
   ApprovalRules,
   CollateralAction,
+  CvlPctDataFragment,
   GetRealtimePriceUpdatesQuery,
 } from "./graphql/generated"
 
@@ -143,3 +144,9 @@ export const getCurrentLocalDate = (): string => {
   const offset = now.getTimezoneOffset() * 60000
   return new Date(now.getTime() - offset).toISOString().split("T")[0]
 }
+
+export const formatCvl = (cvl: CvlPctDataFragment): string =>
+  cvl.__typename === "FiniteCVLPct" ? `${Number(cvl.value || 0)}%` : "-"
+
+export const getCvlValue = (cvl: CvlPctDataFragment): number =>
+  cvl.__typename === "FiniteCVLPct" ? Number(cvl.value) : Infinity

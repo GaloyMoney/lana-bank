@@ -15,12 +15,13 @@ import {
 import DataTable, { Column } from "../../components/data-table"
 
 import {
-  TermsTemplate,
+  TermsTemplateFieldsFragment,
   TermsTemplatesQuery,
   useTermsTemplatesQuery,
 } from "@/lib/graphql/generated"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { UpdateTermsTemplateDialog } from "@/app/terms-templates/[terms-template-id]/update"
+import { formatCvl } from "@/lib/utils"
 
 gql`
   fragment TermsTemplateFields on TermsTemplate {
@@ -32,13 +33,31 @@ gql`
     values {
       annualRate
       liquidationCvl {
-        ...CVLPctData
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
       }
       marginCallCvl {
-        ...CVLPctData
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
       }
       initialCvl {
-        ...CVLPctData
+        __typename
+        ... on FiniteCVLPct {
+          value
+        }
+        ... on InfiniteCVLPct {
+          isInfinite
+        }
       }
       oneTimeFeeRate
       duration {
@@ -79,26 +98,17 @@ const columns = (
   {
     key: "values",
     header: t("table.headers.initialCvl"),
-    render: (values) =>
-      values.initialCvl.__typename === "FiniteCVLPct"
-        ? `${values.initialCvl.value}%`
-        : "∞",
+    render: (values) => formatCvl(values.initialCvl),
   },
   {
     key: "values",
     header: t("table.headers.marginCallCvl"),
-    render: (values) =>
-      values.marginCallCvl.__typename === "FiniteCVLPct"
-        ? `${values.marginCallCvl.value}%`
-        : "∞",
+    render: (values) => formatCvl(values.marginCallCvl),
   },
   {
     key: "values",
     header: t("table.headers.liquidationCvl"),
-    render: (values) =>
-      values.liquidationCvl.__typename === "FiniteCVLPct"
-        ? `${values.liquidationCvl.value}%`
-        : "∞",
+    render: (values) => formatCvl(values.liquidationCvl),
   },
 ]
 
@@ -107,7 +117,7 @@ function TermPage() {
 
   const { data, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
-    useState<TermsTemplate | null>(null)
+    useState<TermsTemplateFieldsFragment | null>(null)
 
   if (error) {
     return (

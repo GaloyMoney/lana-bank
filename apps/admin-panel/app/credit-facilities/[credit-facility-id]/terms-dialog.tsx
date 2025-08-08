@@ -9,6 +9,7 @@ import { formatDate } from "@lana/web/utils"
 import { GetCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
 import { PeriodLabel } from "@/app/credit-facilities/label"
 import { DetailsCard, DetailItemProps } from "@/components/details"
+import { formatCvl } from "@/lib/utils"
 
 type CreditFacilityTermsDialogProps = {
   openTermsDialog: boolean
@@ -45,15 +46,15 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
     },
     {
       label: t("details.targetCvl"),
-      value: `${creditFacility.creditFacilityTerms.initialCvl}%`,
+      value: `${formatCvl(creditFacility.creditFacilityTerms.initialCvl)}`,
     },
     {
       label: t("details.marginCallCvl"),
-      value: `${creditFacility.creditFacilityTerms.marginCallCvl}%`,
+      value: `${formatCvl(creditFacility.creditFacilityTerms.marginCallCvl)}`,
     },
     {
       label: t("details.liquidationCvl"),
-      value: `${creditFacility.creditFacilityTerms.liquidationCvl}%`,
+      value: `${formatCvl(creditFacility.creditFacilityTerms.liquidationCvl)}`,
     },
     {
       label: t("details.dateCreated"),
