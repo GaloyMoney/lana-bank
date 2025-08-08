@@ -444,6 +444,26 @@ def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
     raise ValueError("Inconsistent config, can't figure out where to write reports to.")
 
 
+def generate_report_batch(
+    report_generator_config, report_storer, report_jobs, get_rows_from_table
+):
+    for report_job in report_jobs:
+        logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
+        path_without_extension = f"reports/{report_generator_config.run_id}/{report_job.norm}/{report_job.friendly_name}"
+
+        for file_output_config in report_job.file_output_configs:
+            logger.info(f"Storing as {file_output_config.file_extension}.")
+            storable_report = file_output_config.rows_to_report_output(
+                rows=get_rows_from_table(table_name=report_job.source_table_name)
+            )
+            full_path = path_without_extension + "." + file_output_config.file_extension
+            report_storer.store_report(path=full_path, report=storable_report)
+
+        logger.info(f"Finished: {report_job.norm}-{report_job.id}")
+
+    logger.info("Finished run.")
+
+
 def main():
     logger.info("Starting run.")
     report_generator_config = get_config_from_env()
@@ -467,21 +487,9 @@ def main():
 
         return rows
 
-    for report_job in report_jobs:
-        logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
-        path_without_extension = f"reports/{report_generator_config.run_id}/{report_job.norm}/{report_job.friendly_name}"
-
-        for file_output_config in report_job.file_output_configs:
-            logger.info(f"Storing as {file_output_config.file_extension}.")
-            storable_report = file_output_config.rows_to_report_output(
-                rows=get_rows_from_table(table_name=report_job.source_table_name)
-            )
-            full_path = path_without_extension + "." + file_output_config.file_extension
-            report_storer.store_report(path=full_path, report=storable_report)
-
-        logger.info(f"Finished: {report_job.norm}-{report_job.id}")
-
-    logger.info("Finished run.")
+    generate_report_batch(
+        report_generator_config, report_storer, report_jobs, get_rows_from_table
+    )
 
 
 if __name__ == "__main__":
