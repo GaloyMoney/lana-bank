@@ -61,7 +61,7 @@ user-onboarding = { path = "lana/user-onboarding" }
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
-es-entity = "0.6.12"
+es-entity = "0.6.22"
 sim-time = "0.6.12"
 cala-ledger = "0.6.12"
 
