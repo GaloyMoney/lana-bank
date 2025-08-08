@@ -4,7 +4,7 @@ import { z } from "zod"
 export const env = createEnv({
   server: {
     AUTH_SECRET: z.string().default("secret"),
-    AUTH_KEYCLOAK_SECRET: z.string().default("41jv8RepY6r797jIyucj30OiZsFJXCls"),
+    AUTH_KEYCLOAK_SECRET: z.string().default("secret"),
   },
   shared: {
     NEXT_PUBLIC_CORE_URL: z.string().default("http://app.localhost:4455"),
