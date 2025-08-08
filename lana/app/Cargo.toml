@@ -50,7 +50,6 @@ job = { workspace = true }
 outbox = { workspace = true }
 authz = { workspace = true }
 cloud-storage = { workspace = true }
-keycloak-client = { workspace = true }
 
 cala-ledger = { workspace = true, features = ["graphql"] }
 es-entity = { workspace = true, features = ["graphql"] }

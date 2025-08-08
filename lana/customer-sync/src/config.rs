@@ -1,3 +1,4 @@
+use keycloak_client::KeycloakConnectionConfig;
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -8,8 +9,8 @@ pub struct CustomerSyncConfig {
     pub customer_status_sync_active: bool,
     #[serde(default = "default_create_deposit_account_on_customer_create")]
     pub create_deposit_account_on_customer_create: bool,
-    #[serde(default = "default_keycloak_realm")]
-    pub keycloak_realm: String,
+    #[serde(default = "default_keycloak")]
+    pub keycloak: KeycloakConnectionConfig,
 }
 
 impl Default for CustomerSyncConfig {
@@ -19,13 +20,18 @@ impl Default for CustomerSyncConfig {
             customer_status_sync_active: default_customer_status_sync_active(),
             create_deposit_account_on_customer_create:
                 default_create_deposit_account_on_customer_create(),
-            keycloak_realm: default_keycloak_realm(),
+            keycloak: default_keycloak(),
         }
     }
 }
 
-fn default_keycloak_realm() -> String {
-    "customer".to_string()
+fn default_keycloak() -> KeycloakConnectionConfig {
+    KeycloakConnectionConfig {
+        url: "http://localhost:8081".to_string(),
+        client_id: "customer-service-account".to_string(),
+        client_secret: "secret".to_string(),
+        realm: "customer".to_string(),
+    }
 }
 
 fn default_auto_create_deposit_account() -> bool {

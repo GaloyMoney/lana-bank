@@ -3214,7 +3214,6 @@ dependencies = [
  "es-entity",
  "governance",
  "job",
- "keycloak-client",
  "lana-events",
  "lana-ids",
  "notification",
