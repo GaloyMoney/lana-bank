@@ -80,14 +80,19 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let mut db = self.repo.begin_op().await?;
-        match self.repo.create_in_op(&mut db, new_job).await {
+        let mut op = self.repo.begin_op().await?;
+        match self.repo.create_in_op(&mut op, new_job).await {
             Err(JobError::DuplicateUniqueJobType) => (),
             Err(e) => return Err(e),
             Ok(mut job) => {
-                self.insert_execution::<<C as JobConfig>::Initializer>(&mut db, &mut job, None)
-                    .await?;
-                db.commit().await?;
+                let schedule_at = op.now().unwrap_or_else(crate::time::now);
+                self.insert_execution::<<C as JobConfig>::Initializer>(
+                    &mut op,
+                    &mut job,
+                    schedule_at,
+                )
+                .await?;
+                op.commit().await?;
             }
         }
         Ok(())
@@ -95,12 +100,12 @@ impl Jobs {
 
     #[instrument(
         name = "job.create_and_spawn_in_op",
-        skip(self, db, config),
+        skip(self, op, config),
         fields(job_type, now)
     )]
     pub async fn create_and_spawn_in_op<C: JobConfig>(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         job_id: impl Into<JobId> + std::fmt::Debug,
         config: C,
     ) -> Result<Job, JobError> {
@@ -112,20 +117,21 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let mut job = self.repo.create_in_op(db, new_job).await?;
-        self.insert_execution::<<C as JobConfig>::Initializer>(db, &mut job, None)
+        let mut job = self.repo.create_in_op(op, new_job).await?;
+        let schedule_at = op.now().unwrap_or_else(crate::time::now);
+        self.insert_execution::<<C as JobConfig>::Initializer>(op, &mut job, schedule_at)
             .await?;
         Ok(job)
     }
 
     #[instrument(
         name = "job.create_and_spawn_at_in_op",
-        skip(self, db, config),
+        skip(self, op, config),
         fields(job_type, now)
     )]
     pub async fn create_and_spawn_at_in_op<C: JobConfig>(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         job_id: impl Into<JobId> + std::fmt::Debug,
         config: C,
         schedule_at: DateTime<Utc>,
@@ -138,8 +144,8 @@ impl Jobs {
             .config(config)?
             .build()
             .expect("Could not build new job");
-        let mut job = self.repo.create_in_op(db, new_job).await?;
-        self.insert_execution::<<C as JobConfig>::Initializer>(db, &mut job, Some(schedule_at))
+        let mut job = self.repo.create_in_op(op, new_job).await?;
+        self.insert_execution::<<C as JobConfig>::Initializer>(op, &mut job, schedule_at)
             .await?;
         Ok(job)
     }
@@ -166,32 +172,30 @@ impl Jobs {
 
     async fn insert_execution<I: JobInitializer>(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         job: &mut Job,
-        schedule_at: Option<DateTime<Utc>>,
+        schedule_at: DateTime<Utc>,
     ) -> Result<(), JobError> {
-        Span::current().record("now", tracing::field::display(db.now()));
         if job.job_type != I::job_type() {
             return Err(JobError::JobTypeMismatch(
                 job.job_type.clone(),
                 I::job_type(),
             ));
         }
-        let schedule_at = schedule_at.unwrap_or(db.now());
         sqlx::query!(
             r#"
           INSERT INTO job_executions (id, job_type, execute_at, alive_at, created_at)
-          VALUES ($1, $2, $3, $4, $4)
+          VALUES ($1, $2, $3, $4, COALESCE($4, NOW()))
         "#,
             job.id as JobId,
             &job.job_type as &JobType,
             schedule_at,
-            db.now()
+            op.now()
         )
-        .execute(&mut **db.tx())
+        .execute(op.as_executor())
         .await?;
         job.execution_scheduled(schedule_at);
-        self.repo.update_in_op(db, job).await?;
+        self.repo.update_in_op(op, job).await?;
         Ok(())
     }
 }

@@ -3,6 +3,7 @@ use futures::FutureExt;
 use serde_json::Value as JsonValue;
 use sqlx::PgPool;
 use tracing::{Span, instrument};
+use es_entity::AtomicOperation;
 
 use std::{panic::AssertUnwindSafe, sync::Arc, time::Duration};
 
@@ -93,23 +94,25 @@ impl JobDispatcher {
             Ok(JobCompletion::RescheduleNow) => {
                 span.record("conclusion", "RescheduleNow");
                 let op = self.repo.begin_op().await?;
-                let t = op.now();
+                let t = op.now().unwrap_or_else(crate::time::now);
                 self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleNowWithOp(op)) => {
                 span.record("conclusion", "RescheduleNowWithOp");
-                let t = op.now();
+                let t = op.now().unwrap_or_else(crate::time::now);
                 self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleIn(d)) => {
                 span.record("conclusion", "RescheduleIn");
                 let op = self.repo.begin_op().await?;
-                let t = op.now() + d;
+                let t = op.now().unwrap_or_else(crate::time::now);
+                let t = t + d;
                 self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleInWithOp(d, op)) => {
                 span.record("conclusion", "RescheduleInWithOp");
-                let t = op.now() + d;
+                let t = op.now().unwrap_or_else(crate::time::now);
+                let t = t + d;
                 self.reschedule_job(op, job.id, t).await?;
             }
             Ok(JobCompletion::RescheduleAt(t)) => {
@@ -205,7 +208,7 @@ impl JobDispatcher {
                 reschedule_at,
                 next_attempt as i32
             )
-            .execute(&mut **op.tx())
+            .execute(op.as_executor())
             .await?;
         } else {
             job.job_errored(error.to_string());
@@ -216,7 +219,7 @@ impl JobDispatcher {
               "#,
                 id as JobId
             )
-            .execute(&mut **op.tx())
+            .execute(op.as_executor())
             .await?;
         }
 
@@ -240,7 +243,7 @@ impl JobDispatcher {
         "#,
             id as JobId
         )
-        .execute(&mut **op.tx())
+        .execute(op.as_executor())
         .await?;
         job.job_completed();
         self.repo.update_in_op(&mut op, &mut job).await?;
@@ -266,7 +269,7 @@ impl JobDispatcher {
             id as JobId,
             reschedule_at,
         )
-        .execute(&mut **op.tx())
+        .execute(op.as_executor())
         .await?;
         job.execution_rescheduled(reschedule_at);
         self.repo.update_in_op(&mut op, &mut job).await?;
