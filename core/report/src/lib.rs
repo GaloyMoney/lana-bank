@@ -100,7 +100,12 @@ where
             jobs.clone(),
         ));
         jobs.add_initializer_and_spawn_unique(
-            FindNewReportRunJobInit::new(airflow.clone(), report_run_repo.clone(), jobs.clone()),
+            FindNewReportRunJobInit::new(
+                airflow.clone(),
+                report_run_repo.clone(),
+                jobs.clone(),
+                config.find_new_report_run_job_interval,
+            ),
             FindNewReportRunJobConfig::new(),
         )
         .await?;
