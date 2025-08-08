@@ -22,7 +22,8 @@ impl From<CasbinError> for AuthorizationError {
                 .0
                 .source()
                 .and_then(|e| e.downcast_ref::<sqlx::Error>())
-            && db_error.code() == Some("23505".into()) {
+            && db_error.code() == Some("23505".into())
+        {
             return AuthorizationError::PermissionAlreadyExistsForRole(
                 db_error.message().to_string(),
             );

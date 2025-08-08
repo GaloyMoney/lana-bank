@@ -169,7 +169,8 @@ where
                 .await?;
 
             if let Some(customer) = customer
-                && let Some(authentication_id) = customer.authentication_id {
+                && let Some(authentication_id) = customer.authentication_id
+            {
                 self.kratos_admin
                     .update_user_email(authentication_id.into(), email.clone())
                     .await?;

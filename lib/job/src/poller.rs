@@ -143,7 +143,8 @@ impl JobPoller {
                 )
                 .fetch_all(&pool)
                 .await
-                    && !rows.is_empty() {
+                    && !rows.is_empty()
+                {
                     eprintln!(
                         "job.lost_job: {}",
                         rows.into_iter()

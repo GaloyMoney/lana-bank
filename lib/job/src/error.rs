@@ -41,7 +41,8 @@ impl From<Box<dyn std::error::Error>> for JobError {
 impl From<sqlx::Error> for JobError {
     fn from(error: sqlx::Error) -> Self {
         if let Some(err) = error.as_database_error()
-            && let Some(constraint) = err.constraint() {
+            && let Some(constraint) = err.constraint()
+        {
             if constraint.contains("type") {
                 return Self::DuplicateUniqueJobType;
             }

@@ -241,7 +241,8 @@ fn is_breaking_change_with_context(
 
     // Check type changes
     if let (Some(old_type), Some(new_type)) = (old_obj.get("type"), new_obj.get("type"))
-        && old_type != new_type {
+        && old_type != new_type
+    {
         return Ok(true);
     }
 
@@ -394,7 +395,8 @@ fn is_breaking_properties_change_with_context(
                     old_prop_schema,
                     new_ctx,
                     new_prop_schema,
-                )? {
+                )?
+            {
                 return Ok(true);
             }
         }
@@ -461,32 +463,32 @@ fn is_breaking_numeric_constraints_change(
     if let (Some(old_min), Some(new_min)) = (
         get_number(old_obj.get("minimum")),
         get_number(new_obj.get("minimum")),
-    )
-        && new_min > old_min {
+    ) && new_min > old_min
+    {
         return Ok(true);
     }
 
     if let (Some(old_max), Some(new_max)) = (
         get_number(old_obj.get("maximum")),
         get_number(new_obj.get("maximum")),
-    )
-        && new_max < old_max {
+    ) && new_max < old_max
+    {
         return Ok(true);
     }
 
     if let (Some(old_min), Some(new_min)) = (
         get_number(old_obj.get("exclusiveMinimum")),
         get_number(new_obj.get("exclusiveMinimum")),
-    )
-        && new_min > old_min {
+    ) && new_min > old_min
+    {
         return Ok(true);
     }
 
     if let (Some(old_max), Some(new_max)) = (
         get_number(old_obj.get("exclusiveMaximum")),
         get_number(new_obj.get("exclusiveMaximum")),
-    )
-        && new_max < old_max {
+    ) && new_max < old_max
+    {
         return Ok(true);
     }
 
@@ -500,16 +502,16 @@ fn is_breaking_string_constraints_change(
     if let (Some(old_min), Some(new_min)) = (
         get_u64(old_obj.get("minLength")),
         get_u64(new_obj.get("minLength")),
-    )
-        && new_min > old_min {
+    ) && new_min > old_min
+    {
         return Ok(true);
     }
 
     if let (Some(old_max), Some(new_max)) = (
         get_u64(old_obj.get("maxLength")),
         get_u64(new_obj.get("maxLength")),
-    )
-        && new_max < old_max {
+    ) && new_max < old_max
+    {
         return Ok(true);
     }
 
@@ -531,16 +533,16 @@ fn is_breaking_array_constraints_change(
     if let (Some(old_min), Some(new_min)) = (
         get_u64(old_obj.get("minItems")),
         get_u64(new_obj.get("minItems")),
-    )
-        && new_min > old_min {
+    ) && new_min > old_min
+    {
         return Ok(true);
     }
 
     if let (Some(old_max), Some(new_max)) = (
         get_u64(old_obj.get("maxItems")),
         get_u64(new_obj.get("maxItems")),
-    )
-        && new_max < old_max {
+    ) && new_max < old_max
+    {
         return Ok(true);
     }
 

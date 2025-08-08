@@ -909,7 +909,8 @@ fn is_primitive_wrapper(schema: &Value) -> bool {
 
             // If it's an array type, it's not a primitive wrapper
             if let Value::String(s) = type_value
-                && (s == "array" || s == "object") {
+                && (s == "array" || s == "object")
+            {
                 return false;
             }
 
@@ -966,7 +967,8 @@ fn json_schema_to_sql_type_with_definitions(
             // For nullable types, find the non-null type
             for type_item in type_array {
                 if let Value::String(type_str) = type_item
-                    && type_str != "null" {
+                    && type_str != "null"
+                {
                     let sql_type = match type_str.as_str() {
                         "string" => {
                             // Check if this is an enum first
@@ -1111,10 +1113,7 @@ fn lookup_nested_field_type(schema: &Value, field_path: &str) -> anyhow::Result<
                 && let Some(nested_field_schema) =
                     type_properties.get(*nested_field)
             {
-                return json_schema_to_sql_type_with_definitions(
-                    nested_field_schema,
-                    Some(schema),
-                );
+                return json_schema_to_sql_type_with_definitions(nested_field_schema, Some(schema));
             }
         }
     }

@@ -72,7 +72,9 @@ impl JobRunner for DashboardProjectionJobRunner {
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(payload) = &message.payload && state.dashboard.process_event(message.recorded_at, payload) {
+            if let Some(payload) = &message.payload
+                && state.dashboard.process_event(message.recorded_at, payload)
+            {
                 let mut db = self.repo.begin().await?;
                 self.repo.persist_in_tx(&mut db, &state.dashboard).await?;
                 state.sequence = message.sequence;

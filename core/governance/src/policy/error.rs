@@ -22,7 +22,8 @@ impl From<sqlx::Error> for PolicyError {
     fn from(error: sqlx::Error) -> Self {
         if let Some(err) = error.as_database_error()
             && let Some(constraint) = err.constraint()
-            && constraint.contains("type") {
+            && constraint.contains("type")
+        {
             return Self::DuplicateApprovalProcessType;
         }
         Self::Sqlx(error)
