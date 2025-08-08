@@ -9,15 +9,15 @@ fail-on-warnings = []
 
 [dependencies]
 
-core-customer = { path = "../../core/customer" }
-core-deposit = { path = "../../core/deposit" }
-governance = { path = "../../core/governance" }
+core-customer = { workspace = true }
+core-deposit = { workspace = true }
+governance = { workspace = true }
 
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-kratos-admin = { path = "../../lib/kratos-admin" }
+outbox = { workspace = true }
+job = { workspace = true }
+audit = { workspace = true }
+authz = { workspace = true }
+kratos-admin = { workspace = true }
 
 tracing = { workspace = true }
 serde = { workspace = true }

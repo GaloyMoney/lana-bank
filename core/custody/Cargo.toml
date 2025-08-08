@@ -11,12 +11,12 @@ json-schema = ["dep:schemars", "es-entity/json-schema"]
 mock-custodian = []
 
 [dependencies]
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
-bitgo = { path = "../../lib/bitgo" }
-komainu = { path = "../../lib/komainu" }
-core-money = { path = "../money" }
+audit = { workspace = true }
+authz = { workspace = true }
+outbox = { workspace = true }
+bitgo = { workspace = true }
+komainu = { workspace = true }
+core-money = { workspace = true }
 
 async-trait = { workspace = true }
 bytes = { workspace = true }

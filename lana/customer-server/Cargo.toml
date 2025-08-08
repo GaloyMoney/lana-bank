@@ -9,12 +9,12 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-lana-app = { path = "../app" }
+lana-app = { workspace = true }
 
-core-customer = { path = "../../core/customer", features = ["graphql"] }
+core-customer = { workspace = true, features = ["graphql"] }
 
-tracing-utils = { path = "../../lib/tracing-utils" }
-jwks-utils = { path = "../../lib/jwks-utils" }
+tracing-utils = { workspace = true }
+jwks-utils = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
 

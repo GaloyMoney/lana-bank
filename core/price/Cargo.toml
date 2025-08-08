@@ -10,7 +10,7 @@ fail-on-warnings = []
 json-schema = ["dep:schemars", "core-money/json-schema"]
 
 [dependencies]
-core-money = { path = "../money/" }
+core-money = { workspace = true }
 
 anyhow = { workspace = true }
 cached = { workspace = true }

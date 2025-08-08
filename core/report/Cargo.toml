@@ -10,12 +10,12 @@ graphql = ["es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema", "audit/json-schema"]
 
 [dependencies]
-airflow = { path = "../../lib/airflow" }
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-cloud-storage = { path = "../../lib/cloud-storage" }
+airflow = { workspace = true }
+audit = { workspace = true }
+authz = { workspace = true }
+outbox = { workspace = true }
+job = { workspace = true }
+cloud-storage = { workspace = true }
 
 es-entity = { workspace = true }
 strum = { workspace = true }

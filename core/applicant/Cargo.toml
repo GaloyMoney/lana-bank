@@ -14,13 +14,13 @@ sumsub-testing = ["sumsub/sumsub-testing"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-core-customer = { path = "../customer" }
+outbox = { workspace = true }
+job = { workspace = true }
+core-customer = { workspace = true }
 
-authz = { path = "../../lib/authz" }
-audit = { path = "../../lib/audit" }
-sumsub = { path = "../../lib/sumsub" }
+authz = { workspace = true }
+audit = { workspace = true }
+sumsub = { workspace = true }
 
 es-entity = { workspace = true }
 

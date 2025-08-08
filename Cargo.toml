@@ -11,6 +11,53 @@ exclude = [
 ]
 
 [workspace.dependencies]
+# Internal dependencies
+# Lib dependencies
+airflow = { path = "lib/airflow" }
+audit = { path = "lib/audit" }
+authz = { path = "lib/authz" }
+bitgo = { path = "lib/bitgo" }
+cloud-storage = { path = "lib/cloud-storage" }
+job = { path = "lib/job" }
+jwks-utils = { path = "lib/jwks-utils" }
+komainu = { path = "lib/komainu" }
+kratos-admin = { path = "lib/kratos-admin" }
+outbox = { path = "lib/outbox" }
+rendering = { path = "lib/rendering" }
+sumsub = { path = "lib/sumsub" }
+tracing-utils = { path = "lib/tracing-utils" }
+
+# Core dependencies
+core-access = { path = "core/access" }
+core-accounting = { path = "core/accounting" }
+core-applicant = { path = "core/applicant" }
+core-credit = { path = "core/credit" }
+core-custody = { path = "core/custody" }
+core-customer = { path = "core/customer" }
+core-deposit = { path = "core/deposit" }
+core-money = { path = "core/money" }
+core-price = { path = "core/price" }
+core-report = { path = "core/report" }
+document-storage = { path = "core/document-storage" }
+governance = { path = "core/governance" }
+public-id = { path = "core/public-id" }
+
+# Lana dependencies
+admin-server = { path = "lana/admin-server" }
+contract-creation = { path = "lana/contract-creation" }
+customer-server = { path = "lana/customer-server" }
+customer-sync = { path = "lana/customer-sync" }
+dashboard = { path = "lana/dashboard" }
+deposit-sync = { path = "lana/deposit-sync" }
+lana-app = { path = "lana/app" }
+lana-events = { path = "lana/events" }
+lana-ids = { path = "lana/ids" }
+notification = { path = "lana/notification" }
+rbac-types = { path = "lana/rbac-types" }
+sim-bootstrap = { path = "lana/sim-bootstrap" }
+user-onboarding = { path = "lana/user-onboarding" }
+
+# External dependencies
 # es-entity = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # sim-time = { git = "https://github.com/galoymoney/cala.git", branch = "main" }
 # cala-ledger = { git = "https://github.com/galoymoney/cala.git", branch = "main" }

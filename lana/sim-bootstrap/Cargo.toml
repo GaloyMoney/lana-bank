@@ -9,8 +9,8 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-lana-app = { path = "../app" }
-lana-events = { path = "../events" }
+lana-app = { workspace = true }
+lana-events = { workspace = true }
 
 sim-time = { workspace = true }
 es-entity = { workspace = true }

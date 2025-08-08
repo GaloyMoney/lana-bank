@@ -17,12 +17,12 @@ governance = ["dep:governance"]
 
 [dependencies]
 
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
-outbox = { path = "../../lib/outbox" }
-governance = { path = "../governance", optional = true }
-document-storage = { path = "../document-storage" }
-public-id = { path = "../public-id" }
+audit = { workspace = true }
+authz = { workspace = true }
+outbox = { workspace = true }
+governance = { workspace = true, optional = true }
+document-storage = { workspace = true }
+public-id = { workspace = true }
 
 es-entity = { workspace = true }
 strum = { workspace = true }

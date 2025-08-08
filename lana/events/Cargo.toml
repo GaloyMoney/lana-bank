@@ -9,13 +9,13 @@ edition = "2024"
 fail-on-warnings = []
 
 [dependencies]
-governance = { path = "../../core/governance" }
-core-access = { path = "../../core/access" }
-core-custody = { path = "../../core/custody" }
-core-customer = { path = "../../core/customer" }
-core-credit = { path = "../../core/credit" }
-core-deposit = { path = "../../core/deposit" }
-core-report = { path = "../../core/report" }
-outbox = { path = "../../lib/outbox" }
+governance = { workspace = true }
+core-access = { workspace = true }
+core-custody = { workspace = true }
+core-customer = { workspace = true }
+core-credit = { workspace = true }
+core-deposit = { workspace = true }
+core-report = { workspace = true }
+outbox = { workspace = true }
 
 serde = { workspace = true }

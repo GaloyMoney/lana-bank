@@ -9,17 +9,17 @@ fail-on-warnings = []
 
 [dependencies]
 
-core-deposit = { path = "../../core/deposit" }
-core-money = { path = "../../core/money" }
-governance = { path = "../../core/governance" }
+core-deposit = { workspace = true }
+core-money = { workspace = true }
+governance = { workspace = true }
 
-sumsub = { path = "../../lib/sumsub" }
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
-audit = { path = "../../lib/audit" }
-authz = { path = "../../lib/authz" }
+sumsub = { workspace = true }
+outbox = { workspace = true }
+job = { workspace = true }
+audit = { workspace = true }
+authz = { workspace = true }
 
-lana-events = { path = "../events" }
+lana-events = { workspace = true }
 
 tracing = { workspace = true }
 serde = { workspace = true }

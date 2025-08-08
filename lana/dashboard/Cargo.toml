@@ -12,13 +12,13 @@ fail-on-warnings = []
 json-schema = ["dep:schemars", "es-entity/json-schema", "outbox/json-schema"]
 
 [dependencies]
-lana-events = { path = "../events" }
-core-money = { path = "../../core/money" }
+lana-events = { workspace = true }
+core-money = { workspace = true }
 
-authz = { path = "../../lib/authz" }
-audit = { path = "../../lib/audit" }
-outbox = { path = "../../lib/outbox" }
-job = { path = "../../lib/job" }
+authz = { workspace = true }
+audit = { workspace = true }
+outbox = { workspace = true }
+job = { workspace = true }
 
 es-entity = { workspace = true, features = ["graphql"] }
 schemars = { workspace = true, optional = true }

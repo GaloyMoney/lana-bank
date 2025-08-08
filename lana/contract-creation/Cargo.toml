@@ -12,14 +12,14 @@ fail-on-warnings = []
 json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema", "outbox/json-schema"]
 
 [dependencies]
-core-customer = { path = "../../core/customer" }
-core-applicant = { path = "../../core/applicant" }
-document-storage = { path = "../../core/document-storage" }
-job = { path = "../../lib/job" }
-outbox = { path = "../../lib/outbox" }
-authz = { path = "../../lib/authz" }
-audit = { path = "../../lib/audit" }
-rendering = { path = "../../lib/rendering" }
+core-customer = { workspace = true }
+core-applicant = { workspace = true }
+document-storage = { workspace = true }
+job = { workspace = true }
+outbox = { workspace = true }
+authz = { workspace = true }
+audit = { workspace = true }
+rendering = { workspace = true }
 
 # External dependencies
 es-entity = { workspace = true }

@@ -14,7 +14,7 @@ test-dummy = []
 json-schema = ["dep:schemars", "audit/json-schema"]
 
 [dependencies]
-audit = { path = "../audit" }
+audit = { workspace = true }
 
 sqlx-adapter = { workspace = true }
 

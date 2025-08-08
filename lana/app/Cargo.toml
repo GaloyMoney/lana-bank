@@ -21,35 +21,35 @@ mock-custodian = ["core-custody/mock-custodian", "core-credit/mock-custodian"]
 sumsub-testing = ["core-applicant/sumsub-testing"]
 
 [dependencies]
-rbac-types = { path = "../rbac-types" }
-lana-events = { path = "../events" }
-lana-ids = { path = "../ids", features = ["graphql"] }
-contract-creation = { path = "../contract-creation" }
+rbac-types = { workspace = true }
+lana-events = { workspace = true }
+lana-ids = { workspace = true, features = ["graphql"] }
+contract-creation = { workspace = true }
 
-dashboard = { path = "../dashboard" }
-user-onboarding = { path = "../user-onboarding" }
-customer-sync = { path = "../customer-sync" }
-deposit-sync = { path = "../deposit-sync" }
-notification = { path = "../notification" }
+dashboard = { workspace = true }
+user-onboarding = { workspace = true }
+customer-sync = { workspace = true }
+deposit-sync = { workspace = true }
+notification = { workspace = true }
 
-governance = { path = "../../core/governance", features = ["graphql"] }
-core-money = { path = "../../core/money", features = ["graphql"] }
-core-access = { path = "../../core/access", features = ["graphql"] }
-core-applicant = { path = "../../core/applicant", features = ["graphql"] }
-core-custody = { path = "../../core/custody", features = ["graphql"] }
-core-credit = { path = "../../core/credit", features = ["graphql"] }
-core-customer = { path = "../../core/customer", features = ["graphql"] }
-core-price = { path = "../../core/price" }
-core-deposit = { path = "../../core/deposit", features = ["graphql"] }
-core-accounting = { path = "../../core/accounting", features = ["graphql"] }
-core-report = { path = "../../core/report", features = ["graphql"] }
-document-storage = { path = "../../core/document-storage", features = ["graphql"] }
-public-id = { path = "../../core/public-id", features = ["graphql"] }
-audit = { path = "../../lib/audit" }
-job = { path = "../../lib/job" }
-outbox = { path = "../../lib/outbox" }
-authz = { path = "../../lib/authz" }
-cloud-storage = { path = "../../lib/cloud-storage" }
+governance = { workspace = true, features = ["graphql"] }
+core-money = { workspace = true, features = ["graphql"] }
+core-access = { workspace = true, features = ["graphql"] }
+core-applicant = { workspace = true, features = ["graphql"] }
+core-custody = { workspace = true, features = ["graphql"] }
+core-credit = { workspace = true, features = ["graphql"] }
+core-customer = { workspace = true, features = ["graphql"] }
+core-price = { workspace = true }
+core-deposit = { workspace = true, features = ["graphql"] }
+core-accounting = { workspace = true, features = ["graphql"] }
+core-report = { workspace = true, features = ["graphql"] }
+document-storage = { workspace = true, features = ["graphql"] }
+public-id = { workspace = true, features = ["graphql"] }
+audit = { workspace = true }
+job = { workspace = true }
+outbox = { workspace = true }
+authz = { workspace = true }
+cloud-storage = { workspace = true }
 
 cala-ledger = { workspace = true, features = ["graphql"] }
 es-entity = { workspace = true, features = ["graphql"] }
