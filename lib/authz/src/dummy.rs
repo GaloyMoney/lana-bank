@@ -89,7 +89,7 @@ where
 
     async fn record_system_entry_in_tx(
         &self,
-        _tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _tx: &mut impl es_entity::AtomicOperation,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
@@ -98,7 +98,7 @@ where
 
     async fn record_entry_in_tx(
         &self,
-        _tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        _tx: &mut impl es_entity::AtomicOperation,
         _subject: &Self::Subject,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,

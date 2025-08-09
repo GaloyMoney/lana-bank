@@ -106,12 +106,12 @@ where
         id: impl es_entity::RetryableInto<DisbursalId>,
         approved: bool,
     ) -> Result<Disbursal, CoreCreditError> {
-        let mut db = self.disbursals.begin_op().await?;
+        let mut op = self.disbursals.begin_op().await?.with_db_time().await?;
 
         let tx_id = LedgerTxId::new();
         let disbursal = match self
             .disbursals
-            .conclude_approval_process_in_op(&mut db, id.into(), approved, tx_id)
+            .conclude_approval_process_in_op(&mut op, id.into(), approved, tx_id)
             .await?
         {
             crate::ApprovalProcessOutcome::Ignored(disbursal) => {
@@ -127,7 +127,7 @@ where
                     .await?;
                 self.ledger
                     .settle_disbursal(
-                        db,
+                        op,
                         obligation,
                         credit_facility.account_ids.facility_account_id,
                     )
@@ -142,7 +142,7 @@ where
                     .await?;
                 self.ledger
                     .cancel_disbursal(
-                        db,
+                        op,
                         tx_id,
                         disbursal.amount,
                         credit_facility.account_ids.facility_account_id,

@@ -1,5 +1,5 @@
 use serde::{Serialize, de::DeserializeOwned};
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::PgPool;
 
 use super::{JobId, error::JobError};
 
@@ -39,7 +39,7 @@ impl CurrentJob {
 
     pub async fn update_execution_state_in_tx<T: Serialize>(
         &mut self,
-        db: &mut Transaction<'_, Postgres>,
+        op: &mut impl es_entity::AtomicOperation,
         execution_state: &T,
     ) -> Result<(), JobError> {
         let execution_state_json = serde_json::to_value(execution_state)
@@ -53,7 +53,7 @@ impl CurrentJob {
             execution_state_json,
             &self.id as &JobId
         )
-        .execute(&mut **db)
+        .execute(op.as_executor())
         .await?;
         self.execution_state_json = Some(execution_state_json);
         Ok(())

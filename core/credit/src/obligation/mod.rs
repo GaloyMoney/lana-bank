@@ -95,13 +95,13 @@ where
 
     pub async fn create_with_jobs_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         new_obligation: NewObligation,
     ) -> Result<Obligation, ObligationError> {
-        let obligation = self.repo.create_in_op(db, new_obligation).await?;
+        let obligation = self.repo.create_in_op(&mut *op, new_obligation).await?;
         self.jobs
             .create_and_spawn_at_in_op(
-                db,
+                op,
                 JobId::new(),
                 obligation_due::ObligationDueJobConfig::<Perms, E> {
                     obligation_id: obligation.id,
@@ -117,7 +117,7 @@ where
 
     pub async fn record_overdue_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(Obligation, Option<ObligationOverdueReallocationData>), ObligationError> {
@@ -127,7 +127,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -137,7 +137,7 @@ where
         let data = if let es_entity::Idempotent::Executed(overdue) =
             obligation.record_overdue(effective, audit_info)?
         {
-            self.repo.update_in_op(db, &mut obligation).await?;
+            self.repo.update_in_op(op, &mut obligation).await?;
             Some(overdue)
         } else {
             None
@@ -148,7 +148,7 @@ where
 
     pub async fn record_due_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
@@ -158,7 +158,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -168,7 +168,7 @@ where
         let data = if let es_entity::Idempotent::Executed(due) =
             obligation.record_due(effective, audit_info)
         {
-            self.repo.update_in_op(db, &mut obligation).await?;
+            self.repo.update_in_op(op, &mut obligation).await?;
             Some(due)
         } else {
             None
@@ -179,7 +179,7 @@ where
 
     pub async fn record_defaulted_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<Option<ObligationDefaultedReallocationData>, ObligationError> {
@@ -189,7 +189,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -199,7 +199,7 @@ where
         let data = if let es_entity::Idempotent::Executed(defaulted) =
             obligation.record_defaulted(effective, audit_info)?
         {
-            self.repo.update_in_op(db, &mut obligation).await?;
+            self.repo.update_in_op(op, &mut obligation).await?;
             Some(defaulted)
         } else {
             None
@@ -210,7 +210,7 @@ where
 
     pub async fn start_liquidation_process_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOp<'_>,
         id: ObligationId,
         effective: chrono::NaiveDate,
     ) -> Result<(Obligation, Option<LiquidationProcess>), ObligationError> {
@@ -220,7 +220,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                op,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
             )
@@ -230,10 +230,10 @@ where
         let liquidation_process = if let Idempotent::Executed(new_liquidation_process) =
             obligation.start_liquidation(effective, &audit_info)
         {
-            self.repo.update_in_op(db, &mut obligation).await?;
+            self.repo.update_in_op(op, &mut obligation).await?;
             let liquidation_process = self
                 .liquidation_process_repo
-                .create_in_op(db, new_liquidation_process)
+                .create_in_op(op, new_liquidation_process)
                 .await?;
 
             Some(liquidation_process)
@@ -253,12 +253,12 @@ where
 
     #[instrument(
         name = "credit.obligation.allocate_in_op",
-        skip(self, db),
+        skip(self, op),
         fields(n_new_installments, n_facility_obligations, amount_allocated)
     )]
     pub async fn apply_installment_in_op(
         &self,
-        mut db: es_entity::DbOp<'_>,
+        mut op: es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         payment_id: PaymentId,
         amount: UsdCents,
@@ -277,7 +277,7 @@ where
             if let es_entity::Idempotent::Executed(new_installment) =
                 obligation.apply_installment(remaining, payment_id, effective, audit_info)
             {
-                self.repo.update_in_op(&mut db, obligation).await?;
+                self.repo.update_in_op(&mut op, obligation).await?;
                 remaining -= new_installment.amount;
                 new_installments.push(new_installment);
                 if remaining == UsdCents::ZERO {
@@ -290,7 +290,7 @@ where
 
         let installments = self
             .installment_repo
-            .create_all_in_op(&mut db, new_installments)
+            .create_all_in_op(&mut op, new_installments)
             .await?;
 
         let amount_allocated = installments
@@ -302,7 +302,7 @@ where
         );
 
         self.ledger
-            .record_obligation_installments(db, installments)
+            .record_obligation_installments(op, installments)
             .await?;
 
         Ok(())

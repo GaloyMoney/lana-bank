@@ -24,7 +24,7 @@ where
 
     pub async fn publish_wallet(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Wallet,
         new_events: es_entity::LastPersisted<'_, WalletEvent>,
     ) -> Result<(), WalletError> {
@@ -48,7 +48,7 @@ where
             })
             .collect::<Vec<_>>();
 
-        self.outbox.publish_all_persisted(db.tx(), events).await?;
+        self.outbox.publish_all_persisted(op, events).await?;
 
         Ok(())
     }

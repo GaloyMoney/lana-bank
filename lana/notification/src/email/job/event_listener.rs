@@ -71,15 +71,15 @@ impl JobRunner for EmailEventListenerRunner {
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
         while let Some(message) = stream.next().await {
-            let mut db = es_entity::DbOp::init(current_job.pool()).await?;
+            let mut op = current_job.pool().begin().await?;
             if let Some(event) = &message.payload {
-                self.handle_event(&mut db, event).await?;
+                self.handle_event(&mut op, event).await?;
             }
             state.sequence = message.sequence;
             current_job
-                .update_execution_state_in_tx(db.tx(), &state)
+                .update_execution_state_in_tx(&mut op, &state)
                 .await?;
-            db.commit().await?;
+            op.commit().await?;
         }
         Ok(JobCompletion::RescheduleNow)
     }
@@ -88,7 +88,7 @@ impl JobRunner for EmailEventListenerRunner {
 impl EmailEventListenerRunner {
     async fn handle_event(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         event: &LanaEvent,
     ) -> Result<(), Box<dyn std::error::Error>> {
         if let LanaEvent::Credit(CoreCreditEvent::ObligationOverdue {
@@ -98,7 +98,7 @@ impl EmailEventListenerRunner {
         }) = event
         {
             self.email_notification
-                .send_obligation_overdue_notification(db, id, credit_facility_id, amount)
+                .send_obligation_overdue_notification(op, id, credit_facility_id, amount)
                 .await?;
         }
         Ok(())

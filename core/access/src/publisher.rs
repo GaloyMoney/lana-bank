@@ -36,7 +36,7 @@ where
 
     pub async fn publish_user(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &User,
         new_events: es_entity::LastPersisted<'_, UserEvent>,
     ) -> Result<(), UserError> {
@@ -58,14 +58,14 @@ where
             })
             .collect::<Vec<_>>();
 
-        self.outbox.publish_all_persisted(db.tx(), events).await?;
+        self.outbox.publish_all_persisted(op, events).await?;
 
         Ok(())
     }
 
     pub async fn publish_role(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
     ) -> Result<(), RoleError> {
@@ -91,7 +91,7 @@ where
             })
             .collect::<Vec<_>>();
 
-        self.outbox.publish_all_persisted(db.tx(), events).await?;
+        self.outbox.publish_all_persisted(op, events).await?;
 
         Ok(())
     }

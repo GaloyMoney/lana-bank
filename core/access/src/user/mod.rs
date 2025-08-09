@@ -163,7 +163,7 @@ where
                 .await?;
         }
 
-        match self.repo.find_by_email(email).await {
+        match self.repo.find_by_email(email.as_str()).await {
             Ok(user) => Ok(Some(user)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
@@ -290,7 +290,7 @@ where
     /// Used for bootstrapping the application.
     pub(super) async fn bootstrap_superuser_user(
         &self,
-        db: &mut DbOp<'_>,
+        op: &mut DbOp<'_>,
         email: String,
         role: &Role,
     ) -> Result<User, UserError> {
@@ -298,13 +298,13 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                &mut *op,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::USER_CREATE,
             )
             .await?;
 
-        let user = match self.repo.find_by_email_in_tx(db.tx(), &email).await {
+        let user = match self.repo.find_by_email_in_op(&mut *op, &email).await {
             Err(e) if e.was_not_found() => {
                 let new_user = NewUser::builder()
                     .id(UserId::new())
@@ -314,13 +314,13 @@ where
                     .build()
                     .expect("all fields for new user provided");
 
-                self.repo.create_in_op(db, new_user).await?
+                self.repo.create_in_op(&mut *op, new_user).await?
             }
             Err(e) => return Err(e),
             Ok(mut user) => {
                 // Update existing user's role if needed
                 if user.update_role(role, audit_info).did_execute() {
-                    self.repo.update_in_op(db, &mut user).await?;
+                    self.repo.update_in_op(op, &mut user).await?;
                 }
                 user
             }

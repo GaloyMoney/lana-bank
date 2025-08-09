@@ -37,7 +37,7 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        db: &mut impl es_entity::AtomicOperation,
         entity: &Report,
         new_events: es_entity::LastPersisted<'_, ReportEvent>,
     ) -> Result<(), ReportError> {

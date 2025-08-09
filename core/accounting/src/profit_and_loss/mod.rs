@@ -90,7 +90,7 @@ where
         self.authz
             .audit()
             .record_system_entry_in_tx(
-                op.tx(),
+                &mut op,
                 CoreAccountingObject::all_profit_and_loss(),
                 CoreAccountingAction::PROFIT_AND_LOSS_CREATE,
             )

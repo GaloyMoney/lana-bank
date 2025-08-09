@@ -13,8 +13,7 @@ use super::{entity::*, error::*};
     err = "PublicIdError",
     columns(target_id(ty = "PublicIdTargetId"),),
     tbl = "core_public_ids",
-    events_tbl = "core_public_id_events",
-    tbl_prefix = "core"
+    events_tbl = "core_public_id_events"
 )]
 pub struct PublicIdRepo {
     pool: PgPool,

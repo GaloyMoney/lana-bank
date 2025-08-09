@@ -66,7 +66,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
 
     async fn record_system_entry_in_tx(
         &self,
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        tx: &mut impl es_entity::AtomicOperation,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
@@ -80,7 +80,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
 
     async fn record_entry_in_tx(
         &self,
-        tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
+        op: &mut impl es_entity::AtomicOperation,
         subject: &Self::Subject,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
@@ -102,7 +102,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
             action.to_string(),
             authorized,
         )
-        .fetch_one(&mut **tx)
+        .fetch_one(op.as_executor())
         .await?;
 
         Ok(AuditInfo::from((record.id, sub)))

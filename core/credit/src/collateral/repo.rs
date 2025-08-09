@@ -40,12 +40,12 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Collateral,
         new_events: es_entity::LastPersisted<'_, CollateralEvent>,
     ) -> Result<(), CollateralError> {
         self.publisher
-            .publish_collateral(db, entity, new_events)
+            .publish_collateral(op, entity, new_events)
             .await
     }
 }

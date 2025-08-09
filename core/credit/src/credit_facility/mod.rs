@@ -29,7 +29,7 @@ pub(crate) use entity::*;
 pub use entity::CreditFacilityEvent;
 use error::CreditFacilityError;
 pub use repo::{
-    CreditFacilitiesSortBy, CreditFacilityRepo, FindManyCreditFacilities, ListDirection, Sort,
+    CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacilityRepo, ListDirection, Sort,
     credit_facility_cursor::*,
 };
 
@@ -145,15 +145,15 @@ where
 
     pub(super) async fn activate_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
     ) -> Result<ActivationOutcome, CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id_in_tx(db.tx(), id).await?;
+        let mut credit_facility = self.repo.find_by_id_in_op(db, id).await?;
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                db,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
             )
@@ -192,12 +192,12 @@ where
             return Ok(credit_facility);
         }
 
-        let mut db = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                &mut op,
                 CoreCreditObject::credit_facility(credit_facility.id),
                 CoreCreditAction::CREDIT_FACILITY_CONCLUDE_APPROVAL_PROCESS,
             )
@@ -211,23 +211,23 @@ where
         }
 
         self.repo
-            .update_in_op(&mut db, &mut credit_facility)
+            .update_in_op(&mut op, &mut credit_facility)
             .await?;
-        db.commit().await?;
+        op.commit().await?;
 
         Ok(credit_facility)
     }
 
     pub(super) async fn confirm_interest_accrual_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         id: CreditFacilityId,
     ) -> Result<ConfirmedAccrual, CreditFacilityError> {
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                op,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
             )
@@ -254,7 +254,7 @@ where
             }
         };
 
-        self.repo.update_in_op(db, &mut credit_facility).await?;
+        self.repo.update_in_op(op, &mut credit_facility).await?;
 
         Ok(confirmed_accrual)
     }
@@ -388,12 +388,12 @@ where
                 credit_facilities.end_cursor,
                 credit_facilities.has_next_page,
             );
-            let mut db = self.repo.begin_op().await?;
+            let mut op = self.repo.begin_op().await?;
             let audit_info = self
                 .authz
                 .audit()
                 .record_system_entry_in_tx(
-                    db.tx(),
+                    &mut op,
                     CoreCreditObject::all_credit_facilities(),
                     CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
                 )
@@ -413,13 +413,13 @@ where
                     .update_collateralization(price, upgrade_buffer_cvl_pct, balances, &audit_info)
                     .did_execute()
                 {
-                    self.repo.update_in_op(&mut db, facility).await?;
+                    self.repo.update_in_op(&mut op, facility).await?;
                     at_least_one = true;
                 }
             }
 
             if at_least_one {
-                db.commit().await?;
+                op.commit().await?;
             } else {
                 break;
             }
@@ -433,14 +433,14 @@ where
         id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CreditFacility, CreditFacilityError> {
-        let mut db = self.repo.begin_op().await?;
-        let mut credit_facility = self.repo.find_by_id_in_tx(db.tx(), id).await?;
+        let mut op = self.repo.begin_op().await?;
+        let mut credit_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
 
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                &mut op,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
             )
@@ -457,10 +457,10 @@ where
             .did_execute()
         {
             self.repo
-                .update_in_op(&mut db, &mut credit_facility)
+                .update_in_op(&mut op, &mut credit_facility)
                 .await?;
 
-            db.commit().await?;
+            op.commit().await?;
         }
         Ok(credit_facility)
     }
@@ -470,7 +470,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CreditFacilitiesCursor>,
-        filter: FindManyCreditFacilities,
+        filter: CreditFacilitiesFilter,
         sort: impl Into<Sort<CreditFacilitiesSortBy>> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<CreditFacility, CreditFacilitiesCursor>,
@@ -483,7 +483,7 @@ where
                 CoreCreditAction::CREDIT_FACILITY_LIST,
             )
             .await?;
-        self.repo.find_many(filter, sort.into(), query).await
+        self.repo.list_for_filter(filter, sort.into(), query).await
     }
 
     pub(super) async fn list_by_collateralization_ratio_without_audit(

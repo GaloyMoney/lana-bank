@@ -32,7 +32,7 @@ where
 
     pub async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        db: &mut impl es_entity::AtomicOperation,
         entity: &Customer,
         new_events: es_entity::LastPersisted<'_, CustomerEvent>,
     ) -> Result<(), CustomerError> {
@@ -59,7 +59,7 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(db, publish_events)
             .await?;
         Ok(())
     }

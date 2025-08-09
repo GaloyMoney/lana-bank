@@ -56,10 +56,10 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Deposit,
         new_events: es_entity::LastPersisted<'_, DepositEvent>,
     ) -> Result<(), DepositError> {
-        self.publisher.publish_deposit(db, entity, new_events).await
+        self.publisher.publish_deposit(op, entity, new_events).await
     }
 }

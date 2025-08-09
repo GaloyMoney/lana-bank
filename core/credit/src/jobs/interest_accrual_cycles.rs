@@ -136,11 +136,11 @@ where
             )));
         }
 
-        let mut db = self.credit_facilities.begin_op().await?;
+        let mut op = self.credit_facilities.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
-                db.tx(),
+                &mut op,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
             )
@@ -152,7 +152,7 @@ where
         } = self
             .credit_facilities
             .complete_interest_cycle_and_maybe_start_new_cycle(
-                &mut db,
+                &mut op,
                 self.config.credit_facility_id,
                 &audit_info,
             )
@@ -166,7 +166,7 @@ where
 
             self.jobs
                 .create_and_spawn_at_in_op(
-                    &mut db,
+                    &mut op,
                     new_accrual_cycle_id,
                     interest_accruals::InterestAccrualJobConfig::<Perms, E> {
                         credit_facility_id: self.config.credit_facility_id,
@@ -183,7 +183,7 @@ where
         };
 
         self.ledger
-            .record_interest_accrual_cycle(db, facility_accrual_cycle_data)
+            .record_interest_accrual_cycle(op, facility_accrual_cycle_data)
             .await?;
 
         return Ok(JobCompletion::Complete);

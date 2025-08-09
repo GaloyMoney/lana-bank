@@ -55,7 +55,7 @@ where
         self.authz
             .audit()
             .record_system_entry_in_tx(
-                op.tx(),
+                &mut op,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_CREATE,
             )
@@ -84,7 +84,7 @@ where
         self.authz
             .audit()
             .record_system_entry_in_tx(
-                op.tx(),
+                &mut op,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_UPDATE,
             )

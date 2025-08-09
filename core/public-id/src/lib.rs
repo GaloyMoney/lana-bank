@@ -37,10 +37,10 @@ impl PublicIds {
         Self { repo }
     }
 
-    #[instrument(name = "public_id_service.create_in_op", skip(self, db), err)]
+    #[instrument(name = "public_id_service.create_in_op", skip(self, op), err)]
     pub async fn create_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         target_type: impl Into<PublicIdTargetType> + std::fmt::Debug,
         target_id: impl Into<PublicIdTargetId> + std::fmt::Debug,
     ) -> Result<PublicIdEntity, PublicIdError> {
@@ -54,7 +54,7 @@ impl PublicIds {
             .build()
             .expect("Could not build public id");
 
-        let public_id = self.repo.create_in_op(db, new_public_id).await?;
+        let public_id = self.repo.create_in_op(op, new_public_id).await?;
         Ok(public_id)
     }
 

@@ -16,9 +16,10 @@ use super::{
 };
 pub use lana_app::{
     credit::{
-        CreditFacilitiesCursor, CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
-        CreditFacility as DomainCreditFacility, DisbursalsSortBy as DomainDisbursalsSortBy,
-        FindManyCreditFacilities, FindManyDisbursals, ListDirection, Sort,
+        CreditFacilitiesCursor, CreditFacilitiesFilter as DomainCreditFacilitiesFilter,
+        CreditFacilitiesSortBy as DomainCreditFacilitiesSortBy,
+        CreditFacility as DomainCreditFacility, DisbursalsFilter,
+        DisbursalsSortBy as DomainDisbursalsSortBy, ListDirection, Sort,
     },
     custody::WalletId,
     primitives::CreditFacilityStatus,
@@ -125,7 +126,7 @@ impl CreditFacility {
             .list(
                 sub,
                 Default::default(),
-                FindManyDisbursals::WithCreditFacilityId(self.entity.id),
+                DisbursalsFilter::WithCreditFacilityId(self.entity.id),
                 Sort {
                     by: DomainDisbursalsSortBy::CreatedAt,
                     direction: ListDirection::Descending,

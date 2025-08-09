@@ -24,7 +24,7 @@ use entity::*;
 use error::*;
 pub use event::*;
 pub use primitives::*;
-pub use repo::{CustomerRepo, CustomersSortBy, FindManyCustomers, Sort, customer_cursor::*};
+pub use repo::{CustomerRepo, CustomersFilter, CustomersSortBy, Sort, customer_cursor::*};
 
 pub const CUSTOMER_DOCUMENT: DocumentType = DocumentType::new("customer_document");
 
@@ -236,7 +236,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<CustomersCursor>,
-        filter: FindManyCustomers,
+        filter: CustomersFilter,
         sort: impl Into<Sort<CustomersSortBy>> + std::fmt::Debug,
     ) -> Result<es_entity::PaginatedQueryRet<Customer, CustomersCursor>, CustomerError> {
         self.authz
@@ -246,7 +246,7 @@ where
                 CoreCustomerAction::CUSTOMER_LIST,
             )
             .await?;
-        self.repo.find_many(filter, sort.into(), query).await
+        self.repo.list_for_filter(filter, sort.into(), query).await
     }
 
     #[instrument(
@@ -302,7 +302,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                db,
                 CustomerObject::customer(customer_id),
                 CoreCustomerAction::CUSTOMER_START_KYC,
             )
@@ -328,7 +328,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                db,
                 CustomerObject::customer(customer_id),
                 CoreCustomerAction::CUSTOMER_APPROVE_KYC,
             )
@@ -359,7 +359,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                db,
                 CustomerObject::customer(customer_id),
                 CoreCustomerAction::CUSTOMER_DECLINE_KYC,
             )

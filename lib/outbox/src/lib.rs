@@ -7,7 +7,7 @@ mod repo;
 
 use futures::{StreamExt, stream::BoxStream};
 use serde::{Serialize, de::DeserializeOwned};
-use sqlx::{PgPool, Postgres, Transaction, postgres::PgListener};
+use sqlx::{PgPool, postgres::PgListener};
 use tokio::sync::broadcast;
 
 use std::sync::{
@@ -69,20 +69,20 @@ where
 
     pub async fn publish_persisted(
         &self,
-        db: &mut Transaction<'_, Postgres>,
+        op: &mut impl es_entity::AtomicOperation,
         event: impl Into<P>,
     ) -> Result<(), sqlx::Error> {
-        self.publish_all_persisted(db, std::iter::once(event)).await
+        self.publish_all_persisted(op, std::iter::once(event)).await
     }
 
     pub async fn publish_all_persisted(
         &self,
-        db: &mut Transaction<'_, Postgres>,
+        op: &mut impl es_entity::AtomicOperation,
         events: impl IntoIterator<Item = impl Into<P>>,
     ) -> Result<(), sqlx::Error> {
         let _ = self
             .repo
-            .persist_events(db, events.into_iter().map(Into::into))
+            .persist_events(op, events.into_iter().map(Into::into))
             .await?;
         Ok(())
     }

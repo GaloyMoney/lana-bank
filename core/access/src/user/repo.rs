@@ -40,11 +40,11 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &User,
         new_events: es_entity::LastPersisted<'_, UserEvent>,
     ) -> Result<(), UserError> {
-        self.publisher.publish_user(db, entity, new_events).await
+        self.publisher.publish_user(op, entity, new_events).await
     }
 }
 

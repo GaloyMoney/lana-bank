@@ -8,7 +8,6 @@ mod event;
 mod policy;
 mod primitives;
 
-use sqlx::Acquire;
 use tracing::instrument;
 
 use std::collections::{HashMap, HashSet};
@@ -89,7 +88,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                &mut db,
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
             )
@@ -219,7 +218,7 @@ where
         let mut process = self.process_repo.create_in_op(db, new_process).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
         if self
-            .maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
+            .maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
             .await?
         {
             self.process_repo.update_in_op(db, &mut process).await?;
@@ -256,7 +255,7 @@ where
             .did_execute()
         {
             let mut db = self.policy_repo.begin_op().await?;
-            self.maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
+            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
                 .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
@@ -303,7 +302,7 @@ where
             .did_execute()
         {
             let mut db = self.policy_repo.begin_op().await?;
-            self.maybe_fire_concluded_event(db.tx().begin().await?, eligible, &mut process)
+            self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
                 .await?;
             self.process_repo
                 .update_in_op(&mut db, &mut process)
@@ -347,7 +346,7 @@ where
 
     async fn maybe_fire_concluded_event(
         &self,
-        mut db: sqlx::Transaction<'_, sqlx::Postgres>,
+        mut op: es_entity::DbOp<'_>,
         eligible: HashSet<CommitteeMemberId>,
         process: &mut ApprovalProcess,
     ) -> Result<bool, GovernanceError> {
@@ -355,7 +354,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                &mut db,
+                &mut op,
                 GovernanceObject::approval_process(process.id),
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
             )
@@ -366,7 +365,7 @@ where
         {
             self.outbox
                 .publish_persisted(
-                    &mut db,
+                    &mut op,
                     GovernanceEvent::ApprovalProcessConcluded {
                         id: process.id,
                         approved,
@@ -376,7 +375,7 @@ where
                     },
                 )
                 .await?;
-            db.commit().await?;
+            op.commit().await?;
 
             return Ok(true);
         }

@@ -373,7 +373,9 @@ impl DepositLedger {
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::RecordDepositParams {
             journal_id: self.journal_id,
@@ -398,7 +400,9 @@ impl DepositLedger {
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::InitiateWithdrawParams {
             journal_id: self.journal_id,
@@ -421,7 +425,9 @@ impl DepositLedger {
         op: es_entity::DbOp<'_>,
         reversal_data: WithdrawalReversalData,
     ) -> Result<(), DepositLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::RevertWithdrawParams {
             journal_id: self.journal_id,
@@ -451,7 +457,9 @@ impl DepositLedger {
         op: es_entity::DbOp<'_>,
         reversal_data: DepositReversalData,
     ) -> Result<(), DepositLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::RevertDepositParams {
             journal_id: self.journal_id,
@@ -486,7 +494,9 @@ impl DepositLedger {
         external_id: String,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::ConfirmWithdrawParams {
             journal_id: self.journal_id,
@@ -513,7 +523,9 @@ impl DepositLedger {
         credit_account_id: impl Into<AccountId>,
     ) -> Result<(), DepositLedgerError> {
         let tx_id = tx_id.into();
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::CancelWithdrawParams {
             journal_id: self.journal_id,
@@ -561,7 +573,9 @@ impl DepositLedger {
     ) -> Result<(), DepositLedgerError> {
         let id = id.into();
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         self.create_account_in_op(
             &mut op,

@@ -36,11 +36,11 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Role,
         new_events: es_entity::LastPersisted<'_, RoleEvent>,
     ) -> Result<(), RoleError> {
-        self.publisher.publish_role(db, entity, new_events).await
+        self.publisher.publish_role(op, entity, new_events).await
     }
 }
 

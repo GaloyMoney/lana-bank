@@ -1,9 +1,9 @@
 use chrono::{DateTime, Utc};
+use es_entity::AtomicOperation;
 use futures::FutureExt;
 use serde_json::Value as JsonValue;
 use sqlx::PgPool;
 use tracing::{Span, instrument};
-use es_entity::AtomicOperation;
 
 use std::{panic::AssertUnwindSafe, sync::Arc, time::Duration};
 

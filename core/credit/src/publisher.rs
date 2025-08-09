@@ -47,7 +47,7 @@ where
 
     pub async fn publish_facility(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
@@ -97,14 +97,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_collateral(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Collateral,
         new_events: es_entity::LastPersisted<'_, CollateralEvent>,
     ) -> Result<(), CollateralError> {
@@ -135,14 +135,14 @@ where
             })
             .collect::<Vec<_>>();
 
-        self.outbox.publish_all_persisted(db.tx(), events).await?;
+        self.outbox.publish_all_persisted(op, events).await?;
 
         Ok(())
     }
 
     pub async fn publish_disbursal(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Disbursal,
         new_events: es_entity::LastPersisted<'_, DisbursalEvent>,
     ) -> Result<(), DisbursalError> {
@@ -166,14 +166,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_interest_accrual_cycle(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &InterestAccrualCycle,
         new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
     ) -> Result<(), InterestAccrualCycleError> {
@@ -199,14 +199,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_obligation_installment(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &ObligationInstallment,
         new_events: es_entity::LastPersisted<'_, ObligationInstallmentEvent>,
     ) -> Result<(), ObligationInstallmentError> {
@@ -232,14 +232,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_obligation(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Obligation,
         new_events: es_entity::LastPersisted<'_, ObligationEvent>,
     ) -> Result<(), ObligationError> {
@@ -290,14 +290,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_liquidation_process(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &LiquidationProcess,
         new_events: es_entity::LastPersisted<'_, LiquidationProcessEvent>,
     ) -> Result<(), LiquidationProcessError> {
@@ -329,7 +329,7 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }

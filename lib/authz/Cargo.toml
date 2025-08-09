@@ -15,6 +15,7 @@ json-schema = ["dep:schemars", "audit/json-schema"]
 
 [dependencies]
 audit = { workspace = true }
+es-entity = { workspace = true }
 
 sqlx-adapter = { workspace = true }
 

@@ -143,12 +143,12 @@ impl Query {
             None => (None, None),
         };
         let filter = match filter_field {
-            None => FindManyCustomers::NoFilter,
+            None => DomainCustomersFilter::NoFilter,
             Some(CustomersFilterBy::AccountStatus) => {
                 let status = status.ok_or(CustomerError::MissingValueForFilterField(
                     "status".to_string(),
                 ))?;
-                FindManyCustomers::WithStatus(status)
+                DomainCustomersFilter::WithStatus(status)
             }
         };
 
@@ -313,12 +313,12 @@ impl Query {
             None => (None, None, None),
         };
         let filter = match filter_field {
-            None => FindManyCreditFacilities::NoFilter,
+            None => DomainCreditFacilitiesFilter::NoFilter,
             Some(CreditFacilitiesFilterBy::Status) => {
                 let status = status.ok_or(CreditFacilityError::MissingValueForFilterField(
                     "status".to_string(),
                 ))?;
-                FindManyCreditFacilities::WithStatus(status)
+                DomainCreditFacilitiesFilter::WithStatus(status)
             }
             Some(CreditFacilitiesFilterBy::CollateralizationState) => {
                 let collateralization_state = collateralization_state.ok_or(
@@ -326,7 +326,7 @@ impl Query {
                         "collateralization_state".to_string(),
                     ),
                 )?;
-                FindManyCreditFacilities::WithCollateralizationState(collateralization_state)
+                DomainCreditFacilitiesFilter::WithCollateralizationState(collateralization_state)
             }
         };
 
@@ -382,7 +382,7 @@ impl Query {
     ) -> async_graphql::Result<
         Connection<DisbursalsCursor, CreditFacilityDisbursal, EmptyFields, EmptyFields>,
     > {
-        let filter = FindManyDisbursals::NoFilter;
+        let filter = DisbursalsFilter::NoFilter;
 
         let sort = Sort {
             by: DomainDisbursalsSortBy::CreatedAt,

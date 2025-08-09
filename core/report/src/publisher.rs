@@ -34,7 +34,7 @@ where
 
     pub async fn publish_report(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Report,
         new_events: es_entity::LastPersisted<'_, ReportEvent>,
     ) -> Result<(), ReportError> {
@@ -45,14 +45,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_report_run(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        db: &mut impl es_entity::AtomicOperation,
         entity: &ReportRun,
         new_events: es_entity::LastPersisted<'_, ReportRunEvent>,
     ) -> Result<(), ReportRunError> {
@@ -64,7 +64,7 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(db, publish_events)
             .await?;
         Ok(())
     }

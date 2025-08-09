@@ -25,7 +25,9 @@ impl ManualTransactionLedger {
         tx_id: CalaTxId,
         params: ManualTransactionParams,
     ) -> Result<(), ManualTransactionError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let template =
             ManualTransactionTemplate::init(&self.cala, params.entry_params.len()).await?;

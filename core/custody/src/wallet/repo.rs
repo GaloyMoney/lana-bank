@@ -37,11 +37,11 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Wallet,
         new_events: es_entity::LastPersisted<'_, WalletEvent>,
     ) -> Result<(), WalletError> {
-        self.publisher.publish_wallet(db, entity, new_events).await
+        self.publisher.publish_wallet(op, entity, new_events).await
     }
 }
 

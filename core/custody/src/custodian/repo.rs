@@ -38,7 +38,7 @@ impl CustodianRepo {
 
     pub async fn update_config_in_op(
         &self,
-        op: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         custodian: &mut Custodian,
     ) -> Result<(), CustodianError> {
         sqlx::query!(
@@ -51,7 +51,7 @@ impl CustodianRepo {
             "#,
             custodian.id as CustodianId,
         )
-        .execute(&mut **op.tx())
+        .execute(op.as_executor())
         .await?;
 
         self.update_in_op(op, custodian).await?;
