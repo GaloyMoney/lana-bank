@@ -48,7 +48,7 @@ impl EmailNotification {
 
     pub async fn send_obligation_overdue_notification(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         obligation_id: &ObligationId,
         credit_facility_id: &CreditFacilityId,
         amount: &core_money::UsdCents,
@@ -99,7 +99,7 @@ impl EmailNotification {
                     email_type: EmailType::OverduePayment(email_data.clone()),
                 };
                 self.jobs
-                    .create_and_spawn_in_op(db, JobId::new(), email_config)
+                    .create_and_spawn_in_op(op, JobId::new(), email_config)
                     .await?;
             }
             if has_next_page {

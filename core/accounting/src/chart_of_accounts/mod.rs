@@ -156,7 +156,9 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
         self.cala
             .account_sets()
             .create_all_in_op(&mut op, new_account_sets)
@@ -212,7 +214,9 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -266,7 +270,9 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -370,7 +376,9 @@ where
                 let mut op = self.repo.begin_op().await?;
                 self.repo.update_in_op(&mut op, &mut chart).await?;
 
-                let mut op = self.cala.ledger_operation_from_db_op(op);
+                let mut op = self
+                    .cala
+                    .ledger_operation_from_db_op(op.with_db_time().await?);
                 let Account {
                     id: manual_transaction_account_id,
                     ..

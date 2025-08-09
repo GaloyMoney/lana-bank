@@ -55,12 +55,12 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Obligation,
         new_events: es_entity::LastPersisted<'_, ObligationEvent>,
     ) -> Result<(), ObligationError> {
         self.publisher
-            .publish_obligation(db, entity, new_events)
+            .publish_obligation(op, entity, new_events)
             .await
     }
 }

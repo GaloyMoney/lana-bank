@@ -127,7 +127,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                db,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::ROLE_CREATE,
             )

@@ -37,7 +37,7 @@ where
 
     pub async fn publish_deposit_account(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &DepositAccount,
         new_events: es_entity::LastPersisted<'_, DepositAccountEvent>,
     ) -> Result<(), DepositAccountError> {
@@ -52,14 +52,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_withdrawal(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Withdrawal,
         new_events: es_entity::LastPersisted<'_, WithdrawalEvent>,
     ) -> Result<(), WithdrawalError> {
@@ -75,14 +75,14 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }
 
     pub async fn publish_deposit(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &Deposit,
         new_events: es_entity::LastPersisted<'_, DepositEvent>,
     ) -> Result<(), DepositError> {
@@ -102,7 +102,7 @@ where
             })
             .collect::<Vec<_>>();
         self.outbox
-            .publish_all_persisted(db.tx(), publish_events)
+            .publish_all_persisted(op, publish_events)
             .await?;
         Ok(())
     }

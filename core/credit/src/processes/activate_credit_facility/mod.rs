@@ -89,9 +89,14 @@ where
         id: impl es_entity::RetryableInto<CreditFacilityId>,
     ) -> Result<CreditFacility, CoreCreditError> {
         let id = id.into();
-        let mut db = self.credit_facilities.begin_op().await?;
+        let mut op = self
+            .credit_facilities
+            .begin_op()
+            .await?
+            .with_db_time()
+            .await?;
 
-        match self.credit_facilities.activate_in_op(&mut db, id).await? {
+        match self.credit_facilities.activate_in_op(&mut op, id).await? {
             crate::ActivationOutcome::Ignored(credit_facility) => Ok(credit_facility),
             crate::ActivationOutcome::Activated(crate::ActivationData {
                 credit_facility,
@@ -114,7 +119,7 @@ where
                     let public_id = self
                         .public_ids
                         .create_in_op(
-                            &mut db,
+                            &mut op,
                             crate::primitives::DISBURSAL_REF_TARGET,
                             disbursal_id,
                         )
@@ -136,7 +141,7 @@ where
                         .expect("could not build new disbursal");
 
                     self.disbursals
-                        .create_first_disbursal_in_op(&mut db, new_disbursal, &audit_info)
+                        .create_first_disbursal_in_op(&mut op, new_disbursal, &audit_info)
                         .await?;
                 }
 
@@ -146,7 +151,7 @@ where
                     .id;
                 self.jobs
                     .create_and_spawn_at_in_op(
-                        &mut db,
+                        &mut op,
                         accrual_id,
                         interest_accruals::InterestAccrualJobConfig::<Perms, E> {
                             credit_facility_id: id,
@@ -157,7 +162,7 @@ where
                     .await?;
 
                 self.ledger
-                    .activate_credit_facility(db, credit_facility_activation)
+                    .activate_credit_facility(op, credit_facility_activation)
                     .await?;
 
                 Ok(credit_facility)

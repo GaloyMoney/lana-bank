@@ -56,12 +56,12 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &DepositAccount,
         new_events: es_entity::LastPersisted<'_, DepositAccountEvent>,
     ) -> Result<(), DepositAccountError> {
         self.publisher
-            .publish_deposit_account(db, entity, new_events)
+            .publish_deposit_account(op, entity, new_events)
             .await
     }
 }

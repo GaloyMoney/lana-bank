@@ -51,12 +51,12 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &LiquidationProcess,
         new_events: es_entity::LastPersisted<'_, LiquidationProcessEvent>,
     ) -> Result<(), LiquidationProcessError> {
         self.publisher
-            .publish_liquidation_process(db, entity, new_events)
+            .publish_liquidation_process(op, entity, new_events)
             .await
     }
 }

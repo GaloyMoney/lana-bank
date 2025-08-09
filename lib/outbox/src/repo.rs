@@ -1,5 +1,5 @@
 use serde::{Serialize, de::DeserializeOwned};
-use sqlx::{PgPool, Postgres, Transaction};
+use sqlx::PgPool;
 
 use super::event::*;
 
@@ -45,7 +45,7 @@ where
 
     pub async fn persist_events(
         &self,
-        db: &mut Transaction<'_, Postgres>,
+        op: &mut impl es_entity::AtomicOperation,
         events: impl Iterator<Item = P>,
     ) -> Result<Vec<PersistentOutboxEvent<P>>, sqlx::Error> {
         let mut payloads = Vec::new();
@@ -77,7 +77,7 @@ where
             &serialized_events as _,
             tracing_json
         )
-        .fetch_all(&mut **db)
+        .fetch_all(op.as_executor())
         .await?;
         let events = rows
             .into_iter()

@@ -37,12 +37,12 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &ReportRun,
         new_events: es_entity::LastPersisted<'_, ReportRunEvent>,
     ) -> Result<(), ReportRunError> {
         self.publisher
-            .publish_report_run(db, entity, new_events)
+            .publish_report_run(op, entity, new_events)
             .await
     }
 }

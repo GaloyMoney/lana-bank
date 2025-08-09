@@ -78,12 +78,12 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &CreditFacility,
         new_events: es_entity::LastPersisted<'_, CreditFacilityEvent>,
     ) -> Result<(), CreditFacilityError> {
         self.publisher
-            .publish_facility(db, entity, new_events)
+            .publish_facility(op, entity, new_events)
             .await
     }
 
@@ -92,15 +92,14 @@ where
         wallet_id: CustodyWalletId,
     ) -> Result<CreditFacility, CreditFacilityError> {
         es_query!(
-            "core",
-            self.pool(),
+            tbl_prefix = "core",
             r#"
                 SELECT cf.id FROM core_credit_facilities cf
                 LEFT JOIN core_collaterals co ON cf.collateral_id = co.id
                 WHERE co.custody_wallet_id = $1"#,
             wallet_id as CustodyWalletId
         )
-        .fetch_one()
+        .fetch_one(&mut self.pool().begin().await?)
         .await
     }
 }
@@ -149,12 +148,12 @@ where
 
     async fn publish(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut impl es_entity::AtomicOperation,
         entity: &InterestAccrualCycle,
         new_events: es_entity::LastPersisted<'_, InterestAccrualCycleEvent>,
     ) -> Result<(), InterestAccrualCycleError> {
         self.publisher
-            .publish_interest_accrual_cycle(db, entity, new_events)
+            .publish_interest_accrual_cycle(op, entity, new_events)
             .await
     }
 }

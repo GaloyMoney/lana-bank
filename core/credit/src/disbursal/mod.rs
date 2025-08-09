@@ -14,7 +14,7 @@ use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
 pub(super) use entity::*;
 use error::DisbursalError;
 pub(super) use repo::*;
-pub use repo::{DisbursalsSortBy, FindManyDisbursals};
+pub use repo::{DisbursalsFilter, DisbursalsSortBy};
 
 pub use entity::Disbursal;
 
@@ -106,7 +106,7 @@ where
     #[instrument(name = "disbursals.create_first_disbursal_in_op", skip(self, db))]
     pub(super) async fn create_first_disbursal_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        db: &mut es_entity::DbOpWithTime<'_>,
         new_disbursal: NewDisbursal,
         audit_info: &audit::AuditInfo,
     ) -> Result<Disbursal, DisbursalError> {
@@ -186,7 +186,7 @@ where
 
     pub(super) async fn conclude_approval_process_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        op: &mut es_entity::DbOpWithTime<'_>,
         disbursal_id: DisbursalId,
         approved: bool,
         tx_id: LedgerTxId,
@@ -195,7 +195,7 @@ where
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                op,
                 CoreCreditObject::disbursal(disbursal_id),
                 CoreCreditAction::DISBURSAL_SETTLE,
             )
@@ -207,20 +207,20 @@ where
         let ret = match disbursal.approval_process_concluded(
             tx_id,
             approved,
-            db.now().date_naive(),
+            op.now().date_naive(),
             audit_info,
         ) {
             es_entity::Idempotent::Ignored => ApprovalProcessOutcome::Ignored(disbursal),
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self
                     .obligations
-                    .create_with_jobs_in_op(db, new_obligation)
+                    .create_with_jobs_in_op(op, new_obligation)
                     .await?;
-                self.repo.update_in_op(db, &mut disbursal).await?;
+                self.repo.update_in_op(op, &mut disbursal).await?;
                 ApprovalProcessOutcome::Approved((disbursal, obligation))
             }
             es_entity::Idempotent::Executed(None) => {
-                self.repo.update_in_op(db, &mut disbursal).await?;
+                self.repo.update_in_op(op, &mut disbursal).await?;
                 ApprovalProcessOutcome::Denied(disbursal)
             }
         };
@@ -232,7 +232,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<disbursal_cursor::DisbursalsCursor>,
-        filter: FindManyDisbursals,
+        filter: DisbursalsFilter,
         sort: impl Into<es_entity::Sort<DisbursalsSortBy>> + std::fmt::Debug,
     ) -> Result<
         es_entity::PaginatedQueryRet<Disbursal, disbursal_cursor::DisbursalsCursor>,
@@ -245,7 +245,10 @@ where
                 CoreCreditAction::DISBURSAL_LIST,
             )
             .await?;
-        let disbursals = self.repo.find_many(filter, sort.into(), query).await?;
+        let disbursals = self
+            .repo
+            .list_for_filter(filter, sort.into(), query)
+            .await?;
 
         Ok(disbursals)
     }
@@ -260,8 +263,8 @@ where
         DisbursalError,
     > {
         self.repo
-            .find_many(
-                FindManyDisbursals::WithCreditFacilityId(id),
+            .list_for_filter(
+                DisbursalsFilter::WithCreditFacilityId(id),
                 sort.into(),
                 query,
             )

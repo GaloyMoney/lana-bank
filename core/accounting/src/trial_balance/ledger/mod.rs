@@ -121,7 +121,9 @@ impl TrialBalanceLedger {
         node_account_set_id: impl Into<AccountSetId>,
         member: AccountSetId,
     ) -> Result<(), TrialBalanceLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
         self.add_member_in_op(&mut op, node_account_set_id, member)
             .await?;
 
@@ -135,7 +137,9 @@ impl TrialBalanceLedger {
         node_account_set_id: impl Into<AccountSetId> + Copy,
         members: impl Iterator<Item = &AccountSetId>,
     ) -> Result<(), TrialBalanceLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
         for member in members {
             self.add_member_in_op(&mut op, node_account_set_id, *member)
                 .await?;
@@ -166,7 +170,9 @@ impl TrialBalanceLedger {
         op: es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<AccountSetId, TrialBalanceLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let statement_id = self
             .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])

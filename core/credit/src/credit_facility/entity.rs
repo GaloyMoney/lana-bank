@@ -843,9 +843,7 @@ mod test {
                 InterestAccrualCycle::try_from_events(new.into_events()).expect("hydrate failed")
             })
             .collect::<Vec<_>>();
-        credit_facility
-            .interest_accruals
-            .extend_entities(new_entities);
+        credit_facility.interest_accruals.load(new_entities);
     }
 
     #[test]

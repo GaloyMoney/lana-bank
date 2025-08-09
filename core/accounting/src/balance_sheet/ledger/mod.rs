@@ -179,7 +179,9 @@ impl BalanceSheetLedger {
     ) -> Result<(), BalanceSheetLedgerError> {
         let node_account_set_id = node_account_set_id.into();
 
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
         match self
             .cala
             .account_sets()
@@ -199,7 +201,9 @@ impl BalanceSheetLedger {
         op: es_entity::DbOp<'_>,
         reference: &str,
     ) -> Result<BalanceSheetIds, BalanceSheetLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let statement_id = self
             .create_unique_account_set(&mut op, reference, DebitOrCredit::Debit, vec![])

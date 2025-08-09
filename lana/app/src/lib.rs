@@ -58,7 +58,7 @@ pub mod access {
 pub mod customer {
     pub use core_customer::{
         AccountStatus, CUSTOMER_REF_TARGET, Customer, CustomerDocumentId, CustomerId, CustomerType,
-        CustomersCursor, CustomersSortBy, FindManyCustomers, KycLevel, Sort, error,
+        CustomersCursor, CustomersFilter, CustomersSortBy, KycLevel, Sort, error,
     };
     pub type Customers =
         core_customer::Customers<crate::authorization::Authorization, lana_events::LanaEvent>;
@@ -159,11 +159,11 @@ pub mod credit {
     pub use core_credit::{
         APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
         ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesSortBy,
-        CreditFacility, CreditFacilityApproved, CreditFacilityBalanceSummary,
-        CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus,
-        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsSortBy,
-        FacilityCVL, FindManyCreditFacilities, FindManyDisbursals, IncrementalPayment,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilter,
+        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry,
+        CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
+        DisbursalsFilter, DisbursalsSortBy, FacilityCVL, IncrementalPayment,
         InterestAccrualsPosted, ListDirection, ObligationInstallment, ObligationMovedToLiquidation,
         Payment, RepaymentStatus, RepaymentType, Sort, TermsTemplate, error, terms_template_error,
     };

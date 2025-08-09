@@ -106,7 +106,7 @@ where
         self.authz
             .audit()
             .record_system_entry_in_tx(
-                op.tx(),
+                &mut op,
                 CoreAccountingObject::all_balance_sheet(),
                 CoreAccountingAction::BALANCE_SHEET_CREATE,
             )

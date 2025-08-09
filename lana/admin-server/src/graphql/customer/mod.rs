@@ -11,7 +11,8 @@ use super::{
 
 pub use lana_app::customer::{
     AccountStatus, Customer as DomainCustomer, CustomerType, CustomersCursor,
-    CustomersSortBy as DomainCustomersSortBy, FindManyCustomers, KycLevel, Sort,
+    CustomersFilter as DomainCustomersFilter, CustomersSortBy as DomainCustomersSortBy, KycLevel,
+    Sort,
 };
 
 pub use error::*;
@@ -95,7 +96,7 @@ impl Customer {
             .list(
                 sub,
                 Default::default(),
-                FindManyCreditFacilities::WithCustomerId(self.entity.id),
+                DomainCreditFacilitiesFilter::WithCustomerId(self.entity.id),
                 Sort {
                     by: DomainCreditFacilitiesSortBy::CreatedAt,
                     direction: ListDirection::Descending,

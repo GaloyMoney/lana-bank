@@ -101,11 +101,11 @@ where
         if withdraw.is_approved_or_denied().is_some() {
             return Ok(withdraw);
         }
-        let mut db = self.repo.begin_op().await?;
+        let mut op = self.repo.begin_op().await?;
         let audit_info = self
             .audit
             .record_system_entry_in_tx(
-                db.tx(),
+                &mut op,
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
             )
@@ -114,8 +114,8 @@ where
             .approval_process_concluded(approved, audit_info)
             .did_execute()
         {
-            self.repo.update_in_op(&mut db, &mut withdraw).await?;
-            db.commit().await?;
+            self.repo.update_in_op(&mut op, &mut withdraw).await?;
+            op.commit().await?;
         }
         Ok(withdraw)
     }

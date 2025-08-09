@@ -364,14 +364,14 @@ where
 
         let mut wallet = self
             .wallets
-            .find_by_external_wallet_id_in_tx(db.tx(), Some(external_wallet_id))
+            .find_by_external_wallet_id_in_op(&mut db, Some(external_wallet_id))
             .await?;
 
         let audit_info = self
             .authz
             .audit()
             .record_system_entry_in_tx(
-                db.tx(),
+                &mut db,
                 CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_UPDATE,
             )
@@ -403,7 +403,7 @@ where
     ) -> Result<(), CoreCustodyError> {
         let custodian = self
             .custodians
-            .find_by_id_in_tx(db.tx(), &wallet.custodian_id)
+            .find_by_id_in_op(&mut *db, &wallet.custodian_id)
             .await?;
 
         let client = custodian
