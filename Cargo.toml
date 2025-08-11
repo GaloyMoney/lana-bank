@@ -20,7 +20,6 @@ bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
 job = { path = "lib/job" }
 jwks-utils = { path = "lib/jwks-utils" }
-keycloak-admin = { path = "lib/keycloak-admin" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
 outbox = { path = "lib/outbox" }
