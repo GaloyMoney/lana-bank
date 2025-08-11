@@ -513,60 +513,44 @@ def get_table_fetcher(config: ReportGeneratorConfig) -> BaseTableFetcher:
     return table_fetcher
 
 
-def generate_report_batch(
-    report_generator_config: ReportGeneratorConfig,
-    report_storer: BaseReportStorer,
-    report_jobs: ReportJobDefinition,
-    table_fetcher: BaseTableFetcher,
-):
-    for report_job in report_jobs:
-        logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
-        path_without_extension = f"reports/{report_generator_config.run_id}/{report_job.norm}/{report_job.friendly_name}"
-        table_contents = table_fetcher.fetch_table_contents(
-            report_job.source_table_name
-        )
+class ReportBatch:
 
-        for file_output_config in report_job.file_output_configs:
-            logger.info(f"Storing as {file_output_config.file_extension}.")
-            storable_report = file_output_config.rows_to_report_output(
-                table_contents=table_contents
+    def __init__(self, config: ReportGeneratorConfig):
+        self.run_id = config.run_id
+        reports_config_yaml_path = Path(__file__).resolve().parent / "reports.yml"
+        self.report_jobs = load_report_jobs_from_yaml(reports_config_yaml_path)
+        self.table_fetcher = get_table_fetcher(config=config)
+        self.report_storer = get_report_storer(config=config)
+
+    def generate_batch(self):
+        for report_job in self.report_jobs:
+            logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
+            table_contents = self.table_fetcher.fetch_table_contents(
+                report_job.source_table_name
             )
-            full_path = path_without_extension + "." + file_output_config.file_extension
-            report_storer.store_report(path=full_path, report=storable_report)
 
-        logger.info(f"Finished: {report_job.norm}-{report_job.id}")
+            for file_output_config in report_job.file_output_configs:
+                logger.info(f"Storing as {file_output_config.file_extension}.")
+                storable_report = file_output_config.rows_to_report_output(
+                    table_contents=table_contents
+                )
+                path_without_extension = f"reports/{self.run_id}/{report_job.norm}/{report_job.friendly_name}"
+                full_path = (
+                    path_without_extension + "." + file_output_config.file_extension
+                )
+                self.report_storer.store_report(path=full_path, report=storable_report)
 
-    logger.info("Finished run.")
+            logger.info(f"Finished: {report_job.norm}-{report_job.id}")
 
 
 def main():
     logger.info("Starting run.")
+
     report_generator_config = get_config_from_env()
+    report_batch = ReportBatch(config=report_generator_config)
+    report_batch.generate_batch()
 
-    credentials = service_account.Credentials.from_service_account_file(
-        report_generator_config.keyfile
-    )
-    bq_client = bigquery.Client(
-        project=report_generator_config.project_id, credentials=credentials
-    )
-
-    table_fetcher: BaseTableFetcher = get_table_fetcher(config=report_generator_config)
-
-    report_storer: BaseReportStorer = get_report_storer(config=report_generator_config)
-
-    report_config_yaml_path = Path(__file__).resolve().parent / "reports.yml"
-    report_jobs = load_report_jobs_from_yaml(report_config_yaml_path)
-
-    def get_rows_from_table(table_name: str):
-        query = f"SELECT * FROM `{report_generator_config.project_id}.{report_generator_config.dataset}.{table_name}`;"
-        query_job = bq_client.query(query)
-        rows = query_job.result()
-
-        return rows
-
-    generate_report_batch(
-        report_generator_config, report_storer, report_jobs, table_fetcher
-    )
+    logger.info("Finished run.")
 
 
 if __name__ == "__main__":
