@@ -5,6 +5,9 @@ from typing import Any
 from xml.etree import ElementTree
 import io
 import csv
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from generate_es_reports.io import BaseTableFetcher, BaseReportStorer
 
 from xmlschema import XMLSchema
 
@@ -225,3 +228,38 @@ class ReportGeneratorConfig:
         self.keyfile = keyfile
         self.use_gcs = use_gcs
         self.use_local_fs = use_local_fs
+
+
+class ReportBatch:
+
+    def __init__(
+        self,
+        run_id: str,
+        table_fetcher: BaseTableFetcher,
+        report_storer: BaseReportStorer,
+        report_jobs: tuple[ReportJobDefinition, ...],
+    ):
+        self.run_id = run_id
+        self.report_jobs = report_jobs
+        self.table_fetcher = table_fetcher
+        self.report_storer = report_storer
+
+    def generate_batch(self):
+        for report_job in self.report_jobs:
+            logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
+            table_contents = self.table_fetcher.fetch_table_contents(
+                report_job.source_table_name
+            )
+
+            for file_output_config in report_job.file_output_configs:
+                logger.info(f"Storing as {file_output_config.file_extension}.")
+                storable_report = file_output_config.rows_to_report_output(
+                    table_contents=table_contents
+                )
+                path_without_extension = f"reports/{self.run_id}/{report_job.norm}/{report_job.friendly_name}"
+                full_path = (
+                    path_without_extension + "." + file_output_config.file_extension
+                )
+                self.report_storer.store_report(path=full_path, report=storable_report)
+
+            logger.info(f"Finished: {report_job.norm}-{report_job.id}")

@@ -1,8 +1,7 @@
 from __future__ import annotations
 from pathlib import Path
 
-from generate_es_reports.domain.report import ReportGeneratorConfig
-
+from generate_es_reports.domain.report import ReportGeneratorConfig, ReportBatch
 from generate_es_reports.logging import SingletonLogger
 from generate_es_reports.io import (
     BaseReportStorer,
@@ -58,44 +57,19 @@ def get_table_fetcher(config: "ReportGeneratorConfig") -> BaseTableFetcher:
     return table_fetcher
 
 
-class ReportBatch:
-
-    def __init__(self, config: ReportGeneratorConfig, report_jobs: tuple[ReportJobDefinition, ...]):
-        self.run_id = config.run_id
-        self.report_jobs = report_jobs
-        self.table_fetcher = get_table_fetcher(config=config)
-        self.report_storer = get_report_storer(config=config)
-
-    def generate_batch(self):
-        for report_job in self.report_jobs:
-            logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
-            table_contents = self.table_fetcher.fetch_table_contents(
-                report_job.source_table_name
-            )
-
-            for file_output_config in report_job.file_output_configs:
-                logger.info(f"Storing as {file_output_config.file_extension}.")
-                storable_report = file_output_config.rows_to_report_output(
-                    table_contents=table_contents
-                )
-                path_without_extension = f"reports/{self.run_id}/{report_job.norm}/{report_job.friendly_name}"
-                full_path = (
-                    path_without_extension + "." + file_output_config.file_extension
-                )
-                self.report_storer.store_report(path=full_path, report=storable_report)
-
-            logger.info(f"Finished: {report_job.norm}-{report_job.id}")
-
-
 def run_report_batch():
     logger.info("Starting run.")
 
     report_generator_config = get_config_from_env()
     reports_config_yaml_path = Path(__file__).resolve().parent / "reports.yml"
     report_jobs = load_report_jobs_from_yaml(reports_config_yaml_path)
+    table_fetcher = get_table_fetcher(config=report_generator_config)
+    report_storer = get_report_storer(config=report_generator_config)
     report_batch = ReportBatch(
-        config=report_generator_config,
-        report_jobs=report_jobs
+        run_id=report_generator_config.run_id,
+        report_jobs=report_jobs,
+        table_fetcher=table_fetcher,
+        report_storer=report_storer,
     )
     report_batch.generate_batch()
 
