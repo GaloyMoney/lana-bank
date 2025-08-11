@@ -4,29 +4,23 @@ use serde::{Deserialize, Serialize};
 pub struct KeycloakConnectionConfig {
     #[serde(default = "default_url")]
     pub url: String,
-    #[serde(default = "default_client_id")]
     pub client_id: String,
+    pub realm: String,
     #[serde(default)]
-    pub admin_username: String,
-    #[serde(default)]
-    pub admin_password: String,
+    pub client_secret: String,
 }
 
 fn default_url() -> String {
     "http://localhost:8081".to_string()
 }
 
-fn default_client_id() -> String {
-    "admin-cli".to_string()
-}
-
 impl Default for KeycloakConnectionConfig {
     fn default() -> Self {
         Self {
             url: default_url(),
-            client_id: default_client_id(),
-            admin_username: "admin".to_string(),
-            admin_password: "admin".to_string(),
+            client_id: "internal-service-account".to_string(),
+            client_secret: "secret".to_string(),
+            realm: "internal".to_string(),
         }
     }
 }
