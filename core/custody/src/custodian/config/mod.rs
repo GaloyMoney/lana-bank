@@ -75,10 +75,13 @@ impl CustodianConfig {
                 )
                 .map_err(CustodianClientError::client)?,
             )),
-            CustodianConfig::Bitgo(config) => Ok(Box::new(::bitgo::BitgoClient::new(
-                config.into(),
-                provider_config.bitgo_directory.clone(),
-            ))),
+            CustodianConfig::Bitgo(config) => Ok(Box::new(
+                ::bitgo::BitgoClient::try_new(
+                    config.into(),
+                    provider_config.bitgo_directory.clone(),
+                )
+                .map_err(CustodianClientError::client)?,
+            )),
 
             #[cfg(feature = "mock-custodian")]
             CustodianConfig::Mock => Ok(Box::new(super::client::mock::CustodianMock)),

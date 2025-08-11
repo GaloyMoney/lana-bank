@@ -42,6 +42,12 @@ impl CustodianClient for bitgo::BitgoClient {
             .get_wallet_count()
             .await
             .map_err(CustodianClientError::client)?;
+
+        let _ = self
+            .get_enterprise(&self.enterprise_id)
+            .await
+            .map_err(CustodianClientError::client)?;
+
         Ok(())
     }
 

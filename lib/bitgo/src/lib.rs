@@ -23,14 +23,17 @@ pub struct BitgoClient {
     long_lived_token: String,
     endpoint: Url,
     passphrase: String,
-    enterprise_id: String,
+    pub enterprise_id: String,
     coin: String,
-    webhook_url: String,
+    webhook_url: Url,
     webhook_secret: Vec<u8>,
 }
 
 impl BitgoClient {
-    pub fn new(config: BitgoConfig, directory_config: BitgoDirectoryConfig) -> Self {
+    pub fn try_new(
+        config: BitgoConfig,
+        directory_config: BitgoDirectoryConfig,
+    ) -> Result<Self, BitgoError> {
         let coin = if config.bitgo_test { "tbtc4" } else { "btc" };
 
         let endpoint = if config.bitgo_test {
@@ -39,16 +42,21 @@ impl BitgoClient {
             directory_config.production_url
         };
 
-        Self {
+        let webhook_url = config
+            .webhook_url
+            .parse()
+            .map_err(|_| BitgoError::InvalidWebhookUrl)?;
+
+        Ok(Self {
             http_client: Client::new(),
             long_lived_token: config.long_lived_token,
             endpoint,
             passphrase: config.passphrase,
             enterprise_id: config.enterprise_id,
             coin: coin.to_owned(),
-            webhook_url: config.webhook_url,
+            webhook_url,
             webhook_secret: config.webhook_secret,
-        }
+        })
     }
 
     #[tracing::instrument(name = "bitgo.validate_webhook_notification", skip(self), err)]
@@ -172,6 +180,19 @@ impl BitgoClient {
         Ok(serde_json::from_value::<GetWalletCountResponse>(response)?.count)
     }
 
+    #[tracing::instrument(
+        name = "bitgo.get_wallet_count",
+        skip(self),
+        fields(response, url),
+        err
+    )]
+    pub async fn get_enterprise(&self, id: &str) -> Result<u32, BitgoError> {
+        // https://developers.bitgo.com/api/enterprise.getById
+
+        let response = self.get(self.url(&format!("enterprise/{id}"))).await?;
+        Ok(serde_json::from_value::<GetWalletCountResponse>(response)?.count)
+    }
+
     #[tracing::instrument(name = "bitgo.get_transfer", skip(self), fields(response, url), err)]
     pub async fn get_transfer(&self, id: &str, wallet_id: &str) -> Result<Transfer, BitgoError> {
         // https://developers.bitgo.com/api/v2.wallet.gettransfer
@@ -192,11 +213,22 @@ impl BitgoClient {
             .get(url)
             .bearer_auth(&self.long_lived_token);
 
-        let response: Value = request.send().await?.json().await?;
+        let response: Fallible<Value> = request.send().await?.json().await?;
 
-        tracing::Span::current().record("response", tracing::field::display(&response));
+        tracing::Span::current().record("response", tracing::field::debug(&response));
 
-        Ok(response)
+        match response {
+            Fallible::Error {
+                error,
+                name,
+                request_id,
+            } => Err(BitgoError::BitgoError {
+                error,
+                name,
+                request_id,
+            }),
+            Fallible::Ok(res) => Ok(res),
+        }
     }
 
     async fn post<S: Serialize, D: DeserializeOwned>(
@@ -212,11 +244,22 @@ impl BitgoClient {
             .bearer_auth(&self.long_lived_token)
             .json(payload);
 
-        let response: Value = request.send().await?.json().await?;
+        let response: Fallible<Value> = request.send().await?.json().await?;
 
-        tracing::Span::current().record("response", tracing::field::display(&response));
+        tracing::Span::current().record("response", tracing::field::debug(&response));
 
-        Ok(serde_json::from_value(response)?)
+        match response {
+            Fallible::Error {
+                error,
+                name,
+                request_id,
+            } => Err(BitgoError::BitgoError {
+                error,
+                name,
+                request_id,
+            }),
+            Fallible::Ok(res) => Ok(serde_json::from_value(res)?),
+        }
     }
 
     fn url(&self, path: &str) -> Url {
