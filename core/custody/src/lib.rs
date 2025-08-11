@@ -127,6 +127,9 @@ where
             )
             .await?;
 
+        // We should not be calling any external service in any environment
+        // with mock custodian.
+        #[cfg(not(feature = "mock-custodian"))]
         custodian_config
             .clone()
             .custodian_client(&self.config.custody_providers)?
