@@ -50,49 +50,6 @@ class TabularReportContents:
         self.records = records
 
 
-class BaseTableFetcher(ABC):
-    """
-    An interface to somewhere we can read tabular data from to get records for
-    a report.
-    """
-
-    @abstractmethod
-    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
-        pass
-
-
-class BigQueryTableFetcher(BaseTableFetcher):
-
-    def __init__(self, keyfile_path: Path, project_id: str, dataset):
-
-        self.project_id = project_id
-        self.dataset = dataset
-
-        credentials = service_account.Credentials.from_service_account_file(
-            keyfile_path
-        )
-
-        self._bq_client = bigquery.Client(
-            project=self.project_id, credentials=credentials
-        )
-
-    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
-        query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
-        query_job = self._bq_client.query(query)
-        rows = query_job.result()
-
-        field_names = [field.name for field in rows.schema]
-        records = [{name: row[name] for name in field_names} for row in rows]
-
-        TabularReportContents(field_names=field_names, records=records)
-
-        return TabularReportContents
-
-
-class MockTableFetcher(BaseTableFetcher):
-    pass
-
-
 class StorableReportOutput:
     """The contents of a report file, together with their content type."""
 
@@ -115,7 +72,9 @@ class BaseFileOutputConfig(ABC):
                 raise NotImplementedError(f"{cls.__name__} must define '{attribute}'")
 
     @abstractmethod
-    def rows_to_report_output(self, rows) -> StorableReportOutput:
+    def rows_to_report_output(
+        self, table_contents: TabularReportContents
+    ) -> StorableReportOutput:
         pass
 
 
@@ -130,9 +89,11 @@ class XMLFileOutputConfig(BaseFileOutputConfig):
         self.root_element_tag = next(iter(self.xml_schema.elements), None)
         self.sequence_elements_tag = self._extract_sequence_elements_tag()
 
-    def rows_to_report_output(self, rows) -> StorableReportOutput:
-        field_names = [field.name for field in rows.schema]
-        rows_data = [{name: row[name] for name in field_names} for row in rows]
+    def rows_to_report_output(
+        self, table_contents: TabularReportContents
+    ) -> StorableReportOutput:
+        field_names = table_contents.fields
+        rows_data = table_contents.records
 
         xml_root_element = ElementTree.Element(
             f"{{{self.target_namespace}}}" + f"{self.root_element_tag}"
@@ -202,9 +163,11 @@ class CSVFileOutputConfig(BaseFileOutputConfig):
         self.delimiter = delimiter
         self.lineterminator = lineterminator
 
-    def rows_to_report_output(self, rows) -> StorableReportOutput:
-        field_names = [field.name for field in rows.schema]
-        rows_data = [{name: row[name] for name in field_names} for row in rows]
+    def rows_to_report_output(
+        self, table_contents: TabularReportContents
+    ) -> StorableReportOutput:
+        field_names = table_contents.fields
+        rows_data = table_contents.records
 
         output = io.StringIO()
 
@@ -232,9 +195,11 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
         self.delimiter = delimiter
         self.lineterminator = lineterminator
 
-    def rows_to_report_output(self, rows) -> StorableReportOutput:
-        field_names = [field.name for field in rows.schema]
-        rows_data = [{name: row[name] for name in field_names} for row in rows]
+    def rows_to_report_output(
+        self, table_contents: TabularReportContents
+    ) -> StorableReportOutput:
+        field_names = table_contents.fields
+        rows_data = table_contents.records
 
         output = io.StringIO()
 
@@ -414,7 +379,7 @@ def get_config_from_env() -> ReportGeneratorConfig:
     )
 
 
-class ReportStorer(ABC):
+class BaseReportStorer(ABC):
     """Abstract interface for an object that can store a report contents as a file somewhere."""
 
     @abstractmethod
@@ -428,7 +393,7 @@ class ReportStorer(ABC):
         pass
 
 
-class GCSReportStorer(ReportStorer):
+class GCSReportStorer(BaseReportStorer):
     """A report storer that writes report files to a GCS bucket."""
 
     def __init__(
@@ -449,7 +414,7 @@ class GCSReportStorer(ReportStorer):
         logger.info(f"Uploaded")
 
 
-class LocalReportStorer(ReportStorer):
+class LocalReportStorer(BaseReportStorer):
     """A report store that writes into the local filesystem."""
 
     def __init__(self, root_path: Path = Path("./report_files/")) -> None:
@@ -465,7 +430,7 @@ class LocalReportStorer(ReportStorer):
         logger.info("File stored")
 
 
-def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
+def get_report_storer(config: ReportGeneratorConfig) -> BaseReportStorer:
     """Infer from the given config what is the right storer to use and set it up.
 
     Args:
@@ -494,17 +459,77 @@ def get_report_storer(config: ReportGeneratorConfig) -> ReportStorer:
     raise ValueError("Inconsistent config, can't figure out where to write reports to.")
 
 
+class BaseTableFetcher(ABC):
+    """
+    An interface to somewhere we can read tabular data from to get records for
+    a report.
+    """
+
+    @abstractmethod
+    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        pass
+
+
+class BigQueryTableFetcher(BaseTableFetcher):
+
+    def __init__(self, keyfile_path: Path, project_id: str, dataset: str):
+
+        self.project_id = project_id
+        self.dataset = dataset
+
+        credentials = service_account.Credentials.from_service_account_file(
+            keyfile_path
+        )
+
+        self._bq_client = bigquery.Client(
+            project=self.project_id, credentials=credentials
+        )
+
+    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        query = f"SELECT * FROM `{self.project_id}.{self.dataset}.{table_name}`;"
+        query_job = self._bq_client.query(query)
+        rows = query_job.result()
+
+        field_names = [field.name for field in rows.schema]
+        records = [{name: row[name] for name in field_names} for row in rows]
+
+        table_contents = TabularReportContents(field_names=field_names, records=records)
+
+        return table_contents
+
+
+class MockTableFetcher(BaseTableFetcher):
+    pass
+
+
+def get_table_fetcher(config: ReportGeneratorConfig) -> BaseTableFetcher:
+
+    table_fetcher = BigQueryTableFetcher(
+        keyfile_path=config.keyfile,
+        project_id=config.project_id,
+        dataset=config.dataset,
+    )
+
+    return table_fetcher
+
+
 def generate_report_batch(
-    report_generator_config, report_storer, report_jobs, get_rows_from_table
+    report_generator_config: ReportGeneratorConfig,
+    report_storer: BaseReportStorer,
+    report_jobs: ReportJobDefinition,
+    table_fetcher: BaseTableFetcher,
 ):
     for report_job in report_jobs:
         logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
         path_without_extension = f"reports/{report_generator_config.run_id}/{report_job.norm}/{report_job.friendly_name}"
+        table_contents = table_fetcher.fetch_table_contents(
+            report_job.source_table_name
+        )
 
         for file_output_config in report_job.file_output_configs:
             logger.info(f"Storing as {file_output_config.file_extension}.")
             storable_report = file_output_config.rows_to_report_output(
-                rows=get_rows_from_table(table_name=report_job.source_table_name)
+                table_contents=table_contents
             )
             full_path = path_without_extension + "." + file_output_config.file_extension
             report_storer.store_report(path=full_path, report=storable_report)
@@ -525,7 +550,9 @@ def main():
         project=report_generator_config.project_id, credentials=credentials
     )
 
-    report_storer: ReportStorer = get_report_storer(config=report_generator_config)
+    table_fetcher: BaseTableFetcher = get_table_fetcher(config=report_generator_config)
+
+    report_storer: BaseReportStorer = get_report_storer(config=report_generator_config)
 
     report_config_yaml_path = Path(__file__).resolve().parent / "reports.yml"
     report_jobs = load_report_jobs_from_yaml(report_config_yaml_path)
@@ -538,7 +565,7 @@ def main():
         return rows
 
     generate_report_batch(
-        report_generator_config, report_storer, report_jobs, get_rows_from_table
+        report_generator_config, report_storer, report_jobs, table_fetcher
     )
 
 
