@@ -127,6 +127,12 @@ where
             )
             .await?;
 
+        custodian_config
+            .clone()
+            .custodian_client(&self.config.custody_providers)?
+            .verify_client()
+            .await?;
+
         #[cfg(feature = "mock-custodian")]
         let custodian_id = if custodian_config == CustodianConfig::Mock {
             CustodianId::mock_custodian_id()
@@ -333,8 +339,7 @@ where
 
         if let Ok(custodian) = custodian
             && let Some(notification) = custodian
-                .custodian_client(self.config.encryption.key, &self.config.custody_providers)
-                .await?
+                .custodian_client(self.config.encryption.key, &self.config.custody_providers)?
                 .process_webhook(&headers, payload)
                 .await?
         {
@@ -407,8 +412,7 @@ where
             .await?;
 
         let client = custodian
-            .custodian_client(self.config.encryption.key, &self.config.custody_providers)
-            .await?;
+            .custodian_client(self.config.encryption.key, &self.config.custody_providers)?;
 
         let external_wallet = client.initialize_wallet(label).await?;
 

@@ -9,8 +9,12 @@ use serde::{Deserialize, Serialize};
 
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
+use tracing::instrument;
 
-use super::error::CustodianError;
+use super::{
+    client::{CustodianClient, error::CustodianClientError},
+    error::CustodianError,
+};
 
 pub type EncryptionKey = chacha20poly1305::Key;
 
@@ -58,6 +62,29 @@ pub enum CustodianConfig {
 }
 
 impl CustodianConfig {
+    #[instrument(name = "custody.custodian_client", skip(self), err)]
+    pub fn custodian_client(
+        self,
+        provider_config: &CustodyProviderConfig,
+    ) -> Result<Box<dyn CustodianClient>, CustodianClientError> {
+        match self {
+            CustodianConfig::Komainu(config) => Ok(Box::new(
+                ::komainu::KomainuClient::try_new(
+                    config.into(),
+                    provider_config.komainu_directory.clone(),
+                )
+                .map_err(CustodianClientError::client)?,
+            )),
+            CustodianConfig::Bitgo(config) => Ok(Box::new(::bitgo::BitgoClient::new(
+                config.into(),
+                provider_config.bitgo_directory.clone(),
+            ))),
+
+            #[cfg(feature = "mock-custodian")]
+            CustodianConfig::Mock => Ok(Box::new(super::client::mock::CustodianMock)),
+        }
+    }
+
     pub(super) fn encrypt(&self, key: &EncryptionKey) -> EncryptedCustodianConfig {
         let cipher = ChaCha20Poly1305::new(key);
         let nonce = ChaCha20Poly1305::generate_nonce(&mut OsRng);

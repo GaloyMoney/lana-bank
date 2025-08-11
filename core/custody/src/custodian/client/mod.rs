@@ -19,8 +19,15 @@ pub struct WalletResponse {
 
 #[async_trait]
 pub trait CustodianClient: Send {
+    /// Performs an authenticated call to the custodian to verify
+    /// correctness of the configuration.
+    async fn verify_client(&self) -> Result<(), CustodianClientError>;
+
+    /// Performs initialization of a wallet on the custodian.
+    /// This call may or may not create new wallet.
     async fn initialize_wallet(&self, label: &str) -> Result<WalletResponse, CustodianClientError>;
 
+    /// Validates and parses webhook.
     async fn process_webhook(
         &self,
         headers: &http::HeaderMap,
@@ -30,6 +37,14 @@ pub trait CustodianClient: Send {
 
 #[async_trait]
 impl CustodianClient for bitgo::BitgoClient {
+    async fn verify_client(&self) -> Result<(), CustodianClientError> {
+        let _ = self
+            .get_wallet_count()
+            .await
+            .map_err(CustodianClientError::client)?;
+        Ok(())
+    }
+
     async fn initialize_wallet(&self, label: &str) -> Result<WalletResponse, CustodianClientError> {
         let (wallet, full_response) = self
             .add_wallet(label)
@@ -87,6 +102,14 @@ impl CustodianClient for bitgo::BitgoClient {
 
 #[async_trait]
 impl CustodianClient for komainu::KomainuClient {
+    async fn verify_client(&self) -> Result<(), CustodianClientError> {
+        let _ = self
+            .list_wallets()
+            .await
+            .map_err(CustodianClientError::client)?;
+        Ok(())
+    }
+
     async fn initialize_wallet(
         &self,
         _label: &str,
@@ -154,6 +177,10 @@ pub mod mock {
 
     #[async_trait]
     impl CustodianClient for CustodianMock {
+        async fn verify_client(&self) -> Result<(), CustodianClientError> {
+            Ok(())
+        }
+
         async fn initialize_wallet(
             &self,
             _label: &str,

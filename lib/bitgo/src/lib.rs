@@ -159,6 +159,19 @@ impl BitgoClient {
         Ok((wallet, response))
     }
 
+    #[tracing::instrument(
+        name = "bitgo.get_wallet_count",
+        skip(self),
+        fields(response, url),
+        err
+    )]
+    pub async fn get_wallet_count(&self) -> Result<u32, BitgoError> {
+        // https://developers.bitgo.com/api/v2.wallet.count
+
+        let response = self.get(self.url("wallets/count")).await?;
+        Ok(serde_json::from_value::<GetWalletCountResponse>(response)?.count)
+    }
+
     #[tracing::instrument(name = "bitgo.get_transfer", skip(self), fields(response, url), err)]
     pub async fn get_transfer(&self, id: &str, wallet_id: &str) -> Result<Transfer, BitgoError> {
         // https://developers.bitgo.com/api/v2.wallet.gettransfer

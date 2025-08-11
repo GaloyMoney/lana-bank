@@ -41,6 +41,12 @@ pub struct Wallet {
 
 #[derive(Clone, Debug, Deserialize)]
 #[serde(rename_all = "camelCase")]
+pub struct GetWalletCountResponse {
+    pub count: u32,
+}
+
+#[derive(Clone, Debug, Deserialize)]
+#[serde(rename_all = "camelCase")]
 pub struct Address {
     pub address: String,
 }
