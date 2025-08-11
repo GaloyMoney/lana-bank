@@ -79,7 +79,8 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
         const priceInfo = await fetchData(cache)
         if (!priceInfo) return null
 
-        const basisAmountInUsd = facility.balance.outstanding.usdBalance / CENTS_PER_USD
+        const bitcoinPrice = priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD
+        const basisAmountInUsd = facility.facilityAmount / CENTS_PER_USD
 
         const initialCvlDecimal =
           facility.creditFacilityTerms.initialCvl.__typename === "FiniteCVLPct"
@@ -87,8 +88,7 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
             : Infinity
 
         const requiredCollateralInSats =
-          (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) /
-          (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
+          (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) / bitcoinPrice
 
         return Math.floor(requiredCollateralInSats)
       },

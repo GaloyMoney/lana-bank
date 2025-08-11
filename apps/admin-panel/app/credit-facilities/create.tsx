@@ -32,7 +32,11 @@ import {
   useTermsTemplatesQuery,
   useCustodiansQuery,
 } from "@/lib/graphql/generated"
-import { currencyConverter, calculateInitialCollateralRequired } from "@/lib/utils"
+import {
+  currencyConverter,
+  calculateInitialCollateralRequired,
+  getCvlValue,
+} from "@/lib/utils"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
@@ -147,9 +151,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues((prevValues) => ({
         ...prevValues,
         annualRate: latestTemplate.values.annualRate.toString(),
-        liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
-        marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
-        initialCvl: latestTemplate.values.initialCvl.toString(),
+        liquidationCvl: getCvlValue(latestTemplate.values.liquidationCvl).toString(),
+        marginCallCvl: getCvlValue(latestTemplate.values.marginCallCvl).toString(),
+        initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate.toString(),
       }))
@@ -175,9 +179,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
       setFormValues((prevValues) => ({
         ...prevValues,
         annualRate: selectedTemplate.values.annualRate.toString(),
-        liquidationCvl: selectedTemplate.values.liquidationCvl.toString(),
-        marginCallCvl: selectedTemplate.values.marginCallCvl.toString(),
-        initialCvl: selectedTemplate.values.initialCvl.toString(),
+        liquidationCvl: getCvlValue(selectedTemplate.values.liquidationCvl).toString(),
+        marginCallCvl: getCvlValue(selectedTemplate.values.marginCallCvl).toString(),
+        initialCvl: getCvlValue(selectedTemplate.values.initialCvl).toString(),
         durationUnits: selectedTemplate.values.duration.units.toString(),
         oneTimeFeeRate: selectedTemplate.values.oneTimeFeeRate.toString(),
       }))
@@ -271,9 +275,9 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
         facility: "0",
         custodianId: DEFAULT_CUSTODIAN,
         annualRate: latestTemplate.values.annualRate.toString(),
-        liquidationCvl: latestTemplate.values.liquidationCvl.toString(),
-        marginCallCvl: latestTemplate.values.marginCallCvl.toString(),
-        initialCvl: latestTemplate.values.initialCvl.toString(),
+        liquidationCvl: getCvlValue(latestTemplate.values.liquidationCvl).toString(),
+        marginCallCvl: getCvlValue(latestTemplate.values.marginCallCvl).toString(),
+        initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate?.toString(),
       })

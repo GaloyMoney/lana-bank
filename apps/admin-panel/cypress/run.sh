@@ -84,7 +84,11 @@ export COOKIES=$(jq -n \
 # This is a workaround to work with cypress and the bundler module resolution
 cp tsconfig.json tsconfig.json.bak
 trap '[ -f tsconfig.json.bak ] && mv tsconfig.json.bak tsconfig.json' EXIT
-sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
+if [[ $(uname) == "Darwin" ]]; then
+  sed -i '' 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
+elif [[ $(uname) == "Linux" ]]; then
+  sed -i 's/"moduleResolution": *"bundler"/"moduleResolution": "node"/' tsconfig.json
+fi
 
 if [[ ${CI:-} == "true" ]]; then
   echo "Installing Cypress binary if missing..."
