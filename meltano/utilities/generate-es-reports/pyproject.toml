@@ -23,4 +23,4 @@ requires = ["poetry-core>=2,<3"]
 build-backend = "poetry.core.masonry.api"
 
 [project.scripts]
-generate-es-reports = 'generate_es_reports:main'
+generate-es-reports = "generate_es_reports.cli:cli"

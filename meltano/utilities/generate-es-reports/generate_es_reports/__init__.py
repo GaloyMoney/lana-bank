@@ -551,7 +551,3 @@ def main():
     report_batch.generate_batch()
 
     logger.info("Finished run.")
-
-
-if __name__ == "__main__":
-    main()
