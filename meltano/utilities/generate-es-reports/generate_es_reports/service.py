@@ -1,3 +1,4 @@
+from __future__ import annotations
 from pathlib import Path
 
 from generate_es_reports.domain.report import ReportGeneratorConfig
@@ -59,10 +60,9 @@ def get_table_fetcher(config: "ReportGeneratorConfig") -> BaseTableFetcher:
 
 class ReportBatch:
 
-    def __init__(self, config: ReportGeneratorConfig):
+    def __init__(self, config: ReportGeneratorConfig, report_jobs: tuple[ReportJobDefinition, ...]):
         self.run_id = config.run_id
-        reports_config_yaml_path = Path(__file__).resolve().parent / "reports.yml"
-        self.report_jobs = load_report_jobs_from_yaml(reports_config_yaml_path)
+        self.report_jobs = report_jobs
         self.table_fetcher = get_table_fetcher(config=config)
         self.report_storer = get_report_storer(config=config)
 
@@ -91,7 +91,12 @@ def run_report_batch():
     logger.info("Starting run.")
 
     report_generator_config = get_config_from_env()
-    report_batch = ReportBatch(config=report_generator_config)
+    reports_config_yaml_path = Path(__file__).resolve().parent / "reports.yml"
+    report_jobs = load_report_jobs_from_yaml(reports_config_yaml_path)
+    report_batch = ReportBatch(
+        config=report_generator_config,
+        report_jobs=report_jobs
+    )
     report_batch.generate_batch()
 
     logger.info("Finished run.")

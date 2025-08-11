@@ -12,6 +12,7 @@ from generate_es_reports.logging import SingletonLogger
 
 logger = SingletonLogger().get_logger()
 
+
 class ReportJobDefinition:
     """
     Defines a report that must be fetched and converted into

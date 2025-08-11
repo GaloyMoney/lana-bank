@@ -10,7 +10,14 @@ from xmlschema import XMLSchema
 
 from generate_es_reports.constants import Constants
 from generate_es_reports.logging import SingletonLogger
-from generate_es_reports.domain.report import CSVFileOutputConfig, ReportJobDefinition, TXTFileOutputConfig, TabularReportContents, ReportGeneratorConfig, XMLFileOutputConfig
+from generate_es_reports.domain.report import (
+    CSVFileOutputConfig,
+    ReportJobDefinition,
+    TXTFileOutputConfig,
+    TabularReportContents,
+    ReportGeneratorConfig,
+    XMLFileOutputConfig,
+)
 
 logger = SingletonLogger().get_logger()
 
@@ -173,7 +180,9 @@ def get_config_from_env() -> ReportGeneratorConfig:
     )
 
 
-def load_report_jobs_from_yaml(yaml_path: Path, xml_schema_repository: XMLSchemaRepository = XMLSchemaRepository() ) -> tuple[ReportJobDefinition, ...]:
+def load_report_jobs_from_yaml(
+    yaml_path: Path, xml_schema_repository: XMLSchemaRepository = XMLSchemaRepository()
+) -> tuple[ReportJobDefinition, ...]:
     """Read report jobs to do from a YAML file.
 
     Args:
