@@ -1,5 +1,6 @@
 from __future__ import annotations
 from abc import ABC, abstractmethod
+from pathlib import Path
 from typing import Any
 from xml.etree import ElementTree
 import io
@@ -199,3 +200,27 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
         return StorableReportOutput(
             report_content=report_content, report_content_type=self.content_type
         )
+
+
+class ReportGeneratorConfig:
+    """
+    The config for one execution of this script.
+    """
+
+    def __init__(
+        self,
+        project_id: str,
+        dataset: str,
+        bucket_name: str,
+        run_id: str,
+        keyfile: Path,
+        use_gcs: bool,
+        use_local_fs: bool,
+    ):
+        self.project_id = project_id
+        self.dataset = dataset
+        self.bucket_name = bucket_name
+        self.run_id = run_id
+        self.keyfile = keyfile
+        self.use_gcs = use_gcs
+        self.use_local_fs = use_local_fs

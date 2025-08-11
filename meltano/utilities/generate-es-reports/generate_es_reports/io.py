@@ -3,14 +3,14 @@ from pathlib import Path
 from abc import ABC, abstractmethod
 import os
 
-
+import yaml
 from google.cloud import bigquery, storage
 from google.oauth2 import service_account
 from xmlschema import XMLSchema
 
 from generate_es_reports.constants import Constants
 from generate_es_reports.logging import SingletonLogger
-from generate_es_reports.domain.report import TabularReportContents
+from generate_es_reports.domain.report import CSVFileOutputConfig, ReportJobDefinition, TXTFileOutputConfig, TabularReportContents, ReportGeneratorConfig, XMLFileOutputConfig
 
 logger = SingletonLogger().get_logger()
 
@@ -122,3 +122,100 @@ class BigQueryTableFetcher(BaseTableFetcher):
 
 class MockTableFetcher(BaseTableFetcher):
     pass
+
+
+def get_config_from_env() -> ReportGeneratorConfig:
+    """Read env vars, check that config is consistent and return it.
+
+    Raises:
+        RuntimeError: If a required env var is missing.
+        FileNotFoundError: If the GCP credentials file can't be found.
+
+    Returns:
+        ReportGeneratorConfig: a specific config instance for this run.
+    """
+    required_envs = [
+        Constants.DBT_BIGQUERY_PROJECT_ENVVAR_KEY,
+        Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY,
+        Constants.DOCS_BUCKET_NAME_ENVVAR_KEY,
+        Constants.GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY,
+    ]
+    missing = [var for var in required_envs if not os.getenv(var)]
+    if missing:
+        raise RuntimeError(
+            f"Missing required environment variables: {', '.join(missing)}"
+        )
+
+    run_id = os.getenv(
+        Constants.AIRFLOW_CTX_DAG_RUN_ID_ENVVAR_KEY, "dev"
+    )  # If no AIRFLOW, we assume dev env
+
+    keyfile = Path(os.getenv(Constants.GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY))
+    if not keyfile.is_file():
+        raise FileNotFoundError(
+            f"Can't read GCP credentials at: {str(keyfile.absolute())}"
+        )
+
+    use_local_fs = bool(os.getenv(Constants.USE_LOCAL_FS_ENVVAR_KEY))
+
+    use_gcs = True
+    if use_local_fs:
+        use_gcs = False
+
+    return ReportGeneratorConfig(
+        project_id=os.getenv(Constants.DBT_BIGQUERY_PROJECT_ENVVAR_KEY),
+        dataset=os.getenv(Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY),
+        bucket_name=os.getenv(Constants.DOCS_BUCKET_NAME_ENVVAR_KEY),
+        run_id=run_id,
+        keyfile=keyfile,
+        use_gcs=use_gcs,
+        use_local_fs=use_local_fs,
+    )
+
+
+def load_report_jobs_from_yaml(yaml_path: Path, xml_schema_repository: XMLSchemaRepository = XMLSchemaRepository() ) -> tuple[ReportJobDefinition, ...]:
+    """Read report jobs to do from a YAML file.
+
+    Args:
+        yaml_path (Path): path to the YAML that holds the config.
+
+    Returns:
+        tuple[ReportJobDefinition, ...]: All the report jobs that must be run.
+    """
+    with open(yaml_path, "r", encoding="utf-8") as file:
+        data = yaml.safe_load(file)
+
+    str_to_type_mapping = {
+        "xml": XMLFileOutputConfig,
+        "csv": CSVFileOutputConfig,
+        "txt": TXTFileOutputConfig,
+    }
+
+    report_jobs = []
+    for report_job in data["report_jobs"]:
+        output_configs = []
+        for output in report_job["outputs"]:
+            if output["type"] == "xml":
+                output_config = XMLFileOutputConfig(
+                    xml_schema=xml_schema_repository.get_schema(
+                        schema_id=output["validation_schema_id"]
+                    )
+                )
+                output_configs.append(output_config)
+                continue
+
+            output_config = str_to_type_mapping[output["type"].lower()]()
+            output_configs.append(output_config)
+
+        output_configs = tuple(output_configs)
+
+        report_jobs.append(
+            ReportJobDefinition(
+                norm=report_job["norm"],
+                id=report_job["id"],
+                friendly_name=report_job["friendly_name"],
+                file_output_configs=output_configs,
+            )
+        )
+
+    return tuple(report_jobs)
