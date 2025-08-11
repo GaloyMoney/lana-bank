@@ -10,10 +10,6 @@
   authorizer:
     handler: allow
   mutators:
-    - handler: hydrator
-      config:
-        api:
-          url: http://host.containers.internal:5253/user/user-id-from-authentication-id
     - handler: id_token
       config:
         claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
@@ -57,10 +53,6 @@
   authorizer:
     handler: allow
   mutators:
-    - handler: hydrator
-      config:
-        api:
-          url: http://host.containers.internal:5254/customer/customer-id-from-authentication-id
     - handler: id_token
       config:
         claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'

@@ -42,7 +42,6 @@ pub async fn run(config: AdminServerConfig, app: LanaApp) -> anyhow::Result<()> 
             "/graphql",
             get(playground).post(axum::routing::post(graphql_handler)),
         )
-        .merge(webhooks::auth::routes())
         .merge(webhooks::custodians::routes())
         .merge(webhooks::sumsub::routes())
         .with_state(JwtDecoderState {
