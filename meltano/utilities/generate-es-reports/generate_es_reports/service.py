@@ -5,22 +5,23 @@ import yaml
 
 from generate_es_reports.logging import SingletonLogger
 from generate_es_reports.constants import Constants
-from generate_es_reports.domain.report import ReportJobDefinition
+from generate_es_reports.domain.report import (
+    CSVFileOutputConfig,
+    ReportJobDefinition,
+    TXTFileOutputConfig,
+    XMLFileOutputConfig,
+)
 from generate_es_reports.io import (
     BaseReportStorer,
     BaseTableFetcher,
     BigQueryTableFetcher,
-    CSVFileOutputConfig,
     GCSReportStorer,
     LocalReportStorer,
-    TXTFileOutputConfig,
-    XMLFileOutputConfig,
     XMLSchemaRepository,
 )
 from google.oauth2 import service_account
 
 logger = SingletonLogger().get_logger()
-logger.info("This is a singleton logger")
 
 
 class ReportGeneratorConfig:
