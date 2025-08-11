@@ -45,8 +45,8 @@ pub struct EnvSecrets {
     pub smtp_username: String,
     pub smtp_password: String,
     pub encryption_key: String,
-    pub keycloak_admin_username: String,
-    pub keycloak_admin_password: String,
+    pub keycloak_internal_client_secret: String,
+    pub keycloak_customer_client_secret: String,
 }
 
 impl Config {
@@ -59,8 +59,8 @@ impl Config {
             smtp_username,
             smtp_password,
             encryption_key,
-            keycloak_admin_username,
-            keycloak_admin_password,
+            keycloak_internal_client_secret,
+            keycloak_customer_client_secret,
         }: EnvSecrets,
         dev_env_name_prefix: Option<String>,
     ) -> anyhow::Result<Self> {
@@ -75,8 +75,8 @@ impl Config {
         config.app.sumsub.sumsub_secret = sumsub_secret;
         config.app.notification.email.username = smtp_username;
         config.app.notification.email.password = smtp_password;
-        config.app.keycloak.admin_username = keycloak_admin_username;
-        config.app.keycloak.admin_password = keycloak_admin_password;
+        config.app.user_onboarding.keycloak.client_secret = keycloak_internal_client_secret;
+        config.app.customer_sync.keycloak.client_secret = keycloak_customer_client_secret;
         if let Some(dev_env_name_prefix) = dev_env_name_prefix {
             eprintln!(
                 "WARNING - overriding GCP-related config from DEV_ENV_NAME_PREFIX={dev_env_name_prefix}"
