@@ -57,7 +57,11 @@ def get_table_fetcher(config: "ReportGeneratorConfig") -> BaseTableFetcher:
     return table_fetcher
 
 
-def run_report_batch():
+def run_report_batch() -> None:
+    """
+    e2e tool exeuction. Get all config from env and files, execute the report
+    batch.
+    """
     logger.info("Starting run.")
 
     report_generator_config = get_config_from_env()

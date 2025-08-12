@@ -26,6 +26,10 @@ class StorableReportOutput:
 
 
 class TabularReportContents:
+    """
+    The data that comes from a table and will be formatted as different file
+    formats.
+    """
 
     def __init__(self, field_names: tuple[str, ...], records: dict[str, Any]):
         self.fields = field_names
@@ -209,7 +213,7 @@ class ReportJobDefinition:
 
 class ReportGeneratorConfig:
     """
-    The config for one execution of this script.
+    The config for one execution of this CLI.
     """
 
     def __init__(
@@ -232,6 +236,10 @@ class ReportGeneratorConfig:
 
 
 class ReportBatch:
+    """
+    A bunch of report job definitions, named with an ID and set with specific
+    fetcher and storer so we have somewhere to read from and somewhere to write to.
+    """
 
     def __init__(
         self,
@@ -246,6 +254,9 @@ class ReportBatch:
         self.report_storer = report_storer
 
     def generate_batch(self):
+        """
+        Execute the specified jobs, reading and writing from the given locations.
+        """
         for report_job in self.report_jobs:
             logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
             table_contents = self.table_fetcher.fetch_table_contents(

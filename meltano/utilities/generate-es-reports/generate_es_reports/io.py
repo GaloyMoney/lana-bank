@@ -96,10 +96,20 @@ class BaseTableFetcher(ABC):
 
     @abstractmethod
     def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        """Get the table contents somehow and return them in a stable object."
+
+        Returns:
+            TabularReportContents: the table contents and the fields listed.
+        """
         pass
 
 
 class BigQueryTableFetcher(BaseTableFetcher):
+    """
+    Fetches records from a specified Biquery project. It naively gets all the
+    contents of the specified tables: all fields, all records. Will definitely
+    not be adequate for large tables.
+    """
 
     def __init__(self, keyfile_path: Path, project_id: str, dataset: str):
 
@@ -135,6 +145,11 @@ class MockTable:
 
 
 class MockTableFetcher(BaseTableFetcher):
+    """
+    Mock implementation for testing purposes. Make an instance, then pass
+    mock tables so you can fetch them later by name.
+    """
+
     def __init__(self):
         self.mock_tables = {}
 
@@ -144,7 +159,8 @@ class MockTableFetcher(BaseTableFetcher):
     def fetch_table_contents(self, table_name: str) -> TabularReportContents:
         mock_table = self.mock_tables[table_name]
 
-        # We use the keys of the first record, assuming all records share the same keys
+        # We use the keys of the first record, assuming all records share the
+        # same keys.
         field_names = mock_table.records[0].keys()
         records = mock_table.records
 

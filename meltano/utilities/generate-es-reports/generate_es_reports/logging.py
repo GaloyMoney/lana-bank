@@ -2,6 +2,11 @@ import logging
 
 
 class SingletonLogger:
+    """
+    Custom project singleton logger to centralize config and avoid
+    chicken-and-egg import issues.
+    """
+
     _instance = None
 
     def __new__(cls, name="generate-es-reports"):
