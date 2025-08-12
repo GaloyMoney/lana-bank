@@ -393,35 +393,6 @@ jobs:
             params:
               image: meltano-edge-image/image.tar
               additional_tags: version/version
-
-  #! - name: set-dev-version
-  #!   plan:
-  #!     - in_parallel:
-  #!         - { get: repo, passed: [release] }
-  #!         - { get: pipeline-tasks }
-  #!         - get: version
-  #!           trigger: true
-  #!           params: { bump: patch }
-  #!           passed: [release, release-docker]
-  #!     - task: set-dev-version
-  #!       config:
-  #!         image_resource: #@ rust_task_image_config()
-  #!         platform: linux
-  #!         inputs:
-  #!           - name: version
-  #!           - name: repo
-  #!           - name: pipeline-tasks
-  #!         outputs:
-  #!           - name: repo
-  #!         run:
-  #!           path: pipeline-tasks/ci/tasks/set-dev-version.sh
-  #!         params:
-  #!           BRANCH: #@ data.values.git_branch
-  #!     - put: repo-dev-out
-  #!       params:
-  #!         repository: repo
-  #!         rebase: true
-
   - name: bump-image-in-chart
     plan:
       - in_parallel:
@@ -531,15 +502,6 @@ resources:
       branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
-  #! - name: repo-dev-out
-  #!   type: git
-  #!   source:
-  #!     fetch_tags: true
-  #!     uri: #@ data.values.git_uri
-  #!     branch: #@ data.values.git_branch
-  #!     private_key: #@ data.values.github_private_key
-  #!   webhook_token: ((webhook.secret))
-
   - name: latest-image
     type: registry-image
     source:
