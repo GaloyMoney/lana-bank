@@ -183,6 +183,15 @@ impl InterestAccrualCycle {
         .truncate(self.accrual_cycle_ends_at())
     }
 
+    pub(crate) fn is_completed(&self) -> bool {
+        self.events.iter_all().rev().any(|event| {
+            matches!(
+                event,
+                InterestAccrualCycleEvent::InterestAccrualsPosted { .. }
+            )
+        })
+    }
+
     pub fn count_accrued(&self) -> usize {
         self.events
             .iter_all()
