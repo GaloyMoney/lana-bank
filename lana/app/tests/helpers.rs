@@ -1,7 +1,5 @@
 #![allow(dead_code)]
 
-use rand::Rng;
-
 use lana_app::{
     access::{Access, config::AccessConfig},
     authorization::{Authorization, seed},
