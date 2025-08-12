@@ -41,16 +41,12 @@ impl CVLPct {
         collateral_value: UsdCents,
         total_outstanding_amount: UsdCents,
     ) -> Self {
-        if total_outstanding_amount == UsdCents::ZERO {
-            if collateral_value == UsdCents::ZERO {
-                return CVLPct::ZERO;
-            } else {
-                return CVLPct::Infinite;
-            }
+        if collateral_value.is_zero() {
+            return Self::ZERO;
         }
 
-        if collateral_value == UsdCents::ZERO {
-            return CVLPct::ZERO;
+        if total_outstanding_amount.is_zero() {
+            return Self::Infinite;
         }
 
         let ratio = (collateral_value.to_usd() / total_outstanding_amount.to_usd())
@@ -75,7 +71,7 @@ impl CVLPct {
                         .expect("should return a valid integer"),
                 )
             }
-            Self::Infinite => panic!("Cannot scale with infinite CVL percentage"),
+            Self::Infinite => unreachable!("Cannot scale with infinite CVL percentage"),
         }
     }
 
@@ -95,7 +91,9 @@ impl CVLPct {
                         .expect("should return a valid integer"),
                 )
             }
-            Self::Infinite => panic!("Cannot calculate target value for infinite CVL percentage"),
+            Self::Infinite => {
+                unreachable!("Cannot calculate target value for infinite CVL percentage")
+            }
         }
     }
 }
@@ -120,6 +118,7 @@ impl std::ops::Add for CVLPct {
     }
 }
 
+#[cfg(test)]
 impl std::ops::Sub for CVLPct {
     type Output = Self;
 
