@@ -166,7 +166,10 @@ where
         if let Some(CoreCustomerEvent::CustomerCreated { id, email, .. }) = message.as_event() {
             message.inject_trace_parent();
 
-            let uuid = self.keycloak_client.create_user(email.clone()).await?;
+            let uuid = self
+                .keycloak_client
+                .create_user(email.clone(), (*id).into())
+                .await?;
             let authentication_id = AuthenticationId::from(uuid);
             self.customers
                 .update_authentication_id_for_customer(*id, authentication_id)

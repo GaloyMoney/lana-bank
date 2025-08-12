@@ -12,7 +12,7 @@ es_entity::entity_id! {
 #[cfg(not(feature = "governance"))]
 es_entity::entity_id! { UserId }
 
-es_entity::entity_id! { PermissionSetId, RoleId }
+es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
 
 pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 

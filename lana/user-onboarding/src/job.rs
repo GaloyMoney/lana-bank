@@ -130,7 +130,10 @@ where
             if let Some(CoreAccessEvent::UserCreated { id, email, .. }) =
                 &message.as_ref().as_event()
             {
-                let uuid = self.keycloak_client.create_user(email.clone()).await?;
+                let uuid = self
+                    .keycloak_client
+                    .create_user(email.clone(), id.into())
+                    .await?;
                 let authentication_id = AuthenticationId::from(uuid);
                 self.users
                     .update_authentication_id_for_user(*id, authentication_id)

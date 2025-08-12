@@ -12,7 +12,7 @@
   mutators:
     - handler: id_token
       config:
-        claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
+        claims: '{"aud": ["https://admin-api/graphql"], "subject": {{ print .Extra.lanaId | toJson }} }'
 
 - id: admin-panel-ui # apps/admin-panel
   upstream:

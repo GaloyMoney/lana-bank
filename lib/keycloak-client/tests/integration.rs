@@ -7,7 +7,7 @@ async fn test_create_user() {
     let admin = KeycloakClient::new(config);
     let test_email = format!("test-user-{}@example.com", Uuid::new_v4());
     let user_id = admin
-        .create_user(test_email.clone())
+        .create_user(test_email.clone(), Uuid::new_v4())
         .await
         .expect("Failed to create user");
 
@@ -21,7 +21,7 @@ async fn test_update_user_email() {
     let initial_email = format!("test-user-initial-{}@example.com", Uuid::new_v4());
     let updated_email = format!("test-user-updated-{}@example.com", Uuid::new_v4());
     let user_id = admin
-        .create_user(initial_email)
+        .create_user(initial_email, Uuid::new_v4())
         .await
         .expect("Failed to create user");
     admin
@@ -36,7 +36,7 @@ async fn test_get_user() {
     let admin = KeycloakClient::new(config);
     let test_email = format!("test-get-user-{}@example.com", Uuid::new_v4());
     let user_id = admin
-        .create_user(test_email.clone())
+        .create_user(test_email.clone(), Uuid::new_v4())
         .await
         .expect("Failed to create user");
     let user = admin.get_user(user_id).await.expect("Failed to get user");

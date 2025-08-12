@@ -44,11 +44,21 @@ impl KeycloakClient {
         ))
     }
 
-    pub async fn create_user(&self, email: String) -> Result<Uuid, KeycloakClientError> {
+    pub async fn create_user(
+        &self,
+        email: String,
+        lana_id: Uuid,
+    ) -> Result<Uuid, KeycloakClientError> {
+        use std::collections::HashMap;
+
+        let mut attributes: HashMap<String, Vec<String>> = HashMap::new();
+        attributes.insert("lanaId".to_string(), vec![lana_id.to_string()]);
+
         let user = UserRepresentation {
             email: Some(email),
             enabled: Some(true),
             email_verified: Some(true),
+            attributes: Some(attributes),
             ..Default::default()
         };
         let client = self.get_client().await?;
