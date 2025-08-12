@@ -168,7 +168,7 @@ where
 
             let uuid = self
                 .keycloak_client
-                .create_user(email.clone(), (*id).into())
+                .create_user(email.clone(), id.into())
                 .await?;
             let authentication_id = AuthenticationId::from(uuid);
             self.customers

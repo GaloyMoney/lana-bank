@@ -55,4 +55,4 @@
   mutators:
     - handler: id_token
       config:
-        claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.subject | toJson }} }'
+        claims: '{"aud": ["https://customer-api/graphql"], "subject": {{ print .Extra.lanaId | toJson }} }'
