@@ -127,8 +127,30 @@ class BigQueryTableFetcher(BaseTableFetcher):
         return table_contents
 
 
+class MockTable:
+
+    def __init__(self, name: str, records: tuple[dict]):
+        self.name = name
+        self.records = records
+
+
 class MockTableFetcher(BaseTableFetcher):
-    pass
+    def __init__(self):
+        self.mock_tables = {}
+
+    def add_mock_table(self, mock_table: MockTable):
+        self.mock_tables[mock_table.name] = mock_table
+
+    def fetch_table_contents(self, table_name: str) -> TabularReportContents:
+        mock_table = self.mock_tables[table_name]
+
+        # We use the keys of the first record, assuming all records share the same keys
+        field_names = mock_table.records[0].keys()
+        records = mock_table.records
+
+        table_contents = TabularReportContents(field_names=field_names, records=records)
+
+        return table_contents
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
