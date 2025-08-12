@@ -180,17 +180,12 @@ impl BitgoClient {
         Ok(serde_json::from_value::<GetWalletCountResponse>(response)?.count)
     }
 
-    #[tracing::instrument(
-        name = "bitgo.get_wallet_count",
-        skip(self),
-        fields(response, url),
-        err
-    )]
-    pub async fn get_enterprise(&self, id: &str) -> Result<u32, BitgoError> {
+    #[tracing::instrument(name = "bitgo.get_enterprise", skip(self), fields(response, url), err)]
+    pub async fn get_enterprise(&self, id: &str) -> Result<Enterprise, BitgoError> {
         // https://developers.bitgo.com/api/enterprise.getById
 
         let response = self.get(self.url(&format!("enterprise/{id}"))).await?;
-        Ok(serde_json::from_value::<GetWalletCountResponse>(response)?.count)
+        Ok(serde_json::from_value(response)?)
     }
 
     #[tracing::instrument(name = "bitgo.get_transfer", skip(self), fields(response, url), err)]

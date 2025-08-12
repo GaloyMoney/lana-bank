@@ -6,10 +6,10 @@ use chacha20poly1305::{
     aead::{Aead, AeadCore, KeyInit, OsRng},
 };
 use serde::{Deserialize, Serialize};
+use tracing::instrument;
 
 pub use bitgo::{BitgoConfig, BitgoDirectoryConfig};
 pub use komainu::{KomainuConfig, KomainuDirectoryConfig};
-use tracing::instrument;
 
 use super::{
     client::{CustodianClient, error::CustodianClientError},
