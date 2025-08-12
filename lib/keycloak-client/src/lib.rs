@@ -148,12 +148,4 @@ impl KeycloakClient {
             ))),
         }
     }
-
-    pub async fn get_user(&self, user_id: Uuid) -> Result<UserRepresentation, KeycloakClientError> {
-        let client = self.get_client().await?;
-        let user = client
-            .realm_users_with_user_id_get(&self.connection.realm, &user_id.to_string(), None)
-            .await?;
-        Ok(user)
-    }
 }
