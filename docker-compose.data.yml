@@ -28,6 +28,7 @@ services:
       DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
       SUMSUB_KEY: ${SUMSUB_KEY}
       SUMSUB_SECRET: ${SUMSUB_SECRET}
+      NAME_PREFIX: ${DEV_ENV_NAME_PREFIX}
 
   airflow-webserver:
     image: us.gcr.io/galoyorg/meltano@sha256:5225338eee4c283c917cb64b892baa457fd1dcfa9e929cb10b071bd823730c83
@@ -46,6 +47,7 @@ services:
       AIRFLOW__CORE__DEFAULT_TASK_RETRY_DELAY: 0
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
+      NAME_PREFIX: ${DEV_ENV_NAME_PREFIX}
 
   airflow-pg:
     image: postgres:17.5

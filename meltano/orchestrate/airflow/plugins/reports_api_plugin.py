@@ -167,14 +167,16 @@ class AirflowAdapter(AirflowPort):
 
 
 class GCSAdapter(StoragePort):
-    # reports/{run_id}/{norm_name}/{report_name}.{extension}
-    REPORT_RE = re.compile(
-        rf"^{re.escape(REPORT_PREFIX)}"
-        r"(?P<run_id>[^/]+)/"                    # run-id
-        r"(?P<norm>[0-9a-z_]+)/"                 # norm
-        r"(?P<name>[0-9a-z_]+)\.(?P<ext>[a-z]+)$",
-        re.IGNORECASE,
-    )
+    # {name_prefix}/reports/{run_id}/{norm_name}/{report_name}.{extension}
+    def _build_report_regex(self) -> re.Pattern:
+        return re.compile(
+            rf"^{re.escape(self.name_prefix)}/"      # name_prefix
+            rf"{re.escape(REPORT_PREFIX)}"           # reports/
+            r"(?P<run_id>[^/]+)/"                    # run-id
+            r"(?P<norm>[0-9a-z_]+)/"                 # norm
+            r"(?P<name>[0-9a-z_]+)\.(?P<ext>[a-z]+)$",
+            re.IGNORECASE,
+        )
 
     def __init__(self) -> None:
         creds = service_account.Credentials.from_service_account_file(
@@ -184,6 +186,8 @@ class GCSAdapter(StoragePort):
             project=os.getenv("DBT_BIGQUERY_PROJECT"), credentials=creds
         )
         self.bucket = self.client.bucket(os.environ["DOCS_BUCKET_NAME"])
+        self.name_prefix = os.environ["NAME_PREFIX"]
+        self.report_re = self._build_report_regex()
 
     def healthy(self) -> bool:
         try:
@@ -192,11 +196,11 @@ class GCSAdapter(StoragePort):
             return False
 
     def list_reports_for_run(self, run_id: str) -> Sequence[Report]:
-        blobs = self.bucket.list_blobs(prefix=f"{REPORT_PREFIX}{run_id}/")
+        blobs = self.bucket.list_blobs(prefix=f"{self.name_prefix}/{REPORT_PREFIX}{run_id}/")
 
         grouped: dict[tuple[str, str], list[File]] = {}
         for blob in blobs:
-            m = self.REPORT_RE.match(blob.name)
+            m = self.report_re.match(blob.name)
             if not m:
                 continue
             if m.group("run_id") != run_id:

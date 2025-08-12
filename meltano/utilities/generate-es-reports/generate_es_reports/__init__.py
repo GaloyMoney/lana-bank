@@ -39,6 +39,7 @@ class Constants:
     GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY = "GOOGLE_APPLICATION_CREDENTIALS"
     AIRFLOW_CTX_DAG_RUN_ID_ENVVAR_KEY = "AIRFLOW_CTX_DAG_RUN_ID"
     USE_LOCAL_FS_ENVVAR_KEY = "USE_LOCAL_FS"
+    NAME_PREFIX_ENVVAR_KEY = "NAME_PREFIX"
 
     DEFAULT_XML_SCHEMAS_PATH = Path(__file__).resolve().parent / "schemas"
 
@@ -305,6 +306,7 @@ class ReportGeneratorConfig:
         keyfile: Path,
         use_gcs: bool,
         use_local_fs: bool,
+        name_prefix: str,
     ):
         self.project_id = project_id
         self.dataset = dataset
@@ -313,6 +315,7 @@ class ReportGeneratorConfig:
         self.keyfile = keyfile
         self.use_gcs = use_gcs
         self.use_local_fs = use_local_fs
+        self.name_prefix = name_prefix
 
 
 def get_config_from_env() -> ReportGeneratorConfig:
@@ -330,6 +333,7 @@ def get_config_from_env() -> ReportGeneratorConfig:
         Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY,
         Constants.DOCS_BUCKET_NAME_ENVVAR_KEY,
         Constants.GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY,
+        Constants.NAME_PREFIX_ENVVAR_KEY,
     ]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
@@ -361,6 +365,7 @@ def get_config_from_env() -> ReportGeneratorConfig:
         keyfile=keyfile,
         use_gcs=use_gcs,
         use_local_fs=use_local_fs,
+        name_prefix=os.getenv(Constants.NAME_PREFIX_ENVVAR_KEY),
     )
 
 
@@ -469,7 +474,7 @@ def main():
 
     for report_job in report_jobs:
         logger.info(f"Working on report: {report_job.norm}-{report_job.id}")
-        path_without_extension = f"reports/{report_generator_config.run_id}/{report_job.norm}/{report_job.friendly_name}"
+        path_without_extension = f"{report_generator_config.name_prefix}/reports/{report_generator_config.run_id}/{report_job.norm}/{report_job.friendly_name}"
 
         for file_output_config in report_job.file_output_configs:
             logger.info(f"Storing as {file_output_config.file_extension}.")
