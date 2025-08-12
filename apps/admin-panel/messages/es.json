@@ -530,9 +530,9 @@
           "collateralBalance": "Saldo de garantía (BTC)",
           "currentPrice": "Precio actual BTC/USD",
           "collateralValue": "Valor de garantía (USD)",
-          "marginCallPrice": "Precio de Llamada de Margen ({percentage}%)",
-          "liquidationPrice": "Precio de Liquidación BTC/USD ({percentage}%)",
-          "collateralToReachTarget": "Garantía para alcanzar objetivo ({percentage}%)",
+          "marginCallPrice": "Precio de llamada de margen BTC/USD ({percentage})",
+          "liquidationPrice": "Precio de liquidación BTC/USD ({percentage})",
+          "collateralToReachTarget": "Garantía para alcanzar el objetivo ({percentage})",
           "currentCvl": "CVL Actual"
         },
         "status": {

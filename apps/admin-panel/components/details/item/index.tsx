@@ -18,6 +18,7 @@ export type DetailItemProps = {
   valueTestId?: string
   keyClassName?: string
   href?: string
+  displayCondition?: boolean
 }
 
 export const DetailItem: React.FC<DetailItemProps> = ({
@@ -29,6 +30,7 @@ export const DetailItem: React.FC<DetailItemProps> = ({
   labelTestId,
   valueTestId,
   href,
+  displayCondition = true,
 }) => {
   const layout = React.useContext(DetailsGroupContext)
 
@@ -57,6 +59,8 @@ export const DetailItem: React.FC<DetailItemProps> = ({
       </div>
     </div>
   )
+
+  if (!displayCondition) return null
 
   if (href) {
     return (

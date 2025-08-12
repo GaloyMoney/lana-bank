@@ -95,6 +95,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     {
       label: t("details.maturityDate"),
       value: formatDate(creditFacilityDetails.maturesAt),
+      displayCondition: creditFacilityDetails.maturesAt !== null,
     },
   ]
 

@@ -106,12 +106,14 @@ export const CreditFacilityCollateral: React.FC<CreditFacilityOverviewProps> = (
         percentage: formatCvl(creditFacility.creditFacilityTerms.marginCallCvl),
       }),
       value: <Balance amount={MarginCallPrice as UsdCents} currency="usd" />,
+      displayCondition: getCvlValue(creditFacility.currentCvl) != Infinity,
     },
     {
       label: t("details.liquidationPrice", {
         percentage: formatCvl(creditFacility.creditFacilityTerms.liquidationCvl),
       }),
       value: <Balance amount={LiquidationCallPrice as UsdCents} currency="usd" />,
+      displayCondition: getCvlValue(creditFacility.currentCvl) != Infinity,
     },
     {
       label: t("details.collateralToReachTarget", {
