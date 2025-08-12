@@ -6,7 +6,6 @@ CREATE TABLE core_customer_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   applicant_id VARCHAR,
-  authentication_id UUID,
   customer_type VARCHAR,
   email VARCHAR,
   level VARCHAR,
@@ -41,7 +40,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'authentication_id_updated', 'kyc_started', 'kyc_approved', 'kyc_declined', 'account_status_updated', 'telegram_id_updated', 'email_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'account_status_updated', 'telegram_id_updated', 'email_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -60,7 +59,6 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
-    new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
@@ -72,7 +70,6 @@ BEGIN
     -- Default all fields to current values
     new_row.applicant_id := current_row.applicant_id;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.authentication_id := current_row.authentication_id;
     new_row.customer_type := current_row.customer_type;
     new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
@@ -90,8 +87,6 @@ BEGIN
       new_row.email := (NEW.event ->> 'email');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
-    WHEN 'authentication_id_updated' THEN
-      new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
     WHEN 'kyc_started' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -121,7 +116,6 @@ BEGIN
     modified_at,
     applicant_id,
     audit_entry_ids,
-    authentication_id,
     customer_type,
     email,
     is_kyc_approved,
@@ -137,7 +131,6 @@ BEGIN
     new_row.modified_at,
     new_row.applicant_id,
     new_row.audit_entry_ids,
-    new_row.authentication_id,
     new_row.customer_type,
     new_row.email,
     new_row.is_kyc_approved,

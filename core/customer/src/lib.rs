@@ -249,46 +249,6 @@ where
         self.repo.list_for_filter(filter, sort.into(), query).await
     }
 
-    #[instrument(
-        name = "customer.update_authentication_id_for_customer",
-        skip(self, authentication_id)
-    )]
-    pub async fn update_authentication_id_for_customer(
-        &self,
-        customer_id: CustomerId,
-        authentication_id: AuthenticationId,
-    ) -> Result<Customer, CustomerError> {
-        self.authz
-            .audit()
-            .record_system_entry(
-                CustomerObject::customer(customer_id),
-                CoreCustomerAction::CUSTOMER_UPDATE_AUTHENTICATION_ID,
-            )
-            .await?;
-
-        let mut customer = self.repo.find_by_id(customer_id).await?;
-        if customer
-            .update_authentication_id(authentication_id)
-            .did_execute()
-        {
-            self.repo.update(&mut customer).await?;
-        }
-        Ok(customer)
-    }
-
-    #[instrument(
-        name = "customer.find_by_authentication_id",
-        skip(self, authentication_id)
-    )]
-    pub async fn find_by_authentication_id(
-        &self,
-        authentication_id: AuthenticationId,
-    ) -> Result<Customer, CustomerError> {
-        self.repo
-            .find_by_authentication_id(Some(authentication_id))
-            .await
-    }
-
     #[instrument(name = "customer.start_kyc", skip(self, db), err)]
     pub async fn start_kyc(
         &self,

@@ -1,11 +1,11 @@
 use async_trait::async_trait;
-use core_access::{AuthenticationId, CoreAccessEvent};
+use core_access::CoreAccessEvent;
 use futures::StreamExt;
 
 use job::*;
 
 use audit::AuditSvc;
-use core_access::{CoreAccessAction, CoreAccessObject, UserId, user::Users};
+use core_access::{CoreAccessAction, CoreAccessObject, UserId};
 use outbox::{Outbox, OutboxEventMarker};
 
 use keycloak_client::KeycloakClient;
@@ -39,7 +39,7 @@ where
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
-    users: Users<Audit, E>,
+    _phantom: std::marker::PhantomData<Audit>,
 }
 
 impl<Audit, E> UserOnboardingInit<Audit, E>
@@ -50,15 +50,11 @@ where
     <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        users: &Users<Audit, E>,
-        keycloak_client: KeycloakClient,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
-            users: users.clone(),
             keycloak_client,
+            _phantom: std::marker::PhantomData,
         }
     }
 }
@@ -80,10 +76,10 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UserOnboardingJobRunner {
+        Ok(Box::new(UserOnboardingJobRunner::<Audit, E> {
             outbox: self.outbox.clone(),
-            users: self.users.clone(),
             keycloak_client: self.keycloak_client.clone(),
+            _phantom: std::marker::PhantomData,
         }))
     }
 
@@ -106,8 +102,8 @@ where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     outbox: Outbox<E>,
-    users: Users<Audit, E>,
     keycloak_client: KeycloakClient,
+    _phantom: std::marker::PhantomData<Audit>,
 }
 #[async_trait]
 impl<Audit, E> JobRunner for UserOnboardingJobRunner<Audit, E>
@@ -130,13 +126,8 @@ where
             if let Some(CoreAccessEvent::UserCreated { id, email, .. }) =
                 &message.as_ref().as_event()
             {
-                let uuid = self
-                    .keycloak_client
+                self.keycloak_client
                     .create_user(email.clone(), id.into())
-                    .await?;
-                let authentication_id = AuthenticationId::from(uuid);
-                self.users
-                    .update_authentication_id_for_user(*id, authentication_id)
                     .await?;
             }
 

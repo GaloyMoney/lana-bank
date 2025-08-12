@@ -80,7 +80,6 @@ CREATE SEQUENCE core_public_id_counter;
 
 CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
-  authentication_id UUID UNIQUE DEFAULT NULL,
   email VARCHAR NOT NULL UNIQUE,
   telegram_id VARCHAR NOT NULL UNIQUE,
   status VARCHAR NOT NULL,
@@ -195,7 +194,6 @@ CREATE TABLE core_role_events (
 CREATE TABLE core_users (
   id UUID PRIMARY KEY,
   email VARCHAR NOT NULL UNIQUE,
-  authentication_id UUID UNIQUE DEFAULT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

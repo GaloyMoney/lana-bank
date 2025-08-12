@@ -18,9 +18,6 @@ pub enum UserEvent {
         role_id: RoleId,
         audit_info: AuditInfo,
     },
-    AuthenticationIdUpdated {
-        authentication_id: AuthenticationId,
-    },
     RoleUpdated {
         role_id: RoleId,
         audit_info: AuditInfo,
@@ -32,8 +29,6 @@ pub enum UserEvent {
 pub struct User {
     pub id: UserId,
     pub email: String,
-    #[builder(setter(strip_option), default)]
-    pub authentication_id: Option<AuthenticationId>,
     events: EntityEvents<UserEvent>,
 }
 
@@ -65,26 +60,12 @@ impl User {
         self.events
             .iter_all()
             .rev()
-            .find_map(|event| match event {
-                UserEvent::RoleUpdated { role_id, .. } => Some(*role_id),
-                UserEvent::Initialized { role_id, .. } => Some(*role_id),
-                _ => None,
+            .map(|event| match event {
+                UserEvent::RoleUpdated { role_id, .. } => *role_id,
+                UserEvent::Initialized { role_id, .. } => *role_id,
             })
+            .next()
             .expect("User must have a role assigned")
-    }
-
-    pub fn update_authentication_id(
-        &mut self,
-        authentication_id: AuthenticationId,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            UserEvent::AuthenticationIdUpdated { authentication_id: existing_id } if existing_id == &authentication_id
-        );
-        self.authentication_id = Some(authentication_id);
-        self.events
-            .push(UserEvent::AuthenticationIdUpdated { authentication_id });
-        Idempotent::Executed(())
     }
 }
 
@@ -104,9 +85,6 @@ impl TryFromEvents<UserEvent> for User {
                     builder = builder.id(*id).email(email.clone())
                 }
                 UserEvent::RoleUpdated { .. } => (),
-                UserEvent::AuthenticationIdUpdated { authentication_id } => {
-                    builder = builder.authentication_id(*authentication_id);
-                }
             }
         }
 

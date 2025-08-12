@@ -5,9 +5,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{
-    AuthenticationId, CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers,
-};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
 use core_deposit::{
     CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
@@ -45,7 +43,7 @@ where
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
-    customers: Customers<Perms, E>,
+    _phantom: std::marker::PhantomData<Perms>,
 }
 
 impl<Perms, E> CreateKeycloakUserInit<Perms, E>
@@ -53,15 +51,11 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        customers: &Customers<Perms, E>,
-        keycloak_client: KeycloakClient,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
-            customers: customers.clone(),
             keycloak_client,
+            _phantom: std::marker::PhantomData,
         }
     }
 }
@@ -85,10 +79,10 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateKeycloakUserJobRunner {
+        Ok(Box::new(CreateKeycloakUserJobRunner::<Perms, E> {
             outbox: self.outbox.clone(),
-            customers: self.customers.clone(),
             keycloak_client: self.keycloak_client.clone(),
+            _phantom: std::marker::PhantomData,
         }))
     }
 
@@ -111,8 +105,8 @@ where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
-    customers: Customers<Perms, E>,
     keycloak_client: KeycloakClient,
+    _phantom: std::marker::PhantomData<Perms>,
 }
 #[async_trait]
 impl<Perms, E> JobRunner for CreateKeycloakUserJobRunner<Perms, E>
@@ -165,14 +159,8 @@ where
     {
         if let Some(CoreCustomerEvent::CustomerCreated { id, email, .. }) = message.as_event() {
             message.inject_trace_parent();
-
-            let uuid = self
-                .keycloak_client
+            self.keycloak_client
                 .create_user(email.clone(), id.into())
-                .await?;
-            let authentication_id = AuthenticationId::from(uuid);
-            self.customers
-                .update_authentication_id_for_customer(*id, authentication_id)
                 .await?;
         }
         Ok(())

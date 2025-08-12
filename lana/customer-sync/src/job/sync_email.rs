@@ -2,9 +2,9 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use tracing::instrument;
 
-use audit::{AuditSvc, SystemSubject};
+use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
 use keycloak_client::KeycloakClient;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
@@ -39,8 +39,8 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
-    customers: Customers<Perms, E>,
     keycloak_client: KeycloakClient,
+    _phantom: std::marker::PhantomData<Perms>,
 }
 
 impl<Perms, E> SyncEmailInit<Perms, E>
@@ -48,15 +48,11 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        customers: &Customers<Perms, E>,
-        keycloak_client: KeycloakClient,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
-            customers: customers.clone(),
             keycloak_client,
+            _phantom: std::marker::PhantomData,
         }
     }
 }
@@ -77,10 +73,10 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SyncEmailJobRunner {
+        Ok(Box::new(SyncEmailJobRunner::<Perms, E> {
             outbox: self.outbox.clone(),
-            customers: self.customers.clone(),
             keycloak_client: self.keycloak_client.clone(),
+            _phantom: std::marker::PhantomData,
         }))
     }
 
@@ -103,8 +99,8 @@ where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
-    customers: Customers<Perms, E>,
     keycloak_client: KeycloakClient,
+    _phantom: std::marker::PhantomData<Perms>,
 }
 
 #[async_trait]
@@ -156,19 +152,10 @@ where
         if let Some(CoreCustomerEvent::CustomerEmailUpdated { id, email }) = message.as_event() {
             message.inject_trace_parent();
 
-            let customer = self
-                .customers
-                .find_by_id(
-                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                    *id,
-                )
+            // We no longer need to read from Customers; use the id directly
+            self.keycloak_client
+                .update_user_email((*id).into(), email.clone())
                 .await?;
-
-            if let Some(customer) = customer {
-                self.keycloak_client
-                    .update_user_email(customer.id.into(), email.clone())
-                    .await?;
-            }
         }
         Ok(())
     }

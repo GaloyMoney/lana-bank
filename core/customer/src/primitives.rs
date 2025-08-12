@@ -6,7 +6,6 @@ pub use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
 pub use public_id::PublicId;
 
 es_entity::entity_id! {
-    AuthenticationId,
     CustomerId,
     CustomerDocumentId;
 
@@ -174,8 +173,6 @@ impl CoreCustomerAction {
     pub const CUSTOMER_READ: Self = CoreCustomerAction::Customer(CustomerEntityAction::Read);
     pub const CUSTOMER_LIST: Self = CoreCustomerAction::Customer(CustomerEntityAction::List);
     pub const CUSTOMER_UPDATE: Self = CoreCustomerAction::Customer(CustomerEntityAction::Update);
-    pub const CUSTOMER_UPDATE_AUTHENTICATION_ID: Self =
-        CoreCustomerAction::Customer(CustomerEntityAction::UpdateAuthenticationId);
     pub const CUSTOMER_START_KYC: Self =
         CoreCustomerAction::Customer(CustomerEntityAction::StartKyc);
     pub const CUSTOMER_APPROVE_KYC: Self =
@@ -216,7 +213,6 @@ pub enum CustomerEntityAction {
     Create,
     List,
     Update,
-    UpdateAuthenticationId,
     StartKyc,
     ApproveKyc,
     DeclineKyc,
@@ -228,12 +224,9 @@ impl ActionPermission for CustomerEntityAction {
             Self::Read | Self::List => PERMISSION_SET_CUSTOMER_VIEWER,
 
             // All other operations use WRITER permission
-            Self::Create
-            | Self::Update
-            | Self::UpdateAuthenticationId
-            | Self::StartKyc
-            | Self::ApproveKyc
-            | Self::DeclineKyc => PERMISSION_SET_CUSTOMER_WRITER,
+            Self::Create | Self::Update | Self::StartKyc | Self::ApproveKyc | Self::DeclineKyc => {
+                PERMISSION_SET_CUSTOMER_WRITER
+            }
         }
     }
 }

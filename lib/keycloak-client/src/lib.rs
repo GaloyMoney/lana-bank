@@ -96,7 +96,7 @@ impl KeycloakClient {
         value: &str,
     ) -> Result<Vec<UserRepresentation>, KeycloakClientError> {
         let client = self.get_client().await?;
-        client
+        let users = client
             .realm_users_get(
                 &self.connection.realm,                   // realm
                 None, // brief_representation: return minimal fields if Some(true)
@@ -114,8 +114,8 @@ impl KeycloakClient {
                 None, // search: broad text over username/first/last/email
                 None, // username: filter by username
             )
-            .await
-            .map_err(Into::into)
+            .await?;
+        Ok(users)
     }
 
     pub async fn get_keycloak_id_by_lana_id(

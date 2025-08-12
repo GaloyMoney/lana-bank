@@ -92,8 +92,7 @@ impl LanaApp {
         let documents = DocumentStorage::new(&pool, &storage);
         let public_ids = PublicIds::new(&pool);
 
-        let user_onboarding =
-            UserOnboarding::init(&jobs, &outbox, access.users(), config.user_onboarding).await?;
+        let user_onboarding = UserOnboarding::init(&jobs, &outbox, config.user_onboarding).await?;
 
         let cala_config = cala_ledger::CalaLedgerConfig::builder()
             .pool(pool.clone())
@@ -132,7 +131,7 @@ impl LanaApp {
         )
         .await?;
         let customer_sync =
-            CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
+            CustomerSync::init(&jobs, &outbox, &deposits, config.customer_sync).await?;
 
         let applicants = Applicants::new(&pool, &config.sumsub, &authz, &customers);
 

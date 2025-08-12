@@ -10,7 +10,7 @@ use error::*;
 use job::*;
 
 use audit::AuditSvc;
-use core_access::{CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId, user::Users};
+use core_access::{CoreAccessAction, CoreAccessEvent, CoreAccessObject, UserId};
 use outbox::{Outbox, OutboxEventMarker};
 
 pub struct UserOnboarding<Audit, E>
@@ -46,13 +46,12 @@ where
     pub async fn init(
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,
-        users: &Users<Audit, E>,
         config: UserOnboardingConfig,
     ) -> Result<Self, UserOnboardingError> {
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
         jobs.add_initializer_and_spawn_unique(
-            UserOnboardingInit::new(outbox, users, keycloak_client),
+            UserOnboardingInit::<Audit, E>::new(outbox, keycloak_client),
             UserOnboardingJobConfig::new(),
         )
         .await?;

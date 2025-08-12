@@ -122,7 +122,6 @@ erDiagram
 
     customers {
         UUID id PK
-        UUID authentication_id UK
         VARCHAR email UK
         VARCHAR telegram_id UK
         VARCHAR status
@@ -154,7 +153,6 @@ erDiagram
     users {
         UUID id PK
         VARCHAR email UK
-        UUID authentication_id UK
         TIMESTAMPTZ created_at
     }
 
