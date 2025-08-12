@@ -4,68 +4,52 @@ use futures::StreamExt;
 
 use job::*;
 
-use audit::AuditSvc;
-use core_access::{CoreAccessAction, CoreAccessObject, UserId};
+// removed unused imports after dropping Audit generics
 use outbox::{Outbox, OutboxEventMarker};
 
 use keycloak_client::KeycloakClient;
 
 #[derive(serde::Serialize)]
-pub struct UserOnboardingJobConfig<Audit, E> {
-    _phantom: std::marker::PhantomData<(Audit, E)>,
+pub struct UserOnboardingJobConfig<E> {
+    _phantom: std::marker::PhantomData<E>,
 }
-impl<Audit, E> UserOnboardingJobConfig<Audit, E> {
+impl<E> UserOnboardingJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Audit, E> JobConfig for UserOnboardingJobConfig<Audit, E>
+impl<E> JobConfig for UserOnboardingJobConfig<E>
 where
-    Audit: AuditSvc,
-    <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
-    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    type Initializer = UserOnboardingInit<Audit, E>;
+    type Initializer = UserOnboardingInit<E>;
 }
 
-pub struct UserOnboardingInit<Audit, E>
+pub struct UserOnboardingInit<E>
 where
-    Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
-    _phantom: std::marker::PhantomData<Audit>,
 }
 
-impl<Audit, E> UserOnboardingInit<Audit, E>
+impl<E> UserOnboardingInit<E>
 where
-    Audit: AuditSvc,
-    <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
-    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
             keycloak_client,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 const USER_ONBOARDING_JOB: JobType = JobType::new("user-onboarding");
-impl<Audit, E> JobInitializer for UserOnboardingInit<Audit, E>
+impl<E> JobInitializer for UserOnboardingInit<E>
 where
-    Audit: AuditSvc,
-    <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
-    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     fn job_type() -> JobType
@@ -76,10 +60,9 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UserOnboardingJobRunner::<Audit, E> {
+        Ok(Box::new(UserOnboardingJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
-            _phantom: std::marker::PhantomData,
         }))
     }
 
@@ -96,22 +79,16 @@ struct UserOnboardingJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct UserOnboardingJobRunner<Audit, E>
+pub struct UserOnboardingJobRunner<E>
 where
-    Audit: AuditSvc,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
-    _phantom: std::marker::PhantomData<Audit>,
 }
 #[async_trait]
-impl<Audit, E> JobRunner for UserOnboardingJobRunner<Audit, E>
+impl<E> JobRunner for UserOnboardingJobRunner<E>
 where
-    Audit: AuditSvc,
-    <Audit as AuditSvc>::Subject: From<UserId>,
-    <Audit as AuditSvc>::Action: From<CoreAccessAction>,
-    <Audit as AuditSvc>::Object: From<CoreAccessObject>,
     E: OutboxEventMarker<CoreAccessEvent>,
 {
     async fn run(

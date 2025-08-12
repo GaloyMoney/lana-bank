@@ -2,20 +2,18 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use tracing::instrument;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
+use core_customer::CoreCustomerEvent;
 use keycloak_client::KeycloakClient;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
 #[derive(serde::Serialize)]
-pub struct SyncEmailJobConfig<Perms, E> {
-    _phantom: std::marker::PhantomData<(Perms, E)>,
+pub struct SyncEmailJobConfig<E> {
+    _phantom: std::marker::PhantomData<E>,
 }
 
-impl<Perms, E> SyncEmailJobConfig<Perms, E> {
+impl<E> SyncEmailJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -23,46 +21,36 @@ impl<Perms, E> SyncEmailJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> JobConfig for SyncEmailJobConfig<Perms, E>
+impl<E> JobConfig for SyncEmailJobConfig<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Initializer = SyncEmailInit<Perms, E>;
+    type Initializer = SyncEmailInit<E>;
 }
 
-pub struct SyncEmailInit<Perms, E>
+pub struct SyncEmailInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
-    _phantom: std::marker::PhantomData<Perms>,
 }
 
-impl<Perms, E> SyncEmailInit<Perms, E>
+impl<E> SyncEmailInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
             keycloak_client,
-            _phantom: std::marker::PhantomData,
         }
     }
 }
 
 const SYNC_EMAIL_JOB: JobType = JobType::new("sync-email-job");
-impl<Perms, E> JobInitializer for SyncEmailInit<Perms, E>
+impl<E> JobInitializer for SyncEmailInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     fn job_type() -> JobType
@@ -73,10 +61,9 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SyncEmailJobRunner::<Perms, E> {
+        Ok(Box::new(SyncEmailJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
-            _phantom: std::marker::PhantomData,
         }))
     }
 
@@ -93,22 +80,17 @@ struct SyncEmailJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct SyncEmailJobRunner<Perms, E>
+pub struct SyncEmailJobRunner<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
-    _phantom: std::marker::PhantomData<Perms>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for SyncEmailJobRunner<Perms, E>
+impl<E> JobRunner for SyncEmailJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     async fn run(
@@ -134,11 +116,8 @@ where
     }
 }
 
-impl<Perms, E> SyncEmailJobRunner<Perms, E>
+impl<E> SyncEmailJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCustomerAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CustomerObject>,
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
     #[instrument(name = "customer_sync.sync_email", skip(self, message))]

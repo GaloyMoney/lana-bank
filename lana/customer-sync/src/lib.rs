@@ -70,12 +70,12 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreateKeycloakUserInit::<Perms, E>::new(outbox, keycloak_client.clone()),
+            CreateKeycloakUserInit::new(outbox, keycloak_client.clone()),
             CreateKeycloakUserJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            SyncEmailInit::<Perms, E>::new(outbox, keycloak_client),
+            SyncEmailInit::new(outbox, keycloak_client),
             SyncEmailJobConfig::new(),
         )
         .await?;
