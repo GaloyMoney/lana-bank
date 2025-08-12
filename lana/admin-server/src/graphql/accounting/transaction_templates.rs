@@ -2,8 +2,6 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-use es_entity::graphql::UUID;
-
 use lana_app::accounting::transaction_templates::TransactionTemplate as DomainTransactionTemplate;
 pub use lana_app::accounting::transaction_templates::TransactionTemplateCursor;
 
