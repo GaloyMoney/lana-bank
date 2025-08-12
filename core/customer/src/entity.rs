@@ -22,9 +22,6 @@ pub enum CustomerEvent {
         public_id: PublicId,
         audit_info: AuditInfo,
     },
-    AuthenticationIdUpdated {
-        authentication_id: AuthenticationId,
-    },
     KycStarted {
         applicant_id: String,
         audit_info: AuditInfo,
@@ -56,8 +53,6 @@ pub enum CustomerEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Customer {
     pub id: CustomerId,
-    #[builder(setter(strip_option), default)]
-    pub authentication_id: Option<AuthenticationId>,
     pub email: String,
     pub telegram_id: String,
     #[builder(default)]
@@ -89,20 +84,6 @@ impl Customer {
 
     pub fn may_create_loan(&self) -> bool {
         true
-    }
-
-    pub fn update_authentication_id(
-        &mut self,
-        authentication_id: AuthenticationId,
-    ) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            CustomerEvent::AuthenticationIdUpdated { authentication_id: existing_id } if existing_id == &authentication_id
-        );
-        self.authentication_id = Some(authentication_id);
-        self.events
-            .push(CustomerEvent::AuthenticationIdUpdated { authentication_id });
-        Idempotent::Executed(())
     }
 
     pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
@@ -218,9 +199,6 @@ impl TryFromEvents<CustomerEvent> for Customer {
                         .customer_type(*customer_type)
                         .public_id(public_id.clone())
                         .level(KycLevel::NotKyced);
-                }
-                CustomerEvent::AuthenticationIdUpdated { authentication_id } => {
-                    builder = builder.authentication_id(*authentication_id);
                 }
                 CustomerEvent::KycStarted { applicant_id, .. } => {
                     builder = builder.applicant_id(applicant_id.clone());

@@ -11,10 +11,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "User",
     err = "UserError",
-    columns(
-        email(ty = "String", list_by),
-        authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
-    ),
+    columns(email(ty = "String", list_by),),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

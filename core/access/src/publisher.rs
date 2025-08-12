@@ -42,19 +42,18 @@ where
     ) -> Result<(), UserError> {
         use UserEvent::*;
         let events = new_events
-            .filter_map(|event| match &event.event {
+            .map(|event| match &event.event {
                 Initialized {
                     id, email, role_id, ..
-                } => Some(CoreAccessEvent::UserCreated {
+                } => CoreAccessEvent::UserCreated {
                     id: *id,
                     email: email.clone(),
                     role_id: *role_id,
-                }),
-                RoleUpdated { role_id, .. } => Some(CoreAccessEvent::UserUpdatedRole {
+                },
+                RoleUpdated { role_id, .. } => CoreAccessEvent::UserUpdatedRole {
                     id: entity.id,
                     role_id: *role_id,
-                }),
-                AuthenticationIdUpdated { .. } => None,
+                },
             })
             .collect::<Vec<_>>();
 

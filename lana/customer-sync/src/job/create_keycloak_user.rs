@@ -3,64 +3,45 @@ use futures::StreamExt;
 use keycloak_client::KeycloakClient;
 use tracing::instrument;
 
-use audit::AuditSvc;
-use authz::PermissionCheck;
-use core_customer::{
-    AuthenticationId, CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers,
-};
-use core_deposit::{
-    CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
-};
+use core_customer::CoreCustomerEvent;
+use core_deposit::CoreDepositEvent;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
 #[derive(serde::Serialize)]
-pub struct CreateKeycloakUserJobConfig<Perms, E> {
-    _phantom: std::marker::PhantomData<(Perms, E)>,
+pub struct CreateKeycloakUserJobConfig<E> {
+    _phantom: std::marker::PhantomData<E>,
 }
-impl<Perms, E> CreateKeycloakUserJobConfig<Perms, E> {
+impl<E> CreateKeycloakUserJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CreateKeycloakUserJobConfig<Perms, E>
+impl<E> JobConfig for CreateKeycloakUserJobConfig<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    type Initializer = CreateKeycloakUserInit<Perms, E>;
+    type Initializer = CreateKeycloakUserInit<E>;
 }
 
-pub struct CreateKeycloakUserInit<Perms, E>
+pub struct CreateKeycloakUserInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
-    customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> CreateKeycloakUserInit<Perms, E>
+impl<E> CreateKeycloakUserInit<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        customers: &Customers<Perms, E>,
-        keycloak_client: KeycloakClient,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, keycloak_client: KeycloakClient) -> Self {
         Self {
             outbox: outbox.clone(),
-            customers: customers.clone(),
             keycloak_client,
         }
     }
@@ -68,13 +49,8 @@ where
 
 const CUSTOMER_SYNC_CREATE_KEYCLOAK_USER: JobType =
     JobType::new("customer-sync-create-keycloak-user");
-impl<Perms, E> JobInitializer for CreateKeycloakUserInit<Perms, E>
+impl<E> JobInitializer for CreateKeycloakUserInit<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     fn job_type() -> JobType
@@ -85,9 +61,8 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateKeycloakUserJobRunner {
+        Ok(Box::new(CreateKeycloakUserJobRunner::<E> {
             outbox: self.outbox.clone(),
-            customers: self.customers.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
     }
@@ -105,23 +80,16 @@ struct CreateKeycloakUserJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreateKeycloakUserJobRunner<Perms, E>
+pub struct CreateKeycloakUserJobRunner<E>
 where
-    Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     outbox: Outbox<E>,
-    customers: Customers<Perms, E>,
     keycloak_client: KeycloakClient,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CreateKeycloakUserJobRunner<Perms, E>
+impl<E> JobRunner for CreateKeycloakUserJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     async fn run(
@@ -146,13 +114,8 @@ where
     }
 }
 
-impl<Perms, E> CreateKeycloakUserJobRunner<Perms, E>
+impl<E> CreateKeycloakUserJobRunner<E>
 where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
     #[instrument(name = "customer_sync.create_keycloak_user", skip(self, message))]
@@ -165,11 +128,8 @@ where
     {
         if let Some(CoreCustomerEvent::CustomerCreated { id, email, .. }) = message.as_event() {
             message.inject_trace_parent();
-
-            let uuid = self.keycloak_client.create_user(email.clone()).await?;
-            let authentication_id = AuthenticationId::from(uuid);
-            self.customers
-                .update_authentication_id_for_customer(*id, authentication_id)
+            self.keycloak_client
+                .create_user(email.clone(), id.into())
                 .await?;
         }
         Ok(())
