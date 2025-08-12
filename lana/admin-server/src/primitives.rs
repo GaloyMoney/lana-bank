@@ -7,7 +7,7 @@ pub use lana_app::{
     primitives::{
         AccountSpec, ApprovalProcessId, ChartId, CollateralId, CommitteeId, CreditFacilityId,
         CustodianId, CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId,
-        DisbursalStatus, DocumentId, LedgerTransactionId, ManualTransactionId,
+        DisbursalStatus, DocumentId, EntryId, LedgerTransactionId, ManualTransactionId,
         ObligationInstallmentId, PaymentId, PermissionSetId, PolicyId, ReportId, RoleId, Satoshis,
         SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId,
         WithdrawalId,
@@ -124,8 +124,6 @@ impl_to_global_id! {
     DepositAccountId,
     LedgerTransactionId,
     ObligationInstallmentId,
-    PublicId
+    PublicId,
+    EntryId
 }
-
-use lana_app::primitives::EntryId;
-impl_to_global_id!(EntryId);
