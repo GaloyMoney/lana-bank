@@ -5,7 +5,8 @@ from typing import Any
 from xml.etree import ElementTree
 import io
 import csv
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, Union
+
 if TYPE_CHECKING:
     from generate_es_reports.io import BaseTableFetcher, BaseReportStorer
 
@@ -14,29 +15,6 @@ from xmlschema import XMLSchema
 from generate_es_reports.logging import SingletonLogger
 
 logger = SingletonLogger().get_logger()
-
-
-class ReportJobDefinition:
-    """
-    Defines a report that must be fetched and converted into
-    certain file formats.
-    """
-
-    def __init__(
-        self,
-        norm: str,
-        id: str,
-        friendly_name: str,
-        file_output_configs: tuple[BaseFileOutputConfig, ...],
-    ):
-        self.norm = norm
-        self.id = id
-        self.friendly_name = friendly_name
-        self.file_output_configs = file_output_configs
-
-    @property
-    def source_table_name(self) -> str:
-        return f"report_{self.norm}_{self.id}"
 
 
 class StorableReportOutput:
@@ -204,6 +182,29 @@ class TXTFileOutputConfig(BaseFileOutputConfig):
         return StorableReportOutput(
             report_content=report_content, report_content_type=self.content_type
         )
+
+
+class ReportJobDefinition:
+    """
+    Defines a report that must be fetched and converted into
+    certain file formats.
+    """
+
+    def __init__(
+        self,
+        norm: str,
+        id: str,
+        friendly_name: str,
+        file_output_configs: tuple[BaseFileOutputConfig, ...],
+    ):
+        self.norm = norm
+        self.id = id
+        self.friendly_name = friendly_name
+        self.file_output_configs = file_output_configs
+
+    @property
+    def source_table_name(self) -> str:
+        return f"report_{self.norm}_{self.id}"
 
 
 class ReportGeneratorConfig:
