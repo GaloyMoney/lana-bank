@@ -54,23 +54,6 @@
     },
     {
       "properties": {
-        "authentication_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "type": {
-          "const": "authentication_id_updated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "authentication_id"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
         "audit_info": {
           "$ref": "#/$defs/AuditInfo"
         },

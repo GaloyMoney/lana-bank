@@ -5,7 +5,6 @@ CREATE TABLE core_user_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  authentication_id UUID,
   email VARCHAR,
   role_id UUID,
 
@@ -33,7 +32,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'authentication_id_updated', 'role_updated') THEN
+  IF event_type NOT IN ('initialized', 'role_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -51,13 +50,11 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
-    new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
     new_row.email := (NEW.event ->> 'email');
     new_row.role_id := (NEW.event ->> 'role_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.authentication_id := current_row.authentication_id;
     new_row.email := current_row.email;
     new_row.role_id := current_row.role_id;
   END IF;
@@ -68,8 +65,6 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.email := (NEW.event ->> 'email');
       new_row.role_id := (NEW.event ->> 'role_id')::UUID;
-    WHEN 'authentication_id_updated' THEN
-      new_row.authentication_id := (NEW.event ->> 'authentication_id')::UUID;
     WHEN 'role_updated' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.role_id := (NEW.event ->> 'role_id')::UUID;
@@ -81,7 +76,6 @@ BEGIN
     created_at,
     modified_at,
     audit_entry_ids,
-    authentication_id,
     email,
     role_id
   )
@@ -91,7 +85,6 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.audit_entry_ids,
-    new_row.authentication_id,
     new_row.email,
     new_row.role_id
   );

@@ -1602,7 +1602,6 @@ dependencies = [
  "jwks-utils",
  "lana-app",
  "serde",
- "serde_json",
  "thiserror 2.0.12",
  "tokio",
  "tower-http",
@@ -6673,7 +6672,6 @@ name = "user-onboarding"
 version = "0.3.772-dev"
 dependencies = [
  "async-trait",
- "audit",
  "core-access",
  "es-entity",
  "futures",

@@ -12,7 +12,7 @@ es_entity::entity_id! {
 #[cfg(not(feature = "governance"))]
 es_entity::entity_id! { UserId }
 
-es_entity::entity_id! { AuthenticationId, PermissionSetId, RoleId }
+es_entity::entity_id! { PermissionSetId, RoleId }
 
 pub const ROLE_NAME_SUPERUSER: &str = "superuser";
 
@@ -126,8 +126,6 @@ impl CoreAccessAction {
     pub const USER_READ: Self = CoreAccessAction::User(UserAction::Read);
     pub const USER_LIST: Self = CoreAccessAction::User(UserAction::List);
     pub const USER_UPDATE_ROLE: Self = CoreAccessAction::User(UserAction::UpdateRole);
-    pub const USER_UPDATE_AUTHENTICATION_ID: Self =
-        CoreAccessAction::User(UserAction::UpdateAuthenticationId);
 
     pub const PERMISSION_SET_LIST: Self =
         CoreAccessAction::PermissionSet(PermissionSetAction::List);
@@ -190,7 +188,6 @@ pub enum UserAction {
     List,
     Update,
     UpdateRole,
-    UpdateAuthenticationId,
 }
 
 impl ActionPermission for UserAction {
@@ -198,9 +195,7 @@ impl ActionPermission for UserAction {
         match self {
             Self::Read | Self::List => PERMISSION_SET_ACCESS_VIEWER,
 
-            Self::Create | Self::Update | Self::UpdateRole | Self::UpdateAuthenticationId => {
-                PERMISSION_SET_ACCESS_WRITER
-            }
+            Self::Create | Self::Update | Self::UpdateRole => PERMISSION_SET_ACCESS_WRITER,
         }
     }
 }
