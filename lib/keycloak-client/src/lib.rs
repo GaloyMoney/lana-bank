@@ -26,9 +26,7 @@ impl KeycloakClient {
         }
     }
 
-    async fn get_client(
-        &self,
-    ) -> Result<KeycloakAdmin<KeycloakServiceAccountAdminTokenRetriever>, KeycloakClientError> {
+    fn get_client(&self) -> KeycloakAdmin<KeycloakServiceAccountAdminTokenRetriever> {
         let service_account_token_retriever =
             KeycloakServiceAccountAdminTokenRetriever::create_with_custom_realm(
                 &self.connection.client_id,
@@ -37,11 +35,11 @@ impl KeycloakClient {
                 self.http_client.clone(),
             );
 
-        Ok(KeycloakAdmin::new(
+        KeycloakAdmin::new(
             &self.connection.url,
             service_account_token_retriever,
             self.http_client.clone(),
-        ))
+        )
     }
 
     pub async fn create_user(
@@ -61,7 +59,7 @@ impl KeycloakClient {
             attributes: Some(attributes),
             ..Default::default()
         };
-        let client = self.get_client().await?;
+        let client = self.get_client();
         let response = client
             .realm_users_post(&self.connection.realm, user)
             .await?;
@@ -83,7 +81,7 @@ impl KeycloakClient {
             email_verified: Some(true),
             ..Default::default()
         };
-        let client = self.get_client().await?;
+        let client = self.get_client();
         client
             .realm_users_with_user_id_put(&self.connection.realm, &user_id.to_string(), user)
             .await?;
@@ -95,7 +93,7 @@ impl KeycloakClient {
         attribute: &str,
         value: &str,
     ) -> Result<Vec<UserRepresentation>, KeycloakClientError> {
-        let client = self.get_client().await?;
+        let client = self.get_client();
         let users = client
             .realm_users_get(
                 &self.connection.realm,                   // realm
