@@ -94,26 +94,25 @@ impl KeycloakClient {
         &self,
         attribute: &str,
         value: &str,
-        exact: bool,
     ) -> Result<Vec<UserRepresentation>, KeycloakClientError> {
         let client = self.get_client().await?;
         client
             .realm_users_get(
-                &self.connection.realm,
-                None,
-                None,
-                None,
-                None,
-                Some(exact),
-                None,
-                None,
-                None,
-                None,
-                None,
-                None,
-                Some(format!("{}:{}", attribute, value)),
-                None,
-                None,
+                &self.connection.realm,                   // realm
+                None, // brief_representation: return minimal fields if Some(true)
+                None, // email: filter by email value
+                None, // email_verified: filter by email verification status
+                None, // enabled: filter by user enabled/disabled state
+                None, // exact: applies ONLY to username/firstName/lastName/email; does NOT affect `q`
+                None, // first: pagination offset
+                None, // first_name: filter by first name
+                None, // idp_alias: The alias of an Identity Provider linked to the user
+                None, // idp_user_id: The userId at an Identity Provider linked to the user
+                None, // last_name: filter by last name
+                None, // max: pagination limit
+                Some(format!("{}:{}", attribute, value)), // q: attribute query "key:value"
+                None, // search: broad text over username/first/last/email
+                None, // username: filter by username
             )
             .await
             .map_err(Into::into)
@@ -124,7 +123,7 @@ impl KeycloakClient {
         lana_id: Uuid,
     ) -> Result<Uuid, KeycloakClientError> {
         let users = self
-            .query_users_by_attribute("lanaId", &lana_id.to_string(), true)
+            .query_users_by_attribute("lanaId", &lana_id.to_string())
             .await?;
         match users.len() {
             0 => Err(KeycloakClientError::UserNotFound(format!(
