@@ -59,13 +59,16 @@ class GCSReportStorer(BaseReportStorer):
         gcp_project_id: str,
         gcp_credentials: service_account.Credentials,
         target_bucket_name: str,
+        name_prefix: str,
     ) -> None:
         self._storage_client = storage.Client(
             project=gcp_project_id, credentials=gcp_credentials
         )
         self._bucket = self._storage_client.bucket(bucket_name=target_bucket_name)
+        self.name_prefix = name_prefix
 
     def store_report(self, path: str, report: StorableReportOutput) -> None:
+        path = f"{self.name_prefix}/{path}"
         blob = self._bucket.blob(path)
         logger.info(f"Uploading to {path}...")
         blob.upload_from_string(report.content, content_type=report.content_type)
@@ -184,6 +187,7 @@ def get_config_from_env() -> ReportGeneratorConfig:
         Constants.DBT_BIGQUERY_DATASET_ENVVAR_KEY,
         Constants.DOCS_BUCKET_NAME_ENVVAR_KEY,
         Constants.GOOGLE_APPLICATION_CREDENTIALS_ENVVAR_KEY,
+        Constants.NAME_PREFIX_ENVVAR_KEY,
     ]
     missing = [var for var in required_envs if not os.getenv(var)]
     if missing:
@@ -215,6 +219,7 @@ def get_config_from_env() -> ReportGeneratorConfig:
         keyfile=keyfile,
         use_gcs=use_gcs,
         use_local_fs=use_local_fs,
+        name_prefix=os.getenv(Constants.NAME_PREFIX_ENVVAR_KEY),
     )
 
 

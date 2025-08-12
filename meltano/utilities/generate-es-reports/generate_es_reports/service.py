@@ -41,6 +41,7 @@ def get_report_storer(config: "ReportGeneratorConfig") -> BaseReportStorer:
             gcp_project_id=config.project_id,
             gcp_credentials=credentials,
             target_bucket_name=config.bucket_name,
+            name_prefix=config.name_prefix,
         )
 
     raise ValueError("Inconsistent config, can't figure out where to write reports to.")

@@ -225,6 +225,7 @@ class ReportGeneratorConfig:
         keyfile: Path,
         use_gcs: bool,
         use_local_fs: bool,
+        name_prefix: str,
     ):
         self.project_id = project_id
         self.dataset = dataset
@@ -233,6 +234,7 @@ class ReportGeneratorConfig:
         self.keyfile = keyfile
         self.use_gcs = use_gcs
         self.use_local_fs = use_local_fs
+        self.name_prefix = name_prefix
 
 
 class ReportBatch:
