@@ -77,7 +77,7 @@ impl KeycloakClient {
         lana_id: Uuid,
         email: String,
     ) -> Result<(), KeycloakClientError> {
-        let user_id = self.get_user_id_by_lana_id(lana_id).await?;
+        let user_id = self.get_keycloak_id_by_lana_id(lana_id).await?;
         let user = UserRepresentation {
             email: Some(email),
             email_verified: Some(true),
@@ -119,7 +119,10 @@ impl KeycloakClient {
             .map_err(Into::into)
     }
 
-    pub async fn get_user_id_by_lana_id(&self, lana_id: Uuid) -> Result<Uuid, KeycloakClientError> {
+    pub async fn get_keycloak_id_by_lana_id(
+        &self,
+        lana_id: Uuid,
+    ) -> Result<Uuid, KeycloakClientError> {
         let users = self
             .query_users_by_attribute("lanaId", &lana_id.to_string(), true)
             .await?;
