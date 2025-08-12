@@ -4,7 +4,6 @@ use futures::StreamExt;
 
 use job::*;
 
-// removed unused imports after dropping Audit generics
 use outbox::{Outbox, OutboxEventMarker};
 
 use keycloak_client::KeycloakClient;

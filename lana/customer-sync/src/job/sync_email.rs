@@ -131,7 +131,6 @@ where
         if let Some(CoreCustomerEvent::CustomerEmailUpdated { id, email }) = message.as_event() {
             message.inject_trace_parent();
 
-            // We no longer need to read from Customers; use the id directly
             self.keycloak_client
                 .update_user_email((*id).into(), email.clone())
                 .await?;
