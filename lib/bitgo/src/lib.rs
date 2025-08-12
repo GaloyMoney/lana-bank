@@ -23,7 +23,7 @@ pub struct BitgoClient {
     long_lived_token: String,
     endpoint: Url,
     passphrase: String,
-    pub enterprise_id: String,
+    enterprise_id: String,
     coin: String,
     webhook_url: Url,
     webhook_secret: Vec<u8>,
@@ -181,10 +181,12 @@ impl BitgoClient {
     }
 
     #[tracing::instrument(name = "bitgo.get_enterprise", skip(self), fields(response, url), err)]
-    pub async fn get_enterprise(&self, id: &str) -> Result<Enterprise, BitgoError> {
+    pub async fn get_enterprise(&self) -> Result<Enterprise, BitgoError> {
         // https://developers.bitgo.com/api/enterprise.getById
 
-        let response = self.get(self.url(&format!("enterprise/{id}"))).await?;
+        let response = self
+            .get(self.url(&format!("enterprise/{}", self.enterprise_id)))
+            .await?;
         Ok(serde_json::from_value(response)?)
     }
 
