@@ -74,9 +74,10 @@ impl KeycloakClient {
 
     pub async fn update_user_email(
         &self,
-        user_id: Uuid,
+        lana_id: Uuid,
         email: String,
     ) -> Result<(), KeycloakClientError> {
+        let user_id = self.get_user_id_by_lana_id(lana_id).await?;
         let user = UserRepresentation {
             email: Some(email),
             email_verified: Some(true),
@@ -87,6 +88,62 @@ impl KeycloakClient {
             .realm_users_with_user_id_put(&self.connection.realm, &user_id.to_string(), user)
             .await?;
         Ok(())
+    }
+
+    async fn query_users_by_attribute(
+        &self,
+        attribute: &str,
+        value: &str,
+        exact: bool,
+    ) -> Result<Vec<UserRepresentation>, KeycloakClientError> {
+        let client = self.get_client().await?;
+        client
+            .realm_users_get(
+                &self.connection.realm,
+                None,
+                None,
+                None,
+                None,
+                Some(exact),
+                None,
+                None,
+                None,
+                None,
+                None,
+                None,
+                Some(format!("{}:{}", attribute, value)),
+                None,
+                None,
+            )
+            .await
+            .map_err(Into::into)
+    }
+
+    pub async fn get_user_id_by_lana_id(&self, lana_id: Uuid) -> Result<Uuid, KeycloakClientError> {
+        let users = self
+            .query_users_by_attribute("lanaId", &lana_id.to_string(), true)
+            .await?;
+        match users.len() {
+            0 => Err(KeycloakClientError::UserNotFound(format!(
+                "No user found with lanaId: {}",
+                lana_id
+            ))),
+            1 => {
+                let user = &users[0];
+                let user_id_str = user.id.as_ref().ok_or_else(|| {
+                    KeycloakClientError::ParseError(
+                        "User ID not found in user representation".to_string(),
+                    )
+                })?;
+                let uuid = user_id_str.parse::<Uuid>()?;
+                Ok(uuid)
+            }
+            _ => Err(KeycloakClientError::MultipleUsersFound(format!(
+                "Multiple users found with lanaId: {} (found: {})",
+                lana_id,
+                users.len()
+            ))),
+        }
     }
 
     pub async fn get_user(&self, user_id: Uuid) -> Result<UserRepresentation, KeycloakClientError> {

@@ -164,11 +164,9 @@ where
                 )
                 .await?;
 
-            if let Some(customer) = customer
-                && let Some(authentication_id) = customer.authentication_id
-            {
+            if let Some(customer) = customer {
                 self.keycloak_client
-                    .update_user_email(authentication_id.into(), email.clone())
+                    .update_user_email(customer.id.into(), email.clone())
                     .await?;
             }
         }
