@@ -60,7 +60,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    accounts: DepositAccountRepo<E>,
+    deposit_accounts: DepositAccountRepo<E>,
     deposits: DepositRepo<E>,
     withdrawals: WithdrawalRepo<E>,
     approve_withdrawal: ApproveWithdrawal<Perms, E>,
@@ -79,7 +79,7 @@ where
 {
     fn clone(&self) -> Self {
         Self {
-            accounts: self.accounts.clone(),
+            deposit_accounts: self.deposit_accounts.clone(),
             deposits: self.deposits.clone(),
             withdrawals: self.withdrawals.clone(),
             ledger: self.ledger.clone(),
@@ -136,7 +136,7 @@ where
         }
 
         let res = Self {
-            accounts,
+            deposit_accounts: accounts,
             deposits,
             withdrawals,
             authz: authz.clone(),
@@ -163,7 +163,7 @@ where
         Ok(DepositsForSubject::new(
             sub,
             holder_id,
-            &self.accounts,
+            &self.deposit_accounts,
             &self.deposits,
             &self.withdrawals,
             &self.ledger,
@@ -194,7 +194,7 @@ where
 
         let account_id = DepositAccountId::new();
 
-        let mut op = self.accounts.begin_op().await?;
+        let mut op = self.deposit_accounts.begin_op().await?;
 
         let public_id = self
             .public_ids
@@ -213,7 +213,10 @@ where
             .build()
             .expect("Could not build new account");
 
-        let account = self.accounts.create_in_op(&mut op, new_account).await?;
+        let account = self
+            .deposit_accounts
+            .create_in_op(&mut op, new_account)
+            .await?;
 
         self.ledger
             .create_deposit_account(
@@ -243,7 +246,7 @@ where
             )
             .await?;
 
-        match self.accounts.find_by_id(id).await {
+        match self.deposit_accounts.find_by_id(id).await {
             Ok(accounts) => Ok(Some(accounts)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),
@@ -256,7 +259,7 @@ where
         id: impl Into<DepositAccountId> + std::fmt::Debug,
     ) -> Result<DepositAccount, CoreDepositError> {
         let id = id.into();
-        Ok(self.accounts.find_by_id(id).await?)
+        Ok(self.deposit_accounts.find_by_id(id).await?)
     }
 
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]
@@ -264,7 +267,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
-        status: AccountStatus,
+        status: DepositAccountStatus,
     ) -> Result<(), CoreDepositError> {
         let holder_id = holder_id.into();
         let audit_info = self
@@ -277,16 +280,18 @@ where
             .await?;
 
         let accounts = self
-            .accounts
+            .deposit_accounts
             .list_for_account_holder_id_by_id(holder_id, Default::default(), Default::default())
             .await?;
-        let mut op = self.accounts.begin_op().await?;
+        let mut op = self.deposit_accounts.begin_op().await?;
         for mut account in accounts.entities.into_iter() {
             if account
-                .update_account_status(status, audit_info.clone())
+                .update_status(status, audit_info.clone())
                 .did_execute()
             {
-                self.accounts.update_in_op(&mut op, &mut account).await?;
+                self.deposit_accounts
+                    .update_in_op(&mut op, &mut account)
+                    .await?;
             }
         }
         op.commit().await?;
@@ -338,7 +343,7 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
+        self.check_account_status(deposit_account_id).await?;
         let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
@@ -374,7 +379,7 @@ where
                 CoreDepositAction::WITHDRAWAL_INITIATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
+        self.check_account_status(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
@@ -422,7 +427,7 @@ where
             .await?;
 
         let mut deposit = self.deposits.find_by_id(id).await?;
-        self.check_account_active(deposit.deposit_account_id)
+        self.check_account_status(deposit.deposit_account_id)
             .await?;
 
         if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert(audit_info) {
@@ -454,7 +459,7 @@ where
 
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
 
-        self.check_account_active(withdrawal.deposit_account_id)
+        self.check_account_status(withdrawal.deposit_account_id)
             .await?;
 
         if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) =
@@ -488,7 +493,7 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
-        self.check_account_active(withdrawal.deposit_account_id)
+        self.check_account_status(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.confirm(audit_info)?;
@@ -526,7 +531,7 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
-        self.check_account_active(withdrawal.deposit_account_id)
+        self.check_account_status(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.cancel(audit_info)?;
@@ -537,6 +542,33 @@ where
             .cancel_withdrawal(op, tx_id, withdrawal.amount, withdrawal.deposit_account_id)
             .await?;
         Ok(withdrawal)
+    }
+
+    #[instrument(name = "deposit.freeze_account", skip(self), err)]
+    pub async fn freeze_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<(), CoreDepositError> {
+        let account_id = account_id.into();
+        // let audit_info = self.authz.enforce_permission(sub, todo!(), todo!()).await?;
+
+        let mut op = self.deposit_accounts.begin_op().await?;
+
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+
+        let tx_id = account.freeze().await?;
+
+        self.deposit_accounts
+            .update_in_op(&mut op, &mut account)
+            .await?;
+
+        let _ = self
+            .ledger
+            .freeze_account_in_op(op, tx_id, account_id)
+            .await?;
+
+        Ok(())
     }
 
     #[instrument(name = "deposit.account_balance", skip(self), err)]
@@ -646,7 +678,7 @@ where
         &self,
         ids: &[DepositAccountId],
     ) -> Result<std::collections::HashMap<DepositAccountId, T>, CoreDepositError> {
-        Ok(self.accounts.find_all(ids).await?)
+        Ok(self.deposit_accounts.find_all(ids).await?)
     }
 
     #[instrument(name = "deposit.list_withdrawals", skip(self), err)]
@@ -774,7 +806,7 @@ where
             .await?;
 
         Ok(self
-            .accounts
+            .deposit_accounts
             .list_for_account_holder_id_by_created_at(account_holder_id, query, direction.into())
             .await?)
     }
@@ -868,14 +900,15 @@ where
         Ok(config)
     }
 
-    async fn check_account_active(
+    async fn check_account_status(
         &self,
         deposit_account_id: DepositAccountId,
     ) -> Result<(), CoreDepositError> {
-        let account = self.accounts.find_by_id(deposit_account_id).await?;
-        if account.status.is_inactive() {
-            return Err(CoreDepositError::DepositAccountNotActive);
+        let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
+        match account.status {
+            DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountNotActive),
+            DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountNotActive),
+            DepositAccountStatus::Active => Ok(()),
         }
-        Ok(())
     }
 }

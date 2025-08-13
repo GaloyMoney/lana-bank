@@ -16,7 +16,8 @@ use cala_ledger::{
 };
 
 use crate::{
-    DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds, WithdrawalReversalData,
+    DepositAccountBalance, DepositAccountId, DepositReversalData, LedgerOmnibusAccountIds,
+    WithdrawalReversalData,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
 };
@@ -476,6 +477,37 @@ impl DepositLedger {
                 &mut op,
                 reversal_data.ledger_tx_id,
                 templates::REVERT_DEPOSIT_CODE,
+                params,
+            )
+            .await?;
+        op.commit().await?;
+
+        Ok(())
+    }
+
+    pub async fn freeze_account_in_op(
+        &self,
+        op: es_entity::DbOp<'_>,
+        tx_id: impl Into<TransactionId>,
+        account_id: DepositAccountId,
+    ) -> Result<(), DepositLedgerError> {
+        let balance = self.balance(account_id).await?;
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+
+        let params = templates::FreezeAccountParams {
+            journal_id: self.journal_id,
+            frozen_accounts_account_id: todo!(),
+            amount: balance.settled.to_usd(),
+            currency: self.usd,
+        };
+
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id.into(),
+                templates::FREEZE_ACCOUNT_CODE,
                 params,
             )
             .await?;
