@@ -1597,7 +1597,6 @@ dependencies = [
  "axum 0.8.4",
  "axum-extra 0.10.1",
  "chrono",
- "core-customer",
  "es-entity",
  "jwks-utils",
  "lana-app",

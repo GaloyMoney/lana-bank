@@ -1,6 +1,6 @@
 use async_graphql::*;
 
-use core_customer::Customer as DomainCustomer;
+use lana_app::customer::Customer as DomainCustomer;
 
 use super::customer::*;
 

@@ -11,8 +11,6 @@ fail-on-warnings = []
 [dependencies]
 lana-app = { workspace = true }
 
-core-customer = { workspace = true, features = ["graphql"] }
-
 tracing-utils = { workspace = true }
 jwks-utils = { workspace = true }
 
