@@ -10,38 +10,41 @@ pub use error::KeycloakClientError;
 use keycloak::types::*;
 use keycloak::{KeycloakAdmin, KeycloakServiceAccountAdminTokenRetriever};
 use reqwest::Client;
+use tracing::instrument;
 use uuid::Uuid;
 
 #[derive(Clone)]
 pub struct KeycloakClient {
     connection: KeycloakConnectionConfig,
-    http_client: Client,
 }
 
 impl KeycloakClient {
     pub fn new(connection: KeycloakConnectionConfig) -> Self {
-        Self {
-            connection,
-            http_client: Client::new(),
-        }
+        Self { connection }
     }
 
     fn get_client(&self) -> KeycloakAdmin<KeycloakServiceAccountAdminTokenRetriever> {
+        let http_client = Client::builder()
+            .default_headers(tracing_utils::http::inject_trace_reqwest())
+            .build()
+            .expect("Failed to build HTTP client");
+
         let service_account_token_retriever =
             KeycloakServiceAccountAdminTokenRetriever::create_with_custom_realm(
                 &self.connection.client_id,
                 &self.connection.client_secret,
                 &self.connection.realm,
-                self.http_client.clone(),
+                http_client.clone(),
             );
 
         KeycloakAdmin::new(
             &self.connection.url,
             service_account_token_retriever,
-            self.http_client.clone(),
+            http_client.clone(),
         )
     }
 
+    #[instrument(name = "keycloak.create_user", skip(self), err)]
     pub async fn create_user(
         &self,
         email: String,
@@ -63,6 +66,7 @@ impl KeycloakClient {
         let response = client
             .realm_users_post(&self.connection.realm, user)
             .await?;
+
         let user_id_str = response.to_id().ok_or_else(|| {
             KeycloakClientError::ParseError("User ID not found in response".to_string())
         })?;
@@ -70,6 +74,7 @@ impl KeycloakClient {
         Ok(uuid)
     }
 
+    #[instrument(name = "keycloak.update_user_email", skip(self), err)]
     pub async fn update_user_email(
         &self,
         lana_id: Uuid,
@@ -85,9 +90,11 @@ impl KeycloakClient {
         client
             .realm_users_with_user_id_put(&self.connection.realm, &user_id.to_string(), user)
             .await?;
+
         Ok(())
     }
 
+    #[instrument(name = "keycloak.query_users_by_attribute", skip(self, value), err)]
     async fn query_users_by_attribute(
         &self,
         attribute: &str,
