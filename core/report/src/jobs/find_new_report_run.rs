@@ -136,7 +136,7 @@ where
                     if e.to_string()
                         .contains("duplicate key value violates unique constraint") =>
                 {
-                    return Ok(JobCompletion::Complete);
+                    continue;
                 }
                 Err(e) => {
                     return Err(e.into());
