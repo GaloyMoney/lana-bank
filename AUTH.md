@@ -10,13 +10,13 @@
 - **Oathkeeper**
 
   1. Validates the incoming Keycloak access token (signature + issuer) against Keycloak JWKS and trusted issuers.
-  2. Issues a internal JWT (ID token) with route‑specific audience and the user subject (e.g., Lana ID), signs it with Oathkeeper keys, and injects it into the `Authorization` header.
+  2. Issues an internal JWT (ID token) with a route‑specific audience and the user subject (e.g., Lana ID), signs it with Oathkeeper keys, and injects it into the `Authorization` header.
   3. Proxies the request to the appropriate upstream (Admin API or Customer API).
 
-- **Backend (Admin/Customer APIs)**
+- **Backends (Admin and Customer APIs)**
 
   - Accepts only the internal JWT from Oathkeeper.
-  - Verifies the token via Oathkeeper JWKS on port 4456.
+  - Verifies the token via the Oathkeeper JWKS on port 4456.
 
 - **Configuration files:**
   - Route rules: `dev/ory/oathkeeper_rules.yaml`
