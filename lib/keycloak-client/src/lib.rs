@@ -94,7 +94,7 @@ impl KeycloakClient {
         Ok(())
     }
 
-    #[instrument(name = "keycloak.query_users_by_attribute", skip(self, value), err)]
+    #[instrument(name = "keycloak.query_users_by_attribute", skip(self), err)]
     async fn query_users_by_attribute(
         &self,
         attribute: &str,
@@ -123,6 +123,7 @@ impl KeycloakClient {
         Ok(users)
     }
 
+    #[instrument(name = "keycloak.get_keycloak_id_by_lana_id", skip(self), err)]
     pub async fn get_keycloak_id_by_lana_id(
         &self,
         lana_id: Uuid,
