@@ -351,6 +351,7 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {
 pub enum DepositAccountStatus {
     Inactive,
     Active,
+    Frozen,
 }
 
 pub enum DepositAccountType {

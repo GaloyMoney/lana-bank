@@ -343,7 +343,7 @@ where
                 CoreDepositAction::DEPOSIT_CREATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
+        self.check_account_status(deposit_account_id).await?;
         let deposit_id = DepositId::new();
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
@@ -379,7 +379,7 @@ where
                 CoreDepositAction::WITHDRAWAL_INITIATE,
             )
             .await?;
-        self.check_account_active(deposit_account_id).await?;
+        self.check_account_status(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
@@ -427,7 +427,7 @@ where
             .await?;
 
         let mut deposit = self.deposits.find_by_id(id).await?;
-        self.check_account_active(deposit.deposit_account_id)
+        self.check_account_status(deposit.deposit_account_id)
             .await?;
 
         if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert(audit_info) {
@@ -459,7 +459,7 @@ where
 
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
 
-        self.check_account_active(withdrawal.deposit_account_id)
+        self.check_account_status(withdrawal.deposit_account_id)
             .await?;
 
         if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) =
@@ -493,7 +493,7 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
-        self.check_account_active(withdrawal.deposit_account_id)
+        self.check_account_status(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.confirm(audit_info)?;
@@ -531,7 +531,7 @@ where
             )
             .await?;
         let mut withdrawal = self.withdrawals.find_by_id(id).await?;
-        self.check_account_active(withdrawal.deposit_account_id)
+        self.check_account_status(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
         let tx_id = withdrawal.cancel(audit_info)?;
@@ -542,6 +542,33 @@ where
             .cancel_withdrawal(op, tx_id, withdrawal.amount, withdrawal.deposit_account_id)
             .await?;
         Ok(withdrawal)
+    }
+
+    #[instrument(name = "deposit.freeze_account", skip(self), err)]
+    pub async fn freeze_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<(), CoreDepositError> {
+        let account_id = account_id.into();
+        // let audit_info = self.authz.enforce_permission(sub, todo!(), todo!()).await?;
+
+        let mut op = self.deposit_accounts.begin_op().await?;
+
+        let account = self.deposit_accounts.find_by_id(account_id).await?;
+
+        let tx_id = account.freeze().await?;
+
+        self.deposit_accounts
+            .update_in_op(&mut op, &mut account)
+            .await?;
+
+        let _ = self
+            .ledger
+            .freeze_account_in_op(op, tx_id, account_id)
+            .await?;
+
+        Ok(())
     }
 
     #[instrument(name = "deposit.account_balance", skip(self), err)]
@@ -873,13 +900,14 @@ where
         Ok(config)
     }
 
-    async fn check_account_active(
+    async fn check_account_status(
         &self,
         deposit_account_id: DepositAccountId,
     ) -> Result<(), CoreDepositError> {
         let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
         match account.status {
             DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountNotActive),
+            DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountNotActive),
             DepositAccountStatus::Active => Ok(()),
         }
     }
