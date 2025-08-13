@@ -1601,7 +1601,6 @@ dependencies = [
  "jwks-utils",
  "lana-app",
  "serde",
- "serde_json",
  "thiserror 2.0.14",
  "tokio",
  "tower-http",
@@ -3128,7 +3127,7 @@ dependencies = [
  "keycloak",
  "reqwest",
  "serde",
- "thiserror 2.0.12",
+ "thiserror 2.0.14",
  "tokio",
  "uuid",
 ]
