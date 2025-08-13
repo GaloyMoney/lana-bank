@@ -282,3 +282,46 @@ wait_for_approval() {
   status=$(graphql_output '.data.withdrawalRevert.withdrawal.status')
   [[ "$status" == "REVERTED" ]] || exit 1
 }
+
+@test "customer: deposit account can be frozen" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId
+      }
+    }'
+  )
+  exec_admin_graphql 'deposit-account-freeze' "$variables"
+  echo $(graphql_output)
+
+  status=$(graphql_output '.data.depositAccountFreeze.account.status')
+  [[ "$status" == "FROZEN" ]] || exit 1
+
+  balance=$(graphql_output '.data.depositAccountFreeze.account.balance.settled')
+  [[ "$balance" == 0 ]] || exit 1
+}
+
+@test "customer: cannot withdraw from frozen account" {
+  deposit_account_id=$(read_value 'deposit_account_id')
+
+  variables=$(
+    jq -n \
+      --arg depositAccountId "$deposit_account_id" \
+    --arg date "$(date +%s%N)" \
+    '{
+      input: {
+        depositAccountId: $depositAccountId,
+        amount: 100,
+        reference: ("withdrawal-ref-" + $date)
+      }
+    }'
+  )
+  exec_admin_graphql 'initiate-withdrawal' "$variables"
+
+  errors=$(graphql_output '.errors')
+  [[ "$errors" =~ "DepositAccountFrozen" ]] || exit 1
+}

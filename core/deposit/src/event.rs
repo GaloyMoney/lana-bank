@@ -1,8 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use super::primitives::{
-    DepositAccountHolderId, DepositAccountId, DepositId, DepositStatus, WithdrawalId,
-};
+use super::primitives::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 use core_money::UsdCents;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -11,10 +9,6 @@ pub enum CoreDepositEvent {
     DepositAccountCreated {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
-    },
-    DepositStatusUpdated {
-        id: DepositId,
-        status: DepositStatus,
     },
     DepositInitialized {
         id: DepositId,
@@ -30,5 +24,9 @@ pub enum CoreDepositEvent {
         id: DepositId,
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
+    },
+    DepositAccountFrozen {
+        id: DepositAccountId,
+        account_holder_id: DepositAccountHolderId,
     },
 }

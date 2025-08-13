@@ -4,7 +4,7 @@ use crate::primitives::*;
 
 pub use lana_app::deposit::{
     DepositAccount as DomainDepositAccount, DepositAccountHistoryCursor,
-    DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry,
+    DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry, DepositAccountStatus,
 };
 
 use super::{customer::Customer, deposit::*, deposit_account_history::*, withdrawal::*};
@@ -16,6 +16,7 @@ pub struct DepositAccount {
     deposit_account_id: UUID,
     customer_id: UUID,
     created_at: Timestamp,
+    status: DepositAccountStatus,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainDepositAccount>,
@@ -28,6 +29,7 @@ impl From<DomainDepositAccount> for DepositAccount {
             deposit_account_id: account.id.into(),
             customer_id: account.account_holder_id.into(),
             created_at: account.created_at().into(),
+            status: account.status,
 
             entity: Arc::new(account),
         }

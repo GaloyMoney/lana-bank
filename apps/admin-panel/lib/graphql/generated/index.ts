@@ -984,6 +984,7 @@ export type DepositAccount = {
   history: DepositAccountHistoryEntryConnection;
   id: Scalars['ID']['output'];
   publicId: Scalars['PublicId']['output'];
+  status: DepositAccountStatus;
   withdrawals: Array<Withdrawal>;
 };
 
@@ -997,6 +998,15 @@ export type DepositAccountBalance = {
   __typename?: 'DepositAccountBalance';
   pending: Scalars['UsdCents']['output'];
   settled: Scalars['UsdCents']['output'];
+};
+
+export type DepositAccountFreezeInput = {
+  depositAccountId: Scalars['UUID']['input'];
+};
+
+export type DepositAccountFreezePayload = {
+  __typename?: 'DepositAccountFreezePayload';
+  account: DepositAccount;
 };
 
 export type DepositAccountHistoryEntry = CancelledWithdrawalEntry | DepositEntry | DisbursalEntry | PaymentEntry | UnknownEntry | WithdrawalEntry;
@@ -1019,6 +1029,12 @@ export type DepositAccountHistoryEntryEdge = {
   /** The item at the end of the edge */
   node: DepositAccountHistoryEntry;
 };
+
+export enum DepositAccountStatus {
+  Active = 'ACTIVE',
+  Frozen = 'FROZEN',
+  Inactive = 'INACTIVE'
+}
 
 export type DepositConnection = {
   __typename?: 'DepositConnection';
@@ -1404,6 +1420,7 @@ export type Mutation = {
   customerDocumentDownloadLinkGenerate: CustomerDocumentDownloadLinksGeneratePayload;
   customerEmailUpdate: CustomerEmailUpdatePayload;
   customerTelegramIdUpdate: CustomerTelegramIdUpdatePayload;
+  depositAccountFreeze: DepositAccountFreezePayload;
   depositModuleConfigure: DepositModuleConfigurePayload;
   depositRecord: DepositRecordPayload;
   depositRevert: DepositRevertPayload;
@@ -1553,6 +1570,11 @@ export type MutationCustomerEmailUpdateArgs = {
 
 export type MutationCustomerTelegramIdUpdateArgs = {
   input: CustomerTelegramIdUpdateInput;
+};
+
+
+export type MutationDepositAccountFreezeArgs = {
+  input: DepositAccountFreezeInput;
 };
 
 

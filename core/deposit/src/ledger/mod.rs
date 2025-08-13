@@ -16,7 +16,8 @@ use cala_ledger::{
 };
 
 use crate::{
-    DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds, WithdrawalReversalData,
+    DepositAccount, DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds,
+    WithdrawalReversalData,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
     primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
 };
@@ -40,6 +41,28 @@ pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
     "Deposit Non-Domiciled Company Account Set";
 pub const DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
     "deposit-non-domiciled-company-account-set";
+
+pub const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
+    "Frozen Deposit Individual Account Set";
+pub const FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF: &str = "frozen-deposit-individual-account-set";
+pub const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME: &str =
+    "Frozen Deposit Government Entity Account Set";
+pub const FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF: &str =
+    "frozen-deposit-government-entity-account-set";
+pub const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME: &str =
+    "Frozen Deposit Private Company Account Set";
+pub const FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF: &str =
+    "frozen-deposit-private-company-account-set";
+pub const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_NAME: &str = "Frozen Deposit Bank Account Set";
+pub const FROZEN_DEPOSIT_BANK_ACCOUNT_SET_REF: &str = "frozen-deposit-bank-account-set";
+pub const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME: &str =
+    "Frozen Deposit Financial Institution Account Set";
+pub const FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF: &str =
+    "frozen-deposit-financial-institution-account-set";
+pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME: &str =
+    "Frozen Deposit Non-Domiciled Company Account Set";
+pub const FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF: &str =
+    "frozen-deposit-non-domiciled-company-account-set";
 
 pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_NAME: &str = "Deposit Omnibus Account Set";
 pub const DEPOSIT_OMNIBUS_ACCOUNT_SET_REF: &str = "deposit-omnibus-account-set";
@@ -85,7 +108,8 @@ impl DepositAccountSets {
 pub struct DepositLedger {
     cala: CalaLedger,
     journal_id: JournalId,
-    deposits_account_set: DepositAccountSets,
+    deposit_account_sets: DepositAccountSets,
+    frozen_deposit_account_sets: DepositAccountSets,
     deposit_omnibus_account_ids: LedgerOmnibusAccountIds,
     usd: Currency,
     deposit_control_id: VelocityControlId,
@@ -102,6 +126,7 @@ impl DepositLedger {
         templates::ConfirmWithdraw::init(cala).await?;
         templates::RevertWithdraw::init(cala).await?;
         templates::RevertDeposit::init(cala).await?;
+        templates::FreezeAccount::init(cala).await?;
 
         let deposits_normal_balance_type = DebitOrCredit::Credit;
 
@@ -159,6 +184,60 @@ impl DepositLedger {
         )
         .await?;
 
+        let frozen_individual_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_REF}"),
+            FROZEN_DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let frozen_government_entity_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_REF}"),
+            FROZEN_DEPOSIT_GOVERNMENT_ENTITY_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let frozen_private_company_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_REF}"),
+            FROZEN_DEPOSIT_PRIVATE_COMPANY_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let frozen_bank_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{FROZEN_DEPOSIT_BANK_ACCOUNT_SET_REF}"),
+            FROZEN_DEPOSIT_BANK_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let frozen_financial_institution_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_REF}"),
+            FROZEN_DEPOSIT_FINANCIAL_INSTITUTION_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
+        let frozen_non_domiciled_company_deposit_account_set_id = Self::find_or_create_account_set(
+            cala,
+            journal_id,
+            format!("{journal_id}:{FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_REF}"),
+            FROZEN_DEPOSIT_NON_DOMICILED_INDIVIDUAL_ACCOUNT_SET_NAME.to_string(),
+            deposits_normal_balance_type,
+        )
+        .await?;
+
         let deposit_omnibus_account_ids = Self::find_or_create_omnibus_account(
             cala,
             journal_id,
@@ -185,7 +264,7 @@ impl DepositLedger {
         Ok(Self {
             cala: cala.clone(),
             journal_id,
-            deposits_account_set: DepositAccountSets {
+            deposit_account_sets: DepositAccountSets {
                 individual: InternalAccountSetDetails {
                     id: individual_deposit_account_set_id,
                     normal_balance_type: deposits_normal_balance_type,
@@ -208,6 +287,32 @@ impl DepositLedger {
                 },
                 non_domiciled_individual: InternalAccountSetDetails {
                     id: non_domiciled_company_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+            },
+            frozen_deposit_account_sets: DepositAccountSets {
+                individual: InternalAccountSetDetails {
+                    id: frozen_individual_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                government_entity: InternalAccountSetDetails {
+                    id: frozen_government_entity_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                private_company: InternalAccountSetDetails {
+                    id: frozen_private_company_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                bank: InternalAccountSetDetails {
+                    id: frozen_bank_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                financial_institution: InternalAccountSetDetails {
+                    id: frozen_financial_institution_deposit_account_set_id,
+                    normal_balance_type: deposits_normal_balance_type,
+                },
+                non_domiciled_individual: InternalAccountSetDetails {
+                    id: frozen_non_domiciled_company_deposit_account_set_id,
                     normal_balance_type: deposits_normal_balance_type,
                 },
             },
@@ -484,6 +589,39 @@ impl DepositLedger {
         Ok(())
     }
 
+    pub async fn freeze_account_in_op(
+        &self,
+        op: es_entity::DbOp<'_>,
+        account: &DepositAccount,
+    ) -> Result<(), DepositLedgerError> {
+        let balance = self.balance(account.id).await?;
+
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+
+        let params = templates::FreezeAccountParams {
+            journal_id: self.journal_id,
+            account_id: account.ledger_account_id,
+            frozen_accounts_account_id: account.frozen_deposit_account_id,
+            amount: balance.settled.to_usd(),
+            currency: self.usd,
+        };
+
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                TransactionId::new(),
+                templates::FREEZE_ACCOUNT_CODE,
+                params,
+            )
+            .await?;
+
+        op.commit().await?;
+
+        Ok(())
+    }
+
     pub async fn confirm_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
@@ -563,31 +701,43 @@ impl DepositLedger {
         }
     }
 
-    pub async fn create_deposit_account(
+    pub async fn create_deposit_accounts(
         &self,
         op: es_entity::DbOp<'_>,
-        id: impl Into<CalaAccountId>,
-        deposit_account_reference: String,
-        deposit_account_name: String,
+        account: &DepositAccount,
         deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<(), DepositLedgerError> {
-        let id = id.into();
+        let holder_id = account.account_holder_id;
+        let deposit_account_type = deposit_account_type.into();
 
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
+        let deposit_account_name = format!("Deposit Account {holder_id}");
         self.create_account_in_op(
             &mut op,
-            id,
-            self.deposit_internal_account_set_from_type(deposit_account_type.into()),
-            &deposit_account_reference,
+            account.id,
+            self.deposit_internal_account_set_from_type(deposit_account_type),
+            &format!("deposit-customer-account:{holder_id}"),
             &deposit_account_name,
             &deposit_account_name,
         )
         .await?;
 
-        self.add_deposit_control_to_account(&mut op, id).await?;
+        self.add_deposit_control_to_account(&mut op, account.id)
+            .await?;
+
+        let frozen_deposit_account_name = format!("Frozen Deposit Account {holder_id}");
+        self.create_account_in_op(
+            &mut op,
+            account.frozen_deposit_account_id,
+            self.frozen_deposit_internal_account_set_from_type(deposit_account_type),
+            &format!("frozen-deposit-customer-account:{holder_id}"),
+            &frozen_deposit_account_name,
+            &frozen_deposit_account_name,
+        )
+        .await?;
 
         op.commit().await?;
 
@@ -599,15 +749,35 @@ impl DepositLedger {
         deposit_account_type: DepositAccountType,
     ) -> InternalAccountSetDetails {
         match deposit_account_type {
-            DepositAccountType::Individual => self.deposits_account_set.individual,
-            DepositAccountType::GovernmentEntity => self.deposits_account_set.government_entity,
-            DepositAccountType::PrivateCompany => self.deposits_account_set.private_company,
-            DepositAccountType::Bank => self.deposits_account_set.bank,
+            DepositAccountType::Individual => self.deposit_account_sets.individual,
+            DepositAccountType::GovernmentEntity => self.deposit_account_sets.government_entity,
+            DepositAccountType::PrivateCompany => self.deposit_account_sets.private_company,
+            DepositAccountType::Bank => self.deposit_account_sets.bank,
             DepositAccountType::FinancialInstitution => {
-                self.deposits_account_set.financial_institution
+                self.deposit_account_sets.financial_institution
             }
             DepositAccountType::NonDomiciledCompany => {
-                self.deposits_account_set.non_domiciled_individual
+                self.deposit_account_sets.non_domiciled_individual
+            }
+        }
+    }
+
+    fn frozen_deposit_internal_account_set_from_type(
+        &self,
+        deposit_account_type: DepositAccountType,
+    ) -> InternalAccountSetDetails {
+        match deposit_account_type {
+            DepositAccountType::Individual => self.frozen_deposit_account_sets.individual,
+            DepositAccountType::GovernmentEntity => {
+                self.frozen_deposit_account_sets.government_entity
+            }
+            DepositAccountType::PrivateCompany => self.frozen_deposit_account_sets.private_company,
+            DepositAccountType::Bank => self.frozen_deposit_account_sets.bank,
+            DepositAccountType::FinancialInstitution => {
+                self.frozen_deposit_account_sets.financial_institution
+            }
+            DepositAccountType::NonDomiciledCompany => {
+                self.frozen_deposit_account_sets.non_domiciled_individual
             }
         }
     }
@@ -688,7 +858,7 @@ impl DepositLedger {
         let account_set = self
             .cala
             .account_sets()
-            .find(self.deposits_account_set.account_set_id_for_config())
+            .find(self.deposit_account_sets.account_set_id_for_config())
             .await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
             let meta: ChartOfAccountsIntegrationMeta =
@@ -751,7 +921,9 @@ impl DepositLedger {
         let mut op = self.cala.begin_operation().await?;
 
         let mut account_set_ids = vec![self.deposit_omnibus_account_ids.account_set_id];
-        account_set_ids.extend(self.deposits_account_set.account_set_ids());
+        account_set_ids.extend(self.deposit_account_sets.account_set_ids());
+        account_set_ids.extend(self.frozen_deposit_account_sets.account_set_ids());
+
         let mut account_sets = self
             .cala
             .account_sets()
@@ -762,17 +934,18 @@ impl DepositLedger {
             config: _,
             audit_info: _,
             omnibus_parent_account_set_id,
-            individual_deposit_accounts_parent_account_set_id:
-                individual_deposit_parent_account_set_id,
-            government_entity_deposit_accounts_parent_account_set_id:
-                government_entity_deposit_parent_account_set_id,
-            private_company_deposit_accounts_parent_account_set_id:
-                private_company_deposit_parent_account_set_id,
-            bank_deposit_accounts_parent_account_set_id: bank_deposit_parent_account_set_id,
-            financial_institution_deposit_accounts_parent_account_set_id:
-                financial_institution_deposit_parent_account_set_id,
-            non_domiciled_individual_deposit_accounts_parent_account_set_id:
-                non_domiciled_company_deposit_parent_account_set_id,
+            individual_deposit_accounts_parent_account_set_id,
+            government_entity_deposit_accounts_parent_account_set_id,
+            private_company_deposit_accounts_parent_account_set_id,
+            bank_deposit_accounts_parent_account_set_id,
+            financial_institution_deposit_accounts_parent_account_set_id,
+            non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            frozen_individual_deposit_accounts_parent_account_set_id,
+            frozen_government_entity_deposit_accounts_parent_account_set_id,
+            frozen_private_company_deposit_accounts_parent_account_set_id,
+            frozen_bank_deposit_accounts_parent_account_set_id,
+            frozen_financial_institution_deposit_accounts_parent_account_set_id,
+            frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
         } = &charts_integration_meta;
 
         self.attach_charts_account_set(
@@ -788,8 +961,8 @@ impl DepositLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.deposits_account_set.individual.id,
-            *individual_deposit_parent_account_set_id,
+            self.deposit_account_sets.individual.id,
+            *individual_deposit_accounts_parent_account_set_id,
             &charts_integration_meta,
             |meta| meta.individual_deposit_accounts_parent_account_set_id,
         )
@@ -798,8 +971,8 @@ impl DepositLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.deposits_account_set.government_entity.id,
-            *government_entity_deposit_parent_account_set_id,
+            self.deposit_account_sets.government_entity.id,
+            *government_entity_deposit_accounts_parent_account_set_id,
             &charts_integration_meta,
             |meta| meta.government_entity_deposit_accounts_parent_account_set_id,
         )
@@ -808,8 +981,8 @@ impl DepositLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.deposits_account_set.private_company.id,
-            *private_company_deposit_parent_account_set_id,
+            self.deposit_account_sets.private_company.id,
+            *private_company_deposit_accounts_parent_account_set_id,
             &charts_integration_meta,
             |meta| meta.private_company_deposit_accounts_parent_account_set_id,
         )
@@ -818,8 +991,8 @@ impl DepositLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.deposits_account_set.bank.id,
-            *bank_deposit_parent_account_set_id,
+            self.deposit_account_sets.bank.id,
+            *bank_deposit_accounts_parent_account_set_id,
             &charts_integration_meta,
             |meta| meta.bank_deposit_accounts_parent_account_set_id,
         )
@@ -828,8 +1001,8 @@ impl DepositLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.deposits_account_set.financial_institution.id,
-            *financial_institution_deposit_parent_account_set_id,
+            self.deposit_account_sets.financial_institution.id,
+            *financial_institution_deposit_accounts_parent_account_set_id,
             &charts_integration_meta,
             |meta| meta.financial_institution_deposit_accounts_parent_account_set_id,
         )
@@ -838,10 +1011,70 @@ impl DepositLedger {
         self.attach_charts_account_set(
             &mut op,
             &mut account_sets,
-            self.deposits_account_set.non_domiciled_individual.id,
-            *non_domiciled_company_deposit_parent_account_set_id,
+            self.deposit_account_sets.non_domiciled_individual.id,
+            *non_domiciled_individual_deposit_accounts_parent_account_set_id,
             &charts_integration_meta,
             |meta| meta.non_domiciled_individual_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.frozen_deposit_account_sets.individual.id,
+            *frozen_individual_deposit_accounts_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.frozen_individual_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.frozen_deposit_account_sets.government_entity.id,
+            *frozen_government_entity_deposit_accounts_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.frozen_government_entity_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.frozen_deposit_account_sets.private_company.id,
+            *frozen_private_company_deposit_accounts_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.frozen_private_company_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.frozen_deposit_account_sets.bank.id,
+            *frozen_bank_deposit_accounts_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.frozen_bank_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.frozen_deposit_account_sets.financial_institution.id,
+            *frozen_financial_institution_deposit_accounts_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.frozen_financial_institution_deposit_accounts_parent_account_set_id,
+        )
+        .await?;
+
+        self.attach_charts_account_set(
+            &mut op,
+            &mut account_sets,
+            self.frozen_deposit_account_sets.non_domiciled_individual.id,
+            *frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            &charts_integration_meta,
+            |meta| meta.frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
         )
         .await?;
 
@@ -864,4 +1097,11 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
     pub financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
     pub non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+
+    pub frozen_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub frozen_government_entity_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub frozen_private_company_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub frozen_bank_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub frozen_financial_institution_deposit_accounts_parent_account_set_id: CalaAccountSetId,
+    pub frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id: CalaAccountSetId,
 }

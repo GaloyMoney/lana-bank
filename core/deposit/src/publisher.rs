@@ -2,6 +2,7 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use super::event::CoreDepositEvent;
 use crate::{
+    DepositAccountStatus,
     account::{DepositAccount, DepositAccountEvent, error::DepositAccountError},
     deposit::{Deposit, DepositEvent, error::DepositError},
     withdrawal::{Withdrawal, WithdrawalEvent, error::WithdrawalError},
@@ -45,6 +46,13 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => Some(CoreDepositEvent::DepositAccountCreated {
+                    id: entity.id,
+                    account_holder_id: entity.account_holder_id,
+                }),
+                AccountStatusUpdated {
+                    status: DepositAccountStatus::Frozen,
+                    ..
+                } => Some(CoreDepositEvent::DepositAccountFrozen {
                     id: entity.id,
                     account_holder_id: entity.account_holder_id,
                 }),

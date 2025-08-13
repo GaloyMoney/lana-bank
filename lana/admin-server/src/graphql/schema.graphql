@@ -960,6 +960,7 @@ type DepositAccount {
 	depositAccountId: UUID!
 	customerId: UUID!
 	createdAt: Timestamp!
+	status: DepositAccountStatus!
 	publicId: PublicId!
 	deposits: [Deposit!]!
 	withdrawals: [Withdrawal!]!
@@ -971,6 +972,14 @@ type DepositAccount {
 type DepositAccountBalance {
 	settled: UsdCents!
 	pending: UsdCents!
+}
+
+input DepositAccountFreezeInput {
+	depositAccountId: UUID!
+}
+
+type DepositAccountFreezePayload {
+	account: DepositAccount!
 }
 
 union DepositAccountHistoryEntry = DepositEntry | WithdrawalEntry | CancelledWithdrawalEntry | DisbursalEntry | PaymentEntry | UnknownEntry
@@ -1002,6 +1011,12 @@ type DepositAccountHistoryEntryEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum DepositAccountStatus {
+	INACTIVE
+	ACTIVE
+	FROZEN
 }
 
 type DepositConnection {
@@ -1386,6 +1401,7 @@ type Mutation {
 	withdrawalCancel(input: WithdrawalCancelInput!): WithdrawalCancelPayload!
 	withdrawalRevert(input: WithdrawalRevertInput!): WithdrawalRevertPayload!
 	depositRevert(input: DepositRevertInput!): DepositRevertPayload!
+	depositAccountFreeze(input: DepositAccountFreezeInput!): DepositAccountFreezePayload!
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!

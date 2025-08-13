@@ -56,6 +56,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         4,Bank Deposit Accounts
         5,Financial Institution Deposit Accounts
         6,Non Domiciled Individual Deposit Accounts
+        8,Frozen Deposit Accounts
         "#
     .to_string();
     let chart_id = chart.id;
@@ -90,6 +91,22 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code(
                     "6".parse().unwrap(),
                 )
+                .chart_of_accounts_frozen_individual_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_account_frozen_private_company_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_account_frozen_bank_deposit_accounts_parent_code("8".parse().unwrap())
+                .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
                 .build()
                 .unwrap(),
         )
@@ -116,6 +133,7 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
         4,Other Bank Deposit Accounts
         5,Other Financial Institution Deposit Accounts
         6,Other Non Domiciled Individual Deposit Accounts
+        8,Other Frozen Deposit Accounts
         "#
     .to_string();
     let chart_id = chart.id;
@@ -142,6 +160,22 @@ async fn chart_of_accounts_integration() -> anyhow::Result<()> {
                 )
                 .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code(
                     "6".parse().unwrap(),
+                )
+                .chart_of_accounts_frozen_individual_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_account_frozen_private_company_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_account_frozen_bank_deposit_accounts_parent_code("8".parse().unwrap())
+                .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
+                )
+                .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code(
+                    "8".parse().unwrap(),
                 )
                 .build()
                 .unwrap(),

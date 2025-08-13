@@ -6,11 +6,9 @@ CREATE TABLE core_deposit_account_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_holder_id UUID,
-  description VARCHAR,
+  frozen_deposit_account_id UUID,
   ledger_account_id UUID,
-  name VARCHAR,
   public_id VARCHAR,
-  reference VARCHAR,
   status VARCHAR,
 
   -- Collection rollups
@@ -56,21 +54,17 @@ BEGIN
        ELSE ARRAY[]::BIGINT[]
      END
 ;
-    new_row.description := (NEW.event ->> 'description');
+    new_row.frozen_deposit_account_id := (NEW.event ->> 'frozen_deposit_account_id')::UUID;
     new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
-    new_row.name := (NEW.event ->> 'name');
     new_row.public_id := (NEW.event ->> 'public_id');
-    new_row.reference := (NEW.event ->> 'reference');
     new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
     new_row.account_holder_id := current_row.account_holder_id;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
-    new_row.description := current_row.description;
+    new_row.frozen_deposit_account_id := current_row.frozen_deposit_account_id;
     new_row.ledger_account_id := current_row.ledger_account_id;
-    new_row.name := current_row.name;
     new_row.public_id := current_row.public_id;
-    new_row.reference := current_row.reference;
     new_row.status := current_row.status;
   END IF;
 
@@ -79,11 +73,9 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.description := (NEW.event ->> 'description');
+      new_row.frozen_deposit_account_id := (NEW.event ->> 'frozen_deposit_account_id')::UUID;
       new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
-      new_row.name := (NEW.event ->> 'name');
       new_row.public_id := (NEW.event ->> 'public_id');
-      new_row.reference := (NEW.event ->> 'reference');
       new_row.status := (NEW.event ->> 'status');
     WHEN 'account_status_updated' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
@@ -97,11 +89,9 @@ BEGIN
     modified_at,
     account_holder_id,
     audit_entry_ids,
-    description,
+    frozen_deposit_account_id,
     ledger_account_id,
-    name,
     public_id,
-    reference,
     status
   )
   VALUES (
@@ -111,11 +101,9 @@ BEGIN
     new_row.modified_at,
     new_row.account_holder_id,
     new_row.audit_entry_ids,
-    new_row.description,
+    new_row.frozen_deposit_account_id,
     new_row.ledger_account_id,
-    new_row.name,
     new_row.public_id,
-    new_row.reference,
     new_row.status
   );
 

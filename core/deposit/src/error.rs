@@ -34,8 +34,10 @@ pub enum CoreDepositError {
     ChartIdMismatch,
     #[error("CoreDepositError - DepositConfigAlreadyExists")]
     DepositConfigAlreadyExists,
-    #[error("CoreDepositError - DepositAccountNotActive")]
-    DepositAccountNotActive,
+    #[error("CoreDepositError - DepositAccountInactive")]
+    DepositAccountInactive,
+    #[error("CoreDepositError - DepositAccountFrozen")]
+    DepositAccountFrozen,
     #[error("CoreDepositError - WithdrawalBuilderError: {0}")]
     WithdrawalBuilderError(#[from] super::NewWithdrawalBuilderError),
     #[error("CoreDepositError - DepositBuilderError: {0}")]

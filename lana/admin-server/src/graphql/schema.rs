@@ -1265,6 +1265,20 @@ impl Mutation {
         )
     }
 
+    pub async fn deposit_account_freeze(
+        &self,
+        ctx: &Context<'_>,
+        input: DepositAccountFreezeInput,
+    ) -> async_graphql::Result<DepositAccountFreezePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            DepositAccountFreezePayload,
+            DepositAccount,
+            ctx,
+            app.deposits().freeze_account(sub, input.deposit_account_id)
+        )
+    }
+
     async fn terms_template_create(
         &self,
         ctx: &Context<'_>,

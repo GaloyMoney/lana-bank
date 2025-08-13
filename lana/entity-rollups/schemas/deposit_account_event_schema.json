@@ -22,7 +22,8 @@
     "DepositAccountStatus": {
       "enum": [
         "inactive",
-        "active"
+        "active",
+        "frozen"
       ],
       "type": "string"
     }
@@ -38,7 +39,8 @@
         "audit_info": {
           "$ref": "#/$defs/AuditInfo"
         },
-        "description": {
+        "frozen_deposit_account_id": {
+          "format": "uuid",
           "type": "string"
         },
         "id": {
@@ -49,13 +51,7 @@
           "format": "uuid",
           "type": "string"
         },
-        "name": {
-          "type": "string"
-        },
         "public_id": {
-          "type": "string"
-        },
-        "reference": {
           "type": "string"
         },
         "status": {
@@ -71,9 +67,7 @@
         "id",
         "account_holder_id",
         "ledger_account_id",
-        "reference",
-        "name",
-        "description",
+        "frozen_deposit_account_id",
         "status",
         "public_id",
         "audit_info"

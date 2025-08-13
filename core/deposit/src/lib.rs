@@ -175,14 +175,10 @@ where
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        holder_id: impl Into<DepositAccountHolderId> + std::fmt::Debug,
+        holder_id: impl Into<DepositAccountHolderId> + Copy + std::fmt::Debug,
         active: bool,
         deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<DepositAccount, CoreDepositError> {
-        let holder_id = holder_id.into();
-
-        let name = &format!("Deposit Account {holder_id}");
-        let reference = &format!("deposit-customer-account:{holder_id}");
         let audit_info = self
             .authz
             .enforce_permission(
@@ -204,9 +200,7 @@ where
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
-            .reference(reference.to_string())
-            .name(name.to_string())
-            .description(name.to_string())
+            .frozen_deposit_account_id(CalaAccountId::new())
             .active(active)
             .public_id(public_id.id)
             .audit_info(audit_info.clone())
@@ -219,13 +213,7 @@ where
             .await?;
 
         self.ledger
-            .create_deposit_account(
-                op,
-                account_id,
-                account.reference.to_string(),
-                account.name.to_string(),
-                deposit_account_type,
-            )
+            .create_deposit_accounts(op, &account, deposit_account_type)
             .await?;
 
         Ok(account)
@@ -544,6 +532,37 @@ where
         Ok(withdrawal)
     }
 
+    #[instrument(name = "deposit.freeze_account", skip(self), err)]
+    pub async fn freeze_account(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        account_id: impl Into<DepositAccountId> + std::fmt::Debug,
+    ) -> Result<DepositAccount, CoreDepositError> {
+        let account_id = account_id.into();
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::deposit_account(account_id),
+                CoreDepositAction::DEPOSIT_ACCOUNT_FREEZE,
+            )
+            .await?;
+
+        let mut account = self.deposit_accounts.find_by_id(account_id).await?;
+
+        let mut op = self.deposit_accounts.begin_op().await?;
+
+        if account.freeze(audit_info).did_execute() {
+            self.deposit_accounts
+                .update_in_op(&mut op, &mut account)
+                .await?;
+        }
+
+        self.ledger.freeze_account_in_op(op, &account).await?;
+
+        Ok(account)
+    }
+
     #[instrument(name = "deposit.account_balance", skip(self), err)]
     pub async fn account_balance(
         &self,
@@ -842,6 +861,31 @@ where
                 &config.chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
             )?;
 
+        let frozen_individual_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
+            )?;
+        let frozen_government_entity_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
+            )?;
+        let frozen_private_company_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_frozen_private_company_deposit_accounts_parent_code,
+            )?;
+        let frozen_bank_deposit_accounts_parent_account_set_id = chart.account_set_id_from_code(
+            &config.chart_of_account_frozen_bank_deposit_accounts_parent_code,
+        )?;
+        let frozen_financial_institution_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config.chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
+            )?;
+        let frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id = chart
+            .account_set_id_from_code(
+                &config
+                    .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code,
+            )?;
+
         let omnibus_parent_account_set_id =
             chart.account_set_id_from_code(&config.chart_of_accounts_omnibus_parent_code)?;
 
@@ -864,6 +908,12 @@ where
             bank_deposit_accounts_parent_account_set_id,
             financial_institution_deposit_accounts_parent_account_set_id,
             non_domiciled_individual_deposit_accounts_parent_account_set_id,
+            frozen_individual_deposit_accounts_parent_account_set_id,
+            frozen_government_entity_deposit_accounts_parent_account_set_id,
+            frozen_private_company_deposit_accounts_parent_account_set_id,
+            frozen_bank_deposit_accounts_parent_account_set_id,
+            frozen_financial_institution_deposit_accounts_parent_account_set_id,
+            frozen_non_domiciled_individual_deposit_accounts_parent_account_set_id,
         };
 
         self.ledger
@@ -879,7 +929,8 @@ where
     ) -> Result<(), CoreDepositError> {
         let account = self.deposit_accounts.find_by_id(deposit_account_id).await?;
         match account.status {
-            DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountNotActive),
+            DepositAccountStatus::Inactive => Err(CoreDepositError::DepositAccountInactive),
+            DepositAccountStatus::Frozen => Err(CoreDepositError::DepositAccountFrozen),
             DepositAccountStatus::Active => Ok(()),
         }
     }
