@@ -1,7 +1,7 @@
 use async_graphql::*;
 use std::sync::Arc;
 
-use core_customer::{AccountStatus, Customer as DomainCustomer, CustomerType, KycLevel};
+use lana_app::customer::{AccountStatus, Customer as DomainCustomer, CustomerType, KycLevel};
 
 use crate::primitives::*;
 
