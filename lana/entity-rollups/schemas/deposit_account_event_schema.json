@@ -1,12 +1,5 @@
 {
   "$defs": {
-    "AccountStatus": {
-      "enum": [
-        "inactive",
-        "active"
-      ],
-      "type": "string"
-    },
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -25,6 +18,13 @@
         "audit_entry_id"
       ],
       "type": "object"
+    },
+    "DepositAccountStatus": {
+      "enum": [
+        "inactive",
+        "active"
+      ],
+      "type": "string"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
@@ -59,7 +59,7 @@
           "type": "string"
         },
         "status": {
-          "$ref": "#/$defs/AccountStatus"
+          "$ref": "#/$defs/DepositAccountStatus"
         },
         "type": {
           "const": "initialized",
@@ -86,7 +86,7 @@
           "$ref": "#/$defs/AuditInfo"
         },
         "status": {
-          "$ref": "#/$defs/AccountStatus"
+          "$ref": "#/$defs/DepositAccountStatus"
         },
         "type": {
           "const": "account_status_updated",

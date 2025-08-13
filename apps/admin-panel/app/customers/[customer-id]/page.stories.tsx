@@ -8,7 +8,7 @@ import CustomerTransactionsPage from "./page"
 import {
   GetCustomerTransactionHistoryDocument,
   GetCustomerBasicDetailsDocument,
-  AccountStatus,
+  CustomerStatus,
 } from "@/lib/graphql/generated"
 
 const meta = {
@@ -42,7 +42,7 @@ const layoutMocks = [
           customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
           email: "test@lana.com",
           telegramId: "test",
-          status: AccountStatus.Inactive,
+          status: CustomerStatus.Inactive,
           level: "NOT_KYCED",
           createdAt: "2024-11-25T06:23:56.549713Z",
         },

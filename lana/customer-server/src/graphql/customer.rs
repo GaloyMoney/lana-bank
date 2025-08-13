@@ -1,7 +1,7 @@
 use async_graphql::*;
 use std::sync::Arc;
 
-use lana_app::customer::{AccountStatus, Customer as DomainCustomer, CustomerType, KycLevel};
+use lana_app::customer::{Customer as DomainCustomer, CustomerStatus, CustomerType, KycLevel};
 
 use crate::primitives::*;
 
@@ -21,7 +21,7 @@ pub struct Customer {
     id: ID,
     customer_id: UUID,
     customer_type: CustomerType,
-    status: AccountStatus,
+    status: CustomerStatus,
     level: KycLevel,
     created_at: Timestamp,
 

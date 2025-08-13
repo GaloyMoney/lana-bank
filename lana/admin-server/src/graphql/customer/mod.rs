@@ -10,7 +10,7 @@ use super::{
 };
 
 pub use lana_app::customer::{
-    AccountStatus, Customer as DomainCustomer, CustomerType, CustomersCursor,
+    Customer as DomainCustomer, CustomerStatus, CustomerType, CustomersCursor,
     CustomersFilter as DomainCustomersFilter, CustomersSortBy as DomainCustomersSortBy, KycLevel,
     Sort,
 };
@@ -22,7 +22,7 @@ pub use error::*;
 pub struct Customer {
     id: ID,
     customer_id: UUID,
-    status: AccountStatus,
+    status: CustomerStatus,
     level: KycLevel,
     created_at: Timestamp,
     customer_type: CustomerType,
@@ -200,5 +200,5 @@ pub enum CustomersFilterBy {
 #[derive(InputObject)]
 pub struct CustomersFilter {
     pub field: CustomersFilterBy,
-    pub status: Option<AccountStatus>,
+    pub status: Option<CustomerStatus>,
 }

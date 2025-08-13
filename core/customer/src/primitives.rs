@@ -38,7 +38,7 @@ pub enum KycLevel {
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
-pub enum AccountStatus {
+pub enum CustomerStatus {
     #[default]
     Inactive,
     Active,
@@ -71,9 +71,9 @@ impl Display for CustomerType {
     }
 }
 
-impl AccountStatus {
+impl CustomerStatus {
     pub fn is_inactive(&self) -> bool {
-        matches!(self, AccountStatus::Inactive)
+        matches!(self, CustomerStatus::Inactive)
     }
 }
 

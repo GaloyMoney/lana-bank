@@ -31,7 +31,6 @@ es_entity::entity_id! {
     WithdrawalId => ApprovalProcessId
 }
 
-pub use core_customer::AccountStatus;
 pub use core_money::UsdCents;
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
@@ -343,6 +342,15 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreDepositAction {
     fn from(action: ChartOfAccountsIntegrationConfigAction) -> Self {
         CoreDepositAction::ChartOfAccountsIntegrationConfig(action)
     }
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "kebab-case")]
+pub enum DepositAccountStatus {
+    Inactive,
+    Active,
 }
 
 pub enum DepositAccountType {

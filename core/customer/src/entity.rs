@@ -36,7 +36,7 @@ pub enum CustomerEvent {
         audit_info: AuditInfo,
     },
     AccountStatusUpdated {
-        status: AccountStatus,
+        status: CustomerStatus,
         audit_info: AuditInfo,
     },
     TelegramIdUpdated {
@@ -56,7 +56,7 @@ pub struct Customer {
     pub email: String,
     pub telegram_id: String,
     #[builder(default)]
-    pub status: AccountStatus,
+    pub status: CustomerStatus,
     pub level: KycLevel,
     pub customer_type: CustomerType,
     #[builder(setter(strip_option, into), default)]
@@ -114,7 +114,7 @@ impl Customer {
         self.applicant_id = Some(applicant_id);
         self.level = KycLevel::Basic;
 
-        self.update_account_status(AccountStatus::Active, audit_info)
+        self.update_account_status(CustomerStatus::Active, audit_info)
     }
 
     pub fn decline_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) -> Idempotent<()> {
@@ -128,12 +128,12 @@ impl Customer {
             audit_info: audit_info.clone(),
         });
         self.level = KycLevel::NotKyced;
-        self.update_account_status(AccountStatus::Inactive, audit_info)
+        self.update_account_status(CustomerStatus::Inactive, audit_info)
     }
 
     fn update_account_status(
         &mut self,
-        status: AccountStatus,
+        status: CustomerStatus,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
@@ -238,7 +238,7 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(super) customer_type: CustomerType,
     #[builder(setter(skip), default)]
-    pub(super) status: AccountStatus,
+    pub(super) status: CustomerStatus,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     pub(super) audit_info: AuditInfo,

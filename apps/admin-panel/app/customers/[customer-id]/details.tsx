@@ -13,7 +13,7 @@ import UpdateEmailDialog from "./update-email"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
-  AccountStatus,
+  CustomerStatus,
   CustomerType,
   GetCustomerBasicDetailsQuery,
 } from "@/lib/graphql/generated"
@@ -85,9 +85,9 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
       label: t("labels.status"),
       value: (
         <Badge
-          variant={customer.status === AccountStatus.Active ? "success" : "secondary"}
+          variant={customer.status === CustomerStatus.Active ? "success" : "secondary"}
         >
-          {customer.status === AccountStatus.Active
+          {customer.status === CustomerStatus.Active
             ? t("status.active")
             : t("status.inactive")}
         </Badge>

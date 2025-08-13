@@ -38,11 +38,6 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
-export enum AccountStatus {
-  Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
-}
-
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -813,7 +808,7 @@ export type Customer = {
   id: Scalars['ID']['output'];
   level: KycLevel;
   publicId: Scalars['PublicId']['output'];
-  status: AccountStatus;
+  status: CustomerStatus;
   telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
   userCanCreateCreditFacility: Scalars['Boolean']['output'];
@@ -906,6 +901,11 @@ export type CustomerEmailUpdatePayload = {
   customer: Customer;
 };
 
+export enum CustomerStatus {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE'
+}
+
 export type CustomerTelegramIdUpdateInput = {
   customerId: Scalars['UUID']['input'];
   telegramId: Scalars['String']['input'];
@@ -928,7 +928,7 @@ export enum CustomerType {
 
 export type CustomersFilter = {
   field: CustomersFilterBy;
-  status?: InputMaybe<AccountStatus>;
+  status?: InputMaybe<CustomerStatus>;
 };
 
 export enum CustomersFilterBy {
@@ -2806,7 +2806,7 @@ export type GetKycStatusForCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetKycStatusForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } | null };
+export type GetKycStatusForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, status: CustomerStatus, level: KycLevel, applicantId?: string | null } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -2820,7 +2820,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: AccountStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: CustomerStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
 
 export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -2850,7 +2850,7 @@ export type CustomerCreateMutationVariables = Exact<{
 }>;
 
 
-export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string, status: AccountStatus, level: KycLevel, applicantId?: string | null } } };
+export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string, status: CustomerStatus, level: KycLevel, applicantId?: string | null } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2860,7 +2860,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: AccountStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 

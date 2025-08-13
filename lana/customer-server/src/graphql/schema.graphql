@@ -1,8 +1,3 @@
-enum AccountStatus {
-	INACTIVE
-	ACTIVE
-}
-
 scalar AnnualRatePct
 
 scalar CVLPct
@@ -162,13 +157,18 @@ type Customer {
 	id: ID!
 	customerId: UUID!
 	customerType: CustomerType!
-	status: AccountStatus!
+	status: CustomerStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
 	telegramId: String!
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
+}
+
+enum CustomerStatus {
+	INACTIVE
+	ACTIVE
 }
 
 enum CustomerType {

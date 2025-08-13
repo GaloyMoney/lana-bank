@@ -1,12 +1,5 @@
 {
   "$defs": {
-    "AccountStatus": {
-      "enum": [
-        "inactive",
-        "active"
-      ],
-      "type": "string"
-    },
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -25,6 +18,13 @@
         "audit_entry_id"
       ],
       "type": "object"
+    },
+    "CustomerStatus": {
+      "enum": [
+        "inactive",
+        "active"
+      ],
+      "type": "string"
     },
     "CustomerType": {
       "enum": [
@@ -156,7 +156,7 @@
           "$ref": "#/$defs/AuditInfo"
         },
         "status": {
-          "$ref": "#/$defs/AccountStatus"
+          "$ref": "#/$defs/CustomerStatus"
         },
         "type": {
           "const": "account_status_updated",

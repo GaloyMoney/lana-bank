@@ -21,12 +21,12 @@ pub enum DepositAccountEvent {
         reference: String,
         name: String,
         description: String,
-        status: AccountStatus,
+        status: DepositAccountStatus,
         public_id: PublicId,
         audit_info: AuditInfo,
     },
     AccountStatusUpdated {
-        status: AccountStatus,
+        status: DepositAccountStatus,
         audit_info: AuditInfo,
     },
 }
@@ -39,7 +39,7 @@ pub struct DepositAccount {
     pub reference: String,
     pub name: String,
     pub description: String,
-    pub status: AccountStatus,
+    pub status: DepositAccountStatus,
     pub public_id: PublicId,
 
     events: EntityEvents<DepositAccountEvent>,
@@ -52,9 +52,9 @@ impl DepositAccount {
             .expect("Deposit Account has never been persisted")
     }
 
-    pub fn update_account_status(
+    pub fn update_status(
         &mut self,
-        status: AccountStatus,
+        status: DepositAccountStatus,
         audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
@@ -134,9 +134,9 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                 name: self.name,
                 description: self.description,
                 status: if self.active {
-                    AccountStatus::Active
+                    DepositAccountStatus::Active
                 } else {
-                    AccountStatus::Inactive
+                    DepositAccountStatus::Inactive
                 },
                 public_id: self.public_id,
                 audit_info: self.audit_info,
