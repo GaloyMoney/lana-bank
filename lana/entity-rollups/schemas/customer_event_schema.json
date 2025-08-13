@@ -159,7 +159,7 @@
           "$ref": "#/$defs/CustomerStatus"
         },
         "type": {
-          "const": "account_status_updated",
+          "const": "status_updated",
           "type": "string"
         }
       },

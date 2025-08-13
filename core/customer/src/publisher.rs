@@ -44,7 +44,7 @@ where
                     email: entity.email.clone(),
                     customer_type: entity.customer_type,
                 }),
-                AccountStatusUpdated { status, .. } => {
+                StatusUpdated { status, .. } => {
                     Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
                         id: entity.id,
                         status: *status,

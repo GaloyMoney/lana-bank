@@ -35,7 +35,7 @@ pub enum CustomerEvent {
         applicant_id: String,
         audit_info: AuditInfo,
     },
-    AccountStatusUpdated {
+    StatusUpdated {
         status: CustomerStatus,
         audit_info: AuditInfo,
     },
@@ -138,10 +138,10 @@ impl Customer {
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status
+            CustomerEvent::StatusUpdated { status: existing_status, .. } if existing_status == &status
         );
         self.events
-            .push(CustomerEvent::AccountStatusUpdated { status, audit_info });
+            .push(CustomerEvent::StatusUpdated { status, audit_info });
         self.status = status;
         Idempotent::Executed(())
     }
@@ -211,7 +211,7 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::KycDeclined { applicant_id, .. } => {
                     builder = builder.applicant_id(applicant_id.clone())
                 }
-                CustomerEvent::AccountStatusUpdated { status, .. } => {
+                CustomerEvent::StatusUpdated { status, .. } => {
                     builder = builder.status(*status);
                 }
                 CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
