@@ -9,7 +9,7 @@ use outbox::OutboxEventMarker;
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligations, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct ObligationDefaultedJobConfig<Perms, E> {
+pub(crate) struct ObligationDefaultedJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
@@ -23,7 +23,7 @@ where
 {
     type Initializer = ObligationDefaultedInit<Perms, E>;
 }
-pub struct ObligationDefaultedInit<Perms, E>
+pub(crate) struct ObligationDefaultedInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,

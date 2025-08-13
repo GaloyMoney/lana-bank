@@ -11,7 +11,7 @@ use crate::{event::CoreReportEvent, report_run::*};
 use airflow::Airflow;
 
 #[derive(Debug, Serialize, Deserialize)]
-pub struct TriggerReportRunJobConfig<E>
+pub(crate) struct TriggerReportRunJobConfig<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {

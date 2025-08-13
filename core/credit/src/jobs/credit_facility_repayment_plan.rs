@@ -151,7 +151,7 @@ where
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct RepaymentPlanProjectionConfig<E> {
+pub(crate) struct RepaymentPlanProjectionConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
 }
 impl<E> JobConfig for RepaymentPlanProjectionConfig<E>

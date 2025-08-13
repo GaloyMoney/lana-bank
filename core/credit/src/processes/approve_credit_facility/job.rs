@@ -12,7 +12,7 @@ use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 use super::ApproveCreditFacility;
 
 #[derive(serde::Serialize)]
-pub struct CreditFacilityApprovalJobConfig<Perms, E> {
+pub(crate) struct CreditFacilityApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> CreditFacilityApprovalJobConfig<Perms, E> {
@@ -41,7 +41,7 @@ where
     type Initializer = CreditFacilityApprovalInit<Perms, E>;
 }
 
-pub struct CreditFacilityApprovalInit<Perms, E>
+pub(crate) struct CreditFacilityApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:

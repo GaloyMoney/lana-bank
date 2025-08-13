@@ -27,7 +27,7 @@ mod terms;
 mod terms_template;
 mod withdrawal;
 #[macro_use]
-pub mod macros;
+pub(crate) mod macros;
 mod access;
 mod policy;
 mod schema;

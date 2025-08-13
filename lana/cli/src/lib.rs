@@ -2,7 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod build_info;
-pub mod config;
+pub(crate) mod config;
 mod db;
 
 use anyhow::Context;
