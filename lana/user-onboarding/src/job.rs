@@ -1,10 +1,11 @@
 use async_trait::async_trait;
 use core_access::CoreAccessEvent;
 use futures::StreamExt;
+use tracing::instrument;
 
 use job::*;
 
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use keycloak_client::KeycloakClient;
 
@@ -99,12 +100,8 @@ where
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
         while let Some(message) = stream.next().await {
-            if let Some(CoreAccessEvent::UserCreated { id, email, .. }) =
-                &message.as_ref().as_event()
-            {
-                self.keycloak_client
-                    .create_user(email.clone(), id.into())
-                    .await?;
+            if let Some(CoreAccessEvent::UserCreated { .. }) = &message.as_ref().as_event() {
+                self.handle_create_user(message.as_ref()).await?;
             }
 
             state.sequence = message.sequence;
@@ -112,5 +109,27 @@ where
         }
 
         Ok(JobCompletion::RescheduleNow)
+    }
+}
+
+impl<E> UserOnboardingJobRunner<E>
+where
+    E: OutboxEventMarker<CoreAccessEvent>,
+{
+    #[instrument(name = "user_onboarding.create_keycloak_user", skip(self, message))]
+    async fn handle_create_user(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>>
+    where
+        E: OutboxEventMarker<CoreAccessEvent>,
+    {
+        if let Some(CoreAccessEvent::UserCreated { id, email, .. }) = message.as_event() {
+            message.inject_trace_parent();
+            self.keycloak_client
+                .create_user(email.clone(), id.into())
+                .await?;
+        }
+        Ok(())
     }
 }

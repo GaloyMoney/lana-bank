@@ -40,7 +40,7 @@ impl KeycloakClient {
         KeycloakAdmin::new(
             &self.connection.url,
             service_account_token_retriever,
-            http_client.clone(),
+            http_client,
         )
     }
 
