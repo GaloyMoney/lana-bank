@@ -62,8 +62,10 @@ flowchart LR
 #### Dev login flows
 
 - Local realms are configured with a custom "DEV browser" flow that supports email-only login (no password).
-- Realm definitions live in `dev/keycloak/internal-realm.json` and `dev/keycloak/customer-realm.json`.
 - Bats tests use the DEV direct‑grant flow (password grant) to obtain Keycloak access tokens and call GraphQL via Oathkeeper. See `bats/helpers.bash`.
+- Realm definitions:
+  - `dev/keycloak/internal-realm.json`
+  - `dev/keycloak/customer-realm.json`
 
 #### Backend services that manage users
 
