@@ -20,7 +20,7 @@ pub struct CustomerAuthContext {
 }
 
 impl CustomerAuthContext {
-    pub fn new(sub: impl Into<CustomerId>) -> Self {
+    pub(crate) fn new(sub: impl Into<CustomerId>) -> Self {
         Self {
             sub: Subject::Customer(sub.into()),
         }
@@ -53,7 +53,7 @@ impl From<Date> for chrono::NaiveDate {
 }
 impl Date {
     #[allow(dead_code)]
-    pub fn into_inner(self) -> chrono::NaiveDate {
+    pub(crate) fn into_inner(self) -> chrono::NaiveDate {
         self.0
     }
 }
