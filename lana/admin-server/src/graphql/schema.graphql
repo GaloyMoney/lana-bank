@@ -1,10 +1,5 @@
 scalar AccountCode
 
-enum AccountStatus {
-	INACTIVE
-	ACTIVE
-}
-
 type AccountingCsvDocument {
 	id: ID!
 	documentId: UUID!
@@ -783,7 +778,7 @@ type CustodianEdge {
 type Customer {
 	id: ID!
 	customerId: UUID!
-	status: AccountStatus!
+	status: CustomerStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
 	customerType: CustomerType!
@@ -887,6 +882,11 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
+enum CustomerStatus {
+	INACTIVE
+	ACTIVE
+}
+
 input CustomerTelegramIdUpdateInput {
 	customerId: UUID!
 	telegramId: String!
@@ -908,7 +908,7 @@ enum CustomerType {
 
 input CustomersFilter {
 	field: CustomersFilterBy!
-	status: AccountStatus
+	status: CustomerStatus
 }
 
 enum CustomersFilterBy {

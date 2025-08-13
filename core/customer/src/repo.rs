@@ -16,7 +16,7 @@ use super::{entity::*, error::*};
         email(ty = "String", list_by),
         authentication_id(ty = "Option<AuthenticationId>", list_by, create(persist = false)),
         telegram_id(ty = "String", list_by),
-        status(ty = "AccountStatus", list_for),
+        status(ty = "CustomerStatus", list_for),
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
@@ -66,9 +66,9 @@ where
 mod account_status_sqlx {
     use sqlx::{Type, postgres::*};
 
-    use crate::primitives::AccountStatus;
+    use crate::primitives::CustomerStatus;
 
-    impl Type<Postgres> for AccountStatus {
+    impl Type<Postgres> for CustomerStatus {
         fn type_info() -> PgTypeInfo {
             <String as Type<Postgres>>::type_info()
         }
@@ -78,7 +78,7 @@ mod account_status_sqlx {
         }
     }
 
-    impl sqlx::Encode<'_, Postgres> for AccountStatus {
+    impl sqlx::Encode<'_, Postgres> for CustomerStatus {
         fn encode_by_ref(
             &self,
             buf: &mut PgArgumentBuffer,
@@ -87,14 +87,14 @@ mod account_status_sqlx {
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for AccountStatus {
+    impl<'r> sqlx::Decode<'r, Postgres> for CustomerStatus {
         fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
             let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
             Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
         }
     }
 
-    impl PgHasArrayType for AccountStatus {
+    impl PgHasArrayType for CustomerStatus {
         fn array_type_info() -> PgTypeInfo {
             <String as sqlx::postgres::PgHasArrayType>::array_type_info()
         }

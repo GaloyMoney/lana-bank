@@ -4,10 +4,10 @@ use tracing::instrument;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerStatus};
 use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
-    GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountStatus,
+    GovernanceAction, GovernanceObject,
 };
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
@@ -184,11 +184,16 @@ where
             message.inject_trace_parent();
 
             if self.config.customer_status_sync_active {
+                let deposit_status = match status {
+                    CustomerStatus::Inactive => DepositAccountStatus::Inactive,
+                    CustomerStatus::Active => DepositAccountStatus::Active,
+                };
+
                 self.deposit
                     .update_account_status_for_holder(
                         &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
                         *id,
-                        *status,
+                        deposit_status,
                     )
                     .await?;
             }

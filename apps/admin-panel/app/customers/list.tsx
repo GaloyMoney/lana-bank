@@ -5,7 +5,7 @@ import { useState } from "react"
 import { useTranslations } from "next-intl"
 
 import {
-  AccountStatus,
+  CustomerStatus,
   Customer,
   CustomersFilter,
   CustomersSort,
@@ -78,14 +78,14 @@ const CustomersList = () => {
     {
       key: "status",
       label: t("columns.status"),
-      filterValues: Object.values(AccountStatus),
+      filterValues: Object.values(CustomerStatus),
       render: (status) => (
         <div
           className={
-            status === AccountStatus.Inactive ? "text-error font-medium" : undefined
+            status === CustomerStatus.Inactive ? "text-error font-medium" : undefined
           }
         >
-          {status === AccountStatus.Active
+          {status === CustomerStatus.Active
             ? t("status.verified")
             : t("status.notVerified")}
         </div>

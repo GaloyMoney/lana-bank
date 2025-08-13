@@ -4,7 +4,7 @@ use tracing::instrument;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerStatus};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
@@ -158,7 +158,7 @@ where
                 Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
                     id,
                     customer_type,
-                    status: core_customer::AccountStatus::Active,
+                    status: CustomerStatus::Active,
                     ..
                 }) if !self.config.create_deposit_account_on_customer_create => {
                     self.handle_create_deposit_account(
