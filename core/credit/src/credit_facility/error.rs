@@ -16,6 +16,8 @@ pub enum CreditFacilityError {
     InterestAccrualCycleError(
         #[from] crate::interest_accrual_cycle::error::InterestAccrualCycleError,
     ),
+    #[error("CreditFacilityError - InterestAccrualAlreadyRecorded")]
+    InterestAccrualAlreadyRecorded,
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
