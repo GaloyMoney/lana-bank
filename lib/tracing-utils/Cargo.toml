@@ -8,6 +8,7 @@ edition = "2024"
 
 fail-on-warnings = []
 http = ["dep:opentelemetry-http"]
+reqwest = ["dep:reqwest"]
 persistence = []
 
 [dependencies]
@@ -22,3 +23,4 @@ opentelemetry = { workspace = true }
 opentelemetry-semantic-conventions = { workspace = true }
 opentelemetry_sdk = { workspace = true }
 opentelemetry-http = { workspace = true, optional = true }
+reqwest = { workspace = true, optional = true }
