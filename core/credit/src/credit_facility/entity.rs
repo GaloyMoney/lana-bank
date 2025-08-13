@@ -55,7 +55,7 @@ pub enum CreditFacilityEvent {
     },
     InterestAccrualCycleConcluded {
         interest_accrual_cycle_idx: InterestAccrualCycleIdx,
-        ledger_tx_id: Option<LedgerTxId>,
+        ledger_tx_id: LedgerTxId,
         obligation_id: Option<ObligationId>,
         audit_info: AuditInfo,
     },
@@ -447,7 +447,7 @@ impl CreditFacility {
             .push(CreditFacilityEvent::InterestAccrualCycleConcluded {
                 interest_accrual_cycle_idx: idx,
                 obligation_id: new_obligation.as_ref().map(|o| o.id),
-                ledger_tx_id: new_obligation.as_ref().map(|o| o.tx_id),
+                ledger_tx_id: accrual_cycle_data.tx_id,
                 audit_info: audit_info.clone(),
             });
 
