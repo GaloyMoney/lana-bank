@@ -62,18 +62,18 @@ impl Storage {
         Ok(())
     }
 
-    pub async fn remove<'a>(
+    pub async fn remove(
         &self,
-        location_in_storage: LocationInStorage<'a>,
+        location_in_storage: LocationInStorage<'_>,
     ) -> Result<(), StorageError> {
         let client = self.get_client().await?;
         client.remove(location_in_storage).await?;
         Ok(())
     }
 
-    pub async fn generate_download_link<'a>(
+    pub async fn generate_download_link(
         &self,
-        location_in_storage: LocationInStorage<'a>,
+        location_in_storage: LocationInStorage<'_>,
     ) -> Result<String, StorageError> {
         let client = self.get_client().await?;
         let link = client.generate_download_link(location_in_storage).await?;
