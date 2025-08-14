@@ -300,6 +300,10 @@ impl CreditFacility {
     pub(crate) fn mature(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
         idempotency_guard!(self.events.iter_all(), CreditFacilityEvent::Matured { .. });
 
+        if self.status() == CreditFacilityStatus::Closed {
+            return Idempotent::Ignored;
+        }
+
         self.events
             .push(CreditFacilityEvent::Matured { audit_info });
         Idempotent::Executed(())
