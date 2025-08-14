@@ -25,9 +25,10 @@ services:
       KC_BOOTSTRAP_ADMIN_USERNAME: admin
       KC_BOOTSTRAP_ADMIN_PASSWORD: admin
       KC_HEALTH_ENABLED: true
-      KC_METRICS_ENABLED: true
+      KC_TRACING_ENABLED: true
+      KC_TRACING_ENDPOINT: http://otel-agent:4317
     command: start-dev --import-realm
-    depends_on: [keycloak-pg]
+    depends_on: [keycloak-pg, otel-agent]
     volumes:
       - "./dev/keycloak:/opt/keycloak/data/import"
 

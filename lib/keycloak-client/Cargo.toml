@@ -13,6 +13,8 @@ reqwest = { workspace = true }
 serde = { workspace = true }
 uuid = { workspace = true }
 thiserror = { workspace = true }
+tracing = { workspace = true }
+tracing-utils = { workspace = true, features = ["http", "reqwest"] }
 
 [dev-dependencies]
 tokio = { workspace = true }
