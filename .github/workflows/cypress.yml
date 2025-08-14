@@ -20,7 +20,15 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
           free_disk_space: false
-      - uses: ./.github/actions/cache-pnpm 
+      - uses: ./.github/actions/cache-pnpm
+      - name: Restore Cypress binary cache
+        id: cypress-cache-restore
+        uses: actions/cache/restore@v4
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}
+          restore-keys: |
+            ${{ runner.os }}-cypress-
       - run: nix develop -c make build-for-tests
       - name: Start services for Cypress tests
         run: nix develop -c make start-cypress-stack
@@ -33,6 +41,14 @@ jobs:
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
       - run: nix develop -c make test-cypress-in-ci
+        env:
+          CYPRESS_CACHE_FOLDER: ~/.cache/Cypress
+      - name: Save Cypress binary cache
+        if: steps.cypress-cache-restore.outputs.cache-hit != 'true'
+        uses: actions/cache/save@v4
+        with:
+          path: ~/.cache/Cypress
+          key: ${{ runner.os }}-cypress-${{ hashFiles('**/pnpm-lock.yaml') }}
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots
