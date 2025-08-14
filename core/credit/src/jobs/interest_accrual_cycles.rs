@@ -15,7 +15,7 @@ use crate::{
 };
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct InterestAccrualCycleJobConfig<Perms, E> {
+pub(crate) struct InterestAccrualCycleJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
@@ -31,7 +31,7 @@ where
     type Initializer = InterestAccrualCycleInit<Perms, E>;
 }
 
-pub struct InterestAccrualCycleInit<Perms, E>
+pub(crate) struct InterestAccrualCycleInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,

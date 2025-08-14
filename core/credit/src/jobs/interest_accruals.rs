@@ -11,7 +11,7 @@ use outbox::OutboxEventMarker;
 use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, ledger::*, primitives::*};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct InterestAccrualJobConfig<Perms, E> {
+pub(crate) struct InterestAccrualJobConfig<Perms, E> {
     pub credit_facility_id: CreditFacilityId,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }

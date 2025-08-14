@@ -16,7 +16,7 @@ use crate::{
 
 #[serde_with::serde_as]
 #[derive(Clone, Serialize, Deserialize)]
-pub struct CreditFacilityCollateralizationFromPriceJobConfig<Perms, E> {
+pub(crate) struct CreditFacilityCollateralizationFromPriceJobConfig<Perms, E> {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     pub job_interval: Duration,
     pub upgrade_buffer_cvl_pct: CVLPct,

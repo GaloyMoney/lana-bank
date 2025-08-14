@@ -150,7 +150,7 @@ where
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct HistoryProjectionConfig<E> {
+pub(crate) struct HistoryProjectionConfig<E> {
     pub _phantom: std::marker::PhantomData<E>,
 }
 impl<E> JobConfig for HistoryProjectionConfig<E>

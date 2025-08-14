@@ -11,7 +11,7 @@ use crate::{event::CoreCreditEvent, ledger::CreditLedger, obligation::Obligation
 use super::{obligation_defaulted, obligation_liquidation, obligation_overdue};
 
 #[derive(Clone, Serialize, Deserialize)]
-pub struct ObligationDueJobConfig<Perms, E> {
+pub(crate) struct ObligationDueJobConfig<Perms, E> {
     pub obligation_id: ObligationId,
     pub effective: chrono::NaiveDate,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,

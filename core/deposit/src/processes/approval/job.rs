@@ -12,7 +12,7 @@ use crate::{CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use super::ApproveWithdrawal;
 
 #[derive(serde::Serialize)]
-pub struct WithdrawApprovalJobConfig<Perms, E> {
+pub(crate) struct WithdrawApprovalJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> WithdrawApprovalJobConfig<Perms, E> {

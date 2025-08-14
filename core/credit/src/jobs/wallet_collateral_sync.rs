@@ -12,7 +12,7 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use crate::{Collaterals, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities};
 
 #[derive(serde::Serialize)]
-pub struct WalletCollateralSyncJobConfig<Perms, E> {
+pub(crate) struct WalletCollateralSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> WalletCollateralSyncJobConfig<Perms, E> {
