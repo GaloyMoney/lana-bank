@@ -401,9 +401,7 @@ where
         let mut facility = self.repo.find_by_id(id).await?;
 
         if facility.mature(audit_info).did_execute() {
-            let mut op = self.repo.begin_op().await?;
-            self.repo.update_in_op(&mut op, &mut facility).await?;
-            op.commit().await?;
+            self.repo.update(&mut facility).await?;
         }
 
         Ok(())
