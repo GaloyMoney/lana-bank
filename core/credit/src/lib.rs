@@ -185,6 +185,7 @@ where
             &obligations,
             &ledger,
             price,
+            jobs,
             &publisher,
             governance,
         )
@@ -287,6 +288,10 @@ where
         jobs.add_initializer(
             obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(&ledger, &obligations),
         );
+        jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
+            Perms,
+            E,
+        >::new(&credit_facilities));
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityApprovalInit::new(outbox, &approve_credit_facility),
             CreditFacilityApprovalJobConfig::<Perms, E>::new(),

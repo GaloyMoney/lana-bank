@@ -8,11 +8,13 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
+use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
+    jobs::credit_facility_maturity,
     ledger::{
         CreditFacilityActivation, CreditFacilityInterestAccrual,
         CreditFacilityInterestAccrualCycle, CreditLedger,
@@ -43,6 +45,7 @@ where
     authz: Perms,
     ledger: CreditLedger,
     price: Price,
+    jobs: Jobs,
     governance: Governance<Perms, E>,
 }
 
@@ -58,6 +61,7 @@ where
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
+            jobs: self.jobs.clone(),
             governance: self.governance.clone(),
         }
     }
@@ -99,12 +103,14 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
+    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,
         obligations: &Obligations<Perms, E>,
         ledger: &CreditLedger,
         price: &Price,
+        jobs: &Jobs,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: &Governance<Perms, E>,
     ) -> Self {
@@ -119,6 +125,7 @@ where
             authz: authz.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
+            jobs: jobs.clone(),
             governance: governance.clone(),
         }
     }
@@ -172,6 +179,20 @@ where
         };
 
         self.repo.update_in_op(db, &mut credit_facility).await?;
+
+        self.jobs
+            .create_and_spawn_at_in_op(
+                db,
+                JobId::new(),
+                credit_facility_maturity::CreditFacilityMaturityJobConfig::<Perms, E> {
+                    credit_facility_id: credit_facility.id,
+                    _phantom: std::marker::PhantomData,
+                },
+                credit_facility
+                    .matures_at
+                    .expect("maturity date is set on activation"),
+            )
+            .await?;
 
         Ok(ActivationOutcome::Activated(ActivationData {
             credit_facility,
@@ -362,6 +383,30 @@ where
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),
         }
+    }
+
+    pub(super) async fn mark_facility_as_matured(
+        &self,
+        id: CreditFacilityId,
+    ) -> Result<(), CreditFacilityError> {
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry(
+                CoreCreditObject::credit_facility(id),
+                CoreCreditAction::CREDIT_FACILITY_MATURE,
+            )
+            .await?;
+
+        let mut facility = self.repo.find_by_id(id).await?;
+
+        if facility.mature(audit_info).did_execute() {
+            let mut op = self.repo.begin_op().await?;
+            self.repo.update_in_op(&mut op, &mut facility).await?;
+            op.commit().await?;
+        }
+
+        Ok(())
     }
 
     pub(super) async fn update_collateralization_from_price(
