@@ -407,6 +407,8 @@
                 socket="$($(pwd)/dev/bin/podman-get-socket.sh 2>/dev/null || echo NO_SOCKET)"
                 [[ "$socket" != "NO_SOCKET" ]] && export DOCKER_HOST="$socket"
               fi
+
+              cachix use lana-bank-ci
             '';
           });
 
