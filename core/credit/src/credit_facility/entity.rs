@@ -117,7 +117,6 @@ pub(crate) struct NewAccrualPeriods {
 }
 
 struct InterestAccrualCycleInCreditFacility {
-    id: InterestAccrualCycleId,
     idx: InterestAccrualCycleIdx,
     period: InterestPeriod,
 }
@@ -348,12 +347,10 @@ impl CreditFacility {
     fn last_started_accrual_cycle(&self) -> Option<InterestAccrualCycleInCreditFacility> {
         self.events.iter_all().rev().find_map(|event| match event {
             CreditFacilityEvent::InterestAccrualCycleStarted {
-                interest_accrual_id,
                 interest_accrual_cycle_idx,
                 interest_period,
                 ..
             } => Some(InterestAccrualCycleInCreditFacility {
-                id: *interest_accrual_id,
                 idx: *interest_accrual_cycle_idx,
                 period: *interest_period,
             }),
@@ -361,7 +358,7 @@ impl CreditFacility {
         })
     }
 
-    fn in_progress_accrual_cycle(&self) -> Option<InterestAccrualCycleInCreditFacility> {
+    fn in_progress_accrual_cycle_id(&self) -> Option<InterestAccrualCycleId> {
         self.events
             .iter_all()
             .rev()
@@ -369,14 +366,8 @@ impl CreditFacility {
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => Some(None),
                 CreditFacilityEvent::InterestAccrualCycleStarted {
                     interest_accrual_id,
-                    interest_accrual_cycle_idx,
-                    interest_period,
                     ..
-                } => Some(Some(InterestAccrualCycleInCreditFacility {
-                    id: *interest_accrual_id,
-                    idx: *interest_accrual_cycle_idx,
-                    period: *interest_period,
-                })),
+                } => Some(Some(*interest_accrual_id)),
                 _ => None,
             })
             .flatten()
@@ -501,17 +492,17 @@ impl CreditFacility {
     }
 
     pub fn interest_accrual_cycle_in_progress(&self) -> Option<&InterestAccrualCycle> {
-        self.in_progress_accrual_cycle().map(|cycle| {
+        self.in_progress_accrual_cycle_id().map(|cycle_id| {
             self.interest_accruals
-                .get_persisted(&cycle.id)
+                .get_persisted(&cycle_id)
                 .expect("Interest accrual not found")
         })
     }
 
     pub fn interest_accrual_cycle_in_progress_mut(&mut self) -> Option<&mut InterestAccrualCycle> {
-        self.in_progress_accrual_cycle().map(|cycle| {
+        self.in_progress_accrual_cycle_id().map(|cycle_id| {
             self.interest_accruals
-                .get_persisted_mut(&cycle.id)
+                .get_persisted_mut(&cycle_id)
                 .expect("Interest accrual not found")
         })
     }
