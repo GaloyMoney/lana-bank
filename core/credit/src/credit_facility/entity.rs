@@ -694,7 +694,13 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .maturity_date(*activated_at);
                     builder = builder.activated_at(*activated_at).matures_at(matures_at)
                 }
-                _ => {}
+                CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
+                CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
+                CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
+                CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
+                CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
+                CreditFacilityEvent::Matured { .. } => (),
+                CreditFacilityEvent::Completed { .. } => (),
             }
         }
         builder.events(events).build()
