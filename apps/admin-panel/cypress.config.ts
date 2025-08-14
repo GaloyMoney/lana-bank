@@ -5,14 +5,14 @@ const multiplier = 10 // Browserstack local tunnel on GHA Runner can be quite sl
 export default defineConfig({
   e2e: {
     setupNodeEvents(on) {
-      on('task', {
+      on("task", {
         checkUrl(url: string) {
           return new Promise((resolve) => {
             fetch(url)
-              .then(response => resolve(response.ok))
+              .then((response) => resolve(response.ok))
               .catch(() => resolve(false))
           })
-        }
+        },
       })
       on("before:browser:launch", (browser, launchOptions) => {
         if (browser.name === "chrome") {
@@ -63,8 +63,9 @@ export default defineConfig({
     requestTimeout: 5000 * multiplier,
     pageLoadTimeout: 60000 * multiplier,
     retries: 5,
+    experimentalMemoryManagement: true,
     screenshotOnRunFailure: false,
-    video: true,
+    video: false,
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
       COOKIES: process.env.COOKIES,
