@@ -70,6 +70,9 @@ pub enum CreditFacilityEvent {
         collateralization_ratio: Option<Decimal>,
         audit_info: AuditInfo,
     },
+    Matured {
+        audit_info: AuditInfo,
+    },
     Completed {
         audit_info: AuditInfo,
     },
@@ -255,15 +258,17 @@ impl CreditFacility {
         false
     }
 
-    pub fn is_after_maturity_date(&self) -> bool {
-        let now = crate::time::now();
-        self.matures_at.is_some_and(|matures_at| now > matures_at)
+    fn is_matured(&self) -> bool {
+        self.events
+            .iter_all()
+            .rev()
+            .any(|event| matches!(event, CreditFacilityEvent::Matured { .. }))
     }
 
     pub fn status(&self) -> CreditFacilityStatus {
         if self.is_completed() {
             CreditFacilityStatus::Closed
-        } else if self.is_after_maturity_date() {
+        } else if self.is_matured() {
             CreditFacilityStatus::Matured
         } else if self.is_activated() {
             CreditFacilityStatus::Active
@@ -289,6 +294,14 @@ impl CreditFacility {
                 approved,
                 audit_info,
             });
+        Idempotent::Executed(())
+    }
+
+    pub(crate) fn mature(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+        idempotency_guard!(self.events.iter_all(), CreditFacilityEvent::Matured { .. });
+
+        self.events
+            .push(CreditFacilityEvent::Matured { audit_info });
         Idempotent::Executed(())
     }
 
@@ -681,12 +694,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .maturity_date(*activated_at);
                     builder = builder.activated_at(*activated_at).matures_at(matures_at)
                 }
-                CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
-                CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
-                CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
-                CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
-                CreditFacilityEvent::CollateralizationRatioChanged { .. } => (),
-                CreditFacilityEvent::Completed { .. } => (),
+                _ => {}
             }
         }
         builder.events(events).build()

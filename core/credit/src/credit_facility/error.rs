@@ -66,6 +66,8 @@ pub enum CreditFacilityError {
     ObligationInstallmentError(
         #[from] crate::obligation_installment::error::ObligationInstallmentError,
     ),
+    #[error("CreditFacilityError - JobError: {0}")]
+    JobError(#[from] job::error::JobError),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);
