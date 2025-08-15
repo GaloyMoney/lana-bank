@@ -3,7 +3,7 @@ import { z } from "zod"
 
 export const env = createEnv({
   server: {
-    KEYCLOAK_URL: z.string().default("http://localhost:8081"),
+    KEYCLOAK_URL: z.string().default("http://localhost:8085"),
     KEYCLOAK_REALM: z.string().default("internal"),
     KEYCLOAK_CLIENT_ID: z.string().default("admin-panel"),
   },
