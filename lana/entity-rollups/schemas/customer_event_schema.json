@@ -1,5 +1,13 @@
 {
   "$defs": {
+    "Activity": {
+      "enum": [
+        "disabled",
+        "enabled",
+        "suspended"
+      ],
+      "type": "string"
+    },
     "AuditEntryId": {
       "format": "int64",
       "type": "integer"
@@ -51,6 +59,9 @@
   "oneOf": [
     {
       "properties": {
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
         "audit_info": {
           "$ref": "#/$defs/AuditInfo"
         },
@@ -81,6 +92,7 @@
         "email",
         "telegram_id",
         "customer_type",
+        "activity",
         "public_id",
         "audit_info"
       ],
@@ -206,6 +218,26 @@
       "required": [
         "type",
         "email",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "activity": {
+          "$ref": "#/$defs/Activity"
+        },
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "type": {
+          "const": "activity_updated",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "activity",
         "audit_info"
       ],
       "type": "object"

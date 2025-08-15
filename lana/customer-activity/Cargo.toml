@@ -1,12 +1,11 @@
 [package]
-name = "customer-sync"
+name = "customer-activity"
 version = "0.3.772-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
 [features]
 fail-on-warnings = []
-sim-time = ["dep:sim-time"]
 
 [dependencies]
 
@@ -14,19 +13,15 @@ core-customer = { workspace = true }
 core-deposit = { workspace = true }
 governance = { workspace = true }
 lana-events = { workspace = true }
-customer-activity = { workspace = true }
 
 outbox = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
-es-entity = { workspace = true }
 
-tracing = { workspace = true }
 serde = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-keycloak-client = { workspace = true }
 chrono = { workspace = true }
-sim-time = { workspace = true, optional = true }
+sqlx = { workspace = true }

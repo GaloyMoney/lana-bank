@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "UPDATE core_customers SET email = $2, telegram_id = $3, status = $4, public_id = $5 WHERE id = $1",
+  "query": "UPDATE core_customers SET email = $2, telegram_id = $3, status = $4, activity = $5, public_id = $6 WHERE id = $1",
   "describe": {
     "columns": [],
     "parameters": {
@@ -9,10 +9,11 @@
         "Varchar",
         "Varchar",
         "Varchar",
+        "Varchar",
         "Varchar"
       ]
     },
     "nullable": []
   },
-  "hash": "4540cc8be746a65c5082f195bdbbf9788cd9a924a47144c2a0edc1a0a81e994c"
+  "hash": "2e3692c4aa582bb9c67c8e57735e5a1bc6b82c8a91053fda79171442e88e57b9"
 }

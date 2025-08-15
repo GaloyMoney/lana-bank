@@ -83,6 +83,7 @@ CREATE TABLE core_customers (
   email VARCHAR NOT NULL UNIQUE,
   telegram_id VARCHAR NOT NULL UNIQUE,
   status VARCHAR NOT NULL,
+  activity VARCHAR NOT NULL DEFAULT 'disabled',
   public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );

@@ -560,4 +560,27 @@ where
 
         Ok(result)
     }
+
+    #[instrument(name = "customer.update_activity_from_system", skip(self), err)]
+    pub async fn update_activity_from_system(
+        &self,
+        customer_id: CustomerId,
+        activity: Activity,
+    ) -> Result<Customer, CustomerError> {
+        let mut customer = self.repo.find_by_id(customer_id).await?;
+
+        let audit_info = self
+            .authz
+            .audit()
+            .record_system_entry(
+                CustomerObject::customer(customer_id),
+                CoreCustomerAction::CUSTOMER_UPDATE,
+            )
+            .await?;
+
+        let _ = customer.update_activity(activity, audit_info);
+        self.repo.update(&mut customer).await?;
+
+        Ok(customer)
+    }
 }

@@ -1588,6 +1588,26 @@ dependencies = [
 ]
 
 [[package]]
+name = "customer-activity"
+version = "0.3.772-dev"
+dependencies = [
+ "async-trait",
+ "audit",
+ "authz",
+ "chrono",
+ "core-customer",
+ "core-deposit",
+ "futures",
+ "governance",
+ "job",
+ "lana-events",
+ "outbox",
+ "serde",
+ "sqlx",
+ "thiserror 2.0.14",
+]
+
+[[package]]
 name = "customer-server"
 version = "0.3.772-dev"
 dependencies = [
@@ -1616,14 +1636,19 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
+ "chrono",
  "core-customer",
  "core-deposit",
+ "customer-activity",
+ "es-entity",
  "futures",
  "governance",
  "job",
  "keycloak-client",
+ "lana-events",
  "outbox",
  "serde",
+ "sim-time",
  "thiserror 2.0.14",
  "tracing",
 ]

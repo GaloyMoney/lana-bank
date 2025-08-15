@@ -1,0 +1,20 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "\n            SELECT c.id as customer_id\n            FROM core_customers c\n            LEFT JOIN customer_activity ca ON c.id = ca.customer_id\n            WHERE ca.customer_id IS NULL\n            ORDER BY c.created_at ASC\n            ",
+  "describe": {
+    "columns": [
+      {
+        "ordinal": 0,
+        "name": "customer_id",
+        "type_info": "Uuid"
+      }
+    ],
+    "parameters": {
+      "Left": []
+    },
+    "nullable": [
+      false
+    ]
+  },
+  "hash": "e410074b7f5cedf7fe86b1c03bbb0b5fa0725909cf7ae10d2c72dc1835167ddc"
+}
