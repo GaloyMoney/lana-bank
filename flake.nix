@@ -157,7 +157,7 @@
 
       checkCode = craneLib.mkCargoDerivation {
         pname = "check-code";
-        version = "0.1.0";
+        version = "0.0.0";
         src = rustSource;
         cargoToml = ./Cargo.toml;
         cargoLock = ./Cargo.lock;
@@ -194,7 +194,7 @@
 
       testInCi = craneLib.mkCargoDerivation {
         pname = "test-in-ci";
-        version = "0.1.0";
+        version = "0.0.0";
         src = rustSource;
         cargoToml = ./Cargo.toml;
         cargoLock = ./Cargo.lock;
@@ -236,7 +236,7 @@
         cargoToml = ./Cargo.toml;
         cargoArtifacts = debugCargoArtifacts;
         pname = "entity-rollups";
-        version = "0.1.0";
+        version = "0.0.0";
         doCheck = false;
         SQLX_OFFLINE = true;
         cargoExtraArgs = "-p entity-rollups --all-features";
@@ -247,7 +247,7 @@
         cargoToml = ./Cargo.toml;
         cargoArtifacts = debugCargoArtifacts;
         pname = "write_sdl";
-        version = "0.1.0";
+        version = "0.0.0";
         doCheck = false;
         SQLX_OFFLINE = true;
         cargoExtraArgs = "--bin write_sdl";
@@ -258,7 +258,7 @@
         cargoToml = ./Cargo.toml;
         cargoArtifacts = debugCargoArtifacts;
         pname = "write_customer_sdl";
-        version = "0.1.0";
+        version = "0.0.0";
         doCheck = false;
         SQLX_OFFLINE = true;
         cargoExtraArgs = "--bin write_customer_sdl";
