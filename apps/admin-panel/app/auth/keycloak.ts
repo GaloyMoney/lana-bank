@@ -6,62 +6,91 @@ import { env } from "@/env"
 
 const PKCE_METHOD = "S256"
 
-const keycloakConfig = {
-  url: env.NEXT_PUBLIC_KEYCLOAK_URL,
-  realm: env.NEXT_PUBLIC_KEYCLOAK_REALM,
-  clientId: env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
+let keycloak: null | Keycloak = null
+let configPromise: Promise<{
+  keycloakUrl: string
+  keycloakRealm: string
+  keycloakClientId: string
+}> | null = null
+
+const fetchConfig = async () => {
+  if (configPromise) return configPromise
+  configPromise = fetch("/api/config")
+    .then((res) => res.json())
+    .catch(() => ({
+      keycloakUrl: env.NEXT_PUBLIC_KEYCLOAK_URL,
+      keycloakRealm: env.NEXT_PUBLIC_KEYCLOAK_REALM,
+      keycloakClientId: env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
+    }))
+
+  return configPromise
 }
 
-let keycloak: null | Keycloak = null
-
-if (typeof window !== "undefined") {
-  keycloak = new Keycloak(keycloakConfig)
+const getKeycloak = async () => {
+  if (!keycloak && typeof window !== "undefined") {
+    const config = await fetchConfig()
+    keycloak = new Keycloak({
+      url: config.keycloakUrl,
+      realm: config.keycloakRealm,
+      clientId: config.keycloakClientId,
+    })
+  }
+  return keycloak
 }
 
 let isInitialized = false
 let initializationPromise: Promise<boolean> | null = null
 
-export const initKeycloak = () => {
-  if (!keycloak) {
-    return Promise.resolve(false)
-  }
-
+export const initKeycloak = async () => {
   if (isInitialized) {
-    return Promise.resolve(keycloak.authenticated ?? false)
+    const keycloakInstance = await getKeycloak()
+    return keycloakInstance?.authenticated ?? false
   }
 
   if (initializationPromise) {
     return initializationPromise
   }
 
-  initializationPromise = keycloak
-    .init({ onLoad: "login-required", checkLoginIframe: false, pkceMethod: PKCE_METHOD })
-    .then((authenticated) => {
+  initializationPromise = (async () => {
+    try {
+      const keycloakInstance = await getKeycloak()
+
+      if (!keycloakInstance) {
+        return false
+      }
+
+      const authenticated = await keycloakInstance.init({
+        onLoad: "login-required",
+        checkLoginIframe: false,
+        pkceMethod: PKCE_METHOD,
+      })
+
       isInitialized = true
       return authenticated
-    })
-    .catch((err) => {
+    } catch (err) {
       initializationPromise = null
       console.error("Failed to initialize Keycloak", err)
       throw err
-    })
+    }
+  })()
 
   return initializationPromise
 }
 
-export const logout = () => {
-  if (keycloak) {
-    keycloak.logout({
+export const logout = async () => {
+  const keycloakInstance = await getKeycloak()
+  if (keycloakInstance) {
+    keycloakInstance.logout({
       redirectUri: `${window.location.origin}/`,
     })
   }
 }
 
 export const getToken = () => {
-  if (keycloak) {
+  if (keycloak && isInitialized) {
     return keycloak.token
   }
   return null
 }
 
-export { keycloak }
+export { getKeycloak as keycloak }
