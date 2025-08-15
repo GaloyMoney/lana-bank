@@ -2,8 +2,6 @@
 
 import Keycloak from "keycloak-js"
 
-import { env } from "@/env"
-
 const PKCE_METHOD = "S256"
 
 let keycloak: null | Keycloak = null
@@ -17,12 +15,9 @@ const fetchConfig = async () => {
   if (configPromise) return configPromise
   configPromise = fetch("/api/config")
     .then((res) => res.json())
-    .catch(() => ({
-      keycloakUrl: env.NEXT_PUBLIC_KEYCLOAK_URL,
-      keycloakRealm: env.NEXT_PUBLIC_KEYCLOAK_REALM,
-      keycloakClientId: env.NEXT_PUBLIC_KEYCLOAK_CLIENT_ID,
-    }))
-
+    .catch((err) => {
+      console.error("Failed to fetch Keycloak config", err)
+    })
   return configPromise
 }
 
