@@ -20,11 +20,8 @@ impl StorageConfig {
         StorageConfig::Gcp(GcpConfig::new_dev_mode(name_prefix))
     }
 
-    pub fn new_gcp(bucket_name: String, root_folder: String) -> Self {
-        StorageConfig::Gcp(GcpConfig {
-            bucket_name,
-            root_folder,
-        })
+    pub fn new_gcp(bucket_name: String) -> Self {
+        StorageConfig::Gcp(GcpConfig { bucket_name })
     }
 
     pub fn new_local(root_folder: String) -> Self {
@@ -36,7 +33,7 @@ impl StorageConfig {
     pub fn identifier(&self) -> String {
         match self {
             StorageConfig::Gcp(gcp_config) => {
-                format!("gcp:{}:{}", gcp_config.bucket_name, gcp_config.root_folder)
+                format!("gcp:{}", gcp_config.bucket_name)
             }
             StorageConfig::Local(local_config) => {
                 format!("local:{}", local_config.root_folder.display())

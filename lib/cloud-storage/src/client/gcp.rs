@@ -16,8 +16,6 @@ const LINK_DURATION_IN_SECS: u64 = 60 * 5;
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct GcpConfig {
     #[serde(default)]
-    pub root_folder: String,
-    #[serde(default)]
     pub bucket_name: String,
 }
 
@@ -25,7 +23,6 @@ impl GcpConfig {
     pub fn new_dev_mode(name_prefix: String) -> GcpConfig {
         Self {
             bucket_name: format!("{name_prefix}-lana-documents"),
-            root_folder: name_prefix,
         }
     }
 }
@@ -48,10 +45,6 @@ impl GcpClient {
     pub fn bucket_name(&self) -> &str {
         &self.config.bucket_name
     }
-
-    fn path_with_prefix(&self, path: &str) -> String {
-        format!("{}/{}", self.config.root_folder, path)
-    }
 }
 
 #[async_trait]
@@ -63,9 +56,8 @@ impl StorageClient for GcpClient {
         mime_type: &str,
     ) -> Result<(), StorageClientError> {
         let bucket = self.bucket_name();
-        let object_name = self.path_with_prefix(path_in_bucket);
 
-        let mut media = Media::new(object_name);
+        let mut media = Media::new(path_in_bucket.to_string());
         media.content_type = mime_type.to_owned().into();
         let upload_type = UploadType::Simple(media);
 
@@ -81,11 +73,9 @@ impl StorageClient for GcpClient {
         &self,
         location_in_storage: super::r#trait::LocationInStorage<'a>,
     ) -> Result<(), StorageClientError> {
-        let object_name = self.path_with_prefix(location_in_storage.path);
-
         let req = DeleteObjectRequest {
             bucket: self.bucket_name().to_owned(),
-            object: object_name,
+            object: location_in_storage.path.to_string(),
             ..Default::default()
         };
         self.client.delete_object(&req).await?;
@@ -96,8 +86,6 @@ impl StorageClient for GcpClient {
         &self,
         location_in_storage: super::r#trait::LocationInStorage<'a>,
     ) -> Result<String, StorageClientError> {
-        let object_name = self.path_with_prefix(location_in_storage.path);
-
         let opts = SignedURLOptions {
             expires: std::time::Duration::new(LINK_DURATION_IN_SECS, 0),
             ..Default::default()
@@ -105,7 +93,13 @@ impl StorageClient for GcpClient {
 
         let signed_url = self
             .client
-            .signed_url(self.bucket_name(), &object_name, None, None, opts)
+            .signed_url(
+                self.bucket_name(),
+                location_in_storage.path,
+                None,
+                None,
+                opts,
+            )
             .await?;
 
         Ok(signed_url)
