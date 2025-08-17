@@ -65,7 +65,7 @@ export default defineConfig({
     retries: 5,
     screenshotOnRunFailure: false,
     experimentalMemoryManagement: true,
-    video: false,
+    video: true,
     screenshotsFolder: "cypress/manuals/screenshots",
     env: {
       COOKIES: process.env.COOKIES,
