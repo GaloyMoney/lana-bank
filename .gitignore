@@ -53,3 +53,6 @@ fuzz/artifacts/
 fuzz/corpus/
 
 lib/rendering/test-output
+
+# mdbook
+docs/book/

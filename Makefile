@@ -231,3 +231,6 @@ auth-token:
 
 create-user:
 	./dev/keycloak/create-user.sh
+
+docs-serve:
+	cd docs && mdbook serve -n 0.0.0.0
