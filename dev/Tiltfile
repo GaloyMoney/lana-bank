@@ -10,7 +10,7 @@ docker_groups = {
 }
 
 if os.getenv("DATA_PIPELINE", "false") == "true":
-    docker_groups["airflow"] = ["airflow-scheduler", "airflow-webserver", "airflow-pg"]
+    docker_groups["data-pipeline"] = ["airflow-scheduler", "airflow-webserver", "airflow-pg"]
 
 for service, deps in docker_groups.items():
     for dep in deps:

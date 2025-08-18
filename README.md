@@ -44,6 +44,7 @@ Set them in your `.env` file
 
 #### Optional
 
+- `DATA_PIPELINE=true`: Enable data pipeline features (Meltano, Airflow)
 - `TF_VAR_sa_creds`: Service account credentials into GCP (BigQuery & Documents access)
 - `SUMSUB_KEY`: SumSub API key for identity verification
 - `SUMSUB_SECRET`: SumSub API secret for identity verification
