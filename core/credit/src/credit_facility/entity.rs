@@ -70,9 +70,7 @@ pub enum CreditFacilityEvent {
         collateralization_ratio: Option<Decimal>,
         audit_info: AuditInfo,
     },
-    Matured {
-        audit_info: AuditInfo,
-    },
+    Matured {},
     Completed {
         audit_info: AuditInfo,
     },
@@ -297,15 +295,14 @@ impl CreditFacility {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn mature(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+    pub(crate) fn mature(&mut self) -> Idempotent<()> {
         idempotency_guard!(self.events.iter_all(), CreditFacilityEvent::Matured { .. });
 
         if self.status() == CreditFacilityStatus::Closed {
             return Idempotent::Ignored;
         }
 
-        self.events
-            .push(CreditFacilityEvent::Matured { audit_info });
+        self.events.push(CreditFacilityEvent::Matured {});
         Idempotent::Executed(())
     }
 

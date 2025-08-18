@@ -556,17 +556,13 @@
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "matured",
           "type": "string"
         }
       },
       "required": [
-        "type",
-        "audit_info"
+        "type"
       ],
       "type": "object"
     },

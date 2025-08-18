@@ -389,18 +389,9 @@ where
         &self,
         id: CreditFacilityId,
     ) -> Result<(), CreditFacilityError> {
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry(
-                CoreCreditObject::credit_facility(id),
-                CoreCreditAction::CREDIT_FACILITY_MATURE,
-            )
-            .await?;
-
         let mut facility = self.repo.find_by_id(id).await?;
 
-        if facility.mature(audit_info).did_execute() {
+        if facility.mature().did_execute() {
             self.repo.update(&mut facility).await?;
         }
 

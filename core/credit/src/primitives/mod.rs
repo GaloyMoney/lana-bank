@@ -248,8 +248,6 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::ConcludeApprovalProcess);
     pub const CREDIT_FACILITY_ACTIVATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Activate);
-    pub const CREDIT_FACILITY_MATURE: Self =
-        CoreCreditAction::CreditFacility(CreditFacilityAction::Mature);
     pub const CREDIT_FACILITY_RECORD_INTEREST: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::RecordInterest);
     pub const CREDIT_FACILITY_COMPLETE: Self =
@@ -356,7 +354,6 @@ pub enum CreditFacilityAction {
     RecordInterest,
     Complete,
     UpdateCollateralizationState,
-    Mature,
 }
 
 impl ActionPermission for CreditFacilityAction {
@@ -368,7 +365,6 @@ impl ActionPermission for CreditFacilityAction {
             | Self::Activate
             | Self::UpdateCollateral
             | Self::RecordInterest
-            | Self::Mature
             | Self::Complete
             | Self::UpdateCollateralizationState => PERMISSION_SET_CREDIT_WRITER,
         }
