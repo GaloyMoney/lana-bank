@@ -6,9 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use outbox::OutboxEventMarker;
 
-use crate::{
-    config::ReportConfig, event::CoreReportEvent, primitives::*, report::*, report_run::*,
-};
+use crate::{event::CoreReportEvent, primitives::*, report::*, report_run::*};
 use airflow::Airflow;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -46,7 +44,6 @@ where
     pub airflow: Airflow,
     pub report_run_repo: ReportRunRepo<E>,
     pub report_repo: ReportRepo<E>,
-    pub config: ReportConfig,
 }
 
 impl<E> MonitorReportRunJobInit<E>
@@ -57,13 +54,11 @@ where
         airflow: Airflow,
         report_run_repo: ReportRunRepo<E>,
         report_repo: ReportRepo<E>,
-        config: ReportConfig,
     ) -> Self {
         Self {
             airflow,
             report_run_repo,
             report_repo,
-            config,
         }
     }
 }
@@ -85,7 +80,6 @@ where
             airflow: self.airflow.clone(),
             report_repo: self.report_repo.clone(),
             report_run_repo: self.report_run_repo.clone(),
-            report_config: self.config.clone(),
         }))
     }
 
@@ -102,7 +96,6 @@ where
     airflow: Airflow,
     report_run_repo: ReportRunRepo<E>,
     report_repo: ReportRepo<E>,
-    report_config: ReportConfig,
 }
 
 #[async_trait]
@@ -119,10 +112,6 @@ where
         &self,
         mut _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if !self.report_config.enabled {
-            return Ok(JobCompletion::Complete);
-        }
-
         let mut report_run = self
             .report_run_repo
             .find_by_id(self.config.report_run_id)

@@ -22,6 +22,8 @@ pub enum ReportError {
     ReportRunError(#[from] crate::report_run::error::ReportRunError),
     #[error("ReportError - AirflowError: {0}")]
     AirflowError(#[from] airflow::AirflowError),
+    #[error("ReportError - Disabled")]
+    Disabled,
     #[error("ReportError - NotFound")]
     NotFound,
 }
