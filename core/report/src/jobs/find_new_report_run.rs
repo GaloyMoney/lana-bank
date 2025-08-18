@@ -1,5 +1,3 @@
-use std::time::Duration;
-
 use async_trait::async_trait;
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, Jobs,
@@ -50,24 +48,17 @@ where
     pub airflow: Airflow,
     pub report_run_repo: ReportRunRepo<E>,
     pub jobs: Jobs,
-    pub find_new_report_run_job_interval: Duration,
 }
 
 impl<E> FindNewReportRunJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(
-        airflow: Airflow,
-        report_run_repo: ReportRunRepo<E>,
-        jobs: Jobs,
-        find_new_report_run_job_interval: Duration,
-    ) -> Self {
+    pub fn new(airflow: Airflow, report_run_repo: ReportRunRepo<E>, jobs: Jobs) -> Self {
         Self {
             airflow,
             report_run_repo,
             jobs,
-            find_new_report_run_job_interval,
         }
     }
 }
@@ -88,7 +79,6 @@ where
             airflow: self.airflow.clone(),
             report_run_repo: self.report_run_repo.clone(),
             jobs: self.jobs.clone(),
-            find_new_report_run_job_interval: self.find_new_report_run_job_interval,
         }))
     }
 
@@ -104,7 +94,6 @@ where
     airflow: Airflow,
     report_run_repo: ReportRunRepo<E>,
     jobs: Jobs,
-    find_new_report_run_job_interval: Duration,
 }
 
 #[async_trait]
@@ -168,8 +157,8 @@ where
             current_job.update_execution_state(&state).await?;
         }
 
-        Ok(JobCompletion::RescheduleIn(
-            self.find_new_report_run_job_interval,
-        ))
+        Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
+            60,
+        )))
     }
 }

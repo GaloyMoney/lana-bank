@@ -70,7 +70,6 @@ app:
       insecure: false
       admin_panel_url: ''
   report:
-    find_new_report_run_job_interval: 300
     airflow:
       uri: http://localhost:8080/
 tracing:
