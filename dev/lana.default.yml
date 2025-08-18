@@ -70,6 +70,7 @@ app:
       insecure: false
       admin_panel_url: ''
   report:
+    enabled: false
     airflow:
       uri: http://localhost:8080/
 tracing:

@@ -38,7 +38,7 @@ echo "Starting Cypress test stack..."
 
 # Start dependencies
 echo "Starting dependencies..."
-DATA_PIPELINE=false make start-deps
+make start-deps
 
 # Diagnostic info
 echo "Checking dependency status..."

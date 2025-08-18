@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 
 use outbox::OutboxEventMarker;
 
-use crate::{event::CoreReportEvent, report_run::*};
+use crate::{config::ReportConfig, event::CoreReportEvent, report_run::*};
 use airflow::Airflow;
 
 #[derive(Debug, Serialize, Deserialize)]
@@ -44,17 +44,24 @@ where
     pub airflow: Airflow,
     pub report_run_repo: ReportRunRepo<E>,
     pub jobs: Jobs,
+    pub config: ReportConfig,
 }
 
 impl<E> TriggerReportRunJobInit<E>
 where
     E: OutboxEventMarker<CoreReportEvent>,
 {
-    pub fn new(airflow: Airflow, report_run_repo: ReportRunRepo<E>, jobs: Jobs) -> Self {
+    pub fn new(
+        airflow: Airflow,
+        report_run_repo: ReportRunRepo<E>,
+        jobs: Jobs,
+        config: ReportConfig,
+    ) -> Self {
         Self {
             airflow,
             report_run_repo,
             jobs,
+            config,
         }
     }
 }
@@ -75,6 +82,7 @@ where
             airflow: self.airflow.clone(),
             report_run_repo: self.report_run_repo.clone(),
             jobs: self.jobs.clone(),
+            config: self.config.clone(),
         }))
     }
 
@@ -90,6 +98,7 @@ where
     airflow: Airflow,
     report_run_repo: ReportRunRepo<E>,
     jobs: Jobs,
+    config: ReportConfig,
 }
 
 #[async_trait]
@@ -106,6 +115,10 @@ where
         &self,
         mut _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        if !self.config.enabled {
+            return Ok(JobCompletion::Complete);
+        }
+
         let run_id = self.airflow.reports().generate_report().await?.run_id;
 
         let report_run = self

@@ -85,7 +85,7 @@ where
         storage: &Storage,
     ) -> Result<Self, ReportError> {
         let publisher = ReportPublisher::new(outbox);
-        let airflow = Airflow::new(config.airflow);
+        let airflow = Airflow::new(config.airflow.clone());
         let report_repo = ReportRepo::new(pool, &publisher);
         let report_run_repo = ReportRunRepo::new(pool, &publisher);
 
@@ -93,14 +93,21 @@ where
             airflow.clone(),
             report_run_repo.clone(),
             report_repo.clone(),
+            config.clone(),
         ));
         jobs.add_initializer(TriggerReportRunJobInit::new(
             airflow.clone(),
             report_run_repo.clone(),
             jobs.clone(),
+            config.clone(),
         ));
         jobs.add_initializer_and_spawn_unique(
-            FindNewReportRunJobInit::new(airflow.clone(), report_run_repo.clone(), jobs.clone()),
+            FindNewReportRunJobInit::new(
+                airflow.clone(),
+                report_run_repo.clone(),
+                jobs.clone(),
+                config.clone(),
+            ),
             FindNewReportRunJobConfig::new(),
         )
         .await?;

@@ -20,7 +20,7 @@ fi
 
 # ── Compose file set ────────────────────────────────────────────────────────────
 FILES=(-f "$BASE")
-if [[ "${DATA_PIPELINE:-true}" == "true" ]]; then
+if [[ "${DATA_PIPELINE:-false}" == "true" ]]; then
     FILES+=(-f "$DATA")
 fi
 [[ "$ENGINE" == docker ]] && FILES+=(-f "$OVERRIDE")   # extra_hosts only on Docker

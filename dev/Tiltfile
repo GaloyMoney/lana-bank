@@ -1,10 +1,16 @@
-docker_compose(["../docker-compose.yml", "../docker-compose.data.yml", "../docker-compose.docker.yml"], project_name = "lana-bank")
+compose_files = ["../docker-compose.yml", "../docker-compose.docker.yml"]
+if os.getenv("DATA_PIPELINE", "false") == "true":
+    compose_files.append("../docker-compose.data.yml")
+
+docker_compose(compose_files, project_name = "lana-bank")
 docker_groups = {
     "auth": ["keycloak", "keycloak-pg", "oathkeeper"],
     "otel": ["otel-agent"],
     "core": ["core-pg"],
-    "airflow": ["airflow-scheduler", "airflow-webserver"]
 }
+
+if os.getenv("DATA_PIPELINE", "false") == "true":
+    docker_groups["airflow"] = ["airflow-scheduler", "airflow-webserver", "airflow-pg"]
 
 for service, deps in docker_groups.items():
     for dep in deps:
