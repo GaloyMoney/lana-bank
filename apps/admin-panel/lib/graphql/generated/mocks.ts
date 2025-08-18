@@ -996,7 +996,7 @@ export const mockCustodianConfigUpdateInput = (overrides?: Partial<CustodianConf
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustodianConfigUpdateInput');
     return {
-        config: overrides && overrides.hasOwnProperty('config') ? overrides.config! : relationshipsToOmit.has('CustodianConfigInput') ? {} as CustodianConfigInput : mockCustodianConfigInput({}, relationshipsToOmit),
+        config: overrides && overrides.hasOwnProperty('config') ? overrides.config! : mockCustodianConfigInput(),
         custodianId: overrides && overrides.hasOwnProperty('custodianId') ? overrides.custodianId! : generateMockValue.uuid(),
     };
 };
