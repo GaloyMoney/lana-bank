@@ -38,24 +38,13 @@ pub trait CustodianClient: Send {
 #[async_trait]
 impl CustodianClient for bitgo::BitgoClient {
     async fn verify_client(&self) -> Result<(), CustodianClientError> {
-        let _ = self
-            .get_wallet_count()
-            .await
-            .map_err(CustodianClientError::client)?;
-
-        let _ = self
-            .get_enterprise()
-            .await
-            .map_err(CustodianClientError::client)?;
-
+        let _ = self.get_wallet_count().await?;
+        let _ = self.get_enterprise().await?;
         Ok(())
     }
 
     async fn initialize_wallet(&self, label: &str) -> Result<WalletResponse, CustodianClientError> {
-        let (wallet, full_response) = self
-            .add_wallet(label)
-            .await
-            .map_err(CustodianClientError::client)?;
+        let (wallet, full_response) = self.add_wallet(label).await?;
 
         Ok(WalletResponse {
             external_id: wallet.id,
@@ -69,9 +58,7 @@ impl CustodianClient for bitgo::BitgoClient {
         headers: &http::HeaderMap,
         payload: Bytes,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
-        let notification = self
-            .validate_webhook_notification(headers, &payload)
-            .map_err(CustodianClientError::client)?;
+        let notification = self.validate_webhook_notification(headers, &payload)?;
 
         use bitgo::Notification;
 
@@ -79,14 +66,10 @@ impl CustodianClient for bitgo::BitgoClient {
             Notification::Transfer(transfer) if transfer.state == TransferState::Confirmed => {
                 let transfer = self
                     .get_transfer(&transfer.transfer, &transfer.wallet)
-                    .await
-                    .map_err(CustodianClientError::client)?;
+                    .await?;
 
                 if transfer.state == TransferState::Confirmed {
-                    let (wallet, _) = self
-                        .get_wallet(&transfer.wallet)
-                        .await
-                        .map_err(CustodianClientError::client)?;
+                    let (wallet, _) = self.get_wallet(&transfer.wallet).await?;
 
                     let changed_at = transfer.confirmed_time.unwrap_or_else(Utc::now);
 
@@ -109,10 +92,7 @@ impl CustodianClient for bitgo::BitgoClient {
 #[async_trait]
 impl CustodianClient for komainu::KomainuClient {
     async fn verify_client(&self) -> Result<(), CustodianClientError> {
-        let _ = self
-            .list_wallets()
-            .await
-            .map_err(CustodianClientError::client)?;
+        let _ = self.list_wallets().await?;
         Ok(())
     }
 
@@ -132,9 +112,7 @@ impl CustodianClient for komainu::KomainuClient {
         headers: &http::HeaderMap,
         payload: Bytes,
     ) -> Result<Option<CustodianNotification>, CustodianClientError> {
-        let notification = self
-            .validate_webhook_notification(headers, &payload)
-            .map_err(CustodianClientError::client)?;
+        let notification = self.validate_webhook_notification(headers, &payload)?;
 
         use komainu::{EntityType, EventType, Notification};
 
@@ -144,13 +122,9 @@ impl CustodianClient for komainu::KomainuClient {
                 entity: EntityType::Wallet,
                 entity_id: wallet_id,
             } => {
-                let wallet = self
-                    .get_wallet(&wallet_id)
-                    .await
-                    .map_err(CustodianClientError::client)?;
+                let wallet = self.get_wallet(&wallet_id).await?;
 
-                let new_balance = Satoshis::try_from_btc(wallet.balance.available)
-                    .map_err(CustodianClientError::client)?;
+                let new_balance = Satoshis::try_from_btc(wallet.balance.available)?;
 
                 let changed_at = wallet.balance.balance_updated_at.unwrap_or_else(Utc::now);
 
