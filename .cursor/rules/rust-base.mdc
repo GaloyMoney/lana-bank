@@ -39,6 +39,8 @@ You should know about those commands:
 - `make check-code-rust-cargo` to verify that the code compile
 - `make sdl` to regenerate the schema.graphql. do not attempt to update schema.graphql yourself
 - `make sqlx-prepare` to update the .sqlx files. do not attempt to update the .sqlx files yourself
+- `make test-in-ci` to verify the integration tests
+- `make e2e` to verify the ends to ends tests (also called bats tests)
 
 if you want to call `cargo` directly, best is prepend it with `SQLX_OFFLINE=true`
 

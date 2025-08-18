@@ -328,6 +328,11 @@
           # Font packages for PDF generation
           fontconfig
           dejavu_fonts # Provides serif, sans-serif, and monospace
+          graphviz-nox
+          python3
+          python3Packages.pip
+          python3Packages.psycopg2
+          python3Packages.pygraphviz
         ]
         ++ lib.optionals pkgs.stdenv.isLinux [
           xvfb-run

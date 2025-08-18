@@ -1,0 +1,9 @@
+{
+  "name": "lana-bank-dag-cli",
+  "packageManager": "pnpm@10.6.5",
+  "dependencies": {
+  },
+  "scripts": {
+    "start": "echo \"DOT generation now handled by python generate_dots.py\" && python3 generate_dots.py"
+  }
+}

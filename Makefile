@@ -231,3 +231,13 @@ auth-token:
 
 create-user:
 	./dev/keycloak/create-user.sh
+
+e2e-in-ci: clean-deps start-deps build-for-tests
+	lsof -i :5253 | tail -n 1 | cut -d" " -f2 | xargs -L 1 kill -9 || true
+	SA_CREDS_BASE64=$$(cat ./dev/fake-service-account.json | tr -d '\n' | base64 -w 0) bats --setup-suite-file bats/ci-setup-suite.bash -t bats
+
+generate-dag:
+	./dev/dag/generate_pngs.sh
+
+reset-dag:
+	rm -rf dev/dag/output/*

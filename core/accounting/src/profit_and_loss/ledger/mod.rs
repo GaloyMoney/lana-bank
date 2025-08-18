@@ -34,6 +34,47 @@ impl ProfitAndLossStatementLedger {
         }
     }
 
+    // before we had the embedded ledger, we use to create those statement in terraforms
+    // we would define a statement account set, like a P&L account set
+    // we would add things from the chart of account to this account set that make sense
+
+    // revenue would live under the chart parent but also P&L parent
+    // not a problem because balance were not included twice in any "root" parent
+
+    // but for balance sheet, the net revenue from the P&L
+
+    // BS 
+    
+    // Assets = Liabilities + Equity
+    //                        = Past equity (retained earnings) + Revenue - Expenses (current earnings)
+
+    // in charts of accounts:
+    // 5 childs: assets, liabilities, equity, revenue, expenses
+    
+    // for the balance sheets, we would have equity accounted twice https://github.com/GaloyMoney/cala/pull/176
+
+
+
+    // now:
+    // (we have assets / liabilities / equity internally)
+
+    // for P&L we have revenue and expenses
+    
+    // we create the accounts set for the P&L "internally", and then we link or attach them later
+    
+    // in this case, this is the other way, where we add as a child the top level first child of the chart of account (but could anywhere in the chart
+
+    // we have a 4 roots dag:
+    // chart of accounts
+    // trial balance 
+    // - this is a mirror of the chart of account dag
+    // - do this for sanity check
+    // P&L
+    // Balance sheet
+
+    // we are 5 layers deep for charts of account / trial balance
+    // 
+
     async fn create_unique_account_set(
         &self,
         op: &mut LedgerOperation<'_>,
