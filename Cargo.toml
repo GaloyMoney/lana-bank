@@ -71,7 +71,7 @@ async-graphql = { version = "7.0.17", default-features = false, features = [
   "tempfile",
 ] }
 async-graphql-axum = "7.0.17"
-async-trait = "0.1.80"
+async-trait = "0.1.89"
 axum = { version = "0.8.4", features = ["macros"] }
 axum-extra = { version = "0.10.1", default-features = false, features = [
   "tracing",
@@ -84,7 +84,7 @@ chrono = { version = "0.4.40", features = [
   "clock",
   "serde",
 ], default-features = false }
-clap = { version = "4.5.44", features = ["derive", "env"] }
+clap = { version = "4.5.45", features = ["derive", "env"] }
 derive_builder = "0.20.0"
 graphql_client = { version = "0.14.0", features = ["reqwest-rustls"] }
 sqlx = { version = "0.8", features = [
@@ -95,7 +95,7 @@ sqlx = { version = "0.8", features = [
   "chrono",
   "json",
 ] }
-thiserror = "2.0.14"
+thiserror = "2.0.15"
 uuid = { version = "1.18", features = ["serde", "v4"] }
 tracing = "0.1.41"
 tracing-opentelemetry = "0.25.0"
@@ -156,7 +156,7 @@ pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 markdown2pdf = { version = "0.1.6", features = ["rustls-tls"], default-features = false }
 bytes = "1.10"
-keycloak = "26.3.100"
+keycloak = "26.3.202"
 
 [profile.release]
 lto = true 
