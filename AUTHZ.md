@@ -4,8 +4,8 @@
 
 The Lana Bank application uses **different authorization techniques** depending on the API:
 
-1. **Admin Server (port 5253)**: Full RBAC system with Casbin for complex role-based permissions
-2. **Customer Server (port 5254)**: Simple ownership-based access control for self-service functionality
+1. **Admin Server (port: 5253)**: Full RBAC system with Casbin authorization engine for complex role-based permissions
+2. **Customer Server (port: 5254)**: Simple ownership-based access control for self-service functionality
 
 - **Core Components:**
 
