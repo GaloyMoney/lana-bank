@@ -53,11 +53,11 @@
     },
     "credit_viewer": {
       "label": "Visualizador de crédito",
-      "description": "Puede ver facilidades de crédito, desembolsos, obligaciones e información relacionada con préstamos"
+      "description": "Puede ver líneas de crédito, desembolsos, obligaciones e información relacionada con préstamos"
     },
     "credit_writer": {
       "label": "Editor de crédito",
-      "description": "Puede crear y gestionar facilidades de crédito, actualizar garantías, iniciar y liquidar desembolsos, registrar intereses y procesar obligaciones"
+      "description": "Puede crear y gestionar líneas de crédito, actualizar garantías, iniciar y liquidar desembolsos, registrar intereses y procesar obligaciones"
     },
     "customer_viewer": {
       "label": "Visualizador de clientes",
@@ -124,7 +124,7 @@
     "navItems": {
       "dashboard": "Panel Principal",
       "actions": "Acciones",
-      "creditFacilities": "Facilidades de Crédito",
+      "creditFacilities": "Líneas de Crédito",
       "disbursals": "Desembolsos",
       "termTemplates": "Plantillas de Términos",
       "customers": "Clientes",
@@ -174,7 +174,7 @@
       "createDeposit": "Crear Depósito",
       "createWithdrawal": "Crear Retiro",
       "createCustomer": "Crear Cliente",
-      "createCreditFacility": "Crear Facilidad de Crédito",
+      "createCreditFacility": "Crear Línea de Crédito",
       "updateCollateral": "Actualizar Garantía",
       "createDisbursal": "Crear Desembolso",
       "makePayment": "Realizar Pago",
@@ -200,7 +200,7 @@
       "creditFacility": "Línea de crédito",
       "disbursal": "Desembolso",
       "amount": "Monto",
-      "facilityAmount": "Monto de facilidad"
+      "facilityAmount": "Monto de línea"
     }
   },
   "Customers": {
@@ -483,7 +483,7 @@
       },
       "History": {
         "title": "Historial",
-        "description": "Historial de facilidad de crédito",
+        "description": "Historial de línea de crédito",
         "columns": {
           "entryType": "Tipo de entrada",
           "recordedAt": "Registrado El",
@@ -493,7 +493,7 @@
         "entryTypes": {
           "collateralUpdated": "Garantía actualizada",
           "collateralizationUpdated": "Colateralización actualizada",
-          "approved": "Facilidad aprobada",
+          "approved": "Línea aprobada",
           "incrementalPayment": "Pago",
           "disbursalExecuted": "Desembolso",
           "interestAccrued": "Interés acumulado",
@@ -542,10 +542,10 @@
         }
       },
       "FacilityCard": {
-        "title": "Facilidad",
+        "title": "Línea",
         "details": {
-          "facilityAmount": "Monto de Facilidad",
-          "facilityRemaining": "Facilidad Restante",
+          "facilityAmount": "Monto de Línea",
+          "facilityRemaining": "Línea Restante",
           "disbursedOutstanding": "Saldo desembolsado pendiente",
           "disbursedOutstandingPayable": "Saldo desembolsado pendiente de pago",
           "interestOutstanding": "Intereses pendientes",
@@ -598,7 +598,7 @@
         },
         "form": {
           "labels": {
-            "facilityAmount": "Monto de Facilidad",
+            "facilityAmount": "Monto de Línea",
             "custodian": "Custodio",
             "manualCustodian": "Manual",
             "termsTemplate": "Plantilla de Términos",
@@ -612,7 +612,7 @@
             "structuringFeeRate": "Tasa de Comisión de Estructuración (%)"
           },
           "placeholders": {
-            "facilityAmount": "Ingrese el monto de la facilidad",
+            "facilityAmount": "Ingrese el monto de la línea",
             "custodian": "Seleccione un custodio",
             "termsTemplate": "Seleccione de la plantilla de términos predefinida",
             "annualRate": "Ingrese la tasa anual",
@@ -732,7 +732,7 @@
         "details": {
           "customerEmail": "Correo Electrónico del Cliente",
           "disbursalAmount": "Monto del Desembolso",
-          "facilityAmount": "Monto de la Facilidad",
+          "facilityAmount": "Monto de la Línea",
           "status": "Estado"
         },
         "buttons": {
@@ -1315,10 +1315,10 @@
   "Dashboard": {
     "cards": {
       "activeFacilities": {
-        "title": "Facilidades Activas",
+        "title": "Líneas Activas",
         "description": "Líneas de Crédito donde se ha desembolsado dinero",
         "pending": "Pendiente",
-        "buttonText": "Ver Facilidades Activas"
+        "buttonText": "Ver Líneas Activas"
       },
       "totalDisbursed": {
         "title": "Total Desembolsado",
@@ -1648,10 +1648,10 @@
       "description": "Configuración de crédito",
       "setTitle": "Establecer configuración de crédito",
       "chartOfAccountsId": "ID del plan de cuentas",
-      "chartOfAccountFacilityOmnibusParentCode": "Código padre ómnibus de facilidad",
+      "chartOfAccountFacilityOmnibusParentCode": "Código padre ómnibus de línea de crédito",
       "chartOfAccountCollateralOmnibusParentCode": "Código padre ómnibus de garantía",
       "chartOfAccountInLiquidationOmnibusParentCode": "Código matriz ómnibus en liquidación",
-      "chartOfAccountFacilityParentCode": "Código padre de facilidad",
+      "chartOfAccountFacilityParentCode": "Código padre de línea",
       "chartOfAccountCollateralParentCode": "Código padre de garantía",
       "chartOfAccountInLiquidationParentCode": "Código matriz en liquidación",
       "chartOfAccountInterestIncomeParentCode": "Código padre de ingresos por intereses",
