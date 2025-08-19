@@ -133,7 +133,7 @@
       "withdrawals": "Retiros",
       "auditLogs": "Registros de Auditoría",
       "committees": "Comités",
-      "chartOfAccounts": "Plan de Cuentas",
+      "chartOfAccounts": "Catálogo de Cuentas",
       "ledgerAccounts": "Cuentas del libro mayor",
       "journal": "Diario",
       "users": "Usuarios",
@@ -1405,7 +1405,7 @@
     }
   },
   "ChartOfAccounts": {
-    "title": "Plan de Cuentas",
+    "title": "Catálogo de Cuentas",
     "description": "Una lista estructurada de todas las cuentas utilizadas para categorizar y seguir los registros financieros.",
     "addRootNode": "Agregar Cuenta",
     "upload": {
@@ -1414,15 +1414,15 @@
       "csvOnly": "Solo archivos CSV (.csv)",
       "noFileSelected": "Ningún archivo seleccionado",
       "genericError": "Ocurrió un error al subir tu archivo",
-      "successDescription": "Plan de cuentas importado con éxito",
+      "successDescription": "Catálogo de cuentas importado con éxito",
       "errorTitle": "Carga fallida",
-      "uploading": "Subiendo y procesando tu plan de cuentas...",
+      "uploading": "Subiendo y procesando tu catálogo de cuentas...",
       "reset": "Reiniciar",
       "upload": "Subir"
     },
     "AddRootNodeDialog": {
       "title": "Agregar Cuenta",
-      "description": "Crear una nueva cuenta en el plan de cuentas",
+      "description": "Crear una nueva cuenta en el catálogo de cuentas",
       "success": "Cuenta agregada exitosamente",
       "fields": {
         "code": "Código de Cuenta",
@@ -1441,7 +1441,7 @@
       "codeHint": "{remaining} dígitos restantes (máximo {max})",
       "errors": {
         "required": "Todos los campos son obligatorios",
-        "chartNotFound": "Plan de cuentas no encontrado",
+        "chartNotFound": "Catálogo de cuentas no encontrado",
         "unknown": "Ocurrió un error desconocido"
       },
       "buttons": {
@@ -1467,7 +1467,7 @@
         "required": "Todos los campos son obligatorios",
         "tooManyDigits": "El código de cuenta excede el máximo de {max} dígitos (incluyendo el padre)",
         "childCodeRequired": "El código de subcuenta no puede estar vacío",
-        "chartNotFound": "Plan de cuentas no encontrado",
+        "chartNotFound": "Catálogo de cuentas no encontrado",
         "unknown": "Ocurrió un error desconocido"
       },
       "buttons": {
@@ -1633,7 +1633,7 @@
       "title": "Depósito",
       "description": "Configuración de depósito",
       "setTitle": "Establecer configuración de depósito",
-      "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountsId": "ID del catálogo de cuentas",
       "chartOfAccountsOmnibusParentCode": "Código padre ómnibus",
       "chartOfAccountsIndividualDepositAccountsParentCode": "Código padre de cuentas de depósito individual",
       "chartOfAccountsGovernmentEntityDepositAccountsParentCode": "Código padre de cuentas de depósito de entidades gubernamentales",
@@ -1647,7 +1647,7 @@
       "title": "Crédito",
       "description": "Configuración de crédito",
       "setTitle": "Establecer configuración de crédito",
-      "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountsId": "ID del catálogo de cuentas",
       "chartOfAccountFacilityOmnibusParentCode": "Código padre ómnibus de línea de crédito",
       "chartOfAccountCollateralOmnibusParentCode": "Código padre ómnibus de garantía",
       "chartOfAccountInLiquidationOmnibusParentCode": "Código matriz ómnibus en liquidación",
@@ -1696,7 +1696,7 @@
       "title": "Balance general",
       "description": "Configuración del balance general",
       "setTitle": "Establecer configuración del balance general",
-      "chartOfAccountsId": "ID del plan de cuentas",
+      "chartOfAccountsId": "ID del catálogo de cuentas",
       "chartOfAccountsAssetsCode": "Código de activos",
       "chartOfAccountsLiabilitiesCode": "Código de pasivos",
       "chartOfAccountsEquityCode": "Código de patrimonio",
@@ -1708,7 +1708,7 @@
       "title": "Pérdidas y ganancias",
       "description": "Configuración del estado de pérdidas y ganancias",
       "setTitle": "Establecer configuración de pérdidas y ganancias",
-      "chartOfAccountsId": "ID del plan contable",
+      "chartOfAccountsId": "ID del catálogo de cuentas",
       "chartOfAccountsRevenueCode": "Código de ingresos",
       "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
       "chartOfAccountsExpensesCode": "Código de gastos"
