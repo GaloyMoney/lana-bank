@@ -78,6 +78,9 @@ importers:
       react-icons:
         specifier: ^5.5.0
         version: 5.5.0(react@19.1.1)
+      react-idle-timer:
+        specifier: ^5.7.2
+        version: 5.7.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       sonner:
         specifier: ^2.0.7
         version: 2.0.7(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
@@ -7546,6 +7549,12 @@ packages:
     resolution: {integrity: sha512-MEFcXdkP3dLo8uumGI5xN3lDFNsRtrjbOEKDLD7yv76v4wpnEq2Lt2qeHaQOr34I/wPN3s3+N08WkQ+CW37Xiw==}
     peerDependencies:
       react: '*'
+
+  react-idle-timer@5.7.2:
+    resolution: {integrity: sha512-+BaPfc7XEUU5JFkwZCx6fO1bLVK+RBlFH+iY4X34urvIzZiZINP6v2orePx3E6pAztJGE7t4DzvL7if2SL/0GQ==}
+    peerDependencies:
+      react: '>=16'
+      react-dom: '>=16'
 
   react-is@16.13.1:
     resolution: {integrity: sha512-24e6ynE2H+OKt4kqsOvNd8kBpV65zoxbA4BVsEOB3ARVWQki/DHzaUoC5KuON/BiccDaCCTZBuOcfZs70kR8bQ==}
@@ -17353,6 +17362,11 @@ snapshots:
   react-icons@5.5.0(react@19.1.1):
     dependencies:
       react: 19.1.1
+
+  react-idle-timer@5.7.2(react-dom@19.1.1(react@19.1.1))(react@19.1.1):
+    dependencies:
+      react: 19.1.1
+      react-dom: 19.1.1(react@19.1.1)
 
   react-is@16.13.1: {}
 

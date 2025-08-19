@@ -10,6 +10,7 @@ import { BreadcrumbProvider } from "../breadcrumb-provider"
 import { useAppLoading } from "../app-loading"
 
 import { initKeycloak, logout } from "./keycloak"
+import IdleSessionGuard from "./idle-session-guard"
 
 import { Toast } from "@/components/toast"
 import { makeClient } from "@/lib/apollo-client/client"
@@ -63,7 +64,10 @@ export const Authenticated: React.FC<Props> = ({ children }) => {
     <BreadcrumbProvider>
       <ApolloProvider client={client}>
         <Toast />
-        <AppLayout>{children}</AppLayout>
+        <AppLayout>
+          <IdleSessionGuard />
+          {children}
+        </AppLayout>
       </ApolloProvider>
     </BreadcrumbProvider>
   )

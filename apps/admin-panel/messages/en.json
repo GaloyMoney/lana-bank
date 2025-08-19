@@ -1916,5 +1916,15 @@
       "permissionSets": "Permissions",
       "editRole": "Edit Role"
     }
+  },
+  "Auth": {
+    "IdleSessionDialog": {
+      "title": "Session will expire soon",
+      "description": "You’ll be logged out in {seconds}s due to inactivity.",
+      "buttons": {
+        "logout": "Log out",
+        "staySignedIn": "Stay signed in"
+      }
+    }
   }
 }

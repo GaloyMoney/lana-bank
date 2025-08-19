@@ -1916,5 +1916,15 @@
       "permissionSets": "Permisos",
       "editRole": "Editar rol"
     }
+  },
+  "Auth": {
+    "IdleSessionDialog": {
+      "title": "La sesión expirará pronto",
+      "description": "Se cerrará tu sesión en {seconds}s debido a inactividad.",
+      "buttons": {
+        "logout": "Cerrar sesión",
+        "staySignedIn": "Mantener sesión iniciada"
+      }
+    }
   }
 }

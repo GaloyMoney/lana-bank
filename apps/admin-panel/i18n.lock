@@ -1149,3 +1149,7 @@ checksums:
     RolesAndPermissions/roleDetails/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     RolesAndPermissions/roleDetails/permissionSets: 2160be68b1d6b6577e64634e9feba2ed
     RolesAndPermissions/roleDetails/editRole: b5c3ab76d07ed0d4603b2025efffc025
+    Auth/IdleSessionDialog/title: 79bc2519d69e54e889036ac6b7d5700c
+    Auth/IdleSessionDialog/description: 187addc99d1c3cec67cab0b7c32415df
+    Auth/IdleSessionDialog/buttons/logout: 9a236bb8f8bec867ec0d0950d38bcc71
+    Auth/IdleSessionDialog/buttons/staySignedIn: dced170d3bb1bf1d4c7c0b8db2f597e2

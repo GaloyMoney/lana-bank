@@ -4,6 +4,8 @@
   "browserFlow": "DEV browser",
   "registrationEmailAsUsername": true,
   "directGrantFlow": "DEV direct grant",
+  "ssoSessionIdleTimeout": 300,
+  "accessTokenLifespan": 300,
   "components": {
     "org.keycloak.userprofile.UserProfileProvider": [
       {
