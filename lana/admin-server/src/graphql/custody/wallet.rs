@@ -28,8 +28,8 @@ impl From<DomainWallet> for Wallet {
 
 #[ComplexObject]
 impl Wallet {
-    async fn address(&self) -> Option<&str> {
-        self.entity.address()
+    async fn address(&self) -> &str {
+        &self.entity.address
     }
 
     async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Custodian> {

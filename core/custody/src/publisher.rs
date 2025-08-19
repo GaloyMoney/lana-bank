@@ -32,10 +32,7 @@ where
         let events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { .. } => None,
-                ExternalWalletAttached { address, .. } => Some(CoreCustodyEvent::WalletAttached {
-                    id: entity.id,
-                    address: address.to_owned(),
-                }),
+
                 BalanceChanged {
                     new_balance,
                     changed_at,

@@ -24,6 +24,7 @@ pub struct BitgoClient {
     endpoint: Url,
     passphrase: String,
     enterprise_id: String,
+    is_test: bool,
     coin: String,
     webhook_url: Url,
     webhook_secret: Vec<u8>,
@@ -53,10 +54,15 @@ impl BitgoClient {
             endpoint,
             passphrase: config.passphrase,
             enterprise_id: config.enterprise_id,
+            is_test: config.bitgo_test,
             coin: coin.to_owned(),
             webhook_url,
             webhook_secret: config.webhook_secret,
         })
+    }
+
+    pub fn is_testnet(&self) -> bool {
+        self.is_test
     }
 
     #[tracing::instrument(name = "bitgo.validate_webhook_notification", skip(self), err)]

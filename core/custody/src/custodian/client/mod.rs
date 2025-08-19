@@ -11,10 +11,17 @@ use error::CustodianClientError;
 
 use super::notification::CustodianNotification;
 
-pub struct WalletResponse {
+pub struct ExternalWallet {
     pub external_id: String,
     pub address: String,
+    pub network: ExternalWalletNetwork,
     pub full_response: serde_json::Value,
+}
+
+pub enum ExternalWalletNetwork {
+    Testnet3,
+    Testnet4,
+    Mainnet,
 }
 
 #[async_trait]
@@ -25,7 +32,7 @@ pub trait CustodianClient: Send {
 
     /// Performs initialization of a wallet on the custodian.
     /// This call may or may not create new wallet.
-    async fn initialize_wallet(&self, label: &str) -> Result<WalletResponse, CustodianClientError>;
+    async fn initialize_wallet(&self, label: &str) -> Result<ExternalWallet, CustodianClientError>;
 
     /// Validates and parses webhook.
     async fn process_webhook(
@@ -43,12 +50,18 @@ impl CustodianClient for bitgo::BitgoClient {
         Ok(())
     }
 
-    async fn initialize_wallet(&self, label: &str) -> Result<WalletResponse, CustodianClientError> {
+    async fn initialize_wallet(&self, label: &str) -> Result<ExternalWallet, CustodianClientError> {
         let (wallet, full_response) = self.add_wallet(label).await?;
+        let network = if self.is_testnet() {
+            ExternalWalletNetwork::Testnet4
+        } else {
+            ExternalWalletNetwork::Mainnet
+        };
 
-        Ok(WalletResponse {
+        Ok(ExternalWallet {
             external_id: wallet.id,
             address: wallet.receive_address.address,
+            network,
             full_response,
         })
     }
@@ -99,10 +112,11 @@ impl CustodianClient for komainu::KomainuClient {
     async fn initialize_wallet(
         &self,
         _label: &str,
-    ) -> Result<WalletResponse, CustodianClientError> {
-        Ok(WalletResponse {
+    ) -> Result<ExternalWallet, CustodianClientError> {
+        Ok(ExternalWallet {
             external_id: "efabc792-a0fe-44b6-b0b5-4966997e8962".to_string(),
             address: "tb1qplx6wllreywl3nadc7wh6waah58xq7p48857qh".to_string(),
+            network: ExternalWalletNetwork::Testnet3,
             full_response: serde_json::Value::Null,
         })
     }
@@ -164,10 +178,11 @@ pub mod mock {
         async fn initialize_wallet(
             &self,
             _label: &str,
-        ) -> Result<WalletResponse, CustodianClientError> {
-            Ok(WalletResponse {
+        ) -> Result<ExternalWallet, CustodianClientError> {
+            Ok(ExternalWallet {
                 external_id: "123".to_string(),
                 address: "bt1qaddressmock".to_string(),
+                network: ExternalWalletNetwork::Testnet4,
                 full_response: serde_json::Value::Null,
             })
         }

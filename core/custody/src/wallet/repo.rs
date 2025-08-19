@@ -12,7 +12,7 @@ use super::{entity::*, error::*};
 #[es_repo(
     entity = "Wallet",
     err = "WalletError",
-    columns(external_wallet_id(ty = "Option<String>", find_by)),
+    columns(external_wallet_id(ty = "str", find_by)),
     tbl_prefix = "core",
     post_persist_hook = "publish"
 )]

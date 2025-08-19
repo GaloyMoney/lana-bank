@@ -2011,7 +2011,7 @@ type VisibleNavigationItems {
 type Wallet {
 	id: ID!
 	walletId: UUID!
-	address: String
+	address: String!
 	custodian: Custodian!
 }
 

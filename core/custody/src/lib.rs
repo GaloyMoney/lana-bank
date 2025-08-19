@@ -305,17 +305,27 @@ where
         custodian_id: CustodianId,
         wallet_label: &str,
     ) -> Result<Wallet, CoreCustodyError> {
+        let custodian = self
+            .custodians
+            .find_by_id_in_op(&mut *db, &custodian_id)
+            .await?;
+
+        let client = custodian
+            .custodian_client(self.config.encryption.key, &self.config.custody_providers)?;
+
+        let external_wallet = client.initialize_wallet(wallet_label).await?;
+
         let new_wallet = NewWallet::builder()
             .id(WalletId::new())
             .custodian_id(custodian_id)
-            .audit_info(audit_info.clone())
+            .external_wallet_id(external_wallet.external_id)
+            .custodian_response(external_wallet.full_response)
+            .address(external_wallet.address)
+            .audit_info(audit_info)
             .build()
             .expect("all fields for new wallet provided");
 
-        let mut wallet = self.wallets.create_in_op(db, new_wallet).await?;
-
-        self.generate_wallet_address_in_op(db, audit_info, &mut wallet, wallet_label)
-            .await?;
+        let wallet = self.wallets.create_in_op(db, new_wallet).await?;
 
         Ok(wallet)
     }
@@ -372,7 +382,7 @@ where
 
         let mut wallet = self
             .wallets
-            .find_by_external_wallet_id_in_op(&mut db, Some(external_wallet_id))
+            .find_by_external_wallet_id_in_op(&mut db, external_wallet_id)
             .await?;
 
         let audit_info = self
@@ -393,43 +403,6 @@ where
         }
 
         db.commit().await?;
-
-        Ok(())
-    }
-
-    #[instrument(
-        name = "custody.generate_wallet_address_in_op",
-        skip(self, db, wallet),
-        err
-    )]
-    async fn generate_wallet_address_in_op(
-        &self,
-        db: &mut DbOp<'_>,
-        audit_info: audit::AuditInfo,
-        wallet: &mut Wallet,
-        label: &str,
-    ) -> Result<(), CoreCustodyError> {
-        let custodian = self
-            .custodians
-            .find_by_id_in_op(&mut *db, &wallet.custodian_id)
-            .await?;
-
-        let client = custodian
-            .custodian_client(self.config.encryption.key, &self.config.custody_providers)?;
-
-        let external_wallet = client.initialize_wallet(label).await?;
-
-        if wallet
-            .attach_external_wallet(
-                external_wallet.external_id.clone(),
-                external_wallet.address,
-                external_wallet.full_response,
-                &audit_info,
-            )
-            .did_execute()
-        {
-            self.wallets.update_in_op(db, wallet).await?;
-        };
 
         Ok(())
     }
