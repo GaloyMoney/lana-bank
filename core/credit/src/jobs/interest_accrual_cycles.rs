@@ -137,15 +137,7 @@ where
         }
 
         let mut op = self.credit_facilities.begin_op().await?;
-        let audit_info = self
-            .audit
-            .record_system_entry_in_tx(
-                &mut op,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
-            )
-            .await?;
-
+ 
         let CompletedAccrualCycle {
             facility_accrual_cycle_data,
             new_cycle_data,
@@ -154,7 +146,6 @@ where
             .complete_interest_cycle_and_maybe_start_new_cycle(
                 &mut op,
                 self.config.credit_facility_id,
-                &audit_info,
             )
             .await?;
 

@@ -63,7 +63,6 @@ pub enum InterestAccrualCycleEvent {
         tx_ref: String,
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
-        audit_info: AuditInfo,
     },
     InterestAccrualsPosted {
         ledger_tx_id: LedgerTxId,
@@ -71,7 +70,6 @@ pub enum InterestAccrualCycleEvent {
         obligation_id: Option<ObligationId>,
         total: UsdCents,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     },
 }
 
@@ -215,11 +213,7 @@ impl InterestAccrualCycle {
         untruncated_period.truncate(self.accrual_cycle_ends_at())
     }
 
-    pub(crate) fn record_accrual(
-        &mut self,
-        amount: UsdCents,
-        audit_info: AuditInfo,
-    ) -> InterestAccrualData {
+    pub(crate) fn record_accrual(&mut self, amount: UsdCents) -> InterestAccrualData {
         let accrual_period = self
             .next_accrual_period()
             .expect("Accrual period should exist inside this function");
@@ -244,7 +238,6 @@ impl InterestAccrualCycle {
                 tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: interest_accrual.interest,
                 accrued_at: interest_accrual.period.end,
-                audit_info,
             });
 
         interest_accrual
@@ -284,7 +277,6 @@ impl InterestAccrualCycle {
             effective,
             ..
         }: InterestAccrualCycleData,
-        audit_info: AuditInfo,
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
             self.events.iter_all(),
@@ -299,7 +291,6 @@ impl InterestAccrualCycle {
                     obligation_id: None,
                     total: interest,
                     effective,
-                    audit_info: audit_info.clone(),
                 });
 
             return Idempotent::Executed(None);
@@ -339,7 +330,6 @@ impl InterestAccrualCycle {
             .overdue_date(overdue_date)
             .liquidation_date(liquidation_date)
             .effective(effective)
-            .audit_info(audit_info.clone())
             .build()
             .expect("could not build new interest accrual cycle obligation");
 
@@ -350,7 +340,6 @@ impl InterestAccrualCycle {
                 obligation_id: Some(new_obligation.id),
                 total: interest,
                 effective,
-                audit_info,
             });
 
         Idempotent::Executed(Some(new_obligation))

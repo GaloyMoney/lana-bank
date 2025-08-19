@@ -21,6 +21,9 @@ pub const PERMISSION_SET_ACCESS_VIEWER: &str = "access_viewer";
 
 /// Type representing a role identifier for an underlying authorization subsystem.
 /// Any type that is convertible to `AuthRoleToken` can be used as such role.
+/// 
+/// ^ ^ 
+/// this is vague or unclear (to me (NB) at least)
 #[derive(Clone, Debug)]
 pub struct AuthRoleToken {
     prefix: &'static str,

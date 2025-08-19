@@ -248,8 +248,6 @@ impl CoreCreditAction {
         CoreCreditAction::CreditFacility(CreditFacilityAction::ConcludeApprovalProcess);
     pub const CREDIT_FACILITY_ACTIVATE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Activate);
-    pub const CREDIT_FACILITY_RECORD_INTEREST: Self =
-        CoreCreditAction::CreditFacility(CreditFacilityAction::RecordInterest);
     pub const CREDIT_FACILITY_COMPLETE: Self =
         CoreCreditAction::CreditFacility(CreditFacilityAction::Complete);
     pub const CREDIT_FACILITY_UPDATE_COLLATERAL: Self =

@@ -244,16 +244,6 @@ where
         op: &mut impl es_entity::AtomicOperation,
         id: CreditFacilityId,
     ) -> Result<ConfirmedAccrual, CreditFacilityError> {
-        let audit_info = self
-            .authz
-            .audit()
-            .record_system_entry_in_tx(
-                op,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
-            )
-            .await?;
-
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
         let confirmed_accrual = {
@@ -264,8 +254,7 @@ where
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_accrual =
-                accrual.record_accrual(balances.disbursed_outstanding(), audit_info);
+            let interest_accrual = accrual.record_accrual(balances.disbursed_outstanding());
 
             ConfirmedAccrual {
                 accrual: (interest_accrual, account_ids).into(),
@@ -317,12 +306,11 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: CreditFacilityId,
-        audit_info: &audit::AuditInfo,
     ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
         let (accrual_cycle_data, new_obligation) = if let es_entity::Idempotent::Executed(res) =
-            credit_facility.record_interest_accrual_cycle(audit_info.clone())?
+            credit_facility.record_interest_accrual_cycle()?
         {
             res
         } else {
@@ -335,7 +323,7 @@ where
                 .await?;
         };
 
-        let res = credit_facility.start_interest_accrual_cycle(audit_info.clone())?;
+        let res = credit_facility.start_interest_accrual_cycle()?;
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
         let new_cycle_data = res.map(|periods| {

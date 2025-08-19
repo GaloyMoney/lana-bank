@@ -51,13 +51,11 @@ pub enum CreditFacilityEvent {
         interest_accrual_id: InterestAccrualCycleId,
         interest_accrual_cycle_idx: InterestAccrualCycleIdx,
         interest_period: InterestPeriod,
-        audit_info: AuditInfo,
     },
     InterestAccrualCycleConcluded {
         interest_accrual_cycle_idx: InterestAccrualCycleIdx,
         ledger_tx_id: LedgerTxId,
         obligation_id: Option<ObligationId>,
-        audit_info: AuditInfo,
     },
     CollateralizationStateChanged {
         collateralization_state: CollateralizationState,
@@ -421,7 +419,6 @@ impl CreditFacility {
 
     pub(crate) fn start_interest_accrual_cycle(
         &mut self,
-        audit_info: AuditInfo,
     ) -> Result<Option<NewAccrualPeriods>, CreditFacilityError> {
         if !self.is_in_progress_interest_cycle_completed() {
             return Err(CreditFacilityError::InProgressInterestAccrualCycleNotCompletedYet);
@@ -443,7 +440,6 @@ impl CreditFacility {
                 interest_accrual_id: id,
                 interest_accrual_cycle_idx: idx,
                 interest_period: accrual_cycle_period,
-                audit_info: audit_info.clone(),
             });
 
         let new_accrual = NewInterestAccrualCycle::builder()
@@ -454,7 +450,6 @@ impl CreditFacility {
             .period(accrual_cycle_period)
             .facility_matures_at(self.matures_at.expect("Facility is already approved"))
             .terms(self.terms)
-            .audit_info(audit_info)
             .build()
             .expect("could not build new interest accrual");
         Ok(Some(NewAccrualPeriods {
@@ -467,7 +462,6 @@ impl CreditFacility {
 
     pub(crate) fn record_interest_accrual_cycle(
         &mut self,
-        audit_info: AuditInfo,
     ) -> Result<Idempotent<(InterestAccrualCycleData, Option<NewObligation>)>, CreditFacilityError>
     {
         let accrual_cycle_data = self
@@ -483,7 +477,7 @@ impl CreditFacility {
 
             (
                 accrual.idx,
-                match accrual.record_accrual_cycle(accrual_cycle_data.clone(), audit_info.clone()) {
+                match accrual.record_accrual_cycle(accrual_cycle_data.clone()) {
                     Idempotent::Executed(new_obligation) => new_obligation,
                     Idempotent::Ignored => {
                         return Ok(Idempotent::Ignored);
@@ -497,7 +491,6 @@ impl CreditFacility {
                 interest_accrual_cycle_idx: idx,
                 obligation_id: new_obligation.as_ref().map(|o| o.id),
                 ledger_tx_id: accrual_cycle_data.tx_id,
-                audit_info: audit_info.clone(),
             });
 
         Ok(Idempotent::Executed((accrual_cycle_data, new_obligation)))

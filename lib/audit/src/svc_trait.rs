@@ -42,7 +42,6 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         action: impl Into<Self::Action> + Send,
         authorized: bool,
     ) -> Result<AuditInfo, AuditError> {
-        let subject = subject.clone();
         let object = object.into();
         let action = action.into();
 
@@ -66,7 +65,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
 
     async fn record_system_entry_in_tx(
         &self,
-        tx: &mut impl es_entity::AtomicOperation,
+        op: &mut impl es_entity::AtomicOperation,
         object: impl Into<Self::Object> + Send,
         action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
@@ -74,7 +73,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         let object = object.into();
         let action = action.into();
 
-        self.record_entry_in_tx(tx, &subject, object, action, true)
+        self.record_entry_in_tx(op, &subject, object, action, true)
             .await
     }
 
@@ -142,6 +141,7 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
             .take(limit)
             .map(|raw_event| -> Result<AuditEntry<_, _, _>, AuditError> {
                 Ok(AuditEntry {
+                    // should be a From<row> to AuditEntry
                     id: raw_event.id,
                     subject: raw_event
                         .subject
