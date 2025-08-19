@@ -1326,6 +1326,7 @@ dependencies = [
 name = "core-custody"
 version = "0.0.0"
 dependencies = [
+ "async-graphql",
  "async-trait",
  "audit",
  "authz",

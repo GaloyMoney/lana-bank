@@ -16,6 +16,22 @@ impl CustodianId {
     }
 }
 
+#[derive(Debug, Clone)]
+pub struct ExternalWallet {
+    pub external_id: String,
+    pub address: String,
+    pub network: ExternalWalletNetwork,
+    pub full_response: serde_json::Value,
+}
+
+#[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+pub enum ExternalWalletNetwork {
+    Testnet3,
+    Testnet4,
+    Mainnet,
+}
+
 pub const PERMISSION_SET_CUSTODY_VIEWER: &str = "custody_viewer";
 pub const PERMISSION_SET_CUSTODY_WRITER: &str = "custody_writer";
 

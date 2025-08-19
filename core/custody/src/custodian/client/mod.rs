@@ -9,20 +9,9 @@ use core_money::Satoshis;
 
 use error::CustodianClientError;
 
+use crate::primitives::{ExternalWallet, ExternalWalletNetwork};
+
 use super::notification::CustodianNotification;
-
-pub struct ExternalWallet {
-    pub external_id: String,
-    pub address: String,
-    pub network: ExternalWalletNetwork,
-    pub full_response: serde_json::Value,
-}
-
-pub enum ExternalWalletNetwork {
-    Testnet3,
-    Testnet4,
-    Mainnet,
-}
 
 #[async_trait]
 pub trait CustodianClient: Send {

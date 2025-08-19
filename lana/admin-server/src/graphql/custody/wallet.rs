@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
-pub use lana_app::custody::Wallet as DomainWallet;
+pub use lana_app::custody::{ExternalWalletNetwork, Wallet as DomainWallet};
 
 use super::Custodian;
 
@@ -30,6 +30,10 @@ impl From<DomainWallet> for Wallet {
 impl Wallet {
     async fn address(&self) -> &str {
         &self.entity.address
+    }
+
+    async fn network(&self) -> ExternalWalletNetwork {
+        self.entity.network
     }
 
     async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Custodian> {

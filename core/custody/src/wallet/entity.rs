@@ -7,7 +7,7 @@ use es_entity::*;
 
 use core_money::Satoshis;
 
-use crate::primitives::{CustodianId, WalletId};
+use crate::primitives::{CustodianId, ExternalWalletNetwork, WalletId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -18,6 +18,7 @@ pub enum WalletEvent {
         custodian_id: CustodianId,
         external_wallet_id: String,
         address: String,
+        network: ExternalWalletNetwork,
         custodian_response: serde_json::Value,
         audit_info: AuditInfo,
     },
@@ -34,6 +35,7 @@ pub struct Wallet {
     pub id: WalletId,
     pub custodian_id: CustodianId,
     pub address: String,
+    pub network: ExternalWalletNetwork,
     pub external_wallet_id: String,
 
     events: EntityEvents<WalletEvent>,
@@ -70,6 +72,7 @@ impl TryFromEvents<WalletEvent> for Wallet {
                 id,
                 custodian_id,
                 address,
+                network,
                 external_wallet_id,
                 ..
             } = event
@@ -78,6 +81,7 @@ impl TryFromEvents<WalletEvent> for Wallet {
                     .id(*id)
                     .custodian_id(*custodian_id)
                     .address(address.to_owned())
+                    .network(*network)
                     .external_wallet_id(external_wallet_id.to_owned());
             }
         }
@@ -93,6 +97,7 @@ pub struct NewWallet {
     pub(super) custodian_id: CustodianId,
     pub(super) custodian_response: serde_json::Value,
     pub(super) address: String,
+    pub(super) network: ExternalWalletNetwork,
     pub(super) external_wallet_id: String,
     pub(super) audit_info: AuditInfo,
 }
@@ -110,10 +115,10 @@ impl IntoEvents<WalletEvent> for NewWallet {
             [WalletEvent::Initialized {
                 id: self.id,
                 custodian_id: self.custodian_id,
-
                 audit_info: self.audit_info,
                 external_wallet_id: self.external_wallet_id,
                 address: self.address,
+                network: self.network,
                 custodian_response: self.custodian_response,
             }],
         )

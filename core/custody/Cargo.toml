@@ -5,7 +5,7 @@ edition = "2024"
 
 [features]
 fail-on-warnings = []
-graphql = ["es-entity/graphql"]
+graphql = ["dep:async-graphql", "es-entity/graphql"]
 json-schema = ["dep:schemars", "es-entity/json-schema"]
 mock-custodian = []
 
@@ -35,3 +35,5 @@ uuid = { workspace = true }
 http = { workspace = true }
 hmac = { workspace = true }
 sha2 = { workspace = true }
+
+async-graphql = { workspace = true, optional = true }

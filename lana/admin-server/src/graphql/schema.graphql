@@ -1122,6 +1122,12 @@ input DurationInput {
 	units: Int!
 }
 
+enum ExternalWalletNetwork {
+	TESTNET_3
+	TESTNET_4
+	MAINNET
+}
+
 type FacilityRemaining {
 	usdBalance: UsdCents!
 }
@@ -2012,6 +2018,7 @@ type Wallet {
 	id: ID!
 	walletId: UUID!
 	address: String!
+	network: ExternalWalletNetwork!
 	custodian: Custodian!
 }
 

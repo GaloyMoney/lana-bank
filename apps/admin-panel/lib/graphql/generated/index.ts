@@ -1136,6 +1136,12 @@ export type DurationInput = {
   units: Scalars['Int']['input'];
 };
 
+export enum ExternalWalletNetwork {
+  Mainnet = 'MAINNET',
+  Testnet_3 = 'TESTNET_3',
+  Testnet_4 = 'TESTNET_4'
+}
+
 export type FacilityRemaining = {
   __typename?: 'FacilityRemaining';
   usdBalance: Scalars['UsdCents']['output'];
@@ -2468,6 +2474,7 @@ export type Wallet = {
   address: Scalars['String']['output'];
   custodian: Custodian;
   id: Scalars['ID']['output'];
+  network: ExternalWalletNetwork;
   walletId: Scalars['UUID']['output'];
 };
 

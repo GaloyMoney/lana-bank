@@ -321,6 +321,7 @@ where
             .external_wallet_id(external_wallet.external_id)
             .custodian_response(external_wallet.full_response)
             .address(external_wallet.address)
+            .network(external_wallet.network)
             .audit_info(audit_info)
             .build()
             .expect("all fields for new wallet provided");
