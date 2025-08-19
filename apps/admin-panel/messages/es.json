@@ -426,11 +426,11 @@
       }
     },
     "CreditFacilityStatus": {
-      "active": "Activo",
+      "active": "Activa",
       "pendingApproval": "Aprobación Pendiente",
       "pendingCollateralization": "Colateralización Pendiente",
-      "closed": "Cerrado",
-      "matured": "Finalizado"
+      "closed": "Cancelada",
+      "matured": "Cancelada"
     },
     "collateralizationState": {
       "fullyCollateralized": "Totalmente garantizado",
