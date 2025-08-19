@@ -134,15 +134,27 @@ where
             .collect::<Vec<_>>();
         self.ensure_permission_sets_exist(&permission_set_ids)
             .await?;
-        let new_role = NewRole::builder()
-            .id(RoleId::new())
-            .name(name)
-            .initial_permission_sets(permission_set_ids.into_iter().collect())
-            .audit_info(audit_info)
-            .build()
-            .expect("all fields for new role provided");
+        let existing = self.roles.find_by_name(&name).await;
+        let role = if matches!(existing, Err(ref e) if e.was_not_found()) {
+            let new_role = NewRole::builder()
+                .id(RoleId::new())
+                .name(name)
+                .audit_info(audit_info)
+                .initial_permission_sets(permission_set_ids.clone().into_iter().collect())
+                .build()
+                .expect("all fields for new role provided");
+            self.roles.create(new_role).await?
+        } else {
+            existing?
+        };
 
-        Ok(self.roles.create(new_role).await?)
+        for permission_set_id in permission_set_ids.into_iter() {
+            self.authz
+                .add_role_hierarchy(role.id, permission_set_id)
+                .await?;
+        }
+
+        Ok(role)
     }
 
     pub async fn add_permission_sets_to_role(
@@ -170,7 +182,7 @@ where
         let mut changed = false;
         self.ensure_permission_sets_exist(&permission_set_ids)
             .await?;
-        for permission_set_id in permission_set_ids {
+        for permission_set_id in permission_set_ids.clone() {
             if role
                 .add_permission_set(permission_set_id, audit_info.clone())
                 .did_execute()
@@ -181,6 +193,11 @@ where
 
         if changed {
             self.roles.update(&mut role).await?;
+            for permission_set_id in permission_set_ids.into_iter() {
+                self.authz
+                    .add_role_hierarchy(role.id, permission_set_id)
+                    .await?;
+            }
         }
 
         Ok(role)
@@ -226,6 +243,11 @@ where
 
         if changed {
             self.roles.update(&mut role).await?;
+            for permission_set_id in permission_set_ids.into_iter() {
+                self.authz
+                    .remove_role_hierarchy(role.id, permission_set_id)
+                    .await?;
+            }
         }
 
         Ok(role)

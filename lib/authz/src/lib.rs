@@ -82,6 +82,28 @@ where
         }
     }
 
+    pub async fn remove_role_hierarchy<R1: Into<Role>, R2: Into<Role>>(
+        &self,
+        parent_role: R1,
+        child_role: R2,
+    ) -> Result<(), AuthorizationError> {
+        let mut enforcer = self.enforcer.write().await;
+
+        match enforcer
+            .remove_grouping_policy(vec![
+                parent_role.into().to_string(),
+                child_role.into().to_string(),
+            ])
+            .await
+        {
+            Ok(_) => Ok(()),
+            Err(e) => match AuthorizationError::from(e) {
+                AuthorizationError::PermissionAlreadyExistsForRole(_) => Ok(()),
+                e => Err(e),
+            },
+        }
+    }
+
     pub async fn add_permission_to_role<R>(
         &self,
         role: &R,
