@@ -44,3 +44,40 @@ flowchart TD
 - Casbin policy engine evaluates user's role permissions against policies for the role/permissions sets
 - The audit service logs authorization decision (allow/deny)
 - Returns the result or authorization error
+
+### Casbin Policy Model Overview
+
+#### Database Schema
+
+Casbin stores all rules as **strings** in a flexible schema in the `casbin_rule` table:
+All matching operates on **string comparison** and **pattern matching**.
+Rules reference entities using **`name:UUID`** format (e.g., `role:UUID`, `permission_set:UUID`) that correspond to actual database tables.
+
+### Rule Types
+
+#### Policy Rules (`p`)
+**Format:** `p = sub, obj, act`  
+Defines **what permissions exist**: permission sets can perform specific actions on resource patterns.
+
+**Example:** `permission_set:reports` can perform `read` on `report/finance/*`
+
+#### Grouping Rules (`g`)
+**Format:** `g = _, _`  
+Defines **inheritance relationships**: creates hierarchical chains like `user` → `role` → `permission_set`.
+
+**Example:** `user:alice` inherits from `role:manager` or `role:manager` inherits from `permission_set:reports`
+
+### Access Control Flow
+
+#### Request Format
+**Definition:** `r = sub, obj, act`  
+Represents a user (`sub`) requesting to perform an action (`act`) on a specific resource (`obj`).
+
+#### Matching Process
+**Matcher:** `g(r.sub, p.sub) && keyMatch(r.obj, p.obj) && r.act == p.act`
+1. **Inheritance Check:** Recursively verifies across the permission sets that the user inherits via the role
+2. **Resource Match:** Pattern-based matching with wildcard support
+3. **Action Match:** Exact string equality for actions
+
+#### Authorization Result
+Access is **granted** only when all three string-based conditions are satisfied, creating a secure and flexible role-based access control system.
