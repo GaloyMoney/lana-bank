@@ -2012,6 +2012,7 @@ type Wallet {
 	id: ID!
 	walletId: UUID!
 	address: String
+	custodian: Custodian!
 }
 
 type Withdrawal {

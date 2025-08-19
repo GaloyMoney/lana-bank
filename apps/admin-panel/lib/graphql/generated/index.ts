@@ -2466,6 +2466,7 @@ export type VisibleNavigationItems = {
 export type Wallet = {
   __typename?: 'Wallet';
   address?: Maybe<Scalars['String']['output']>;
+  custodian: Custodian;
   id: Scalars['ID']['output'];
   walletId: Scalars['UUID']['output'];
 };

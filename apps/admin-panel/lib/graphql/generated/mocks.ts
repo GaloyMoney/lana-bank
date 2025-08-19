@@ -2549,6 +2549,7 @@ export const mockWallet = (overrides?: Partial<Wallet>, _relationshipsToOmit: Se
     return {
         __typename: 'Wallet',
         address: overrides && overrides.hasOwnProperty('address') ? overrides.address! : faker.lorem.word(),
+        custodian: overrides && overrides.hasOwnProperty('custodian') ? overrides.custodian! : relationshipsToOmit.has('Custodian') ? {} as Custodian : mockCustodian({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         walletId: overrides && overrides.hasOwnProperty('walletId') ? overrides.walletId! : generateMockValue.uuid(),
     };

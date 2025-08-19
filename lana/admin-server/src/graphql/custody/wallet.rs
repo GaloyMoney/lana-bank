@@ -1,8 +1,10 @@
 use async_graphql::*;
 
-use crate::primitives::*;
+use crate::{graphql::loader::LanaDataLoader, primitives::*};
 
 pub use lana_app::custody::Wallet as DomainWallet;
+
+use super::Custodian;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -28,5 +30,13 @@ impl From<DomainWallet> for Wallet {
 impl Wallet {
     async fn address(&self) -> Option<&str> {
         self.entity.address()
+    }
+
+    async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Custodian> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        Ok(loader
+            .load_one(self.entity.custodian_id)
+            .await?
+            .expect("wallet must have a custodian"))
     }
 }
