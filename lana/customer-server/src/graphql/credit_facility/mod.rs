@@ -39,7 +39,7 @@ pub struct CreditFacility {
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
         let activated_at: Option<Timestamp> = credit_facility.activated_at.map(|t| t.into());
-        let matures_at: Option<Timestamp> = credit_facility.matures_at.map(|t| t.into());
+        let matures_at: Option<Timestamp> = credit_facility.matures_at().map(|t| t.into());
 
         Self {
             id: credit_facility.id.to_global_id(),

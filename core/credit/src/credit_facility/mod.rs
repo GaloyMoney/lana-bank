@@ -189,7 +189,7 @@ where
                     _phantom: std::marker::PhantomData,
                 },
                 credit_facility
-                    .matures_at
+                    .matures_at()
                     .expect("maturity date is set on activation"),
             )
             .await?;
