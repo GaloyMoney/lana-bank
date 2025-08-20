@@ -631,4 +631,13 @@ impl EffectiveDate {
                 .expect("23:59:59 was invalid"),
         )
     }
+
+    pub fn start_of_day(&self) -> DateTime<Utc> {
+        Utc.from_utc_datetime(
+            &self
+                .0
+                .and_hms_opt(00, 00, 00)
+                .expect("00:00:00 was invalid"),
+        )
+    }
 }
