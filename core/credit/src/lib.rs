@@ -624,8 +624,8 @@ where
             .account_ids(facility.account_ids)
             .disbursal_credit_account_id(facility.disbursal_credit_account_id)
             .due_date(EffectiveDate::from(due_date))
-            .overdue_date(overdue_date.map(EffectiveDate::from))
-            .liquidation_date(liquidation_date.map(EffectiveDate::from))
+            .overdue_date(overdue_date)
+            .liquidation_date(liquidation_date)
             .audit_info(audit_info)
             .public_id(public_id.id)
             .build()?;

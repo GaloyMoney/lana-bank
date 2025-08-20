@@ -8,6 +8,7 @@ use serde::{Deserialize, Serialize};
 use schemars::JsonSchema;
 
 use crate::{
+    EffectiveDate,
     ledger::CreditFacilityBalanceSummary,
     primitives::{
         CVLPct, CollateralizationState, DisbursedReceivableAccountCategory, PriceOfOneBTC,
@@ -126,11 +127,12 @@ pub enum ObligationDuration {
 }
 
 impl ObligationDuration {
-    pub fn end_date(&self, start_date: DateTime<Utc>) -> DateTime<Utc> {
+    pub fn end_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
         match self {
             Self::Days(days) => start_date
                 .checked_add_days(chrono::Days::new(*days))
-                .expect("should return an end date"),
+                .expect("should return an end date")
+                .into(),
         }
     }
 }
