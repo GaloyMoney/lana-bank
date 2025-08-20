@@ -20,13 +20,13 @@ impl CustodianId {
 pub struct ExternalWallet {
     pub external_id: String,
     pub address: String,
-    pub network: ExternalWalletNetwork,
+    pub network: WalletNetwork,
     pub full_response: serde_json::Value,
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, serde::Serialize, serde::Deserialize)]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
-pub enum ExternalWalletNetwork {
+pub enum WalletNetwork {
     Testnet3,
     Testnet4,
     Mainnet,

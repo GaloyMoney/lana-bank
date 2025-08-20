@@ -148,7 +148,7 @@ pub mod trial_balance {
 
 pub mod custody {
     pub use core_custody::{
-        CustodyConfig, CustodyPublisher, ExternalWalletNetwork, Wallet, WalletId, custodian, error,
+        CustodyConfig, CustodyPublisher, Wallet, WalletId, WalletNetwork, custodian, error,
     };
     pub type Custody =
         core_custody::CoreCustody<crate::authorization::Authorization, lana_events::LanaEvent>;

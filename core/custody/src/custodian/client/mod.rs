@@ -9,7 +9,7 @@ use core_money::Satoshis;
 
 use error::CustodianClientError;
 
-use crate::primitives::{ExternalWallet, ExternalWalletNetwork};
+use crate::primitives::{ExternalWallet, WalletNetwork};
 
 use super::notification::CustodianNotification;
 
@@ -42,9 +42,9 @@ impl CustodianClient for bitgo::BitgoClient {
     async fn initialize_wallet(&self, label: &str) -> Result<ExternalWallet, CustodianClientError> {
         let (wallet, full_response) = self.add_wallet(label).await?;
         let network = if self.is_testnet() {
-            ExternalWalletNetwork::Testnet4
+            WalletNetwork::Testnet4
         } else {
-            ExternalWalletNetwork::Mainnet
+            WalletNetwork::Mainnet
         };
 
         Ok(ExternalWallet {
@@ -105,7 +105,7 @@ impl CustodianClient for komainu::KomainuClient {
         Ok(ExternalWallet {
             external_id: "efabc792-a0fe-44b6-b0b5-4966997e8962".to_string(),
             address: "tb1qplx6wllreywl3nadc7wh6waah58xq7p48857qh".to_string(),
-            network: ExternalWalletNetwork::Testnet3,
+            network: WalletNetwork::Testnet3,
             full_response: serde_json::Value::Null,
         })
     }
@@ -171,7 +171,7 @@ pub mod mock {
             Ok(ExternalWallet {
                 external_id: "123".to_string(),
                 address: "bt1qaddressmock".to_string(),
-                network: ExternalWalletNetwork::Testnet4,
+                network: WalletNetwork::Testnet4,
                 full_response: serde_json::Value::Null,
             })
         }

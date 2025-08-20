@@ -7,7 +7,7 @@ use es_entity::*;
 
 use core_money::Satoshis;
 
-use crate::primitives::{CustodianId, ExternalWalletNetwork, WalletId};
+use crate::primitives::{CustodianId, WalletId, WalletNetwork};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -18,7 +18,7 @@ pub enum WalletEvent {
         custodian_id: CustodianId,
         external_wallet_id: String,
         address: String,
-        network: ExternalWalletNetwork,
+        network: WalletNetwork,
         custodian_response: serde_json::Value,
         audit_info: AuditInfo,
     },
@@ -35,7 +35,7 @@ pub struct Wallet {
     pub id: WalletId,
     pub custodian_id: CustodianId,
     pub address: String,
-    pub network: ExternalWalletNetwork,
+    pub network: WalletNetwork,
     pub external_wallet_id: String,
 
     events: EntityEvents<WalletEvent>,
@@ -97,7 +97,7 @@ pub struct NewWallet {
     pub(super) custodian_id: CustodianId,
     pub(super) custodian_response: serde_json::Value,
     pub(super) address: String,
-    pub(super) network: ExternalWalletNetwork,
+    pub(super) network: WalletNetwork,
     pub(super) external_wallet_id: String,
     pub(super) audit_info: AuditInfo,
 }
