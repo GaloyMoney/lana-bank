@@ -46,7 +46,6 @@ impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "InterestAccrualCycleId")]
-#[allow(clippy::large_enum_variant)]
 pub enum InterestAccrualCycleEvent {
     Initialized {
         id: InterestAccrualCycleId,

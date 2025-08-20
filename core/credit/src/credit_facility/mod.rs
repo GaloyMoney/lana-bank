@@ -67,7 +67,6 @@ where
     }
 }
 
-#[allow(clippy::large_enum_variant)]
 pub(super) enum ActivationOutcome {
     Ignored(CreditFacility),
     Activated(ActivationData),
@@ -80,7 +79,6 @@ pub(super) struct ActivationData {
     pub audit_info: audit::AuditInfo,
 }
 
-#[allow(clippy::large_enum_variant)]
 pub(super) enum CompletionOutcome {
     Ignored(CreditFacility),
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
