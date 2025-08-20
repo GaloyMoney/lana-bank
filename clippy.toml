@@ -1,0 +1,5 @@
+# Clippy configuration for lana-bank
+
+# Set the maximum size of an enum's variant to avoid box suggestion
+# Default is 200 bytes, increasing to 2000 bytes to accommodate larger variants, common in our system
+enum-variant-size-threshold = 2000
