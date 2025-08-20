@@ -93,12 +93,12 @@ impl CreditFacilityRepaymentPlan {
                     .accrual_cycle_interval
                     .period_from(last_interest_payment)
                     .next()
-                    .truncate(maturity_date)
+                    .truncate(maturity_date.start_of_day())
             } else {
                 terms
                     .accrual_cycle_interval
                     .period_from(activated_at)
-                    .truncate(maturity_date)
+                    .truncate(maturity_date.start_of_day())
             };
 
         let disbursed_outstanding = updated_entries
@@ -126,14 +126,14 @@ impl CreditFacilityRepaymentPlan {
                 initial: interest,
                 outstanding: interest,
 
-                due_at: period.end,
+                due_at: EffectiveDate::from(period.end),
                 overdue_at: None,
                 defaulted_at: None,
                 recorded_at: period.end,
                 effective: period.end.date_naive(),
             });
 
-            next_interest_period = period.next().truncate(maturity_date);
+            next_interest_period = period.next().truncate(maturity_date.start_of_day());
         }
 
         planned_interest_entries
@@ -175,9 +175,9 @@ impl CreditFacilityRepaymentPlan {
                     initial: *amount,
                     outstanding: *amount,
 
-                    due_at: *due_at,
-                    overdue_at: *overdue_at,
-                    defaulted_at: *defaulted_at,
+                    due_at: EffectiveDate::from(*due_at),
+                    overdue_at: overdue_at.map(EffectiveDate::from),
+                    defaulted_at: defaulted_at.map(EffectiveDate::from),
                     recorded_at: *recorded_at,
                     effective: *effective,
                 };
@@ -203,7 +203,7 @@ impl CreditFacilityRepaymentPlan {
                     initial: UsdCents::ZERO,
                     outstanding: UsdCents::ZERO,
 
-                    due_at: *due_at,
+                    due_at: EffectiveDate::from(*due_at),
                     overdue_at: None,
                     defaulted_at: None,
                     recorded_at: *recorded_at,

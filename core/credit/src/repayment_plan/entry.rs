@@ -28,9 +28,9 @@ pub struct CreditFacilityRepaymentPlanEntry {
     pub initial: UsdCents,
     pub outstanding: UsdCents,
 
-    pub due_at: DateTime<Utc>,
-    pub overdue_at: Option<DateTime<Utc>>,
-    pub defaulted_at: Option<DateTime<Utc>>,
+    pub due_at: EffectiveDate,
+    pub overdue_at: Option<EffectiveDate>,
+    pub defaulted_at: Option<EffectiveDate>,
 
     pub recorded_at: DateTime<Utc>,
     pub effective: chrono::NaiveDate,
