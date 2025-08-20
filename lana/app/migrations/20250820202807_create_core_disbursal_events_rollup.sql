@@ -10,13 +10,13 @@ CREATE TABLE core_disbursal_events_rollup (
   approval_process_id UUID,
   approved BOOLEAN,
   disbursal_credit_account_id UUID,
-  due_date TIMESTAMPTZ,
+  due_date VARCHAR,
   effective VARCHAR,
   facility_id UUID,
   ledger_tx_id UUID,
-  liquidation_date TIMESTAMPTZ,
+  liquidation_date JSONB,
   obligation_id UUID,
-  overdue_date TIMESTAMPTZ,
+  overdue_date JSONB,
   public_id VARCHAR,
 
   -- Collection rollups
@@ -71,16 +71,16 @@ BEGIN
      END
 ;
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
-    new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
+    new_row.due_date := (NEW.event ->> 'due_date');
     new_row.effective := (NEW.event ->> 'effective');
     new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
     new_row.is_approval_process_concluded := false;
     new_row.is_cancelled := false;
     new_row.is_settled := false;
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
-    new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
+    new_row.liquidation_date := (NEW.event -> 'liquidation_date');
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
-    new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
+    new_row.overdue_date := (NEW.event -> 'overdue_date');
     new_row.public_id := (NEW.event ->> 'public_id');
   ELSE
     -- Default all fields to current values
@@ -111,10 +111,10 @@ BEGIN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
-      new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
+      new_row.due_date := (NEW.event ->> 'due_date');
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
-      new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
-      new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
+      new_row.liquidation_date := (NEW.event -> 'liquidation_date');
+      new_row.overdue_date := (NEW.event -> 'overdue_date');
       new_row.public_id := (NEW.event ->> 'public_id');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;

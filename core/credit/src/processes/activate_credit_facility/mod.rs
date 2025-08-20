@@ -10,7 +10,7 @@ use outbox::OutboxEventMarker;
 use public_id::PublicIds;
 
 use crate::{
-    Jobs,
+    EffectiveDate, Jobs,
     credit_facility::{CreditFacilities, CreditFacility},
     disbursal::{Disbursals, NewDisbursal},
     error::CoreCreditError,
@@ -132,9 +132,9 @@ where
                         .amount(credit_facility.structuring_fee())
                         .account_ids(credit_facility.account_ids)
                         .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
-                        .due_date(due_date)
-                        .overdue_date(overdue_date)
-                        .liquidation_date(liquidation_date)
+                        .due_date(EffectiveDate::from(due_date))
+                        .overdue_date(overdue_date.map(EffectiveDate::from))
+                        .liquidation_date(liquidation_date.map(EffectiveDate::from))
                         .audit_info(audit_info.clone())
                         .public_id(public_id.id)
                         .build()

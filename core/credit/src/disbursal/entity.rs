@@ -26,9 +26,9 @@ pub enum DisbursalEvent {
         amount: UsdCents,
         account_ids: CreditFacilityAccountIds,
         disbursal_credit_account_id: CalaAccountId,
-        due_date: DateTime<Utc>,
-        overdue_date: Option<DateTime<Utc>>,
-        liquidation_date: Option<DateTime<Utc>>,
+        due_date: EffectiveDate,
+        overdue_date: Option<EffectiveDate>,
+        liquidation_date: Option<EffectiveDate>,
         public_id: PublicId,
         audit_info: AuditInfo,
     },
@@ -59,9 +59,9 @@ pub struct Disbursal {
     pub amount: UsdCents,
     pub account_ids: CreditFacilityAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
-    pub due_date: DateTime<Utc>,
-    pub overdue_date: Option<DateTime<Utc>>,
-    pub liquidation_date: Option<DateTime<Utc>>,
+    pub due_date: EffectiveDate,
+    pub overdue_date: Option<EffectiveDate>,
+    pub liquidation_date: Option<EffectiveDate>,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
     pub public_id: PublicId,
@@ -229,9 +229,9 @@ impl Disbursal {
                 })
                 .in_liquidation_account_id(self.account_ids.in_liquidation_account_id)
                 .defaulted_account_id(self.account_ids.disbursed_defaulted_account_id)
-                .due_date(EffectiveDate::from(self.due_date))
-                .overdue_date(self.overdue_date.map(EffectiveDate::from))
-                .liquidation_date(self.liquidation_date.map(EffectiveDate::from))
+                .due_date(self.due_date)
+                .overdue_date(self.overdue_date)
+                .liquidation_date(self.liquidation_date)
                 .effective(effective)
                 .audit_info(audit_info)
                 .build()
@@ -262,9 +262,9 @@ pub struct NewDisbursal {
     pub(super) amount: UsdCents,
     pub(super) account_ids: CreditFacilityAccountIds,
     pub(super) disbursal_credit_account_id: CalaAccountId,
-    pub(super) due_date: DateTime<Utc>,
-    pub(super) overdue_date: Option<DateTime<Utc>>,
-    pub(super) liquidation_date: Option<DateTime<Utc>>,
+    pub(super) due_date: EffectiveDate,
+    pub(super) overdue_date: Option<EffectiveDate>,
+    pub(super) liquidation_date: Option<EffectiveDate>,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
     #[builder(setter(into))]
