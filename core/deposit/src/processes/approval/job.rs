@@ -123,7 +123,6 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
 {
-    #[allow(clippy::single_match)]
     async fn run(
         &self,
         mut current_job: CurrentJob,

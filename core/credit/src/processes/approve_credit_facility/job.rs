@@ -126,7 +126,6 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    #[allow(clippy::single_match)]
     async fn run(
         &self,
         mut current_job: CurrentJob,

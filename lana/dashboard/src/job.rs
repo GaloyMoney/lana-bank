@@ -61,7 +61,6 @@ pub struct DashboardProjectionJobRunner {
 }
 #[async_trait]
 impl JobRunner for DashboardProjectionJobRunner {
-    #[allow(clippy::single_match)]
     async fn run(
         &self,
         mut current_job: CurrentJob,
