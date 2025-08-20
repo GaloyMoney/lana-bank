@@ -520,8 +520,10 @@
       "WalletDialog": {
         "title": "Wallet Details",
         "details": {
-          "walletId": "Wallet ID",
-          "address": "Wallet Address"
+          "address": "Wallet Address",
+          "custodian": "Custodian",
+          "network": "Network",
+          "viewOnMempool": "View on mempool"
         }
       },
       "CollateralCard": {

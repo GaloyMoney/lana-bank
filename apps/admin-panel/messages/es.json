@@ -520,8 +520,10 @@
       "WalletDialog": {
         "title": "Detalles de la cartera",
         "details": {
-          "walletId": "ID de la cartera",
-          "address": "Dirección de la cartera"
+          "address": "Dirección de la cartera",
+          "custodian": "Custodio",
+          "network": "Red",
+          "viewOnMempool": "Ver en mempool"
         }
       },
       "CollateralCard": {

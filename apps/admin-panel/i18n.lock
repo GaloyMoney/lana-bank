@@ -324,8 +324,10 @@ checksums:
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/structuringFeeRate: 6884eb8153e27f57dfff956ff8efa511
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/effectiveRate: 7dd8de3c81e63d553bf906f47f584518
     CreditFacilities/CreditFacilityDetails/WalletDialog/title: ffdfb4ea0c46005fe1ab5851154b84ce
-    CreditFacilities/CreditFacilityDetails/WalletDialog/details/walletId: 2d0dc6c64e1accbe23cb502e294ed287
     CreditFacilities/CreditFacilityDetails/WalletDialog/details/address: f2610eb9cd14c93aa34d09018765bb26
+    CreditFacilities/CreditFacilityDetails/WalletDialog/details/custodian: 3f479171d178f75a92b6f2349be450d8
+    CreditFacilities/CreditFacilityDetails/WalletDialog/details/network: 151d08f2b23fa8334be0a46af7b7aeaa
+    CreditFacilities/CreditFacilityDetails/WalletDialog/details/viewOnMempool: 2f50678a2906b8cb36fb5852b8a0b2cb
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771

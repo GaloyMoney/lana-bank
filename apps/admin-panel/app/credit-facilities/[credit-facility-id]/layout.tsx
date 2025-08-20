@@ -133,6 +133,10 @@ gql`
       id
       walletId
       address
+      network
+      custodian {
+        name
+      }
     }
     approvalProcess {
       id
