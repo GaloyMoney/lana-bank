@@ -45,6 +45,10 @@
         }
       ]
     },
+    "EffectiveDate": {
+      "format": "date",
+      "type": "string"
+    },
     "FacilityDuration": {
       "oneOf": [
         {
@@ -266,9 +270,8 @@
           "format": "uuid",
           "type": "string"
         },
-        "facility_matures_at": {
-          "format": "date-time",
-          "type": "string"
+        "facility_maturity_date": {
+          "$ref": "#/$defs/EffectiveDate"
         },
         "id": {
           "format": "uuid",
@@ -295,7 +298,7 @@
         "facility_id",
         "idx",
         "period",
-        "facility_matures_at",
+        "facility_maturity_date",
         "account_ids",
         "terms",
         "audit_info"

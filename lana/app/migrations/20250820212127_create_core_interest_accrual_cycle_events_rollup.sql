@@ -10,7 +10,7 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
   amount BIGINT,
   effective VARCHAR,
   facility_id UUID,
-  facility_matures_at TIMESTAMPTZ,
+  facility_maturity_date VARCHAR,
   idx INTEGER,
   obligation_id UUID,
   period JSONB,
@@ -69,7 +69,7 @@ BEGIN
 ;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
-    new_row.facility_matures_at := (NEW.event ->> 'facility_matures_at')::TIMESTAMPTZ;
+    new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date');
     new_row.idx := (NEW.event ->> 'idx')::INTEGER;
     new_row.is_interest_accruals_posted := false;
     new_row.ledger_tx_ids := CASE
@@ -91,7 +91,7 @@ BEGIN
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.effective := current_row.effective;
     new_row.facility_id := current_row.facility_id;
-    new_row.facility_matures_at := current_row.facility_matures_at;
+    new_row.facility_maturity_date := current_row.facility_maturity_date;
     new_row.idx := current_row.idx;
     new_row.is_interest_accruals_posted := current_row.is_interest_accruals_posted;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
@@ -108,7 +108,7 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
-      new_row.facility_matures_at := (NEW.event ->> 'facility_matures_at')::TIMESTAMPTZ;
+      new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date');
       new_row.idx := (NEW.event ->> 'idx')::INTEGER;
       new_row.period := (NEW.event -> 'period');
       new_row.terms := (NEW.event -> 'terms');
@@ -139,7 +139,7 @@ BEGIN
     audit_entry_ids,
     effective,
     facility_id,
-    facility_matures_at,
+    facility_maturity_date,
     idx,
     is_interest_accruals_posted,
     ledger_tx_ids,
@@ -160,7 +160,7 @@ BEGIN
     new_row.audit_entry_ids,
     new_row.effective,
     new_row.facility_id,
-    new_row.facility_matures_at,
+    new_row.facility_maturity_date,
     new_row.idx,
     new_row.is_interest_accruals_posted,
     new_row.ledger_tx_ids,
