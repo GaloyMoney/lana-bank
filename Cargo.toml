@@ -96,7 +96,7 @@ sqlx = { version = "0.8", features = [
   "chrono",
   "json",
 ] }
-thiserror = "2.0.15"
+thiserror = "2.0.16"
 uuid = { version = "1.18", features = ["serde", "v4"] }
 tracing = "0.1.41"
 tracing-opentelemetry = "0.25.0"
@@ -151,7 +151,7 @@ serial_test = { version = "3.2.0", features = ["file_locks"] }
 chacha20poly1305 = "0.10.1"
 handlebars = "6.3.2"
 schemars = { version = "1.0.4", features = ["derive", "chrono04", "rust_decimal1"] }
-tempfile = "3.10.0"
+tempfile = "3.21.0"
 p256 = "0.13.2"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
