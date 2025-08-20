@@ -452,7 +452,9 @@ impl CreditFacility {
             .account_ids(self.account_ids.into())
             .idx(idx)
             .period(accrual_cycle_period)
-            .facility_matures_at(self.matures_at.expect("Facility is already approved"))
+            .facility_maturity_date(EffectiveDate::from(
+                self.matures_at.expect("Facility is already approved"),
+            ))
             .terms(self.terms)
             .audit_info(audit_info)
             .build()
