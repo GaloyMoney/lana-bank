@@ -145,13 +145,14 @@ impl TryFromEvents<InterestAccrualCycleEvent> for InterestAccrualCycle {
 }
 
 impl InterestAccrualCycle {
-    fn accrual_cycle_ends_at(&self) -> DateTime<Utc> {
+    fn accrual_cycle_ends_at(&self) -> EffectiveDate {
         self.terms
             .accrual_cycle_interval
             .period_from(self.period.start)
             .truncate(self.facility_maturity_date.start_of_day())
             .expect("'period.start' should be before 'facility_maturity_date'")
             .end
+            .into()
     }
 
     fn total_accrued(&self) -> UsdCents {
@@ -180,7 +181,7 @@ impl InterestAccrualCycle {
             Some(accrued_at) => interval.period_from(accrued_at).next(),
             None => interval.period_from(self.period.start),
         }
-        .truncate(self.accrual_cycle_ends_at())
+        .truncate(self.accrual_cycle_ends_at().end_of_day())
     }
 
     pub(crate) fn is_completed(&self) -> bool {
@@ -212,7 +213,7 @@ impl InterestAccrualCycle {
             None => accrual_interval.period_from(self.period.start),
         };
 
-        untruncated_period.truncate(self.accrual_cycle_ends_at())
+        untruncated_period.truncate(self.accrual_cycle_ends_at().end_of_day())
     }
 
     pub(crate) fn record_accrual(
@@ -255,7 +256,7 @@ impl InterestAccrualCycle {
 
         match last_accrual_period
             .next()
-            .truncate(self.accrual_cycle_ends_at())
+            .truncate(self.accrual_cycle_ends_at().end_of_day())
         {
             Some(_) => None,
             None => {
@@ -309,11 +310,11 @@ impl InterestAccrualCycle {
         let overdue_date = self
             .terms
             .obligation_overdue_duration_from_due
-            .map(|d| d.end_date(due_date));
+            .map(|d| d.end_date(due_date.start_of_day()));
         let liquidation_date = self
             .terms
             .obligation_liquidation_duration_from_due
-            .map(|d| d.end_date(due_date));
+            .map(|d| d.end_date(due_date.start_of_day()));
         let new_obligation = NewObligation::builder()
             .id(ObligationId::new())
             .credit_facility_id(self.credit_facility_id)
@@ -335,7 +336,7 @@ impl InterestAccrualCycle {
             })
             .in_liquidation_account_id(self.account_ids.in_liquidation_account_id)
             .defaulted_account_id(self.account_ids.interest_defaulted_account_id)
-            .due_date(EffectiveDate::from(due_date))
+            .due_date(due_date)
             .overdue_date(overdue_date)
             .liquidation_date(liquidation_date)
             .effective(effective)
