@@ -20,16 +20,16 @@ The Lana Bank application uses a full RBAC system with casbin authorization-engi
 
 Alice gets the `credit_writer` permission set because her `bank-manager` role inherits it. This allows her to create credit facilities across all credit facility resources.
 
-### High-level authorization flow - Admin Server
+### High-level authorization flow
 
 - **Policy Storage**: Casbin policies stored in PostgreSQL `casbin_rule` table
 - **Bootstrap Initialization**: Initial policies, roles and action-permission mappings are generated from code definitions during system bootstrap ([bootstrap](./core/access/src/bootstrap.rs))
-- **Dynamic Policy Generation**: New policies and roles can be created, modified, or removed at runtime through the admin interface.
+- **Dynamic Policy Generation**: New policies and roles can be created, modified, or removed at runtime.
 - **Permission-scoped visibility**: The admin dashboard dynamically adjusts item visibility according to individual user permissions.
 
 ```mermaid
 flowchart TD
-  A[Browser] -->|GraphQL Request| B[Admin:5253 GQL Resolver]
+  A[Browser] -->|GraphQL Request| B[Admin:5253 or Customer:5254 GQL Resolver]
   B -->|Extract User Subject| C[Requested Service]
   C -->|Casbin Permission Check| D[Authorization Service]
   D -->|Policy Evaluation| E[Casbin Engine]
@@ -40,9 +40,9 @@ flowchart TD
   H -->|Audit Log| I[Audit Trail]
 ```
 
-##### Admin Server Flow
+##### Browser <-> Server Flow
 
-- Admin sends GraphQL query/mutation with JWT
+- Browser sends GraphQL query/mutation with JWT
 - GraphQL resolver extracts user subject from JWT token
 - Requested service calls the authorization service with (subject, object, action)
 - Casbin policy engine evaluates user's role permissions against policies for the role/permissions sets
