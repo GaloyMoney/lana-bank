@@ -133,10 +133,6 @@ impl ObligationDuration {
                 .expect("should return an end date"),
         }
     }
-
-    pub fn is_past_end_date(&self, start_date: DateTime<Utc>) -> bool {
-        crate::time::now() > self.end_date(start_date)
-    }
 }
 
 #[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Serialize, Deserialize)]
