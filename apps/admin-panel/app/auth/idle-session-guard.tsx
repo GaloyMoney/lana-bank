@@ -18,7 +18,7 @@ import { keycloak as getKeycloak, logout as keycloakLogout } from "./keycloak"
 
 const IDLE_MS = 5 * 60 * 1000
 const PROMPT_MS = 30 * 1000
-const ACTION_THROTTLE_MS = 10 * 1000
+const ACTION_THROTTLE_MS = 60 * 1000
 
 const IDLE_EVENTS: EventsType[] = [
   "pointerdown",
