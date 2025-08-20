@@ -12,22 +12,22 @@ credit_facilities as(
     from {{ ref('int_core_payment_events_rollup') }}
 )
 
-, payment_allocations as(
+, obligation_installments as(
     select
         payment_id,
         sum(amount_usd) as allocation_amount_usd,
         max(effective) as effective,
-        max(payment_allocation_created_at) as payment_allocation_created_at,
-        max(payment_allocation_modified_at) as payment_allocation_modified_at,
+        max(obligation_installment_created_at) as obligation_installment_created_at,
+        max(obligation_installment_modified_at) as obligation_installment_modified_at,
         array_agg(distinct obligation_type) as obligation_type,
-    from {{ ref('int_core_payment_allocation_events_rollup') }}
+    from {{ ref('int_core_obligation_installment_events_rollup') }}
     group by payment_id
 )
 
 , final as (
     select *
     from payments
-    left join payment_allocations using(payment_id)
+    left join obligation_installments using(payment_id)
 )
 
 select * from final

@@ -12,12 +12,12 @@ credit_facilities as(
     from {{ ref('int_core_payment_events_rollup') }}
 )
 
-, payment_allocations as(
+, obligation_installments as(
     select
         payment_id,
         max(effective) as effective,
         array_agg(distinct obligation_type) as obligation_type,
-    from {{ ref('int_core_payment_allocation_events_rollup') }}
+    from {{ ref('int_core_obligation_installment_events_rollup') }}
     group by payment_id
 )
 
