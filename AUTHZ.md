@@ -4,17 +4,17 @@
 
 The Lana Bank application uses a full RBAC system with casbin authorization-engine for complex role-based permissions
 
-- **Core Components:**
+**Core Components:**
 - **Casbin**: Authorization engine with PostgreSQL policy storage, uses a custom RBAC model ([rbac.conf](./lib/authz/src/rbac.conf)) to match permissions against policies.
 - **rbac-types**: Centralized type system for RBAC entities to generate all action-permission mappings ([rbac-types](./lana/rbac-types/src))
 - **authz**: Casbin wrapper with audit integration ([authz](./lib/authz/src))
 
-- **Key Concepts:**
-  - **Subject**: Admin user, Customer or System performing the action (e.g., `user:123e4567-e89b-12d3-a456-426614174000` - a specific admin user identified by UUID)
-  - **Object**: Resource being accessed with domain (module) prefix (e.g., `credit/credit-facility/*` - all credit facilities, part of `credit` domain)
-  - **Action**: Operation being performed with domain (module) prefix (e.g., `credit:credit-facility:create` - creating new credit facility, part of `credit` domain)
-  - **Permission Set**: Named collection of related individual permissions (e.g., `credit_writer` - includes `CreditFacilityAction::Create`, `DisbursalAction::Initiate`, etc.). Each action maps to a specific permission to define what operations require which permissions.
-  - **Role**: A group of permission sets assigned to users (e.g., `bank-manager` - combines multiple permission sets like `credit_writer`, `customer_viewer`, etc.)
+**Key Concepts:**
+- **Subject**: Admin user, Customer or System performing the action (e.g., `user:123e4567-e89b-12d3-a456-426614174000` - a specific admin user identified by UUID)
+- **Object**: Resource being accessed with domain (module) prefix (e.g., `credit/credit-facility/*` - all credit facilities, part of `credit` domain)
+- **Action**: Operation being performed with domain (module) prefix (e.g., `credit:credit-facility:create` - creating new credit facility, part of `credit` domain)
+- **Permission Set**: Named collection of related individual permissions (e.g., `credit_writer` - includes `CreditFacilityAction::Create`, `DisbursalAction::Initiate`, etc.). Each action maps to a specific permission to define what operations require which permissions.
+- **Role**: A group of permission sets assigned to users (e.g., `bank-manager` - combines multiple permission sets like `credit_writer`, `customer_viewer`, etc.)
 
 **Example Mapping**: `user:123e4567-e89b-12d3-a456-426614174000` (bank manager Alice) → `bank-manager` role → `credit_writer` permission set (inherited by the role) → can perform `credit:credit-facility:create` action on `credit/credit-facility/*` objects
 
