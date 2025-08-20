@@ -622,6 +622,12 @@ impl From<chrono::NaiveDate> for EffectiveDate {
     }
 }
 
+impl From<DateTime<Utc>> for EffectiveDate {
+    fn from(date: DateTime<Utc>) -> Self {
+        Self(date.date_naive())
+    }
+}
+
 impl EffectiveDate {
     pub fn end_of_day(&self) -> DateTime<Utc> {
         Utc.from_utc_datetime(
