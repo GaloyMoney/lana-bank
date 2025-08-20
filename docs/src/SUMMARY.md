@@ -1,6 +1,6 @@
 # Summary
 
-- [Introduction](readme.md)
+- [Introduction](README.md)
 - [Credit](credit/README.md)
   - [Credit Facilities](credit/facility/README.md)
 - [ERDs](erds/README.md)
