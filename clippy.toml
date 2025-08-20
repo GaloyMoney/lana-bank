@@ -3,3 +3,7 @@
 # Set the maximum size of an enum's variant to avoid box suggestion
 # Default is 200 bytes, increasing to 2000 bytes to accommodate larger variants, common in our system
 enum-variant-size-threshold = 2000
+
+# Disable the too_many_arguments lint by setting threshold to a high value
+# Default is 7 arguments, setting to 100 effectively disables the lint
+too-many-arguments-threshold = 100

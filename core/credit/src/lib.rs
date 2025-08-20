@@ -161,7 +161,6 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    #[allow(clippy::too_many_arguments)]
     pub async fn init(
         pool: &sqlx::PgPool,
         config: CreditConfig,

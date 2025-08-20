@@ -54,7 +54,6 @@ async fn create_chart_of_accounts(
     }
 }
 
-#[allow(clippy::too_many_arguments)]
 async fn seed_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
     trial_balances: &TrialBalances,

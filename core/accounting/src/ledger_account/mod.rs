@@ -173,7 +173,6 @@ where
         Ok(res)
     }
 
-    #[allow(clippy::too_many_arguments)]
     #[instrument(
         name = "core_accounting.ledger_account.list_account_children",
         skip(self, chart),

@@ -101,7 +101,6 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    #[allow(clippy::too_many_arguments)]
     pub async fn new(
         pool: &sqlx::PgPool,
         authz: &Perms,

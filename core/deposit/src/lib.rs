@@ -102,7 +102,6 @@ where
         From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    #[allow(clippy::too_many_arguments)]
     pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
