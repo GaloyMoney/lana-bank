@@ -128,12 +128,11 @@ pub enum ObligationDuration {
 }
 
 impl ObligationDuration {
-    pub fn end_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
+    pub fn end_date(&self, start_date: EffectiveDate) -> EffectiveDate {
         match self {
             Self::Days(days) => start_date
                 .checked_add_days(chrono::Days::new(*days))
-                .expect("should return an end date")
-                .into(),
+                .expect("should return an end date"),
         }
     }
 }

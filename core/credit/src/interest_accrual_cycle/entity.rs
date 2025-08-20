@@ -310,11 +310,11 @@ impl InterestAccrualCycle {
         let overdue_date = self
             .terms
             .obligation_overdue_duration_from_due
-            .map(|d| d.end_date(due_date.start_of_day()));
+            .map(|d| d.end_date(due_date));
         let liquidation_date = self
             .terms
             .obligation_liquidation_duration_from_due
-            .map(|d| d.end_date(due_date.start_of_day()));
+            .map(|d| d.end_date(due_date));
         let new_obligation = NewObligation::builder()
             .id(ObligationId::new())
             .credit_facility_id(self.credit_facility_id)

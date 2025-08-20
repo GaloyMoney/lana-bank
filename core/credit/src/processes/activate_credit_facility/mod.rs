@@ -10,7 +10,7 @@ use outbox::OutboxEventMarker;
 use public_id::PublicIds;
 
 use crate::{
-    EffectiveDate, Jobs,
+    Jobs,
     credit_facility::{CreditFacilities, CreditFacility},
     disbursal::{Disbursals, NewDisbursal},
     error::CoreCreditError,
@@ -110,11 +110,11 @@ where
                 let overdue_date = credit_facility
                     .terms
                     .obligation_overdue_duration_from_due
-                    .map(|d| d.end_date(due_date.start_of_day()));
+                    .map(|d| d.end_date(due_date));
                 let liquidation_date = credit_facility
                     .terms
                     .obligation_liquidation_duration_from_due
-                    .map(|d| d.end_date(due_date.start_of_day()));
+                    .map(|d| d.end_date(due_date));
 
                 if credit_facility.has_structuring_fee() {
                     let disbursal_id = DisbursalId::new();

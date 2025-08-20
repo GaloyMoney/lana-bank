@@ -605,11 +605,11 @@ where
         let overdue_date = facility
             .terms
             .obligation_overdue_duration_from_due
-            .map(|d| d.end_date(due_date.start_of_day()));
+            .map(|d| d.end_date(due_date));
         let liquidation_date = facility
             .terms
             .obligation_liquidation_duration_from_due
-            .map(|d| d.end_date(due_date.start_of_day()));
+            .map(|d| d.end_date(due_date));
 
         let public_id = self
             .public_ids
