@@ -614,6 +614,8 @@ pub enum DisbursedReceivableAccountCategory {
     Overdue,
 }
 
+#[derive(Debug, Clone, Copy, PartialEq, Eq, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct EffectiveDate(chrono::NaiveDate);
 
 impl From<chrono::NaiveDate> for EffectiveDate {

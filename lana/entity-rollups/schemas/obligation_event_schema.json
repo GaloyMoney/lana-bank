@@ -19,6 +19,10 @@
       ],
       "type": "object"
     },
+    "EffectiveDate": {
+      "format": "date",
+      "type": "string"
+    },
     "ObligationAccounts": {
       "properties": {
         "account_to_be_credited_id": {
@@ -68,18 +72,20 @@
           "type": "string"
         },
         "defaulted_date": {
-          "format": "date-time",
-          "type": [
-            "string",
-            "null"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EffectiveDate"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "due_accounts": {
           "$ref": "#/$defs/ObligationAccounts"
         },
         "due_date": {
-          "format": "date-time",
-          "type": "string"
+          "$ref": "#/$defs/EffectiveDate"
         },
         "effective": {
           "format": "date",
@@ -98,10 +104,13 @@
           "type": "string"
         },
         "liquidation_date": {
-          "format": "date-time",
-          "type": [
-            "string",
-            "null"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EffectiveDate"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "not_yet_due_accounts": {
@@ -114,10 +123,13 @@
           "$ref": "#/$defs/ObligationAccounts"
         },
         "overdue_date": {
-          "format": "date-time",
-          "type": [
-            "string",
-            "null"
+          "anyOf": [
+            {
+              "$ref": "#/$defs/EffectiveDate"
+            },
+            {
+              "type": "null"
+            }
           ]
         },
         "reference": {

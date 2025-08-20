@@ -9,21 +9,21 @@ CREATE TABLE core_obligation_events_rollup (
   credit_facility_id UUID,
   defaulted_account_id UUID,
   defaulted_amount BIGINT,
-  defaulted_date TIMESTAMPTZ,
+  defaulted_date JSONB,
   due_accounts JSONB,
   due_amount BIGINT,
-  due_date TIMESTAMPTZ,
+  due_date VARCHAR,
   effective VARCHAR,
   in_liquidation_account_id UUID,
   initial_amount BIGINT,
-  liquidation_date TIMESTAMPTZ,
+  liquidation_date JSONB,
   liquidation_process_id UUID,
   not_yet_due_accounts JSONB,
   obligation_installment_amount BIGINT,
   obligation_type VARCHAR,
   overdue_accounts JSONB,
   overdue_amount BIGINT,
-  overdue_date TIMESTAMPTZ,
+  overdue_date JSONB,
   payment_id UUID,
   reference VARCHAR,
 
@@ -81,10 +81,10 @@ BEGIN
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.defaulted_account_id := (NEW.event ->> 'defaulted_account_id')::UUID;
     new_row.defaulted_amount := (NEW.event ->> 'defaulted_amount')::BIGINT;
-    new_row.defaulted_date := (NEW.event ->> 'defaulted_date')::TIMESTAMPTZ;
+    new_row.defaulted_date := (NEW.event -> 'defaulted_date');
     new_row.due_accounts := (NEW.event -> 'due_accounts');
     new_row.due_amount := (NEW.event ->> 'due_amount')::BIGINT;
-    new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
+    new_row.due_date := (NEW.event ->> 'due_date');
     new_row.effective := (NEW.event ->> 'effective');
     new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
     new_row.initial_amount := (NEW.event ->> 'initial_amount')::BIGINT;
@@ -98,7 +98,7 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
+    new_row.liquidation_date := (NEW.event -> 'liquidation_date');
     new_row.liquidation_process_id := (NEW.event ->> 'liquidation_process_id')::UUID;
     new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
     new_row.obligation_installment_amount := (NEW.event ->> 'obligation_installment_amount')::BIGINT;
@@ -111,7 +111,7 @@ BEGIN
     new_row.obligation_type := (NEW.event ->> 'obligation_type');
     new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
     new_row.overdue_amount := (NEW.event ->> 'overdue_amount')::BIGINT;
-    new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
+    new_row.overdue_date := (NEW.event -> 'overdue_date');
     new_row.payment_id := (NEW.event ->> 'payment_id')::UUID;
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
@@ -153,17 +153,17 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.defaulted_account_id := (NEW.event ->> 'defaulted_account_id')::UUID;
-      new_row.defaulted_date := (NEW.event ->> 'defaulted_date')::TIMESTAMPTZ;
+      new_row.defaulted_date := (NEW.event -> 'defaulted_date');
       new_row.due_accounts := (NEW.event -> 'due_accounts');
-      new_row.due_date := (NEW.event ->> 'due_date')::TIMESTAMPTZ;
+      new_row.due_date := (NEW.event ->> 'due_date');
       new_row.effective := (NEW.event ->> 'effective');
       new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-      new_row.liquidation_date := (NEW.event ->> 'liquidation_date')::TIMESTAMPTZ;
+      new_row.liquidation_date := (NEW.event -> 'liquidation_date');
       new_row.not_yet_due_accounts := (NEW.event -> 'not_yet_due_accounts');
       new_row.obligation_type := (NEW.event ->> 'obligation_type');
       new_row.overdue_accounts := (NEW.event -> 'overdue_accounts');
-      new_row.overdue_date := (NEW.event ->> 'overdue_date')::TIMESTAMPTZ;
+      new_row.overdue_date := (NEW.event -> 'overdue_date');
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'due_recorded' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
