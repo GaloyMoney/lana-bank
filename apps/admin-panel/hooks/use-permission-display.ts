@@ -77,6 +77,11 @@ export function usePermissionDisplay() {
           label: t("deposit_writer.label"),
           description: t("deposit_writer.description"),
         }
+      case PermissionSetName.DepositFreeze:
+        return {
+          label: t("deposit_freeze.label"),
+          description: t("deposit_freeze.description"),
+        }
       case PermissionSetName.GovernanceViewer:
         return {
           label: t("governance_viewer.label"),

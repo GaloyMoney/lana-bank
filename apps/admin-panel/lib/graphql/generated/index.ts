@@ -1756,6 +1756,7 @@ export enum PermissionSetName {
   CustomerViewer = 'CUSTOMER_VIEWER',
   CustomerWriter = 'CUSTOMER_WRITER',
   DashboardViewer = 'DASHBOARD_VIEWER',
+  DepositFreeze = 'DEPOSIT_FREEZE',
   DepositViewer = 'DEPOSIT_VIEWER',
   DepositWriter = 'DEPOSIT_WRITER',
   GovernanceViewer = 'GOVERNANCE_VIEWER',

@@ -79,6 +79,10 @@
       "label": "Deposit Writer",
       "description": "Can create and manage deposits, deposit accounts, and withdrawals, including initiating, confirming, cancelling, and approving withdrawals"
     },
+    "deposit_freeze": {
+      "label": "Deposit Freeze",
+      "description": "Can freeze deposit accounts"
+    },
     "governance_viewer": {
       "label": "Governance Viewer",
       "description": "Can view governance committees, policies, and approval processes"
