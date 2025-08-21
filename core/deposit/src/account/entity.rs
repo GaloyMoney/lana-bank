@@ -108,6 +108,8 @@ pub struct NewDepositAccount {
     #[builder(setter(into))]
     pub(super) account_holder_id: DepositAccountHolderId,
     #[builder(setter(into))]
+    pub(super) ledger_account_id: CalaAccountId,
+    #[builder(setter(into))]
     pub(super) frozen_deposit_account_id: CalaAccountId,
     pub(super) active: bool,
     #[builder(setter(into))]
@@ -128,7 +130,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
             [DepositAccountEvent::Initialized {
                 id: self.id,
                 account_holder_id: self.account_holder_id,
-                ledger_account_id: self.id.into(),
+                ledger_account_id: self.ledger_account_id,
                 frozen_deposit_account_id: self.frozen_deposit_account_id,
                 status: if self.active {
                     DepositAccountStatus::Active
