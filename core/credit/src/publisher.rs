@@ -1,6 +1,7 @@
 use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{
+    EffectiveDate,
     collateral::{Collateral, CollateralEvent, error::CollateralError},
     credit_facility::{CreditFacility, CreditFacilityEvent, error::CreditFacilityError},
     disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
@@ -190,7 +191,7 @@ where
                     ledger_tx_id: *tx_id,
                     amount: *total,
                     period: entity.period,
-                    due_at: entity.period.end,
+                    due_at: EffectiveDate::from(entity.period.end),
                     recorded_at: event.recorded_at,
                     effective: *effective,
                 }),
@@ -244,6 +245,8 @@ where
         new_events: es_entity::LastPersisted<'_, ObligationEvent>,
     ) -> Result<(), ObligationError> {
         use ObligationEvent::*;
+
+        let dates = entity.lifecycle_dates();
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { effective, .. } => Some(CoreCreditEvent::ObligationCreated {
@@ -252,9 +255,9 @@ where
                     credit_facility_id: entity.credit_facility_id,
                     amount: entity.initial_amount,
 
-                    due_at: entity.due_at(),
-                    overdue_at: entity.overdue_at(),
-                    defaulted_at: entity.defaulted_at(),
+                    due_at: dates.due,
+                    overdue_at: dates.overdue,
+                    defaulted_at: dates.defaulted,
                     recorded_at: event.recorded_at,
                     effective: *effective,
                 }),
