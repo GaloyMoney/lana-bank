@@ -27,57 +27,19 @@
       "authenticationExecutions": [
         {
           "authenticator": "auth-cookie",
+          "authenticatorFlow": false,
           "requirement": "ALTERNATIVE",
-          "priority": 10
+          "priority": 10,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
         },
         {
-          "authenticator": "identity-provider-redirector",
-          "requirement": "ALTERNATIVE",
-          "priority": 25
-        },
-        {
-          "flowAlias": "DEV browser Organization",
           "authenticatorFlow": true,
           "requirement": "ALTERNATIVE",
-          "priority": 26
-        },
-        {
+          "priority": 31,
+          "autheticatorFlow": true,
           "flowAlias": "DEV browser forms",
-          "authenticatorFlow": true,
-          "requirement": "ALTERNATIVE",
-          "priority": 30
-        }
-      ]
-    },
-    {
-      "alias": "DEV browser Organization",
-      "providerId": "basic-flow",
-      "topLevel": false,
-      "builtIn": false,
-      "authenticationExecutions": [
-        {
-          "flowAlias": "DEV browser Browser - Conditional Organization",
-          "authenticatorFlow": true,
-          "requirement": "CONDITIONAL",
-          "priority": 10
-        }
-      ]
-    },
-    {
-      "alias": "DEV browser Browser - Conditional Organization",
-      "providerId": "basic-flow",
-      "topLevel": false,
-      "builtIn": false,
-      "authenticationExecutions": [
-        {
-          "authenticator": "conditional-user-configured",
-          "requirement": "REQUIRED",
-          "priority": 10
-        },
-        {
-          "authenticator": "organization",
-          "requirement": "ALTERNATIVE",
-          "priority": 20
+          "userSetupAllowed": false
         }
       ]
     },
@@ -90,32 +52,11 @@
       "authenticationExecutions": [
         {
           "authenticator": "auth-username-form",
+          "authenticatorFlow": false,
           "requirement": "REQUIRED",
-          "priority": 20
-        },
-        {
-          "flowAlias": "DEV browser Browser - Conditional 2FA",
-          "authenticatorFlow": true,
-          "requirement": "CONDITIONAL",
-          "priority": 21
-        }
-      ]
-    },
-    {
-      "alias": "DEV browser Browser - Conditional 2FA",
-      "providerId": "basic-flow",
-      "topLevel": false,
-      "builtIn": false,
-      "authenticationExecutions": [
-        {
-          "authenticator": "conditional-user-configured",
-          "requirement": "REQUIRED",
-          "priority": 10
-        },
-        {
-          "authenticator": "auth-otp-form",
-          "requirement": "ALTERNATIVE",
-          "priority": 20
+          "priority": 20,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
         }
       ]
     },
@@ -134,13 +75,11 @@
       ]
     }
   ],
-
   "users": [
     {
       "username": "service-account-customer-service-account",
       "emailVerified": false,
       "enabled": true,
-      "createdTimestamp": 1754654087477,
       "totp": false,
       "serviceAccountClientId": "customer-service-account",
       "credentials": [],
@@ -194,7 +133,6 @@
       "attributes": {
         "realm_client": "false",
         "oidc.ciba.grant.enabled": "false",
-        "client.secret.creation.time": "1754653437",
         "backchannel.logout.session.required": "true",
         "standard.token.exchange.enabled": "false",
         "post.logout.redirect.uris": "+",
