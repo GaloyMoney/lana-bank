@@ -16,7 +16,8 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 
-import { isUUID } from "@/lib/utils"
+import { validate } from "uuid"
+
 import {
   useLedgerAccountExistsByCodeLazyQuery,
   useLedgerAccountExistsByIdLazyQuery,
@@ -56,7 +57,7 @@ export default function LedgerAccount() {
     setError(null)
 
     try {
-      const isId = isUUID(trimmedTerm)
+      const isId = validate(trimmedTerm)
       let accountExists = false
 
       if (isId) {

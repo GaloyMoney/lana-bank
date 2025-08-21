@@ -4,6 +4,8 @@ import { createContext, useContext, useState } from "react"
 
 import { usePathname } from "next/navigation"
 
+import { validate } from "uuid"
+
 import { useNavItems } from "@/components/app-sidebar"
 import type { BreadcrumbLink } from "@/components/breadcrumb-wrapper"
 
@@ -25,9 +27,6 @@ function generateDefaultLinks(
   const dashboardItem = findNavItemByUrl("/dashboard")
   const links: BreadcrumbLink[] = []
 
-  const uuidRegex =
-    /^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/i
-
   let currentPath = ""
   segments.forEach((segment, index) => {
     if (segment === "dashboard") return
@@ -38,7 +37,7 @@ function generateDefaultLinks(
 
     if (navItem) {
       title = navItem.title
-    } else if (uuidRegex.test(segment)) {
+    } else if (validate(segment)) {
       title = segment
     } else {
       title = segment

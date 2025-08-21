@@ -29,11 +29,12 @@ import Link from "next/link"
 
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
+import { validate } from "uuid"
+
 import { AddChildNodeDialog } from "../../chart-of-accounts/add-child-node-dialog"
 
 import { ExportCsvDialog } from "./export"
 
-import { isUUID } from "@/lib/utils"
 import {
   useLedgerAccountByCodeQuery,
   useLedgerAccountQuery,
@@ -149,7 +150,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
   const [isExportDialogOpen, setIsExportDialogOpen] = useState(false)
   const [isAddChildDialogOpen, setIsAddChildDialogOpen] = useState(false)
   const { "ledger-account-ref": ref } = use(params)
-  const isRefUUID = isUUID(ref)
+  const isRefUUID = validate(ref)
 
   const [isAncestorsOpen, setIsAncestorsOpen] = useState(false)
   const [isChildrenOpen, setIsChildrenOpen] = useState(false)
