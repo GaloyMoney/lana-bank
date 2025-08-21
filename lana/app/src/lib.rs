@@ -40,8 +40,8 @@ pub mod user_onboarding {
 
 pub mod notification {
     pub use notification::config::NotificationConfig;
-    pub type Notification = notification::Notification;
-    pub type EmailNotification = notification::email::EmailNotification;
+    pub type Notification = notification::Notification<crate::authorization::Authorization>;
+    pub type EmailNotification = notification::email::EmailNotification<crate::authorization::Authorization>;
 }
 
 pub mod rbac {

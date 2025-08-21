@@ -12,7 +12,6 @@ use core_customer::Customers;
 use job::{EmailSenderConfig, EmailSenderInit};
 use lana_events::LanaEvent;
 
-use crate::{Authorization, LanaAudit};
 use smtp::SmtpClient;
 use templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
 
@@ -20,20 +19,49 @@ pub use config::EmailConfig;
 pub use error::EmailError;
 
 #[derive(Clone)]
-pub struct EmailNotification {
+pub struct EmailNotification<AuthzType>
+where
+    AuthzType: authz::PermissionCheck,
+{
     jobs: Jobs,
-    users: Users<LanaAudit, LanaEvent>,
-    credit: CoreCredit<Authorization, LanaEvent>,
-    customers: Customers<Authorization, LanaEvent>,
+    users: Users<AuthzType::Audit, LanaEvent>,
+    credit: CoreCredit<AuthzType, LanaEvent>,
+    customers: Customers<AuthzType, LanaEvent>,
+    _authz: std::marker::PhantomData<AuthzType>,
 }
 
-impl EmailNotification {
+impl<AuthzType> EmailNotification<AuthzType>
+where
+    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_credit::CoreCreditAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_access::CoreAccessAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<governance::GovernanceAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_credit::CoreCreditObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_customer::CustomerObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_access::CoreAccessObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<governance::GovernanceObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+        From<core_access::UserId>,
+{
     pub async fn init(
         jobs: &Jobs,
         config: EmailConfig,
-        users: &Users<LanaAudit, LanaEvent>,
-        credit: &CoreCredit<Authorization, LanaEvent>,
-        customers: &Customers<Authorization, LanaEvent>,
+        users: &Users<AuthzType::Audit, LanaEvent>,
+        credit: &CoreCredit<AuthzType, LanaEvent>,
+        customers: &Customers<AuthzType, LanaEvent>,
     ) -> Result<Self, EmailError> {
         let template = EmailTemplate::new(config.admin_panel_url.clone())?;
         let smtp_client = SmtpClient::init(config)?;
@@ -43,6 +71,7 @@ impl EmailNotification {
             users: users.clone(),
             credit: credit.clone(),
             customers: customers.clone(),
+            _authz: std::marker::PhantomData,
         })
     }
 

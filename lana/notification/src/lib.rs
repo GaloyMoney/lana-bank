@@ -10,35 +10,73 @@ use core_credit::CoreCredit;
 use core_customer::Customers;
 use job::Jobs;
 use lana_events::LanaEvent;
-use rbac_types::{LanaAction, LanaObject, Subject};
 
 use email::EmailNotification;
 use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
 
 pub use config::NotificationConfig;
 
-pub(crate) type LanaAudit = audit::Audit<Subject, LanaObject, LanaAction>;
-pub(crate) type Authorization = authz::Authorization<LanaAudit, core_access::AuthRoleToken>;
-pub(crate) type NotificationOutbox = outbox::Outbox<LanaEvent>;
+pub struct Notification<AuthzType>
+where
+    AuthzType: authz::PermissionCheck,
+{
+    _authz: std::marker::PhantomData<AuthzType>,
+}
 
-pub struct Notification;
+impl<AuthzType> Clone for Notification<AuthzType>
+where
+    AuthzType: authz::PermissionCheck,
+{
+    fn clone(&self) -> Self {
+        Self {
+            _authz: std::marker::PhantomData,
+        }
+    }
+}
 
-impl Notification {
+impl<AuthzType> Notification<AuthzType>
+where
+    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_credit::CoreCreditAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_customer::CoreCustomerAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_access::CoreAccessAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<governance::GovernanceAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
+        From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_credit::CoreCreditObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_customer::CustomerObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_access::CoreAccessObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<governance::GovernanceObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
+        From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+        From<core_access::UserId>,
+{
     pub async fn init(
         config: NotificationConfig,
         jobs: &Jobs,
-        outbox: &NotificationOutbox,
-        users: &Users<LanaAudit, LanaEvent>,
-        credit: &CoreCredit<Authorization, LanaEvent>,
-        customers: &Customers<Authorization, LanaEvent>,
+        outbox: &outbox::Outbox<LanaEvent>,
+        users: &Users<AuthzType::Audit, LanaEvent>,
+        credit: &CoreCredit<AuthzType, LanaEvent>,
+        customers: &Customers<AuthzType, LanaEvent>,
     ) -> Result<Self, error::NotificationError> {
         let email = EmailNotification::init(jobs, config.email, users, credit, customers).await?;
         jobs.add_initializer_and_spawn_unique(
             EmailEventListenerInit::new(outbox, &email),
-            EmailEventListenerConfig,
+            EmailEventListenerConfig::default(),
         )
         .await?;
 
-        Ok(Self)
+        Ok(Self {
+            _authz: std::marker::PhantomData,
+        })
     }
 }
