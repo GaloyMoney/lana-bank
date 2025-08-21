@@ -4,10 +4,9 @@ members = [
   "lana/*",
   "core/*",
   "lib/*"
-]
+, "dev/cala-dag-visualizer"]
 exclude = [
   "dev/check-dependency-dag",
-  "lib/js",
 ]
 
 [workspace.dependencies]

@@ -325,6 +325,7 @@
           meltanoPkgs.meltano
           poppler_utils
           keycloak
+          graphviz
           # Font packages for PDF generation
           fontconfig
           dejavu_fonts # Provides serif, sans-serif, and monospace

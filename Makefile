@@ -123,6 +123,19 @@ sdl: sdl-rust sdl-js
 # Cargo alternative for full SDL generation
 sdl-cargo: sdl-rust-cargo sdl-js
 
+# ── DAG Visualization ─────────────────────────────────────────────────────────
+
+# Generate Cala account DAG visualization
+dag-visualize:
+	cd dev/cala-dag-visualizer && cargo run --release -- --output cala_dag.dot
+	cd dev/cala-dag-visualizer && fdp -Tsvg cala_dag.dot -o cala_dag.svg
+	@echo "✅ Generated: dev/cala-dag-visualizer/cala_dag.svg"
+
+# Clean up generated DAG files
+dag-clean:
+	cd dev/cala-dag-visualizer && rm -f *.dot *.svg
+	@echo "🧹 Cleaned up DAG visualization files"
+
 # Frontend Apps
 check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
 	git diff --exit-code apps/admin-panel/lib/graphql/generated/
