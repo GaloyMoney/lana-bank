@@ -44,6 +44,23 @@
       ]
     },
     {
+      "alias": "DEV browser - WebAuthn 2FA",
+      "description": "Required WebAuthn 2FA sub-flow",
+      "providerId": "basic-flow",
+      "topLevel": false,
+      "builtIn": false,
+      "authenticationExecutions": [
+        {
+          "authenticator": "webauthn-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 10,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
+        }
+      ]
+    },
+    {
       "alias": "DEV browser forms",
       "description": "Username, password, otp and other auth forms.",
       "providerId": "basic-flow",
@@ -56,6 +73,14 @@
           "requirement": "REQUIRED",
           "priority": 20,
           "autheticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
+          "authenticatorFlow": true,
+          "requirement": "REQUIRED",
+          "priority": 30,
+          "autheticatorFlow": true,
+          "flowAlias": "DEV browser - WebAuthn 2FA",
           "userSetupAllowed": false
         }
       ]
