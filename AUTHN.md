@@ -70,3 +70,8 @@ flowchart LR
 #### Backend services that manage users
 
 - Backend services use service‑account credentials via the Rust `lib/keycloak-client` crate, which obtains admin tokens and calls the Keycloak Admin API.
+
+### Known Issues (Local Development)
+- In local dev, **Brave Browser** blocks the admin-panel login flow because the app makes a cross-site HTTP request to Keycloak.
+This can be fixed by turning off Brave Shields for `admin.localhost`.
+
