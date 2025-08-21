@@ -50,6 +50,8 @@ checksums:
     Permissions/deposit_viewer/description: af3cd7f77aeff3e0d88425517fad9118
     Permissions/deposit_writer/label: e89408ad1a70a43b45be53c514ebb4d0
     Permissions/deposit_writer/description: e9b4b5687d534893818d107ed990ead8
+    Permissions/deposit_freeze/label: 4ff01909328b86695318c75ea0b0bd03
+    Permissions/deposit_freeze/description: 4b13716322f1d78b3ad976a5498c9f1d
     Permissions/governance_viewer/label: bfcc6123d91209cf8ca012200b6cd556
     Permissions/governance_viewer/description: 84a7ff7991222611fe8a7d55bd61aacc
     Permissions/governance_writer/label: b9dd0624ee128d1ece7da289d0c28eb5

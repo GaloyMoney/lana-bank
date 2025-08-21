@@ -79,6 +79,10 @@
       "label": "Editor de depósitos",
       "description": "Puede crear y gestionar depósitos, cuentas de depósito y retiros, incluyendo iniciar, confirmar, cancelar y aprobar retiros"
     },
+    "deposit_freeze": {
+      "label": "Congelación de depósito",
+      "description": "Puede congelar cuentas de depósito"
+    },
     "governance_viewer": {
       "label": "Visualizador de gobernanza",
       "description": "Puede ver comités de gobernanza, políticas y procesos de aprobación"
