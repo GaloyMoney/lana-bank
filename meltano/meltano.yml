@@ -138,4 +138,5 @@ plugins:
     pip_url: -e ${MELTANO_PROJECT_ROOT}/utilities/generate-es-reports
     executable: generate-es-reports
     commands:
-      run: </dev/null
+      run:
+        args: run
