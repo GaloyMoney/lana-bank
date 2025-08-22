@@ -52,6 +52,11 @@ export function usePermissionDisplay() {
           label: t("credit_writer.label"),
           description: t("credit_writer.description"),
         }
+      case PermissionSetName.CreditPaymentWriter:
+        return {
+          label: t("credit_payment_writer.label"),
+          description: t("credit_payment_writer.description"),
+        }
       case PermissionSetName.CustomerViewer:
         return {
           label: t("customer_viewer.label"),

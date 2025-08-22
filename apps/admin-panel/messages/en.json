@@ -59,6 +59,10 @@
       "label": "Credit Writer",
       "description": "Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"
     },
+    "credit_payment_writer": {
+      "label": "Credit Payment Writer",
+      "description": "Can create payment obligations for credit facilities"
+    },
     "customer_viewer": {
       "label": "Customer Viewer",
       "description": "Can view customer profiles and account details"
