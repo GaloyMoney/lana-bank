@@ -325,7 +325,6 @@ checksums:
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/effectiveRate: 7dd8de3c81e63d553bf906f47f584518
     CreditFacilities/CreditFacilityDetails/WalletDialog/title: ffdfb4ea0c46005fe1ab5851154b84ce
     CreditFacilities/CreditFacilityDetails/WalletDialog/details/address: f2610eb9cd14c93aa34d09018765bb26
-    CreditFacilities/CreditFacilityDetails/WalletDialog/details/custodian: 3f479171d178f75a92b6f2349be450d8
     CreditFacilities/CreditFacilityDetails/WalletDialog/details/network: 151d08f2b23fa8334be0a46af7b7aeaa
     CreditFacilities/CreditFacilityDetails/WalletDialog/details/viewOnMempool: 2f50678a2906b8cb36fb5852b8a0b2cb
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
@@ -357,6 +356,8 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/maturityDate: 682c7847ef7947ed9d2812f6f1a402cd
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/monthlyPayment: 5d0ad4eae4d1d2cfa2b3b097c2139844
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/noMonthlyPaymentAvailable: 3571c074ce377c24810128d5ee89fb5e
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/custodian: 3f479171d178f75a92b6f2349be450d8
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/manual: 772ff39554ea76c8db86f09b7d96fcb9
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanTerms: 1ebf872e0d722fc8651f5f7108208fc3
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/walletDetails: ffdfb4ea0c46005fe1ab5851154b84ce
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanAgreement: 8b57e9c349cfb05286388fec7247d078

@@ -521,7 +521,6 @@
         "title": "Wallet Details",
         "details": {
           "address": "Wallet Address",
-          "custodian": "Custodian",
           "network": "Network",
           "viewOnMempool": "View on mempool"
         }
@@ -566,7 +565,9 @@
           "dateOfIssuance": "Date of Issuance",
           "maturityDate": "Maturity Date",
           "monthlyPayment": "Monthly Payment",
-          "noMonthlyPaymentAvailable": "No monthly payment available"
+          "noMonthlyPaymentAvailable": "No monthly payment available",
+          "custodian": "Custodian",
+          "manual": "Manual"
         },
         "buttons": {
           "loanTerms": "Loan Terms",

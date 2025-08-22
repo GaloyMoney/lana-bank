@@ -97,6 +97,10 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       value: formatDate(creditFacilityDetails.maturesAt),
       displayCondition: creditFacilityDetails.maturesAt !== null,
     },
+    {
+      label: t("details.custodian"),
+      value: creditFacilityDetails.wallet?.custodian.name ?? t("details.manual"),
+    },
   ]
 
   const footerContent = (

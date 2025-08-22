@@ -49,10 +49,6 @@ export const CreditFacilityWalletDialog: React.FC<CreditFacilityWalletDialogProp
       className: "break-all",
     },
     {
-      label: t("details.custodian"),
-      value: wallet.custodian.name,
-    },
-    {
       label: t("details.network"),
       value: wallet.network,
     },

@@ -521,7 +521,6 @@
         "title": "Detalles de la cartera",
         "details": {
           "address": "Dirección de la cartera",
-          "custodian": "Custodio",
           "network": "Red",
           "viewOnMempool": "Ver en mempool"
         }
@@ -566,7 +565,9 @@
           "dateOfIssuance": "Fecha de emisión",
           "maturityDate": "Fecha de vencimiento",
           "monthlyPayment": "Pago mensual",
-          "noMonthlyPaymentAvailable": "No hay pago mensual disponible"
+          "noMonthlyPaymentAvailable": "No hay pago mensual disponible",
+          "custodian": "Custodio",
+          "manual": "Manual"
         },
         "buttons": {
           "loanTerms": "Términos del Préstamo",
