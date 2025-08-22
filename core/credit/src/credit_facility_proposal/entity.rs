@@ -36,9 +36,7 @@ pub enum CreditFacilityProposalEvent {
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
         approved: bool,
-        audit_info: AuditInfo,
     },
-
     CollateralizationStateChanged {
         collateralization_state: CreditFacilityProposalCollateralizationState,
         collateral: Satoshis,
@@ -136,7 +134,6 @@ impl CreditFacilityProposal {
         Idempotent::Executed(())
     }
 
-    // TODO: check if we can return ZERO
     pub fn last_collateralization_ratio(&self) -> Decimal {
         self.events
             .iter_all()
@@ -163,6 +160,38 @@ impl CreditFacilityProposal {
                 _ => None,
             })
             .unwrap_or(CreditFacilityProposalCollateralizationState::UnderCollateralized)
+    }
+
+    pub(crate) fn is_approval_process_concluded(&self) -> bool {
+        for event in self.events.iter_all() {
+            match event {
+                CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => return true,
+                _ => continue,
+            }
+        }
+        false
+    }
+
+    pub(crate) fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
+        );
+        self.events
+            .push(CreditFacilityProposalEvent::ApprovalProcessConcluded {
+                approval_process_id: self.id.into(),
+                approved,
+            });
+        Idempotent::Executed(())
+    }
+
+    fn _complete(&mut self) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            CreditFacilityProposalEvent::Completed {}
+        );
+        self.events.push(CreditFacilityProposalEvent::Completed {});
+        Idempotent::Executed(())
     }
 }
 

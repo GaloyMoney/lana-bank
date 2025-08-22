@@ -6,9 +6,9 @@ use colored::*;
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{ChartEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
-    CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    LiquidationProcessEvent, ObligationEvent, ObligationInstallmentEvent, PaymentEvent,
-    TermsTemplateEvent,
+    CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
+    InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent,
+    ObligationInstallmentEvent, PaymentEvent, TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
@@ -272,6 +272,21 @@ pub fn update_schemas(
             ],
             toggle_events: vec!["ApprovalProcessConcluded", "Activated", "Completed"],
             generate_schema: || serde_json::to_value(schema_for!(CreditFacilityEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "CreditFacilityProposalEvent",
+            filename: "credit_facility_proposal_event_schema.json",
+            collections: vec![CollectionRollup {
+                column_name: "ledger_tx_ids",
+                values: "ledger_tx_id",
+                add_events: vec!["Initialized".to_string()],
+                remove_events: vec![],
+            }],
+            toggle_events: vec!["ApprovalProcessConcluded", "Completed"],
+            generate_schema: || {
+                serde_json::to_value(schema_for!(CreditFacilityProposalEvent)).unwrap()
+            },
             ..Default::default()
         },
         SchemaInfo {
