@@ -342,8 +342,8 @@
         "title": "Congelar Cuenta de Depósito",
         "description": "¿Está seguro de que desea congelar esta cuenta de depósito? Esta acción impedirá futuros depósitos y retiros.",
         "fields": {
-          "settledBalance": "Saldo Liquidado",
-          "pendingBalance": "Saldo Pendiente"
+          "settledBalance": "Saldo liquidado de cuenta corriente",
+          "pendingBalance": "Retiros pendientes"
         },
         "buttons": {
           "freeze": "Congelar Cuenta",

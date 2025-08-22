@@ -342,8 +342,8 @@
         "title": "Freeze Deposit Account",
         "description": "Are you sure you want to freeze this deposit account? This action will prevent further deposits and withdrawals.",
         "fields": {
-          "settledBalance": "Settled Balance",
-          "pendingBalance": "Pending Balance"
+          "settledBalance": "Checking Settled Balance",
+          "pendingBalance": "Pending Withdrawals"
         },
         "buttons": {
           "freeze": "Freeze Account",
