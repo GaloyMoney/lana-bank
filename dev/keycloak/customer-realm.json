@@ -76,6 +76,14 @@
           "userSetupAllowed": false
         },
         {
+          "authenticator": "email-authenticator",
+          "authenticatorFlow": false,
+          "requirement": "REQUIRED",
+          "priority": 21,
+          "autheticatorFlow": false,
+          "userSetupAllowed": false
+        },
+        {
           "authenticatorFlow": true,
           "requirement": "REQUIRED",
           "priority": 30,
@@ -248,5 +256,18 @@
       ],
       "access": { "view": true, "configure": true, "manage": true }
     }
-  ]
+  ],
+  "smtpServer": {
+    "debug": "true",
+    "replyToDisplayName": "",
+    "starttls": "false",
+    "auth": "",
+    "port": "1025",
+    "host": "mailcrab",
+    "replyTo": "",
+    "from": "no-reply@galoy.io",
+    "fromDisplayName": "Dev",
+    "envelopeFrom": "",
+    "ssl": "false"
+  }
 }

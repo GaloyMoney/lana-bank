@@ -30,6 +30,7 @@ services:
     depends_on: [keycloak-pg]
     volumes:
       - "./dev/keycloak:/opt/keycloak/data/import"
+      - "./dev/keycloak/providers:/opt/keycloak/providers"
 
   oathkeeper:
     image: oryd/oathkeeper:v0.40.7-distroless
