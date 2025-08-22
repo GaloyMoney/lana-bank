@@ -41,7 +41,7 @@
     },
     "accounting_writer": {
       "label": "Editor de contabilidad",
-      "description": "Puede crear y gestionar planes de cuentas, transacciones manuales y del libro mayor, balances, informes de pérdidas y ganancias, y datos contables relacionados"
+      "description": "Puede crear y gestionar planes de cuentas, transacciones manuales y del libro mayor, balances, informes del estado de resultados, y datos contables relacionados"
     },
     "audit_viewer": {
       "label": "Visor de auditoría",
@@ -138,7 +138,7 @@
       "journal": "Registros Contables",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
-      "profitAndLoss": "Pérdidas y Ganancias",
+      "profitAndLoss": "Estado de Resultados",
       "regulatoryReporting": "Informes Regulatorios",
       "trialBalance": "Balance de Comprobación",
       "modules": "Módulos",
@@ -1708,9 +1708,9 @@
       "chartOfAccountsExpensesCode": "Código de gastos"
     },
     "profitAndLoss": {
-      "title": "Pérdidas y ganancias",
-      "description": "Configuración del estado de pérdidas y ganancias",
-      "setTitle": "Establecer configuración de pérdidas y ganancias",
+      "title": "Estado de resultados",
+      "description": "Configuración del estado de resultados",
+      "setTitle": "Establecer configuración del estado de resultados",
       "chartOfAccountsId": "ID del catálogo de cuentas",
       "chartOfAccountsRevenueCode": "Código de ingresos",
       "chartOfAccountsCostOfRevenueCode": "Código de costo de ingresos",
