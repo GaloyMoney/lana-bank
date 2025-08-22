@@ -40,6 +40,7 @@ import {
   CreditFacility,
   Customer,
   CreditFacilityStatus,
+  DepositAccountStatus,
   GetWithdrawalDetailsQuery,
   GetPolicyDetailsQuery,
   GetCommitteeDetailsQuery,
@@ -174,7 +175,7 @@ const CreateButton = () => {
       label: t("menuItems.customer"),
       onClick: () => setCreateCustomer(true),
       dataTestId: "create-customer-button",
-      allowedPaths: [PATH_CONFIGS.CUSTOMERS, PATH_CONFIGS.CUSTOMER_DETAILS],
+      allowedPaths: [PATH_CONFIGS.CUSTOMERS],
     },
     {
       label: t("menuItems.creditFacility"),
@@ -248,9 +249,22 @@ const CreateButton = () => {
   ]
 
   const getAvailableMenuItems = () => {
-    return menuItems.filter((item) =>
-      isItemAllowedOnCurrentPath(item.allowedPaths, pathName),
-    )
+    return menuItems.filter((item) => {
+      const isPathAllowed = isItemAllowedOnCurrentPath(item.allowedPaths, pathName)
+
+      // Hide deposit and withdrawal options if deposit account is not active
+      if (
+        item.label === t("menuItems.deposit") ||
+        item.label === t("menuItems.withdrawal")
+      ) {
+        return (
+          isPathAllowed &&
+          customer?.depositAccount?.status === DepositAccountStatus.Active
+        )
+      }
+
+      return isPathAllowed
+    })
   }
 
   const decideCreation = () => {

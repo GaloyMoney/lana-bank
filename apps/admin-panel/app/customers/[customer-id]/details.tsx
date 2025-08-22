@@ -5,17 +5,20 @@ import { PiPencilSimpleLineLight } from "react-icons/pi"
 import { useTranslations } from "next-intl"
 
 import { Badge } from "@lana/web/ui/badge"
+import { Button } from "@lana/web/ui/button"
 
 import { formatDate } from "@lana/web/utils"
 
 import UpdateTelegramIdDialog from "./update-telegram-id"
 import UpdateEmailDialog from "./update-email"
+import FreezeDepositAccountDialog from "./freeze-deposit-account"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
   CustomerStatus,
   CustomerType,
   GetCustomerBasicDetailsQuery,
+  DepositAccountStatus,
 } from "@/lib/graphql/generated"
 
 type CustomerDetailsCardProps = {
@@ -24,9 +27,11 @@ type CustomerDetailsCardProps = {
 
 export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ customer }) => {
   const t = useTranslations("Customers.CustomerDetails.details")
+  const freezeT = useTranslations("Customers.CustomerDetails.freezeDepositAccount")
 
   const [openUpdateTelegramIdDialog, setOpenUpdateTelegramIdDialog] = useState(false)
   const [openUpdateEmailDialog, setOpenUpdateEmailDialog] = useState(false)
+  const [openFreezeDialog, setOpenFreezeDialog] = useState(false)
 
   const getCustomerTypeDisplay = (customerType: CustomerType) => {
     switch (customerType) {
@@ -63,11 +68,23 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
         </button>
       ),
     },
+    { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
+    {
+      label: t("labels.status"),
+      value: (
+        <Badge
+          variant={customer.status === CustomerStatus.Active ? "success" : "secondary"}
+        >
+          {customer.status === CustomerStatus.Active
+            ? t("status.active")
+            : t("status.inactive")}
+        </Badge>
+      ),
+    },
     {
       label: t("labels.customerType"),
       value: getCustomerTypeDisplay(customer.customerType),
     },
-    { label: t("labels.createdOn"), value: formatDate(customer.createdAt) },
     {
       label: t("labels.telegram"),
       value: (
@@ -81,23 +98,31 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
         </button>
       ),
     },
-    {
-      label: t("labels.status"),
-      value: (
-        <Badge
-          variant={customer.status === CustomerStatus.Active ? "success" : "secondary"}
-        >
-          {customer.status === CustomerStatus.Active
-            ? t("status.active")
-            : t("status.inactive")}
-        </Badge>
-      ),
-    },
   ]
+
+  const footerContent =
+    customer.depositAccount &&
+    customer.depositAccount.status === DepositAccountStatus.Active ? (
+      <div className="flex items-center gap-2">
+        <Button
+          variant="outline"
+          onClick={() => setOpenFreezeDialog(true)}
+          disabled={!customer.depositAccount}
+        >
+          {freezeT("buttons.freezeDepositAccount")}
+        </Button>
+      </div>
+    ) : undefined
 
   return (
     <>
-      <DetailsCard title={t("title")} details={details} className="w-full" />
+      <DetailsCard
+        title={t("title")}
+        details={details}
+        className="w-full"
+        columns={3}
+        footerContent={footerContent}
+      />
       <UpdateTelegramIdDialog
         customerId={customer.customerId}
         openUpdateTelegramIdDialog={openUpdateTelegramIdDialog}
@@ -108,6 +133,14 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
         openUpdateEmailDialog={openUpdateEmailDialog}
         setOpenUpdateEmailDialog={setOpenUpdateEmailDialog}
       />
+      {customer.depositAccount && (
+        <FreezeDepositAccountDialog
+          depositAccountId={customer.depositAccount.depositAccountId}
+          balance={customer.depositAccount.balance}
+          openFreezeDialog={openFreezeDialog}
+          setOpenFreezeDialog={setOpenFreezeDialog}
+        />
+      )}
     </>
   )
 }

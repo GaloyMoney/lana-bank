@@ -304,11 +304,16 @@
           "copied": "Copiado al portapapeles"
         }
       },
-      "accountBalances": {
-        "title": "Saldos de Cuenta",
+      "depositAccount": {
+        "title": "Cuenta de Depósito",
         "labels": {
           "checkingSettled": "Saldo Liquidado de Cuenta Corriente (USD)",
           "pendingWithdrawals": "Retiros Pendientes (USD)"
+        },
+        "status": {
+          "active": "Activo",
+          "frozen": "Congelado",
+          "inactive": "Inactivo"
         }
       },
       "updateTelegram": {
@@ -331,6 +336,23 @@
         "actions": {
           "update": "Actualizar",
           "updating": "Actualizando..."
+        }
+      },
+      "freezeDepositAccount": {
+        "title": "Congelar Cuenta de Depósito",
+        "description": "¿Está seguro de que desea congelar esta cuenta de depósito? Esta acción impedirá futuros depósitos y retiros.",
+        "fields": {
+          "settledBalance": "Saldo Liquidado",
+          "pendingBalance": "Saldo Pendiente"
+        },
+        "buttons": {
+          "freeze": "Congelar Cuenta",
+          "freezeDepositAccount": "Congelar Cuenta de Depósito"
+        },
+        "success": "Cuenta de depósito congelada exitosamente",
+        "errors": {
+          "noData": "No se recibieron datos del servidor",
+          "unknown": "Ocurrió un error inesperado"
         }
       },
       "updateEmail": {

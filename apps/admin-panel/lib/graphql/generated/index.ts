@@ -2832,6 +2832,13 @@ export type GetCustomerDocumentsQueryVariables = Exact<{
 
 export type GetCustomerDocumentsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, documents: Array<{ __typename?: 'CustomerDocument', id: string, filename: string, documentId: string }> } | null };
 
+export type DepositAccountFreezeMutationVariables = Exact<{
+  input: DepositAccountFreezeInput;
+}>;
+
+
+export type DepositAccountFreezeMutation = { __typename?: 'Mutation', depositAccountFreeze: { __typename?: 'DepositAccountFreezePayload', account: { __typename?: 'DepositAccount', id: string } } };
+
 export type GetKycStatusForCustomerQueryVariables = Exact<{
   id: Scalars['UUID']['input'];
 }>;
@@ -2851,7 +2858,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: CustomerStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: CustomerStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
 
 export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -5334,6 +5341,41 @@ export type GetCustomerDocumentsQueryHookResult = ReturnType<typeof useGetCustom
 export type GetCustomerDocumentsLazyQueryHookResult = ReturnType<typeof useGetCustomerDocumentsLazyQuery>;
 export type GetCustomerDocumentsSuspenseQueryHookResult = ReturnType<typeof useGetCustomerDocumentsSuspenseQuery>;
 export type GetCustomerDocumentsQueryResult = Apollo.QueryResult<GetCustomerDocumentsQuery, GetCustomerDocumentsQueryVariables>;
+export const DepositAccountFreezeDocument = gql`
+    mutation DepositAccountFreeze($input: DepositAccountFreezeInput!) {
+  depositAccountFreeze(input: $input) {
+    account {
+      id
+    }
+  }
+}
+    `;
+export type DepositAccountFreezeMutationFn = Apollo.MutationFunction<DepositAccountFreezeMutation, DepositAccountFreezeMutationVariables>;
+
+/**
+ * __useDepositAccountFreezeMutation__
+ *
+ * To run a mutation, you first call `useDepositAccountFreezeMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `useDepositAccountFreezeMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [depositAccountFreezeMutation, { data, loading, error }] = useDepositAccountFreezeMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function useDepositAccountFreezeMutation(baseOptions?: Apollo.MutationHookOptions<DepositAccountFreezeMutation, DepositAccountFreezeMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<DepositAccountFreezeMutation, DepositAccountFreezeMutationVariables>(DepositAccountFreezeDocument, options);
+      }
+export type DepositAccountFreezeMutationHookResult = ReturnType<typeof useDepositAccountFreezeMutation>;
+export type DepositAccountFreezeMutationResult = Apollo.MutationResult<DepositAccountFreezeMutation>;
+export type DepositAccountFreezeMutationOptions = Apollo.BaseMutationOptions<DepositAccountFreezeMutation, DepositAccountFreezeMutationVariables>;
 export const GetKycStatusForCustomerDocument = gql`
     query GetKycStatusForCustomer($id: UUID!) {
   customer(id: $id) {
@@ -5424,6 +5466,7 @@ export const GetCustomerBasicDetailsDocument = gql`
     publicId
     depositAccount {
       id
+      status
       publicId
       depositAccountId
       balance {
