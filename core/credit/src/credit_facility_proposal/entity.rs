@@ -9,7 +9,10 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    ledger::{CreditFacilityProposalAccountIds, CreditFacilityProposalCreation},
+    ledger::{
+        CreditFacilityProposalAccountIds, CreditFacilityProposalBalanceSummary,
+        CreditFacilityProposalCreation,
+    },
     primitives::*,
     terms::TermValues,
 };
@@ -38,14 +41,12 @@ pub enum CreditFacilityProposalEvent {
     },
 
     CollateralizationStateChanged {
-        is_collateralized: bool,
+        collateralization_state: CreditFacilityProposalCollateralizationState,
         collateral: Satoshis,
         price: PriceOfOneBTC,
-        audit_info: AuditInfo,
     },
     CollateralizationRatioChanged {
-        collateralization_ratio: Option<Decimal>,
-        audit_info: AuditInfo,
+        collateralization_ratio: Decimal,
     },
     Completed {},
 }
@@ -59,6 +60,7 @@ pub struct CreditFacilityProposal {
     pub customer_id: CustomerId,
     pub collateral_id: CollateralId,
     pub amount: UsdCents,
+    pub terms: TermValues,
 
     events: EntityEvents<CreditFacilityProposalEvent>,
 }
@@ -87,6 +89,82 @@ impl CreditFacilityProposal {
             })
             .expect("Initialized event must be present")
     }
+
+    pub(crate) fn update_collateralization(
+        &mut self,
+        price: PriceOfOneBTC,
+        upgrade_buffer_cvl_pct: CVLPct,
+        balances: CreditFacilityProposalBalanceSummary,
+    ) -> Idempotent<Option<CreditFacilityProposalCollateralizationState>> {
+        let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
+
+        let collateralization_update = self.terms.collateralization_update_for_proposal(
+            balances.facility_amount_cvl(price),
+            self.last_collateralization_state(),
+        );
+
+        if let Some(collateralization_state) = collateralization_update {
+            self.events
+                .push(CreditFacilityProposalEvent::CollateralizationStateChanged {
+                    collateralization_state: collateralization_state,
+                    collateral: balances.collateral(),
+                    price,
+                });
+
+            Idempotent::Executed(Some(collateralization_state))
+        } else if ratio_changed {
+            Idempotent::Executed(None)
+        } else {
+            Idempotent::Ignored
+        }
+    }
+
+    fn update_collateralization_ratio(
+        &mut self,
+        balance: &CreditFacilityProposalBalanceSummary,
+    ) -> Idempotent<()> {
+        let ratio = balance.current_collateralization_ratio();
+
+        if self.last_collateralization_ratio() == ratio {
+            return Idempotent::Ignored;
+        }
+
+        self.events
+            .push(CreditFacilityProposalEvent::CollateralizationRatioChanged {
+                collateralization_ratio: ratio,
+            });
+
+        Idempotent::Executed(())
+    }
+
+    // TODO: check if we can return ZERO
+    pub fn last_collateralization_ratio(&self) -> Decimal {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityProposalEvent::CollateralizationRatioChanged {
+                    collateralization_ratio: ratio,
+                    ..
+                } => Some(*ratio),
+                _ => None,
+            })
+            .unwrap_or(Decimal::ZERO)
+    }
+
+    pub fn last_collateralization_state(&self) -> CreditFacilityProposalCollateralizationState {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityProposalEvent::CollateralizationStateChanged {
+                    collateralization_state,
+                    ..
+                } => Some(*collateralization_state),
+                _ => None,
+            })
+            .unwrap_or(CreditFacilityProposalCollateralizationState::UnderCollateralized)
+    }
 }
 
 impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
@@ -103,6 +181,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     amount,
                     approval_process_id,
                     account_ids,
+                    terms,
                     ..
                 } => {
                     builder = builder
@@ -110,6 +189,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                         .customer_id(customer_id.clone())
                         .collateral_id(collateral_id.clone())
                         .amount(*amount)
+                        .terms(*terms)
                         .account_ids(account_ids.clone())
                         .approval_process_id(approval_process_id.clone());
                 }

@@ -182,8 +182,10 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
-        let credit_facility_proposals =
-            CreditFacilityProposals::new(pool, authz, &jobs, &ledger, &publisher, governance).await;
+        let credit_facility_proposals = CreditFacilityProposals::new(
+            pool, authz, &jobs, &ledger, price, &publisher, governance,
+        )
+        .await;
         let credit_facilities = CreditFacilities::new(
             pool,
             authz,
@@ -577,7 +579,7 @@ where
             .create_in_op(
                 &mut db,
                 collateral_id,
-                id,
+                id.into(),
                 wallet_id,
                 account_ids.collateral_account_id,
             )

@@ -250,6 +250,8 @@ CREATE TABLE core_credit_facility_proposals (
   customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
+  collateralization_ratio NUMERIC NOT NULL,
+  collateralization_state VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 

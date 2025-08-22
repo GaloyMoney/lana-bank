@@ -197,9 +197,8 @@ mod facility_status_sqlx {
 }
 
 mod facility_collateralization_state_sqlx {
-    use sqlx::{Type, postgres::*};
-
     use crate::primitives::CollateralizationState;
+    use sqlx::{Type, postgres::*};
 
     impl Type<Postgres> for CollateralizationState {
         fn type_info() -> PgTypeInfo {

@@ -23,6 +23,7 @@ where
     repo: CreditFacilityProposalRepo<E>,
     authz: Perms,
     jobs: Jobs,
+    price: Price,
     ledger: CreditLedger,
     governance: Governance<Perms, E>,
 }
@@ -37,6 +38,7 @@ where
             repo: self.repo.clone(),
             authz: self.authz.clone(),
             jobs: self.jobs.clone(),
+            price: self.price.clone(),
             ledger: self.ledger.clone(),
             governance: self.governance.clone(),
         }
@@ -57,6 +59,7 @@ where
         authz: &Perms,
         jobs: &Jobs,
         ledger: &CreditLedger,
+        price: &Price,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: &Governance<Perms, E>,
     ) -> Self {
@@ -64,12 +67,12 @@ where
         let _ = governance
             .init_policy(crate::APPROVE_CREDIT_FACILITY_PROCESS)
             .await;
-
         Self {
             repo,
             ledger: ledger.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
+            price: price.clone(),
             governance: governance.clone(),
         }
     }
@@ -94,5 +97,87 @@ where
             )
             .await?;
         self.repo.create_in_op(db, new_proposal).await
+    }
+
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    pub(super) async fn update_collateralization_from_events(
+        &self,
+        id: CreditFacilityProposalId,
+        upgrade_buffer_cvl_pct: CVLPct,
+    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+        let mut op = self.repo.begin_op().await?;
+        let mut facility_proposal = self.repo.find_by_id_in_op(&mut op, id).await?;
+
+        let balances = self
+            .ledger
+            .get_credit_facility_proposal_balance(facility_proposal.account_ids)
+            .await?;
+        let price = self.price.usd_cents_per_btc().await?;
+
+        if facility_proposal
+            .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
+            .did_execute()
+        {
+            self.repo
+                .update_in_op(&mut op, &mut facility_proposal)
+                .await?;
+
+            op.commit().await?;
+        }
+        Ok(facility_proposal)
+    }
+
+    pub(super) async fn update_collateralization_from_price(
+        &self,
+        upgrade_buffer_cvl_pct: CVLPct,
+    ) -> Result<(), CreditFacilityProposalError> {
+        let price = self.price.usd_cents_per_btc().await?;
+        let mut has_next_page = true;
+        let mut after: Option<
+            credit_facility_proposal_cursor::CreditFacilityProposalsByCollateralizationRatioCursor,
+        > = None;
+        while has_next_page {
+            let mut credit_facility_proposals = self.repo.list_by_collateralization_ratio(
+                    es_entity::PaginatedQueryArgs::<
+                        credit_facility_proposal_cursor::CreditFacilityProposalsByCollateralizationRatioCursor,
+                    > {
+                        first: 10,
+                        after,
+                    },
+                    es_entity::ListDirection::Ascending,
+                )
+                .await?;
+            (after, has_next_page) = (
+                credit_facility_proposals.end_cursor,
+                credit_facility_proposals.has_next_page,
+            );
+            let mut op = self.repo.begin_op().await?;
+
+            let mut at_least_one = false;
+
+            for facility in credit_facility_proposals.entities.iter_mut() {
+                // if facility.status() == CreditFacilityStatus::Closed {
+                //     continue;
+                // } // handle this case when we have status fn
+                let balances = self
+                    .ledger
+                    .get_credit_facility_proposal_balance(facility.account_ids)
+                    .await?;
+                if facility
+                    .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
+                    .did_execute()
+                {
+                    self.repo.update_in_op(&mut op, facility).await?;
+                    at_least_one = true;
+                }
+            }
+
+            if at_least_one {
+                op.commit().await?;
+            } else {
+                break;
+            }
+        }
+        Ok(())
     }
 }
