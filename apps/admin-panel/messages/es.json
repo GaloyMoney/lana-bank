@@ -1614,7 +1614,7 @@
       "termsTemplate": "Plantilla de Términos",
       "committee": "Comité",
       "custodian": "Agregar Custodio",
-      "executeManualTransaction": "Ejecutar transacción manual",
+      "executeManualTransaction": "Registrar partida manual",
       "role": "Rol",
       "account": "Cuenta"
     }
@@ -1804,8 +1804,8 @@
     }
   },
   "LedgerTransaction": {
-    "title": "Transacción del libro mayor",
-    "description": "Un registro de una transacción financiera en el libro mayor",
+    "title": "Partida contable",
+    "description": "Un registro de una partida contable en el libro mayor",
     "noEntries": "Sin asientos",
     "details": {
       "description": "Descripción",
@@ -1813,7 +1813,7 @@
       "effective": "Fecha valor"
     },
     "entriesTitle": "Asientos contables",
-    "entriesDescription": "Asientos asociados con esta transacción",
+    "entriesDescription": "Asientos asociados con esta partida",
     "table": {
       "entryType": "Tipo de asiento",
       "debit": "Débito",
@@ -1824,26 +1824,26 @@
     }
   },
   "ManualTransactions": {
-    "title": "Ejecutar transacción manual",
-    "description": "Crea una transacción manual proporcionando los detalles requeridos",
+    "title": "Registrar partida manual",
+    "description": "Crea una partida manual proporcionando los detalles requeridos",
     "fields": {
-      "description": "Descripción de la transacción",
-      "reference": "Referencia de la transacción",
+      "description": "Descripción de la partida",
+      "reference": "Referencia de la partida",
       "effective": "Fecha valor",
-      "entries": "Asientos contables para esta transacción",
+      "entries": "Asientos contables para esta partida",
       "usd": "USD",
       "btc": "BTC",
       "debit": "Débito",
       "credit": "Crédito"
     },
     "placeholders": {
-      "description": "Ingrese la descripción de la transacción",
-      "reference": "Ingrese la referencia de la transacción",
+      "description": "Ingrese la descripción de la partida",
+      "reference": "Ingrese la referencia de la partida",
       "effective": "Seleccionar fecha valor"
     },
-    "noEntries": "No hay asientos contables para esta transacción. Por favor, añada uno.",
+    "noEntries": "No hay asientos contables para esta partida. Por favor, añada uno.",
     "addEntryBtn": "Añadir",
-    "execute": "Ejecutar",
+    "execute": "Registrar",
     "placeholdersJournalEntry": {
       "accountRef": "Introduce la referencia de cuenta",
       "currency": "Seleccione moneda",
@@ -1858,8 +1858,8 @@
       "direction": "Dirección",
       "description": "Descripción"
     },
-    "errored": "Ocurrió un error al ejecutar la transacción",
-    "success": "Transacción ejecutada con éxito"
+    "errored": "Ocurrió un error al registrar la partida",
+    "success": "Partida registrada con éxito"
   },
   "TransactionTemplates": {
     "title": "Plantillas de transacciones",
