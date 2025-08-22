@@ -218,7 +218,7 @@ impl InterestAccrualCycle {
         &mut self,
         amount: UsdCents,
         audit_info: AuditInfo,
-    ) -> InterestAccrualData {
+    ) -> Idempotent<InterestAccrualData> {
         let accrual_period = self
             .next_accrual_period()
             .expect("Accrual period should exist inside this function");
@@ -246,7 +246,7 @@ impl InterestAccrualCycle {
                 audit_info,
             });
 
-        interest_accrual
+        Idempotent::Executed(interest_accrual)
     }
 
     pub(crate) fn accrual_cycle_data(&self) -> Option<InterestAccrualCycleData> {
