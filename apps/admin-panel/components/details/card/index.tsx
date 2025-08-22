@@ -49,6 +49,7 @@ export interface DetailsCardProps
   extends VariantProps<typeof footerVariants>,
     VariantProps<typeof containerVariants> {
   title?: string
+  badge?: React.JSX.Element
   description?: string
   details: DetailItemProps[]
   footerContent?: React.JSX.Element
@@ -63,6 +64,7 @@ export interface DetailsCardProps
 
 export const DetailsCard: React.FC<DetailsCardProps> = ({
   title,
+  badge,
   description,
   details,
   footerContent,
@@ -139,6 +141,7 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
                   <PublicIdBadge publicId={publicId} />
                 </div>
               )}
+              {badge}
             </div>
             {description && <CardDescription>{description}</CardDescription>}
           </div>

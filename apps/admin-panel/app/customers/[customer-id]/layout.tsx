@@ -9,7 +9,7 @@ import { ScrollArea, ScrollBar } from "@lana/web/ui/scroll-area"
 
 import { CustomerDetailsCard } from "./details"
 import { KycStatus } from "./kyc-status"
-import { CustomerAccountBalances } from "./balances"
+import { DepositAccount } from "./deposit-account"
 
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 import {
@@ -35,6 +35,7 @@ gql`
       publicId
       depositAccount {
         id
+        status
         publicId
         depositAccountId
         balance {
@@ -107,9 +108,10 @@ export default function CustomerLayout({
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
         <KycStatus customerId={data.customerByPublicId.customerId} />
         {data.customerByPublicId.depositAccount && (
-          <CustomerAccountBalances
+          <DepositAccount
             balance={data.customerByPublicId.depositAccount.balance}
             publicId={data.customerByPublicId.depositAccount.publicId}
+            status={data.customerByPublicId.depositAccount.status}
           />
         )}
       </div>

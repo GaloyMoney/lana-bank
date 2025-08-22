@@ -304,11 +304,16 @@
           "copied": "Copied to clipboard"
         }
       },
-      "accountBalances": {
-        "title": "Account Balances",
+      "depositAccount": {
+        "title": "Deposit Account",
         "labels": {
           "checkingSettled": "Checking Settled Balance (USD)",
           "pendingWithdrawals": "Pending Withdrawals (USD)"
+        },
+        "status": {
+          "active": "Active",
+          "frozen": "Frozen",
+          "inactive": "Inactive"
         }
       },
       "updateTelegram": {
@@ -331,6 +336,23 @@
         "actions": {
           "update": "Update",
           "updating": "Updating..."
+        }
+      },
+      "freezeDepositAccount": {
+        "title": "Freeze Deposit Account",
+        "description": "Are you sure you want to freeze this deposit account? This action will prevent further deposits and withdrawals.",
+        "fields": {
+          "settledBalance": "Checking Settled Balance",
+          "pendingBalance": "Pending Withdrawals"
+        },
+        "buttons": {
+          "freeze": "Freeze Account",
+          "freezeDepositAccount": "Freeze Deposit Account"
+        },
+        "success": "Deposit account frozen successfully",
+        "errors": {
+          "noData": "No data returned from the server",
+          "unknown": "An unexpected error occurred"
         }
       },
       "updateEmail": {
