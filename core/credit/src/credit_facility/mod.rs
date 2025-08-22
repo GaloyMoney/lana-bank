@@ -101,7 +101,7 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub async fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
         obligations: &Obligations<Perms, E>,
@@ -110,13 +110,21 @@ where
         jobs: &Jobs,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: &Governance<Perms, E>,
-    ) -> Self {
+    ) -> Result<Self, CreditFacilityError> {
         let repo = CreditFacilityRepo::new(pool, publisher);
-        let _ = governance
-            .init_policy(crate::APPROVE_CREDIT_FACILITY_PROCESS)
-            .await;
 
-        Self {
+        match governance
+            .init_policy(crate::APPROVE_CREDIT_FACILITY_PROCESS)
+            .await
+        {
+            Err(governance::error::GovernanceError::PolicyError(
+                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
+            )) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+
+        Ok(Self {
             repo,
             obligations: obligations.clone(),
             authz: authz.clone(),
@@ -124,7 +132,7 @@ where
             price: price.clone(),
             jobs: jobs.clone(),
             governance: governance.clone(),
-        }
+        })
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CreditFacilityError> {

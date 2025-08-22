@@ -178,7 +178,7 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
-        let credit_facilities = CreditFacilities::new(
+        let credit_facilities = CreditFacilities::init(
             pool,
             authz,
             &obligations,
@@ -188,9 +188,10 @@ where
             &publisher,
             governance,
         )
-        .await;
+        .await?;
         let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
-        let disbursals = Disbursals::new(pool, authz, &publisher, &obligations, governance).await;
+        let disbursals =
+            Disbursals::init(pool, authz, &publisher, &obligations, governance).await?;
         let payments = Payments::new(pool, authz);
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);

@@ -62,23 +62,30 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub async fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
         publisher: &crate::CreditFacilityPublisher<E>,
         obligations: &Obligations<Perms, E>,
         governance: &Governance<Perms, E>,
-    ) -> Self {
-        let _ = governance
+    ) -> Result<Self, DisbursalError> {
+        match governance
             .init_policy(crate::APPROVE_DISBURSAL_PROCESS)
-            .await;
+            .await
+        {
+            Err(governance::error::GovernanceError::PolicyError(
+                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
+            )) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
 
-        Self {
+        Ok(Self {
             repo: DisbursalRepo::new(pool, publisher),
             authz: authz.clone(),
             obligations: obligations.clone(),
             governance: governance.clone(),
-        }
+        })
     }
 
     pub async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, DisbursalError> {
