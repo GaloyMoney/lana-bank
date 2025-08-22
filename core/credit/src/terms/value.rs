@@ -11,7 +11,7 @@ use crate::{
     EffectiveDate,
     ledger::CreditFacilityBalanceSummary,
     primitives::{
-        CVLPct, CollateralizationState, CreditFacilityProposalCollateralizationState,
+        CVLPct, CollateralizationState,
         DisbursedReceivableAccountCategory, PriceOfOneBTC, Satoshis, UsdCents,
     },
 };
@@ -300,30 +300,6 @@ impl TermValues {
         } else {
             CollateralizationState::UnderLiquidationThreshold
         }
-    }
-
-    fn collateralization_for_proposal(
-        &self,
-        cvl: CVLPct,
-    ) -> CreditFacilityProposalCollateralizationState {
-        if cvl >= self.margin_call_cvl {
-            return CreditFacilityProposalCollateralizationState::FullyCollateralized;
-        }
-        CreditFacilityProposalCollateralizationState::UnderCollateralized
-    }
-
-    pub fn collateralization_update_for_proposal(
-        &self,
-        current_cvl: CVLPct,
-        last_collateralization_state: CreditFacilityProposalCollateralizationState,
-    ) -> Option<CreditFacilityProposalCollateralizationState> {
-        let calculated_collateralization_state = self.collateralization_for_proposal(current_cvl);
-
-        if calculated_collateralization_state == last_collateralization_state {
-            return None;
-        }
-
-        Some(calculated_collateralization_state)
     }
 
     pub fn collateralization_update(
