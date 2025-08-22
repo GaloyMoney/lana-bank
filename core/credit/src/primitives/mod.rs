@@ -26,6 +26,7 @@ pub use cvl::*;
 
 es_entity::entity_id! {
     CreditFacilityId,
+    CreditFacilityProposalId,
     DisbursalId,
     PaymentId,
     ObligationInstallmentId,
@@ -38,6 +39,7 @@ es_entity::entity_id! {
 
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
+    CreditFacilityProposalId => governance::ApprovalProcessId,
 
     CreditFacilityId => job::JobId,
     InterestAccrualCycleId => job::JobId,
@@ -549,6 +551,26 @@ pub enum CollateralizationState {
     #[default]
     NoCollateral,
     NoExposure,
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    PartialEq,
+    Serialize,
+    Deserialize,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum CreditFacilityProposalCollateralizationState {
+    FullyCollateralized,
+    #[default]
+    UnderCollateralized,
 }
 
 pub struct CollateralUpdate {
