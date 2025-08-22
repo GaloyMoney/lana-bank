@@ -272,7 +272,7 @@
         },
         "labels": {
           "email": "Correo electrónico",
-          "createdOn": "Creado el",
+          "createdOn": "Fecha de registro",
           "telegram": "Telegram",
           "status": "Estado",
           "customerType": "Tipo",
@@ -380,7 +380,7 @@
             "outstandingBalance": "Saldo Pendiente",
             "collateralBtc": "Garantía (BTC)",
             "collateralizationState": "Estado de Colateralización",
-            "createdAt": "Creado El"
+            "createdAt": "Fecha de registro"
           }
         }
       },
@@ -422,7 +422,7 @@
         "outstanding": "Pendiente",
         "collateralizationState": "Estado",
         "cvl": "CVL",
-        "createdAt": "Creado El"
+        "createdAt": "Fecha de registro"
       }
     },
     "CreditFacilityStatus": {
@@ -474,7 +474,7 @@
         "description": "Desembolsos asociados con esta línea de crédito",
         "columns": {
           "amount": "Monto",
-          "createdAt": "Creado El",
+          "createdAt": "Fecha de registro",
           "status": "Estado"
         },
         "messages": {
@@ -789,7 +789,7 @@
         "title": "Plantilla de Términos",
         "fields": {
           "name": "Nombre",
-          "createdAt": "Creado El",
+          "createdAt": "Fecha de registro",
           "duration": "Duración",
           "annualRate": "Tasa Anual",
           "initialCvl": "CVL Inicial (%)",
@@ -949,7 +949,7 @@
       "detailsCard": {
         "title": "Comité",
         "fields": {
-          "createdAt": "Creado El",
+          "createdAt": "Fecha de registro",
           "name": "Nombre",
           "totalMembers": "Total de Miembros"
         },
@@ -1266,7 +1266,7 @@
         "title": "Aprobar Proceso",
         "fields": {
           "processType": "Tipo de Proceso",
-          "createdAt": "Creado El"
+          "createdAt": "Fecha de registro"
         },
         "buttons": {
           "approve": "Aprobar"
@@ -1282,7 +1282,7 @@
         "title": "Rechazar Proceso",
         "fields": {
           "processType": "Tipo de Proceso",
-          "createdAt": "Creado El",
+          "createdAt": "Fecha de registro",
           "reasonLabel": "Razón del Rechazo"
         },
         "placeholders": {
@@ -1375,7 +1375,7 @@
     "userDetails": {
       "title": "Usuario",
       "fields": {
-        "createdAt": "Creado El",
+        "createdAt": "Fecha de registro",
         "email": "Correo Electrónico",
         "role": "Rol"
       },
@@ -1591,7 +1591,7 @@
     }
   },
   "dateTime": {
-    "created": "Creado el {date}",
+    "created": "Fecha de registro {date}",
     "format": {
       "short": "d 'de' MMMM 'de' yyyy, HH:mm"
     }
@@ -1809,7 +1809,7 @@
     "noEntries": "Sin asientos",
     "details": {
       "description": "Descripción",
-      "createdAt": "Creado el",
+      "createdAt": "Fecha de registro",
       "effective": "Fecha efectiva"
     },
     "entriesTitle": "Asientos contables",
@@ -1873,7 +1873,7 @@
     "table": {
       "noData": "No se encontraron transacciones contables para este código de plantilla",
       "headers": {
-        "createdAt": "Creado el",
+        "createdAt": "Fecha de registro",
         "description": "Descripción"
       }
     }
@@ -1885,7 +1885,7 @@
       "headers": {
         "name": "Nombre del rol",
         "permissionSets": "Permisos",
-        "createdAt": "Creado el"
+        "createdAt": "Fecha de registro"
       },
       "emptyMessage": "No se encontraron roles. Haz clic en el botón crear para añadir un nuevo rol.",
       "noPermissionSetsAssigned": "Sin permisos asignados",
@@ -1915,7 +1915,7 @@
       "roleDetails": "Detalles del rol",
       "roleDetailsDescription": "Ver y gestionar información y permisos del rol",
       "name": "Nombre",
-      "createdAt": "Creado el",
+      "createdAt": "Fecha de registro",
       "permissionSets": "Permisos",
       "editRole": "Editar rol"
     }
