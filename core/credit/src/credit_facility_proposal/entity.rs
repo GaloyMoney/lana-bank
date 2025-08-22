@@ -65,20 +65,23 @@ impl CreditFacilityProposal {
     ) -> Idempotent<Option<CreditFacilityProposalCollateralizationState>> {
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
 
-        let collateralization_update = self.terms.collateralization_update_for_proposal(
-            balances.facility_amount_cvl(self.amount, price),
-            self.last_collateralization_state(),
-        );
+        let is_fully_collateralized =
+            balances.facility_amount_cvl(self.amount, price) >= self.terms.margin_call_cvl;
 
-        if let Some(collateralization_state) = collateralization_update {
+        let calculated_collateralization_state = if is_fully_collateralized {
+            CreditFacilityProposalCollateralizationState::FullyCollateralized
+        } else {
+            CreditFacilityProposalCollateralizationState::UnderCollateralized
+        };
+
+        if calculated_collateralization_state != self.last_collateralization_state() {
             self.events
                 .push(CreditFacilityProposalEvent::CollateralizationStateChanged {
-                    collateralization_state,
+                    collateralization_state: calculated_collateralization_state,
                     collateral: balances.collateral(),
                     price,
                 });
-
-            Idempotent::Executed(Some(collateralization_state))
+            Idempotent::Executed(Some(calculated_collateralization_state))
         } else if ratio_changed {
             Idempotent::Executed(None)
         } else {
