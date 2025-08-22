@@ -6,12 +6,11 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
-use job::{JobId, Jobs};
+use job::Jobs;
 use outbox::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, primitives::*};
 
-use entity::*;
 pub use entity::{CreditFacilityProposal, NewCreditFacilityProposal};
 use error::*;
 use repo::*;

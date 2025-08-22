@@ -16,13 +16,13 @@ use crate::{
 
 #[serde_with::serde_as]
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct CreditFacilityCollateralizationFromPriceJobConfig<Perms, E> {
+pub(crate) struct CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E> {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     pub job_interval: Duration,
     pub upgrade_buffer_cvl_pct: CVLPct,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityCollateralizationFromPriceJobConfig<Perms, E>
+impl<Perms, E> JobConfig for CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -31,9 +31,9 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreditFacilityCollateralizationFromPriceInit<Perms, E>;
+    type Initializer = CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>;
 }
-pub struct CreditFacilityCollateralizationFromPriceInit<Perms, E>
+pub struct CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -41,7 +41,7 @@ where
     credit_facility_proposals: CreditFacilityProposals<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityCollateralizationFromPriceInit<Perms, E>
+impl<Perms, E> CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -59,7 +59,7 @@ where
 
 const CREDIT_FACILITY_PROPOSAL_COLLATERALZIATION_FROM_PRICE_JOB: JobType =
     JobType::new("credit-facility-proposal-collateralization-from-price");
-impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromPriceInit<Perms, E>
+impl<Perms, E> JobInitializer for CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -77,7 +77,7 @@ where
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(
-            CreditFacilityCollateralizationFromPriceJobRunner::<Perms, E> {
+            CreditFacilityProposalCollateralizationFromPriceJobRunner::<Perms, E> {
                 config: job.config()?,
                 credit_facility_proposals: self.credit_facility_proposals.clone(),
             },
@@ -85,17 +85,17 @@ where
     }
 }
 
-pub struct CreditFacilityCollateralizationFromPriceJobRunner<Perms, E>
+pub struct CreditFacilityProposalCollateralizationFromPriceJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    config: CreditFacilityCollateralizationFromPriceJobConfig<Perms, E>,
+    config: CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E>,
     credit_facility_proposals: CreditFacilityProposals<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityCollateralizationFromPriceJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CreditFacilityProposalCollateralizationFromPriceJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
