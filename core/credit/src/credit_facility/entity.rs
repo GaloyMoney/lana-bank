@@ -1,6 +1,5 @@
 use chrono::{DateTime, Utc};
 use derive_builder::Builder;
-use rust_decimal::Decimal;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -536,9 +535,8 @@ impl CreditFacility {
             .unwrap_or(CollateralizationState::NoCollateral)
     }
 
-    pub fn last_collateralization_ratio(&self) -> Option<Decimal> {
-        let ratio = self
-            .events
+    pub fn last_collateralization_ratio(&self) -> CollateralizationRatio {
+        self.events
             .iter_all()
             .rev()
             .find_map(|event| match event {
@@ -548,9 +546,7 @@ impl CreditFacility {
                 } => Some(*collateralization_ratio),
                 _ => None,
             })
-            .unwrap_or_default();
-
-        ratio.into()
+            .unwrap_or_default()
     }
 
     fn is_fully_collateralized(&self) -> bool {
@@ -648,7 +644,7 @@ impl CreditFacility {
     ) -> Idempotent<()> {
         let ratio = balance.current_collateralization_ratio();
 
-        if self.last_collateralization_ratio() != ratio.into() {
+        if self.last_collateralization_ratio() != ratio {
             self.events
                 .push(CreditFacilityEvent::CollateralizationRatioChanged {
                     collateralization_ratio: ratio,

@@ -1,4 +1,3 @@
-use rust_decimal::Decimal;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -23,7 +22,7 @@ use super::{entity::*, error::CreditFacilityError};
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateral_id(ty = "CollateralId", update(persist = false)),
         collateralization_ratio(
-            ty = "Option<Decimal>",
+            ty = "CollateralizationRatio",
             list_by,
             create(persist = false),
             update(accessor = "last_collateralization_ratio()")
@@ -230,6 +229,52 @@ mod facility_collateralization_state_sqlx {
     impl PgHasArrayType for CollateralizationState {
         fn array_type_info() -> PgTypeInfo {
             <String as sqlx::postgres::PgHasArrayType>::array_type_info()
+        }
+    }
+}
+
+mod facility_collateralization_ratio_sqlx {
+    use rust_decimal::Decimal;
+    use sqlx::{Type, postgres::*};
+
+    use crate::primitives::CollateralizationRatio;
+
+    impl Type<Postgres> for CollateralizationRatio {
+        fn type_info() -> PgTypeInfo {
+            <Option<Decimal> as Type<Postgres>>::type_info()
+        }
+
+        fn compatible(ty: &PgTypeInfo) -> bool {
+            <Option<Decimal> as Type<Postgres>>::compatible(ty)
+        }
+    }
+
+    impl sqlx::Encode<'_, Postgres> for CollateralizationRatio {
+        fn encode_by_ref(
+            &self,
+            buf: &mut PgArgumentBuffer,
+        ) -> Result<sqlx::encode::IsNull, Box<dyn std::error::Error + Sync + Send>> {
+            let opt: Option<Decimal> = match *self {
+                CollateralizationRatio::Finite(d) => Some(d),
+                CollateralizationRatio::Infinite => None,
+            };
+            <Option<Decimal> as sqlx::Encode<'_, Postgres>>::encode(opt, buf)
+        }
+    }
+
+    impl<'r> sqlx::Decode<'r, Postgres> for CollateralizationRatio {
+        fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
+            let opt: Option<Decimal> = <Option<Decimal> as sqlx::Decode<Postgres>>::decode(value)?;
+            Ok(match opt {
+                Some(d) => CollateralizationRatio::Finite(d),
+                None => CollateralizationRatio::Infinite,
+            })
+        }
+    }
+
+    impl PgHasArrayType for CollateralizationRatio {
+        fn array_type_info() -> PgTypeInfo {
+            <Option<Decimal> as sqlx::postgres::PgHasArrayType>::array_type_info()
         }
     }
 }

@@ -542,15 +542,6 @@ impl Default for CollateralizationRatio {
     }
 }
 
-impl From<CollateralizationRatio> for Option<Decimal> {
-    fn from(ratio: CollateralizationRatio) -> Self {
-        match ratio {
-            CollateralizationRatio::Finite(d) => Some(d),
-            CollateralizationRatio::Infinite => None,
-        }
-    }
-}
-
 #[derive(
     Debug,
     Default,
