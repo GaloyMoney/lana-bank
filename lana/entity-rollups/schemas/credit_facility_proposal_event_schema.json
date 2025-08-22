@@ -1,0 +1,368 @@
+{
+  "$defs": {
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/$defs/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sub",
+        "audit_entry_id"
+      ],
+      "type": "object"
+    },
+    "CVLPct": {
+      "oneOf": [
+        {
+          "enum": [
+            "Infinite"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "Finite": {
+              "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          },
+          "required": [
+            "Finite"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "CreditFacilityProposalAccountIds": {
+      "properties": {
+        "collateral_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "in_liquidation_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "facility_account_id",
+        "in_liquidation_account_id",
+        "collateral_account_id"
+      ],
+      "type": "object"
+    },
+    "CreditFacilityProposalCollateralizationState": {
+      "enum": [
+        "FullyCollateralized",
+        "UnderCollateralized"
+      ],
+      "type": "string"
+    },
+    "FacilityDuration": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "months",
+              "type": "string"
+            },
+            "value": {
+              "format": "uint32",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "InterestInterval": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "end_of_month",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        },
+        {
+          "properties": {
+            "type": {
+              "const": "end_of_day",
+              "type": "string"
+            }
+          },
+          "required": [
+            "type"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "ObligationDuration": {
+      "oneOf": [
+        {
+          "properties": {
+            "type": {
+              "const": "days",
+              "type": "string"
+            },
+            "value": {
+              "format": "uint64",
+              "minimum": 0,
+              "type": "integer"
+            }
+          },
+          "required": [
+            "type",
+            "value"
+          ],
+          "type": "object"
+        }
+      ]
+    },
+    "PriceOfOneBTC": {
+      "$ref": "#/$defs/UsdCents"
+    },
+    "Satoshis": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    },
+    "TermValues": {
+      "properties": {
+        "accrual_cycle_interval": {
+          "$ref": "#/$defs/InterestInterval"
+        },
+        "accrual_interval": {
+          "$ref": "#/$defs/InterestInterval"
+        },
+        "annual_rate": {
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "duration": {
+          "$ref": "#/$defs/FacilityDuration"
+        },
+        "initial_cvl": {
+          "$ref": "#/$defs/CVLPct"
+        },
+        "interest_due_duration_from_accrual": {
+          "$ref": "#/$defs/ObligationDuration"
+        },
+        "liquidation_cvl": {
+          "$ref": "#/$defs/CVLPct"
+        },
+        "margin_call_cvl": {
+          "$ref": "#/$defs/CVLPct"
+        },
+        "obligation_liquidation_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "obligation_overdue_duration_from_due": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/ObligationDuration"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        },
+        "one_time_fee_rate": {
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
+        }
+      },
+      "required": [
+        "annual_rate",
+        "duration",
+        "interest_due_duration_from_accrual",
+        "accrual_cycle_interval",
+        "accrual_interval",
+        "one_time_fee_rate",
+        "liquidation_cvl",
+        "margin_call_cvl",
+        "initial_cvl"
+      ],
+      "type": "object"
+    },
+    "UsdCents": {
+      "format": "uint64",
+      "minimum": 0,
+      "type": "integer"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "account_ids": {
+          "$ref": "#/$defs/CreditFacilityProposalAccountIds"
+        },
+        "amount": {
+          "$ref": "#/$defs/UsdCents"
+        },
+        "approval_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "collateral_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "customer_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "terms": {
+          "$ref": "#/$defs/TermValues"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "ledger_tx_id",
+        "customer_id",
+        "collateral_id",
+        "terms",
+        "amount",
+        "account_ids",
+        "approval_process_id",
+        "audit_info"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "approval_process_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "approved": {
+          "type": "boolean"
+        },
+        "type": {
+          "const": "approval_process_concluded",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "approval_process_id",
+        "approved"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "collateral": {
+          "$ref": "#/$defs/Satoshis"
+        },
+        "collateralization_state": {
+          "$ref": "#/$defs/CreditFacilityProposalCollateralizationState"
+        },
+        "price": {
+          "$ref": "#/$defs/PriceOfOneBTC"
+        },
+        "type": {
+          "const": "collateralization_state_changed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "collateralization_state",
+        "collateral",
+        "price"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "collateralization_ratio": {
+          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+          "type": [
+            "string",
+            "number"
+          ]
+        },
+        "type": {
+          "const": "collateralization_ratio_changed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "collateralization_ratio"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "type": {
+          "const": "completed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "CreditFacilityProposalEvent"
+}

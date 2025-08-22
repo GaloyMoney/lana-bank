@@ -11,7 +11,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, primitives::*};
 
-pub use entity::{CreditFacilityProposal, NewCreditFacilityProposal};
+pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
 use repo::*;
 pub struct CreditFacilityProposals<Perms, E>
@@ -64,7 +64,7 @@ where
     ) -> Self {
         let repo = CreditFacilityProposalRepo::new(pool, publisher);
         let _ = governance
-            .init_policy(crate::APPROVE_CREDIT_FACILITY_PROCESS)
+            .init_policy(crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS)
             .await;
         Self {
             repo,
@@ -92,10 +92,38 @@ where
                 db,
                 new_proposal.id,
                 new_proposal.id.to_string(),
-                crate::APPROVE_CREDIT_FACILITY_PROCESS,
+                crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
             )
             .await?;
         self.repo.create_in_op(db, new_proposal).await
+    }
+
+    pub(super) async fn approve(
+        &self,
+        id: CreditFacilityProposalId,
+        approved: bool,
+    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+        let mut facility_proposal = self.repo.find_by_id(id).await?;
+
+        if facility_proposal.is_approval_process_concluded() {
+            return Ok(facility_proposal);
+        }
+
+        let mut op = self.repo.begin_op().await?;
+
+        if facility_proposal
+            .approval_process_concluded(approved)
+            .was_ignored()
+        {
+            return Ok(facility_proposal);
+        }
+
+        self.repo
+            .update_in_op(&mut op, &mut facility_proposal)
+            .await?;
+        op.commit().await?;
+
+        Ok(facility_proposal)
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]

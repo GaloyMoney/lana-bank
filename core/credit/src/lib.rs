@@ -66,8 +66,9 @@ pub use obligation_installment::*;
 pub use payment::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
-pub use processes::approve_credit_facility::*;
-pub use processes::approve_disbursal::*;
+pub use processes::{
+    approve_credit_facility::*, approve_credit_facility_proposal::*, approve_disbursal::*,
+};
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 pub use terms::*;
@@ -77,7 +78,8 @@ pub use terms_template::{error as terms_template_error, *};
 pub mod event_schema {
     pub use crate::{
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
-        disbursal::DisbursalEvent, interest_accrual_cycle::InterestAccrualCycleEvent,
+        credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
+        interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
         obligation_installment::ObligationInstallmentEvent, payment::PaymentEvent,
     };
@@ -206,6 +208,11 @@ where
 
         let approve_credit_facility =
             ApproveCreditFacility::new(&credit_facilities, authz.audit(), governance);
+        let approve_credit_facility_proposal = ApproveCreditFacilityProposal::new(
+            &credit_facility_proposals,
+            authz.audit(),
+            governance,
+        );
         let activate_credit_facility = ActivateCreditFacility::new(
             &credit_facilities,
             &disbursals,
@@ -335,6 +342,11 @@ where
         jobs.add_initializer_and_spawn_unique(
             CreditFacilityActivationInit::new(outbox, &activate_credit_facility),
             CreditFacilityActivationJobConfig::<Perms, E>::new(),
+        )
+        .await?;
+        jobs.add_initializer_and_spawn_unique(
+            CreditFacilityProposalApprovalInit::new(outbox, &approve_credit_facility_proposal),
+            CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
 

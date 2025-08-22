@@ -129,7 +129,7 @@ where
                     recorded_at: event.recorded_at,
                     effective: event.recorded_at.date_naive(),
                     new_amount: entity.amount,
-                    credit_facility_id: entity.credit_facility_proposal_id.into(), // handle this
+                    credit_facility_id: entity.credit_facility_proposal_id.into(),
                 }),
                 _ => None,
             })
