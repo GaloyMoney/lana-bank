@@ -9,6 +9,7 @@ mod chart_of_accounts_integration;
 mod collateral;
 mod config;
 mod credit_facility;
+mod credit_facility_proposal;
 mod disbursal;
 pub mod error;
 mod event;
@@ -51,6 +52,7 @@ pub use collateral::*;
 pub use config::*;
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
+pub use credit_facility_proposal::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 pub use event::*;
@@ -91,6 +93,7 @@ where
 {
     authz: Perms,
     facilities: CreditFacilities<Perms, E>,
+    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
     disbursals: Disbursals<Perms, E>,
     payments: Payments<Perms>,
     history_repo: HistoryRepo,
@@ -123,6 +126,7 @@ where
         Self {
             authz: self.authz.clone(),
             facilities: self.facilities.clone(),
+            credit_facility_proposals: self.credit_facility_proposals.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
             custody: self.custody.clone(),
@@ -178,6 +182,8 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
+        let credit_facility_proposals =
+            CreditFacilityProposals::new(pool, authz, &jobs, &ledger, &publisher, governance).await;
         let credit_facilities = CreditFacilities::new(
             pool,
             authz,
@@ -321,6 +327,7 @@ where
             authz: authz.clone(),
             customer: customer.clone(),
             facilities: credit_facilities,
+            credit_facility_proposals,
             obligations,
             collaterals,
             custody: custody.clone(),
@@ -355,6 +362,10 @@ where
 
     pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
         &self.facilities
+    }
+
+    pub fn credit_facility_proposals(&self) -> &CreditFacilityProposals<Perms, E> {
+        &self.credit_facility_proposals
     }
 
     pub fn payments(&self) -> &Payments<Perms> {
@@ -405,6 +416,89 @@ where
             &self.repayment_plan_repo,
             &self.ledger,
         ))
+    }
+
+    pub async fn create_facility_proposal(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
+        amount: UsdCents,
+        terms: TermValues,
+        custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
+    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+        let audit_info = self
+            .subject_can_create(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
+        if self.config.customer_active_check_enabled && customer.status.is_inactive() {
+            return Err(CoreCreditError::CustomerNotActive);
+        }
+
+        let proposal_id = CreditFacilityProposalId::new();
+        let account_ids = CreditFacilityProposalAccountIds::new();
+        let collateral_id = CollateralId::new();
+
+        let mut db = self.credit_facility_proposals.begin_op().await?;
+
+        let wallet_id = if let Some(custodian_id) = custodian_id {
+            let custodian_id = custodian_id.into();
+
+            #[cfg(feature = "mock-custodian")]
+            if custodian_id.is_mock_custodian() {
+                self.custody
+                    .ensure_mock_custodian_in_op(&mut db, sub)
+                    .await?;
+            }
+
+            let wallet = self
+                .custody
+                .create_wallet_in_op(
+                    &mut db,
+                    audit_info.clone(),
+                    custodian_id,
+                    &format!("CF {proposal_id}"),
+                )
+                .await?;
+
+            Some(wallet.id)
+        } else {
+            None
+        };
+
+        let new_facility_proposal = NewCreditFacilityProposal::builder()
+            .id(proposal_id)
+            .approval_process_id(proposal_id)
+            .collateral_id(collateral_id)
+            .customer_id(customer_id)
+            .terms(terms)
+            .amount(amount)
+            .account_ids(account_ids)
+            .audit_info(audit_info.clone())
+            .build()
+            .expect("could not build new credit facility");
+
+        self.collaterals
+            .create_in_op(
+                &mut db,
+                collateral_id,
+                proposal_id,
+                wallet_id,
+                account_ids.collateral_account_id,
+            )
+            .await?;
+
+        let credit_facility_proposal = self
+            .credit_facility_proposals
+            .create_in_op(&mut db, new_facility_proposal)
+            .await?;
+
+        self.ledger
+            .handle_facility_proposal_create(db, &credit_facility_proposal)
+            .await?;
+
+        Ok(credit_facility_proposal)
     }
 
     #[instrument(name = "credit.create_facility", skip(self), err)]
