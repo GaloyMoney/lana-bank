@@ -127,21 +127,19 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            match message.as_ref().as_event() {
-                Some(CoreCreditEvent::FacilityCollateralUpdated {
-                    credit_facility_id: id,
-                    ..
-                }) => {
-                    self.credit_facility_proposals
-                        .update_collateralization_from_events(
-                            CreditFacilityProposalId::from(*id),
-                            self.config.upgrade_buffer_cvl_pct,
-                        )
-                        .await?;
-                    state.sequence = message.sequence;
-                    current_job.update_execution_state(state).await?;
-                }
-                _ => (),
+            if let Some(CoreCreditEvent::FacilityCollateralUpdated {
+                credit_facility_id: id,
+                ..
+            }) = message.as_ref().as_event()
+            {
+                self.credit_facility_proposals
+                    .update_collateralization_from_events(
+                        CreditFacilityProposalId::from(*id),
+                        self.config.upgrade_buffer_cvl_pct,
+                    )
+                    .await?;
+                state.sequence = message.sequence;
+                current_job.update_execution_state(state).await?;
             }
         }
 

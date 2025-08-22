@@ -182,10 +182,9 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
-        let credit_facility_proposals = CreditFacilityProposals::new(
-            pool, authz, &jobs, &ledger, price, &publisher, governance,
-        )
-        .await;
+        let credit_facility_proposals =
+            CreditFacilityProposals::new(pool, authz, jobs, &ledger, price, &publisher, governance)
+                .await;
         let credit_facilities = CreditFacilities::init(
             pool,
             authz,
@@ -220,6 +219,18 @@ where
         let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(authz, &ledger);
         let terms_templates = TermsTemplates::new(pool, authz);
 
+        jobs.add_initializer_and_spawn_unique(
+            collateralization_from_price_for_proposal::CreditFacilityProposalCollateralizationFromPriceInit::<
+                Perms,
+                E,
+            >::new(credit_facility_proposals.clone()),
+            collateralization_from_price_for_proposal::CreditFacilityProposalCollateralizationFromPriceJobConfig {
+                job_interval: std::time::Duration::from_secs(30),
+                upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+                _phantom: std::marker::PhantomData,
+            },
+        ).await?;
+
         jobs
             .add_initializer_and_spawn_unique(
                 collateralization_from_price::CreditFacilityCollateralizationFromPriceInit::<
@@ -228,6 +239,18 @@ where
                 >::new(credit_facilities.clone()),
                 collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
                     job_interval: std::time::Duration::from_secs(30),
+                    upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
+                    _phantom: std::marker::PhantomData,
+                },
+            )
+            .await?;
+        jobs
+            .add_initializer_and_spawn_unique(
+                collateralization_from_events_for_proposal::CreditFacilityProposalCollateralizationFromEventsInit::<
+                    Perms,
+                    E,
+                >::new(outbox, &credit_facility_proposals),
+                collateralization_from_events_for_proposal::CreditFacilityProposalCollateralizationFromEventsJobConfig {
                     upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                     _phantom: std::marker::PhantomData,
                 },

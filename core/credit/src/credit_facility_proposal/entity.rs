@@ -1,4 +1,3 @@
-use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use rust_decimal::Decimal;
 #[cfg(feature = "json-schema")]
@@ -93,7 +92,7 @@ impl CreditFacilityProposal {
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
-        upgrade_buffer_cvl_pct: CVLPct,
+        _upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityProposalBalanceSummary,
     ) -> Idempotent<Option<CreditFacilityProposalCollateralizationState>> {
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
@@ -106,7 +105,7 @@ impl CreditFacilityProposal {
         if let Some(collateralization_state) = collateralization_update {
             self.events
                 .push(CreditFacilityProposalEvent::CollateralizationStateChanged {
-                    collateralization_state: collateralization_state,
+                    collateralization_state,
                     collateral: balances.collateral(),
                     price,
                 });
@@ -185,13 +184,13 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     ..
                 } => {
                     builder = builder
-                        .id(id.clone())
-                        .customer_id(customer_id.clone())
-                        .collateral_id(collateral_id.clone())
+                        .id(*id)
+                        .customer_id(*customer_id)
+                        .collateral_id(*collateral_id)
                         .amount(*amount)
                         .terms(*terms)
-                        .account_ids(account_ids.clone())
-                        .approval_process_id(approval_process_id.clone());
+                        .account_ids(*account_ids)
+                        .approval_process_id(*approval_process_id);
                 }
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
                 CreditFacilityProposalEvent::CollateralizationStateChanged { .. } => {}
