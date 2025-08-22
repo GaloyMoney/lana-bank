@@ -135,7 +135,7 @@
       "committees": "Comités",
       "chartOfAccounts": "Catálogo de Cuentas",
       "ledgerAccounts": "Cuentas del libro mayor",
-      "journal": "Diario",
+      "journal": "Registros Contables",
       "users": "Usuarios",
       "balanceSheet": "Balance General",
       "profitAndLoss": "Pérdidas y Ganancias",
@@ -1784,9 +1784,9 @@
     }
   },
   "Journal": {
-    "title": "Diario",
-    "description": "Un registro completo de transacciones financieras en el diario",
-    "noTableData": "No hay entradas presentes en el diario",
+    "title": "Registros Contables",
+    "description": "Un registro completo de partidas contables",
+    "noTableData": "No hay registros contables",
     "table": {
       "createdAt": "Fecha de creación",
       "entryType": "Tipo de entrada",
