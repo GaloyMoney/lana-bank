@@ -66,7 +66,7 @@ pub enum CreditFacilityEvent {
         audit_info: AuditInfo,
     },
     CollateralizationRatioChanged {
-        collateralization_ratio: Option<Decimal>,
+        collateralization_ratio: CollateralizationRatio,
         audit_info: AuditInfo,
     },
     Matured {},
@@ -537,15 +537,20 @@ impl CreditFacility {
     }
 
     pub fn last_collateralization_ratio(&self) -> Option<Decimal> {
-        let found_ratio = self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::CollateralizationRatioChanged {
-                collateralization_ratio: ratio,
-                ..
-            } => Some(*ratio),
-            _ => None,
-        });
+        let ratio = self
+            .events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::CollateralizationRatioChanged {
+                    collateralization_ratio,
+                    ..
+                } => Some(*collateralization_ratio),
+                _ => None,
+            })
+            .unwrap_or_default();
 
-        found_ratio.unwrap_or(Some(Decimal::ZERO))
+        ratio.into()
     }
 
     fn is_fully_collateralized(&self) -> bool {
@@ -643,7 +648,7 @@ impl CreditFacility {
     ) -> Idempotent<()> {
         let ratio = balance.current_collateralization_ratio();
 
-        if self.last_collateralization_ratio() != ratio {
+        if self.last_collateralization_ratio() != ratio.into() {
             self.events
                 .push(CreditFacilityEvent::CollateralizationRatioChanged {
                     collateralization_ratio: ratio,

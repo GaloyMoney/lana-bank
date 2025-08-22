@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use core_money::{Satoshis, UsdCents};
 
-use crate::CVLPct;
+use crate::{CVLPct, CollateralizationRatio};
 
 #[cfg(not(test))]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
@@ -152,7 +152,7 @@ impl CreditFacilityBalanceSummary {
         }
     }
 
-    pub fn current_collateralization_ratio(&self) -> Option<Decimal> {
+    pub fn current_collateralization_ratio(&self) -> CollateralizationRatio {
         let amount = if self.disbursed > UsdCents::ZERO {
             self.total_outstanding()
         } else {
@@ -162,9 +162,9 @@ impl CreditFacilityBalanceSummary {
         let collateral = Decimal::from(self.collateral().into_inner());
 
         if amount == Decimal::ZERO {
-            None
+            CollateralizationRatio::Infinite
         } else {
-            Some(collateral / amount)
+            CollateralizationRatio::Finite(collateral / amount)
         }
     }
 }
@@ -304,8 +304,8 @@ mod test {
         let collateral = Decimal::from(balances.collateral().into_inner());
         let expected = collateral / Decimal::from(balances.facility().into_inner());
         assert_eq!(
-            balances.current_collateralization_ratio().unwrap(),
-            expected
+            balances.current_collateralization_ratio(),
+            CollateralizationRatio::Finite(expected)
         );
     }
 
@@ -333,8 +333,8 @@ mod test {
         let expected =
             collateral / Decimal::from(balances.total_outstanding_payable().into_inner());
         assert_eq!(
-            balances.current_collateralization_ratio().unwrap(),
-            expected
+            balances.current_collateralization_ratio(),
+            CollateralizationRatio::Finite(expected)
         );
     }
 }

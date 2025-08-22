@@ -12,7 +12,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   approved BOOLEAN,
   collateral BIGINT,
   collateral_id UUID,
-  collateralization_ratio VARCHAR,
+  collateralization_ratio JSONB,
   collateralization_state VARCHAR,
   customer_id UUID,
   disbursal_credit_account_id UUID,
@@ -80,7 +80,7 @@ BEGIN
 ;
     new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
-    new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
+    new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
@@ -180,7 +180,7 @@ BEGIN
       new_row.price := (NEW.event -> 'price');
     WHEN 'collateralization_ratio_changed' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
-      new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
+      new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     WHEN 'matured' THEN
     WHEN 'completed' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);

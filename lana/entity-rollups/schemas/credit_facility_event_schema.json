@@ -45,6 +45,32 @@
         }
       ]
     },
+    "CollateralizationRatio": {
+      "oneOf": [
+        {
+          "enum": [
+            "Infinite"
+          ],
+          "type": "string"
+        },
+        {
+          "additionalProperties": false,
+          "properties": {
+            "Finite": {
+              "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
+              "type": [
+                "string",
+                "number"
+              ]
+            }
+          },
+          "required": [
+            "Finite"
+          ],
+          "type": "object"
+        }
+      ]
+    },
     "CollateralizationState": {
       "enum": [
         "FullyCollateralized",
@@ -536,12 +562,7 @@
           "$ref": "#/$defs/AuditInfo"
         },
         "collateralization_ratio": {
-          "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
-          "type": [
-            "string",
-            "number",
-            "null"
-          ]
+          "$ref": "#/$defs/CollateralizationRatio"
         },
         "type": {
           "const": "collateralization_ratio_changed",
@@ -550,6 +571,7 @@
       },
       "required": [
         "type",
+        "collateralization_ratio",
         "audit_info"
       ],
       "type": "object"
