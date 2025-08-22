@@ -17,7 +17,6 @@ core-customer = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 core-money = { workspace = true }
-rbac-types = { workspace = true }
 governance = { workspace = true }
 core-custody = { workspace = true }
 
