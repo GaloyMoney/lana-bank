@@ -537,13 +537,15 @@ impl CreditFacility {
     }
 
     pub fn last_collateralization_ratio(&self) -> Option<Decimal> {
-        self.events.iter_all().rev().find_map(|event| match event {
+        let found_ratio = self.events.iter_all().rev().find_map(|event| match event {
             CreditFacilityEvent::CollateralizationRatioChanged {
                 collateralization_ratio: ratio,
                 ..
-            } => *ratio,
+            } => Some(*ratio),
             _ => None,
-        })
+        });
+
+        found_ratio.unwrap_or(Some(Decimal::ZERO))
     }
 
     fn is_fully_collateralized(&self) -> bool {
