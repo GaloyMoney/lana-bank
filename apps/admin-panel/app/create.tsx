@@ -252,6 +252,7 @@ const CreateButton = () => {
     return menuItems.filter((item) => {
       const isPathAllowed = isItemAllowedOnCurrentPath(item.allowedPaths, pathName)
 
+      // TODO: add ability to disable options instead of hiding them
       // Hide deposit and withdrawal options if deposit account is not active
       if (
         item.label === t("menuItems.deposit") ||
