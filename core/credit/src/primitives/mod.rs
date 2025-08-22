@@ -37,6 +37,8 @@ es_entity::entity_id! {
     InterestAccrualCycleId,
     TermsTemplateId;
 
+    CreditFacilityProposalId => CreditFacilityId,
+
     CreditFacilityId => governance::ApprovalProcessId,
     DisbursalId => governance::ApprovalProcessId,
     CreditFacilityProposalId => governance::ApprovalProcessId,
@@ -564,6 +566,7 @@ pub enum CollateralizationState {
     Eq,
     strum::Display,
     strum::EnumString,
+    sqlx::Type,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

@@ -944,6 +944,39 @@ impl CreditLedger {
         })
     }
 
+    pub async fn get_credit_facility_proposal_balance(
+        &self,
+        CreditFacilityProposalAccountIds {
+            facility_account_id,
+            collateral_account_id,
+            ..
+        }: CreditFacilityProposalAccountIds,
+    ) -> Result<CreditFacilityProposalBalanceSummary, CreditLedgerError> {
+        let facility_id = (self.journal_id, facility_account_id, self.usd);
+        let collateral_id = (self.journal_id, collateral_account_id, self.btc);
+        let balances = self
+            .cala
+            .balances()
+            .find_all(&[facility_id, collateral_id])
+            .await?;
+
+        let facility = if let Some(b) = balances.get(&facility_id) {
+            UsdCents::try_from_usd(b.details.pending.cr_balance)?
+        } else {
+            UsdCents::ZERO
+        };
+
+        let collateral = if let Some(b) = balances.get(&collateral_id) {
+            Satoshis::try_from_btc(b.settled())?
+        } else {
+            Satoshis::ZERO
+        };
+
+        Ok(CreditFacilityProposalBalanceSummary::new(
+            facility, collateral,
+        ))
+    }
+
     pub async fn get_credit_facility_balance(
         &self,
         CreditFacilityAccountIds {
