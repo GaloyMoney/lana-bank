@@ -59,6 +59,10 @@
       "label": "Editor de crédito",
       "description": "Puede crear y gestionar líneas de crédito, actualizar garantías, iniciar y liquidar desembolsos, registrar intereses y procesar obligaciones"
     },
+    "credit_payment_writer": {
+      "label": "Editor de pagos de crédito",
+      "description": "Puede crear obligaciones de pago para líneas de crédito"
+    },
     "customer_viewer": {
       "label": "Visualizador de clientes",
       "description": "Puede ver perfiles de clientes y detalles de cuentas"

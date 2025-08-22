@@ -1762,6 +1762,7 @@ export enum PermissionSetName {
   AccountingWriter = 'ACCOUNTING_WRITER',
   AuditViewer = 'AUDIT_VIEWER',
   ContractCreation = 'CONTRACT_CREATION',
+  CreditPaymentWriter = 'CREDIT_PAYMENT_WRITER',
   CreditViewer = 'CREDIT_VIEWER',
   CreditWriter = 'CREDIT_WRITER',
   CustodyViewer = 'CUSTODY_VIEWER',

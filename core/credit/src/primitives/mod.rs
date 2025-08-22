@@ -130,6 +130,7 @@ pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
+pub const PERMISSION_SET_CREDIT_PAYMENT_WRITER: &str = "payment_obligation_writer";
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");
@@ -440,7 +441,8 @@ impl ActionPermission for ObligationAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::UpdateStatus | Self::RecordAllocation => PERMISSION_SET_CREDIT_WRITER,
+            Self::UpdateStatus => PERMISSION_SET_CREDIT_WRITER,
+            Self::RecordAllocation => PERMISSION_SET_CREDIT_PAYMENT_WRITER,
         }
     }
 }
