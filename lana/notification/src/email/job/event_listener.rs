@@ -22,26 +22,16 @@ impl<AuthzType> Default for EmailEventListenerConfig<AuthzType> {
 impl<AuthzType> JobConfig for EmailEventListenerConfig<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_credit::CoreCreditAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_access::CoreAccessAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<governance::GovernanceAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_credit::CoreCreditObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_customer::CustomerObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_access::CoreAccessObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<governance::GovernanceObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<core_access::CoreAccessAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_customer::CustomerObject>
+        + From<core_access::CoreAccessObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
@@ -59,26 +49,16 @@ where
 impl<AuthzType> EmailEventListenerInit<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_credit::CoreCreditAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_access::CoreAccessAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<governance::GovernanceAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_credit::CoreCreditObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_customer::CustomerObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_access::CoreAccessObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<governance::GovernanceObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<core_access::CoreAccessAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_customer::CustomerObject>
+        + From<core_access::CoreAccessObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
@@ -97,26 +77,16 @@ const EMAIL_LISTENER_JOB: JobType = JobType::new("email-listener");
 impl<AuthzType> JobInitializer for EmailEventListenerInit<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_credit::CoreCreditAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_access::CoreAccessAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<governance::GovernanceAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_credit::CoreCreditObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_customer::CustomerObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_access::CoreAccessObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<governance::GovernanceObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<core_access::CoreAccessAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_customer::CustomerObject>
+        + From<core_access::CoreAccessObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
@@ -153,26 +123,16 @@ where
 impl<AuthzType> JobRunner for EmailEventListenerRunner<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_credit::CoreCreditAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_access::CoreAccessAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<governance::GovernanceAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_credit::CoreCreditObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_customer::CustomerObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_access::CoreAccessObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<governance::GovernanceObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<core_access::CoreAccessAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_customer::CustomerObject>
+        + From<core_access::CoreAccessObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
@@ -203,26 +163,16 @@ where
 impl<AuthzType> EmailEventListenerRunner<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_credit::CoreCreditAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_customer::CoreCustomerAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_access::CoreAccessAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<governance::GovernanceAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action:
-        From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_credit::CoreCreditObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_customer::CustomerObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_access::CoreAccessObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<governance::GovernanceObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object:
-        From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<core_access::CoreAccessAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_customer::CustomerObject>
+        + From<core_access::CoreAccessObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
