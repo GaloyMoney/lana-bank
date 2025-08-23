@@ -54,6 +54,7 @@ export const DetailsGroup: React.FC<DetailsGroupProps> = ({
               : childrenArray.length > 2
                 ? "grid-cols-4"
                 : "grid-cols-2"),
+          layout === "vertical" && "items-start",
           className,
         )}
       >
