@@ -1130,7 +1130,7 @@ checksums:
     TransactionTemplates/title: cdfe1e063b21076f6b5dc06d5c6cce33
     TransactionTemplates/description: 358dbd4472fd63bc311612eaf175ab57
     TransactionTemplates/code: 343bc5386149b97cece2b093c39034b2
-    TransactionTemplates/noData: cf33d780cb48c9296bbdc2ffc4549092
+    TransactionTemplates/table/noData: cf33d780cb48c9296bbdc2ffc4549092
     LedgerTransactionsForTemplateCode/title: 6ab59e155e4bb73fd7b1aa8df0bc632e
     LedgerTransactionsForTemplateCode/description: d27d874f3cb4d41fc9fa4392ba6fcbec
     LedgerTransactionsForTemplateCode/table/noData: 6af4775f34d95b6313e2adeb8f9974a8

@@ -1891,7 +1891,9 @@
     "title": "Transaction Templates",
     "description": "Templates for transactions",
     "code": "Code",
-    "noData": "No transaction templates found"
+    "table": {
+      "noData": "No transaction templates found"
+    }
   },
   "LedgerTransactionsForTemplateCode": {
     "title": "Ledger Transactions for {code}",

@@ -1,4 +1,4 @@
-import { useState, useEffect, useRef } from "react"
+import React, { useState, useEffect, useRef } from "react"
 import Link from "next/link"
 import { ArrowRight } from "lucide-react"
 import {
@@ -223,8 +223,11 @@ const PaginatedTable = <T,>({
             }
           >
             <TableRow>
-              {columns.map((col) => (
-                <TableHead className={col.labelClassName} key={col.key as string}>
+              {columns.map((col, colIdx) => (
+                <TableHead
+                  className={col.labelClassName}
+                  key={`${col.key as string}-${colIdx}`}
+                >
                   <div className="flex items-center space-x-2 justify-between">
                     <span>{col.label}</span>
                     <div className="flex items-center">
@@ -363,9 +366,9 @@ const PaginatedTable = <T,>({
         {displayData.map(({ node }, idx) => (
           <>
             <Card key={idx} className="p-4 space-y-3" onClick={() => onClick?.(node)}>
-              {columns.map((col) => (
+              {columns.map((col, colIdx) => (
                 <div
-                  key={col.key as string}
+                  key={`${col.key as string}-${colIdx}`}
                   className="flex justify-between items-start gap-4"
                 >
                   <div className="text-sm font-medium text-muted-foreground">
@@ -398,9 +401,9 @@ const PaginatedTable = <T,>({
                   className="p-4 space-y-3"
                   onClick={() => onClick?.(subRow)}
                 >
-                  {columns.map((col) => (
+                  {columns.map((col, colIdx) => (
                     <div
-                      key={col.key as string}
+                      key={`${col.key as string}-${colIdx}`}
                       className="flex justify-between items-start gap-4"
                     >
                       <div className="text-sm font-medium text-muted-foreground">
@@ -478,8 +481,8 @@ const PaginatedTable = <T,>({
               }
             >
               <TableRow>
-                {columns.map((col) => (
-                  <TableHead key={col.key as string}>
+                {columns.map((col, colIdx) => (
+                  <TableHead key={`${col.key as string}-${colIdx}`}>
                     <div
                       className={`flex items-center space-x-2 justify-between ${col.labelClassName}`}
                     >
@@ -542,9 +545,8 @@ const PaginatedTable = <T,>({
           )}
           <TableBody>
             {displayData.map(({ node }, idx) => (
-              <>
+              <React.Fragment key={idx}>
                 <TableRow
-                  key={idx}
                   data-testid={`table-row-${idx}`}
                   onClick={() => onClick?.(node)}
                   tabIndex={0}
@@ -555,9 +557,9 @@ const PaginatedTable = <T,>({
                   role="row"
                   aria-selected={focusedRowIndex === idx}
                 >
-                  {columns.map((col) => (
+                  {columns.map((col, colIdx) => (
                     <TableCell
-                      key={col.key as string}
+                      key={`${col.key as string}-${colIdx}`}
                       className={
                         style === "comfortable"
                           ? "whitespace-normal break-words h-[3.8rem]"
@@ -595,9 +597,9 @@ const PaginatedTable = <T,>({
                         focusedRowIndex === idx ? "bg-muted" : ""
                       } hover:bg-muted/50 transition-colors outline-none`}
                     >
-                      {columns.map((col) => (
+                      {columns.map((col, colIdx) => (
                         <TableCell
-                          key={col.key as string}
+                          key={`${col.key as string}-${colIdx}`}
                           className={
                             style === "comfortable"
                               ? "whitespace-normal break-words h-[3.8rem]"
@@ -624,7 +626,7 @@ const PaginatedTable = <T,>({
                       )}
                     </TableRow>
                   ))}
-              </>
+              </React.Fragment>
             ))}
           </TableBody>
           {customFooter}

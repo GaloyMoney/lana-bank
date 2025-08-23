@@ -9,6 +9,8 @@ import { Button } from "@lana/web/ui/button"
 
 import { formatDate } from "@lana/web/utils"
 
+import { Label } from "@lana/web/ui/label"
+
 import UpdateTelegramIdDialog from "./update-telegram-id"
 import UpdateEmailDialog from "./update-email"
 import FreezeDepositAccountDialog from "./freeze-deposit-account"
@@ -20,7 +22,6 @@ import {
   GetCustomerBasicDetailsQuery,
   DepositAccountStatus,
 } from "@/lib/graphql/generated"
-import { Label } from "@lana/web/ui/label"
 
 type CustomerDetailsCardProps = {
   customer: NonNullable<GetCustomerBasicDetailsQuery["customerByPublicId"]>

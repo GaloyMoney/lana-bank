@@ -1891,7 +1891,9 @@
     "title": "Plantillas de transacciones",
     "description": "Plantillas para transacciones",
     "code": "Código",
-    "noData": "No se encontraron plantillas de transacciones"
+    "table": {
+      "noData": "No se encontraron plantillas de transacciones"
+    }
   },
   "LedgerTransactionsForTemplateCode": {
     "title": "Transacciones contables para {code}",

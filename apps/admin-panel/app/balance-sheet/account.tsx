@@ -1,7 +1,7 @@
 "use client"
 import { TableCell, TableRow } from "@lana/web/ui/table"
 
-import Link from "next/link"
+import { useRouter } from "next/navigation"
 
 import Balance, { Currency } from "@/components/balance/balance"
 import { BalanceSheetQuery } from "@/lib/graphql/generated"
@@ -14,6 +14,8 @@ interface AccountProps {
 }
 
 export const Account = ({ account, currency, depth = 0, layer }: AccountProps) => {
+  const router = useRouter()
+
   let balance: number = 0
 
   if (account.balanceRange) {
@@ -30,17 +32,23 @@ export const Account = ({ account, currency, depth = 0, layer }: AccountProps) =
     }
   }
 
+  const handleRowClick = () => {
+    router.push(`/ledger-accounts/${account.code || account.id}`)
+  }
+
   return (
-    <TableRow key={account.id}>
-      <Link href={`/ledger-accounts/${account.code || account.id}`}>
-        <TableCell className="flex items-center">
-          {Array.from({ length: depth }).map((_, i) => (
-            <div key={i} className="w-8" />
-          ))}
-          <div className="w-8" />
-          <div>{account.name}</div>
-        </TableCell>
-      </Link>
+    <TableRow
+      key={account.id}
+      className="cursor-pointer hover:bg-muted/50"
+      onClick={handleRowClick}
+    >
+      <TableCell className="flex items-center">
+        {Array.from({ length: depth }).map((_, i) => (
+          <div key={i} className="w-8" />
+        ))}
+        <div className="w-8" />
+        <div>{account.name}</div>
+      </TableCell>
       <TableCell>
         <Balance
           align="end"

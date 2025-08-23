@@ -103,11 +103,11 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
       )}
       <div>
         <DetailsGroup columns={columns} layout={effectiveLayout}>
-          {details.map((detail) => {
+          {details.map((detail, idx) => {
             const { className: detailClassName, ...detailProps } = detail
             return (
               <DetailItem
-                key={detailProps.label?.toString()}
+                key={`${detailProps.label?.toString()}-${idx}`}
                 {...detailProps}
                 className={cn(detailClassName, isBelowMedium ? "flex-1" : "")}
               />
@@ -150,11 +150,11 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
       </CardHeader>
       <CardContent>
         <DetailsGroup columns={columns} layout={effectiveLayout}>
-          {details.map((detail) => {
+          {details.map((detail, idx) => {
             const { className: detailClassName, ...detailProps } = detail
             return (
               <DetailItem
-                key={detailProps.label?.toString()}
+                key={`${detailProps.label?.toString()}-${idx}`}
                 {...detailProps}
                 className={cn(detailClassName, isBelowMedium ? "flex-1" : "")}
               />
