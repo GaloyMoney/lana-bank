@@ -13,7 +13,7 @@ use crate::{event::CoreCreditEvent, ledger::CreditLedger, primitives::*};
 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
-use repo::*;
+use repo::{CreditFacilityProposalRepo, credit_facility_proposal_cursor::*};
 pub struct CreditFacilityProposals<Perms, E>
 where
     Perms: PermissionCheck,
@@ -53,7 +53,7 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub async fn new(
+    pub async fn init(
         pool: &sqlx::PgPool,
         authz: &Perms,
         jobs: &Jobs,
@@ -61,19 +61,27 @@ where
         price: &Price,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: &Governance<Perms, E>,
-    ) -> Self {
+    ) -> Result<Self, CreditFacilityProposalError> {
         let repo = CreditFacilityProposalRepo::new(pool, publisher);
-        let _ = governance
+        match governance
             .init_policy(crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS)
-            .await;
-        Self {
+            .await
+        {
+            Err(governance::error::GovernanceError::PolicyError(
+                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
+            )) => (),
+            Err(e) => return Err(e.into()),
+            _ => (),
+        }
+
+        Ok(Self {
             repo,
             ledger: ledger.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
             price: price.clone(),
             governance: governance.clone(),
-        }
+        })
     }
 
     pub(super) async fn begin_op(
@@ -130,7 +138,6 @@ where
     pub(super) async fn update_collateralization_from_events(
         &self,
         id: CreditFacilityProposalId,
-        upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
         let mut op = self.repo.begin_op().await?;
         let mut facility_proposal = self.repo.find_by_id_in_op(&mut op, id).await?;
@@ -142,7 +149,7 @@ where
         let price = self.price.usd_cents_per_btc().await?;
 
         if facility_proposal
-            .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
+            .update_collateralization(price, balances)
             .did_execute()
         {
             self.repo
@@ -156,22 +163,21 @@ where
 
     pub(super) async fn update_collateralization_from_price(
         &self,
-        upgrade_buffer_cvl_pct: CVLPct,
     ) -> Result<(), CreditFacilityProposalError> {
         let price = self.price.usd_cents_per_btc().await?;
         let mut has_next_page = true;
-        let mut after: Option<
-            credit_facility_proposal_cursor::CreditFacilityProposalsByCollateralizationRatioCursor,
-        > = None;
+        let mut after: Option<CreditFacilityProposalsByCollateralizationRatioCursor> = None;
         while has_next_page {
-            let mut credit_facility_proposals = self.repo.list_by_collateralization_ratio(
+            let mut credit_facility_proposals = self
+                .repo
+                .list_by_collateralization_ratio(
                     es_entity::PaginatedQueryArgs::<
-                        credit_facility_proposal_cursor::CreditFacilityProposalsByCollateralizationRatioCursor,
+                        CreditFacilityProposalsByCollateralizationRatioCursor,
                     > {
                         first: 10,
                         after,
                     },
-                    es_entity::ListDirection::Ascending,
+                    Default::default(),
                 )
                 .await?;
             (after, has_next_page) = (
@@ -185,13 +191,13 @@ where
             for facility in credit_facility_proposals.entities.iter_mut() {
                 // if facility.status() == CreditFacilityStatus::Closed {
                 //     continue;
-                // } // handle this case when we have status fn
+                // } // TODO: handle this case when we have status fn
                 let balances = self
                     .ledger
                     .get_credit_facility_proposal_balance(facility.account_ids)
                     .await?;
                 if facility
-                    .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
+                    .update_collateralization(price, balances)
                     .did_execute()
                 {
                     self.repo.update_in_op(&mut op, facility).await?;

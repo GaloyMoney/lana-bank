@@ -169,15 +169,6 @@ impl CreditFacilityBalanceSummary {
     }
 }
 
-#[cfg(not(test))]
-#[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
-#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CreditFacilityProposalBalanceSummary {
-    facility: UsdCents,
-    collateral: Satoshis,
-}
-
-#[cfg(test)]
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityProposalBalanceSummary {

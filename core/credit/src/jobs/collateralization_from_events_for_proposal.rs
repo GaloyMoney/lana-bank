@@ -13,7 +13,6 @@ use crate::{
 
 #[derive(Serialize, Deserialize)]
 pub struct CreditFacilityProposalCollateralizationFromEventsJobConfig<Perms, E> {
-    pub upgrade_buffer_cvl_pct: CVLPct,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> JobConfig for CreditFacilityProposalCollateralizationFromEventsJobConfig<Perms, E>
@@ -79,10 +78,9 @@ where
         CREDIT_FACILITY_PROPOSAL_COLLATERALIZATION_FROM_EVENTS_JOB
     }
 
-    fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(
             CreditFacilityProposalCollateralizationFromEventsRunner::<Perms, E> {
-                config: job.config()?,
                 outbox: self.outbox.clone(),
                 credit_facility_proposals: self.credit_facility_proposals.clone(),
             },
@@ -102,7 +100,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    config: CreditFacilityProposalCollateralizationFromEventsJobConfig<Perms, E>,
     outbox: Outbox<E>,
     credit_facility_proposals: CreditFacilityProposals<Perms, E>,
 }
@@ -133,10 +130,7 @@ where
             }) = message.as_ref().as_event()
             {
                 self.credit_facility_proposals
-                    .update_collateralization_from_events(
-                        CreditFacilityProposalId::from(*id),
-                        self.config.upgrade_buffer_cvl_pct,
-                    )
+                    .update_collateralization_from_events(CreditFacilityProposalId::from(*id))
                     .await?;
                 state.sequence = message.sequence;
                 current_job.update_execution_state(state).await?;

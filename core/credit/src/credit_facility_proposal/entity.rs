@@ -16,7 +16,6 @@ use crate::{
     terms::TermValues,
 };
 
-#[allow(clippy::large_enum_variant)]
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -64,33 +63,25 @@ pub struct CreditFacilityProposal {
 
 impl CreditFacilityProposal {
     pub fn creation_data(&self) -> CreditFacilityProposalCreation {
-        self.events
-            .iter_all()
-            .find_map(|event| {
-                if let CreditFacilityProposalEvent::Initialized {
-                    ledger_tx_id,
-                    account_ids,
-                    amount,
-                    ..
-                } = event
-                {
-                    Some(CreditFacilityProposalCreation {
-                        tx_id: *ledger_tx_id,
-                        tx_ref: format!("{}-create", self.id),
-                        credit_facility_proposal_account_ids: *account_ids,
-                        facility_amount: *amount,
-                    })
-                } else {
-                    None
-                }
-            })
-            .expect("Initialized event must be present")
+        match self.events.iter_all().next() {
+            Some(CreditFacilityProposalEvent::Initialized {
+                ledger_tx_id,
+                account_ids,
+                amount,
+                ..
+            }) => CreditFacilityProposalCreation {
+                tx_id: *ledger_tx_id,
+                tx_ref: format!("{}-create", self.id),
+                credit_facility_proposal_account_ids: *account_ids,
+                facility_amount: *amount,
+            },
+            _ => unreachable!("Initialized event must be the first event"),
+        }
     }
 
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
-        _upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityProposalBalanceSummary,
     ) -> Idempotent<Option<CreditFacilityProposalCollateralizationState>> {
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
@@ -163,13 +154,12 @@ impl CreditFacilityProposal {
     }
 
     pub(crate) fn is_approval_process_concluded(&self) -> bool {
-        for event in self.events.iter_all() {
-            match event {
-                CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => return true,
-                _ => continue,
-            }
-        }
-        false
+        self.events.iter_all().any(|event| {
+            matches!(
+                event,
+                CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
+            )
+        })
     }
 
     pub(crate) fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {

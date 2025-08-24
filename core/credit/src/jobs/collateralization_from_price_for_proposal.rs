@@ -11,7 +11,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    credit_facility_proposal::CreditFacilityProposals, primitives::*,
+    credit_facility_proposal::CreditFacilityProposals,
 };
 
 #[serde_with::serde_as]
@@ -19,7 +19,6 @@ use crate::{
 pub(crate) struct CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E> {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     pub job_interval: Duration,
-    pub upgrade_buffer_cvl_pct: CVLPct,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> JobConfig for CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E>
@@ -109,7 +108,7 @@ where
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         self.credit_facility_proposals
-            .update_collateralization_from_price(self.config.upgrade_buffer_cvl_pct)
+            .update_collateralization_from_price()
             .await?;
 
         Ok(JobCompletion::RescheduleIn(self.config.job_interval))

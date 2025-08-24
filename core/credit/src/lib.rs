@@ -184,9 +184,10 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
-        let credit_facility_proposals =
-            CreditFacilityProposals::new(pool, authz, jobs, &ledger, price, &publisher, governance)
-                .await;
+        let credit_facility_proposals = CreditFacilityProposals::init(
+            pool, authz, jobs, &ledger, price, &publisher, governance,
+        )
+        .await?;
         let credit_facilities = CreditFacilities::init(
             pool,
             authz,
@@ -233,7 +234,6 @@ where
             >::new(credit_facility_proposals.clone()),
             collateralization_from_price_for_proposal::CreditFacilityProposalCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
-                upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                 _phantom: std::marker::PhantomData,
             },
         ).await?;
@@ -258,7 +258,6 @@ where
                     E,
                 >::new(outbox, &credit_facility_proposals),
                 collateralization_from_events_for_proposal::CreditFacilityProposalCollateralizationFromEventsJobConfig {
-                    upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                     _phantom: std::marker::PhantomData,
                 },
             )
