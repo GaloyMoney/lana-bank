@@ -8,7 +8,7 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const CREATE_CREDIT_FACILITY_PROPOSAL_CODE: &str = "CREATE_CREDIT_FACILITY_PROPOSAL_PROPOSAL";
+pub const CREATE_CREDIT_FACILITY_PROPOSAL_CODE: &str = "CREATE_CREDIT_FACILITY_PROPOSAL";
 
 #[derive(Debug)]
 pub struct CreateCreditFacilityProposalParams {
