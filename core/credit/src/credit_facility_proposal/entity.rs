@@ -8,10 +8,7 @@ use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
-    ledger::{
-        CreditFacilityProposalAccountIds, CreditFacilityProposalBalanceSummary,
-        CreditFacilityProposalCreation,
-    },
+    ledger::{CreditFacilityProposalAccountIds, CreditFacilityProposalBalanceSummary},
     primitives::*,
     terms::TermValues,
 };
@@ -23,7 +20,6 @@ use crate::{
 pub enum CreditFacilityProposalEvent {
     Initialized {
         id: CreditFacilityProposalId,
-        ledger_tx_id: LedgerTxId,
         customer_id: CustomerId,
         collateral_id: CollateralId,
         terms: TermValues,
@@ -62,23 +58,6 @@ pub struct CreditFacilityProposal {
 }
 
 impl CreditFacilityProposal {
-    pub fn creation_data(&self) -> CreditFacilityProposalCreation {
-        match self.events.iter_all().next() {
-            Some(CreditFacilityProposalEvent::Initialized {
-                ledger_tx_id,
-                account_ids,
-                amount,
-                ..
-            }) => CreditFacilityProposalCreation {
-                tx_id: *ledger_tx_id,
-                tx_ref: format!("{}-create", self.id),
-                credit_facility_proposal_account_ids: *account_ids,
-                facility_amount: *amount,
-            },
-            _ => unreachable!("Initialized event must be the first event"),
-        }
-    }
-
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
@@ -87,7 +66,7 @@ impl CreditFacilityProposal {
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
 
         let collateralization_update = self.terms.collateralization_update_for_proposal(
-            balances.facility_amount_cvl(price),
+            balances.facility_amount_cvl(self.amount, price),
             self.last_collateralization_state(),
         );
 
@@ -111,7 +90,7 @@ impl CreditFacilityProposal {
         &mut self,
         balance: &CreditFacilityProposalBalanceSummary,
     ) -> Idempotent<()> {
-        let ratio = balance.current_collateralization_ratio();
+        let ratio = balance.current_collateralization_ratio(self.amount);
 
         if self.last_collateralization_ratio() == ratio {
             return Idempotent::Ignored;
@@ -226,8 +205,6 @@ pub struct NewCreditFacilityProposal {
     #[builder(setter(into))]
     pub(super) id: CreditFacilityProposalId,
     #[builder(setter(into))]
-    pub(super) ledger_tx_id: LedgerTxId,
-    #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
@@ -255,7 +232,6 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
             self.id,
             [CreditFacilityProposalEvent::Initialized {
                 id: self.id,
-                ledger_tx_id: self.ledger_tx_id,
                 customer_id: self.customer_id,
                 collateral_id: self.collateral_id,
                 terms: self.terms,

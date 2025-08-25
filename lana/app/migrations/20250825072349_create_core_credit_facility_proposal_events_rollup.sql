@@ -19,7 +19,7 @@ CREATE TABLE core_credit_facility_proposal_events_rollup (
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
-  ledger_tx_ids UUID[],
+  ledger_tx_ids VARCHAR[],
 
   -- Toggle fields
   is_approval_process_concluded BOOLEAN DEFAULT false,
@@ -77,8 +77,8 @@ BEGIN
     new_row.is_completed := false;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
-       ELSE ARRAY[]::UUID[]
+         ARRAY(SELECT value::text FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+       ELSE ARRAY[]::VARCHAR[]
      END
 ;
     new_row.price := (NEW.event -> 'price');
@@ -111,7 +111,7 @@ BEGIN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
-      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::VARCHAR[]), (NEW.event ->> 'ledger_tx_id'));
       new_row.terms := (NEW.event -> 'terms');
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
