@@ -3153,6 +3153,8 @@ dependencies = [
  "serde",
  "thiserror 2.0.16",
  "tokio",
+ "tracing",
+ "tracing-utils",
  "uuid",
 ]
 
@@ -6530,6 +6532,7 @@ dependencies = [
  "opentelemetry-otlp",
  "opentelemetry-semantic-conventions",
  "opentelemetry_sdk",
+ "reqwest",
  "serde",
  "tracing",
  "tracing-opentelemetry",

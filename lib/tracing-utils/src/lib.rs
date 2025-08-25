@@ -137,6 +137,22 @@ pub mod http {
 
         header_map
     }
+
+    #[cfg(feature = "reqwest")]
+    pub fn inject_trace_reqwest() -> reqwest::header::HeaderMap {
+        use opentelemetry::propagation::TextMapPropagator;
+        use opentelemetry_http::HeaderInjector;
+        use opentelemetry_sdk::propagation::TraceContextPropagator;
+        use tracing_opentelemetry::OpenTelemetrySpanExt;
+
+        let mut header_map = reqwest::header::HeaderMap::new();
+        let mut header_wrapper = HeaderInjector(&mut header_map);
+        let propagator = TraceContextPropagator::new();
+        let context = tracing::Span::current().context();
+        propagator.inject_context(&context, &mut header_wrapper);
+
+        header_map
+    }
 }
 
 #[cfg(feature = "persistence")]
