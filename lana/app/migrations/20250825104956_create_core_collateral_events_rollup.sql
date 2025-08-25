@@ -9,7 +9,7 @@ CREATE TABLE core_collateral_events_rollup (
   account_id UUID,
   action VARCHAR,
   collateral_amount BIGINT,
-  credit_facility_proposal_id UUID,
+  credit_facility_id UUID,
   custody_wallet_id UUID,
 
   -- Collection rollups
@@ -59,7 +59,7 @@ BEGIN
      END
 ;
     new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
-    new_row.credit_facility_proposal_id := (NEW.event ->> 'credit_facility_proposal_id')::UUID;
+    new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
@@ -74,7 +74,7 @@ BEGIN
     new_row.action := current_row.action;
     new_row.audit_entry_ids := current_row.audit_entry_ids;
     new_row.collateral_amount := current_row.collateral_amount;
-    new_row.credit_facility_proposal_id := current_row.credit_facility_proposal_id;
+    new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.custody_wallet_id := current_row.custody_wallet_id;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
   END IF;
@@ -83,7 +83,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_id := (NEW.event ->> 'account_id')::UUID;
-      new_row.credit_facility_proposal_id := (NEW.event ->> 'credit_facility_proposal_id')::UUID;
+      new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
     WHEN 'updated_via_manual_input' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
@@ -108,7 +108,7 @@ BEGIN
     action,
     audit_entry_ids,
     collateral_amount,
-    credit_facility_proposal_id,
+    credit_facility_id,
     custody_wallet_id,
     ledger_tx_ids
   )
@@ -122,7 +122,7 @@ BEGIN
     new_row.action,
     new_row.audit_entry_ids,
     new_row.collateral_amount,
-    new_row.credit_facility_proposal_id,
+    new_row.credit_facility_id,
     new_row.custody_wallet_id,
     new_row.ledger_tx_ids
   );

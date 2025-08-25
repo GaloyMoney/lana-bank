@@ -520,7 +520,7 @@ where
             .create_in_op(
                 &mut db,
                 collateral_id,
-                proposal_id,
+                proposal_id.into(),
                 wallet_id,
                 account_ids.collateral_account_id,
             )
@@ -614,7 +614,7 @@ where
             .create_in_op(
                 &mut db,
                 collateral_id,
-                id.into(),
+                id,
                 wallet_id,
                 account_ids.collateral_account_id,
             )

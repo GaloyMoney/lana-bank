@@ -40,7 +40,7 @@
           "format": "uuid",
           "type": "string"
         },
-        "credit_facility_proposal_id": {
+        "credit_facility_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -64,7 +64,7 @@
         "type",
         "id",
         "account_id",
-        "credit_facility_proposal_id"
+        "credit_facility_id"
       ],
       "type": "object"
     },
