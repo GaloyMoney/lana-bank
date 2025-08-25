@@ -11,7 +11,7 @@ CREATE TABLE core_credit_facility_proposal_events_rollup (
   approved BOOLEAN,
   collateral BIGINT,
   collateral_id UUID,
-  collateralization_ratio VARCHAR,
+  collateralization_ratio JSONB,
   collateralization_state VARCHAR,
   customer_id UUID,
   price JSONB,
@@ -70,7 +70,7 @@ BEGIN
 ;
     new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
-    new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
+    new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.is_approval_process_concluded := false;
@@ -122,7 +122,7 @@ BEGIN
       new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
       new_row.price := (NEW.event -> 'price');
     WHEN 'collateralization_ratio_changed' THEN
-      new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
+      new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     WHEN 'completed' THEN
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
       new_row.is_completed := true;
