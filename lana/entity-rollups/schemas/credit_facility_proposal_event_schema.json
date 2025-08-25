@@ -50,9 +50,14 @@
         "collateral_account_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "facility_account_id": {
+          "format": "uuid",
+          "type": "string"
         }
       },
       "required": [
+        "facility_account_id",
         "collateral_account_id"
       ],
       "type": "object"
@@ -250,6 +255,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "terms": {
           "$ref": "#/$defs/TermValues"
         },
@@ -261,6 +270,7 @@
       "required": [
         "type",
         "id",
+        "ledger_tx_id",
         "customer_id",
         "collateral_id",
         "terms",

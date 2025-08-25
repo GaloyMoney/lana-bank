@@ -172,24 +172,31 @@ impl CreditFacilityBalanceSummary {
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityProposalBalanceSummary {
+    facility: UsdCents,
     collateral: Satoshis,
 }
 
 impl CreditFacilityProposalBalanceSummary {
-    pub fn new(collateral: Satoshis) -> Self {
-        Self { collateral }
+    pub fn new(facility: UsdCents, collateral: Satoshis) -> Self {
+        Self {
+            collateral,
+            facility,
+        }
     }
+
     pub fn collateral(&self) -> Satoshis {
         self.collateral
     }
 
-    pub fn current_collateralization_ratio(&self, amount: UsdCents) -> Decimal {
+    pub fn current_collateralization_ratio(&self) -> Decimal {
+        let amount = Decimal::from(self.facility.into_inner());
         let collateral = Decimal::from(self.collateral.into_inner());
-        collateral / Decimal::from(amount.into_inner())
+        collateral / amount
     }
 
-    pub fn facility_amount_cvl(&self, amount: UsdCents, price: PriceOfOneBTC) -> CVLPct {
-        CVLData::new(self.collateral, amount).cvl(price)
+    pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
+        let facility_amount = self.facility;
+        CVLData::new(self.collateral, facility_amount).cvl(price)
     }
 }
 

@@ -50,6 +50,7 @@ impl CreditFacilityAccountIds {
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityProposalAccountIds {
+    pub facility_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
 }
 
@@ -58,6 +59,7 @@ impl CreditFacilityProposalAccountIds {
     pub fn new() -> Self {
         Self {
             collateral_account_id: CalaAccountId::new(),
+            facility_account_id: CalaAccountId::new(),
         }
     }
 }
@@ -74,6 +76,14 @@ pub struct CreditFacilityCreation {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub facility_amount: UsdCents,
+}
+
+#[derive(Debug, Clone)]
+pub struct CreditFacilityProposalCreation {
+    pub tx_id: LedgerTxId,
+    pub tx_ref: String,
+    pub credit_facility_proposal_account_ids: CreditFacilityProposalAccountIds,
     pub facility_amount: UsdCents,
 }
 

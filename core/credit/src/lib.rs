@@ -506,6 +506,7 @@ where
 
         let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
+            .ledger_tx_id(LedgerTxId::new())
             .approval_process_id(proposal_id)
             .collateral_id(collateral_id)
             .customer_id(customer_id)
