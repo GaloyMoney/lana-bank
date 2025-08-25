@@ -76,7 +76,7 @@ CREATE TABLE core_public_id_events (
   UNIQUE(id, sequence)
 );
 
-CREATE SEQUENCE core_public_id_counter;
+CREATE SEQUENCE core_public_id_counter START 1000;
 
 CREATE TABLE core_customers (
   id UUID PRIMARY KEY,
