@@ -44,7 +44,9 @@ pub enum CreditFacilityProposalEvent {
     CollateralizationRatioChanged {
         collateralization_ratio: Decimal,
     },
-    Completed {},
+    Completed {
+        approved: bool,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -178,12 +180,13 @@ impl CreditFacilityProposal {
         Idempotent::Executed(())
     }
 
-    fn _complete(&mut self) -> Idempotent<()> {
+    fn _complete(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
-            CreditFacilityProposalEvent::Completed {}
+            CreditFacilityProposalEvent::Completed { .. }
         );
-        self.events.push(CreditFacilityProposalEvent::Completed {});
+        self.events
+            .push(CreditFacilityProposalEvent::Completed { approved });
         Idempotent::Executed(())
     }
 }
@@ -217,7 +220,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
                 CreditFacilityProposalEvent::CollateralizationStateChanged { .. } => {}
                 CreditFacilityProposalEvent::CollateralizationRatioChanged { .. } => {}
-                CreditFacilityProposalEvent::Completed {} => {}
+                CreditFacilityProposalEvent::Completed { .. } => {}
             }
         }
         builder.events(events).build()

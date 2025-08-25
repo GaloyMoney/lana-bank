@@ -348,13 +348,17 @@
     },
     {
       "properties": {
+        "approved": {
+          "type": "boolean"
+        },
         "type": {
           "const": "completed",
           "type": "string"
         }
       },
       "required": [
-        "type"
+        "type",
+        "approved"
       ],
       "type": "object"
     }

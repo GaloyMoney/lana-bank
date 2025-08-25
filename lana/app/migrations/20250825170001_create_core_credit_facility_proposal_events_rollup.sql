@@ -124,6 +124,7 @@ BEGIN
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event ->> 'collateralization_ratio');
     WHEN 'completed' THEN
+      new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
       new_row.is_completed := true;
   END CASE;
 
