@@ -1,4 +1,3 @@
-use rust_decimal::Decimal;
 use sqlx::PgPool;
 
 use es_entity::*;
@@ -17,7 +16,7 @@ use super::{entity::*, error::CreditFacilityProposalError};
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateral_id(ty = "CollateralId", update(persist = false)),
         collateralization_ratio(
-            ty = "Decimal",
+            ty = "CollateralizationRatio",
             list_by,
             create(persist = false),
             update(accessor = "last_collateralization_ratio()")
