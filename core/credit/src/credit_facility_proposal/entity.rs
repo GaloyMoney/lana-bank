@@ -1,5 +1,4 @@
 use derive_builder::Builder;
-use rust_decimal::Decimal;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
@@ -42,7 +41,7 @@ pub enum CreditFacilityProposalEvent {
         price: PriceOfOneBTC,
     },
     CollateralizationRatioChanged {
-        collateralization_ratio: Decimal,
+        collateralization_ratio: CollateralizationRatio,
     },
     Completed {
         approved: bool,
@@ -130,7 +129,7 @@ impl CreditFacilityProposal {
         Idempotent::Executed(())
     }
 
-    pub fn last_collateralization_ratio(&self) -> Decimal {
+    pub fn last_collateralization_ratio(&self) -> CollateralizationRatio {
         self.events
             .iter_all()
             .rev()
@@ -141,7 +140,7 @@ impl CreditFacilityProposal {
                 } => Some(*ratio),
                 _ => None,
             })
-            .unwrap_or(Decimal::ZERO)
+            .unwrap_or(CollateralizationRatio::default())
     }
 
     pub fn last_collateralization_state(&self) -> CreditFacilityProposalCollateralizationState {

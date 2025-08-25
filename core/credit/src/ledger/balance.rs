@@ -188,10 +188,15 @@ impl CreditFacilityProposalBalanceSummary {
         self.collateral
     }
 
-    pub fn current_collateralization_ratio(&self) -> Decimal {
+    pub fn current_collateralization_ratio(&self) -> CollateralizationRatio {
+        if self.facility.is_zero() {
+            return CollateralizationRatio::Infinite;
+        }
+
         let amount = Decimal::from(self.facility.into_inner());
         let collateral = Decimal::from(self.collateral.into_inner());
-        collateral / amount
+
+        CollateralizationRatio::Finite(collateral / amount)
     }
 
     pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
