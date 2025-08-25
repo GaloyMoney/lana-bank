@@ -126,6 +126,7 @@ pub type TermsTemplateAllOrOne = AllOrOne<TermsTemplateId>;
 
 pub const PERMISSION_SET_CREDIT_WRITER: &str = "credit_writer";
 pub const PERMISSION_SET_CREDIT_VIEWER: &str = "credit_viewer";
+pub const PERMISSION_SET_CREDIT_DATE_WRITER: &str = "credit_date_writer";
 
 pub const CREDIT_FACILITY_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("credit_facility");
@@ -277,6 +278,8 @@ impl CoreCreditAction {
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
     pub const OBLIGATION_RECORD_PAYMENT: Self =
         CoreCreditAction::Obligation(ObligationAction::RecordAllocation);
+    pub const OBLIGATION_RECORD_PAYMENT_WITH_DATE: Self =
+        CoreCreditAction::Obligation(ObligationAction::RecordAllocationWithDate);
 
     pub const TERMS_TEMPLATE_CREATE: Self =
         CoreCreditAction::TermsTemplate(TermsTemplateAction::Create);
@@ -430,6 +433,7 @@ pub enum ObligationAction {
     Read,
     UpdateStatus,
     RecordAllocation,
+    RecordAllocationWithDate,
 }
 
 impl ActionPermission for ObligationAction {
@@ -437,6 +441,7 @@ impl ActionPermission for ObligationAction {
         match self {
             Self::Read => PERMISSION_SET_CREDIT_VIEWER,
             Self::UpdateStatus | Self::RecordAllocation => PERMISSION_SET_CREDIT_WRITER,
+            Self::RecordAllocationWithDate => PERMISSION_SET_CREDIT_DATE_WRITER,
         }
     }
 }

@@ -15,7 +15,11 @@ import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 
-import { useCreditFacilityPartialPaymentMutation } from "@/lib/graphql/generated"
+import {
+  useCreditFacilityPartialPaymentMutation,
+  useCreditFacilityPartialPaymentWithDateMutation,
+  useGetCreditFacilityLayoutDetailsQuery,
+} from "@/lib/graphql/generated"
 import { UsdCents } from "@/types"
 import { getCurrentLocalDate } from "@/lib/utils"
 
@@ -33,24 +37,51 @@ gql`
   }
 `
 
+gql`
+  mutation CreditFacilityPartialPaymentWithDate(
+    $input: CreditFacilityPartialPaymentInput!
+  ) {
+    creditFacilityPartialPaymentWithDate(input: $input) {
+      creditFacility {
+        id
+        creditFacilityId
+        ...CreditFacilityHistoryFragment
+        ...CreditFacilityLayoutFragment
+      }
+    }
+  }
+`
+
 type CreditFacilityPartialPaymentDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
+  publicId: string
 }
 
 export const CreditFacilityPartialPaymentDialog: React.FC<
   CreditFacilityPartialPaymentDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityId }) => {
+> = ({ setOpenDialog, openDialog, creditFacilityId, publicId }) => {
   const t = useTranslations(
     "CreditFacilities.CreditFacilityDetails.CreditFacilityPartialPayment",
   )
 
   const [partialPaymentCreditFacility, { loading, reset }] =
     useCreditFacilityPartialPaymentMutation()
+  const [
+    partialPaymentWithDateCreditFacility,
+    { loading: loadingWithDate, reset: resetWithDate },
+  ] = useCreditFacilityPartialPaymentWithDateMutation()
   const [error, setError] = useState<string | null>(null)
   const [amount, setAmount] = useState<string>("")
   const [effectiveDate, setEffectiveDate] = useState<string>(getCurrentLocalDate())
+
+  const { data: creditFacilityDetails } = useGetCreditFacilityLayoutDetailsQuery({
+    variables: { publicId },
+  })
+
+  const canRecordWithDate =
+    creditFacilityDetails?.creditFacilityByPublicId?.userCanRecordPaymentWithDate ?? false
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -64,21 +95,39 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
     }
 
     try {
-      await partialPaymentCreditFacility({
-        variables: {
-          input: {
-            creditFacilityId,
-            amount: amountInCents as UsdCents,
-            effective: effectiveDate,
+      if (canRecordWithDate) {
+        await partialPaymentWithDateCreditFacility({
+          variables: {
+            input: {
+              creditFacilityId,
+              amount: amountInCents as UsdCents,
+              effective: effectiveDate,
+            },
           },
-        },
-        onCompleted: (data) => {
-          if (data.creditFacilityPartialPayment) {
-            toast.success(t("messages.success"))
-            handleCloseDialog()
-          }
-        },
-      })
+          onCompleted: (data) => {
+            if (data.creditFacilityPartialPaymentWithDate) {
+              toast.success(t("messages.success"))
+              handleCloseDialog()
+            }
+          },
+        })
+      } else {
+        await partialPaymentCreditFacility({
+          variables: {
+            input: {
+              creditFacilityId,
+              amount: amountInCents as UsdCents,
+              effective: effectiveDate,
+            },
+          },
+          onCompleted: (data) => {
+            if (data.creditFacilityPartialPayment) {
+              toast.success(t("messages.success"))
+              handleCloseDialog()
+            }
+          },
+        })
+      }
     } catch (error) {
       console.error("Error processing partial payment:", error)
       if (error instanceof Error) {
@@ -95,6 +144,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
     setAmount("")
     setEffectiveDate(getCurrentLocalDate())
     reset()
+    resetWithDate()
   }
 
   return (
@@ -128,6 +178,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
               type="date"
               value={effectiveDate}
               onChange={(e) => setEffectiveDate(e.target.value)}
+              disabled={!canRecordWithDate}
               required
             />
           </div>
@@ -140,7 +191,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
             </Button>
             <Button
               type="submit"
-              loading={loading}
+              loading={loading || loadingWithDate}
               data-testid="facility-partial-payment-submit-button"
             >
               {t("form.buttons.processPayment")}
