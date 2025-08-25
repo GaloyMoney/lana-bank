@@ -946,16 +946,16 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db = self.facilities.begin_op().await?;
+        let mut op = self.facilities.begin_op().await?;
 
         let payment = self
             .payments
-            .record_in_op(&mut db, credit_facility_id, amount, &audit_info)
+            .record_in_op(&mut op, credit_facility_id, amount, &audit_info)
             .await?;
 
         self.obligations
             .apply_installment_in_op(
-                db,
+                op,
                 credit_facility_id,
                 payment.id,
                 amount,
