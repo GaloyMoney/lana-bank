@@ -151,6 +151,7 @@ gql`
     userCanUpdateCollateral
     userCanInitiateDisbursal
     userCanRecordPayment
+    userCanRecordPaymentWithDate
     userCanComplete
   }
 

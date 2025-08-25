@@ -851,6 +851,22 @@ where
             .await?)
     }
 
+    pub async fn subject_can_record_payment_with_date(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        enforce: bool,
+    ) -> Result<Option<AuditInfo>, CoreCreditError> {
+        Ok(self
+            .authz
+            .evaluate_permission(
+                sub,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_RECORD_PAYMENT_WITH_DATE,
+                enforce,
+            )
+            .await?)
+    }
+
     #[instrument(name = "credit.record_payment", skip(self), err)]
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub async fn record_payment(
@@ -903,6 +919,52 @@ where
                 enforce,
             )
             .await?)
+    }
+
+    #[instrument(name = "credit.record_payment_with_date", skip(self), err)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    pub async fn record_payment_with_date(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
+        amount: UsdCents,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<CreditFacility, CoreCreditError> {
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_obligations(),
+                CoreCreditAction::OBLIGATION_RECORD_PAYMENT_WITH_DATE,
+            )
+            .await?;
+
+        let credit_facility_id = credit_facility_id.into();
+
+        let credit_facility = self
+            .facilities
+            .find_by_id_without_audit(credit_facility_id)
+            .await?;
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let payment = self
+            .payments
+            .record_in_op(&mut db, credit_facility_id, amount, &audit_info)
+            .await?;
+
+        self.obligations
+            .apply_installment_in_op(
+                db,
+                credit_facility_id,
+                payment.id,
+                amount,
+                effective.into(),
+                &audit_info,
+            )
+            .await?;
+
+        Ok(credit_facility)
     }
 
     #[instrument(name = "credit.complete_facility", skip(self), err)]

@@ -391,6 +391,7 @@ type CreditFacility {
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
+	userCanRecordPaymentWithDate: Boolean!
 	userCanComplete: Boolean!
 	customer: Customer!
 	balance: CreditFacilityBalance!
@@ -1421,6 +1422,7 @@ type Mutation {
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
+	creditFacilityPartialPaymentWithDate(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
@@ -1528,7 +1530,7 @@ enum PermissionSetName {
 	CONTRACT_CREATION
 	CREDIT_VIEWER
 	CREDIT_WRITER
-	CREDIT_PAYMENT_WRITER
+	CREDIT_DATE_WRITER
 	CUSTOMER_VIEWER
 	CUSTOMER_WRITER
 	CUSTODY_VIEWER
