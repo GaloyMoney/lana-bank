@@ -1047,6 +1047,7 @@ checksums:
     ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
     ChartOfAccountsLedgerAccount/table/columns/credit: 2d447a71ec815a039f175e94fbb12a56
     ChartOfAccountsLedgerAccount/table/columns/closestAccountWithCode: c9e7b8a5c877605f6efd3fffbeba9e60
+    ChartOfAccountsLedgerAccount/table/columns/transactionId: 74529016d49a203243eff308e1d312d3
     ChartOfAccountsLedgerAccount/exportCsv/title: 302dcd95348b7a596a13fbfb878dd1bb
     ChartOfAccountsLedgerAccount/exportCsv/description: 6c9787ebb0e864513d708c2f03d927ed
     ChartOfAccountsLedgerAccount/exportCsv/existingExports: 70205aa948404255f6f6008638f9f4a9
