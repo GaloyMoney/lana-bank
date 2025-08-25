@@ -203,14 +203,14 @@ where
         self.update_customers_by_activity_and_date_range(
             escheatment_threshold,
             inactive_threshold,
-            core_customer::Activity::Disabled,
+            core_customer::Activity::Inactive,
         )
         .await?;
 
         self.update_customers_by_activity_and_date_range(
             inactive_threshold,
             now,
-            core_customer::Activity::Enabled,
+            core_customer::Activity::Active,
         )
         .await?;
 

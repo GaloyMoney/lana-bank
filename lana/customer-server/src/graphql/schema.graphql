@@ -157,7 +157,7 @@ type Customer {
 	id: ID!
 	customerId: UUID!
 	customerType: CustomerType!
-	status: CustomerStatus!
+	kycStatus: CustomerKycStatus!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
@@ -166,9 +166,10 @@ type Customer {
 	creditFacilities: [CreditFacility!]!
 }
 
-enum CustomerStatus {
-	INACTIVE
-	ACTIVE
+enum CustomerKycStatus {
+	PENDING
+	DECLINED
+	APPROVED
 }
 
 enum CustomerType {

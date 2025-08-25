@@ -55,7 +55,7 @@ pub mod access {
 
 pub mod customer {
     pub use core_customer::{
-        CUSTOMER_REF_TARGET, Customer, CustomerDocumentId, CustomerId, CustomerStatus,
+        Activity, CUSTOMER_REF_TARGET, Customer, CustomerDocumentId, CustomerId, CustomerKycStatus,
         CustomerType, CustomersCursor, CustomersFilter, CustomersSortBy, KycLevel, Sort, error,
     };
     pub type Customers =

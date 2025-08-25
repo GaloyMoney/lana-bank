@@ -1063,6 +1063,7 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
     relationshipsToOmit.add('Customer');
     return {
         __typename: 'Customer',
+        activity: overrides && overrides.hasOwnProperty('activity') ? overrides.activity! : Activity.Active,
         applicantId: overrides && overrides.hasOwnProperty('applicantId') ? overrides.applicantId! : generateMockValue.applicantId(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacilities: overrides && overrides.hasOwnProperty('creditFacilities') ? overrides.creditFacilities! : [relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit)],
@@ -1072,9 +1073,9 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
         documents: overrides && overrides.hasOwnProperty('documents') ? overrides.documents! : [relationshipsToOmit.has('CustomerDocument') ? {} as CustomerDocument : mockCustomerDocument({}, relationshipsToOmit)],
         email: overrides && overrides.hasOwnProperty('email') ? overrides.email! : generateMockValue.email(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        kycStatus: overrides && overrides.hasOwnProperty('kycStatus') ? overrides.kycStatus! : CustomerKycStatus.Approved,
         level: overrides && overrides.hasOwnProperty('level') ? overrides.level! : mockEnums.kycLevel(),
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
-        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.accountStatus(),
         telegramId: overrides && overrides.hasOwnProperty('telegramId') ? overrides.telegramId! : generateMockValue.telegramId(),
         transactions: overrides && overrides.hasOwnProperty('transactions') ? overrides.transactions! : [relationshipsToOmit.has('Deposit') ? {} as Deposit : mockDeposit({}, relationshipsToOmit)],
         userCanCreateCreditFacility: overrides && overrides.hasOwnProperty('userCanCreateCreditFacility') ? overrides.userCanCreateCreditFacility! : faker.datatype.boolean(),
@@ -1244,8 +1245,8 @@ export const mockCustomersFilter = (overrides?: Partial<CustomersFilter>, _relat
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CustomersFilter');
     return {
-        field: overrides && overrides.hasOwnProperty('field') ? overrides.field! : CustomersFilterBy.AccountStatus,
-        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CustomerStatus.Active,
+        field: overrides && overrides.hasOwnProperty('field') ? overrides.field! : CustomersFilterBy.AccountKycStatus,
+        kycStatus: overrides && overrides.hasOwnProperty('kycStatus') ? overrides.kycStatus! : CustomerKycStatus.Approved,
     };
 };
 

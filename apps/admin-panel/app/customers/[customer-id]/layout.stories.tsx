@@ -3,7 +3,7 @@ import { MockedProvider } from "@apollo/client/testing"
 
 import CustomerLayout from "./layout"
 
-import { CustomerStatus, GetCustomerBasicDetailsDocument } from "@/lib/graphql/generated"
+import { CustomerKycStatus, GetCustomerBasicDetailsDocument } from "@/lib/graphql/generated"
 
 const meta = {
   title: "Pages/Customers/Customer/Layout",
@@ -36,7 +36,7 @@ const baseMocks = [
           customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
           email: "test@lana.com",
           telegramId: "test",
-          status: CustomerStatus.Inactive,
+          kycStatus: CustomerKycStatus.Declined,
           level: "NOT_KYCED",
           createdAt: "2024-11-25T06:23:56.549713Z",
         },

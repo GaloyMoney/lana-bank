@@ -217,12 +217,16 @@
     "columns": {
       "email": "Email",
       "telegramId": "Telegram",
-      "status": "KYC Status",
+      "status": "Status",
+      "kycStatus": "KYC Status",
       "depositAccount": "USD Balance"
     },
     "status": {
       "verified": "Verified",
-      "notVerified": "Not Verified"
+      "notVerified": "Not Verified",
+      "active": "Active",
+      "inactive": "Inactive",
+      "suspended": "Suspended"
     },
     "create": {
       "title": "Add new customer",
@@ -288,7 +292,8 @@
         },
         "status": {
           "active": "Active",
-          "inactive": "Inactive"
+          "inactive": "Inactive",
+          "suspended": "Suspended"
         },
         "actions": {
           "editTelegram": "Edit Telegram ID"
@@ -296,8 +301,14 @@
       },
       "kycStatus": {
         "title": "KYC Status",
+        "status": {
+          "approved": "Approved",
+          "declined": "Declined",
+          "pending": "Pending"
+        },
         "labels": {
           "level": "Level",
+          "status": "Status",
           "kycApplicationLink": "KYC Application Link"
         },
         "actions": {

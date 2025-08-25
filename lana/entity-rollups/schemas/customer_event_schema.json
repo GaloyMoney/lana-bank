@@ -2,16 +2,40 @@
   "$defs": {
     "Activity": {
       "enum": [
-        "disabled",
-        "enabled",
+        "inactive",
+        "active",
         "suspended"
       ],
       "type": "string"
     },
+<<<<<<< HEAD
     "CustomerStatus": {
+=======
+    "AuditEntryId": {
+      "format": "int64",
+      "type": "integer"
+    },
+    "AuditInfo": {
+      "properties": {
+        "audit_entry_id": {
+          "$ref": "#/$defs/AuditEntryId"
+        },
+        "sub": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "sub",
+        "audit_entry_id"
+      ],
+      "type": "object"
+    },
+    "CustomerKycStatus": {
+>>>>>>> 777272553 (feat(customer-ui): display account activity and update KYC status)
       "enum": [
-        "inactive",
-        "active"
+        "pending",
+        "declined",
+        "approved"
       ],
       "type": "string"
     },
@@ -129,17 +153,30 @@
     },
     {
       "properties": {
+<<<<<<< HEAD
         "status": {
           "$ref": "#/$defs/CustomerStatus"
+=======
+        "audit_info": {
+          "$ref": "#/$defs/AuditInfo"
+        },
+        "kyc_status": {
+          "$ref": "#/$defs/CustomerKycStatus"
+>>>>>>> 777272553 (feat(customer-ui): display account activity and update KYC status)
         },
         "type": {
-          "const": "status_updated",
+          "const": "kyc_status_updated",
           "type": "string"
         }
       },
       "required": [
         "type",
+<<<<<<< HEAD
         "status"
+=======
+        "kyc_status",
+        "audit_info"
+>>>>>>> 777272553 (feat(customer-ui): display account activity and update KYC status)
       ],
       "type": "object"
     },

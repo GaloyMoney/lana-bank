@@ -35,7 +35,7 @@ gql`
         customerId
         publicId
         email
-        status
+        kycStatus
         level
         applicantId
       }

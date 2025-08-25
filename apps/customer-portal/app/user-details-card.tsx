@@ -8,7 +8,7 @@ import { useBreakpointDown } from "@lana/web/hooks"
 
 import { formatDate } from "@lana/web/utils"
 
-import { CustomerStatus, MeQuery } from "@/lib/graphql/generated"
+import { CustomerKycStatus, MeQuery } from "@/lib/graphql/generated"
 import Balance from "@/components/balance"
 
 function UserDetailsCard({
@@ -30,12 +30,16 @@ function UserDetailsCard({
         ]
       : []),
     {
-      label: "Account Status",
+      label: "KYC Status",
       value: (
         <Badge
-          variant={customer.status === CustomerStatus.Active ? "success" : "secondary"}
+          variant={customer.kycStatus === CustomerKycStatus.Approved ? "success" : "secondary"}
         >
-          {customer.status}
+          {customer.kycStatus === CustomerKycStatus.Approved
+            ? "Approved"
+            : customer.kycStatus === CustomerKycStatus.Pending
+            ? "Pending"
+            : "Declined"}
         </Badge>
       ),
     },
