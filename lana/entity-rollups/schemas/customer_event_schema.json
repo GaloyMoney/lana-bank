@@ -2,8 +2,8 @@
   "$defs": {
     "Activity": {
       "enum": [
-        "disabled",
-        "enabled",
+        "inactive",
+        "active",
         "suspended"
       ],
       "type": "string"
@@ -27,10 +27,11 @@
       ],
       "type": "object"
     },
-    "CustomerStatus": {
+    "CustomerKycStatus": {
       "enum": [
-        "inactive",
-        "active"
+        "pending",
+        "declined",
+        "approved"
       ],
       "type": "string"
     },
@@ -167,17 +168,17 @@
         "audit_info": {
           "$ref": "#/$defs/AuditInfo"
         },
-        "status": {
-          "$ref": "#/$defs/CustomerStatus"
+        "kyc_status": {
+          "$ref": "#/$defs/CustomerKycStatus"
         },
         "type": {
-          "const": "status_updated",
+          "const": "kyc_status_updated",
           "type": "string"
         }
       },
       "required": [
         "type",
-        "status",
+        "kyc_status",
         "audit_info"
       ],
       "type": "object"

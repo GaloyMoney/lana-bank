@@ -1,6 +1,6 @@
 {
   "db_name": "PostgreSQL",
-  "query": "WITH entities AS (SELECT id FROM core_customers WHERE status = $1) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.id, e.sequence",
+  "query": "WITH entities AS (SELECT kyc_status, telegram_id, id FROM core_customers WHERE ((kyc_status = $1) AND (COALESCE((telegram_id, id) < ($4, $3), $3 IS NULL))) ORDER BY telegram_id DESC, id DESC LIMIT $2) SELECT i.id AS \"entity_id: Repo__Id\", e.sequence, e.event, e.recorded_at FROM entities i JOIN core_customer_events e ON i.id = e.id ORDER BY i.telegram_id desc, i.id desc, i.id, e.sequence",
   "describe": {
     "columns": [
       {
@@ -26,6 +26,9 @@
     ],
     "parameters": {
       "Left": [
+        "Text",
+        "Int8",
+        "Uuid",
         "Text"
       ]
     },
@@ -36,5 +39,5 @@
       false
     ]
   },
-  "hash": "ff8d77a3ca4ac8bb451906a636a349efb326678ea4e5130e31571ece0b9bd4c5"
+  "hash": "c1fa75f070b9a4459f802234d306e1992bfa9b64d0213e28ffb5550dbd53bde8"
 }

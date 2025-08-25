@@ -1,6 +1,6 @@
 use serde::{Deserialize, Serialize};
 
-use crate::primitives::{CustomerId, CustomerStatus, CustomerType};
+use crate::primitives::{CustomerId, CustomerKycStatus, CustomerType};
 
 #[derive(Debug, Serialize, Deserialize)]
 #[serde(tag = "type")]
@@ -10,9 +10,9 @@ pub enum CoreCustomerEvent {
         email: String,
         customer_type: CustomerType,
     },
-    CustomerAccountStatusUpdated {
+    CustomerAccountKycStatusUpdated {
         id: CustomerId,
-        status: CustomerStatus,
+        kyc_status: CustomerKycStatus,
         customer_type: CustomerType,
     },
     CustomerEmailUpdated {

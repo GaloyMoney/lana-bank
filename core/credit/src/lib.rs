@@ -425,8 +425,8 @@ where
 
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
 
-        if self.config.customer_active_check_enabled && customer.status.is_inactive() {
-            return Err(CoreCreditError::CustomerNotActive);
+        if self.config.customer_active_check_enabled && !customer.kyc_status.is_approved() {
+            return Err(CoreCreditError::CustomerNotKyced);
         }
 
         let id = CreditFacilityId::new();
@@ -578,8 +578,8 @@ where
 
         let customer_id = facility.customer_id;
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
-        if self.config.customer_active_check_enabled && customer.status.is_inactive() {
-            return Err(CoreCreditError::CustomerNotActive);
+        if self.config.customer_active_check_enabled && !customer.kyc_status.is_approved() {
+            return Err(CoreCreditError::CustomerNotKyced);
         }
 
         if !facility.is_activated() {

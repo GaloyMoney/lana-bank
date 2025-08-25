@@ -63,6 +63,12 @@ export type AccountingCsvDownloadLinkGeneratePayload = {
   link: AccountingCsvDownloadLink;
 };
 
+export enum Activity {
+  Active = 'ACTIVE',
+  Inactive = 'INACTIVE',
+  Suspended = 'SUSPENDED'
+}
+
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
@@ -797,6 +803,7 @@ export type CustodianEdge = {
 
 export type Customer = {
   __typename?: 'Customer';
+  activity: Activity;
   applicantId?: Maybe<Scalars['String']['output']>;
   createdAt: Scalars['Timestamp']['output'];
   creditFacilities: Array<CreditFacility>;
@@ -806,9 +813,9 @@ export type Customer = {
   documents: Array<CustomerDocument>;
   email: Scalars['String']['output'];
   id: Scalars['ID']['output'];
+  kycStatus: CustomerKycStatus;
   level: KycLevel;
   publicId: Scalars['PublicId']['output'];
-  status: CustomerStatus;
   telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
   userCanCreateCreditFacility: Scalars['Boolean']['output'];
@@ -901,9 +908,10 @@ export type CustomerEmailUpdatePayload = {
   customer: Customer;
 };
 
-export enum CustomerStatus {
-  Active = 'ACTIVE',
-  Inactive = 'INACTIVE'
+export enum CustomerKycStatus {
+  Approved = 'APPROVED',
+  Declined = 'DECLINED',
+  Pending = 'PENDING'
 }
 
 export type CustomerTelegramIdUpdateInput = {
@@ -928,11 +936,11 @@ export enum CustomerType {
 
 export type CustomersFilter = {
   field: CustomersFilterBy;
-  status?: InputMaybe<CustomerStatus>;
+  kycStatus?: InputMaybe<CustomerKycStatus>;
 };
 
 export enum CustomersFilterBy {
-  AccountStatus = 'ACCOUNT_STATUS'
+  AccountKycStatus = 'ACCOUNT_KYC_STATUS'
 }
 
 export type CustomersSort = {
@@ -2844,7 +2852,7 @@ export type GetKycStatusForCustomerQueryVariables = Exact<{
 }>;
 
 
-export type GetKycStatusForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, status: CustomerStatus, level: KycLevel, applicantId?: string | null } | null };
+export type GetKycStatusForCustomerQuery = { __typename?: 'Query', customer?: { __typename?: 'Customer', customerId: string, kycStatus: CustomerKycStatus, level: KycLevel, applicantId?: string | null } | null };
 
 export type SumsubPermalinkCreateMutationVariables = Exact<{
   input: SumsubPermalinkCreateInput;
@@ -2858,7 +2866,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, status: CustomerStatus, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycStatus: CustomerKycStatus, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
 
 export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -2888,7 +2896,7 @@ export type CustomerCreateMutationVariables = Exact<{
 }>;
 
 
-export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string, status: CustomerStatus, level: KycLevel, applicantId?: string | null } } };
+export type CustomerCreateMutation = { __typename?: 'Mutation', customerCreate: { __typename?: 'CustomerCreatePayload', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string, kycStatus: CustomerKycStatus, level: KycLevel, applicantId?: string | null } } };
 
 export type CustomersQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -2898,7 +2906,7 @@ export type CustomersQueryVariables = Exact<{
 }>;
 
 
-export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, status: CustomerStatus, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
+export type CustomersQuery = { __typename?: 'Query', customers: { __typename?: 'CustomerConnection', edges: Array<{ __typename?: 'CustomerEdge', cursor: string, node: { __typename?: 'Customer', id: string, customerId: string, publicId: any, kycStatus: CustomerKycStatus, activity: Activity, level: KycLevel, email: string, telegramId: string, applicantId?: string | null, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, startCursor?: string | null, hasNextPage: boolean, hasPreviousPage: boolean } } };
 
 export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -5380,7 +5388,7 @@ export const GetKycStatusForCustomerDocument = gql`
     query GetKycStatusForCustomer($id: UUID!) {
   customer(id: $id) {
     customerId
-    status
+    kycStatus
     level
     applicantId
   }
@@ -5459,7 +5467,8 @@ export const GetCustomerBasicDetailsDocument = gql`
     customerId
     email
     telegramId
-    status
+    kycStatus
+    activity
     level
     customerType
     createdAt
@@ -5706,7 +5715,7 @@ export const CustomerCreateDocument = gql`
       customerId
       publicId
       email
-      status
+      kycStatus
       level
       applicantId
     }
@@ -5747,7 +5756,8 @@ export const CustomersDocument = gql`
         id
         customerId
         publicId
-        status
+        kycStatus
+        activity
         level
         email
         telegramId

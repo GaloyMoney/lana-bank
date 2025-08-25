@@ -22,6 +22,12 @@ type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
 }
 
+enum Activity {
+	INACTIVE
+	ACTIVE
+	SUSPENDED
+}
+
 scalar AnnualRatePct
 
 type ApprovalProcess {
@@ -778,7 +784,8 @@ type CustodianEdge {
 type Customer {
 	id: ID!
 	customerId: UUID!
-	status: CustomerStatus!
+	kycStatus: CustomerKycStatus!
+	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
 	customerType: CustomerType!
@@ -882,9 +889,10 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
-enum CustomerStatus {
-	INACTIVE
-	ACTIVE
+enum CustomerKycStatus {
+	PENDING
+	DECLINED
+	APPROVED
 }
 
 input CustomerTelegramIdUpdateInput {
@@ -908,11 +916,11 @@ enum CustomerType {
 
 input CustomersFilter {
 	field: CustomersFilterBy!
-	status: CustomerStatus
+	kycStatus: CustomerKycStatus
 }
 
 enum CustomersFilterBy {
-	ACCOUNT_STATUS
+	ACCOUNT_KYC_STATUS
 }
 
 input CustomersSort {

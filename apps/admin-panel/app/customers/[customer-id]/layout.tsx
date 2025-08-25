@@ -28,7 +28,8 @@ gql`
       customerId
       email
       telegramId
-      status
+      kycStatus
+      activity
       level
       customerType
       createdAt

@@ -4,7 +4,7 @@ use tracing::instrument;
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerStatus};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerKycStatus, CustomerObject};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
@@ -155,10 +155,10 @@ where
                         .await?;
                     true
                 }
-                Some(CoreCustomerEvent::CustomerAccountStatusUpdated {
+                Some(CoreCustomerEvent::CustomerAccountKycStatusUpdated {
                     id,
                     customer_type,
-                    status: CustomerStatus::Active,
+                    kyc_status: CustomerKycStatus::Approved,
                     ..
                 }) if !self.config.create_deposit_account_on_customer_create => {
                     self.handle_create_deposit_account(

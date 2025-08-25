@@ -1,4 +1,6 @@
 packages:
-  - "apps/*"
-  - "lib/js/*"
-  - "."
+  - apps/*
+  - lib/js/*
+  - .
+ignoredBuiltDependencies:
+  - unrs-resolver
