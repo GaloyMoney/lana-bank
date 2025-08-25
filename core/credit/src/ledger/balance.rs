@@ -158,14 +158,15 @@ impl CreditFacilityBalanceSummary {
         } else {
             self.facility()
         };
+
+        if amount.is_zero() {
+            return CollateralizationRatio::Infinite;
+        }
+
         let amount = Decimal::from(amount.into_inner());
         let collateral = Decimal::from(self.collateral().into_inner());
 
-        if amount == Decimal::ZERO {
-            CollateralizationRatio::Infinite
-        } else {
-            CollateralizationRatio::Finite(collateral / amount)
-        }
+        CollateralizationRatio::Finite(collateral / amount)
     }
 }
 
