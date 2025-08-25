@@ -19,8 +19,8 @@
     "cypress:open": "cypress open"
   },
   "dependencies": {
-    "@apollo/client": "^4.0.0",
-    "@apollo/client-integration-nextjs": "^0.13.0",
+    "@apollo/client": "^3.13.9",
+    "@apollo/client-integration-nextjs": "^0.12.3",
     "@lana/web": "workspace:*",
     "@sumsub/websdk-react": "^2.4.0",
     "@t3-oss/env-nextjs": "^0.13.8",

@@ -22,8 +22,8 @@
     "local:pdf": "cd cypress/manuals && ./local-pdf.sh"
   },
   "dependencies": {
-    "@apollo/client": "^4.0.0",
-    "@apollo/client-integration-nextjs": "^0.13.0",
+    "@apollo/client": "^3.13.9",
+    "@apollo/client-integration-nextjs": "^0.12.3",
     "@lana/web": "workspace:*",
     "@t3-oss/env-nextjs": "^0.13.8",
     "apollo-upload-client": "^18.0.1",
