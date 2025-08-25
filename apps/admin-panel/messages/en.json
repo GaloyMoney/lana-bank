@@ -1773,7 +1773,8 @@
         "currency": "Currency",
         "debit": "Debit",
         "credit": "Credit",
-        "closestAccountWithCode": "Closest Account With Code"
+        "closestAccountWithCode": "Closest Account With Code",
+        "transactionId": "Transaction ID"
       }
     },
     "exportCsv": {

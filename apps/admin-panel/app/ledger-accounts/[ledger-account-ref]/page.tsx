@@ -185,6 +185,33 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       render: (recordedAt: string) => <DateWithTooltip value={recordedAt} />,
     },
     {
+      key: "ledgerTransaction",
+      label: t("table.columns.transactionId"),
+      render: (_, record) => {
+        return (
+          <Link className="hover:underline" href={`/ledger-transaction/${record.txId}`}>
+            {record.txId.substring(0, 6)}...
+            {record.txId.substring(record.txId.length - 6)}
+          </Link>
+        )
+      },
+    },
+    {
+      key: "ledgerAccount",
+      label: t("table.columns.closestAccountWithCode"),
+      render: (_, record) => {
+        const closestAccountWithCode = record.ledgerAccount.closestAccountWithCode?.code
+        return (
+          <Link
+            href={`/ledger-accounts/${closestAccountWithCode}`}
+            className="hover:underline"
+          >
+            {closestAccountWithCode}
+          </Link>
+        )
+      },
+    },
+    {
       key: "amount",
       label: t("table.columns.currency"),
       render: (amount) => <div>{amount.__typename === "UsdAmount" ? "USD" : "BTC"}</div>,
@@ -211,21 +238,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         } else if (record.amount.__typename === "BtcAmount") {
           return <Balance amount={record?.amount.btc} currency="btc" />
         }
-      },
-    },
-    {
-      key: "ledgerAccount",
-      label: t("table.columns.closestAccountWithCode"),
-      render: (_, record) => {
-        const closestAccountWithCode = record.ledgerAccount.closestAccountWithCode?.code
-        return (
-          <Link
-            href={`/ledger-accounts/${closestAccountWithCode}`}
-            className="hover:underline"
-          >
-            {closestAccountWithCode}
-          </Link>
-        )
       },
     },
   ]
