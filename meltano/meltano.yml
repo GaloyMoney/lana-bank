@@ -46,7 +46,7 @@ jobs:
       - generate-es-reports:run
 schedules:
   - name: postgres-to-bigquery-dbt
-    interval: "*/20 * * * *"
+    interval: "*/30 * * * *"
     job: tap-postgres-to-target-bigquery-run-dbt
   - name: poll-bitfinex-on-minute
     interval: "* * * * *"
