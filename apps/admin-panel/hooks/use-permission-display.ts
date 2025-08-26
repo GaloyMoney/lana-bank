@@ -52,10 +52,10 @@ export function usePermissionDisplay() {
           label: t("credit_writer.label"),
           description: t("credit_writer.description"),
         }
-      case PermissionSetName.CreditDateWriter:
+      case PermissionSetName.CreditBackdateWriter:
         return {
-          label: t("credit_date_writer.label"),
-          description: t("credit_date_writer.description"),
+          label: t("credit_backdate_writer.label"),
+          description: t("credit_backdate_writer.description"),
         }
       case PermissionSetName.CustomerViewer:
         return {
