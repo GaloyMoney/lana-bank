@@ -95,6 +95,7 @@ pub mod governance {
     use lana_events::LanaEvent;
     pub type Governance = governance::Governance<Authorization, LanaEvent>;
     pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
+    pub use crate::credit::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS;
     pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
     pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
     pub use governance::{
@@ -165,10 +166,10 @@ pub mod custody {
 
 pub mod credit {
     pub use core_credit::{
-        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_DISBURSAL_PROCESS,
-        ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilter,
-        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
+        APPROVE_DISBURSAL_PROCESS, ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated,
+        CollateralizationUpdated, CoreCreditEvent, CreditConfig, CreditFacilitiesCursor,
+        CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
         CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry,
         CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
         DisbursalsFilter, DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted,

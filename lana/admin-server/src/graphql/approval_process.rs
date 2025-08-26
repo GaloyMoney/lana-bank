@@ -165,6 +165,9 @@ impl ApprovalProcess {
                     .expect("disbursal not found");
                 Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursal))
             }
+            ApprovalProcessType::CreditFacilityProposalApproval => {
+                unimplemented!("CreditFacilityProcessApproval target not implemented yet")
+            }
         }
     }
 }
@@ -175,6 +178,7 @@ pub enum ApprovalProcessType {
     WithdrawalApproval,
     CreditFacilityApproval,
     DisbursalApproval,
+    CreditFacilityProposalApproval,
 }
 
 impl From<&DomainApprovalProcessType> for ApprovalProcessType {
@@ -185,6 +189,8 @@ impl From<&DomainApprovalProcessType> for ApprovalProcessType {
             Self::CreditFacilityApproval
         } else if process_type == &lana_app::governance::APPROVE_DISBURSAL_PROCESS {
             Self::DisbursalApproval
+        } else if process_type == &lana_app::governance::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS {
+            Self::CreditFacilityProposalApproval
         } else {
             panic!("Unknown approval process type: {process_type:?}");
         }

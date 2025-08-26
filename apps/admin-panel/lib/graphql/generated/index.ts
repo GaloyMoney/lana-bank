@@ -125,6 +125,7 @@ export type ApprovalProcessTarget = CreditFacility | CreditFacilityDisbursal | W
 
 export enum ApprovalProcessType {
   CreditFacilityApproval = 'CREDIT_FACILITY_APPROVAL',
+  CreditFacilityProposalApproval = 'CREDIT_FACILITY_PROPOSAL_APPROVAL',
   DisbursalApproval = 'DISBURSAL_APPROVAL',
   WithdrawalApproval = 'WITHDRAWAL_APPROVAL'
 }
