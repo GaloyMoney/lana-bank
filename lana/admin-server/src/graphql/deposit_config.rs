@@ -13,7 +13,7 @@ pub struct DepositModuleConfig {
     chart_of_account_private_company_deposit_accounts_parent_code: Option<String>,
     chart_of_account_bank_deposit_accounts_parent_code: Option<String>,
     chart_of_account_financial_institution_deposit_accounts_parent_code: Option<String>,
-    chart_of_account_non_domiciled_company_deposit_accounts_parent_code: Option<String>,
+    chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: Option<String>,
     chart_of_accounts_frozen_individual_deposit_accounts_parent_code: Option<String>,
     chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code: Option<String>,
     chart_of_account_frozen_private_company_deposit_accounts_parent_code: Option<String>,
@@ -57,7 +57,7 @@ impl From<DomainChartOfAccountsIntegrationConfig> for DepositModuleConfig {
                     .chart_of_account_financial_institution_deposit_accounts_parent_code
                     .to_string(),
             ),
-            chart_of_account_non_domiciled_company_deposit_accounts_parent_code: Some(
+            chart_of_account_non_domiciled_individual_deposit_accounts_parent_code: Some(
                 values
                     .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code
                     .to_string(),

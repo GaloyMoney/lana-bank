@@ -32,7 +32,7 @@ gql`
         chartOfAccountPrivateCompanyDepositAccountsParentCode
         chartOfAccountBankDepositAccountsParentCode
         chartOfAccountFinancialInstitutionDepositAccountsParentCode
-        chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
+        chartOfAccountNonDomiciledIndividualDepositAccountsParentCode
         chartOfAccountsFrozenIndividualDepositAccountsParentCode
         chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
         chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
@@ -111,7 +111,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
       depositModuleConfig.chartOfAccountPrivateCompanyDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountBankDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode &&
-      depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode &&
+      depositModuleConfig.chartOfAccountNonDomiciledIndividualDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountsFrozenIndividualDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode &&
       depositModuleConfig.chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode &&
@@ -133,7 +133,7 @@ export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps>
         chartOfAccountFinancialInstitutionDepositAccountsParentCode:
           depositModuleConfig.chartOfAccountFinancialInstitutionDepositAccountsParentCode,
         chartOfAccountNonDomiciledIndividualDepositAccountsParentCode:
-          depositModuleConfig.chartOfAccountNonDomiciledCompanyDepositAccountsParentCode,
+          depositModuleConfig.chartOfAccountNonDomiciledIndividualDepositAccountsParentCode,
         chartOfAccountsFrozenIndividualDepositAccountsParentCode:
           depositModuleConfig.chartOfAccountsFrozenIndividualDepositAccountsParentCode,
         chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode:

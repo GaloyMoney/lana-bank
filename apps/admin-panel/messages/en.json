@@ -1670,7 +1670,6 @@
       "chartOfAccountBankDepositAccountsParentCode": "Deposit Accounts Bank Receivable Parent Code",
       "chartOfAccountFinancialInstitutionDepositAccountsParentCode": "Deposit Accounts Financial Institution Receivable Parent Code",
       "chartOfAccountNonDomiciledIndividualDepositAccountsParentCode": "Deposit Accounts Non-Domiciled Persons Receivable Parent Code",
-      "chartOfAccountNonDomiciledCompanyDepositAccountsParentCode": "Parent Code for non-domiciled company receivable deposit accounts",
       "chartOfAccountsFrozenIndividualDepositAccountsParentCode": "Frozen Deposit Accounts Individual Parent Code",
       "chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode": "Frozen Deposit Accounts Government Entity Parent Code",
       "chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode": "Frozen Deposit Accounts Private Company Receivable Parent Code",
