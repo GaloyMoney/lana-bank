@@ -16,6 +16,10 @@ pub enum DisbursalError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("DisbursalError - ObligationError: {0}")]
     ObligationError(#[from] crate::obligation::error::ObligationError),
+    // #[error("DisbursalError - AuthorizationError: {0}")]
+    // AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("CreditFacilityError - AuditError: {0}")]
+    AuditError(#[from] audit::error::AuditError),
 }
 
 es_entity::from_es_entity_error!(DisbursalError);

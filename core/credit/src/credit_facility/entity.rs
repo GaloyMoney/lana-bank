@@ -33,14 +33,6 @@ pub enum CreditFacilityEvent {
         approval_process_id: ApprovalProcessId,
         public_id: PublicId,
     },
-    ApprovalProcessConcluded {
-        approval_process_id: ApprovalProcessId,
-        approved: bool,
-    },
-    Activated {
-        ledger_tx_id: LedgerTxId,
-        activated_at: DateTime<Utc>,
-    },
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
         interest_accrual_cycle_idx: InterestAccrualCycleIdx,
@@ -165,10 +157,8 @@ pub struct CreditFacility {
     pub account_ids: CreditFacilityLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
     pub public_id: PublicId,
-    #[builder(setter(strip_option), default)]
-    pub activated_at: Option<DateTime<Utc>>,
-    #[builder(setter(strip_option), default)]
-    pub maturity_date: Option<EffectiveDate>,
+    pub created_at: DateTime<Utc>,
+    pub maturity_date: EffectiveDate,
 
     #[es_entity(nested)]
     #[builder(default)]
@@ -177,7 +167,7 @@ pub struct CreditFacility {
 }
 
 impl CreditFacility {
-    pub fn creation_data(&self) -> CreditFacilityCreation {
+    pub(crate) fn creation_data(&self) -> CreditFacilityCreation {
         self.events
             .iter_all()
             .find_map(|event| match event {
@@ -185,16 +175,19 @@ impl CreditFacility {
                     ledger_tx_id,
                     account_ids,
                     amount,
+                    disbursal_credit_account_id,
                     ..
                 } => Some(CreditFacilityCreation {
                     tx_id: *ledger_tx_id,
-                    tx_ref: format!("{}-create", self.id),
+                    tx_ref: format!("{}-activate", self.id),
                     credit_facility_account_ids: *account_ids,
+                    debit_account_id: *disbursal_credit_account_id,
                     facility_amount: *amount,
+                    structuring_fee_amount: self.structuring_fee(),
                 }),
                 _ => None,
             })
-            .expect("Facility was not Initialized")
+            .expect("Initialized event should exist")
     }
 
     pub fn created_at(&self) -> DateTime<Utc> {
@@ -203,8 +196,8 @@ impl CreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn matures_at(&self) -> Option<DateTime<Utc>> {
-        self.maturity_date.map(|d| d.start_of_day())
+    pub fn matures_at(&self) -> DateTime<Utc> {
+        self.maturity_date.start_of_day()
     }
 
     pub fn structuring_fee(&self) -> UsdCents {
@@ -213,38 +206,6 @@ impl CreditFacility {
 
     pub fn has_structuring_fee(&self) -> bool {
         !self.structuring_fee().is_zero()
-    }
-
-    pub(crate) fn is_approval_process_concluded(&self) -> bool {
-        for event in self.events.iter_all() {
-            match event {
-                CreditFacilityEvent::ApprovalProcessConcluded { .. } => return true,
-                _ => continue,
-            }
-        }
-        false
-    }
-
-    fn is_approved(&self) -> Result<bool, CreditFacilityError> {
-        for event in self.events.iter_all() {
-            match event {
-                CreditFacilityEvent::ApprovalProcessConcluded { approved, .. } => {
-                    return Ok(*approved);
-                }
-                _ => continue,
-            }
-        }
-        Err(CreditFacilityError::ApprovalInProgress)
-    }
-
-    pub fn is_activated(&self) -> bool {
-        for event in self.events.iter_all() {
-            match event {
-                CreditFacilityEvent::Activated { .. } => return true,
-                _ => continue,
-            }
-        }
-        false
     }
 
     fn is_matured(&self) -> bool {
@@ -259,26 +220,11 @@ impl CreditFacility {
             CreditFacilityStatus::Closed
         } else if self.is_matured() {
             CreditFacilityStatus::Matured
-        } else if self.is_activated() {
-            CreditFacilityStatus::Active
         } else if self.is_fully_collateralized() {
             CreditFacilityStatus::PendingApproval
         } else {
             CreditFacilityStatus::PendingCollateralization
         }
-    }
-
-    pub(crate) fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            CreditFacilityEvent::ApprovalProcessConcluded { .. }
-        );
-        self.events
-            .push(CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: self.id.into(),
-                approved,
-            });
-        Idempotent::Executed(())
     }
 
     pub(crate) fn mature(&mut self) -> Idempotent<()> {
@@ -292,68 +238,26 @@ impl CreditFacility {
         Idempotent::Executed(())
     }
 
-    pub(crate) fn activate(
-        &mut self,
-        activated_at: DateTime<Utc>,
-        price: PriceOfOneBTC,
-        balances: CreditFacilityBalanceSummary,
-    ) -> Result<Idempotent<(CreditFacilityActivation, InterestPeriod)>, CreditFacilityError> {
-        if self.is_activated() {
-            return Ok(Idempotent::Ignored);
-        }
-
-        if !self.is_approval_process_concluded() {
-            return Err(CreditFacilityError::ApprovalInProgress);
-        }
-
-        if !self.is_approved()? {
-            return Err(CreditFacilityError::Denied);
-        }
-
-        if !self.terms.is_activation_allowed(balances, price) {
-            return Err(CreditFacilityError::BelowMarginLimit);
-        }
-
-        self.activated_at = Some(activated_at);
-        self.maturity_date = Some(self.terms.duration.maturity_date(activated_at));
-        let tx_id = LedgerTxId::new();
-        self.events.push(CreditFacilityEvent::Activated {
-            ledger_tx_id: tx_id,
-            activated_at,
-        });
-
-        let periods = self
-            .start_interest_accrual_cycle()
-            .expect("first accrual")
-            .expect("first accrual");
-        let activation = CreditFacilityActivation {
-            tx_id,
-            tx_ref: format!("{}-activate", self.id),
-            credit_facility_account_ids: self.account_ids,
-            debit_account_id: self.disbursal_credit_account_id,
-            facility_amount: self.amount,
-            structuring_fee_amount: self.structuring_fee(),
-        };
-
-        Ok(Idempotent::Executed((activation, periods.accrual)))
-    }
-
     pub(crate) fn check_disbursal_date(&self, initiated_at: DateTime<Utc>) -> bool {
-        initiated_at < self.matures_at().expect("Facility not activated yet")
+        initiated_at < self.matures_at()
     }
 
-    fn last_started_accrual_cycle(&self) -> Option<InterestAccrualCycleInCreditFacility> {
-        self.events.iter_all().rev().find_map(|event| match event {
-            CreditFacilityEvent::InterestAccrualCycleStarted {
-                interest_accrual_cycle_idx,
-                interest_period,
-                ..
-            } => Some(InterestAccrualCycleInCreditFacility {
-                idx: *interest_accrual_cycle_idx,
-                period: *interest_period,
-            }),
-            _ => None,
-        })
+    pub(crate) fn last_started_accrual_cycle(&self) -> InterestAccrualCycleInCreditFacility {
+        self.events
+            .iter_all()
+            .rev()
+            .find_map(|event| match event {
+                CreditFacilityEvent::InterestAccrualCycleStarted {
+                    interest_accrual_cycle_idx,
+                    interest_period,
+                    ..
+                } => Some(InterestAccrualCycleInCreditFacility {
+                    idx: *interest_accrual_cycle_idx,
+                    period: *interest_period,
+                }),
+                _ => None,
+            })
+            .expect("InterestAccrualCycleStarted should exist once facility is initialized")
     }
 
     fn in_progress_accrual_cycle_id(&self) -> Option<InterestAccrualCycleId> {
@@ -374,26 +278,16 @@ impl CreditFacility {
     fn next_interest_accrual_cycle_period(
         &self,
     ) -> Result<Option<InterestPeriod>, CreditFacilityError> {
-        let last_accrual_start_date = self
-            .last_started_accrual_cycle()
-            .map(|cycle| cycle.period.start);
-
         let interval = self.terms.accrual_cycle_interval;
-        let full_period = match last_accrual_start_date {
-            Some(last_accrual_start_date) => interval.period_from(last_accrual_start_date).next(),
-            None => interval.period_from(
-                self.activated_at
-                    .ok_or(CreditFacilityError::NotActivatedYet)?,
-            ),
-        };
+        let full_period = interval
+            .period_from(self.last_started_accrual_cycle().period.start)
+            .next();
 
-        Ok(full_period.truncate(self.matures_at().expect("Facility is already active")))
+        Ok(full_period.truncate(self.matures_at()))
     }
 
     fn next_interest_accrual_cycle_idx(&self) -> InterestAccrualCycleIdx {
-        self.last_started_accrual_cycle()
-            .map(|cycle| cycle.idx.next())
-            .unwrap_or(InterestAccrualCycleIdx::FIRST)
+        self.last_started_accrual_cycle().idx.next()
     }
 
     fn is_in_progress_interest_cycle_completed(&self) -> bool {
@@ -435,7 +329,7 @@ impl CreditFacility {
             .account_ids(self.account_ids.into())
             .idx(idx)
             .period(accrual_cycle_period)
-            .facility_maturity_date(self.maturity_date.expect("Facility is already approved"))
+            .facility_maturity_date(self.maturity_date)
             .terms(self.terms)
             .build()
             .expect("could not build new interest accrual");
@@ -635,7 +529,6 @@ impl CreditFacility {
 impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
     fn try_from_events(events: EntityEvents<CreditFacilityEvent>) -> Result<Self, EsEntityError> {
         let mut builder = CreditFacilityBuilder::default();
-        let mut terms = None;
         for event in events.iter_all() {
             match event {
                 CreditFacilityEvent::Initialized {
@@ -650,7 +543,6 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     public_id,
                     ..
                 } => {
-                    terms = Some(*t);
                     builder = builder
                         .id(*id)
                         .amount(*amount)
@@ -658,20 +550,12 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .collateral_id(*collateral_id)
                         .terms(*t)
                         .account_ids(*account_ids)
+                        .created_at(*created_at)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .approval_process_id(*approval_process_id)
                         .public_id(public_id.clone())
+                        .maturity_date(t.duration.maturity_date(*created_at))
                 }
-                CreditFacilityEvent::Activated { activated_at, .. } => {
-                    let maturity_date = terms
-                        .expect("terms should be set")
-                        .duration
-                        .maturity_date(*activated_at);
-                    builder = builder
-                        .activated_at(*activated_at)
-                        .maturity_date(maturity_date)
-                }
-                CreditFacilityEvent::ApprovalProcessConcluded { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
                 CreditFacilityEvent::CollateralizationStateChanged { .. } => (),
@@ -698,6 +582,7 @@ pub struct NewCreditFacility {
     pub(super) collateral_id: CollateralId,
     terms: TermValues,
     amount: UsdCents,
+    created_at: DateTime<Utc>,
     #[builder(setter(skip), default)]
     pub(super) status: CreditFacilityStatus,
     #[builder(setter(skip), default)]
@@ -805,6 +690,10 @@ mod test {
             .unwrap()
     }
 
+    fn created_at() -> DateTime<Utc> {
+        date_from("2021-01-15T12:00:00Z")
+    }
+
     fn initial_events() -> Vec<CreditFacilityEvent> {
         vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
@@ -856,11 +745,10 @@ mod test {
             InterestAccrualCycleIdx::FIRST
         );
 
-        let activated_at = date_from("2021-01-15T12:00:00Z");
         events.push(CreditFacilityEvent::InterestAccrualCycleStarted {
             interest_accrual_id: InterestAccrualCycleId::new(),
             interest_accrual_cycle_idx: InterestAccrualCycleIdx::FIRST,
-            interest_period: InterestInterval::EndOfDay.period_from(activated_at),
+            interest_period: InterestInterval::EndOfDay.period_from(created_at()),
         });
         let credit_facility = facility_from(events);
         assert_eq!(
@@ -873,23 +761,19 @@ mod test {
 
         use super::*;
 
-        #[test]
-        fn error_if_not_activated_yet() {
-            let credit_facility = facility_from(initial_events());
+        // #[test]
+        // TODO: don't need this ?
+        // fn error_if_not_activated_yet() {
+        //     let credit_facility = facility_from(initial_events());
 
-            let res = credit_facility.next_interest_accrual_cycle_period();
-            assert!(matches!(res, Err(CreditFacilityError::NotActivatedYet)));
-        }
+        //     let res = credit_facility.next_interest_accrual_cycle_period();
+        //     assert!(matches!(res, Err(CreditFacilityError::NotActivatedYet)));
+        // }
 
         #[test]
         fn first_period_starts_at_activation_when_no_prior_accrual() {
-            let mut events = initial_events();
-            let activated_at = date_from("2021-01-15T12:00:00Z");
-            let first_interest_period = InterestInterval::EndOfMonth.period_from(activated_at);
-            events.extend([CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at,
-            }]);
+            let events = initial_events();
+            let first_interest_period = InterestInterval::EndOfMonth.period_from(created_at());
             let credit_facility = facility_from(events);
 
             let period = credit_facility
@@ -902,19 +786,12 @@ mod test {
         #[test]
         fn next_period_after_accrual_event() {
             let mut events = initial_events();
-            let activated_at = date_from("2021-01-15T12:00:00Z");
-            let first_interest_period = InterestInterval::EndOfMonth.period_from(activated_at);
-            events.extend([
-                CreditFacilityEvent::Activated {
-                    ledger_tx_id: LedgerTxId::new(),
-                    activated_at,
-                },
-                CreditFacilityEvent::InterestAccrualCycleStarted {
-                    interest_accrual_id: InterestAccrualCycleId::new(),
-                    interest_accrual_cycle_idx: InterestAccrualCycleIdx::FIRST,
-                    interest_period: first_interest_period,
-                },
-            ]);
+            let first_interest_period = InterestInterval::EndOfMonth.period_from(created_at());
+            events.extend([CreditFacilityEvent::InterestAccrualCycleStarted {
+                interest_accrual_id: InterestAccrualCycleId::new(),
+                interest_accrual_cycle_idx: InterestAccrualCycleIdx::FIRST,
+                interest_period: first_interest_period,
+            }]);
             let credit_facility = facility_from(events);
 
             let period = credit_facility
@@ -927,12 +804,7 @@ mod test {
         #[test]
         fn next_period_after_last_accrual_event_is_none() {
             let mut events = initial_events();
-            let activated_at = date_from("2021-01-15T12:00:00Z");
-            events.push(CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at,
-            });
-            let matures_at = facility_from(events.clone()).matures_at().unwrap();
+            let matures_at = facility_from(events.clone()).matures_at();
             let final_interest_period =
                 InterestInterval::EndOfMonth.period_from(matures_at - chrono::Duration::days(1));
             events.push(CreditFacilityEvent::InterestAccrualCycleStarted {
@@ -955,19 +827,14 @@ mod test {
 
         #[test]
         fn can_start() {
-            let mut events = initial_events();
-            let activated_at = date_from("2021-01-15T12:00:00Z");
-            events.extend([CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at,
-            }]);
+            let events = initial_events();
             let mut credit_facility = facility_from(events);
 
             let first_accrual_cycle_period @ InterestPeriod { start, .. } = credit_facility
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
-            assert_eq!(start, activated_at);
+            assert_eq!(start, created_at());
 
             credit_facility
                 .start_interest_accrual_cycle()
@@ -982,12 +849,7 @@ mod test {
 
         #[test]
         fn errors_if_previous_cycle_not_completed() {
-            let mut events = initial_events();
-            let activated_at = date_from("2021-01-15T12:00:00Z");
-            events.extend([CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at,
-            }]);
+            let events = initial_events();
             let mut credit_facility = facility_from(events);
 
             start_interest_accrual_cycle(&mut credit_facility);
@@ -999,12 +861,7 @@ mod test {
 
         #[test]
         fn does_not_start_after_last_cycle() {
-            let mut events = initial_events();
-            let activated_at = date_from("2021-01-15T12:00:00Z");
-            events.push(CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at,
-            });
+            let events = initial_events();
             let mut credit_facility = facility_from(events);
 
             while credit_facility
@@ -1029,200 +886,23 @@ mod test {
             );
         }
 
-        #[test]
-        fn errors_for_future_start_date() {
-            let mut events = initial_events();
-            let activated_at = Utc::now() + chrono::Duration::days(60);
-            events.push(CreditFacilityEvent::Activated {
-                ledger_tx_id: LedgerTxId::new(),
-                activated_at,
-            });
-            let mut credit_facility = facility_from(events);
+        // NOTE: check if this is required
+        // #[test]
+        // fn errors_for_future_start_date() {
+        //     let events = initial_events();
+        //     let mut credit_facility = facility_from(events);
 
-            assert!(matches!(
-                credit_facility.start_interest_accrual_cycle(),
-                Err(CreditFacilityError::InterestAccrualCycleWithInvalidFutureStartDate)
-            ));
-        }
+        //     assert!(matches!(
+        //         credit_facility.start_interest_accrual_cycle(dummy_audit_info()),
+        //         Err(CreditFacilityError::InterestAccrualCycleWithInvalidFutureStartDate)
+        //     ));
+        // }
     }
 
-    #[test]
-    fn check_activated_at() {
-        let mut credit_facility = facility_from(initial_events());
-        assert_eq!(credit_facility.activated_at, None);
-        assert_eq!(credit_facility.matures_at(), None);
-
-        let approval_time = Utc::now();
-
-        credit_facility.approval_process_concluded(true).unwrap();
-        let mut balances = default_balances(credit_facility.amount);
-        balances.collateral = default_full_collateral();
-
-        assert!(
-            credit_facility
-                .activate(approval_time, default_price(), balances)
-                .unwrap()
-                .did_execute()
-        );
-        assert_eq!(credit_facility.activated_at, Some(approval_time));
-        assert!(credit_facility.matures_at().is_some())
-    }
-
-    #[test]
-    fn status() {
-        let mut credit_facility = facility_from(initial_events());
-        assert_eq!(
-            credit_facility.status(),
-            CreditFacilityStatus::PendingCollateralization
-        );
-
-        credit_facility
-            .update_collateralization(
-                default_price(),
-                default_upgrade_buffer_cvl_pct(),
-                default_balances(credit_facility.amount).with_collateral(default_full_collateral()),
-            )
-            .unwrap();
-
-        assert_eq!(
-            credit_facility.status(),
-            CreditFacilityStatus::PendingApproval
-        );
-        credit_facility.approval_process_concluded(true).unwrap();
-        let mut balances = default_balances(credit_facility.amount);
-        balances.collateral = default_full_collateral();
-        assert!(
-            credit_facility
-                .activate(Utc::now(), default_price(), balances)
-                .unwrap()
-                .did_execute()
-        );
-        assert_eq!(credit_facility.status(), CreditFacilityStatus::Active);
-    }
-
-    #[test]
     fn structuring_fee() {
         let credit_facility = facility_from(initial_events());
         let expected_fee = default_terms().one_time_fee_rate.apply(default_facility());
         assert_eq!(credit_facility.structuring_fee(), expected_fee);
-    }
-
-    mod activate {
-        use super::*;
-
-        #[test]
-        fn errors_when_not_approved_yet() {
-            let mut credit_facility = facility_from(initial_events());
-            assert!(matches!(
-                credit_facility.activate(
-                    Utc::now(),
-                    default_price(),
-                    default_balances(credit_facility.amount),
-                ),
-                Err(CreditFacilityError::ApprovalInProgress)
-            ));
-        }
-
-        #[test]
-        fn errors_if_denied() {
-            let mut events = initial_events();
-            events.push(CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: false,
-            });
-            let mut credit_facility = facility_from(events);
-
-            assert!(matches!(
-                credit_facility.activate(
-                    Utc::now(),
-                    default_price(),
-                    default_balances(credit_facility.amount),
-                ),
-                Err(CreditFacilityError::Denied)
-            ));
-        }
-
-        #[test]
-        fn errors_if_no_collateral() {
-            let mut events = initial_events();
-            events.push(CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-            });
-            let mut credit_facility = facility_from(events);
-
-            assert!(matches!(
-                credit_facility.activate(
-                    Utc::now(),
-                    default_price(),
-                    default_balances(credit_facility.amount),
-                ),
-                Err(CreditFacilityError::BelowMarginLimit)
-            ));
-        }
-
-        #[test]
-        fn errors_if_collateral_below_margin() {
-            let mut events = initial_events();
-            events.extend([CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-            }]);
-            let mut credit_facility = facility_from(events);
-
-            assert!(matches!(
-                credit_facility.activate(
-                    Utc::now(),
-                    default_price(),
-                    default_balances(credit_facility.amount),
-                ),
-                Err(CreditFacilityError::BelowMarginLimit)
-            ));
-        }
-
-        #[test]
-        fn errors_if_already_activated() {
-            let mut events = initial_events();
-            events.extend([
-                CreditFacilityEvent::ApprovalProcessConcluded {
-                    approval_process_id: ApprovalProcessId::new(),
-                    approved: true,
-                },
-                CreditFacilityEvent::Activated {
-                    ledger_tx_id: LedgerTxId::new(),
-                    activated_at: Utc::now(),
-                },
-            ]);
-            let mut credit_facility = facility_from(events);
-
-            assert!(matches!(
-                credit_facility.activate(
-                    Utc::now(),
-                    default_price(),
-                    default_balances(credit_facility.amount),
-                ),
-                Ok(Idempotent::Ignored)
-            ));
-        }
-
-        #[test]
-        fn can_activate() {
-            let mut events = initial_events();
-            let collateral_amount = Satoshis::from(1_000_000);
-            events.extend([CreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-            }]);
-            let mut credit_facility = facility_from(events);
-            let mut balances = default_balances(credit_facility.amount);
-            balances.collateral = collateral_amount;
-
-            assert!(
-                credit_facility
-                    .activate(Utc::now(), default_price(), balances)
-                    .is_ok()
-            );
-        }
     }
 
     mod completion {

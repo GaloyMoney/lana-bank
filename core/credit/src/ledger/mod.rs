@@ -1424,6 +1424,7 @@ impl CreditLedger {
             tx_ref,
             credit_facility_account_ids,
             facility_amount,
+            ..
         }: CreditFacilityCreation,
     ) -> Result<(), CreditLedgerError> {
         self.cala
@@ -1478,14 +1479,14 @@ impl CreditLedger {
     pub async fn activate_credit_facility(
         &self,
         op: es_entity::DbOpWithTime<'_>,
-        CreditFacilityActivation {
+        CreditFacilityCreation {
             tx_id,
             tx_ref,
             credit_facility_account_ids,
-            debit_account_id,
             facility_amount,
+            debit_account_id,
             structuring_fee_amount,
-        }: CreditFacilityActivation,
+        }: CreditFacilityCreation,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala

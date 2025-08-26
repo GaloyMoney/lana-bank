@@ -86,7 +86,6 @@ pub mod governance {
     use crate::authorization::Authorization;
     use lana_events::LanaEvent;
     pub type Governance = governance::Governance<Authorization, LanaEvent>;
-    pub use crate::credit::APPROVE_CREDIT_FACILITY_PROCESS;
     pub use crate::credit::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS;
     pub use crate::credit::APPROVE_DISBURSAL_PROCESS;
     pub use core_deposit::APPROVE_WITHDRAWAL_PROCESS;
@@ -159,15 +158,15 @@ pub mod custody {
 
 pub mod credit {
     pub use core_credit::{
-        APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
-        APPROVE_DISBURSAL_PROCESS, CREDIT_FACILITY_ENTITY_TYPE, ChartOfAccountsIntegrationConfig,
-        Collateral, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditConfig,
-        CreditFacilitiesCursor, CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacility,
-        CreditFacilityApproved, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, Disbursal, DisbursalExecuted,
-        DisbursalStatus, DisbursalsCursor, DisbursalsFilter, DisbursalsSortBy, IncrementalPayment,
-        InterestAccrualsPosted, ListDirection, ObligationInstallment, ObligationMovedToLiquidation,
-        Payment, RepaymentStatus, RepaymentType, Sort, TermsTemplate, error, terms_template_error,
+        APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS, APPROVE_DISBURSAL_PROCESS,
+        ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated, CollateralizationUpdated,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilter,
+        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry,
+        CreditFacilityStatus, Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor,
+        DisbursalsFilter, DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted,
+        ListDirection, ObligationInstallment, ObligationMovedToLiquidation, Payment,
+        RepaymentStatus, RepaymentType, Sort, TermsTemplate, error, terms_template_error,
     };
 
     pub type Credit =

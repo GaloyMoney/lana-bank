@@ -68,6 +68,10 @@ pub enum CreditFacilityError {
     ),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] job::error::JobError),
+    #[error("CreditFacilityError - CreditFacilityProposalError: {0}")]
+    CreditFacilityProposalError(
+        #[from] crate::credit_facility_proposal::error::CreditFacilityProposalError,
+    ),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityError);

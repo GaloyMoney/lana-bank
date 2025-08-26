@@ -118,6 +118,10 @@ where
     ) -> Result<Disbursal, DisbursalError> {
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
+        let new_obligation =
+            disbursal.approval_process_concluded(LedgerTxId::new(), true, db.now().date_naive());
+        let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
+
         let new_obligation = disbursal
             .approval_process_concluded(LedgerTxId::new(), true, db.now().date_naive())
             .expect("First instance of idempotent action ignored")
