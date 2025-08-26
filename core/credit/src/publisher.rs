@@ -4,6 +4,9 @@ use crate::{
     EffectiveDate,
     collateral::{Collateral, CollateralEvent, error::CollateralError},
     credit_facility::{CreditFacility, CreditFacilityEvent, error::CreditFacilityError},
+    credit_facility_proposal::{
+        CreditFacilityProposal, CreditFacilityProposalEvent, error::CreditFacilityProposalError,
+    },
     disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
     interest_accrual_cycle::{
@@ -61,19 +64,6 @@ where
                     amount: *amount,
                     created_at: entity.created_at(),
                 }),
-                ApprovalProcessConcluded { approved, .. } if *approved => {
-                    Some(CoreCreditEvent::FacilityApproved { id: entity.id })
-                }
-                Activated {
-                    activated_at,
-                    ledger_tx_id,
-                    ..
-                } => Some(CoreCreditEvent::FacilityActivated {
-                    id: entity.id,
-                    activation_tx_id: *ledger_tx_id,
-                    activated_at: *activated_at,
-                    amount: entity.amount,
-                }),
                 Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
                     id: entity.id,
                     completed_at: event.recorded_at,
@@ -97,6 +87,31 @@ where
                 _ => None,
             })
             .collect::<Vec<_>>();
+        self.outbox
+            .publish_all_persisted(op, publish_events)
+            .await?;
+        Ok(())
+    }
+
+    pub async fn publish_proposal(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &CreditFacilityProposal,
+        new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
+    ) -> Result<(), CreditFacilityProposalError> {
+        use CreditFacilityProposalEvent::*;
+        let publish_events = new_events
+            .filter_map(|event| match &event.event {
+                ApprovalProcessConcluded { approved, .. } if *approved => {
+                    Some(CoreCreditEvent::FacilityProposalApproved {
+                        id: entity.id,
+                        credit_facility_id: entity.id.into(),
+                    })
+                }
+                _ => None,
+            })
+            .collect::<Vec<_>>();
+
         self.outbox
             .publish_all_persisted(op, publish_events)
             .await?;

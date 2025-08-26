@@ -9,61 +9,50 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
-use super::ApproveCreditFacility;
+use super::CreateCreditFacility;
 
 #[derive(serde::Serialize)]
-pub(crate) struct CreditFacilityApprovalJobConfig<Perms, E> {
+pub(crate) struct CreditFacilityCreationJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CreditFacilityApprovalJobConfig<Perms, E> {
+impl<Perms, E> CreditFacilityCreationJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-
-impl<Perms, E> Default for CreditFacilityApprovalJobConfig<Perms, E> {
-    fn default() -> Self {
-        Self::new()
-    }
-}
-
-impl<Perms, E> JobConfig for CreditFacilityApprovalJobConfig<Perms, E>
+impl<Perms, E> JobConfig for CreditFacilityCreationJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreCreditAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreditFacilityApprovalInit<Perms, E>;
+    type Initializer = CreditFacilityCreationInit<Perms, E>;
 }
 
-pub(crate) struct CreditFacilityApprovalInit<Perms, E>
+pub(crate) struct CreditFacilityCreationInit<Perms, E>
 where
     Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     outbox: Outbox<E>,
-    process: ApproveCreditFacility<Perms, E>,
+    process: CreateCreditFacility<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityApprovalInit<Perms, E>
+impl<Perms, E> CreditFacilityCreationInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreCreditAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, process: &ApproveCreditFacility<Perms, E>) -> Self {
+    pub fn new(outbox: &Outbox<E>, process: &CreateCreditFacility<Perms, E>) -> Self {
         Self {
             process: process.clone(),
             outbox: outbox.clone(),
@@ -71,25 +60,25 @@ where
     }
 }
 
-const CREDIT_FACILITY_APPROVE_JOB: JobType = JobType::new("credit-facility-approval");
-impl<Perms, E> JobInitializer for CreditFacilityApprovalInit<Perms, E>
+const CREDIT_FACILITY_CREATE_JOB: JobType = JobType::new("credit-facility-creation");
+impl<Perms, E> JobInitializer for CreditFacilityCreationInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreCreditAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_APPROVE_JOB
+        CREDIT_FACILITY_CREATE_JOB
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityApprovalJobRunner {
+        Ok(Box::new(CreditFacilityCreationJobRunner {
             outbox: self.outbox.clone(),
             process: self.process.clone(),
         }))
@@ -104,50 +93,56 @@ where
 }
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct CreditFacilityApprovalJobData {
+struct CreditFacilityCreationJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreditFacilityApprovalJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
-{
-    outbox: Outbox<E>,
-    process: ApproveCreditFacility<Perms, E>,
-}
-#[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityApprovalJobRunner<Perms, E>
+pub struct CreditFacilityCreationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
         From<CoreCreditAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+{
+    outbox: Outbox<E>,
+    process: CreateCreditFacility<Perms, E>,
+}
+#[async_trait]
+impl<Perms, E> JobRunner for CreditFacilityCreationJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     async fn run(
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreditFacilityApprovalJobData>()?
+            .execution_state::<CreditFacilityCreationJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
             match message.as_ref().as_event() {
-                Some(GovernanceEvent::ApprovalProcessConcluded {
-                    id,
-                    approved,
-                    process_type,
+                Some(CoreCreditEvent::FacilityCollateralUpdated {
+                    credit_facility_id: id,
                     ..
-                }) if process_type == &super::APPROVE_CREDIT_FACILITY_PROCESS => {
-                    self.process.execute(*id, *approved).await?;
+                })
+                | Some(CoreCreditEvent::FacilityProposalApproved {
+                    credit_facility_id: id,
+                    ..
+                }) => {
+                    self.process.execute(*id).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
                 }
-                _ => {}
+                _ => (),
             }
         }
 

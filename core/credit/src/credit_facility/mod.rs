@@ -12,13 +12,11 @@ use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
+    credit_facility_proposal::CreditFacilityProposals,
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
     jobs::credit_facility_maturity,
-    ledger::{
-        CreditFacilityActivation, CreditFacilityInterestAccrual,
-        CreditFacilityInterestAccrualCycle, CreditLedger,
-    },
+    ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     primitives::*,
     terms::InterestPeriod,
@@ -42,6 +40,7 @@ where
 {
     repo: CreditFacilityRepo<E>,
     obligations: Obligations<Perms, E>,
+    proposals: CreditFacilityProposals<Perms, E>,
     authz: Perms,
     ledger: CreditLedger,
     price: Price,
@@ -58,6 +57,7 @@ where
         Self {
             repo: self.repo.clone(),
             obligations: self.obligations.clone(),
+            proposals: self.proposals.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
@@ -65,17 +65,6 @@ where
             governance: self.governance.clone(),
         }
     }
-}
-
-pub(super) enum ActivationOutcome {
-    Ignored(CreditFacility),
-    Activated(ActivationData),
-}
-
-pub(super) struct ActivationData {
-    pub credit_facility: CreditFacility,
-    pub credit_facility_activation: CreditFacilityActivation,
-    pub next_accrual_period: InterestPeriod,
 }
 
 pub(super) enum CompletionOutcome {
@@ -104,6 +93,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         obligations: &Obligations<Perms, E>,
+        proposals: &CreditFacilityProposals<Perms, E>,
         ledger: &CreditLedger,
         price: &Price,
         jobs: &Jobs,
@@ -112,20 +102,10 @@ where
     ) -> Result<Self, CreditFacilityError> {
         let repo = CreditFacilityRepo::new(pool, publisher);
 
-        match governance
-            .init_policy(crate::APPROVE_CREDIT_FACILITY_PROCESS)
-            .await
-        {
-            Err(governance::error::GovernanceError::PolicyError(
-                governance::policy_error::PolicyError::DuplicateApprovalProcessType,
-            )) => (),
-            Err(e) => return Err(e.into()),
-            _ => (),
-        }
-
         Ok(Self {
             repo,
             obligations: obligations.clone(),
+            proposals: proposals.clone(),
             authz: authz.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
@@ -138,48 +118,36 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    pub(super) async fn create_in_op(
-        &self,
-        db: &mut es_entity::DbOp<'_>,
-        new_credit_facility: NewCreditFacility,
-    ) -> Result<CreditFacility, CreditFacilityError> {
-        self.governance
-            .start_process(
-                db,
-                new_credit_facility.id,
-                new_credit_facility.id.to_string(),
-                crate::APPROVE_CREDIT_FACILITY_PROCESS,
-            )
-            .await?;
-        self.repo.create_in_op(db, new_credit_facility).await
-    }
-
-    pub(super) async fn activate_in_op(
+    pub(super) async fn create_in_op_via_proposal(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
-    ) -> Result<ActivationOutcome, CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id_in_op(db, id).await?;
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                db,
-                CoreCreditObject::all_credit_facilities(),
-                CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
-            )
-            .await?;
-        let price = self.price.usd_cents_per_btc().await?;
-        let now = db.now();
-        let balances = self
-            .ledger
-            .get_credit_facility_balance(credit_facility.account_ids)
-            .await?;
+    ) -> Result<(CreditFacility, InterestPeriod), CreditFacilityError> {
+        // TODO: need to update the proposal to be completed
+        let proposal = self.proposals.find_by_id_without_audit(id.into()).await?;
 
         let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
             credit_facility.activate(now, price, balances)
         else {
             return Ok(ActivationOutcome::Ignored(credit_facility));
         };
+        let new_credit_facility = NewCreditFacility::builder()
+            .id(proposal.id)
+            .ledger_tx_id(LedgerTxId::new())
+            .account_ids(crate::CreditFacilityAccountIds::from(proposal.account_ids))
+            .collateral_id(proposal.collateral_id)
+            .terms(proposal.terms)
+            .amount(proposal.amount)
+            .created_at(db.now())
+            //TODO: handle public id creation and audit_info can be removed
+            .build()
+            .expect("could not build new credit facility");
+
+        let mut credit_facility = self.repo.create_in_op(db, new_credit_facility).await?;
+
+        let periods = credit_facility
+            .start_interest_accrual_cycle()?
+            .expect("first accrual");
 
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
@@ -191,53 +159,11 @@ where
                     credit_facility_id: credit_facility.id,
                     _phantom: std::marker::PhantomData,
                 },
-                credit_facility
-                    .matures_at()
-                    .expect("maturity date is set on activation"),
+                credit_facility.matures_at(),
             )
             .await?;
 
-        Ok(ActivationOutcome::Activated(ActivationData {
-            credit_facility,
-            credit_facility_activation,
-            next_accrual_period,
-        }))
-    }
-
-    pub(super) async fn approve(
-        &self,
-        id: CreditFacilityId,
-        approved: bool,
-    ) -> Result<CreditFacility, CreditFacilityError> {
-        let mut credit_facility = self.repo.find_by_id(id).await?;
-
-        if credit_facility.is_approval_process_concluded() {
-            return Ok(credit_facility);
-        }
-
-        let mut op = self.repo.begin_op().await?;
-        self.authz
-            .audit()
-            .record_system_entry_in_tx(
-                &mut op,
-                CoreCreditObject::credit_facility(credit_facility.id),
-                CoreCreditAction::CREDIT_FACILITY_CONCLUDE_APPROVAL_PROCESS,
-            )
-            .await?;
-
-        if credit_facility
-            .approval_process_concluded(approved)
-            .was_ignored()
-        {
-            return Ok(credit_facility);
-        }
-
-        self.repo
-            .update_in_op(&mut op, &mut credit_facility)
-            .await?;
-        op.commit().await?;
-
-        Ok(credit_facility)
+        Ok((credit_facility, periods.accrual))
     }
 
     pub(super) async fn confirm_interest_accrual_in_op(
