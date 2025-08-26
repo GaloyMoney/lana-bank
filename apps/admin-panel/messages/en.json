@@ -1751,7 +1751,7 @@
     "search": {
       "title": "Search Ledger Accounts",
       "description": "Enter a ledger account code or ID to view account details",
-      "placeholder": "Enter account code (e.g., 1000.01) or account ID",
+      "placeholder": "Enter account code (e.g., 1110.01) or account ID",
       "searchButton": "Search Account",
       "notFound": "Ledger account not found. The account code or ID you entered may not exist.",
       "searchError": "An error occurred while searching. Please try again."
