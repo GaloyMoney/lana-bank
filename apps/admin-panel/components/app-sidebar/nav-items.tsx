@@ -58,6 +58,7 @@ export function useNavItems() {
   const navFinanceItems: NavItem[] = [
     { title: t("balanceSheet"), url: "/balance-sheet", icon: PieChart },
     { title: t("profitAndLoss"), url: "/profit-and-loss", icon: DollarSign },
+    { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
     {
       title: t("regulatoryReporting"),
       url: "/regulatory-reporting",
@@ -74,7 +75,6 @@ export function useNavItems() {
     { title: t("chartOfAccounts"), url: "/chart-of-accounts", icon: Globe },
     { title: t("ledgerAccounts"), url: "/ledger-accounts", icon: BookText },
     { title: t("journal"), url: "/journal", icon: ScrollIcon },
-    { title: t("trialBalance"), url: "/trial-balance", icon: LineChart },
     { title: t("modules"), url: "/modules", icon: Cog },
     {
       title: t("transactionTemplates"),
