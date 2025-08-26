@@ -83,6 +83,8 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
   const canRecordWithDate =
     creditFacilityDetails?.creditFacilityByPublicId?.userCanRecordPaymentWithDate ?? false
 
+  const isBackdate = effectiveDate < getCurrentLocalDate()
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
     setError(null)
@@ -95,7 +97,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
     }
 
     try {
-      if (canRecordWithDate) {
+      if (canRecordWithDate && isBackdate) {
         await partialPaymentWithDateCreditFacility({
           variables: {
             input: {
@@ -178,7 +180,6 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
               type="date"
               value={effectiveDate}
               onChange={(e) => setEffectiveDate(e.target.value)}
-              disabled={!canRecordWithDate}
               required
             />
           </div>
