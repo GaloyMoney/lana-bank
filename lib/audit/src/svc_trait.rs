@@ -4,36 +4,13 @@ use std::{collections::HashMap, fmt, str::FromStr};
 
 use crate::{AuditEntry, error::AuditError, primitives::*};
 
-pub trait SystemSubject {
-    fn system() -> Self;
-}
-
 #[async_trait]
 pub trait AuditSvc: Clone + Sync + Send + 'static {
-    type Subject: FromStr
-        + fmt::Display
-        + fmt::Debug
-        + Clone
-        + Send
-        + Sync
-        + SystemSubject
-        + 'static;
+    type Subject: FromStr + fmt::Display + fmt::Debug + Clone + Send + Sync + 'static;
     type Object: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
     type Action: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static;
 
     fn pool(&self) -> &sqlx::PgPool;
-
-    async fn record_system_entry(
-        &self,
-        object: impl Into<Self::Object> + Send,
-        action: impl Into<Self::Action> + Send,
-    ) -> Result<AuditInfo, AuditError> {
-        let subject = Self::Subject::system();
-        let object = object.into();
-        let action = action.into();
-
-        self.record_entry(&subject, object, action, true).await
-    }
 
     async fn record_entry(
         &self,
@@ -62,20 +39,6 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         .await?;
 
         Ok(AuditInfo::from((record.id, sub)))
-    }
-
-    async fn record_system_entry_in_tx(
-        &self,
-        tx: &mut impl es_entity::AtomicOperation,
-        object: impl Into<Self::Object> + Send,
-        action: impl Into<Self::Action> + Send,
-    ) -> Result<AuditInfo, AuditError> {
-        let subject = Self::Subject::system();
-        let object = object.into();
-        let action = action.into();
-
-        self.record_entry_in_tx(tx, &subject, object, action, true)
-            .await
     }
 
     async fn record_entry_in_tx(
@@ -216,3 +179,17 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         Ok(audit_entries)
     }
 }
+
+pub trait AuditSvcExt: AuditSvc {
+    fn internal_system_subject() -> Self::Subject
+    where
+        Self::Subject: FromStr,
+    {
+        match "system:00000000-0000-0000-0000-000000000001".parse() {
+            Ok(subject) => subject,
+            Err(_) => panic!("Internal system subject should always parse"),
+        }
+    }
+}
+
+impl<T: AuditSvc> AuditSvcExt for T {}

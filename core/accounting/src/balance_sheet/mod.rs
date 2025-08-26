@@ -4,7 +4,7 @@ pub mod ledger;
 
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use chrono::NaiveDate;
@@ -103,12 +103,15 @@ where
     pub async fn create_balance_sheet(&self, name: String) -> Result<(), BalanceSheetError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 CoreAccountingObject::all_balance_sheet(),
                 CoreAccountingAction::BALANCE_SHEET_CREATE,
+                true,
             )
             .await?;
 

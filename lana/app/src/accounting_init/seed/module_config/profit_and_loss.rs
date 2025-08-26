@@ -11,7 +11,7 @@ use crate::{
     },
 };
 
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemId};
 
 #[derive(Deserialize)]
 struct ProfitAndLossStatementConfigData {
@@ -41,7 +41,7 @@ pub(in crate::accounting_init::seed) async fn profit_and_loss_module_configure(
 
     match profit_and_loss
         .set_chart_of_accounts_integration_config(
-            &Subject::System,
+            &Subject::System(SystemId::internal()),
             PROFIT_AND_LOSS_STATEMENT_NAME.to_string(),
             chart,
             config_values,

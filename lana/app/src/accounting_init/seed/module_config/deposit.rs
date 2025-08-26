@@ -8,7 +8,7 @@ use crate::{
     deposit::{ChartOfAccountsIntegrationConfig, Deposits},
 };
 
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemId};
 
 #[derive(Deserialize)]
 struct DepositConfigData {
@@ -91,7 +91,11 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
         .build()?;
 
     match deposit
-        .set_chart_of_accounts_integration_config(&Subject::System, chart, config_values)
+        .set_chart_of_accounts_integration_config(
+            &Subject::System(SystemId::internal()),
+            chart,
+            config_values,
+        )
         .await
     {
         Ok(_) => (),

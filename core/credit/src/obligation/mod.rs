@@ -5,7 +5,7 @@ mod repo;
 
 use tracing::{Span, instrument};
 
-use audit::{AuditInfo, AuditSvc};
+use audit::{AuditInfo, AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use es_entity::Idempotent;
 use job::{JobId, Jobs};
@@ -123,13 +123,16 @@ where
     ) -> Result<(Obligation, Option<ObligationOverdueReallocationData>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 op,
+                &system_subject,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+                true,
             )
             .await
             .map_err(authz::error::AuthorizationError::from)?;
@@ -154,13 +157,16 @@ where
     ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 op,
+                &system_subject,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+                true,
             )
             .await
             .map_err(authz::error::AuthorizationError::from)?;
@@ -185,13 +191,16 @@ where
     ) -> Result<Option<ObligationDefaultedReallocationData>, ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 op,
+                &system_subject,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+                true,
             )
             .await
             .map_err(authz::error::AuthorizationError::from)?;
@@ -216,13 +225,16 @@ where
     ) -> Result<(Obligation, Option<LiquidationProcess>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 op,
+                &system_subject,
                 CoreCreditObject::obligation(id),
                 CoreCreditAction::OBLIGATION_UPDATE_STATUS,
+                true,
             )
             .await
             .map_err(authz::error::AuthorizationError::from)?;

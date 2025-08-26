@@ -1,6 +1,6 @@
 use std::collections::{HashMap, HashSet};
 
-use audit::SystemSubject;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::action_description::*;
 use es_entity::DbOp;
 
@@ -72,11 +72,9 @@ where
         db.commit().await?;
 
         // Subject::System also has the superuser role
+        let system_subject = <Audit as AuditSvcExt>::internal_system_subject();
         self.authz
-            .assign_role_to_subject(
-                <<Audit as AuditSvc>::Subject as SystemSubject>::system(),
-                superuser_role.id,
-            )
+            .assign_role_to_subject(system_subject, superuser_role.id)
             .await?;
 
         Ok(())
@@ -123,13 +121,16 @@ where
         permission_sets: &[PermissionSet],
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<Role, RoleError> {
+        let system_subject = <Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 db,
+                &system_subject,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::ROLE_CREATE,
+                true,
             )
             .await?;
 

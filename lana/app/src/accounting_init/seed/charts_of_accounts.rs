@@ -5,7 +5,7 @@ use crate::{
     accounting_init::{constants::*, *},
 };
 
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemId};
 
 use super::module_config::{balance_sheet::*, credit::*, deposit::*, profit_and_loss::*};
 
@@ -45,7 +45,7 @@ async fn create_chart_of_accounts(
     } else {
         Ok(chart_of_accounts
             .create_chart(
-                &Subject::System,
+                &Subject::System(SystemId::internal()),
                 CHART_NAME.to_string(),
                 CHART_REF.to_string(),
             )
@@ -76,7 +76,7 @@ async fn seed_chart_of_accounts(
 
     let data = std::fs::read_to_string(chart_of_accounts_seed_path)?;
     let chart = if let (chart, Some(new_account_set_ids)) = chart_of_accounts
-        .import_from_csv(&Subject::System, chart_id, data)
+        .import_from_csv(&Subject::System(SystemId::internal()), chart_id, data)
         .await?
     {
         trial_balances

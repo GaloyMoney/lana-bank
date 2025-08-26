@@ -19,7 +19,7 @@ pub use event::CoreCustodyEvent;
 use outbox::{Outbox, OutboxEventMarker};
 pub use publisher::CustodyPublisher;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use core_money::Satoshis;
 
@@ -214,12 +214,15 @@ where
         &self,
         deprecated_encryption_key: &DeprecatedEncryptionKey,
     ) -> Result<(), CoreCustodyError> {
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry(
+            .record_entry(
+                &system_subject,
                 CoreCustodyObject::all_custodians(),
                 CoreCustodyAction::CUSTODIAN_UPDATE,
+                true,
             )
             .await?;
 
@@ -386,13 +389,16 @@ where
             .find_by_external_wallet_id_in_op(&mut db, external_wallet_id)
             .await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut db,
+                &system_subject,
                 CoreCustodyObject::wallet(wallet.id),
                 CoreCustodyAction::WALLET_UPDATE,
+                true,
             )
             .await?;
 

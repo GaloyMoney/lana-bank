@@ -6,7 +6,7 @@ use es_entity::{DbOp, Idempotent};
 use std::collections::HashMap;
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::{Authorization, PermissionCheck};
 use outbox::{Outbox, OutboxEventMarker};
 
@@ -257,13 +257,16 @@ where
         email: String,
         role: &Role,
     ) -> Result<User, UserError> {
+        let system_subject = <Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut *op,
+                &system_subject,
                 CoreAccessObject::all_users(),
                 CoreAccessAction::USER_CREATE,
+                true,
             )
             .await?;
 

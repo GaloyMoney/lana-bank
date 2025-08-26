@@ -6,7 +6,7 @@ use governance::{
     GovernanceObject,
 };
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use governance::Governance;
 use outbox::OutboxEventMarker;
 
@@ -102,12 +102,15 @@ where
             return Ok(withdraw);
         }
         let mut op = self.repo.begin_op().await?;
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 CoreDepositObject::withdrawal(id),
                 CoreDepositAction::Withdrawal(WithdrawalAction::ConcludeApprovalProcess),
+                true,
             )
             .await?;
         if withdraw

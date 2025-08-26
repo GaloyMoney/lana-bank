@@ -8,7 +8,7 @@ use crate::{
     balance_sheet::{BalanceSheets, ChartOfAccountsIntegrationConfig, error::BalanceSheetError},
 };
 
-use rbac_types::Subject;
+use rbac_types::{Subject, SystemId};
 
 #[derive(Deserialize)]
 struct BalanceSheetConfigData {
@@ -47,7 +47,7 @@ pub(in crate::accounting_init::seed) async fn balance_sheet_module_configure(
 
     match balance_sheet
         .set_chart_of_accounts_integration_config(
-            &Subject::System,
+            &Subject::System(SystemId::internal()),
             BALANCE_SHEET_NAME.to_string(),
             chart,
             config_values,

@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
@@ -137,12 +137,15 @@ where
         }
 
         let mut op = self.credit_facilities.begin_op().await?;
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .audit
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
+                true,
             )
             .await?;
 
