@@ -22,7 +22,7 @@
     "@apollo/client": "^3.13.9",
     "@apollo/client-integration-nextjs": "^0.12.3",
     "@lana/web": "workspace:*",
-    "@sumsub/websdk-react": "^2.4.0",
+    "@sumsub/websdk-react": "^2.4.1",
     "@t3-oss/env-nextjs": "^0.13.8",
     "axios": "^1.11.0",
     "class-variance-authority": "^0.7.0",
@@ -41,7 +41,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
-    "zod": "^4.0.17"
+    "zod": "^4.1.1"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
