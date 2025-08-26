@@ -28,7 +28,7 @@ type Story = StoryObj<typeof DataTable<User>>
 const generateUsers = (count: number): User[] =>
   Array.from({ length: count }, (_, i) => ({
     id: i + 1,
-    name: faker.name.fullName(),
+    name: faker.person.fullName(),
     email: faker.internet.email(),
     role: faker.helpers.arrayElement(["Admin", "User", "Editor"]),
     status: faker.helpers.arrayElement(["active", "inactive"]),
