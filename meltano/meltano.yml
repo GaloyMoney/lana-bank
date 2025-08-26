@@ -73,8 +73,6 @@ plugins:
         flattening_enabled: true
         flattening_max_depth: 10
       select:
-        # yq '.sources | .[] | .tables | .[] | .name' meltano/transform/models/sources.yml | sort -u
-        # sed 's/_view$//g ; s/^/        - /g ; s/public_/public-/g'
         - public-cala_balance_history
         - public-cala_accounts
         - public-cala_account_sets
