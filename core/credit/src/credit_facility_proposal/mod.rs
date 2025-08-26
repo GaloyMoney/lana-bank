@@ -213,4 +213,11 @@ where
         }
         Ok(())
     }
+
+    pub(crate) async fn find_by_id_without_audit(
+        &self,
+        id: CreditFacilityProposalId,
+    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+        self.repo.find_by_id(id).await
+    }
 }

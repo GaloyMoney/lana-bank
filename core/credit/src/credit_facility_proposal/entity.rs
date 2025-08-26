@@ -50,6 +50,7 @@ pub enum CreditFacilityProposalEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacilityProposal {
     pub id: CreditFacilityProposalId,
+    pub ledger_tx_id: LedgerTxId,
     pub approval_process_id: ApprovalProcessId,
     pub account_ids: CreditFacilityProposalAccountIds,
     pub customer_id: CustomerId,
@@ -197,6 +198,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
             match event {
                 CreditFacilityProposalEvent::Initialized {
                     id,
+                    ledger_tx_id,
                     customer_id,
                     collateral_id,
                     amount,
@@ -208,6 +210,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
+                        .ledger_tx_id(*ledger_tx_id)
                         .collateral_id(*collateral_id)
                         .amount(*amount)
                         .terms(*terms)

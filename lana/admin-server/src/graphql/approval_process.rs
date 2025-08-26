@@ -185,8 +185,6 @@ impl From<&DomainApprovalProcessType> for ApprovalProcessType {
     fn from(process_type: &DomainApprovalProcessType) -> Self {
         if process_type == &lana_app::governance::APPROVE_WITHDRAWAL_PROCESS {
             Self::WithdrawalApproval
-        } else if process_type == &lana_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
-            Self::CreditFacilityApproval
         } else if process_type == &lana_app::governance::APPROVE_DISBURSAL_PROCESS {
             Self::DisbursalApproval
         } else if process_type == &lana_app::governance::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS {
