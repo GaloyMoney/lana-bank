@@ -115,10 +115,6 @@ plugins:
         - public-core_manual_transaction_events_rollup
         - public-core_document_events_rollup
         - public-core_liquidation_process_events_rollup
-        - bitfinex_ticker
-        - bitfinex_trades
-        - bitfinex_order_book
-        - sumsub_applicants
 
     - name: tap-bitfinexapi
       namespace: tap_bitfinexapi
