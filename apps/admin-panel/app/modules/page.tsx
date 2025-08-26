@@ -41,6 +41,12 @@ gql`
       chartOfAccountBankDepositAccountsParentCode
       chartOfAccountFinancialInstitutionDepositAccountsParentCode
       chartOfAccountNonDomiciledCompanyDepositAccountsParentCode
+      chartOfAccountsFrozenIndividualDepositAccountsParentCode
+      chartOfAccountsFrozenGovernmentEntityDepositAccountsParentCode
+      chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode
+      chartOfAccountFrozenBankDepositAccountsParentCode
+      chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode
+      chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode
     }
   }
 
