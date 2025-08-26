@@ -1773,7 +1773,8 @@
         "currency": "Moneda",
         "debit": "Debe",
         "credit": "Haber",
-        "closestAccountWithCode": "Código de cuenta principal"
+        "closestAccountWithCode": "Código de cuenta principal",
+        "transactionId": "ID de transacción"
       }
     },
     "exportCsv": {
