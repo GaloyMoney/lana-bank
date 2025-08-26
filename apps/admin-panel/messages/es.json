@@ -1751,7 +1751,7 @@
     "search": {
       "title": "Buscar cuentas del libro mayor",
       "description": "Ingrese un código de cuenta contable o ID para ver los detalles de la cuenta",
-      "placeholder": "Ingrese código de cuenta (ej., 1110.01) o ID de cuenta",
+      "placeholder": "Introduce el código de cuenta (p. ej., 1110.01) o ID de cuenta",
       "searchButton": "Buscar Cuenta",
       "notFound": "Cuenta contable no encontrada. El código de cuenta o ID que ingresó puede no existir.",
       "searchError": "Ocurrió un error durante la búsqueda. Por favor, inténtelo de nuevo."

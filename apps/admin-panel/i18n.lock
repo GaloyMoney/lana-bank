@@ -1029,7 +1029,7 @@ checksums:
     ChartOfAccountsLedgerAccount/descriptionWithCode: cd8f9f4d52de7097bb3bf5df68df82f8
     ChartOfAccountsLedgerAccount/search/title: 6c757c2416ef8d2d6eb07550128ef7e9
     ChartOfAccountsLedgerAccount/search/description: ac0f3f0f801567a637b0aa68e3142a8b
-    ChartOfAccountsLedgerAccount/search/placeholder: c77354c46f991d1752a4208c756419f6
+    ChartOfAccountsLedgerAccount/search/placeholder: 5ce300ed6ca498fd45195994a6f6ec88
     ChartOfAccountsLedgerAccount/search/searchButton: 7d7290226a5ac34275d94c50beffad6f
     ChartOfAccountsLedgerAccount/search/notFound: b8af943e19fa8c058e50be6ffe5ce97c
     ChartOfAccountsLedgerAccount/search/searchError: a648d2c1da87cb5dc1db3f71b4d70a14
