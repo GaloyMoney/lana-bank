@@ -926,7 +926,7 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut db: es_entity::DbOp<'_> = self.facilities.begin_op().await?;
+        let mut db = self.facilities.begin_op().await?;
 
         let payment = self
             .payments
