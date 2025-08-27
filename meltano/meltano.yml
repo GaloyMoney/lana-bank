@@ -73,49 +73,7 @@ plugins:
         flattening_enabled: true
         flattening_max_depth: 10
       select:
-        - public-cala_balance_history
-        - public-cala_accounts
-        - public-cala_account_sets
-        - public-cala_account_set_member_accounts
-        - public-cala_account_set_member_account_sets
-        - public-core_chart_events
-        - public-core_collateral_events
-        - public-core_credit_facility_events
-        - public-core_credit_facility_repayment_plans
-        - public-core_deposit_accounts
-        - public-core_deposit_events
-        - public-core_disbursal_events
-        - public-core_interest_accrual_cycle_events
-        - public-core_obligation_events
-        - public-core_obligation_installment_events
-        - public-core_payment_events
-        - public-core_withdrawal_events
-        - public-core_withdrawals
-        - public-core_customer_events
-        - public-core_user_events_rollup
-        - public-core_role_events_rollup
-        - public-core_permission_set_events_rollup
-        - public-core_approval_process_events_rollup
-        - public-core_committee_events_rollup
-        - public-core_policy_events_rollup
-        - public-core_customer_events_rollup
-        - public-core_deposit_account_events_rollup
-        - public-core_deposit_events_rollup
-        - public-core_withdrawal_events_rollup
-        - public-core_custodian_events_rollup
-        - public-core_collateral_events_rollup
-        - public-core_credit_facility_events_rollup
-        - public-core_disbursal_events_rollup
-        - public-core_interest_accrual_cycle_events_rollup
-        - public-core_obligation_events_rollup
-        - public-core_obligation_installment_events_rollup
-        - public-core_payment_events_rollup
-        - public-core_terms_template_events_rollup
-        - public-core_chart_events_rollup
-        - public-core_manual_transaction_events_rollup
-        - public-core_document_events_rollup
-        - public-core_liquidation_process_events_rollup
-
+        - public-*.*
     - name: tap-bitfinexapi
       namespace: tap_bitfinexapi
       pip_url: -e ${MELTANO_PROJECT_ROOT}/extract/tap-bitfinexapi
