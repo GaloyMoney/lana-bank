@@ -41,7 +41,7 @@ with source as (
         cast(collateral as numeric) / {{ var('sats_per_bitcoin') }} as collateral_amount_btc,
         cast(price as numeric) / {{ var('cents_per_usd') }} as price_usd_per_btc,
         cast(collateral as numeric) / {{ var('sats_per_bitcoin') }} * cast(price as numeric) / {{ var('cents_per_usd') }} as collateral_amount_usd,
-        cast(collateralization_ratio as numeric) as collateralization_ratio,
+        -- cast(collateralization_ratio as numeric) as collateralization_ratio,
         collateralization_state,
 
         approved,
@@ -93,7 +93,7 @@ with source as (
             terms,
             collateral,
             price,
-            collateralization_ratio,
+            -- collateralization_ratio,
             collateralization_state,
             approved,
             is_approval_process_concluded,

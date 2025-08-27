@@ -30,8 +30,8 @@ with source as (
         cast(overdue_amount as numeric) / {{ var('cents_per_usd') }} as overdue_amount_usd,
         cast(defaulted_amount as numeric) / {{ var('cents_per_usd') }} as defaulted_amount_usd,
 
-        current_timestamp() >= due_date
-            and current_timestamp() >= overdue_date
+        current_timestamp() >= cast(due_date as timestamp)
+            and current_timestamp() >= cast(overdue_date as timestamp)
             and not is_completed
             and not is_defaulted_recorded
             and cast(amount as numeric) > 0
@@ -42,7 +42,7 @@ with source as (
                 or cast(amount as numeric) <= 0
                     then 0
             else 1
-        end * greatest(timestamp_diff(current_timestamp(), overdue_date, DAY), 0) as overdue_days,
+        end * greatest(timestamp_diff(current_timestamp(), cast(overdue_date as timestamp), DAY), 0) as overdue_days,
 
         cast(due_date as timestamp) as due_date,
         cast(overdue_date as timestamp) as overdue_date,

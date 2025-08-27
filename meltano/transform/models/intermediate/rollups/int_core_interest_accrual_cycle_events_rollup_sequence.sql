@@ -21,7 +21,7 @@ with source as (
     select
         interest_accrual_cycle_id,
         credit_facility_id,
-        cast(facility_matures_at as timestamp) as facility_matures_at,
+        cast(facility_maturity_date as timestamp) as facility_maturity_date,
 
         idx,
         cast(json_value(period, "$.start") as timestamp) as period_start_at,
@@ -59,7 +59,7 @@ with source as (
             interest_accrual_cycle_id,
             credit_facility_id,
             obligation_id,
-            facility_matures_at,
+            facility_maturity_date,
             idx,
             period,
             terms,
