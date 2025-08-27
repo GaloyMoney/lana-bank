@@ -251,6 +251,7 @@ pub struct CreditFacilityPartialPaymentInput {
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
 }
+
 #[derive(InputObject)]
 pub struct CreditFacilityPartialPaymentWithDateInput {
     pub credit_facility_id: UUID,
