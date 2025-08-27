@@ -15,7 +15,7 @@ use super::{entity::*, error::*};
     columns(
         email(ty = "String", list_by),
         telegram_id(ty = "String", list_by),
-        kyc_status(ty = "CustomerKycStatus", list_for),
+        kyc_verification(ty = "KycVerification", list_for),
         activity(ty = "Activity", list_for),
         public_id(ty = "PublicId", list_by)
     ),
@@ -66,9 +66,9 @@ where
 mod account_status_sqlx {
     use sqlx::{Type, postgres::*};
 
-    use crate::primitives::CustomerKycStatus;
+    use crate::primitives::KycVerification;
 
-    impl Type<Postgres> for CustomerKycStatus {
+    impl Type<Postgres> for KycVerification {
         fn type_info() -> PgTypeInfo {
             <String as Type<Postgres>>::type_info()
         }
@@ -78,7 +78,7 @@ mod account_status_sqlx {
         }
     }
 
-    impl sqlx::Encode<'_, Postgres> for CustomerKycStatus {
+    impl sqlx::Encode<'_, Postgres> for KycVerification {
         fn encode_by_ref(
             &self,
             buf: &mut PgArgumentBuffer,
@@ -87,14 +87,14 @@ mod account_status_sqlx {
         }
     }
 
-    impl<'r> sqlx::Decode<'r, Postgres> for CustomerKycStatus {
+    impl<'r> sqlx::Decode<'r, Postgres> for KycVerification {
         fn decode(value: PgValueRef<'r>) -> Result<Self, Box<dyn std::error::Error + Sync + Send>> {
             let s = <String as sqlx::Decode<Postgres>>::decode(value)?;
             Ok(s.parse().map_err(|e: strum::ParseError| Box::new(e))?)
         }
     }
 
-    impl PgHasArrayType for CustomerKycStatus {
+    impl PgHasArrayType for KycVerification {
         fn array_type_info() -> PgTypeInfo {
             <String as sqlx::postgres::PgHasArrayType>::array_type_info()
         }

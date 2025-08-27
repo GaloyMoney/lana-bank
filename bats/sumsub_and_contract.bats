@@ -118,20 +118,20 @@ wait_for_loan_agreement_completion() {
   echo "Waiting for webhook processing..."
   sleep 1
 
-  # Verify the customer status after the complete KYC flow
+  # Verify the customer kyc verification after the complete KYC flow
   variables=$(jq -n --arg customerId "$customer_id" '{ id: $customerId }')
   
   exec_admin_graphql 'customer' "$variables"
   level=$(graphql_output '.data.customer.level')
-  status=$(graphql_output '.data.customer.status')
+  kyc_verification=$(graphql_output '.data.customer.kycVerification')
   final_applicant_id=$(graphql_output '.data.customer.applicantId')
 
-  # After status check
-  echo "After test applicant creation - level: $level, status: $status, applicant_id: $final_applicant_id"
+  # After kyc verification check
+  echo "After test applicant creation - level: $level, kycVerification: $kyc_verification, applicant_id: $final_applicant_id"
 
-  # The complete test applicant should result in BASIC level and ACTIVE status
+  # The complete test applicant should result in BASIC level and VERIFIED kyc verification
   [[ "$level" == "BASIC" ]] || exit 1
-  [[ "$status" == "ACTIVE" ]] || exit 1
+  [[ "$kyc_verification" == "VERIFIED" ]] || exit 1
   [[ "$final_applicant_id" == "$test_applicant_id" ]] || exit 1
 
   variables=$(
@@ -259,12 +259,12 @@ wait_for_loan_agreement_completion() {
   exec_admin_graphql 'customer' "$variables"
 
   level=$(graphql_output '.data.customer.level')
-  status=$(graphql_output '.data.customer.status')
+  kyc_verification=$(graphql_output '.data.customer.kycVerification')
 
-  echo "After rejection webhook - level: $level, status: $status"
-  # After rejection, level should remain BASIC but status should become INACTIVE
+  echo "After rejection webhook - level: $level, kycVerification: $kyc_verification"
+  # After rejection, level should remain BASIC but kyc verification should become REJECTED
   [[ "$level" == "BASIC" ]] || exit 1
-  [[ "$status" == "INACTIVE" ]] || exit 1
+  [[ "$kyc_verification" == "REJECTED" ]] || exit 1
 }
 
 @test "sumsub: sandbox mode with random customer ID should return 200" {

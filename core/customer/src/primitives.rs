@@ -38,11 +38,11 @@ pub enum KycLevel {
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
 #[serde(rename_all = "kebab-case")]
-pub enum CustomerKycStatus {
+pub enum KycVerification {
     #[default]
-    Pending,
-    Declined,
-    Approved,
+    PendingVerification,
+    Verified,
+    Rejected,
 }
 
 #[derive(
@@ -97,9 +97,9 @@ impl Display for CustomerType {
     }
 }
 
-impl CustomerKycStatus {
-    pub fn is_approved(&self) -> bool {
-        matches!(self, CustomerKycStatus::Approved)
+impl KycVerification {
+    pub fn is_verified(&self) -> bool {
+        matches!(self, KycVerification::Verified)
     }
 }
 

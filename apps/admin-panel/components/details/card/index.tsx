@@ -134,7 +134,7 @@ export const DetailsCard: React.FC<DetailsCardProps> = ({
       <CardHeader>
         <div className="flex items-center justify-between w-full">
           <div className="space-y-1.5">
-            <div className="flex items-center gap-2.5">
+            <div className="flex items-center gap-5">
               <CardTitle>{title}</CardTitle>
               {publicId && (
                 <div className={cn("text-sm text-muted-foreground")}>

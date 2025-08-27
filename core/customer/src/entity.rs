@@ -31,8 +31,8 @@ pub enum CustomerEvent {
     KycDeclined {
         applicant_id: String,
     },
-    KycStatusUpdated {
-        kyc_status: CustomerKycStatus,
+    KycVerificationUpdated {
+        kyc_verification: KycVerification,
     },
     TelegramIdUpdated {
         telegram_id: String,
@@ -52,7 +52,7 @@ pub struct Customer {
     pub email: String,
     pub telegram_id: String,
     #[builder(default)]
-    pub kyc_status: CustomerKycStatus,
+    pub kyc_verification: KycVerification,
     #[builder(default)]
     pub activity: Activity,
     pub level: KycLevel,
@@ -105,7 +105,7 @@ impl Customer {
         self.applicant_id = Some(applicant_id);
         self.level = KycLevel::Basic;
 
-        self.update_account_kyc_status(CustomerKycStatus::Approved)
+        self.update_account_kyc_verification(KycVerification::Verified)
     }
 
     pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
@@ -117,22 +117,22 @@ impl Customer {
         self.events
             .push(CustomerEvent::KycDeclined { applicant_id });
         self.level = KycLevel::NotKyced;
-        self.update_account_kyc_status(CustomerKycStatus::Declined)
+        self.update_account_kyc_verification(KycVerification::Rejected)
     }
 
-    fn update_account_kyc_status(
+    fn update_account_kyc_verification(
         &mut self,
-        kyc_status: CustomerKycStatus,
+        kyc_verification: KycVerification,
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            CustomerEvent::KycStatusUpdated { kyc_status: existing_kyc_status, .. } if existing_kyc_status == &kyc_status,
-            => CustomerEvent::KycStatusUpdated { .. }
+            CustomerEvent::KycVerificationUpdated { kyc_verification: existing_kyc_verification, .. } if existing_kyc_verification == &kyc_verification,
+            => CustomerEvent::KycVerificationUpdated { .. }
         );
-        self.events.push(CustomerEvent::KycStatusUpdated {
-            kyc_status,
+        self.events.push(CustomerEvent::KycVerificationUpdated {
+            kyc_verification,
         });
-        self.kyc_status = kyc_status;
+        self.kyc_verification = kyc_verification;
         Idempotent::Executed(())
     }
 
@@ -209,8 +209,10 @@ impl TryFromEvents<CustomerEvent> for Customer {
                 CustomerEvent::KycDeclined { applicant_id, .. } => {
                     builder = builder.applicant_id(applicant_id.clone())
                 }
-                CustomerEvent::KycStatusUpdated { kyc_status, .. } => {
-                    builder = builder.kyc_status(*kyc_status);
+                CustomerEvent::KycVerificationUpdated {
+                    kyc_verification, ..
+                } => {
+                    builder = builder.kyc_verification(*kyc_verification);
                 }
                 CustomerEvent::TelegramIdUpdated { telegram_id, .. } => {
                     builder = builder.telegram_id(telegram_id.clone());
@@ -239,7 +241,7 @@ pub struct NewCustomer {
     #[builder(setter(into))]
     pub(super) customer_type: CustomerType,
     #[builder(setter(skip), default)]
-    pub(super) kyc_status: CustomerKycStatus,
+    pub(super) kyc_verification: KycVerification,
     #[builder(setter(skip), default)]
     pub(super) activity: Activity,
     #[builder(setter(into))]

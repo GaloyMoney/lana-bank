@@ -10,9 +10,9 @@ use super::{
 };
 
 pub use lana_app::customer::{
-    Activity, Customer as DomainCustomer, CustomerKycStatus, CustomerType, CustomersCursor,
+    Activity, Customer as DomainCustomer, CustomerType, CustomersCursor,
     CustomersFilter as DomainCustomersFilter, CustomersSortBy as DomainCustomersSortBy, KycLevel,
-    Sort,
+    KycVerification, Sort,
 };
 
 pub use error::*;
@@ -22,7 +22,7 @@ pub use error::*;
 pub struct Customer {
     id: ID,
     customer_id: UUID,
-    kyc_status: CustomerKycStatus,
+    kyc_verification: KycVerification,
     activity: Activity,
     level: KycLevel,
     created_at: Timestamp,
@@ -37,7 +37,7 @@ impl From<DomainCustomer> for Customer {
         Customer {
             id: customer.id.to_global_id(),
             customer_id: UUID::from(customer.id),
-            kyc_status: customer.kyc_status,
+            kyc_verification: customer.kyc_verification,
             activity: customer.activity,
             level: customer.level,
             created_at: customer.created_at().into(),
@@ -196,11 +196,11 @@ impl From<CustomersSort> for Sort<DomainCustomersSortBy> {
 
 #[derive(async_graphql::Enum, Debug, Clone, Copy, PartialEq, Eq)]
 pub enum CustomersFilterBy {
-    AccountKycStatus,
+    AccountKycVerification,
 }
 
 #[derive(InputObject)]
 pub struct CustomersFilter {
     pub field: CustomersFilterBy,
-    pub kyc_status: Option<CustomerKycStatus>,
+    pub kyc_verification: Option<KycVerification>,
 }

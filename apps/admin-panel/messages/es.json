@@ -218,7 +218,7 @@
       "email": "Correo electrónico",
       "telegramId": "Telegram",
       "status": "Estado",
-      "kycStatus": "Estado KYC",
+      "kycVerification": "Estado KYC",
       "depositAccount": "Saldo USD"
     },
     "status": {
@@ -300,11 +300,11 @@
         }
       },
       "kycStatus": {
-        "title": "Estado KYC",
+        "title": "KYC",
         "status": {
-          "approved": "Aprobado",
-          "declined": "Rechazado",
-          "pending": "Pendiente"
+          "verified": "Verificado",
+          "pendingVerification": "Verificación Pendiente",
+          "rejected": "Rechazado"
         },
         "labels": {
           "level": "Nivel",

@@ -139,16 +139,16 @@ impl Query {
     ) -> async_graphql::Result<Connection<CustomersCursor, Customer, EmptyFields, EmptyFields>>
     {
         let (filter_field, status) = match filter {
-            Some(filter) => (Some(filter.field), filter.kyc_status),
+            Some(filter) => (Some(filter.field), filter.kyc_verification),
             None => (None, None),
         };
         let filter = match filter_field {
             None => DomainCustomersFilter::NoFilter,
-            Some(CustomersFilterBy::AccountKycStatus) => {
+            Some(CustomersFilterBy::AccountKycVerification) => {
                 let status = status.ok_or(CustomerError::MissingValueForFilterField(
-                    "kyc_status".to_string(),
+                    "kyc_verification".to_string(),
                 ))?;
-                DomainCustomersFilter::WithKycStatus(status)
+                DomainCustomersFilter::WithKycVerification(status)
             }
         };
 

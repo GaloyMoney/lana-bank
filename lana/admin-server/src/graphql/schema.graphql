@@ -791,7 +791,7 @@ type CustodianEdge {
 type Customer {
 	id: ID!
 	customerId: UUID!
-	kycStatus: CustomerKycStatus!
+	kycVerification: KycVerification!
 	activity: Activity!
 	level: KycLevel!
 	createdAt: Timestamp!
@@ -896,12 +896,6 @@ type CustomerEmailUpdatePayload {
 	customer: Customer!
 }
 
-enum CustomerKycStatus {
-	PENDING
-	DECLINED
-	APPROVED
-}
-
 input CustomerTelegramIdUpdateInput {
 	customerId: UUID!
 	telegramId: String!
@@ -923,11 +917,11 @@ enum CustomerType {
 
 input CustomersFilter {
 	field: CustomersFilterBy!
-	kycStatus: CustomerKycStatus
+	kycVerification: KycVerification
 }
 
 enum CustomersFilterBy {
-	ACCOUNT_KYC_STATUS
+	ACCOUNT_KYC_VERIFICATION
 }
 
 input CustomersSort {
@@ -1251,6 +1245,12 @@ enum KycLevel {
 	NOT_KYCED
 	BASIC
 	ADVANCED
+}
+
+enum KycVerification {
+	PENDING_VERIFICATION
+	VERIFIED
+	REJECTED
 }
 
 enum Layer {

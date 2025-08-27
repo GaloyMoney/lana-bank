@@ -4,14 +4,16 @@ import React from "react"
 import { gql } from "@apollo/client"
 import { HiLink } from "react-icons/hi"
 
-import { Copy } from "lucide-react"
+import { Copy, BadgeCheck, Clock, CircleX } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
+import { Badge } from "@lana/web/ui/badge"
+
 import {
-  CustomerKycStatus,
+  KycVerification,
   useGetKycStatusForCustomerQuery,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
@@ -22,7 +24,7 @@ gql`
   query GetKycStatusForCustomer($id: UUID!) {
     customer(id: $id) {
       customerId
-      kycStatus
+      kycVerification
       level
       applicantId
     }
@@ -65,34 +67,44 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
     }
   }
 
+  const getKycVerificationBadge = () => {
+    if (!data?.customer?.kycVerification) return null
+
+    switch (data.customer.kycVerification) {
+      case KycVerification.Verified:
+        return (
+          <Badge variant="ghost" className="text-green-600 flex items-center gap-1">
+            <BadgeCheck className="h-4 w-4 stroke-[3]" />
+            Verified
+          </Badge>
+        )
+      case KycVerification.PendingVerification:
+        return (
+          <Badge
+            variant="ghost"
+            className="text-muted-foreground flex items-center gap-1"
+          >
+            <Clock className="h-4 w-4 stroke-[3]" />
+            Pending
+          </Badge>
+        )
+      case KycVerification.Rejected:
+        return (
+          <Badge variant="ghost" className="text-destructive flex items-center gap-1">
+            <CircleX className="h-4 w-4 stroke-[3]" />
+            Rejected
+          </Badge>
+        )
+      default:
+        return null
+    }
+  }
   if (loading && !data) return <Skeleton />
 
   const details: DetailItemProps[] = [
     {
       label: t("labels.level"),
       value: removeUnderscore(data?.customer?.level),
-    },
-    {
-      label: t("labels.status"),
-      value: (
-        <div className="flex items-center gap-2">
-          <span
-            className={`px-2 py-1 rounded text-xs font-medium ${
-              data?.customer?.kycStatus === CustomerKycStatus.Approved
-                ? "bg-green-100 text-green-800"
-                : data?.customer?.kycStatus === CustomerKycStatus.Pending
-                ? "bg-yellow-100 text-yellow-800"
-                : "bg-red-100 text-red-800"
-            }`}
-          >
-            {data?.customer?.kycStatus === CustomerKycStatus.Approved
-              ? t("status.approved")
-              : data?.customer?.kycStatus === CustomerKycStatus.Pending
-              ? t("status.pending")
-              : t("status.declined")}
-          </span>
-        </div>
-      ),
     },
     {
       label: t("labels.kycApplicationLink"),
@@ -144,5 +156,14 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
     },
   ]
 
-  return <DetailsCard title={t("title")} details={details} className="w-full md:w-1/2" />
+  const badge = getKycVerificationBadge()
+
+  return (
+    <DetailsCard
+      title={t("title")}
+      badge={badge || undefined}
+      details={details}
+      className="w-full md:w-1/2"
+    />
+  )
 }

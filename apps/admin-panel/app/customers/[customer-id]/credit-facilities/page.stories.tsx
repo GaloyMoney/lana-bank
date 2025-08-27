@@ -8,7 +8,7 @@ import CustomerCreditFacilitiesPage from "./page"
 import {
   GetCustomerCreditFacilitiesDocument,
   GetCustomerBasicDetailsDocument,
-  CustomerKycStatus,
+  KycVerification,
   Activity,
 } from "@/lib/graphql/generated"
 
@@ -43,7 +43,7 @@ const layoutMocks = [
           customerId: "4178b451-c9cb-4841-b248-5cc20e7774a6",
           email: "test@lana.com",
           telegramId: "test",
-          kycStatus: CustomerKycStatus.Declined,
+          kycVerification: KycVerification.Rejected,
           activity: Activity.Active,
           level: "NOT_KYCED",
           createdAt: "2024-11-25T06:23:56.549713Z",

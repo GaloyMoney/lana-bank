@@ -157,19 +157,13 @@ type Customer {
 	id: ID!
 	customerId: UUID!
 	customerType: CustomerType!
-	kycStatus: CustomerKycStatus!
+	kycVerification: KycVerification!
 	level: KycLevel!
 	createdAt: Timestamp!
 	email: String!
 	telegramId: String!
 	depositAccount: DepositAccount!
 	creditFacilities: [CreditFacility!]!
-}
-
-enum CustomerKycStatus {
-	PENDING
-	DECLINED
-	APPROVED
 }
 
 enum CustomerType {
@@ -293,6 +287,12 @@ enum KycLevel {
 	NOT_KYCED
 	BASIC
 	ADVANCED
+}
+
+enum KycVerification {
+	PENDING_VERIFICATION
+	VERIFIED
+	REJECTED
 }
 
 type Me {

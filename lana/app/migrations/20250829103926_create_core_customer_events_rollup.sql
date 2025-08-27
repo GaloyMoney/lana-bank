@@ -9,7 +9,7 @@ CREATE TABLE core_customer_events_rollup (
   applicant_id VARCHAR,
   customer_type VARCHAR,
   email VARCHAR,
-  kyc_status VARCHAR,
+  kyc_verification VARCHAR,
   level VARCHAR,
   public_id VARCHAR,
   telegram_id VARCHAR,
@@ -38,7 +38,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'kyc_status_updated', 'telegram_id_updated', 'email_updated', 'activity_updated') THEN
+  IF event_type NOT IN ('initialized', 'kyc_started', 'kyc_approved', 'kyc_declined', 'kyc_verification_updated', 'telegram_id_updated', 'email_updated', 'activity_updated') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -55,7 +55,7 @@ BEGIN
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
-    new_row.kyc_status := (NEW.event ->> 'kyc_status');
+    new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     new_row.level := (NEW.event ->> 'level');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.telegram_id := (NEW.event ->> 'telegram_id');
@@ -66,7 +66,7 @@ BEGIN
     new_row.customer_type := current_row.customer_type;
     new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
-    new_row.kyc_status := current_row.kyc_status;
+    new_row.kyc_verification := current_row.kyc_verification;
     new_row.level := current_row.level;
     new_row.public_id := current_row.public_id;
     new_row.telegram_id := current_row.telegram_id;
@@ -88,8 +88,8 @@ BEGIN
       new_row.level := (NEW.event ->> 'level');
     WHEN 'kyc_declined' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
-    WHEN 'kyc_status_updated' THEN
-      new_row.kyc_status := (NEW.event ->> 'kyc_status');
+    WHEN 'kyc_verification_updated' THEN
+      new_row.kyc_verification := (NEW.event ->> 'kyc_verification');
     WHEN 'telegram_id_updated' THEN
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
     WHEN 'email_updated' THEN
@@ -108,7 +108,7 @@ BEGIN
     customer_type,
     email,
     is_kyc_approved,
-    kyc_status,
+    kyc_verification,
     level,
     public_id,
     telegram_id
@@ -123,7 +123,7 @@ BEGIN
     new_row.customer_type,
     new_row.email,
     new_row.is_kyc_approved,
-    new_row.kyc_status,
+    new_row.kyc_verification,
     new_row.level,
     new_row.public_id,
     new_row.telegram_id

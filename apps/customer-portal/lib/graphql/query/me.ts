@@ -10,7 +10,7 @@ gql`
       customer {
         id
         customerId
-        kycStatus
+        kycVerification
         level
         createdAt
         email

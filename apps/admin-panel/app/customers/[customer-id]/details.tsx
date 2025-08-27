@@ -76,13 +76,19 @@ export const CustomerDetailsCard: React.FC<CustomerDetailsCardProps> = ({ custom
       label: t("labels.status"),
       value: (
         <Badge
-          variant={customer.activity === Activity.Active ? "success" : "secondary"}
+          variant={
+            customer.activity === Activity.Active
+              ? "success"
+              : customer.activity === Activity.Inactive
+                ? "secondary"
+                : "destructive"
+          }
         >
           {customer.activity === Activity.Active
             ? t("status.active")
             : customer.activity === Activity.Inactive
-            ? t("status.inactive")
-            : t("status.suspended")}
+              ? t("status.inactive")
+              : t("status.suspended")}
         </Badge>
       ),
     },
