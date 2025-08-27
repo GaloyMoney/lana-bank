@@ -106,7 +106,10 @@ async fn create_and_process_facility(
                 amount,
                 ..
             })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
-                let _ = app.credit().record_payment(&sub, *id, *amount).await;
+                let _ = app
+                    .credit()
+                    .record_payment_with_date(&sub, *id, *amount, sim_time::now().date_naive())
+                    .await;
                 let facility = app
                     .credit()
                     .facilities()
@@ -116,7 +119,12 @@ async fn create_and_process_facility(
                 if facility.interest_accrual_cycle_in_progress().is_none() {
                     let total_outstanding_amount = app.credit().outstanding(&facility).await?;
                     app.credit()
-                        .record_payment(&sub, facility.id, total_outstanding_amount)
+                        .record_payment_with_date(
+                            &sub,
+                            facility.id,
+                            total_outstanding_amount,
+                            sim_time::now().date_naive(),
+                        )
                         .await?;
                     app.credit().complete_facility(&sub, facility.id).await?;
                 }

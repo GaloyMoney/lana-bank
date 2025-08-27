@@ -107,7 +107,9 @@ async fn do_timely_payments(
             sim_time::sleep(one_month).await;
         }
 
-        app.credit().record_payment(&sub, id, amount).await?;
+        app.credit()
+            .record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+            .await?;
 
         if !app
             .credit()

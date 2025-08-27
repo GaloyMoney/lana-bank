@@ -113,7 +113,9 @@ async fn do_interest_late(
             continue;
         }
 
-        app.credit().record_payment(&sub, id, amount).await?;
+        app.credit()
+            .record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+            .await?;
 
         let facility = app
             .credit()
@@ -131,7 +133,7 @@ async fn do_interest_late(
     sim_time::sleep(one_month).await;
 
     app.credit()
-        .record_payment(&sub, id, first_interest)
+        .record_payment_with_date(&sub, id, first_interest, sim_time::now().date_naive())
         .await?;
 
     if app
@@ -141,7 +143,9 @@ async fn do_interest_late(
         .await?
     {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
-            app.credit().record_payment(&sub, id, amount).await?;
+            app.credit()
+                .record_payment_with_date(&sub, id, amount, sim_time::now().date_naive())
+                .await?;
 
             if !app
                 .credit()
