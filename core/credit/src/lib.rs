@@ -926,15 +926,15 @@ where
             .find_by_id_without_audit(credit_facility_id)
             .await?;
 
-        let mut op = self.facilities.begin_op().await?;
+        let mut db: es_entity::DbOp<'_> = self.facilities.begin_op().await?;
 
         let payment = self
             .payments
-            .record_in_op(&mut op, credit_facility_id, amount)
+            .record_in_op(&mut db, credit_facility_id, amount)
             .await?;
 
         self.obligations
-            .apply_installment_in_op(op, credit_facility_id, payment.id, amount, effective.into())
+            .apply_installment_in_op(db, credit_facility_id, payment.id, amount, effective.into())
             .await?;
 
         Ok(credit_facility)

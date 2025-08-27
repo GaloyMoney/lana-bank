@@ -59,7 +59,7 @@
       "label": "Credit Writer",
       "description": "Can create and manage credit facilities, update collateral, initiate and settle disbursals, record interest, and process obligations"
     },
-    "credit_backdate_writer": {
+    "credit_payment_date_writer": {
       "label": "Credit Date Writer",
       "description": "Can create payments for credit facilities with custom effective dates"
     },

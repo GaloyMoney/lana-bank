@@ -59,7 +59,7 @@
       "label": "Editor de crédito",
       "description": "Puede crear y gestionar líneas de crédito, actualizar garantías, iniciar y liquidar desembolsos, registrar intereses y procesar obligaciones"
     },
-    "credit_backdate_writer": {
+    "credit_payment_date_writer": {
       "label": "Editor de fechas de pago de crédito",
       "description": "Puede crear pagos para líneas de crédito con fechas efectivas personalizadas"
     },
