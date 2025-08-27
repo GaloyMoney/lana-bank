@@ -79,7 +79,7 @@ const depositModuleCodes = {
   chartOfAccountFrozenPrivateCompanyDepositAccountsParentCode: "2114.03.0301",
   chartOfAccountFrozenBankDepositAccountsParentCode: "2114.03.0501",
   chartOfAccountFrozenFinancialInstitutionDepositAccountsParentCode: "2114.03.0601",
-  chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode: "2114.03.0901",
+  chartOfAccountFrozenNonDomiciledIndividualDepositAccountsParentCode: "2114.03.0701",
 }
 
 export const DepositConfigUpdateDialog: React.FC<DepositConfigUpdateDialogProps> = ({

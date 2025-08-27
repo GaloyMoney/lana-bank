@@ -89,7 +89,7 @@ impl From<DomainChartOfAccountsIntegrationConfig> for DepositModuleConfig {
             ),
             chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code: Some(
                 values
-                    .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code
+                    .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code
                     .to_string(),
             ),
 
