@@ -372,12 +372,6 @@ pub fn update_schemas(
             filename: "chart_event_schema.json",
             collections: vec![
                 CollectionRollup {
-                    column_name: "node_specs",
-                    values: "spec",
-                    add_events: vec!["NodeAdded".to_string()],
-                    remove_events: vec![],
-                },
-                CollectionRollup {
                     column_name: "ledger_account_set_ids",
                     values: "ledger_account_set_id",
                     add_events: vec!["NodeAdded".to_string()],

@@ -8,12 +8,12 @@ CREATE TABLE core_chart_events_rollup (
   code JSONB,
   name VARCHAR,
   reference VARCHAR,
+  spec JSONB,
 
   -- Collection rollups
   audit_entry_ids BIGINT[],
   ledger_account_set_ids UUID[],
-  manual_ledger_account_ids UUID[],
-  node_specs JSONB
+  manual_ledger_account_ids UUID[]
 ,
   PRIMARY KEY (id, version)
 );
@@ -68,13 +68,8 @@ BEGIN
      END
 ;
     new_row.name := (NEW.event ->> 'name');
-    new_row.node_specs := CASE
-       WHEN NEW.event ? 'node_specs' THEN
-         (NEW.event -> 'node_specs')
-       ELSE '[]'::JSONB
-     END
-;
     new_row.reference := (NEW.event ->> 'reference');
+    new_row.spec := (NEW.event -> 'spec');
   ELSE
     -- Default all fields to current values
     new_row.audit_entry_ids := current_row.audit_entry_ids;
@@ -82,8 +77,8 @@ BEGIN
     new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
     new_row.manual_ledger_account_ids := current_row.manual_ledger_account_ids;
     new_row.name := current_row.name;
-    new_row.node_specs := current_row.node_specs;
     new_row.reference := current_row.reference;
+    new_row.spec := current_row.spec;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -95,7 +90,7 @@ BEGIN
     WHEN 'node_added' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.ledger_account_set_ids := array_append(COALESCE(current_row.ledger_account_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_set_id')::UUID);
-      new_row.node_specs := COALESCE(current_row.node_specs, '[]'::JSONB) || jsonb_build_array(NEW.event -> 'spec');
+      new_row.spec := (NEW.event -> 'spec');
     WHEN 'manual_transaction_account_added' THEN
       new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
       new_row.code := (NEW.event -> 'code');
@@ -112,8 +107,8 @@ BEGIN
     ledger_account_set_ids,
     manual_ledger_account_ids,
     name,
-    node_specs,
-    reference
+    reference,
+    spec
   )
   VALUES (
     new_row.id,
@@ -125,8 +120,8 @@ BEGIN
     new_row.ledger_account_set_ids,
     new_row.manual_ledger_account_ids,
     new_row.name,
-    new_row.node_specs,
-    new_row.reference
+    new_row.reference,
+    new_row.spec
   );
 
   RETURN NEW;
