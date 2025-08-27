@@ -876,13 +876,9 @@ where
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_obligations(),
-                CoreCreditAction::OBLIGATION_RECORD_PAYMENT,
-            )
-            .await?;
+        self.subject_can_record_payment(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let credit_facility_id = credit_facility_id.into();
 
@@ -930,14 +926,10 @@ where
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
-        let audit_info = self
-            .authz
-            .enforce_permission(
-                sub,
-                CoreCreditObject::all_obligations(),
-                CoreCreditAction::OBLIGATION_RECORD_PAYMENT_WITH_DATE,
-            )
-            .await?;
+        self
+            .subject_can_record_payment_with_date(sub, true)
+            .await?
+            .expect("audit info missing");
 
         let credit_facility_id = credit_facility_id.into();
 
@@ -950,7 +942,7 @@ where
 
         let payment = self
             .payments
-            .record_in_op(&mut op, credit_facility_id, amount, &audit_info)
+            .record_in_op(&mut op, credit_facility_id, amount)
             .await?;
 
         self.obligations
@@ -960,7 +952,6 @@ where
                 payment.id,
                 amount,
                 effective.into(),
-                &audit_info,
             )
             .await?;
 
