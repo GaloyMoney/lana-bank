@@ -170,7 +170,7 @@ impl Chart {
         self.all_accounts.get(code)
     }
 
-    /// Returns ancestors of this chart of accounts, starting with `code` (not included).
+    /// Returns ancestors, in this chart of accounts, of an account with `code` (not included).
     /// The lower in hierarchy the parent is, the lower index it will have in the resulting vector;
     /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
@@ -202,12 +202,21 @@ impl Chart {
         result
     }
 
-    pub fn children<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
+    /// Returns direct children, in this chart of accounts, of an account with `code` (not included).
+    /// No particular order of the children is guaranteed.
+    pub fn children(
+        &self,
+        code: &AccountCode,
+    ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
         self.all_accounts
-            .values()
-            .filter(|AccountDetails { spec, .. }| spec.parent.as_ref() == Some(code))
-            .map(|AccountDetails { account_set_id, .. }| T::from(*account_set_id))
-            .collect()
+            .iter()
+            .filter_map(|(account_code, details)| {
+                if details.spec.parent.as_ref() == Some(code) {
+                    Some((account_code, details.account_set_id))
+                } else {
+                    None
+                }
+            })
     }
 
     pub fn account_set_id_from_code(
@@ -227,11 +236,10 @@ impl Chart {
         &self,
         code: &AccountCode,
     ) -> Result<(), ChartOfAccountsError> {
-        if !self.children::<CalaAccountSetId>(code).is_empty() {
-            return Err(ChartOfAccountsError::NonLeafAccount(code.to_string()));
-        };
-
-        Ok(())
+        match self.children(code).next() {
+            None => Ok(()),
+            _ => Err(ChartOfAccountsError::NonLeafAccount(code.to_string())),
+        }
     }
 
     fn manual_transaction_account_id_from_code(

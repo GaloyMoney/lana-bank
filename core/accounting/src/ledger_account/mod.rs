@@ -3,7 +3,7 @@ pub mod error;
 mod ledger;
 mod value;
 
-use std::collections::HashMap;
+use std::collections::{BTreeMap, HashMap};
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -274,16 +274,18 @@ where
         chart: &Chart,
         account: &mut LedgerAccount,
     ) -> Result<(), LedgerAccountError> {
-        let children = if let Some(code) = &account.code {
-            chart.children::<LedgerAccountId>(code)
-        } else {
-            Vec::new()
-        };
+        let children: BTreeMap<_, _> = account
+            .code
+            .as_ref()
+            .map(|code| chart.children(code).collect())
+            .unwrap_or_default();
+
         account.children_ids = if children.is_empty() {
             self.ledger.find_leaf_children(account.id, 1).await?
         } else {
-            children
+            children.into_values().map(Into::into).collect()
         };
+
         Ok(())
     }
 }
