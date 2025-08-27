@@ -61,7 +61,7 @@
     },
     "credit_backdate_writer": {
       "label": "Credit Date Writer",
-      "description": "Can create payments for credit facilities with past effective dates"
+      "description": "Can create payments for credit facilities with custom effective dates"
     },
     "customer_viewer": {
       "label": "Customer Viewer",

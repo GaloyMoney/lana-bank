@@ -583,11 +583,16 @@ type CreditFacilityObligationInstallment {
 input CreditFacilityPartialPaymentInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
-	effective: Date!
 }
 
 type CreditFacilityPartialPaymentPayload {
 	creditFacility: CreditFacility!
+}
+
+input CreditFacilityPartialPaymentWithDateInput {
+	creditFacilityId: UUID!
+	amount: UsdCents!
+	effective: Date!
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -1422,7 +1427,7 @@ type Mutation {
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPayment(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
-	creditFacilityPartialPaymentWithDate(input: CreditFacilityPartialPaymentInput!): CreditFacilityPartialPaymentPayload!
+	creditFacilityPartialPaymentWithDate(input: CreditFacilityPartialPaymentWithDateInput!): CreditFacilityPartialPaymentPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
 	creditFacilityComplete(input: CreditFacilityCompleteInput!): CreditFacilityCompletePayload!
 	custodianCreate(input: CustodianCreateInput!): CustodianCreatePayload!
@@ -1530,7 +1535,7 @@ enum PermissionSetName {
 	CONTRACT_CREATION
 	CREDIT_VIEWER
 	CREDIT_WRITER
-	CREDIT_BACKDATE_WRITER
+	CREDIT_PAYMENT_DATE_WRITER
 	CUSTOMER_VIEWER
 	CUSTOMER_WRITER
 	CUSTODY_VIEWER

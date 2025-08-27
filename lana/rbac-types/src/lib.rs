@@ -31,7 +31,7 @@ pub enum PermissionSetName {
     ContractCreation,
     CreditViewer,
     CreditWriter,
-    CreditBackdateWriter,
+    CreditPaymentDateWriter,
     CustomerViewer,
     CustomerWriter,
     CustodyViewer,
@@ -61,7 +61,7 @@ impl std::str::FromStr for PermissionSetName {
 
             core_credit::PERMISSION_SET_CREDIT_VIEWER => Ok(CreditViewer),
             core_credit::PERMISSION_SET_CREDIT_WRITER => Ok(CreditWriter),
-            core_credit::PERMISSION_SET_CREDIT_BACKDATE_WRITER => Ok(CreditBackdateWriter),
+            core_credit::PERMISSION_SET_CREDIT_PAYMENT_DATE_WRITER => Ok(CreditPaymentDateWriter),
 
             core_customer::PERMISSION_SET_CUSTOMER_VIEWER => Ok(CustomerViewer),
             core_customer::PERMISSION_SET_CUSTOMER_WRITER => Ok(CustomerWriter),

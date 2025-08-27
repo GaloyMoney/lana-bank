@@ -133,9 +133,7 @@ async fn do_timely_payments(
     mut obligation_amount_rx: mpsc::Receiver<UsdCents>,
 ) -> anyhow::Result<()> {
     while let Some(amount) = obligation_amount_rx.recv().await {
-        app.credit()
-            .record_payment(&sub, id, amount, sim_time::now().date_naive())
-            .await?;
+        app.credit().record_payment(&sub, id, amount).await?;
 
         if !app
             .credit()

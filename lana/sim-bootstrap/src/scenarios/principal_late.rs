@@ -110,9 +110,7 @@ async fn do_principal_late(
         }
 
         if obligation_type == ObligationType::Interest {
-            app.credit()
-                .record_payment(&sub, id, amount, sim_time::now().date_naive())
-                .await?;
+            app.credit().record_payment(&sub, id, amount).await?;
         } else {
             principal_remaining += amount;
         }
@@ -132,7 +130,7 @@ async fn do_principal_late(
     // Delaying payment of principal by one more month
     sim_time::sleep(one_month).await;
     app.credit()
-        .record_payment(&sub, id, principal_remaining, sim_time::now().date_naive())
+        .record_payment(&sub, id, principal_remaining)
         .await?;
 
     if app
@@ -142,9 +140,7 @@ async fn do_principal_late(
         .await?
     {
         while let Some((_, amount)) = obligation_amount_rx.recv().await {
-            app.credit()
-                .record_payment(&sub, id, amount, sim_time::now().date_naive())
-                .await?;
+            app.credit().record_payment(&sub, id, amount).await?;
 
             if !app
                 .credit()
