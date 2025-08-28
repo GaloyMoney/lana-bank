@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Duration, NaiveDate, Utc};
+use chrono::{DateTime, Duration, Utc};
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -183,10 +183,10 @@ where
         let inactive_threshold = now - Duration::days(self.config.inactive_threshold_days.into());
         let escheatment_threshold =
             now - Duration::days(self.config.escheatment_threshold_days.into());
-        let min_date = NaiveDate::MIN
-            .and_hms_opt(0, 0, 0)
-            .expect("Failed to create min date")
-            .and_utc();
+        // Use January 1st, 2000 as the minimum date
+        let min_date = DateTime::parse_from_rfc3339("2000-01-01T00:00:00Z")
+            .expect("Failed to parse min date")
+            .with_timezone(&Utc);
 
         self.update_customers_by_activity_and_date_range(
             min_date,
