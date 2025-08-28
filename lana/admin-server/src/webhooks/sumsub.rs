@@ -3,6 +3,7 @@ use axum::{extract::Json, response::IntoResponse};
 use jwks_utils::JwtDecoderState;
 use lana_app::app::LanaApp;
 
+#[es_entity::es_event_context]
 async fn callback(
     Extension(app): Extension<LanaApp>,
     Json(payload): Json<serde_json::Value>,

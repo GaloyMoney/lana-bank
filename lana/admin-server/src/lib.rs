@@ -65,6 +65,7 @@ pub struct AdminJwtClaims {
 }
 
 #[instrument(name = "admin_server.graphql", skip_all, fields(error, error.level, error.message))]
+#[es_entity::es_event_context]
 pub async fn graphql_handler(
     headers: HeaderMap,
     schema: Extension<Schema<graphql::Query, graphql::Mutation, EmptySubscription>>,

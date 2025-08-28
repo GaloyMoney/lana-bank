@@ -56,6 +56,7 @@ impl JobDispatcher {
     #[instrument(name = "job.execute_job", skip_all,
         fields(job_id, job_type, attempt, error, error.level, error.message, conclusion, now),
     err)]
+    #[es_entity::es_event_context]
     pub async fn execute_job(mut self, polled_job: PolledJob) -> Result<(), JobError> {
         let job = self.repo.find_by_id(polled_job.id).await?;
         let span = Span::current();
@@ -63,6 +64,18 @@ impl JobDispatcher {
         span.record("job_type", tracing::field::display(&job.job_type));
         span.record("attempt", polled_job.attempt);
         span.record("now", tracing::field::display(crate::time::now()));
+        {
+            let mut ctx = es_entity::EventContext::current();
+            ctx.insert(
+                "job",
+                &serde_json::json!({
+                    "job_id": job.id,
+                    "job_type": job.job_type,
+                    "attempt": polled_job.attempt,
+                }),
+            )
+            .expect("EventContext insert job data");
+        }
         let current_job = CurrentJob::new(
             polled_job.id,
             polled_job.attempt,

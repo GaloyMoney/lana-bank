@@ -9,6 +9,7 @@ use jwks_utils::JwtDecoderState;
 
 use lana_app::app::LanaApp;
 
+#[es_entity::es_event_context]
 async fn webhook(
     Extension(app): Extension<LanaApp>,
     Path(provider): Path<String>,

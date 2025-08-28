@@ -171,7 +171,6 @@ where
     }
 
     #[instrument(name = "deposit.create_account", skip(self, deposit_account_type), err)]
-    #[es_entity::es_event_context]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -258,7 +257,6 @@ where
     }
 
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn update_account_status_for_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -319,7 +317,6 @@ where
     }
 
     #[instrument(name = "deposit.record_deposit", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn record_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -356,7 +353,6 @@ where
     }
 
     #[instrument(name = "deposit.initiate_withdrawal", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn initiate_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -405,7 +401,6 @@ where
     }
 
     #[instrument(name = "deposit.revert_deposit", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn revert_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -437,7 +432,6 @@ where
     }
 
     #[instrument(name = "deposit.revert_withdrawal", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn revert_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -474,7 +468,6 @@ where
     }
 
     #[instrument(name = "deposit.confirm_withdrawal", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn confirm_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -513,7 +506,6 @@ where
     }
 
     #[instrument(name = "deposit.cancel_withdrawal", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn cancel_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -543,7 +535,6 @@ where
     }
 
     #[instrument(name = "deposit.freeze_account", skip(self), err)]
-    #[es_entity::es_event_context]
     pub async fn freeze_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
