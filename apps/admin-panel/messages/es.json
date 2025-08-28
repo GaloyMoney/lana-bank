@@ -1766,8 +1766,8 @@
       "name": "Nombre de la cuenta",
       "usdBalance": "Saldo en USD",
       "btcBalance": "Saldo en BTC",
-      "ancestors": "{n, plural, =0 {Sin ancestros} =1 {# Ancestro} other {# Ancestros}}",
-      "children": "{n, plural, =0 {Sin hijos} =1 {# Hijo} other {# Hijos}}"
+      "ancestors": "{n, plural, =0 {Sin cuentas de mayor} =1 {# Cuenta de mayor} other {# Cuentas de mayor}}",
+      "children": "{n, plural, =0 {Sin subcuentas} =1 {# Subcuenta} other {# Subcuentas}}"
     },
     "addChildNode": "Agregar subcuenta",
     "addAccount": "Agregar cuenta",
