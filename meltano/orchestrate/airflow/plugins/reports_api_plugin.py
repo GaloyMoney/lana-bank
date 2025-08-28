@@ -25,6 +25,7 @@ from google.cloud import storage
 from google.oauth2 import service_account
 from sqlalchemy.orm import Session
 import re
+import base64
 
 logger = logging.getLogger(__name__)
 DAG_ID = "meltano_generate-es-reports-daily_generate-es-reports-job"
@@ -192,14 +193,17 @@ class GCSAdapter(StoragePort):
             return False
 
     def list_reports_for_run(self, run_id: str) -> Sequence[Report]:
-        blobs = self.bucket.list_blobs(prefix=f"{REPORT_PREFIX}{run_id}/")
+        prefix, ts = run_id.split("__", 1)
+        ts_encoded = base64.urlsafe_b64encode(ts.encode("utf-8")).decode("ascii").rstrip("=")
+        run_id_encoded = f"{prefix}__{ts_encoded}"
+        blobs = self.bucket.list_blobs(prefix=f"{REPORT_PREFIX}{run_id_encoded}/")
 
         grouped: dict[tuple[str, str], list[File]] = {}
         for blob in blobs:
             m = self.REPORT_RE.match(blob.name)
             if not m:
                 continue
-            if m.group("run_id") != run_id:
+            if m.group("run_id") != run_id_encoded:
                 continue
 
             key = (m.group("norm"), m.group("name"))

@@ -2,6 +2,8 @@ from __future__ import annotations
 from pathlib import Path
 from abc import ABC, abstractmethod
 import os
+import base64
+import re
 
 import yaml
 from google.cloud import bigquery, storage
@@ -66,6 +68,13 @@ class GCSReportStorer(BaseReportStorer):
         self._bucket = self._storage_client.bucket(bucket_name=target_bucket_name)
 
     def store_report(self, path: str, report: StorableReportOutput) -> None:
+        # GCS blob paths with timestamps in folder names cause problems
+        m = re.match(r"^(reports/(manual|scheduled)__)((.+?))(/.+)$", path)
+        if m:
+            prefix, ts, rest = m.group(1, 3, 5)
+            ts_encoded = base64.urlsafe_b64encode(ts.encode()).decode().rstrip("=")
+            path = f"{prefix}{ts_encoded}{rest}"
+
         blob = self._bucket.blob(path)
         logger.info(f"Uploading to {path}...")
         blob.upload_from_string(report.content, content_type=report.content_type)
