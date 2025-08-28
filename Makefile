@@ -152,7 +152,7 @@ test-cypress-in-ci:
 	@echo "--- Service Health Checks ---"
 	@echo "Core server status:"
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:5253/health || echo "Core server health check failed"
-	@echo "GraphQL endpoint status:" 
+	@echo "GraphQL endpoint status:"
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:5253/graphql || echo "GraphQL endpoint check failed"
 	@echo "Admin panel status:"
 	@curl -s -o /dev/null -w "Response code: %{response_code}\n" http://localhost:3001/api/health || echo "Admin panel direct check failed"
@@ -190,6 +190,9 @@ bq-drop-old-run:
 
 bq-drop-all-run:
 	meltano run drop-all-relations
+
+bq-drop-all-dataset-run:
+	meltano run drop-all-dataset-relations
 
 create-airflow-admin:
 	meltano invoke airflow users create -e admin@galoy.io -f Admin -l Galoy -u admin -p admin --role Admin
