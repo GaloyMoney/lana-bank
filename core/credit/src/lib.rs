@@ -883,7 +883,7 @@ where
                 credit_facility_id,
                 payment.id,
                 amount,
-                chrono::Local::now().date_naive(),
+                crate::time::now().date_naive(),
             )
             .await?;
 
