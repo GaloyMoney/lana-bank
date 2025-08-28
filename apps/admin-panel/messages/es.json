@@ -1778,7 +1778,7 @@
         "currency": "Moneda",
         "debit": "Debe",
         "credit": "Haber",
-        "closestAccountWithCode": "Código de cuenta principal",
+        "closestAccountWithCode": "Código de cuenta de mayor",
         "transactionId": "ID de transacción"
       }
     },
@@ -1828,7 +1828,7 @@
       "amount": "Monto",
       "description": "Descripción",
       "effective": "Fecha valor",
-      "closestAccountWithCode": "Código de cuenta principal"
+      "closestAccountWithCode": "Código de cuenta de mayor"
     },
     "debitOrCredit": {
       "debit": "Debe",
@@ -1852,7 +1852,7 @@
       "credit": "Crédito",
       "amount": "Monto",
       "ledgerAccount": "Cuenta del libro mayor",
-      "closestAccountWithCode": "Código de cuenta principal"
+      "closestAccountWithCode": "Código de cuenta de mayor"
     }
   },
   "ManualTransactions": {
