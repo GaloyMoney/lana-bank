@@ -484,7 +484,7 @@
           "emptyTable": "No se encontró ningún Plan"
         },
         "repaymentTypes": {
-          "principal": "Principal",
+          "principal": "Capital",
           "interest": "Interés"
         },
         "status": {
