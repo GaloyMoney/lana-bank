@@ -59,7 +59,7 @@ sim-bootstrap = { path = "lana/sim-bootstrap" }
 user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
-es-entity = "0.7.12"
+es-entity = "0.7.14"
 sim-time = "0.7.11"
 cala-ledger = "0.7.0"
 
