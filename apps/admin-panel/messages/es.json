@@ -1766,7 +1766,7 @@
       "name": "Nombre de la cuenta",
       "usdBalance": "Saldo en USD",
       "btcBalance": "Saldo en BTC",
-      "ancestors": "{n, plural, =0 {Sin cuentas de mayor} =1 {# Cuenta de mayor} other {# Cuentas de mayor}}",
+      "ancestors": "{n, plural, =0 {Sin cuentas superiores} =1 {# Cuenta superior} other {# Cuentas superiores}}",
       "children": "{n, plural, =0 {Sin subcuentas} =1 {# Subcuenta} other {# Subcuentas}}"
     },
     "addChildNode": "Agregar subcuenta",
@@ -1778,7 +1778,7 @@
         "currency": "Moneda",
         "debit": "Debe",
         "credit": "Haber",
-        "closestAccountWithCode": "Código de cuenta de mayor",
+        "closestAccountWithCode": "Código de cuenta superior",
         "transactionId": "ID de transacción"
       }
     },
@@ -1828,7 +1828,7 @@
       "amount": "Monto",
       "description": "Descripción",
       "effective": "Fecha valor",
-      "closestAccountWithCode": "Código de cuenta de mayor"
+      "closestAccountWithCode": "Código de cuenta superior"
     },
     "debitOrCredit": {
       "debit": "Debe",
@@ -1852,7 +1852,7 @@
       "credit": "Crédito",
       "amount": "Monto",
       "ledgerAccount": "Cuenta del libro mayor",
-      "closestAccountWithCode": "Código de cuenta de mayor"
+      "closestAccountWithCode": "Código de cuenta superior"
     }
   },
   "ManualTransactions": {
