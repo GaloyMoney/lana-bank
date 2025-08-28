@@ -4,7 +4,7 @@ sources:
   - name: lana
     dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
     tables:
-      - name: public_cala_balance_history_view
+      - name: public_cala_balance_history
         freshness:
           warn_after:
             count: 2
@@ -13,7 +13,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_accounts_view
+      - name: public_cala_accounts
         freshness:
           warn_after:
             count: 2
@@ -22,7 +22,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_account_sets_view
+      - name: public_cala_account_sets
         freshness:
           warn_after:
             count: 2
@@ -31,7 +31,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_account_set_member_accounts_view
+      - name: public_cala_account_set_member_accounts
         freshness:
           warn_after:
             count: 2
@@ -40,7 +40,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_cala_account_set_member_account_sets_view
+      - name: public_cala_account_set_member_account_sets
         freshness:
           warn_after:
             count: 2
@@ -49,7 +49,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_chart_events_view
+      - name: public_core_chart_events
 
       - name: public_core_collateral_events_view
         freshness:
@@ -60,7 +60,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_credit_facility_events_view
+      - name: public_core_credit_facility_events
         freshness:
           warn_after:
             count: 2
@@ -258,7 +258,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_customer_events_rollup_view
+      - name: public_core_customer_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -267,7 +267,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_deposit_account_events_rollup_view
+      - name: public_core_deposit_account_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -276,7 +276,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_deposit_events_rollup_view
+      - name: public_core_deposit_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -285,7 +285,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_withdrawal_events_rollup_view
+      - name: public_core_withdrawal_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -303,7 +303,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_collateral_events_rollup_view
+      - name: public_core_collateral_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -312,7 +312,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_credit_facility_events_rollup_view
+      - name: public_core_credit_facility_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -321,7 +321,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_disbursal_events_rollup_view
+      - name: public_core_disbursal_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -330,7 +330,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_interest_accrual_cycle_events_rollup_view
+      - name: public_core_interest_accrual_cycle_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -339,7 +339,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_obligation_events_rollup_view
+      - name: public_core_obligation_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -348,7 +348,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_obligation_installment_events_rollup_view
+      - name: public_core_obligation_installment_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -357,7 +357,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_payment_events_rollup_view
+      - name: public_core_payment_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -402,7 +402,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_liquidation_process_events_rollup_view
+      - name: public_core_liquidation_process_events_rollup
         freshness:
           warn_after:
             count: 2
