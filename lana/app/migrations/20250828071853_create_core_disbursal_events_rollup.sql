@@ -9,6 +9,7 @@ CREATE TABLE core_disbursal_events_rollup (
   amount BIGINT,
   approval_process_id UUID,
   approved BOOLEAN,
+  audit_info JSONB,
   disbursal_credit_account_id UUID,
   due_date VARCHAR,
   effective VARCHAR,
@@ -18,9 +19,6 @@ CREATE TABLE core_disbursal_events_rollup (
   obligation_id UUID,
   overdue_date JSONB,
   public_id VARCHAR,
-
-  -- Collection rollups
-  audit_entry_ids BIGINT[],
 
   -- Toggle fields
   is_approval_process_concluded BOOLEAN DEFAULT false,
@@ -64,12 +62,7 @@ BEGIN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
     new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
     new_row.due_date := (NEW.event ->> 'due_date');
     new_row.effective := (NEW.event ->> 'effective');
@@ -88,7 +81,7 @@ BEGIN
     new_row.amount := current_row.amount;
     new_row.approval_process_id := current_row.approval_process_id;
     new_row.approved := current_row.approved;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
     new_row.due_date := current_row.due_date;
     new_row.effective := current_row.effective;
@@ -109,7 +102,7 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.due_date := (NEW.event ->> 'due_date');
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
@@ -119,17 +112,17 @@ BEGIN
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_approval_process_concluded := true;
     WHEN 'settled' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.effective := (NEW.event ->> 'effective');
       new_row.is_settled := true;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     WHEN 'cancelled' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_cancelled := true;
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
   END CASE;
@@ -143,7 +136,7 @@ BEGIN
     amount,
     approval_process_id,
     approved,
-    audit_entry_ids,
+    audit_info,
     disbursal_credit_account_id,
     due_date,
     effective,
@@ -166,7 +159,7 @@ BEGIN
     new_row.amount,
     new_row.approval_process_id,
     new_row.approved,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.disbursal_credit_account_id,
     new_row.due_date,
     new_row.effective,

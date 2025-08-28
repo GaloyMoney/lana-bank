@@ -8,12 +8,12 @@ CREATE TABLE core_withdrawal_events_rollup (
   amount BIGINT,
   approval_process_id UUID,
   approved BOOLEAN,
+  audit_info JSONB,
   deposit_account_id UUID,
   reference VARCHAR,
   status VARCHAR,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[],
 
   -- Toggle fields
@@ -57,12 +57,7 @@ BEGIN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
     new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
     new_row.is_approval_process_concluded := false;
     new_row.is_cancelled := false;
@@ -80,7 +75,7 @@ BEGIN
     new_row.amount := current_row.amount;
     new_row.approval_process_id := current_row.approval_process_id;
     new_row.approved := current_row.approved;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.deposit_account_id := current_row.deposit_account_id;
     new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
     new_row.is_cancelled := current_row.is_cancelled;
@@ -95,7 +90,7 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.reference := (NEW.event ->> 'reference');
@@ -103,21 +98,21 @@ BEGIN
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_approval_process_concluded := true;
       new_row.status := (NEW.event ->> 'status');
     WHEN 'confirmed' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_confirmed := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.status := (NEW.event ->> 'status');
     WHEN 'cancelled' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_cancelled := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.status := (NEW.event ->> 'status');
     WHEN 'reverted' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.status := (NEW.event ->> 'status');
   END CASE;
@@ -130,7 +125,7 @@ BEGIN
     amount,
     approval_process_id,
     approved,
-    audit_entry_ids,
+    audit_info,
     deposit_account_id,
     is_approval_process_concluded,
     is_cancelled,
@@ -147,7 +142,7 @@ BEGIN
     new_row.amount,
     new_row.approval_process_id,
     new_row.approved,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.deposit_account_id,
     new_row.is_approval_process_concluded,
     new_row.is_cancelled,

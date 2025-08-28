@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "DepositAccountStatus": {
       "enum": [
         "inactive",
@@ -35,9 +16,6 @@
         "account_holder_id": {
           "format": "uuid",
           "type": "string"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "frozen_deposit_account_id": {
           "format": "uuid",
@@ -69,16 +47,12 @@
         "ledger_account_id",
         "frozen_deposit_account_id",
         "status",
-        "public_id",
-        "audit_info"
+        "public_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "status": {
           "$ref": "#/$defs/DepositAccountStatus"
         },
@@ -89,8 +63,7 @@
       },
       "required": [
         "type",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     }

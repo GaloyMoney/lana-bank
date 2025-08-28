@@ -5,12 +5,10 @@ CREATE TABLE core_manual_transaction_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
+  audit_info JSONB,
   description VARCHAR,
   ledger_transaction_id UUID,
-  reference VARCHAR,
-
-  -- Collection rollups
-  audit_entry_ids BIGINT[]
+  reference VARCHAR
 ,
   PRIMARY KEY (id, version)
 );
@@ -45,18 +43,13 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.description := (NEW.event ->> 'description');
     new_row.ledger_transaction_id := (NEW.event ->> 'ledger_transaction_id')::UUID;
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.description := current_row.description;
     new_row.ledger_transaction_id := current_row.ledger_transaction_id;
     new_row.reference := current_row.reference;
@@ -65,7 +58,7 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.description := (NEW.event ->> 'description');
       new_row.ledger_transaction_id := (NEW.event ->> 'ledger_transaction_id')::UUID;
       new_row.reference := (NEW.event ->> 'reference');
@@ -76,7 +69,7 @@ BEGIN
     version,
     created_at,
     modified_at,
-    audit_entry_ids,
+    audit_info,
     description,
     ledger_transaction_id,
     reference
@@ -86,7 +79,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.description,
     new_row.ledger_transaction_id,
     new_row.reference

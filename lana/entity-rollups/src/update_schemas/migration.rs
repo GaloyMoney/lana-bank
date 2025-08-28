@@ -407,39 +407,12 @@ pub fn generate_rollup_migrations(
     for schema_change in schema_changes {
         let schema_info = &schema_change.schema_info;
 
-        // Auto-generate audit_entry_ids collection rollup for every schema
-        let mut enhanced_collections = schema_info.collections.clone();
-
-        // Check if audit_entry_ids collection already exists
-        if !enhanced_collections
-            .iter()
-            .any(|c| c.column_name == "audit_entry_ids")
-        {
-            // Find all events that have audit_info in their properties
-            let audit_events = find_events_with_audit_info(&schema_change.current_schema);
-
-            if !audit_events.is_empty() {
-                enhanced_collections.push(super::CollectionRollup {
-                    column_name: "audit_entry_ids",
-                    values: "audit_info.audit_entry_id",
-                    add_events: audit_events,
-                    remove_events: vec![],
-                });
-            }
-        }
-
-        // Create a modified schema_info with the enhanced collections
-        let enhanced_schema_info = super::SchemaInfo {
-            collections: enhanced_collections,
-            ..schema_info.clone()
-        };
-
         // Extract fields and event types from the current schema using enhanced collections
         let (current_fields, event_types) = extract_fields_and_events_from_schema(
             &schema_change.current_schema,
-            &enhanced_schema_info.collections,
-            &enhanced_schema_info.delete_events,
-            &enhanced_schema_info.toggle_events,
+            &schema_info.collections,
+            &schema_info.delete_events,
+            &schema_info.toggle_events,
         )?;
 
         // Separate fields into regular, collection, and toggle fields
@@ -458,26 +431,9 @@ pub fn generate_rollup_migrations(
 
         // Check if we have a previous schema to compare with
         if let Some(ref previous_schema) = schema_change.previous_schema {
-            // For previous schema, we also need to enhance with audit_entry_ids if it had audit_info events
-            let mut previous_enhanced_collections = schema_info.collections.clone();
-            if !previous_enhanced_collections
-                .iter()
-                .any(|c| c.column_name == "audit_entry_ids")
-            {
-                let previous_audit_events = find_events_with_audit_info(previous_schema);
-                if !previous_audit_events.is_empty() {
-                    previous_enhanced_collections.push(super::CollectionRollup {
-                        column_name: "audit_entry_ids",
-                        values: "audit_info.audit_entry_id",
-                        add_events: previous_audit_events,
-                        remove_events: vec![],
-                    });
-                }
-            }
-
             let (previous_fields, _) = extract_fields_and_events_from_schema(
                 previous_schema,
-                &previous_enhanced_collections,
+                &schema_info.collections,
                 &schema_info.delete_events,
                 &schema_info.toggle_events,
             )?;
@@ -661,8 +617,8 @@ fn extract_fields_and_events_from_schema(
                 sorted_properties.sort_by(|a, b| a.0.cmp(&b.0));
 
                 for (prop_name, prop_schema) in &sorted_properties {
-                    if prop_name == "type" || prop_name == "id" || prop_name == "audit_info" {
-                        continue; // Skip the discriminator field, id (handled as common field), and audit_info
+                    if prop_name == "type" || prop_name == "id" {
+                        continue; // Skip the discriminator field, id (handled as common field)
                     }
 
                     // Track which fields this event type can modify
@@ -679,13 +635,10 @@ fn extract_fields_and_events_from_schema(
                             delete_events.iter().map(|&s| to_snake_case(s)).collect();
 
                         if snake_case_delete_events.contains(event_type_name) {
-                            // Only add fields that aren't audit_info to the revoke list
-                            if prop_name != "audit_info" {
-                                field_revoke_events
-                                    .entry(prop_name.clone())
-                                    .or_default()
-                                    .push(event_type_name.clone());
-                            }
+                            field_revoke_events
+                                .entry(prop_name.clone())
+                                .or_default()
+                                .push(event_type_name.clone());
                         }
                     }
                 }
@@ -1041,49 +994,6 @@ fn json_schema_to_sql_type_with_definitions(
 
     // Default to JSONB for complex types
     Ok("JSONB".to_string())
-}
-
-fn find_events_with_audit_info(schema: &Value) -> Vec<String> {
-    let mut events_with_audit_info = Vec::new();
-
-    // Search through oneOf variants to find events with audit_info
-    if let Some(Value::Array(one_of)) = schema.get("oneOf") {
-        for variant in one_of {
-            if let Some(Value::Object(properties)) = variant.get("properties") {
-                // Check if this variant has audit_info property
-                if properties.contains_key("audit_info") {
-                    // Get the event type name
-                    if let Some(Value::Object(type_obj)) = properties.get("type") {
-                        if let Some(Value::Array(enum_vals)) = type_obj.get("enum") {
-                            if let Some(Value::String(type_name)) = enum_vals.first() {
-                                // Convert snake_case to UpperCamelCase (PascalCase)
-                                let upper_camel = to_upper_camel_case(type_name);
-                                events_with_audit_info.push(upper_camel);
-                            }
-                        } else if let Some(Value::String(const_val)) = type_obj.get("const") {
-                            // Convert snake_case to UpperCamelCase (PascalCase)
-                            let upper_camel = to_upper_camel_case(const_val);
-                            events_with_audit_info.push(upper_camel);
-                        }
-                    }
-                }
-            }
-        }
-    }
-
-    events_with_audit_info
-}
-
-fn to_upper_camel_case(s: &str) -> String {
-    s.split('_')
-        .map(|word| {
-            let mut chars = word.chars();
-            match chars.next() {
-                None => String::new(),
-                Some(first) => first.to_uppercase().collect::<String>() + chars.as_str(),
-            }
-        })
-        .collect()
 }
 
 fn lookup_nested_field_type(schema: &Value, field_path: &str) -> anyhow::Result<String> {

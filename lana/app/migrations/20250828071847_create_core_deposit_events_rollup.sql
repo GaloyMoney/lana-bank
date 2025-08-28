@@ -6,12 +6,12 @@ CREATE TABLE core_deposit_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   amount BIGINT,
+  audit_info JSONB,
   deposit_account_id UUID,
   reference VARCHAR,
   status VARCHAR,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[]
 ,
   PRIMARY KEY (id, version)
@@ -48,12 +48,7 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
@@ -66,7 +61,7 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.deposit_account_id := current_row.deposit_account_id;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.reference := current_row.reference;
@@ -77,13 +72,13 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.deposit_account_id := (NEW.event ->> 'deposit_account_id')::UUID;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.reference := (NEW.event ->> 'reference');
       new_row.status := (NEW.event ->> 'status');
     WHEN 'reverted' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.status := (NEW.event ->> 'status');
   END CASE;
@@ -94,7 +89,7 @@ BEGIN
     created_at,
     modified_at,
     amount,
-    audit_entry_ids,
+    audit_info,
     deposit_account_id,
     ledger_tx_ids,
     reference,
@@ -106,7 +101,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.deposit_account_id,
     new_row.ledger_tx_ids,
     new_row.reference,

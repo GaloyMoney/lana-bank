@@ -8,6 +8,7 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
   account_ids JSONB,
   accrued_at TIMESTAMPTZ,
   amount BIGINT,
+  audit_info JSONB,
   effective VARCHAR,
   facility_id UUID,
   facility_maturity_date VARCHAR,
@@ -19,7 +20,6 @@ CREATE TABLE core_interest_accrual_cycle_events_rollup (
   tx_ref VARCHAR,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[],
 
   -- Toggle fields
@@ -61,12 +61,7 @@ BEGIN
     new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.accrued_at := (NEW.event ->> 'accrued_at')::TIMESTAMPTZ;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.effective := (NEW.event ->> 'effective');
     new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
     new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date');
@@ -88,7 +83,7 @@ BEGIN
     new_row.account_ids := current_row.account_ids;
     new_row.accrued_at := current_row.accrued_at;
     new_row.amount := current_row.amount;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.effective := current_row.effective;
     new_row.facility_id := current_row.facility_id;
     new_row.facility_maturity_date := current_row.facility_maturity_date;
@@ -106,7 +101,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_ids := (NEW.event -> 'account_ids');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
       new_row.facility_maturity_date := (NEW.event ->> 'facility_maturity_date');
       new_row.idx := (NEW.event ->> 'idx')::INTEGER;
@@ -115,11 +110,11 @@ BEGIN
     WHEN 'interest_accrued' THEN
       new_row.accrued_at := (NEW.event ->> 'accrued_at')::TIMESTAMPTZ;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.tx_ref := (NEW.event ->> 'tx_ref');
     WHEN 'interest_accruals_posted' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.effective := (NEW.event ->> 'effective');
       new_row.is_interest_accruals_posted := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
@@ -136,7 +131,7 @@ BEGIN
     account_ids,
     accrued_at,
     amount,
-    audit_entry_ids,
+    audit_info,
     effective,
     facility_id,
     facility_maturity_date,
@@ -157,7 +152,7 @@ BEGIN
     new_row.account_ids,
     new_row.accrued_at,
     new_row.amount,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.effective,
     new_row.facility_id,
     new_row.facility_maturity_date,

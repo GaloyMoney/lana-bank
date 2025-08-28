@@ -8,12 +8,12 @@ CREATE TABLE core_collateral_events_rollup (
   abs_diff BIGINT,
   account_id UUID,
   action VARCHAR,
+  audit_info JSONB,
   collateral_amount BIGINT,
   credit_facility_id UUID,
   custody_wallet_id UUID,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[],
   ledger_tx_ids UUID[]
 ,
   PRIMARY KEY (id, version)
@@ -52,12 +52,7 @@ BEGIN
     new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
     new_row.account_id := (NEW.event ->> 'account_id')::UUID;
     new_row.action := (NEW.event ->> 'action');
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
@@ -72,7 +67,7 @@ BEGIN
     new_row.abs_diff := current_row.abs_diff;
     new_row.account_id := current_row.account_id;
     new_row.action := current_row.action;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.collateral_amount := current_row.collateral_amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.custody_wallet_id := current_row.custody_wallet_id;
@@ -88,7 +83,7 @@ BEGIN
     WHEN 'updated_via_manual_input' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.action := (NEW.event ->> 'action');
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     WHEN 'updated_via_custodian_sync' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
@@ -106,7 +101,7 @@ BEGIN
     abs_diff,
     account_id,
     action,
-    audit_entry_ids,
+    audit_info,
     collateral_amount,
     credit_facility_id,
     custody_wallet_id,
@@ -120,7 +115,7 @@ BEGIN
     new_row.abs_diff,
     new_row.account_id,
     new_row.action,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.collateral_amount,
     new_row.credit_facility_id,
     new_row.custody_wallet_id,

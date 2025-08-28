@@ -6,13 +6,8 @@ CREATE TABLE core_payment_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   amount BIGINT,
-  credit_facility_id UUID,
-
-  -- Collection rollups
-  audit_entry_ids BIGINT[],
-
-  -- Toggle fields
-  is_payment_allocated BOOLEAN DEFAULT false
+  audit_info JSONB,
+  credit_facility_id UUID
 ,
   PRIMARY KEY (id, version)
 );
@@ -48,27 +43,20 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    new_row.is_payment_allocated := false;
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.credit_facility_id := current_row.credit_facility_id;
-    new_row.is_payment_allocated := current_row.is_payment_allocated;
   END IF;
 
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
   END CASE;
 
@@ -78,9 +66,8 @@ BEGIN
     created_at,
     modified_at,
     amount,
-    audit_entry_ids,
-    credit_facility_id,
-    is_payment_allocated
+    audit_info,
+    credit_facility_id
   )
   VALUES (
     new_row.id,
@@ -88,9 +75,8 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
-    new_row.audit_entry_ids,
-    new_row.credit_facility_id,
-    new_row.is_payment_allocated
+    new_row.audit_info,
+    new_row.credit_facility_id
   );
 
   RETURN NEW;

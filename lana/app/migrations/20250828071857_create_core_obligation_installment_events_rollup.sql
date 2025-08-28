@@ -7,6 +7,7 @@ CREATE TABLE core_obligation_installment_events_rollup (
   -- Flattened fields from the event JSON
   account_to_be_debited_id UUID,
   amount BIGINT,
+  audit_info JSONB,
   credit_facility_id UUID,
   effective VARCHAR,
   ledger_tx_id UUID,
@@ -14,10 +15,7 @@ CREATE TABLE core_obligation_installment_events_rollup (
   obligation_installment_idx INTEGER,
   obligation_type VARCHAR,
   payment_id UUID,
-  receivable_account_id UUID,
-
-  -- Collection rollups
-  audit_entry_ids BIGINT[]
+  receivable_account_id UUID
 ,
   PRIMARY KEY (id, version)
 );
@@ -54,12 +52,7 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.account_to_be_debited_id := (NEW.event ->> 'account_to_be_debited_id')::UUID;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
@@ -72,7 +65,7 @@ BEGIN
     -- Default all fields to current values
     new_row.account_to_be_debited_id := current_row.account_to_be_debited_id;
     new_row.amount := current_row.amount;
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.effective := current_row.effective;
     new_row.ledger_tx_id := current_row.ledger_tx_id;
@@ -88,7 +81,7 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_to_be_debited_id := (NEW.event ->> 'account_to_be_debited_id')::UUID;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
@@ -106,7 +99,7 @@ BEGIN
     modified_at,
     account_to_be_debited_id,
     amount,
-    audit_entry_ids,
+    audit_info,
     credit_facility_id,
     effective,
     ledger_tx_id,
@@ -123,7 +116,7 @@ BEGIN
     new_row.modified_at,
     new_row.account_to_be_debited_id,
     new_row.amount,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.credit_facility_id,
     new_row.effective,
     new_row.ledger_tx_id,

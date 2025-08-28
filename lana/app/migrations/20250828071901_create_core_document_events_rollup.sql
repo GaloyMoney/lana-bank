@@ -5,6 +5,7 @@ CREATE TABLE core_document_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
+  audit_info JSONB,
   content_type VARCHAR,
   document_type VARCHAR,
   error VARCHAR,
@@ -13,9 +14,6 @@ CREATE TABLE core_document_events_rollup (
   reference_id UUID,
   sanitized_filename VARCHAR,
   storage_identifier VARCHAR,
-
-  -- Collection rollups
-  audit_entry_ids BIGINT[],
 
   -- Toggle fields
   is_archived BOOLEAN DEFAULT false,
@@ -55,12 +53,7 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.content_type := (NEW.event ->> 'content_type');
     new_row.document_type := (NEW.event ->> 'document_type');
     new_row.error := (NEW.event ->> 'error');
@@ -74,7 +67,7 @@ BEGIN
     new_row.storage_identifier := (NEW.event ->> 'storage_identifier');
   ELSE
     -- Default all fields to current values
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.content_type := current_row.content_type;
     new_row.document_type := current_row.document_type;
     new_row.error := current_row.error;
@@ -91,7 +84,7 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.content_type := (NEW.event ->> 'content_type');
       new_row.document_type := (NEW.event ->> 'document_type');
       new_row.original_filename := (NEW.event ->> 'original_filename');
@@ -104,12 +97,12 @@ BEGIN
     WHEN 'upload_failed' THEN
       new_row.error := (NEW.event ->> 'error');
     WHEN 'download_link_generated' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
     WHEN 'deleted' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_deleted := true;
     WHEN 'archived' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_archived := true;
   END CASE;
 
@@ -118,7 +111,7 @@ BEGIN
     version,
     created_at,
     modified_at,
-    audit_entry_ids,
+    audit_info,
     content_type,
     document_type,
     error,
@@ -136,7 +129,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.content_type,
     new_row.document_type,
     new_row.error,

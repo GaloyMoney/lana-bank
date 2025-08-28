@@ -5,13 +5,13 @@ CREATE TABLE core_chart_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
+  audit_info JSONB,
   code JSONB,
   name VARCHAR,
   reference VARCHAR,
   spec JSONB,
 
   -- Collection rollups
-  audit_entry_ids BIGINT[],
   ledger_account_set_ids UUID[],
   manual_ledger_account_ids UUID[]
 ,
@@ -48,12 +48,7 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.audit_entry_ids := CASE
-       WHEN NEW.event ? 'audit_entry_ids' THEN
-         ARRAY(SELECT value::text::BIGINT FROM jsonb_array_elements_text(NEW.event -> 'audit_entry_ids'))
-       ELSE ARRAY[]::BIGINT[]
-     END
-;
+    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.code := (NEW.event -> 'code');
     new_row.ledger_account_set_ids := CASE
        WHEN NEW.event ? 'ledger_account_set_ids' THEN
@@ -72,7 +67,7 @@ BEGIN
     new_row.spec := (NEW.event -> 'spec');
   ELSE
     -- Default all fields to current values
-    new_row.audit_entry_ids := current_row.audit_entry_ids;
+    new_row.audit_info := current_row.audit_info;
     new_row.code := current_row.code;
     new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
     new_row.manual_ledger_account_ids := current_row.manual_ledger_account_ids;
@@ -84,15 +79,15 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'node_added' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.ledger_account_set_ids := array_append(COALESCE(current_row.ledger_account_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_set_id')::UUID);
       new_row.spec := (NEW.event -> 'spec');
     WHEN 'manual_transaction_account_added' THEN
-      new_row.audit_entry_ids := array_append(COALESCE(current_row.audit_entry_ids, ARRAY[]::BIGINT[]), (NEW.event -> 'audit_info' ->> 'audit_entry_id')::BIGINT);
+      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.code := (NEW.event -> 'code');
       new_row.manual_ledger_account_ids := array_append(COALESCE(current_row.manual_ledger_account_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_id')::UUID);
   END CASE;
@@ -102,7 +97,7 @@ BEGIN
     version,
     created_at,
     modified_at,
-    audit_entry_ids,
+    audit_info,
     code,
     ledger_account_set_ids,
     manual_ledger_account_ids,
@@ -115,7 +110,7 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.audit_entry_ids,
+    new_row.audit_info,
     new_row.code,
     new_row.ledger_account_set_ids,
     new_row.manual_ledger_account_ids,
