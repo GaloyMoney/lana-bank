@@ -117,6 +117,7 @@ CREATE TABLE core_deposit_account_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );

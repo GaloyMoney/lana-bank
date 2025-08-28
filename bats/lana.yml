@@ -37,7 +37,7 @@ app:
     profit_and_loss_config_path: "./bats/accounting-init/profit-and-loss-module-config.json"
 time:
   realtime: false
-  sim_time:
+  simulation:
     start_at: "2021-01-01T00:00:00Z"
     tick_interval_ms: 1
     tick_duration_secs: 1000

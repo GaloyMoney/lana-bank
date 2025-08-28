@@ -171,6 +171,7 @@ where
     }
 
     #[instrument(name = "deposit.create_account", skip(self, deposit_account_type), err)]
+    #[es_entity::es_event_context]
     pub async fn create_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -178,8 +179,7 @@ where
         active: bool,
         deposit_account_type: impl Into<DepositAccountType>,
     ) -> Result<DepositAccount, CoreDepositError> {
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::all_deposit_accounts(),
@@ -211,7 +211,6 @@ where
             .frozen_deposit_account_id(frozen_deposit_account_id)
             .active(active)
             .public_id(public_id.id)
-            .audit_info(audit_info.clone())
             .build()
             .expect("Could not build new account");
 
@@ -259,6 +258,7 @@ where
     }
 
     #[instrument(name = "deposit.update_account_status_for_holder", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn update_account_status_for_holder(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -266,8 +266,7 @@ where
         status: DepositAccountStatus,
     ) -> Result<(), CoreDepositError> {
         let holder_id = holder_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::all_deposit_accounts(),
@@ -281,10 +280,7 @@ where
             .await?;
         let mut op = self.deposit_accounts.begin_op().await?;
         for mut account in accounts.entities.into_iter() {
-            if account
-                .update_status(status, audit_info.clone())
-                .did_execute()
-            {
+            if account.update_status(status).did_execute() {
                 self.deposit_accounts
                     .update_in_op(&mut op, &mut account)
                     .await?;
@@ -323,6 +319,7 @@ where
     }
 
     #[instrument(name = "deposit.record_deposit", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn record_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -359,6 +356,7 @@ where
     }
 
     #[instrument(name = "deposit.initiate_withdrawal", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn initiate_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -407,6 +405,7 @@ where
     }
 
     #[instrument(name = "deposit.revert_deposit", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn revert_deposit(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -438,6 +437,7 @@ where
     }
 
     #[instrument(name = "deposit.revert_withdrawal", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn revert_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -474,6 +474,7 @@ where
     }
 
     #[instrument(name = "deposit.confirm_withdrawal", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn confirm_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -512,6 +513,7 @@ where
     }
 
     #[instrument(name = "deposit.cancel_withdrawal", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn cancel_withdrawal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -541,14 +543,14 @@ where
     }
 
     #[instrument(name = "deposit.freeze_account", skip(self), err)]
+    #[es_entity::es_event_context]
     pub async fn freeze_account(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         account_id: impl Into<DepositAccountId> + std::fmt::Debug,
     ) -> Result<DepositAccount, CoreDepositError> {
         let account_id = account_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::deposit_account(account_id),
@@ -560,7 +562,7 @@ where
 
         let mut op = self.deposit_accounts.begin_op().await?;
 
-        if account.freeze(audit_info).did_execute() {
+        if account.freeze().did_execute() {
             self.deposit_accounts
                 .update_in_op(&mut op, &mut account)
                 .await?;

@@ -5,8 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use audit::AuditInfo;
-
 use crate::primitives::*;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -21,11 +19,9 @@ pub enum DepositAccountEvent {
         frozen_deposit_account_id: CalaAccountId,
         status: DepositAccountStatus,
         public_id: PublicId,
-        audit_info: AuditInfo,
     },
     AccountStatusUpdated {
         status: DepositAccountStatus,
-        audit_info: AuditInfo,
     },
 }
 
@@ -49,24 +45,20 @@ impl DepositAccount {
             .expect("Deposit Account has never been persisted")
     }
 
-    pub fn update_status(
-        &mut self,
-        status: DepositAccountStatus,
-        audit_info: AuditInfo,
-    ) -> Idempotent<()> {
+    pub fn update_status(&mut self, status: DepositAccountStatus) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             DepositAccountEvent::AccountStatusUpdated { status: existing_status, .. } if existing_status == &status,
             => DepositAccountEvent::AccountStatusUpdated { .. }
         );
         self.events
-            .push(DepositAccountEvent::AccountStatusUpdated { status, audit_info });
+            .push(DepositAccountEvent::AccountStatusUpdated { status });
         self.status = status;
         Idempotent::Executed(())
     }
 
-    pub fn freeze(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
-        self.update_status(DepositAccountStatus::Frozen, audit_info)
+    pub fn freeze(&mut self) -> Idempotent<()> {
+        self.update_status(DepositAccountStatus::Frozen)
     }
 }
 
@@ -114,7 +106,6 @@ pub struct NewDepositAccount {
     pub(super) active: bool,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
-    pub audit_info: AuditInfo,
 }
 
 impl NewDepositAccount {
@@ -138,7 +129,6 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
                     DepositAccountStatus::Inactive
                 },
                 public_id: self.public_id,
-                audit_info: self.audit_info,
             }],
         )
     }
@@ -146,7 +136,6 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
 
 #[cfg(test)]
 mod tests {
-    use audit::{AuditEntryId, AuditInfo};
     use cala_ledger::AccountId as CalaAccountId;
     use es_entity::{EntityEvents, TryFromEvents as _};
     use public_id::PublicId;
@@ -154,13 +143,6 @@ mod tests {
     use crate::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
 
     use super::{DepositAccount, DepositAccountEvent};
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     fn initial_events() -> Vec<DepositAccountEvent> {
         vec![DepositAccountEvent::Initialized {
@@ -170,7 +152,6 @@ mod tests {
             frozen_deposit_account_id: CalaAccountId::new(),
             status: DepositAccountStatus::Inactive,
             public_id: PublicId::new("1"),
-            audit_info: dummy_audit_info(),
         }]
     }
 
@@ -184,25 +165,25 @@ mod tests {
 
         assert!(
             account
-                .update_status(DepositAccountStatus::Active, dummy_audit_info())
+                .update_status(DepositAccountStatus::Active)
                 .did_execute()
         );
 
         assert!(
             account
-                .update_status(DepositAccountStatus::Active, dummy_audit_info())
+                .update_status(DepositAccountStatus::Active)
                 .was_ignored()
         );
 
         assert!(
             account
-                .update_status(DepositAccountStatus::Frozen, dummy_audit_info())
+                .update_status(DepositAccountStatus::Frozen)
                 .did_execute()
         );
 
         assert!(
             account
-                .update_status(DepositAccountStatus::Active, dummy_audit_info())
+                .update_status(DepositAccountStatus::Active)
                 .did_execute()
         );
     }

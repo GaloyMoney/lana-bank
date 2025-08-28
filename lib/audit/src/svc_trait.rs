@@ -61,7 +61,12 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         .fetch_one(self.pool())
         .await?;
 
-        Ok(AuditInfo::from((record.id, sub)))
+        let ret = AuditInfo::from((record.id, sub));
+        es_entity::EventContext::current()
+            .insert("audit_info", &ret)
+            .expect("Could not add AuditInfo to context");
+
+        Ok(ret)
     }
 
     async fn record_system_entry_in_tx(
@@ -105,7 +110,12 @@ pub trait AuditSvc: Clone + Sync + Send + 'static {
         .fetch_one(op.as_executor())
         .await?;
 
-        Ok(AuditInfo::from((record.id, sub)))
+        let ret = AuditInfo::from((record.id, sub));
+        es_entity::EventContext::current()
+            .insert("audit_info", &ret)
+            .expect("Could not add AuditInfo to context");
+
+        Ok(ret)
     }
 
     async fn list(
