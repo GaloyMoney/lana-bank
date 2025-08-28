@@ -590,8 +590,8 @@
           "status": "Estado",
           "dateOfIssuance": "Fecha de emisión",
           "maturityDate": "Fecha de vencimiento",
-          "monthlyPayment": "Pago mensual",
-          "noMonthlyPaymentAvailable": "No hay pago mensual disponible",
+          "monthlyPayment": "Cuota mensual",
+          "noMonthlyPaymentAvailable": "No hay cuota mensual disponible",
           "custodian": "Custodio",
           "manual": "Manual"
         },
