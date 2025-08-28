@@ -30,9 +30,7 @@ use public_id::PublicIds;
 
 pub use account::DepositAccount;
 use account::*;
-pub use chart_of_accounts_integration::{
-    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
-};
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;

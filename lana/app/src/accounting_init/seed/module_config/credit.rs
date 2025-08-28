@@ -109,124 +109,88 @@ pub(in crate::accounting_init::seed) async fn credit_module_configure(
         overdue_non_domiciled_company_disbursed_receivable_parent_code,
     } = serde_json::from_str(&data)?;
 
-    let config_values = ChartOfAccountsIntegrationConfig::builder()
-        .chart_of_accounts_id(chart.id)
-        .chart_of_account_facility_omnibus_parent_code(facility_omnibus_parent_code.parse()?)
-        .chart_of_account_collateral_omnibus_parent_code(collateral_omnibus_parent_code.parse()?)
-        .chart_of_account_in_liquidation_omnibus_parent_code(
-            in_liquidation_omnibus_parent_code.parse()?,
-        )
-        .chart_of_account_facility_parent_code(facility_parent_code.parse()?)
-        .chart_of_account_collateral_parent_code(collateral_parent_code.parse()?)
-        .chart_of_account_in_liquidation_parent_code(in_liquidation_parent_code.parse()?)
-        .chart_of_account_interest_income_parent_code(interest_income_parent_code.parse()?)
-        .chart_of_account_fee_income_parent_code(fee_income_parent_code.parse()?)
-        .chart_of_account_short_term_individual_interest_receivable_parent_code(
+    let config_values = ChartOfAccountsIntegrationConfig {
+        chart_of_accounts_id: chart.id,
+        chart_of_account_facility_omnibus_parent_code: facility_omnibus_parent_code.parse()?,
+        chart_of_account_collateral_omnibus_parent_code: collateral_omnibus_parent_code.parse()?,
+        chart_of_account_in_liquidation_omnibus_parent_code: in_liquidation_omnibus_parent_code
+            .parse()?,
+        chart_of_account_facility_parent_code: facility_parent_code.parse()?,
+        chart_of_account_collateral_parent_code: collateral_parent_code.parse()?,
+        chart_of_account_in_liquidation_parent_code: in_liquidation_parent_code.parse()?,
+        chart_of_account_interest_income_parent_code: interest_income_parent_code.parse()?,
+        chart_of_account_fee_income_parent_code: fee_income_parent_code.parse()?,
+        chart_of_account_short_term_individual_interest_receivable_parent_code:
             short_term_individual_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_government_entity_interest_receivable_parent_code(
+        chart_of_account_short_term_government_entity_interest_receivable_parent_code:
             short_term_government_entity_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_private_company_interest_receivable_parent_code(
+        chart_of_account_short_term_private_company_interest_receivable_parent_code:
             short_term_private_company_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_bank_interest_receivable_parent_code(
+        chart_of_account_short_term_bank_interest_receivable_parent_code:
             short_term_bank_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_financial_institution_interest_receivable_parent_code(
+        chart_of_account_short_term_financial_institution_interest_receivable_parent_code:
             short_term_financial_institution_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(
+        chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
             short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code(
+        chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code:
             short_term_non_domiciled_company_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_individual_interest_receivable_parent_code(
+        chart_of_account_long_term_individual_interest_receivable_parent_code:
             long_term_individual_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_government_entity_interest_receivable_parent_code(
+        chart_of_account_long_term_government_entity_interest_receivable_parent_code:
             long_term_government_entity_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_private_company_interest_receivable_parent_code(
+        chart_of_account_long_term_private_company_interest_receivable_parent_code:
             long_term_private_company_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_bank_interest_receivable_parent_code(
+        chart_of_account_long_term_bank_interest_receivable_parent_code:
             long_term_bank_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_financial_institution_interest_receivable_parent_code(
+        chart_of_account_long_term_financial_institution_interest_receivable_parent_code:
             long_term_financial_institution_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(
+        chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
             long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code(
+        chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code:
             long_term_non_domiciled_company_interest_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_individual_disbursed_receivable_parent_code(
+        chart_of_account_short_term_individual_disbursed_receivable_parent_code:
             short_term_individual_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_government_entity_disbursed_receivable_parent_code(
+        chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
             short_term_government_entity_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_private_company_disbursed_receivable_parent_code(
+        chart_of_account_short_term_private_company_disbursed_receivable_parent_code:
             short_term_private_company_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_bank_disbursed_receivable_parent_code(
+        chart_of_account_short_term_bank_disbursed_receivable_parent_code:
             short_term_bank_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code(
+        chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code:
             short_term_financial_institution_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(
+        chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
             short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code(
+        chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code:
             short_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_individual_disbursed_receivable_parent_code(
+        chart_of_account_long_term_individual_disbursed_receivable_parent_code:
             long_term_individual_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_government_entity_disbursed_receivable_parent_code(
+        chart_of_account_long_term_government_entity_disbursed_receivable_parent_code:
             long_term_government_entity_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_private_company_disbursed_receivable_parent_code(
+        chart_of_account_long_term_private_company_disbursed_receivable_parent_code:
             long_term_private_company_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_bank_disbursed_receivable_parent_code(
+        chart_of_account_long_term_bank_disbursed_receivable_parent_code:
             long_term_bank_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code(
+        chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code:
             long_term_financial_institution_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(
+        chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
             long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code(
+        chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code:
             long_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_overdue_individual_disbursed_receivable_parent_code(
+        chart_of_account_overdue_individual_disbursed_receivable_parent_code:
             overdue_individual_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_overdue_government_entity_disbursed_receivable_parent_code(
+        chart_of_account_overdue_government_entity_disbursed_receivable_parent_code:
             overdue_government_entity_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_overdue_private_company_disbursed_receivable_parent_code(
+        chart_of_account_overdue_private_company_disbursed_receivable_parent_code:
             overdue_private_company_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_overdue_bank_disbursed_receivable_parent_code(
+        chart_of_account_overdue_bank_disbursed_receivable_parent_code:
             overdue_bank_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code(
+        chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code:
             overdue_financial_institution_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(
+        chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
             overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?,
-        )
-        .chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code(
+        chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code:
             overdue_non_domiciled_company_disbursed_receivable_parent_code.parse()?,
-        )
-        .build()?;
+    };
 
     match credit
         .chart_of_accounts_integrations()
