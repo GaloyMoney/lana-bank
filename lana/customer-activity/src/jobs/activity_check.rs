@@ -1,5 +1,5 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Duration, Utc};
+use chrono::{DateTime, Duration, NaiveDate, Utc};
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -18,6 +18,15 @@ use crate::CustomerActivityRepo;
 use crate::config::CustomerActivityCheckConfig;
 use crate::time::now;
 use job::*;
+
+// Use January 1st, 2000 as the minimum date
+const EARLIEST_SEARCH_START: DateTime<Utc> = {
+    let date = NaiveDate::from_ymd_opt(2000, 1, 1)
+        .expect("valid date")
+        .and_hms_opt(0, 0, 0)
+        .expect("valid time");
+    DateTime::from_naive_utc_and_offset(date, Utc)
+};
 
 #[derive(serde::Serialize)]
 pub struct CustomerActivityCheckJobConfig<Perms, E> {
@@ -183,13 +192,9 @@ where
         let inactive_threshold = now - Duration::days(self.config.inactive_threshold_days.into());
         let escheatment_threshold =
             now - Duration::days(self.config.escheatment_threshold_days.into());
-        // Use January 1st, 2000 as the minimum date
-        let min_date = DateTime::parse_from_rfc3339("2000-01-01T00:00:00Z")
-            .expect("Failed to parse min date")
-            .with_timezone(&Utc);
 
         self.update_customers_by_activity_and_date_range(
-            min_date,
+            EARLIEST_SEARCH_START,
             escheatment_threshold,
             core_customer::Activity::Suspended,
         )
