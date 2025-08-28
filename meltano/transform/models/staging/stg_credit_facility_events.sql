@@ -19,7 +19,7 @@ with ordered as (
             )
             as order_received_desc
 
-    from {{ source("lana", "public_core_credit_facility_events_view") }}
+    from {{ ref('public_core_credit_facility_events_view') }}
 
     {% if is_incremental() %}
         where
