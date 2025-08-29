@@ -461,7 +461,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
           />
           <CreditFacilityPartialPaymentDialog
             creditFacilityId={facility.creditFacilityId}
-            publicId={facility.publicId}
+            userCanRecordPaymentWithDate={facility.userCanRecordPaymentWithDate}
             openDialog={makePayment}
             setOpenDialog={() => {
               setMakePayment(false)
