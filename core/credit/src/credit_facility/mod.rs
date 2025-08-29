@@ -12,6 +12,7 @@ use job::{JobId, Jobs};
 use outbox::OutboxEventMarker;
 
 use crate::{
+    PublicIds,
     credit_facility_proposal::CreditFacilityProposals,
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
@@ -46,6 +47,7 @@ where
     price: Price,
     jobs: Jobs,
     governance: Governance<Perms, E>,
+    public_ids: PublicIds,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -63,6 +65,7 @@ where
             price: self.price.clone(),
             jobs: self.jobs.clone(),
             governance: self.governance.clone(),
+            public_ids: self.public_ids.clone(),
         }
     }
 }
@@ -99,6 +102,7 @@ where
         jobs: &Jobs,
         publisher: &crate::CreditFacilityPublisher<E>,
         governance: &Governance<Perms, E>,
+        public_ids: &PublicIds,
     ) -> Result<Self, CreditFacilityError> {
         let repo = CreditFacilityRepo::new(pool, publisher);
 
@@ -111,6 +115,7 @@ where
             price: price.clone(),
             jobs: jobs.clone(),
             governance: governance.clone(),
+            public_ids: public_ids.clone(),
         })
     }
 
@@ -125,11 +130,11 @@ where
     ) -> Result<(CreditFacility, InterestPeriod), CreditFacilityError> {
         let proposal = self.proposals.complete_in_op(db, id.into(), true).await?;
 
-        let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
-            credit_facility.activate(now, price, balances)
-        else {
-            return Ok(ActivationOutcome::Ignored(credit_facility));
-        };
+        let public_id = self
+            .public_ids
+            .create_in_op(db, CREDIT_FACILITY_REF_TARGET, id)
+            .await?;
+
         let new_credit_facility = NewCreditFacility::builder()
             .id(proposal.id)
             .ledger_tx_id(LedgerTxId::new())
@@ -138,7 +143,7 @@ where
             .terms(proposal.terms)
             .amount(proposal.amount)
             .created_at(db.now())
-            //TODO: handle public id creation and audit_info can be removed
+            .public_id(public_id.id)
             .build()
             .expect("could not build new credit facility");
 
@@ -164,7 +169,6 @@ where
 
         Ok((credit_facility, periods.accrual))
     }
-
     pub(super) async fn confirm_interest_accrual_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,

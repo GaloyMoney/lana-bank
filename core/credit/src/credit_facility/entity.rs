@@ -33,6 +33,7 @@ pub enum CreditFacilityEvent {
         disbursal_credit_account_id: CalaAccountId,
         approval_process_id: ApprovalProcessId, // TODO: check if we need this
         public_id: PublicId,
+        created_at: DateTime<Utc>,
     },
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
@@ -548,6 +549,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     terms: t,
                     approval_process_id,
                     public_id,
+                    created_at,
                     ..
                 } => {
                     builder = builder
@@ -623,6 +625,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 approval_process_id: self.approval_process_id,
                 public_id: self.public_id,
+                created_at: self.created_at,
             }],
         )
     }
@@ -733,6 +736,7 @@ mod test {
             account_ids: account_ids(),
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
+            created_at: created_at(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
         }]
     }
