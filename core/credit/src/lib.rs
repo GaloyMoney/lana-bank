@@ -456,6 +456,10 @@ where
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
     ) -> Result<CreditFacilityProposal, CoreCreditError> {
+        self.subject_can_create(sub, true)
+            .await?
+            .expect("audit info missing");
+
         let customer = self.customer.find_by_id_without_audit(customer_id).await?;
         if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
