@@ -19,6 +19,6 @@ tracing-subscriber = { workspace = true }
 tracing-opentelemetry = { workspace = true }
 opentelemetry-otlp = { workspace = true }
 opentelemetry = { workspace = true }
-opentelemetry-semantic-conventions = { workspace = true }
+opentelemetry-semantic-conventions = { workspace = true, features = ["semconv_experimental"] }
 opentelemetry_sdk = { workspace = true }
 opentelemetry-http = { workspace = true, optional = true }

@@ -428,7 +428,7 @@ dependencies = [
  "rustversion",
  "serde",
  "sync_wrapper",
- "tower 0.5.2",
+ "tower",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -466,7 +466,7 @@ dependencies = [
  "sync_wrapper",
  "tokio",
  "tokio-tungstenite",
- "tower 0.5.2",
+ "tower",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -530,7 +530,7 @@ dependencies = [
  "mime",
  "pin-project-lite",
  "serde",
- "tower 0.5.2",
+ "tower",
  "tower-layer",
  "tower-service",
 ]
@@ -553,7 +553,7 @@ dependencies = [
  "pin-project-lite",
  "rustversion",
  "serde",
- "tower 0.5.2",
+ "tower",
  "tower-layer",
  "tower-service",
 ]
@@ -842,9 +842,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a0bb0f2407adb4261edef9e258dfa79963ca38b066d465b3524d53b2d8e01a56"
+checksum = "63d5b7a6cd5fa2cec121e9003035283d63375de9bbacdeb1ef55220b35e1eae9"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -858,9 +858,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "34b1e4c3ed7fed188d2bbfed222837e59b3a9d165fdaba3be3975ba03dc688da"
+checksum = "d2c31da65f990cec019d444243a3eb78f375efa5667355352419935c76ceecc8"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -868,9 +868,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b3ef6d7e6383fbc4c9582895cb128fa2f2d2a2e648f3ef1c3aca5553ff139f16"
+checksum = "79560d03d78b5d30a5cfaecf9703e087c72331beb6594a22f87c6b7cd5cd9da4"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -904,9 +904,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b6822e65e43b7f2438bcd8af621e54fce5ae806f38eb6944cc864932fec132a9"
+checksum = "7a3b9a22e1b275b2d533896931457e70d7163d1c00bf4c43f78008a4320ae615"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -926,9 +926,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.7.0"
+version = "0.8.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "2957540d7676c6f87748137e2ec414a7cf10810bbadc98bc7e091cd414f54c55"
+checksum = "11f6feb3adf5c01ecaed90cad8c8803d580f178d0159cf8248227fc740eb353c"
 dependencies = [
  "anyhow",
  "axum-extra 0.9.6",
@@ -2107,9 +2107,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.7.13"
+version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "921149a24992ab4687f83d9fb5522eebb9b57b06a26bf9ee8011664b2d673e5d"
+checksum = "78d46dc75cb682a007ed189827229d0e079500f62dcb63c98894755bfa6c4f43"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -2117,6 +2117,7 @@ dependencies = [
  "derive_builder",
  "es-entity-macros",
  "im",
+ "opentelemetry",
  "pin-project",
  "schemars 1.0.4",
  "serde",
@@ -2124,14 +2125,16 @@ dependencies = [
  "sim-time",
  "sqlx",
  "thiserror 2.0.16",
+ "tracing",
+ "tracing-opentelemetry",
  "uuid",
 ]
 
 [[package]]
 name = "es-entity-macros"
-version = "0.7.13"
+version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1f3a2da45d57b2d84ec4aaee55e9e4aa4faf410d641be890c5b400f675839b71"
+checksum = "90720ba32d5bde8367837051cf62d6f7a9490e7a3d6eaa976b5b84953a663e4b"
 dependencies = [
  "convert_case",
  "darling",
@@ -2434,12 +2437,6 @@ name = "gimli"
 version = "0.31.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "07e28edb80900c19c28f1072f2e8aeca7fa06b23cd4169cefe1af5aa3260783f"
-
-[[package]]
-name = "glob"
-version = "0.3.2"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a8d1add55171497b4705a648c6b583acafb01d58050a51727785f0b2c8e0a2b2"
 
 [[package]]
 name = "google-cloud-auth"
@@ -3804,23 +3801,23 @@ checksum = "c08d65885ee38876c4f86fa503fb49d7b507c2b62552df7c70b2fce627e06381"
 
 [[package]]
 name = "opentelemetry"
-version = "0.24.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4c365a63eec4f55b7efeceb724f1336f26a9cf3427b70e59e2cd2a5b947fba96"
+checksum = "aaf416e4cb72756655126f7dd7bb0af49c674f4c1b9903e80c009e0c37e552e6"
 dependencies = [
  "futures-core",
  "futures-sink",
  "js-sys",
- "once_cell",
  "pin-project-lite",
- "thiserror 1.0.69",
+ "thiserror 2.0.16",
+ "tracing",
 ]
 
 [[package]]
 name = "opentelemetry-http"
-version = "0.13.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ad31e9de44ee3538fb9d64fe3376c1362f406162434609e79aea2a41a0af78ab"
+checksum = "50f6639e842a97dbea8886e3439710ae463120091e2e064518ba8e716e6ac36d"
 dependencies = [
  "async-trait",
  "bytes",
@@ -3831,12 +3828,10 @@ dependencies = [
 
 [[package]]
 name = "opentelemetry-otlp"
-version = "0.17.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6b925a602ffb916fb7421276b86756027b37ee708f9dce2dbdcc51739f07e727"
+checksum = "dbee664a43e07615731afc539ca60c6d9f1a9425e25ca09c57bc36c87c55852b"
 dependencies = [
- "async-trait",
- "futures-core",
  "http",
  "opentelemetry",
  "opentelemetry-http",
@@ -3844,16 +3839,16 @@ dependencies = [
  "opentelemetry_sdk",
  "prost",
  "reqwest",
- "thiserror 1.0.69",
+ "thiserror 2.0.16",
  "tokio",
  "tonic",
 ]
 
 [[package]]
 name = "opentelemetry-proto"
-version = "0.7.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "30ee9f20bff9c984511a02f082dc8ede839e4a9bf15cc2487c8d6fea5ad850d9"
+checksum = "2e046fd7660710fe5a05e8748e70d9058dc15c94ba914e7c4faa7c728f0e8ddc"
 dependencies = [
  "opentelemetry",
  "opentelemetry_sdk",
@@ -3863,27 +3858,24 @@ dependencies = [
 
 [[package]]
 name = "opentelemetry-semantic-conventions"
-version = "0.16.0"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1cefe0543875379e47eb5f1e68ff83f45cc41366a92dfd0d073d513bf68e9a05"
+checksum = "83d059a296a47436748557a353c5e6c5705b9470ef6c95cfc52c21a8814ddac2"
 
 [[package]]
 name = "opentelemetry_sdk"
-version = "0.24.1"
+version = "0.30.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "692eac490ec80f24a17828d49b40b60f5aeaccdfe6a503f939713afd22bc28df"
+checksum = "11f644aa9e5e31d11896e024305d7e3c98a88884d9f8919dbf37a9991bc47a4b"
 dependencies = [
- "async-trait",
  "futures-channel",
  "futures-executor",
  "futures-util",
- "glob",
- "once_cell",
  "opentelemetry",
  "percent-encoding",
- "rand 0.8.5",
+ "rand 0.9.2",
  "serde_json",
- "thiserror 1.0.69",
+ "thiserror 2.0.16",
  "tokio",
  "tokio-stream",
 ]
@@ -4746,7 +4738,7 @@ dependencies = [
  "tokio",
  "tokio-rustls",
  "tokio-util",
- "tower 0.5.2",
+ "tower",
  "tower-http",
  "tower-service",
  "url",
@@ -5421,9 +5413,9 @@ dependencies = [
 
 [[package]]
 name = "sim-time"
-version = "0.7.13"
+version = "0.7.15"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "5fd641c2f1c2959f67e3ec4d1014f0dd31035a28e2c9625f00e2ad71187ff93b"
+checksum = "474b8827256a3a10d3ac1486c6965314eac65cdd9ceaab8514247b7689de7943"
 dependencies = [
  "chrono",
  "serde",
@@ -6338,13 +6330,12 @@ checksum = "5d99f8c9a7727884afe522e9bd5edbfc91a3312b36a77b5fb8926e4c31a41801"
 
 [[package]]
 name = "tonic"
-version = "0.12.3"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "877c5b330756d856ffcc4553ab34a5684481ade925ecc54bcd1bf02b1d0d4d52"
+checksum = "7e581ba15a835f4d9ea06c55ab1bd4dce26fc53752c69a04aac00703bfb49ba9"
 dependencies = [
- "async-stream",
  "async-trait",
- "axum 0.7.9",
+ "axum 0.8.4",
  "base64 0.22.1",
  "bytes",
  "h2",
@@ -6360,7 +6351,7 @@ dependencies = [
  "socket2 0.5.10",
  "tokio",
  "tokio-stream",
- "tower 0.4.13",
+ "tower",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -6368,9 +6359,9 @@ dependencies = [
 
 [[package]]
 name = "tonic-build"
-version = "0.12.3"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9557ce109ea773b399c9b9e5dca39294110b74f1f342cb347a80d1fce8c26a11"
+checksum = "eac6f67be712d12f0b41328db3137e0d0757645d8904b4cb7d51cd9c2279e847"
 dependencies = [
  "prettyplease",
  "proc-macro2",
@@ -6382,35 +6373,14 @@ dependencies = [
 
 [[package]]
 name = "tonic-health"
-version = "0.12.3"
+version = "0.13.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "1eaf34ddb812120f5c601162d5429933c9b527d901ab0e7f930d3147e33a09b2"
+checksum = "cb87334d340313fefa513b6e60794d44a86d5f039b523229c99c323e4e19ca4b"
 dependencies = [
- "async-stream",
  "prost",
  "tokio",
  "tokio-stream",
  "tonic",
-]
-
-[[package]]
-name = "tower"
-version = "0.4.13"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "b8fa9be0de6cf49e536ce1851f987bd21a43b771b09473c3549a6c853db37c1c"
-dependencies = [
- "futures-core",
- "futures-util",
- "indexmap 1.9.3",
- "pin-project",
- "pin-project-lite",
- "rand 0.8.5",
- "slab",
- "tokio",
- "tokio-util",
- "tower-layer",
- "tower-service",
- "tracing",
 ]
 
 [[package]]
@@ -6421,9 +6391,12 @@ checksum = "d039ad9159c98b70ecfd540b2573b97f7f52c3e8d9f8ad57a24b916a536975f9"
 dependencies = [
  "futures-core",
  "futures-util",
+ "indexmap 2.9.0",
  "pin-project-lite",
+ "slab",
  "sync_wrapper",
  "tokio",
+ "tokio-util",
  "tower-layer",
  "tower-service",
  "tracing",
@@ -6442,7 +6415,7 @@ dependencies = [
  "http-body",
  "iri-string",
  "pin-project-lite",
- "tower 0.5.2",
+ "tower",
  "tower-layer",
  "tower-service",
 ]
@@ -6517,9 +6490,9 @@ dependencies = [
 
 [[package]]
 name = "tracing-opentelemetry"
-version = "0.25.0"
+version = "0.31.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a9784ed4da7d921bc8df6963f8c80a0e4ce34ba6ba76668acadd3edbd985ff3b"
+checksum = "ddcf5959f39507d0d04d6413119c04f33b623f4f951ebcbdddddfad2d0623a9c"
 dependencies = [
  "js-sys",
  "once_cell",

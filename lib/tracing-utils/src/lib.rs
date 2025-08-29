@@ -1,20 +1,18 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-use opentelemetry::{KeyValue, global, trace::TracerProvider};
+use opentelemetry::{KeyValue, global};
+use opentelemetry_otlp::SpanExporter;
 use opentelemetry_sdk::{
     Resource,
     propagation::TraceContextPropagator,
-    resource::{EnvResourceDetector, SdkProvidedResourceDetector},
-    trace::{Config, Sampler},
+    trace::{Sampler, SdkTracerProvider},
 };
-use opentelemetry_semantic_conventions::resource::{SERVICE_NAME, SERVICE_NAMESPACE};
+use opentelemetry_semantic_conventions::resource::SERVICE_NAMESPACE;
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub use tracing::*;
-
-use std::time::Duration;
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracingConfig {
@@ -31,17 +29,17 @@ impl Default for TracingConfig {
 
 pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     global::set_text_map_propagator(TraceContextPropagator::new());
-    let provider = opentelemetry_otlp::new_pipeline()
-        .tracing()
-        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
-        .with_trace_config(
-            Config::default()
-                .with_resource(telemetry_resource(&config))
-                .with_sampler(Sampler::AlwaysOn),
-        )
-        .install_batch(opentelemetry_sdk::runtime::Tokio)?;
-    let telemetry =
-        tracing_opentelemetry::layer().with_tracer(provider.tracer(config.service_name));
+
+    let exporter = SpanExporter::builder().with_tonic().build()?;
+
+    let provider = SdkTracerProvider::builder()
+        .with_resource(telemetry_resource(&config))
+        .with_batch_exporter(exporter)
+        .with_sampler(Sampler::AlwaysOn)
+        .build();
+
+    global::set_tracer_provider(provider.clone());
+    let telemetry = tracing_opentelemetry::layer();
 
     let fmt_layer = fmt::layer().json();
     let filter_layer = EnvFilter::try_from_default_env()
@@ -91,17 +89,10 @@ fn setup_panic_hook() {
 }
 
 fn telemetry_resource(config: &TracingConfig) -> Resource {
-    Resource::from_detectors(
-        Duration::from_secs(3),
-        vec![
-            Box::new(EnvResourceDetector::new()),
-            Box::new(SdkProvidedResourceDetector),
-        ],
-    )
-    .merge(&Resource::new(vec![
-        KeyValue::new(SERVICE_NAME, config.service_name.clone()),
-        KeyValue::new(SERVICE_NAMESPACE, "lana"),
-    ]))
+    Resource::builder()
+        .with_service_name(config.service_name.clone())
+        .with_attributes([KeyValue::new(SERVICE_NAMESPACE, "lana")])
+        .build()
 }
 
 pub fn insert_error_fields(level: tracing::Level, error: impl std::fmt::Display) {

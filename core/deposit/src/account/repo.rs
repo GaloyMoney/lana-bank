@@ -20,7 +20,6 @@ use super::{entity::*, error::*};
         public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
-    event_context,
     post_persist_hook = "publish"
 )]
 pub struct DepositAccountRepo<E>

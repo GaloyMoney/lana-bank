@@ -9,6 +9,7 @@ CREATE TABLE core_committee_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -25,6 +26,7 @@ CREATE TABLE core_policy_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -42,6 +44,7 @@ CREATE TABLE core_approval_process_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -57,6 +60,7 @@ CREATE TABLE core_chart_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -72,6 +76,7 @@ CREATE TABLE core_public_id_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -93,6 +98,7 @@ CREATE TABLE core_customer_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -134,6 +140,7 @@ CREATE TABLE core_deposit_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -152,6 +159,7 @@ CREATE TABLE core_withdrawal_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -167,6 +175,7 @@ CREATE TABLE core_terms_template_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -182,6 +191,7 @@ CREATE TABLE core_permission_set_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -197,6 +207,7 @@ CREATE TABLE core_role_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -212,6 +223,7 @@ CREATE TABLE core_user_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -227,6 +239,7 @@ CREATE TABLE core_wallet_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -242,6 +255,7 @@ CREATE TABLE core_collateral_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -261,6 +275,7 @@ CREATE TABLE core_credit_facility_proposal_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -282,6 +297,7 @@ CREATE TABLE core_credit_facility_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -298,6 +314,7 @@ CREATE TABLE core_custodian_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -322,6 +339,7 @@ CREATE TABLE core_obligation_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -338,6 +356,7 @@ CREATE TABLE core_liquidation_process_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -357,6 +376,7 @@ CREATE TABLE core_disbursal_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -374,6 +394,7 @@ CREATE TABLE core_interest_accrual_cycle_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -389,6 +410,7 @@ CREATE TABLE core_payment_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -406,6 +428,7 @@ CREATE TABLE core_obligation_installment_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -424,6 +447,7 @@ CREATE TABLE core_document_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   UNIQUE(id, sequence)
 );
@@ -442,6 +466,7 @@ CREATE TABLE core_report_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -457,6 +482,7 @@ CREATE TABLE core_report_run_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -471,6 +497,7 @@ CREATE TABLE report_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -487,6 +514,7 @@ CREATE TABLE core_manual_transaction_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
@@ -504,6 +532,7 @@ CREATE TABLE job_events (
   sequence INT NOT NULL,
   event_type VARCHAR NOT NULL,
   event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
   recorded_at TIMESTAMPTZ NOT NULL,
   UNIQUE(id, sequence)
 );
