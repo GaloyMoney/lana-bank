@@ -492,6 +492,7 @@ where
             .approval_process_id(proposal_id)
             .collateral_id(collateral_id)
             .customer_id(customer_id)
+            .customer_type(customer.customer_type)
             .terms(terms)
             .amount(amount)
             .account_ids(account_ids)
