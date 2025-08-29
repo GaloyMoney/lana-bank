@@ -1,7 +1,7 @@
-mutation creditFacilityPartialPayment(
-  $input: CreditFacilityPartialPaymentInput!
+mutation creditFacilityPartialPaymentRecord(
+  $input: CreditFacilityPartialPaymentRecordInput!
 ) {
-  creditFacilityPartialPayment(input: $input) {
+  creditFacilityPartialPaymentRecord(input: $input) {
     creditFacility {
       creditFacilityId
       facilityAmount

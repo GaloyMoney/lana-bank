@@ -247,18 +247,18 @@ pub struct CreditFacilityCollateralUpdateInput {
 crate::mutation_payload! { CreditFacilityCollateralUpdatePayload, credit_facility: CreditFacility }
 
 #[derive(InputObject)]
-pub struct CreditFacilityPartialPaymentInput {
+pub struct CreditFacilityPartialPaymentRecordInput {
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
 }
 
 #[derive(InputObject)]
-pub struct CreditFacilityPartialPaymentWithDateInput {
+pub struct CreditFacilityPartialPaymentWithDateRecordInput {
     pub credit_facility_id: UUID,
     pub amount: UsdCents,
     pub effective: Date,
 }
-crate::mutation_payload! { CreditFacilityPartialPaymentPayload, credit_facility: CreditFacility }
+crate::mutation_payload! { CreditFacilityPartialPaymentRecordPayload, credit_facility: CreditFacility }
 
 #[derive(InputObject)]
 pub struct CreditFacilityCompleteInput {

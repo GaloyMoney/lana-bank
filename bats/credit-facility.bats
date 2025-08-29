@@ -271,8 +271,8 @@ ymd() {
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-partial-payment' "$variables"
-  updated_balance=$(graphql_output '.data.creditFacilityPartialPayment.creditFacility.balance')
+  exec_admin_graphql 'credit-facility-partial-payment-record' "$variables"
+  updated_balance=$(graphql_output '.data.creditFacilityPartialPaymentRecord.creditFacility.balance')
 
   updated_interest=$(echo $updated_balance | jq -r '.interest.total.usdBalance')
   [[ "$interest" -eq "$updated_interest" ]] || exit 1

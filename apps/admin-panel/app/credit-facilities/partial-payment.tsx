@@ -16,15 +16,17 @@ import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
 
 import {
-  useCreditFacilityPartialPaymentMutation,
-  useCreditFacilityPartialPaymentWithDateMutation,
+  useCreditFacilityPartialPaymentRecordMutation,
+  useCreditFacilityPartialPaymentWithDateRecordMutation,
 } from "@/lib/graphql/generated"
 import { UsdCents } from "@/types"
 import { getCurrentLocalDate } from "@/lib/utils"
 
 gql`
-  mutation CreditFacilityPartialPayment($input: CreditFacilityPartialPaymentInput!) {
-    creditFacilityPartialPayment(input: $input) {
+  mutation CreditFacilityPartialPaymentRecord(
+    $input: CreditFacilityPartialPaymentRecordInput!
+  ) {
+    creditFacilityPartialPaymentRecord(input: $input) {
       creditFacility {
         id
         creditFacilityId
@@ -37,10 +39,10 @@ gql`
 `
 
 gql`
-  mutation CreditFacilityPartialPaymentWithDate(
-    $input: CreditFacilityPartialPaymentWithDateInput!
+  mutation CreditFacilityPartialPaymentWithDateRecord(
+    $input: CreditFacilityPartialPaymentWithDateRecordInput!
   ) {
-    creditFacilityPartialPaymentWithDate(input: $input) {
+    creditFacilityPartialPaymentWithDateRecord(input: $input) {
       creditFacility {
         id
         creditFacilityId
@@ -66,11 +68,11 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
   )
 
   const [partialPaymentCreditFacility, { loading, reset }] =
-    useCreditFacilityPartialPaymentMutation()
+    useCreditFacilityPartialPaymentRecordMutation()
   const [
     partialPaymentWithDateCreditFacility,
     { loading: loadingWithDate, reset: resetWithDate },
-  ] = useCreditFacilityPartialPaymentWithDateMutation()
+  ] = useCreditFacilityPartialPaymentWithDateRecordMutation()
   const [error, setError] = useState<string | null>(null)
   const [amount, setAmount] = useState<string>("")
   const [effectiveDate, setEffectiveDate] = useState<string>(getCurrentLocalDate())
@@ -97,7 +99,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
             },
           },
           onCompleted: (data) => {
-            if (data.creditFacilityPartialPaymentWithDate) {
+            if (data.creditFacilityPartialPaymentWithDateRecord) {
               toast.success(t("messages.success"))
               handleCloseDialog()
             }
@@ -112,7 +114,7 @@ export const CreditFacilityPartialPaymentDialog: React.FC<
             },
           },
           onCompleted: (data) => {
-            if (data.creditFacilityPartialPayment) {
+            if (data.creditFacilityPartialPaymentRecord) {
               toast.success(t("messages.success"))
               handleCloseDialog()
             }
