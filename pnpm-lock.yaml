@@ -35,10 +35,10 @@ importers:
         version: link:../shared-web
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.9.2)(zod@4.1.4)
+        version: 0.13.8(typescript@5.9.2)(zod@4.1.5)
       apollo-upload-client:
-        specifier: ^18.0.1
-        version: 18.0.1(@apollo/client@3.14.0(@types/react@19.1.12)(graphql-ws@6.0.6(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(graphql@16.11.0)
+        specifier: ^19.0.0
+        version: 19.0.0(@apollo/client@3.14.0(@types/react@19.1.12)(graphql-ws@6.0.6(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(graphql@16.11.0)(rxjs@7.8.2)
       bignumber.js:
         specifier: ^9.3.1
         version: 9.3.1
@@ -91,8 +91,8 @@ importers:
         specifier: ^11.1.0
         version: 11.1.0
       zod:
-        specifier: ^4.1.4
-        version: 4.1.4
+        specifier: ^4.1.5
+        version: 4.1.5
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.1.1
@@ -149,8 +149,8 @@ importers:
         specifier: ^7.12.0
         version: 7.18.0(@typescript-eslint/parser@8.41.0(eslint@8.57.1)(typescript@5.9.2))(eslint@8.57.1)(typescript@5.9.2)
       browserstack-cypress-cli:
-        specifier: ^1.33.0
-        version: 1.33.0
+        specifier: ^1.34.0
+        version: 1.34.0
       cypress:
         specifier: ^15.0.0
         version: 15.0.0
@@ -213,7 +213,7 @@ importers:
         version: 2.4.1(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       '@t3-oss/env-nextjs':
         specifier: ^0.13.8
-        version: 0.13.8(typescript@5.9.2)(zod@4.1.4)
+        version: 0.13.8(typescript@5.9.2)(zod@4.1.5)
       axios:
         specifier: ^1.11.0
         version: 1.11.0
@@ -266,8 +266,8 @@ importers:
         specifier: ^1.0.7
         version: 1.0.7(tailwindcss@3.4.17)
       zod:
-        specifier: ^4.1.4
-        version: 4.1.4
+        specifier: ^4.1.5
+        version: 4.1.5
     devDependencies:
       '@chromatic-com/storybook':
         specifier: ^4.1.1
@@ -3819,12 +3819,13 @@ packages:
     resolution: {integrity: sha512-KMReFUr0B4t+D+OBkjR3KYqvocp2XaSzO55UcB6mgQMd3KbcE+mWTyvVV7D/zsdEbNnV6acZUutkiHQXvTr1Rw==}
     engines: {node: '>= 8'}
 
-  apollo-upload-client@18.0.1:
-    resolution: {integrity: sha512-OQvZg1rK05VNI79D658FUmMdoI2oB/KJKb6QGMa2Si25QXOaAvLMBFUEwJct7wf+19U8vk9ILhidBOU1ZWv6QA==}
-    engines: {node: ^18.15.0 || >=20.4.0}
+  apollo-upload-client@19.0.0:
+    resolution: {integrity: sha512-SOORV4GB71Pd1Ktdb5D8qBthu/gtTQirTx6rAhgujR+Z24dwmLU47hUERFVeffnFpCMRsir/V5ijOSfqqJdC4A==}
+    engines: {node: ^20.9.0 || >=22.0.0}
     peerDependencies:
-      '@apollo/client': ^3.8.0
+      '@apollo/client': ^4.0.0
       graphql: 14 - 16
+      rxjs: ^7.3.0
 
   arch@2.2.0:
     resolution: {integrity: sha512-Of/R0wqp83cgHozfIYLbBMnej79U/SVGOOyuB3VVFv1NRM/PSFMK12x9KVtiYzJqmnU5WR2qp0Z5rHb7sWGnFQ==}
@@ -4160,8 +4161,8 @@ packages:
     engines: {node: ^6 || ^7 || ^8 || ^9 || ^10 || ^11 || ^12 || >=13.7}
     hasBin: true
 
-  browserstack-cypress-cli@1.33.0:
-    resolution: {integrity: sha512-3KqqxywGdr/P4wmDg3JBTwsE3SbUrIKRG06nH5NWesUgBOrfThFlwZrNNiJZOL5zuJRDTaVszx3ctEWbfarUag==}
+  browserstack-cypress-cli@1.34.0:
+    resolution: {integrity: sha512-PHP/IvSzLRgNVF0JLYhRsL3ytdaRelz8lQDloIv5eNGFzYFOZx+yfYhOYKDkQWzTvkewvdWl01BJh1UqiLtQkQ==}
     hasBin: true
 
   browserstack-local@1.5.4:
@@ -4505,6 +4506,10 @@ packages:
   commander@8.3.0:
     resolution: {integrity: sha512-OkTL9umf+He2DZkUq8f8J9of7yL6RJKI24dVITBmNfZBmri9zYZQrKkuXiKhyfPSu8tUhnVBB1iKXevvnlR4Ww==}
     engines: {node: '>= 12'}
+
+  commander@9.5.0:
+    resolution: {integrity: sha512-KRs7WVDKg86PWiuAqhDrAQnTXZKraVcCc6vFdL14qrZ/DcWwuRo7VoiYXalXO7S5GKpqYiVEwCbgFDfxNHKJBQ==}
+    engines: {node: ^12.20.0 || >=14}
 
   common-path-prefix@3.0.0:
     resolution: {integrity: sha512-QE33hToZseCH3jS0qN96O/bSh3kaw/h+Tq7ngyY9eWDUnTlTNUyqfqvCXioLe5Na5jFsL78ra/wuBU4iuEgd4w==}
@@ -6892,6 +6897,10 @@ packages:
   mute-stream@0.0.8:
     resolution: {integrity: sha512-nnbWWOkoWyUsTjKrhgD0dcz22mdkSnpYqbEjIm2nhwhuxlSkpywJmBo8h0ZqJdkp73mb90SssHkN4rsRaBAfAA==}
 
+  mylas@2.1.13:
+    resolution: {integrity: sha512-+MrqnJRtxdF+xngFfUUkIMQrUUL0KsxbADUkn23Z/4ibGg192Q+z+CQyiYwvWTsYjJygmMR8+w3ZDa98Zh6ESg==}
+    engines: {node: '>=12.0.0'}
+
   mz@2.7.0:
     resolution: {integrity: sha512-z81GNO7nnYMEhrGh9LeymoE4+Yr0Wn5McHIZMK5cfQCl+NDX08sCZgUc9/6MHni9IWuFLm1Z3HTCXu2z9fN62Q==}
 
@@ -7391,6 +7400,10 @@ packages:
   pkg-types@2.2.0:
     resolution: {integrity: sha512-2SM/GZGAEkPp3KWORxQZns4M+WSeXbC2HEvmOIJe3Cmiv6ieAJvdVhDldtHqM5J1Y7MrR1XhkBT/rMlhh9FdqQ==}
 
+  plimit-lit@1.6.1:
+    resolution: {integrity: sha512-B7+VDyb8Tl6oMJT9oSO2CW8XC/T4UcJGrwOVoNGwOQsQYhlpfajmrMj5xeejqaASq3V/EqThyOeATEOMuSEXiA==}
+    engines: {node: '>=12'}
+
   points-on-curve@0.2.0:
     resolution: {integrity: sha512-0mYKnYYe9ZcqMCWhUjItv/oHjvgEsfKvnUTg8sAtnHr3GVy7rGkXCb6d5cSyqrWqL4k81b9CPg3urd+T7aop3A==}
 
@@ -7600,6 +7613,10 @@ packages:
   querystring-es3@0.2.1:
     resolution: {integrity: sha512-773xhDQnZBMFobEiztv8LIl70ch5MSF/jUQVlhwFyBILqq96anmoctVIYz+ZRp0qbCKATTn6ev02M3r7Ga5vqA==}
     engines: {node: '>=0.4.x'}
+
+  queue-lit@1.5.2:
+    resolution: {integrity: sha512-tLc36IOPeMAubu8BkW8YDBV+WyIgKlYU7zUNs0J5Vk9skSZ4JfGlPOqplP0aHdfv7HL0B2Pg6nwiq60Qc6M2Hw==}
+    engines: {node: '>=12'}
 
   queue-microtask@1.2.3:
     resolution: {integrity: sha512-NuaNSa6flKT5JaSYQzJok04JzTL1CA6aGhv5rfLW3PgqA+M2ChpZQnAC8h8i4ZFkBS8X5RqkDBHA7r4hej3K9A==}
@@ -8570,6 +8587,11 @@ packages:
   ts-log@2.2.7:
     resolution: {integrity: sha512-320x5Ggei84AxzlXp91QkIGSw5wgaLT6GeAH0KsqDmRZdVWW2OiSeVvElVoatk3f7nicwXlElXsoFkARiGE2yg==}
 
+  tsc-alias@1.8.16:
+    resolution: {integrity: sha512-QjCyu55NFyRSBAl6+MTFwplpFcnm2Pq01rR/uxfqJoLMm6X3O14KEGtaSDZpJYaE1bJBGDjD0eSuiIWPe2T58g==}
+    engines: {node: '>=16.20.2'}
+    hasBin: true
+
   tsconfig-paths-webpack-plugin@4.2.0:
     resolution: {integrity: sha512-zbem3rfRS8BgeNK50Zz5SIQgXzLafiHjOwUAvk/38/o1jHn/V5QAgVUcz884or7WYcPaH3N2CIfUc2u0ul7UcA==}
     engines: {node: '>=10.13.0'}
@@ -9047,8 +9069,8 @@ packages:
   zod@3.25.76:
     resolution: {integrity: sha512-gzUt/qt81nXsFGKIFcC3YnfEAx5NkunCfnDlvuBSSFS02bcXu4Lmea0AFIUwbLWxWPx3d9p8S5QoaujKcNQxcQ==}
 
-  zod@4.1.4:
-    resolution: {integrity: sha512-2YqJuWkU6IIK9qcE4k1lLLhyZ6zFw7XVRdQGpV97jEIZwTrscUw+DY31Xczd8nwaoksyJUIxCojZXwckJovWxA==}
+  zod@4.1.5:
+    resolution: {integrity: sha512-rcUUZqlLJgBC33IT3PNMgsCq6TzLQEG/Ei/KTCU0PedSWRMAXoOUN+4t/0H+Q8bdnLPdqUYnvboJT0bn/229qg==}
 
 snapshots:
 
@@ -12884,17 +12906,17 @@ snapshots:
     dependencies:
       defer-to-connect: 2.0.1
 
-  '@t3-oss/env-core@0.13.8(typescript@5.9.2)(zod@4.1.4)':
+  '@t3-oss/env-core@0.13.8(typescript@5.9.2)(zod@4.1.5)':
     optionalDependencies:
       typescript: 5.9.2
-      zod: 4.1.4
+      zod: 4.1.5
 
-  '@t3-oss/env-nextjs@0.13.8(typescript@5.9.2)(zod@4.1.4)':
+  '@t3-oss/env-nextjs@0.13.8(typescript@5.9.2)(zod@4.1.5)':
     dependencies:
-      '@t3-oss/env-core': 0.13.8(typescript@5.9.2)(zod@4.1.4)
+      '@t3-oss/env-core': 0.13.8(typescript@5.9.2)(zod@4.1.5)
     optionalDependencies:
       typescript: 5.9.2
-      zod: 4.1.4
+      zod: 4.1.5
 
   '@tanstack/react-virtual@3.13.12(react-dom@19.1.1(react@19.1.1))(react@19.1.1)':
     dependencies:
@@ -13741,11 +13763,12 @@ snapshots:
       normalize-path: 3.0.0
       picomatch: 2.3.1
 
-  apollo-upload-client@18.0.1(@apollo/client@3.14.0(@types/react@19.1.12)(graphql-ws@6.0.6(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(graphql@16.11.0):
+  apollo-upload-client@19.0.0(@apollo/client@3.14.0(@types/react@19.1.12)(graphql-ws@6.0.6(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1))(graphql@16.11.0)(rxjs@7.8.2):
     dependencies:
       '@apollo/client': 3.14.0(@types/react@19.1.12)(graphql-ws@6.0.6(graphql@16.11.0)(ws@8.18.3))(graphql@16.11.0)(react-dom@19.1.1(react@19.1.1))(react@19.1.1)
       extract-files: 13.0.0
       graphql: 16.11.0
+      rxjs: 7.8.2
 
   arch@2.2.0: {}
 
@@ -14215,7 +14238,7 @@ snapshots:
       node-releases: 2.0.19
       update-browserslist-db: 1.1.3(browserslist@4.25.3)
 
-  browserstack-cypress-cli@1.33.0:
+  browserstack-cypress-cli@1.34.0:
     dependencies:
       archiver: 5.3.0
       async: 3.2.3
@@ -14236,6 +14259,7 @@ snapshots:
       mocha: 10.8.2
       node-ipc: 9.1.1
       table: 5.4.6
+      tsc-alias: 1.8.16
       unzipper: 0.12.3
       update-notifier: 7.0.0
       uuid: 8.3.2
@@ -14611,6 +14635,8 @@ snapshots:
   commander@7.2.0: {}
 
   commander@8.3.0: {}
+
+  commander@9.5.0: {}
 
   common-path-prefix@3.0.0: {}
 
@@ -17369,6 +17395,8 @@ snapshots:
 
   mute-stream@0.0.8: {}
 
+  mylas@2.1.13: {}
+
   mz@2.7.0:
     dependencies:
       any-promise: 1.3.0
@@ -17955,6 +17983,10 @@ snapshots:
       exsolve: 1.0.7
       pathe: 2.0.3
 
+  plimit-lit@1.6.1:
+    dependencies:
+      queue-lit: 1.5.2
+
   points-on-curve@0.2.0: {}
 
   points-on-path@0.2.1:
@@ -18187,6 +18219,8 @@ snapshots:
   quansync@0.2.10: {}
 
   querystring-es3@0.2.1: {}
+
+  queue-lit@1.5.2: {}
 
   queue-microtask@1.2.3: {}
 
@@ -19310,6 +19344,16 @@ snapshots:
 
   ts-log@2.2.7: {}
 
+  tsc-alias@1.8.16:
+    dependencies:
+      chokidar: 3.6.0
+      commander: 9.5.0
+      get-tsconfig: 4.10.1
+      globby: 11.1.0
+      mylas: 2.1.13
+      normalize-path: 3.0.0
+      plimit-lit: 1.6.1
+
   tsconfig-paths-webpack-plugin@4.2.0:
     dependencies:
       chalk: 4.1.2
@@ -19930,4 +19974,4 @@ snapshots:
 
   zod@3.25.76: {}
 
-  zod@4.1.4: {}
+  zod@4.1.5: {}
