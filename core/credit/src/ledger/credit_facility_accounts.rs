@@ -27,8 +27,29 @@ pub struct CreditFacilityLedgerAccountIds {
     pub fee_income_account_id: CalaAccountId,
 }
 
-impl From<CreditFacilityProposalAccountIds> for CreditFacilityLedgerAccountIds {
-    fn from(proposal_ids: CreditFacilityProposalAccountIds) -> Self {
+#[cfg(test)]
+impl CreditFacilityAccountIds {
+    pub fn new() -> Self {
+        Self {
+            facility_account_id: CalaAccountId::new(),
+            collateral_account_id: CalaAccountId::new(),
+            in_liquidation_account_id: CalaAccountId::new(),
+            disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            disbursed_receivable_due_account_id: CalaAccountId::new(),
+            disbursed_receivable_overdue_account_id: CalaAccountId::new(),
+            disbursed_defaulted_account_id: CalaAccountId::new(),
+            interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            interest_receivable_due_account_id: CalaAccountId::new(),
+            interest_receivable_overdue_account_id: CalaAccountId::new(),
+            interest_defaulted_account_id: CalaAccountId::new(),
+            interest_income_account_id: CalaAccountId::new(),
+            fee_income_account_id: CalaAccountId::new(),
+        }
+    }
+}
+
+impl From<CreditFacilityProposalLedgerAccountIds> for CreditFacilityLedgerAccountIds {
+    fn from(proposal_ids: CreditFacilityProposalLedgerAccountIds) -> Self {
         Self {
             facility_account_id: proposal_ids.facility_account_id,
             collateral_account_id: proposal_ids.collateral_account_id,
@@ -49,12 +70,12 @@ impl From<CreditFacilityProposalAccountIds> for CreditFacilityLedgerAccountIds {
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CreditFacilityProposalAccountIds {
+pub struct CreditFacilityProposalLedgerAccountIds {
     pub facility_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
 }
 
-impl CreditFacilityProposalAccountIds {
+impl CreditFacilityProposalLedgerAccountIds {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
