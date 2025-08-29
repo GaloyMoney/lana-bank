@@ -71,7 +71,8 @@ where
     }
 }
 
-const CREDIT_FACILITY_APPROVE_JOB: JobType = JobType::new("credit-facility-approval");
+const CREDIT_FACILITY_PROPOSAL_APPROVE_JOB: JobType =
+    JobType::new("credit-facility-proposal-approval");
 impl<Perms, E> JobInitializer for CreditFacilityProposalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -85,7 +86,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_APPROVE_JOB
+        CREDIT_FACILITY_PROPOSAL_APPROVE_JOB
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
