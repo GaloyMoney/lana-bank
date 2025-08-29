@@ -24,13 +24,14 @@ pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
         customer_id: CustomerId,
+        customer_type: CustomerType,
         collateral_id: CollateralId,
         ledger_tx_id: LedgerTxId,
         terms: TermValues,
         amount: UsdCents,
         account_ids: CreditFacilityLedgerAccountIds,
         disbursal_credit_account_id: CalaAccountId,
-        approval_process_id: ApprovalProcessId,
+        approval_process_id: ApprovalProcessId, // TODO: check if we need this
         public_id: PublicId,
     },
     InterestAccrualCycleStarted {
@@ -167,23 +168,29 @@ pub struct CreditFacility {
 }
 
 impl CreditFacility {
-    pub(crate) fn creation_data(&self) -> CreditFacilityCreation {
+    pub(crate) fn activation_data(&self) -> CreditFacilityActivation {
         self.events
             .iter_all()
             .find_map(|event| match event {
                 CreditFacilityEvent::Initialized {
+                    id,
                     ledger_tx_id,
                     account_ids,
                     amount,
                     disbursal_credit_account_id,
+                    customer_type,
+                    terms,
                     ..
-                } => Some(CreditFacilityCreation {
+                } => Some(CreditFacilityActivation {
+                    credit_facility_id: *id,
                     tx_id: *ledger_tx_id,
-                    tx_ref: format!("{}-activate", self.id),
-                    credit_facility_account_ids: *account_ids,
+                    tx_ref: format!("{}-activate", *id),
+                    account_ids: *account_ids,
                     debit_account_id: *disbursal_credit_account_id,
                     facility_amount: *amount,
                     structuring_fee_amount: self.structuring_fee(),
+                    customer_type: *customer_type,
+                    duration_type: terms.duration.duration_type(),
                 }),
                 _ => None,
             })
@@ -578,6 +585,7 @@ pub struct NewCreditFacility {
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
+    pub(super) customer_type: CustomerType,
     #[builder(setter(into))]
     pub(super) collateral_id: CollateralId,
     terms: TermValues,
@@ -607,6 +615,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 id: self.id,
                 ledger_tx_id: self.ledger_tx_id,
                 customer_id: self.customer_id,
+                customer_type: self.customer_type,
                 collateral_id: self.collateral_id,
                 terms: self.terms,
                 amount: self.amount,
@@ -694,15 +703,34 @@ mod test {
         date_from("2021-01-15T12:00:00Z")
     }
 
+    fn account_ids() -> CreditFacilityAccountIds {
+        CreditFacilityLedgerAccountIds {
+            facility_account_id: CalaAccountId::new(),
+            in_liquidation_account_id: CalaAccountId::new(),
+            disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            disbursed_receivable_due_account_id: CalaAccountId::new(),
+            disbursed_receivable_overdue_account_id: CalaAccountId::new(),
+            disbursed_defaulted_account_id: CalaAccountId::new(),
+            collateral_account_id: CalaAccountId::new(),
+            interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            interest_receivable_due_account_id: CalaAccountId::new(),
+            interest_receivable_overdue_account_id: CalaAccountId::new(),
+            interest_defaulted_account_id: CalaAccountId::new(),
+            interest_income_account_id: CalaAccountId::new(),
+            fee_income_account_id: CalaAccountId::new(),
+        }
+    }
+
     fn initial_events() -> Vec<CreditFacilityEvent> {
         vec![CreditFacilityEvent::Initialized {
             id: CreditFacilityId::new(),
             ledger_tx_id: LedgerTxId::new(),
             customer_id: CustomerId::new(),
+            customer_type: CustomerType::Individual,
             collateral_id: CollateralId::new(),
             amount: default_facility(),
             terms: default_terms(),
-            account_ids: CreditFacilityLedgerAccountIds::new(),
+            account_ids: account_ids(),
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
