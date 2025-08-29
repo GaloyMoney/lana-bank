@@ -218,11 +218,17 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityProposalId,
-        approved: bool,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
         let mut proposal = self.repo.find_by_id(id).await?;
 
-        if let es_entity::Idempotent::Executed(_) = proposal.complete(approved) {
+        let price = self.price.usd_cents_per_btc().await?;
+
+        let balances = self
+            .ledger
+            .get_credit_facility_proposal_balance(proposal.account_ids)
+            .await?;
+
+        if let es_entity::Idempotent::Executed(_) = proposal.complete(balances, price)? {
             self.repo.update_in_op(db, &mut proposal).await?;
         }
 

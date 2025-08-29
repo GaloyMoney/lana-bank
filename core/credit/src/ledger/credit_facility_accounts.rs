@@ -27,8 +27,9 @@ pub struct CreditFacilityLedgerAccountIds {
     pub fee_income_account_id: CalaAccountId,
 }
 
-#[cfg(test)]
 impl CreditFacilityAccountIds {
+    #[allow(clippy::new_without_default)]
+    #[cfg(test)]
     pub fn new() -> Self {
         Self {
             facility_account_id: CalaAccountId::new(),

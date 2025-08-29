@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 
 use crate::{
     EffectiveDate,
-    ledger::CreditFacilityBalanceSummary,
+    ledger::{CreditFacilityBalanceSummary, CreditFacilityProposalBalanceSummary},
     primitives::{
         CVLPct, CollateralizationState, DisbursedReceivableAccountCategory, PriceOfOneBTC,
         Satoshis, UsdCents,
@@ -261,6 +261,15 @@ impl TermValues {
             .with_added_disbursal(amount)
             .outstanding_amount_cvl(price);
         cvl >= self.margin_call_cvl
+    }
+
+    pub fn is_proposal_completion_allowed(
+        &self,
+        balance: CreditFacilityProposalBalanceSummary,
+        price: PriceOfOneBTC,
+    ) -> bool {
+        let total = balance.facility_amount_cvl(price);
+        total >= self.initial_cvl
     }
 
     pub fn is_activation_allowed(
