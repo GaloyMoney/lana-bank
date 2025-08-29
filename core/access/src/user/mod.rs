@@ -102,7 +102,6 @@ where
         let new_user = NewUser::builder()
             .email(email.clone())
             .role_id(role.id)
-            .audit_info(audit_info.clone())
             .build()
             .expect("Could not build user");
         let user = self.repo.create_in_op(&mut db, new_user).await?;
@@ -238,7 +237,7 @@ where
 
         let mut user = self.repo.find_by_id(id).await?;
 
-        if let Idempotent::Executed(previous) = user.update_role(role, audit_info) {
+        if let Idempotent::Executed(previous) = user.update_role(role) {
             self.authz
                 .revoke_role_from_subject(user.id, previous)
                 .await?;
@@ -273,8 +272,7 @@ where
                     .id(UserId::new())
                     .email(email)
                     .role_id(role.id)
-                    .audit_info(audit_info.clone())
-                    .build()
+                            .build()
                     .expect("all fields for new user provided");
 
                 self.repo.create_in_op(&mut *op, new_user).await?
@@ -282,7 +280,7 @@ where
             Err(e) => return Err(e),
             Ok(mut user) => {
                 // Update existing user's role if needed
-                if user.update_role(role, audit_info).did_execute() {
+                if user.update_role(role).did_execute() {
                     self.repo.update_in_op(op, &mut user).await?;
                 }
                 user

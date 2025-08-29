@@ -94,7 +94,6 @@ where
             let new_role = NewRole::builder()
                 .id(RoleId::new())
                 .name(name)
-                .audit_info(audit_info.clone())
                 .initial_permission_sets(permission_sets.clone())
                 .build()
                 .expect("all fields for new role provided");

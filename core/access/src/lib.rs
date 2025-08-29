@@ -139,7 +139,6 @@ where
             let new_role = NewRole::builder()
                 .id(RoleId::new())
                 .name(name)
-                .audit_info(audit_info)
                 .initial_permission_sets(permission_set_ids.clone().into_iter().collect())
                 .build()
                 .expect("all fields for new role provided");
@@ -184,7 +183,7 @@ where
             .await?;
         for permission_set_id in permission_set_ids.clone() {
             if role
-                .add_permission_set(permission_set_id, audit_info.clone())
+                .add_permission_set(permission_set_id)
                 .did_execute()
             {
                 changed = true;
@@ -234,7 +233,7 @@ where
 
         for (permission_set_id, _) in permission_sets {
             if role
-                .remove_permission_set(permission_set_id, audit_info.clone())
+                .remove_permission_set(permission_set_id)
                 .did_execute()
             {
                 changed = true;

@@ -16,11 +16,9 @@ pub enum UserEvent {
         id: UserId,
         email: String,
         role_id: RoleId,
-        audit_info: AuditInfo,
     },
     RoleUpdated {
         role_id: RoleId,
-        audit_info: AuditInfo,
     },
 }
 
@@ -40,14 +38,13 @@ impl User {
     }
 
     /// Sets user's role to `role`. Returns previous role.
-    pub(crate) fn update_role(&mut self, role: &Role, audit_info: AuditInfo) -> Idempotent<RoleId> {
+    pub(crate) fn update_role(&mut self, role: &Role) -> Idempotent<RoleId> {
         let current = self.current_role();
         if role.id == current {
             Idempotent::Ignored
         } else {
             self.events.push(UserEvent::RoleUpdated {
                 role_id: role.id,
-                audit_info,
             });
 
             Idempotent::Executed(current)
@@ -99,7 +96,6 @@ pub struct NewUser {
     #[builder(setter(into))]
     pub(super) email: String,
     pub(super) role_id: RoleId,
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewUser {
@@ -120,7 +116,6 @@ impl IntoEvents<UserEvent> for NewUser {
                 id: self.id,
                 email: self.email,
                 role_id: self.role_id,
-                audit_info: self.audit_info,
             }],
         )
     }
@@ -128,19 +123,12 @@ impl IntoEvents<UserEvent> for NewUser {
 
 #[cfg(test)]
 mod tests {
-    use audit::{AuditEntryId, AuditInfo};
     use es_entity::{Idempotent, IntoEvents as _, TryFromEvents as _};
 
     use crate::{NewRole, Role, RoleId, UserId};
 
     use super::{NewUser, User};
 
-    fn audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     fn new_user() -> User {
         let role = new_role();
@@ -148,7 +136,6 @@ mod tests {
             .id(UserId::new())
             .email("email")
             .role_id(role.id)
-            .audit_info(audit_info())
             .build()
             .unwrap();
 
@@ -160,8 +147,7 @@ mod tests {
             NewRole::builder()
                 .id(RoleId::new())
                 .name("a role".to_string())
-                .audit_info(audit_info())
-                .build()
+                    .build()
                 .unwrap()
                 .into_events(),
         )
@@ -182,24 +168,22 @@ mod tests {
                 NewRole::builder()
                     .id(initial_role)
                     .name("initial role".to_string())
-                    .audit_info(audit_info())
-                    .build()
+                            .build()
                     .unwrap()
                     .into_events(),
             )
             .unwrap(),
-            audit_info(),
         );
         assert!(matches!(same_role_update, Idempotent::Ignored));
         assert_eq!(user.current_role(), initial_role);
 
         // Updating to a different role should return the previous role
-        let role_change = user.update_role(&role_1, audit_info());
+        let role_change = user.update_role(&role_1);
         assert!(matches!(role_change, Idempotent::Executed(id) if id == initial_role));
         assert_eq!(user.current_role(), role_1.id);
 
         // Updating to another different role should return the previous role
-        let second_role_change = user.update_role(&role_2, audit_info());
+        let second_role_change = user.update_role(&role_2);
         assert!(matches!(second_role_change, Idempotent::Executed(id) if id == role_1.id));
         assert_eq!(user.current_role(), role_2.id);
     }
