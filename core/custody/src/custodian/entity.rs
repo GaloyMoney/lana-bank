@@ -4,7 +4,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use tracing::instrument;
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::CustodianId;
@@ -21,11 +20,9 @@ pub enum CustodianEvent {
         id: CustodianId,
         name: String,
         provider: String,
-        audit_info: AuditInfo,
     },
     ConfigUpdated {
         encrypted_custodian_config: Option<EncryptedCustodianConfig>,
-        audit_info: AuditInfo,
     },
 }
 
@@ -50,15 +47,13 @@ impl Custodian {
         &mut self,
         config: CustodianConfig,
         secret: &EncryptionKey,
-        audit_info: AuditInfo,
     ) {
         let encrypted_config = config.encrypt(secret);
         self.encrypted_custodian_config = encrypted_config.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
             encrypted_custodian_config: Some(encrypted_config),
-            audit_info,
-        });
+            });
     }
 
     #[allow(dead_code)]
@@ -71,7 +66,6 @@ impl Custodian {
         &mut self,
         encryption_key: &EncryptionKey,
         deprecated_encryption_key: &DeprecatedEncryptionKey,
-        audit_info: &AuditInfo,
     ) -> Result<(), CustodianError> {
         let encrypted_config = CustodianConfig::rotate_encryption_key(
             encryption_key,
@@ -82,7 +76,6 @@ impl Custodian {
         self.encrypted_custodian_config = encrypted_config.clone();
         self.events.push(CustodianEvent::ConfigUpdated {
             encrypted_custodian_config: Some(encrypted_config),
-            audit_info: audit_info.clone(),
         });
 
         Ok(())
@@ -135,7 +128,6 @@ pub struct NewCustodian {
     pub(super) provider: String,
     #[builder(setter(custom))]
     pub(super) encrypted_custodian_config: EncryptedCustodianConfig,
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewCustodian {
@@ -164,11 +156,9 @@ impl IntoEvents<CustodianEvent> for NewCustodian {
                     id: self.id,
                     name: self.name,
                     provider: self.provider,
-                    audit_info: self.audit_info.clone(),
                 },
                 CustodianEvent::ConfigUpdated {
                     encrypted_custodian_config: Some(self.encrypted_custodian_config),
-                    audit_info: self.audit_info,
                 },
             ],
         )

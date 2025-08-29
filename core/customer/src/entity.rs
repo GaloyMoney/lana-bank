@@ -4,7 +4,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::*;
@@ -21,32 +20,25 @@ pub enum CustomerEvent {
         customer_type: CustomerType,
         activity: Activity,
         public_id: PublicId,
-        audit_info: AuditInfo,
     },
     KycStarted {
         applicant_id: String,
-        audit_info: AuditInfo,
     },
     KycApproved {
         applicant_id: String,
         level: KycLevel,
-        audit_info: AuditInfo,
     },
     KycDeclined {
         applicant_id: String,
-        audit_info: AuditInfo,
     },
     StatusUpdated {
         status: CustomerStatus,
-        audit_info: AuditInfo,
     },
     TelegramIdUpdated {
         telegram_id: String,
-        audit_info: AuditInfo,
     },
     EmailUpdated {
         email: String,
-        audit_info: AuditInfo,
     },
     ActivityUpdated {
         activity: Activity,
@@ -92,11 +84,10 @@ impl Customer {
         true
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) {
+    pub fn start_kyc(&mut self, applicant_id: String, ) {
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),
-            audit_info,
-        });
+                    });
         self.applicant_id = Some(applicant_id);
     }
 
@@ -104,7 +95,6 @@ impl Customer {
         &mut self,
         level: KycLevel,
         applicant_id: String,
-        audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -114,16 +104,15 @@ impl Customer {
         self.events.push(CustomerEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
-            audit_info: audit_info.clone(),
-        });
+                    });
 
         self.applicant_id = Some(applicant_id);
         self.level = KycLevel::Basic;
 
-        self.update_account_status(CustomerStatus::Active, audit_info)
+        self.update_account_status(CustomerStatus::Active, )
     }
 
-    pub fn decline_kyc(&mut self, applicant_id: String, audit_info: AuditInfo) -> Idempotent<()> {
+    pub fn decline_kyc(&mut self, applicant_id: String, ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::KycDeclined { .. },
@@ -131,16 +120,14 @@ impl Customer {
         );
         self.events.push(CustomerEvent::KycDeclined {
             applicant_id,
-            audit_info: audit_info.clone(),
-        });
+                    });
         self.level = KycLevel::NotKyced;
-        self.update_account_status(CustomerStatus::Inactive, audit_info)
+        self.update_account_status(CustomerStatus::Inactive, )
     }
 
     fn update_account_status(
         &mut self,
         status: CustomerStatus,
-        audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -148,7 +135,7 @@ impl Customer {
             => CustomerEvent::StatusUpdated { .. }
         );
         self.events
-            .push(CustomerEvent::StatusUpdated { status, audit_info });
+            .push(CustomerEvent::StatusUpdated { status,  });
         self.status = status;
         Idempotent::Executed(())
     }
@@ -168,7 +155,6 @@ impl Customer {
     pub fn update_telegram_id(
         &mut self,
         new_telegram_id: String,
-        audit_info: AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -176,13 +162,12 @@ impl Customer {
         );
         self.events.push(CustomerEvent::TelegramIdUpdated {
             telegram_id: new_telegram_id.clone(),
-            audit_info,
-        });
+                    });
         self.telegram_id = new_telegram_id;
         Idempotent::Executed(())
     }
 
-    pub fn update_email(&mut self, new_email: String, audit_info: AuditInfo) -> Idempotent<()> {
+    pub fn update_email(&mut self, new_email: String, ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
@@ -190,8 +175,7 @@ impl Customer {
         );
         self.events.push(CustomerEvent::EmailUpdated {
             email: new_email.clone(),
-            audit_info,
-        });
+                    });
         self.email = new_email;
         Idempotent::Executed(())
     }
@@ -267,7 +251,6 @@ pub struct NewCustomer {
     pub(super) activity: Activity,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewCustomer {
@@ -287,7 +270,6 @@ impl IntoEvents<CustomerEvent> for NewCustomer {
                 customer_type: self.customer_type,
                 activity: self.activity,
                 public_id: self.public_id,
-                audit_info: self.audit_info,
             }],
         )
     }

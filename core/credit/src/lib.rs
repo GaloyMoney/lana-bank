@@ -493,7 +493,6 @@ where
                 .custody
                 .create_wallet_in_op(
                     &mut db,
-                    audit_info.clone(),
                     custodian_id,
                     &format!("CF {proposal_id}"),
                 )
@@ -580,7 +579,6 @@ where
                 .custody
                 .create_wallet_in_op(
                     &mut db,
-                    audit_info.clone(),
                     custodian_id,
                     &format!("CF {id}"),
                 )

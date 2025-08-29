@@ -2,7 +2,6 @@ use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use core_money::Satoshis;
@@ -20,12 +19,10 @@ pub enum WalletEvent {
         address: String,
         network: WalletNetwork,
         custodian_response: serde_json::Value,
-        audit_info: AuditInfo,
     },
     BalanceChanged {
         new_balance: Satoshis,
         changed_at: DateTime<Utc>,
-        audit_info: AuditInfo,
     },
 }
 
@@ -46,7 +43,6 @@ impl Wallet {
         &mut self,
         new_balance: Satoshis,
         update_time: DateTime<Utc>,
-        audit_info: &AuditInfo,
     ) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -57,7 +53,6 @@ impl Wallet {
         self.events.push(WalletEvent::BalanceChanged {
             new_balance,
             changed_at: update_time,
-            audit_info: audit_info.clone(),
         });
 
         Idempotent::Executed(())
@@ -99,7 +94,6 @@ pub struct NewWallet {
     pub(super) address: String,
     pub(super) network: WalletNetwork,
     pub(super) external_wallet_id: String,
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewWallet {
@@ -115,7 +109,6 @@ impl IntoEvents<WalletEvent> for NewWallet {
             [WalletEvent::Initialized {
                 id: self.id,
                 custodian_id: self.custodian_id,
-                audit_info: self.audit_info,
                 external_wallet_id: self.external_wallet_id,
                 address: self.address,
                 network: self.network,

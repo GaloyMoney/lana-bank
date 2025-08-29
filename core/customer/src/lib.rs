@@ -112,8 +112,7 @@ where
         telegram_id: impl Into<String> + std::fmt::Debug,
         customer_type: impl Into<CustomerType> + std::fmt::Debug,
     ) -> Result<Customer, CustomerError> {
-        let audit_info = self
-            .subject_can_create_customer(sub, true)
+        self.subject_can_create_customer(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -132,7 +131,6 @@ where
             .telegram_id(telegram_id.into())
             .customer_type(customer_type)
             .public_id(public_id.id)
-            .audit_info(audit_info)
             .build()
             .expect("Could not build customer");
 
@@ -258,7 +256,7 @@ where
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
-        let audit_info = self
+ self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -268,7 +266,7 @@ where
             )
             .await?;
 
-        customer.start_kyc(applicant_id, audit_info);
+        customer.start_kyc(applicant_id);
 
         self.repo.update_in_op(db, &mut customer).await?;
 
@@ -284,7 +282,7 @@ where
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
-        let audit_info = self
+ self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -297,7 +295,7 @@ where
         if customer
             // TODO: this is wrong, we should pass the SumSub verification level
             // because we also have KYB approval
-            .approve_kyc(KycLevel::Basic, applicant_id, audit_info)
+            .approve_kyc(KycLevel::Basic, applicant_id)
             .did_execute()
         {
             self.repo.update_in_op(db, &mut customer).await?;
@@ -315,7 +313,7 @@ where
     ) -> Result<Customer, CustomerError> {
         let mut customer = self.repo.find_by_id(customer_id).await?;
 
-        let audit_info = self
+ self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -325,7 +323,7 @@ where
             )
             .await?;
 
-        if customer.decline_kyc(applicant_id, audit_info).did_execute() {
+        if customer.decline_kyc(applicant_id).did_execute() {
             self.repo.update_in_op(db, &mut customer).await?;
         }
 
@@ -348,7 +346,7 @@ where
         new_telegram_id: String,
     ) -> Result<Customer, CustomerError> {
         let customer_id = customer_id.into();
-        let audit_info = self
+ self
             .authz
             .enforce_permission(
                 sub,
@@ -359,7 +357,7 @@ where
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
         if customer
-            .update_telegram_id(new_telegram_id, audit_info)
+            .update_telegram_id(new_telegram_id)
             .did_execute()
         {
             self.repo.update(&mut customer).await?;
@@ -376,7 +374,7 @@ where
         new_email: String,
     ) -> Result<Customer, CustomerError> {
         let customer_id = customer_id.into();
-        let audit_info = self
+ self
             .authz
             .enforce_permission(
                 sub,
@@ -386,7 +384,7 @@ where
             .await?;
 
         let mut customer = self.repo.find_by_id(customer_id).await?;
-        if customer.update_email(new_email, audit_info).did_execute() {
+        if customer.update_email(new_email).did_execute() {
             self.repo.update(&mut customer).await?;
         }
 

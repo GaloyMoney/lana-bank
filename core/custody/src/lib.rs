@@ -118,7 +118,7 @@ where
         custodian_name: impl AsRef<str> + std::fmt::Debug,
         custodian_config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
-        let audit_info = self
+ self
             .authz
             .enforce_permission(
                 sub,
@@ -151,7 +151,6 @@ where
             .name(custodian_name.as_ref().to_owned())
             .provider(custodian_config.discriminant().to_string())
             .encrypted_custodian_config(custodian_config, &self.config.encryption.key)
-            .audit_info(audit_info.clone())
             .build()
             .expect("should always build a new custodian");
 
@@ -189,7 +188,7 @@ where
         config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
         let id = custodian_id.into();
-        let audit_info = self
+ self
             .authz
             .enforce_permission(
                 sub,
@@ -199,7 +198,7 @@ where
             .await?;
         let mut custodian = self.custodians.find_by_id(id).await?;
 
-        custodian.update_custodian_config(config, &self.config.encryption.key, audit_info);
+        custodian.update_custodian_config(config, &self.config.encryption.key);
 
         let mut op = self.custodians.begin_op().await?;
         self.custodians
@@ -214,7 +213,7 @@ where
         &self,
         deprecated_encryption_key: &DeprecatedEncryptionKey,
     ) -> Result<(), CoreCustodyError> {
-        let audit_info = self
+ self
             .authz
             .audit()
             .record_system_entry(
@@ -231,7 +230,6 @@ where
             custodian.rotate_encryption_key(
                 &self.config.encryption.key,
                 deprecated_encryption_key,
-                &audit_info,
             )?;
 
             self.custodians
@@ -301,7 +299,6 @@ where
     pub async fn create_wallet_in_op(
         &self,
         db: &mut DbOp<'_>,
-        audit_info: audit::AuditInfo,
         custodian_id: CustodianId,
         wallet_label: &str,
     ) -> Result<Wallet, CoreCustodyError> {
@@ -322,7 +319,6 @@ where
             .custodian_response(external_wallet.full_response)
             .address(external_wallet.address)
             .network(external_wallet.network)
-            .audit_info(audit_info)
             .build()
             .expect("all fields for new wallet provided");
 
@@ -386,7 +382,7 @@ where
             .find_by_external_wallet_id_in_op(&mut db, external_wallet_id)
             .await?;
 
-        let audit_info = self
+ self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -397,7 +393,7 @@ where
             .await?;
 
         if wallet
-            .update_balance(new_balance, update_time, &audit_info)
+            .update_balance(new_balance, update_time)
             .did_execute()
         {
             self.wallets.update_in_op(&mut db, &mut wallet).await?;
