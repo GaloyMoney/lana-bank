@@ -214,10 +214,18 @@ where
         Ok(())
     }
 
-    pub(crate) async fn find_by_id_without_audit(
+    pub(crate) async fn complete_in_op(
         &self,
+        db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityProposalId,
+        approved: bool,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
-        self.repo.find_by_id(id).await
+        let mut proposal = self.repo.find_by_id(id).await?;
+
+        if let es_entity::Idempotent::Executed(_) = proposal.complete(approved) {
+            self.repo.update_in_op(db, &mut proposal).await?;
+        }
+
+        Ok(proposal)
     }
 }
