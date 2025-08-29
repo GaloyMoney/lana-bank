@@ -3,7 +3,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::{CalaTxId, ManualTransactionId};
@@ -18,7 +17,6 @@ pub enum ManualTransactionEvent {
         ledger_transaction_id: CalaTxId,
         description: String,
         reference: String,
-        audit_info: AuditInfo,
     },
 }
 
@@ -73,8 +71,6 @@ pub struct NewManualTransaction {
     reference: Option<String>,
     pub(super) ledger_transaction_id: CalaTxId,
     description: String,
-    #[builder(setter(into))]
-    pub audit_info: AuditInfo,
 }
 
 impl NewManualTransaction {
@@ -100,7 +96,6 @@ impl IntoEvents<ManualTransactionEvent> for NewManualTransaction {
                 id: self.id,
                 ledger_transaction_id: self.ledger_transaction_id,
                 description: self.description,
-                audit_info: self.audit_info,
             }],
         )
     }

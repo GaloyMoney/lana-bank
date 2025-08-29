@@ -119,7 +119,7 @@ where
         name: String,
         permission_sets: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -163,7 +163,7 @@ where
         permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -214,7 +214,7 @@ where
             .map(|id| id.into())
             .collect::<Vec<_>>();
 
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,

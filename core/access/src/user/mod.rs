@@ -90,7 +90,7 @@ where
         email: impl Into<String> + std::fmt::Debug,
         role: &Role,
     ) -> Result<User, UserError> {
-        let audit_info = self
+        self
             .subject_can_create_user(sub, true)
             .await?
             .expect("audit info missing");
@@ -230,7 +230,7 @@ where
     ) -> Result<User, UserError> {
         let id = user_id.into();
 
-        let audit_info = self
+        self
             .subject_can_update_role_of_user(sub, id, true)
             .await?
             .expect("audit info missing");
@@ -256,7 +256,7 @@ where
         email: String,
         role: &Role,
     ) -> Result<User, UserError> {
-        let audit_info = self
+        self
             .authz
             .audit()
             .record_system_entry_in_tx(

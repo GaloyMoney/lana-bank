@@ -87,7 +87,6 @@ where
         db: &mut DbOp<'_>,
         name: String,
         permission_sets: HashSet<PermissionSetId>,
-        audit_info: &AuditInfo,
     ) -> Result<Role, RoleError> {
         let existing = self.role_repo.find_by_name(&name).await;
         let role = if matches!(existing, Err(ref e) if e.was_not_found()) {
@@ -122,7 +121,7 @@ where
         permission_sets: &[PermissionSet],
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<Role, RoleError> {
-        let audit_info = self
+        self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -142,7 +141,6 @@ where
                 db,
                 ROLE_NAME_SUPERUSER.to_owned(),
                 all_permission_sets.values().copied().collect(),
-                &audit_info,
             )
             .await?;
 
@@ -154,7 +152,7 @@ where
                 .collect::<HashSet<_>>();
 
             let _ = self
-                .create_role(db, name.to_string(), sets, &audit_info)
+                .create_role(db, name.to_string(), sets)
                 .await;
         }
 

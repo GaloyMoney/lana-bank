@@ -141,8 +141,7 @@ where
     ) -> Result<Vec<Document>, AccountingCsvExportError> {
         let ledger_account_id = ledger_account_id.into();
 
-        let _audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_accounting_csvs(),
@@ -174,8 +173,7 @@ where
     > {
         let ledger_account_id = ledger_account_id.into();
 
-        let _audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_accounting_csvs(),
@@ -206,8 +204,7 @@ where
     ) -> Result<Option<Document>, AccountingCsvExportError> {
         let ledger_account_id = ledger_account_id.into();
 
-        let _audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_accounting_csvs(),

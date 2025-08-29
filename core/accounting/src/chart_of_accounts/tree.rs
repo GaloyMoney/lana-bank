@@ -144,24 +144,14 @@ mod tests {
 
     use super::*;
 
-    use audit::{AuditEntryId, AuditInfo};
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     fn init_chart_of_events() -> Chart {
         let id = ChartId::new();
-        let audit_info = dummy_audit_info();
 
         let new_chart = NewChart::builder()
             .id(id)
             .name("Test Chart".to_string())
             .reference("ref-01".to_string())
-            .audit_info(audit_info)
             .build()
             .unwrap();
 
@@ -183,7 +173,6 @@ mod tests {
                         normal_balance_type: DebitOrCredit::Credit,
                     },
                     CalaJournalId::new(),
-                    dummy_audit_info(),
                 )
                 .unwrap();
             chart
@@ -195,7 +184,6 @@ mod tests {
                         normal_balance_type: DebitOrCredit::Credit,
                     },
                     CalaJournalId::new(),
-                    dummy_audit_info(),
                 )
                 .unwrap();
             chart
@@ -209,7 +197,6 @@ mod tests {
                         normal_balance_type: DebitOrCredit::Credit,
                     },
                     CalaJournalId::new(),
-                    dummy_audit_info(),
                 )
                 .unwrap();
             chart
@@ -228,7 +215,6 @@ mod tests {
                         normal_balance_type: DebitOrCredit::Credit,
                     },
                     CalaJournalId::new(),
-                    dummy_audit_info(),
                 )
                 .unwrap();
         }

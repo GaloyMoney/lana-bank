@@ -83,7 +83,7 @@ where
         let id = ChartId::new();
 
         let mut op = self.repo.begin_op().await?;
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -96,7 +96,6 @@ where
             .id(id)
             .name(name)
             .reference(reference)
-            .audit_info(audit_info)
             .build()
             .expect("Could not build new chart of accounts");
 
@@ -118,7 +117,7 @@ where
         data: impl AsRef<str>,
     ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
         let id = id.into();
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -139,7 +138,6 @@ where
             }) = chart.create_node_without_verifying_parent(
                 &spec,
                 self.journal_id,
-                audit_info.clone(),
             ) {
                 let account_set_id = new_account_set.id;
                 new_account_sets.push(new_account_set);
@@ -192,7 +190,7 @@ where
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
         let id = id.into();
         let spec = spec.into();
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -205,7 +203,7 @@ where
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id: _,
             new_account_set,
-        }) = chart.create_node_without_verifying_parent(&spec, self.journal_id, audit_info.clone())
+        }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
         else {
             return Ok((chart, None));
         };
@@ -242,7 +240,7 @@ where
         name: AccountName,
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
         let id = id.into();
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -260,7 +258,6 @@ where
             code,
             name,
             self.journal_id,
-            audit_info.clone(),
         )?
         else {
             return Ok((chart, None));
@@ -359,7 +356,7 @@ where
     ) -> Result<LedgerAccountId, ChartOfAccountsError> {
         let mut chart = self.repo.find_by_reference(chart_ref.to_string()).await?;
 
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -369,7 +366,7 @@ where
             .await?;
 
         let manual_transaction_account_id = match chart
-            .manual_transaction_account(account_id_or_code, audit_info)?
+            .manual_transaction_account(account_id_or_code)?
         {
             ManualAccountFromChart::IdInChart(id) | ManualAccountFromChart::NonChartId(id) => id,
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {

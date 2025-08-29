@@ -127,7 +127,7 @@ where
         effective: chrono::NaiveDate,
         entries: Vec<ManualEntryInput>,
     ) -> Result<ManualTransaction, ManualTransactionError> {
-        let audit_info = self
+        self
             .authz
             .enforce_permission(
                 sub,
@@ -144,7 +144,6 @@ where
             .ledger_transaction_id(ledger_tx_id)
             .description(description.clone())
             .reference(reference)
-            .audit_info(audit_info)
             .build()
             .expect("Couldn't build new manual transaction");
 
