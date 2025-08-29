@@ -22,7 +22,7 @@ use crate::{
 
 pub use job::*;
 
-pub struct CreateCreditFacility<Perms, E>
+pub struct ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -36,7 +36,7 @@ where
     public_ids: PublicIds,
 }
 
-impl<Perms, E> Clone for CreateCreditFacility<Perms, E>
+impl<Perms, E> Clone for ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -53,7 +53,7 @@ where
         }
     }
 }
-impl<Perms, E> CreateCreditFacility<Perms, E>
+impl<Perms, E> ActivateCreditFacility<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
