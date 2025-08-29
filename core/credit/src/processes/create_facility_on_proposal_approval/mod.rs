@@ -158,7 +158,7 @@ where
             .await?;
 
         self.ledger
-            .activate_credit_facility(op, credit_facility.creation_data())
+            .handle_facility_activation(op, credit_facility.activation_data())
             .await?;
 
         Ok(credit_facility)
