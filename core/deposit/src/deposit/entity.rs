@@ -3,7 +3,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use core_money::UsdCents;
 use es_entity::*;
 
@@ -21,12 +20,10 @@ pub enum DepositEvent {
         amount: UsdCents,
         reference: String,
         status: DepositStatus,
-        audit_info: AuditInfo,
     },
     Reverted {
         ledger_tx_id: CalaTransactionId,
         status: DepositStatus,
-        audit_info: AuditInfo,
     },
 }
 
@@ -67,7 +64,7 @@ impl Deposit {
             .expect("status should always exist")
     }
 
-    pub fn revert(&mut self, audit_info: AuditInfo) -> Idempotent<DepositReversalData> {
+    pub fn revert(&mut self) -> Idempotent<DepositReversalData> {
         idempotency_guard!(
             self.events().iter_all().rev(),
             DepositEvent::Reverted { .. }
@@ -77,7 +74,6 @@ impl Deposit {
         self.events.push(DepositEvent::Reverted {
             ledger_tx_id,
             status: DepositStatus::Reverted,
-            audit_info: audit_info.clone(),
         });
 
         Idempotent::Executed(DepositReversalData {
@@ -127,8 +123,6 @@ pub struct NewDeposit {
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
     reference: Option<String>,
-    #[builder(setter(into))]
-    pub audit_info: AuditInfo,
 }
 
 impl NewDeposit {
@@ -165,7 +159,6 @@ impl IntoEvents<DepositEvent> for NewDeposit {
                 deposit_account_id: self.deposit_account_id,
                 amount: self.amount,
                 status: DepositStatus::Confirmed,
-                audit_info: self.audit_info.clone(),
             }],
         )
     }
@@ -173,16 +166,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
 
 #[cfg(test)]
 mod test {
-    use audit::AuditEntryId;
-
     use super::*;
-
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     #[test]
     fn errors_when_zero_amount_deposit_amount_is_passed() {
@@ -192,7 +176,6 @@ mod test {
             .deposit_account_id(DepositAccountId::new())
             .amount(UsdCents::ZERO)
             .reference(None)
-            .audit_info(dummy_audit_info())
             .build();
 
         assert!(matches!(
@@ -208,7 +191,6 @@ mod test {
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
             .reference(None)
-            .audit_info(dummy_audit_info())
             .build();
 
         assert!(matches!(
@@ -225,7 +207,6 @@ mod test {
             .deposit_account_id(DepositAccountId::new())
             .amount(UsdCents::ONE)
             .reference(None)
-            .audit_info(dummy_audit_info())
             .build();
 
         assert!(deposit.is_ok());
@@ -239,17 +220,16 @@ mod test {
             .deposit_account_id(DepositAccountId::new())
             .amount(UsdCents::ONE)
             .reference(None)
-            .audit_info(dummy_audit_info())
             .build()
             .unwrap();
 
         let mut deposit = Deposit::try_from_events(new_deposit.into_events()).unwrap();
         assert_eq!(deposit.status(), DepositStatus::Confirmed);
 
-        let res = deposit.revert(dummy_audit_info());
+        let res = deposit.revert();
         assert!(res.did_execute());
 
-        let res = deposit.revert(dummy_audit_info());
+        let res = deposit.revert();
         assert!(res.was_ignored());
     }
 }

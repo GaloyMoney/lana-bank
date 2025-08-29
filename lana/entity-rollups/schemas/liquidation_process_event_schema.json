@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "UsdCents": {
       "format": "uint64",
       "minimum": 0,
@@ -29,9 +10,6 @@
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "credit_facility_id": {
           "format": "uuid",
           "type": "string"
@@ -72,24 +50,19 @@
         "credit_facility_id",
         "in_liquidation_account_id",
         "initial_amount",
-        "effective",
-        "audit_info"
+        "effective"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "completed",
           "type": "string"
         }
       },
       "required": [
-        "type",
-        "audit_info"
+        "type"
       ],
       "type": "object"
     }

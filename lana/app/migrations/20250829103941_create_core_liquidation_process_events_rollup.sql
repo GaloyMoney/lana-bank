@@ -5,7 +5,6 @@ CREATE TABLE core_liquidation_process_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  audit_info JSONB,
   credit_facility_id UUID,
   effective VARCHAR,
   in_liquidation_account_id UUID,
@@ -49,7 +48,6 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
     new_row.effective := (NEW.event ->> 'effective');
     new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
@@ -59,7 +57,6 @@ BEGIN
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
   ELSE
     -- Default all fields to current values
-    new_row.audit_info := current_row.audit_info;
     new_row.credit_facility_id := current_row.credit_facility_id;
     new_row.effective := current_row.effective;
     new_row.in_liquidation_account_id := current_row.in_liquidation_account_id;
@@ -72,7 +69,6 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.in_liquidation_account_id := (NEW.event ->> 'in_liquidation_account_id')::UUID;
@@ -80,7 +76,6 @@ BEGIN
       new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     WHEN 'completed' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_completed := true;
   END CASE;
 
@@ -89,7 +84,6 @@ BEGIN
     version,
     created_at,
     modified_at,
-    audit_info,
     credit_facility_id,
     effective,
     in_liquidation_account_id,
@@ -103,7 +97,6 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.audit_info,
     new_row.credit_facility_id,
     new_row.effective,
     new_row.in_liquidation_account_id,

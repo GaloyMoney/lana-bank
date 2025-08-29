@@ -323,8 +323,7 @@ where
     ) -> Result<PermalinkResponse, ApplicantError> {
         let customer_id: CustomerId = customer_id.into();
 
-        let _audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 core_customer::CustomerObject::customer(customer_id),

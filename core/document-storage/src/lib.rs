@@ -6,7 +6,6 @@ pub mod error;
 mod primitives;
 mod repo;
 
-use audit::AuditInfo;
 use cloud_storage::Storage;
 use es_entity::ListDirection;
 use std::collections::HashMap;
@@ -52,7 +51,6 @@ impl DocumentStorage {
     #[instrument(name = "document_storage.create_in_op", skip(self, db), err)]
     pub async fn create_in_op(
         &self,
-        audit_info: AuditInfo,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
         reference_id: impl Into<ReferenceId> + std::fmt::Debug,
@@ -72,7 +70,6 @@ impl DocumentStorage {
             .path_in_storage(path_in_storage)
             .storage_identifier(storage_identifier)
             .reference_id(reference_id)
-            .audit_info(audit_info)
             .build()
             .expect("Could not build document");
 
@@ -118,7 +115,6 @@ impl DocumentStorage {
     #[instrument(name = "document_storage.create_and_upload", skip(self, content), err)]
     pub async fn create_and_upload(
         &self,
-        audit_info: AuditInfo,
         content: Vec<u8>,
         filename: impl Into<String> + std::fmt::Debug,
         content_type: impl Into<String> + std::fmt::Debug,
@@ -138,7 +134,6 @@ impl DocumentStorage {
             .path_in_storage(path_in_storage)
             .storage_identifier(storage_identifier)
             .reference_id(reference_id)
-            .audit_info(audit_info.clone())
             .build()
             .expect("Could not build document");
 
@@ -201,14 +196,13 @@ impl DocumentStorage {
     #[instrument(name = "document_storage.generate_download_link", skip(self), err)]
     pub async fn generate_download_link(
         &self,
-        audit_info: AuditInfo,
         document_id: impl Into<DocumentId> + std::fmt::Debug,
     ) -> Result<GeneratedDocumentDownloadLink, DocumentStorageError> {
         let document_id = document_id.into();
 
         let mut document = self.repo.find_by_id(document_id).await?;
 
-        let document_location = document.download_link_generated(audit_info);
+        let document_location = document.download_link_generated();
 
         let link = self
             .storage
@@ -225,7 +219,6 @@ impl DocumentStorage {
     #[instrument(name = "document_storage.delete", skip(self), err)]
     pub async fn delete(
         &self,
-        audit_info: AuditInfo,
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<(), DocumentStorageError> {
         let mut db = self.repo.begin_op().await?;
@@ -238,7 +231,7 @@ impl DocumentStorage {
             })
             .await?;
 
-        if document.delete(audit_info).did_execute() {
+        if document.delete().did_execute() {
             self.repo.delete_in_op(&mut db, document).await?;
             db.commit().await?;
         }
@@ -249,12 +242,11 @@ impl DocumentStorage {
     #[instrument(name = "document_storage.archive", skip(self), err)]
     pub async fn archive(
         &self,
-        audit_info: AuditInfo,
         document_id: impl Into<DocumentId> + std::fmt::Debug + Copy,
     ) -> Result<Document, DocumentStorageError> {
         let mut document = self.repo.find_by_id(document_id.into()).await?;
 
-        if document.archive(audit_info).did_execute() {
+        if document.archive().did_execute() {
             self.repo.update(&mut document).await?;
         }
 

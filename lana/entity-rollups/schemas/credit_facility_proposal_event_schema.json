@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "CVLPct": {
       "oneOf": [
         {
@@ -266,9 +247,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "collateral_id": {
           "format": "uuid",
           "type": "string"
@@ -302,8 +280,7 @@
         "terms",
         "amount",
         "account_ids",
-        "approval_process_id",
-        "audit_info"
+        "approval_process_id"
       ],
       "type": "object"
     },

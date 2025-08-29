@@ -115,17 +115,11 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         new_disbursal: NewDisbursal,
-        audit_info: &audit::AuditInfo,
     ) -> Result<Disbursal, DisbursalError> {
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
-            .approval_process_concluded(
-                LedgerTxId::new(),
-                true,
-                db.now().date_naive(),
-                audit_info.clone(),
-            )
+            .approval_process_concluded(LedgerTxId::new(), true, db.now().date_naive())
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
@@ -198,8 +192,7 @@ where
         approved: bool,
         tx_id: LedgerTxId,
     ) -> Result<ApprovalProcessOutcome, DisbursalError> {
-        let audit_info = self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 op,
@@ -211,12 +204,8 @@ where
 
         let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
 
-        let ret = match disbursal.approval_process_concluded(
-            tx_id,
-            approved,
-            op.now().date_naive(),
-            audit_info,
-        ) {
+        let ret = match disbursal.approval_process_concluded(tx_id, approved, op.now().date_naive())
+        {
             es_entity::Idempotent::Ignored => ApprovalProcessOutcome::Ignored(disbursal),
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self

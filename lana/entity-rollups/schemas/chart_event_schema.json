@@ -65,25 +65,6 @@
       ],
       "type": "object"
     },
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "DebitOrCredit": {
       "enum": [
         "debit",
@@ -96,9 +77,6 @@
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -118,16 +96,12 @@
         "type",
         "id",
         "name",
-        "reference",
-        "audit_info"
+        "reference"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "ledger_account_set_id": {
           "format": "uuid",
           "type": "string"
@@ -143,16 +117,12 @@
       "required": [
         "type",
         "spec",
-        "ledger_account_set_id",
-        "audit_info"
+        "ledger_account_set_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "code": {
           "$ref": "#/$defs/AccountCode"
         },
@@ -168,8 +138,7 @@
       "required": [
         "type",
         "code",
-        "ledger_account_id",
-        "audit_info"
+        "ledger_account_id"
       ],
       "type": "object"
     }

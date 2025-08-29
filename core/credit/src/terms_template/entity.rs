@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{TermValues, primitives::*};
-use audit::AuditInfo;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -17,11 +16,9 @@ pub enum TermsTemplateEvent {
         id: TermsTemplateId,
         name: String,
         values: TermValues,
-        audit_info: AuditInfo,
     },
     TermValuesUpdated {
         values: TermValues,
-        audit_info: AuditInfo,
     },
 }
 
@@ -41,10 +38,9 @@ impl TermsTemplate {
             .expect("TermsTemplate has never been persisted")
     }
 
-    pub fn update_values(&mut self, new_values: TermValues, audit_info: AuditInfo) {
+    pub fn update_values(&mut self, new_values: TermValues) {
         self.events.push(TermsTemplateEvent::TermValuesUpdated {
             values: new_values,
-            audit_info,
         });
         self.values = new_values;
     }
@@ -78,8 +74,6 @@ pub struct NewTermsTemplate {
     pub name: String,
     #[builder(setter(into))]
     pub values: TermValues,
-    #[builder(setter(into))]
-    pub audit_info: AuditInfo,
 }
 
 impl NewTermsTemplate {
@@ -96,7 +90,6 @@ impl IntoEvents<TermsTemplateEvent> for NewTermsTemplate {
                 id: self.id,
                 name: self.name,
                 values: self.values,
-                audit_info: self.audit_info,
             }],
         )
     }

@@ -6,7 +6,6 @@ CREATE TABLE core_approval_process_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   approved BOOLEAN,
-  audit_info JSONB,
   policy_id UUID,
   process_type VARCHAR,
   rules JSONB,
@@ -60,7 +59,6 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.denier_ids := CASE
        WHEN NEW.event ? 'denier_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'denier_ids'))
@@ -82,7 +80,6 @@ BEGIN
     -- Default all fields to current values
     new_row.approved := current_row.approved;
     new_row.approver_ids := current_row.approver_ids;
-    new_row.audit_info := current_row.audit_info;
     new_row.denier_ids := current_row.denier_ids;
     new_row.deny_reasons := current_row.deny_reasons;
     new_row.is_concluded := current_row.is_concluded;
@@ -95,21 +92,17 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.policy_id := (NEW.event ->> 'policy_id')::UUID;
       new_row.process_type := (NEW.event ->> 'process_type');
       new_row.rules := (NEW.event -> 'rules');
       new_row.target_ref := (NEW.event ->> 'target_ref');
     WHEN 'approved' THEN
       new_row.approver_ids := array_append(COALESCE(current_row.approver_ids, ARRAY[]::UUID[]), (NEW.event ->> 'approver_id')::UUID);
-      new_row.audit_info := (NEW.event -> 'audit_info');
     WHEN 'denied' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.denier_ids := array_append(COALESCE(current_row.denier_ids, ARRAY[]::UUID[]), (NEW.event ->> 'denier_id')::UUID);
       new_row.deny_reasons := array_append(COALESCE(current_row.deny_reasons, ARRAY[]::VARCHAR[]), (NEW.event ->> 'reason'));
     WHEN 'concluded' THEN
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_concluded := true;
   END CASE;
 
@@ -120,7 +113,6 @@ BEGIN
     modified_at,
     approved,
     approver_ids,
-    audit_info,
     denier_ids,
     deny_reasons,
     is_concluded,
@@ -136,7 +128,6 @@ BEGIN
     new_row.modified_at,
     new_row.approved,
     new_row.approver_ids,
-    new_row.audit_info,
     new_row.denier_ids,
     new_row.deny_reasons,
     new_row.is_concluded,

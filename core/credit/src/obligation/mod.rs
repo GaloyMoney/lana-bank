@@ -5,7 +5,7 @@ mod repo;
 
 use tracing::{Span, instrument};
 
-use audit::{AuditInfo, AuditSvc};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use es_entity::Idempotent;
 use job::{JobId, Jobs};
@@ -123,7 +123,7 @@ where
     ) -> Result<(Obligation, Option<ObligationOverdueReallocationData>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        let audit_info = self
+        self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -135,7 +135,7 @@ where
             .map_err(authz::error::AuthorizationError::from)?;
 
         let data = if let es_entity::Idempotent::Executed(overdue) =
-            obligation.record_overdue(effective, audit_info)?
+            obligation.record_overdue(effective)?
         {
             self.repo.update_in_op(op, &mut obligation).await?;
             Some(overdue)
@@ -154,7 +154,7 @@ where
     ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        let audit_info = self
+        self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -166,7 +166,7 @@ where
             .map_err(authz::error::AuthorizationError::from)?;
 
         let data = if let es_entity::Idempotent::Executed(due) =
-            obligation.record_due(effective, audit_info)
+            obligation.record_due(effective)
         {
             self.repo.update_in_op(op, &mut obligation).await?;
             Some(due)
@@ -185,7 +185,7 @@ where
     ) -> Result<Option<ObligationDefaultedReallocationData>, ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        let audit_info = self
+        self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -197,7 +197,7 @@ where
             .map_err(authz::error::AuthorizationError::from)?;
 
         let data = if let es_entity::Idempotent::Executed(defaulted) =
-            obligation.record_defaulted(effective, audit_info)?
+            obligation.record_defaulted(effective)?
         {
             self.repo.update_in_op(op, &mut obligation).await?;
             Some(defaulted)
@@ -216,7 +216,7 @@ where
     ) -> Result<(Obligation, Option<LiquidationProcess>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        let audit_info = self
+        self
             .authz
             .audit()
             .record_system_entry_in_tx(
@@ -228,7 +228,7 @@ where
             .map_err(authz::error::AuthorizationError::from)?;
 
         let liquidation_process = if let Idempotent::Executed(new_liquidation_process) =
-            obligation.start_liquidation(effective, &audit_info)
+            obligation.start_liquidation(effective)
         {
             self.repo.update_in_op(op, &mut obligation).await?;
             let liquidation_process = self
@@ -263,7 +263,6 @@ where
         payment_id: PaymentId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
-        audit_info: &AuditInfo,
     ) -> Result<(), ObligationError> {
         let span = Span::current();
         let mut obligations = self.facility_obligations(credit_facility_id).await?;
@@ -275,7 +274,7 @@ where
         let mut new_installments = Vec::new();
         for obligation in obligations.iter_mut() {
             if let es_entity::Idempotent::Executed(new_installment) =
-                obligation.apply_installment(remaining, payment_id, effective, audit_info)
+                obligation.apply_installment(remaining, payment_id, effective)
             {
                 self.repo.update_in_op(&mut op, obligation).await?;
                 remaining -= new_installment.amount;

@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "EffectiveDate": {
       "format": "date",
       "type": "string"
@@ -59,9 +40,6 @@
       "properties": {
         "amount": {
           "$ref": "#/$defs/UsdCents"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "credit_facility_id": {
           "format": "uuid",
@@ -154,16 +132,12 @@
         "in_liquidation_account_id",
         "defaulted_account_id",
         "due_date",
-        "effective",
-        "audit_info"
+        "effective"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "due_amount": {
           "$ref": "#/$defs/UsdCents"
         },
@@ -179,16 +153,12 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "due_amount",
-        "audit_info"
+        "due_amount"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -204,16 +174,12 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "overdue_amount",
-        "audit_info"
+        "overdue_amount"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "defaulted_amount": {
           "$ref": "#/$defs/UsdCents"
         },
@@ -229,8 +195,7 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "defaulted_amount",
-        "audit_info"
+        "defaulted_amount"
       ],
       "type": "object"
     },
@@ -267,9 +232,6 @@
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "effective": {
           "format": "date",
           "type": "string"
@@ -295,16 +257,12 @@
         "liquidation_process_id",
         "ledger_tx_id",
         "effective",
-        "initial_amount",
-        "audit_info"
+        "initial_amount"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "liquidation_process_id": {
           "format": "uuid",
           "type": "string"
@@ -316,16 +274,12 @@
       },
       "required": [
         "type",
-        "liquidation_process_id",
-        "audit_info"
+        "liquidation_process_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "effective": {
           "format": "date",
           "type": "string"
@@ -337,8 +291,7 @@
       },
       "required": [
         "type",
-        "effective",
-        "audit_info"
+        "effective"
       ],
       "type": "object"
     }

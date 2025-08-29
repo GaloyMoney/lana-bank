@@ -5,7 +5,6 @@ use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 use std::cmp::Ordering;
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
@@ -37,22 +36,18 @@ pub enum ObligationEvent {
         defaulted_date: Option<EffectiveDate>,
         liquidation_date: Option<EffectiveDate>,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     },
     DueRecorded {
         ledger_tx_id: LedgerTxId,
         due_amount: UsdCents,
-        audit_info: AuditInfo,
     },
     OverdueRecorded {
         ledger_tx_id: LedgerTxId,
         overdue_amount: UsdCents,
-        audit_info: AuditInfo,
     },
     DefaultedRecorded {
         ledger_tx_id: LedgerTxId,
         defaulted_amount: UsdCents,
-        audit_info: AuditInfo,
     },
     InstallmentApplied {
         ledger_tx_id: LedgerTxId,
@@ -65,15 +60,12 @@ pub enum ObligationEvent {
         ledger_tx_id: LedgerTxId,
         effective: chrono::NaiveDate,
         initial_amount: UsdCents,
-        audit_info: AuditInfo,
     },
     LiquidationProcessConcluded {
         liquidation_process_id: LiquidationProcessId,
-        audit_info: AuditInfo,
     },
     Completed {
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     },
 }
 
@@ -326,7 +318,6 @@ impl Obligation {
     pub(crate) fn record_due(
         &mut self,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     ) -> Idempotent<ObligationDueReallocationData> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -349,7 +340,6 @@ impl Obligation {
         self.events.push(ObligationEvent::DueRecorded {
             ledger_tx_id: res.tx_id,
             due_amount: res.amount,
-            audit_info,
         });
 
         Idempotent::Executed(res)
@@ -358,7 +348,6 @@ impl Obligation {
     pub(crate) fn record_overdue(
         &mut self,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     ) -> Result<Idempotent<ObligationOverdueReallocationData>, ObligationError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -384,7 +373,6 @@ impl Obligation {
         self.events.push(ObligationEvent::OverdueRecorded {
             ledger_tx_id: res.tx_id,
             overdue_amount: res.amount,
-            audit_info,
         });
 
         Ok(Idempotent::Executed(res))
@@ -393,7 +381,6 @@ impl Obligation {
     pub(crate) fn record_defaulted(
         &mut self,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     ) -> Result<Idempotent<ObligationDefaultedReallocationData>, ObligationError> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -419,7 +406,6 @@ impl Obligation {
         self.events.push(ObligationEvent::DefaultedRecorded {
             ledger_tx_id: res.tx_id,
             defaulted_amount: res.amount,
-            audit_info,
         });
 
         Ok(Idempotent::Executed(res))
@@ -428,7 +414,6 @@ impl Obligation {
     pub(crate) fn start_liquidation(
         &mut self,
         effective: chrono::NaiveDate,
-        audit_info: &AuditInfo,
     ) -> Idempotent<NewLiquidationProcess> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -456,7 +441,6 @@ impl Obligation {
             .in_liquidation_account_id(self.in_liquidation_account())
             .initial_amount(initial_amount)
             .effective(effective)
-            .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment allocation");
 
@@ -466,7 +450,6 @@ impl Obligation {
                 ledger_tx_id,
                 effective,
                 initial_amount,
-                audit_info: audit_info.clone(),
             });
 
         Idempotent::Executed(new_liquidation_process)
@@ -477,7 +460,6 @@ impl Obligation {
         amount: UsdCents,
         payment_id: PaymentId,
         effective: chrono::NaiveDate,
-        audit_info: &AuditInfo,
     ) -> Idempotent<NewObligationInstallment> {
         idempotency_guard!(
             self.events.iter_all().rev(),
@@ -522,14 +504,12 @@ impl Obligation {
             )
             .effective(effective)
             .amount(payment_amount)
-            .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment installment");
 
         if self.outstanding().is_zero() {
             self.events.push(ObligationEvent::Completed {
                 effective,
-                audit_info: audit_info.clone(),
             });
         }
 
@@ -601,8 +581,6 @@ pub struct NewObligation {
     #[builder(setter(strip_option), default)]
     defaulted_date: Option<EffectiveDate>,
     effective: chrono::NaiveDate,
-    #[builder(setter(into))]
-    pub audit_info: AuditInfo,
 }
 
 impl NewObligationBuilder {
@@ -649,7 +627,6 @@ impl IntoEvents<ObligationEvent> for NewObligation {
                 defaulted_date: self.defaulted_date,
                 liquidation_date: self.liquidation_date,
                 effective: self.effective,
-                audit_info: self.audit_info,
             }],
         )
     }
@@ -706,16 +683,9 @@ impl From<ObligationLifecycleDates> for ObligationLifecycleTimestamps {
 
 #[cfg(test)]
 mod test {
-    use audit::{AuditEntryId, AuditInfo};
 
     use super::*;
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     fn obligation_from(events: Vec<ObligationEvent>) -> Obligation {
         Obligation::try_from_events(EntityEvents::init(ObligationId::new(), events)).unwrap()
@@ -748,7 +718,6 @@ mod test {
             defaulted_date: None,
             liquidation_date: None,
             effective: Utc::now().date_naive(),
-            audit_info: dummy_audit_info(),
         }]
     }
 
@@ -765,7 +734,7 @@ mod test {
     fn can_record_due() {
         let mut obligation = obligation_from(initial_events());
         let res = obligation
-            .record_due(Utc::now().date_naive(), dummy_audit_info())
+            .record_due(Utc::now().date_naive(), )
             .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
     }
@@ -773,43 +742,42 @@ mod test {
     #[test]
     fn ignores_due_recorded_if_after_not_yet_due() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive());
 
         assert!(
             obligation
-                .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+                .record_overdue(Utc::now().date_naive(), )
                 .unwrap()
                 .did_execute()
         );
-        let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let res = obligation.record_due(Utc::now().date_naive());
         assert!(matches!(res, Idempotent::Ignored));
 
         assert!(
             obligation
-                .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+                .record_defaulted(Utc::now().date_naive(), )
                 .unwrap()
                 .did_execute()
         );
-        let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let res = obligation.record_due(Utc::now().date_naive());
         assert!(matches!(res, Idempotent::Ignored));
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
             effective: Utc::now().date_naive(),
-            audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
 
-        let res = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let res = obligation.record_due(Utc::now().date_naive());
         assert!(matches!(res, Idempotent::Ignored));
     }
 
     #[test]
     fn can_record_overdue() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive());
         let res = obligation
-            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .record_overdue(Utc::now().date_naive(), )
             .unwrap()
             .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
@@ -818,21 +786,20 @@ mod test {
     #[test]
     fn ignores_overdue_recorded_if_after_due() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
-        let _ = obligation.record_defaulted(Utc::now().date_naive(), dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive());
+        let _ = obligation.record_defaulted(Utc::now().date_naive());
         let res = obligation
-            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .record_overdue(Utc::now().date_naive(), )
             .unwrap();
         assert!(matches!(res, Idempotent::Ignored));
 
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
             effective: Utc::now().date_naive(),
-            audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
         let res = obligation
-            .record_overdue(Utc::now().date_naive(), dummy_audit_info())
+            .record_overdue(Utc::now().date_naive(), )
             .unwrap();
         assert!(matches!(res, Idempotent::Ignored));
     }
@@ -840,7 +807,7 @@ mod test {
     #[test]
     fn errors_if_overdue_recorded_before_due() {
         let mut obligation = obligation_from(initial_events());
-        let res = obligation.record_overdue(Utc::now().date_naive(), dummy_audit_info());
+        let res = obligation.record_overdue(Utc::now().date_naive());
         assert!(matches!(
             res,
             Err(ObligationError::InvalidStatusTransitionToOverdue)
@@ -850,18 +817,18 @@ mod test {
     #[test]
     fn can_record_defaulted() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive());
         let res = obligation
-            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+            .record_defaulted(Utc::now().date_naive(), )
             .unwrap()
             .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
 
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.record_due(Utc::now().date_naive(), dummy_audit_info());
-        let _ = obligation.record_overdue(Utc::now().date_naive(), dummy_audit_info());
+        let _ = obligation.record_due(Utc::now().date_naive());
+        let _ = obligation.record_overdue(Utc::now().date_naive());
         let res = obligation
-            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+            .record_defaulted(Utc::now().date_naive(), )
             .unwrap()
             .unwrap();
         assert_eq!(res.amount, obligation.initial_amount);
@@ -872,11 +839,10 @@ mod test {
         let mut events = initial_events();
         events.push(ObligationEvent::Completed {
             effective: Utc::now().date_naive(),
-            audit_info: dummy_audit_info(),
         });
         let mut obligation = obligation_from(events);
         let res = obligation
-            .record_defaulted(Utc::now().date_naive(), dummy_audit_info())
+            .record_defaulted(Utc::now().date_naive(), )
             .unwrap();
         assert!(matches!(res, Idempotent::Ignored));
     }
@@ -884,7 +850,7 @@ mod test {
     #[test]
     fn errors_if_default_recorded_before_due() {
         let mut obligation = obligation_from(initial_events());
-        let res = obligation.record_defaulted(Utc::now().date_naive(), dummy_audit_info());
+        let res = obligation.record_defaulted(Utc::now().date_naive());
         assert!(matches!(
             res,
             Err(ObligationError::InvalidStatusTransitionToDefaulted)
@@ -899,7 +865,6 @@ mod test {
                 UsdCents::ONE,
                 PaymentId::new(),
                 Utc::now().date_naive(),
-                &dummy_audit_info(),
             )
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
@@ -909,7 +874,6 @@ mod test {
                 obligation.outstanding(),
                 PaymentId::new(),
                 Utc::now().date_naive(),
-                &dummy_audit_info(),
             )
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::Paid);
@@ -918,14 +882,13 @@ mod test {
     #[test]
     fn obligation_installment_ignored_in_liquidation() {
         let mut obligation = obligation_from(initial_events());
-        let _ = obligation.start_liquidation(Utc::now().date_naive(), &dummy_audit_info());
+        let _ = obligation.start_liquidation(Utc::now().date_naive());
         assert!(
             obligation
                 .apply_installment(
                     UsdCents::ONE,
                     PaymentId::new(),
                     Utc::now().date_naive(),
-                    &dummy_audit_info(),
                 )
                 .was_ignored()
         );
@@ -974,8 +937,7 @@ mod test {
                 defaulted_date: Some(defaulted_timestamp(now).into()),
                 liquidation_date: None,
                 effective: Utc::now().date_naive(),
-                audit_info: dummy_audit_info(),
-            }]
+                }]
         }
 
         #[test]
@@ -1005,8 +967,7 @@ mod test {
             events.push(ObligationEvent::DueRecorded {
                 ledger_tx_id: LedgerTxId::new(),
                 due_amount: UsdCents::from(10),
-                audit_info: dummy_audit_info(),
-            });
+                });
             let obligation = obligation_from(events);
 
             let now = due_timestamp(Utc::now());
@@ -1022,8 +983,7 @@ mod test {
             events.push(ObligationEvent::DueRecorded {
                 ledger_tx_id: LedgerTxId::new(),
                 due_amount: UsdCents::from(10),
-                audit_info: dummy_audit_info(),
-            });
+                });
             let obligation = obligation_from(events);
 
             let now = overdue_timestamp(Utc::now());
@@ -1040,13 +1000,11 @@ mod test {
                 ObligationEvent::DueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     due_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
                 ObligationEvent::OverdueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     overdue_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
             ]);
             let obligation = obligation_from(events);
 
@@ -1064,20 +1022,17 @@ mod test {
                 ObligationEvent::DueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     due_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
                 ObligationEvent::OverdueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     overdue_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
             ]);
 
             let now = overdue_timestamp(Utc::now());
             events.push(ObligationEvent::Completed {
                 effective: now.date_naive(),
-                audit_info: dummy_audit_info(),
-            });
+                });
             let obligation = obligation_from(events);
 
             assert_eq!(obligation.expected_status(now), ObligationStatus::Paid);
@@ -1093,13 +1048,11 @@ mod test {
                 ObligationEvent::DueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     due_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
                 ObligationEvent::OverdueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     overdue_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
             ]);
             let obligation = obligation_from(events);
 
@@ -1117,18 +1070,15 @@ mod test {
                 ObligationEvent::DueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     due_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
                 ObligationEvent::OverdueRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     overdue_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
                 ObligationEvent::DefaultedRecorded {
                     ledger_tx_id: LedgerTxId::new(),
                     defaulted_amount: UsdCents::from(10),
-                    audit_info: dummy_audit_info(),
-                },
+                        },
             ]);
             let obligation = obligation_from(events);
 

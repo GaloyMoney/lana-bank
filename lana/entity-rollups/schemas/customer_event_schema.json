@@ -8,25 +8,6 @@
       ],
       "type": "string"
     },
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "CustomerStatus": {
       "enum": [
         "inactive",
@@ -62,9 +43,6 @@
         "activity": {
           "$ref": "#/$defs/Activity"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "customer_type": {
           "$ref": "#/$defs/CustomerType"
         },
@@ -93,8 +71,7 @@
         "telegram_id",
         "customer_type",
         "activity",
-        "public_id",
-        "audit_info"
+        "public_id"
       ],
       "type": "object"
     },
@@ -102,9 +79,6 @@
       "properties": {
         "applicant_id": {
           "type": "string"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "type": {
           "const": "kyc_started",
@@ -113,8 +87,7 @@
       },
       "required": [
         "type",
-        "applicant_id",
-        "audit_info"
+        "applicant_id"
       ],
       "type": "object"
     },
@@ -122,9 +95,6 @@
       "properties": {
         "applicant_id": {
           "type": "string"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "level": {
           "$ref": "#/$defs/KycLevel"
@@ -137,8 +107,7 @@
       "required": [
         "type",
         "applicant_id",
-        "level",
-        "audit_info"
+        "level"
       ],
       "type": "object"
     },
@@ -147,9 +116,6 @@
         "applicant_id": {
           "type": "string"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "kyc_declined",
           "type": "string"
@@ -157,16 +123,12 @@
       },
       "required": [
         "type",
-        "applicant_id",
-        "audit_info"
+        "applicant_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "status": {
           "$ref": "#/$defs/CustomerStatus"
         },
@@ -177,16 +139,12 @@
       },
       "required": [
         "type",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "telegram_id": {
           "type": "string"
         },
@@ -197,16 +155,12 @@
       },
       "required": [
         "type",
-        "telegram_id",
-        "audit_info"
+        "telegram_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "email": {
           "type": "string"
         },
@@ -217,8 +171,7 @@
       },
       "required": [
         "type",
-        "email",
-        "audit_info"
+        "email"
       ],
       "type": "object"
     },

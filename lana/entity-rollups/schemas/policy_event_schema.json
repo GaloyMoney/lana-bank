@@ -38,34 +38,12 @@
           "type": "object"
         }
       ]
-    },
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -85,16 +63,12 @@
         "type",
         "id",
         "process_type",
-        "rules",
-        "audit_info"
+        "rules"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "rules": {
           "$ref": "#/$defs/ApprovalRules"
         },
@@ -105,8 +79,7 @@
       },
       "required": [
         "type",
-        "rules",
-        "audit_info"
+        "rules"
       ],
       "type": "object"
     }

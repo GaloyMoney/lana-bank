@@ -76,7 +76,6 @@ pub(super) struct ActivationData {
     pub credit_facility: CreditFacility,
     pub credit_facility_activation: CreditFacilityActivation,
     pub next_accrual_period: InterestPeriod,
-    pub audit_info: audit::AuditInfo,
 }
 
 pub(super) enum CompletionOutcome {
@@ -161,8 +160,7 @@ where
         id: CreditFacilityId,
     ) -> Result<ActivationOutcome, CreditFacilityError> {
         let mut credit_facility = self.repo.find_by_id_in_op(db, id).await?;
-        let audit_info = self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 db,
@@ -178,7 +176,7 @@ where
             .await?;
 
         let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
-            credit_facility.activate(now, price, balances, audit_info.clone())
+            credit_facility.activate(now, price, balances)
         else {
             return Ok(ActivationOutcome::Ignored(credit_facility));
         };
@@ -203,7 +201,6 @@ where
             credit_facility,
             credit_facility_activation,
             next_accrual_period,
-            audit_info,
         }))
     }
 
@@ -219,8 +216,7 @@ where
         }
 
         let mut op = self.repo.begin_op().await?;
-        let audit_info = self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 &mut op,
@@ -230,7 +226,7 @@ where
             .await?;
 
         if credit_facility
-            .approval_process_concluded(approved, audit_info)
+            .approval_process_concluded(approved)
             .was_ignored()
         {
             return Ok(credit_facility);
@@ -249,8 +245,7 @@ where
         op: &mut impl es_entity::AtomicOperation,
         id: CreditFacilityId,
     ) -> Result<ConfirmedAccrual, CreditFacilityError> {
-        let audit_info = self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 op,
@@ -269,8 +264,7 @@ where
                 .interest_accrual_cycle_in_progress_mut()
                 .expect("Accrual in progress should exist for scheduled job");
 
-            let interest_accrual =
-                accrual.record_accrual(balances.disbursed_outstanding(), audit_info);
+            let interest_accrual = accrual.record_accrual(balances.disbursed_outstanding());
 
             ConfirmedAccrual {
                 accrual: (interest_accrual, account_ids).into(),
@@ -290,7 +284,6 @@ where
         db: &mut es_entity::DbOp<'_>,
         id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
-        audit_info: &audit::AuditInfo,
     ) -> Result<CompletionOutcome, CreditFacilityError> {
         let price = self.price.usd_cents_per_btc().await?;
 
@@ -302,7 +295,7 @@ where
             .await?;
 
         let completion = if let es_entity::Idempotent::Executed(completion) =
-            credit_facility.complete(audit_info.clone(), price, upgrade_buffer_cvl_pct, balances)?
+            credit_facility.complete(price, upgrade_buffer_cvl_pct, balances)?
         {
             completion
         } else {
@@ -322,12 +315,11 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         id: CreditFacilityId,
-        audit_info: &audit::AuditInfo,
     ) -> Result<CompletedAccrualCycle, CreditFacilityError> {
         let mut credit_facility = self.repo.find_by_id(id).await?;
 
         let (accrual_cycle_data, new_obligation) = if let es_entity::Idempotent::Executed(res) =
-            credit_facility.record_interest_accrual_cycle(audit_info.clone())?
+            credit_facility.record_interest_accrual_cycle()?
         {
             res
         } else {
@@ -340,7 +332,7 @@ where
                 .await?;
         };
 
-        let res = credit_facility.start_interest_accrual_cycle(audit_info.clone())?;
+        let res = credit_facility.start_interest_accrual_cycle()?;
         self.repo.update_in_op(db, &mut credit_facility).await?;
 
         let new_cycle_data = res.map(|periods| {
@@ -428,8 +420,7 @@ where
                 credit_facilities.has_next_page,
             );
             let mut op = self.repo.begin_op().await?;
-            let audit_info = self
-                .authz
+            self.authz
                 .audit()
                 .record_system_entry_in_tx(
                     &mut op,
@@ -449,7 +440,7 @@ where
                     .get_credit_facility_balance(facility.account_ids)
                     .await?;
                 if facility
-                    .update_collateralization(price, upgrade_buffer_cvl_pct, balances, &audit_info)
+                    .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
                     .did_execute()
                 {
                     self.repo.update_in_op(&mut op, facility).await?;
@@ -475,8 +466,7 @@ where
         let mut op = self.repo.begin_op().await?;
         let mut credit_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
 
-        let audit_info = self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 &mut op,
@@ -492,7 +482,7 @@ where
         let price = self.price.usd_cents_per_btc().await?;
 
         if credit_facility
-            .update_collateralization(price, upgrade_buffer_cvl_pct, balances, &audit_info)
+            .update_collateralization(price, upgrade_buffer_cvl_pct, balances)
             .did_execute()
         {
             self.repo

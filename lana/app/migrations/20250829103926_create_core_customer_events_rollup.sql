@@ -7,7 +7,6 @@ CREATE TABLE core_customer_events_rollup (
   -- Flattened fields from the event JSON
   activity VARCHAR,
   applicant_id VARCHAR,
-  audit_info JSONB,
   customer_type VARCHAR,
   email VARCHAR,
   level VARCHAR,
@@ -53,7 +52,6 @@ BEGIN
   IF current_row.id IS NULL THEN
     new_row.activity := (NEW.event ->> 'activity');
     new_row.applicant_id := (NEW.event ->> 'applicant_id');
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.email := (NEW.event ->> 'email');
     new_row.is_kyc_approved := false;
@@ -65,7 +63,6 @@ BEGIN
     -- Default all fields to current values
     new_row.activity := current_row.activity;
     new_row.applicant_id := current_row.applicant_id;
-    new_row.audit_info := current_row.audit_info;
     new_row.customer_type := current_row.customer_type;
     new_row.email := current_row.email;
     new_row.is_kyc_approved := current_row.is_kyc_approved;
@@ -79,30 +76,23 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.activity := (NEW.event ->> 'activity');
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.email := (NEW.event ->> 'email');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
     WHEN 'kyc_started' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
-      new_row.audit_info := (NEW.event -> 'audit_info');
     WHEN 'kyc_approved' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_kyc_approved := true;
       new_row.level := (NEW.event ->> 'level');
     WHEN 'kyc_declined' THEN
       new_row.applicant_id := (NEW.event ->> 'applicant_id');
-      new_row.audit_info := (NEW.event -> 'audit_info');
     WHEN 'status_updated' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.status := (NEW.event ->> 'status');
     WHEN 'telegram_id_updated' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.telegram_id := (NEW.event ->> 'telegram_id');
     WHEN 'email_updated' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.email := (NEW.event ->> 'email');
     WHEN 'activity_updated' THEN
       new_row.activity := (NEW.event ->> 'activity');
@@ -115,7 +105,6 @@ BEGIN
     modified_at,
     activity,
     applicant_id,
-    audit_info,
     customer_type,
     email,
     is_kyc_approved,
@@ -131,7 +120,6 @@ BEGIN
     new_row.modified_at,
     new_row.activity,
     new_row.applicant_id,
-    new_row.audit_info,
     new_row.customer_type,
     new_row.email,
     new_row.is_kyc_approved,

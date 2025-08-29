@@ -5,7 +5,6 @@ CREATE TABLE core_user_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  audit_info JSONB,
   email VARCHAR,
   role_id UUID
 ,
@@ -42,12 +41,10 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.email := (NEW.event ->> 'email');
     new_row.role_id := (NEW.event ->> 'role_id')::UUID;
   ELSE
     -- Default all fields to current values
-    new_row.audit_info := current_row.audit_info;
     new_row.email := current_row.email;
     new_row.role_id := current_row.role_id;
   END IF;
@@ -55,11 +52,9 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.email := (NEW.event ->> 'email');
       new_row.role_id := (NEW.event ->> 'role_id')::UUID;
     WHEN 'role_updated' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.role_id := (NEW.event ->> 'role_id')::UUID;
   END CASE;
 
@@ -68,7 +63,6 @@ BEGIN
     version,
     created_at,
     modified_at,
-    audit_info,
     email,
     role_id
   )
@@ -77,7 +71,6 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.audit_info,
     new_row.email,
     new_row.role_id
   );

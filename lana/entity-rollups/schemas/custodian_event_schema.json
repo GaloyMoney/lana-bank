@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "ConfigCypher": {
       "items": {
         "format": "uint8",
@@ -42,9 +23,6 @@
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -64,16 +42,12 @@
         "type",
         "id",
         "name",
-        "provider",
-        "audit_info"
+        "provider"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "encrypted_custodian_config": {
           "maxItems": 2,
           "minItems": 2,
@@ -96,8 +70,7 @@
         }
       },
       "required": [
-        "type",
-        "audit_info"
+        "type"
       ],
       "type": "object"
     }

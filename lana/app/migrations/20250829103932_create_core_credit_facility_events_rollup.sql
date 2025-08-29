@@ -10,7 +10,6 @@ CREATE TABLE core_credit_facility_events_rollup (
   amount BIGINT,
   approval_process_id UUID,
   approved BOOLEAN,
-  audit_info JSONB,
   collateral BIGINT,
   collateral_id UUID,
   collateralization_ratio JSONB,
@@ -72,7 +71,6 @@ BEGIN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
     new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
@@ -113,7 +111,6 @@ BEGIN
     new_row.amount := current_row.amount;
     new_row.approval_process_id := current_row.approval_process_id;
     new_row.approved := current_row.approved;
-    new_row.audit_info := current_row.audit_info;
     new_row.collateral := current_row.collateral;
     new_row.collateral_id := current_row.collateral_id;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
@@ -140,7 +137,6 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
@@ -150,35 +146,28 @@ BEGIN
     WHEN 'approval_process_concluded' THEN
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.approved := (NEW.event ->> 'approved')::BOOLEAN;
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_approval_process_concluded := true;
     WHEN 'activated' THEN
       new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_activated := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
     WHEN 'interest_accrual_cycle_started' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
       new_row.interest_accrual_ids := array_append(COALESCE(current_row.interest_accrual_ids, ARRAY[]::UUID[]), (NEW.event ->> 'interest_accrual_id')::UUID);
       new_row.interest_period := (NEW.event -> 'interest_period');
     WHEN 'interest_accrual_cycle_concluded' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.interest_accrual_cycle_idx := (NEW.event ->> 'interest_accrual_cycle_idx')::INTEGER;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.obligation_ids := array_append(COALESCE(current_row.obligation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'obligation_id')::UUID);
     WHEN 'collateralization_state_changed' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
       new_row.outstanding := (NEW.event -> 'outstanding');
       new_row.price := (NEW.event -> 'price');
     WHEN 'collateralization_ratio_changed' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     WHEN 'matured' THEN
     WHEN 'completed' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.is_completed := true;
   END CASE;
 
@@ -192,7 +181,6 @@ BEGIN
     amount,
     approval_process_id,
     approved,
-    audit_info,
     collateral,
     collateral_id,
     collateralization_ratio,
@@ -222,7 +210,6 @@ BEGIN
     new_row.amount,
     new_row.approval_process_id,
     new_row.approved,
-    new_row.audit_info,
     new_row.collateral,
     new_row.collateral_id,
     new_row.collateralization_ratio,

@@ -4,7 +4,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
@@ -29,23 +28,19 @@ pub enum DisbursalEvent {
         overdue_date: Option<EffectiveDate>,
         liquidation_date: Option<EffectiveDate>,
         public_id: PublicId,
-        audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
         approved: bool,
-        audit_info: AuditInfo,
     },
     Settled {
         ledger_tx_id: LedgerTxId,
         obligation_id: ObligationId,
         amount: UsdCents,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     },
     Cancelled {
         ledger_tx_id: LedgerTxId,
-        audit_info: AuditInfo,
     },
 }
 
@@ -146,7 +141,6 @@ impl Disbursal {
         tx_id: LedgerTxId,
         approved: bool,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
             self.events.iter_all(),
@@ -155,12 +149,11 @@ impl Disbursal {
         self.events.push(DisbursalEvent::ApprovalProcessConcluded {
             approval_process_id: self.approval_process_id,
             approved,
-            audit_info: audit_info.clone(),
         });
         let tx_ref: &str = &format!("disbursal-{}", self.id);
         let new_obligation = if approved {
             if let Idempotent::Executed(new_obligation) =
-                self.settle_disbursal(tx_id, tx_ref, effective, audit_info.clone())
+                self.settle_disbursal(tx_id, tx_ref, effective)
             {
                 Some(new_obligation)
             } else {
@@ -169,7 +162,6 @@ impl Disbursal {
         } else {
             self.events.push(DisbursalEvent::Cancelled {
                 ledger_tx_id: tx_id,
-                audit_info,
             });
             None
         };
@@ -192,7 +184,6 @@ impl Disbursal {
         tx_id: LedgerTxId,
         tx_ref: &str,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     ) -> Idempotent<NewObligation> {
         idempotency_guard!(self.events.iter_all(), DisbursalEvent::Settled { .. });
         let obligation_id = ObligationId::new();
@@ -201,7 +192,6 @@ impl Disbursal {
             obligation_id,
             amount: self.amount,
             effective,
-            audit_info: audit_info.clone(),
         });
 
         Idempotent::Executed(
@@ -232,7 +222,6 @@ impl Disbursal {
                 .overdue_date(self.overdue_date)
                 .liquidation_date(self.liquidation_date)
                 .effective(effective)
-                .audit_info(audit_info)
                 .build()
                 .expect("could not build new disbursal obligation"),
         )
@@ -266,8 +255,6 @@ pub struct NewDisbursal {
     pub(super) liquidation_date: Option<EffectiveDate>,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
-    #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewDisbursalBuilder {
@@ -299,7 +286,6 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
                 due_date: self.due_date,
                 overdue_date: self.overdue_date,
                 liquidation_date: self.liquidation_date,
-                audit_info: self.audit_info,
                 public_id: self.public_id,
             }],
         )

@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "ObligationType": {
       "enum": [
         "Disbursal",
@@ -42,9 +23,6 @@
         },
         "amount": {
           "$ref": "#/$defs/UsdCents"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "credit_facility_id": {
           "format": "uuid",
@@ -99,8 +77,7 @@
         "amount",
         "receivable_account_id",
         "account_to_be_debited_id",
-        "effective",
-        "audit_info"
+        "effective"
       ],
       "type": "object"
     }

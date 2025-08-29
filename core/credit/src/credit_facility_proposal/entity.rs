@@ -3,7 +3,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
@@ -29,7 +28,6 @@ pub enum CreditFacilityProposalEvent {
         amount: UsdCents,
         account_ids: CreditFacilityProposalAccountIds,
         approval_process_id: ApprovalProcessId,
-        audit_info: AuditInfo,
     },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
@@ -244,8 +242,6 @@ pub struct NewCreditFacilityProposal {
     terms: TermValues,
 
     amount: UsdCents,
-    #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewCreditFacilityProposal {
@@ -267,7 +263,6 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
                 amount: self.amount,
                 account_ids: self.account_ids,
                 approval_process_id: self.approval_process_id,
-                audit_info: self.audit_info.clone(),
             }],
         )
     }

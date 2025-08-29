@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "CVLPct": {
       "oneOf": [
         {
@@ -360,9 +341,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "collateral_id": {
           "format": "uuid",
           "type": "string"
@@ -405,8 +383,7 @@
         "account_ids",
         "disbursal_credit_account_id",
         "approval_process_id",
-        "public_id",
-        "audit_info"
+        "public_id"
       ],
       "type": "object"
     },
@@ -419,9 +396,6 @@
         "approved": {
           "type": "boolean"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "approval_process_concluded",
           "type": "string"
@@ -430,8 +404,7 @@
       "required": [
         "type",
         "approval_process_id",
-        "approved",
-        "audit_info"
+        "approved"
       ],
       "type": "object"
     },
@@ -440,9 +413,6 @@
         "activated_at": {
           "format": "date-time",
           "type": "string"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -456,16 +426,12 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "activated_at",
-        "audit_info"
+        "activated_at"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "interest_accrual_cycle_idx": {
           "format": "int32",
           "type": "integer"
@@ -486,16 +452,12 @@
         "type",
         "interest_accrual_id",
         "interest_accrual_cycle_idx",
-        "interest_period",
-        "audit_info"
+        "interest_period"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "interest_accrual_cycle_idx": {
           "format": "int32",
           "type": "integer"
@@ -519,16 +481,12 @@
       "required": [
         "type",
         "interest_accrual_cycle_idx",
-        "ledger_tx_id",
-        "audit_info"
+        "ledger_tx_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "collateral": {
           "$ref": "#/$defs/Satoshis"
         },
@@ -551,16 +509,12 @@
         "collateralization_state",
         "collateral",
         "outstanding",
-        "price",
-        "audit_info"
+        "price"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "collateralization_ratio": {
           "$ref": "#/$defs/CollateralizationRatio"
         },
@@ -571,8 +525,7 @@
       },
       "required": [
         "type",
-        "collateralization_ratio",
-        "audit_info"
+        "collateralization_ratio"
       ],
       "type": "object"
     },
@@ -590,17 +543,13 @@
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "completed",
           "type": "string"
         }
       },
       "required": [
-        "type",
-        "audit_info"
+        "type"
       ],
       "type": "object"
     }

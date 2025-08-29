@@ -325,8 +325,7 @@ where
         reference: Option<String>,
     ) -> Result<Deposit, CoreDepositError> {
         let deposit_account_id = deposit_account_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::all_deposits(),
@@ -341,7 +340,6 @@ where
             .deposit_account_id(deposit_account_id)
             .amount(amount)
             .reference(reference)
-            .audit_info(audit_info)
             .build()?;
 
         let mut op = self.deposits.begin_op().await?;
@@ -361,8 +359,7 @@ where
         reference: Option<String>,
     ) -> Result<Withdrawal, CoreDepositError> {
         let deposit_account_id = deposit_account_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::all_withdrawals(),
@@ -377,7 +374,6 @@ where
             .amount(amount)
             .approval_process_id(withdrawal_id)
             .reference(reference)
-            .audit_info(audit_info)
             .build()?;
 
         let mut op = self.withdrawals.begin_op().await?;
@@ -407,8 +403,7 @@ where
         deposit_id: impl Into<DepositId> + std::fmt::Debug,
     ) -> Result<Deposit, CoreDepositError> {
         let id = deposit_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::deposit(id),
@@ -420,7 +415,7 @@ where
         self.check_account_active(deposit.deposit_account_id)
             .await?;
 
-        if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert(audit_info) {
+        if let es_entity::Idempotent::Executed(deposit_reversal_data) = deposit.revert() {
             let mut op = self.deposits.begin_op().await?;
             self.deposits.update_in_op(&mut op, &mut deposit).await?;
             self.ledger
@@ -438,8 +433,7 @@ where
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let id = withdrawal_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::withdrawal(id),
@@ -452,9 +446,7 @@ where
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
 
-        if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) =
-            withdrawal.revert(audit_info)
-        {
+        if let Ok(es_entity::Idempotent::Executed(withdrawal_reversal_data)) = withdrawal.revert() {
             let mut op = self.withdrawals.begin_op().await?;
             self.withdrawals
                 .update_in_op(&mut op, &mut withdrawal)
@@ -474,8 +466,7 @@ where
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let id = withdrawal_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::withdrawal(id),
@@ -486,7 +477,7 @@ where
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.confirm(audit_info)?;
+        let tx_id = withdrawal.confirm()?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
@@ -512,8 +503,7 @@ where
         withdrawal_id: impl Into<WithdrawalId> + std::fmt::Debug,
     ) -> Result<Withdrawal, CoreDepositError> {
         let id = withdrawal_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreDepositObject::withdrawal(id),
@@ -524,7 +514,7 @@ where
         self.check_account_active(withdrawal.deposit_account_id)
             .await?;
         let mut op = self.withdrawals.begin_op().await?;
-        let tx_id = withdrawal.cancel(audit_info)?;
+        let tx_id = withdrawal.cancel()?;
         self.withdrawals
             .update_in_op(&mut op, &mut withdrawal)
             .await?;

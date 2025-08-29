@@ -1,32 +1,8 @@
 {
-  "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    }
-  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "email": {
           "type": "string"
         },
@@ -47,16 +23,12 @@
         "type",
         "id",
         "email",
-        "role_id",
-        "audit_info"
+        "role_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "role_id": {
           "format": "uuid",
           "type": "string"
@@ -68,8 +40,7 @@
       },
       "required": [
         "type",
-        "role_id",
-        "audit_info"
+        "role_id"
       ],
       "type": "object"
     }

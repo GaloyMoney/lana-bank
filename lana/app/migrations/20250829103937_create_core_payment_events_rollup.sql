@@ -6,7 +6,6 @@ CREATE TABLE core_payment_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   amount BIGINT,
-  audit_info JSONB,
   credit_facility_id UUID
 ,
   PRIMARY KEY (id, version)
@@ -43,12 +42,10 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.amount := current_row.amount;
-    new_row.audit_info := current_row.audit_info;
     new_row.credit_facility_id := current_row.credit_facility_id;
   END IF;
 
@@ -56,7 +53,6 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
   END CASE;
 
@@ -66,7 +62,6 @@ BEGIN
     created_at,
     modified_at,
     amount,
-    audit_info,
     credit_facility_id
   )
   VALUES (
@@ -75,7 +70,6 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.amount,
-    new_row.audit_info,
     new_row.credit_facility_id
   );
 

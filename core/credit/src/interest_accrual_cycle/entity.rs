@@ -4,7 +4,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{
@@ -55,14 +54,12 @@ pub enum InterestAccrualCycleEvent {
         facility_maturity_date: EffectiveDate,
         account_ids: InterestAccrualCycleAccountIds,
         terms: TermValues,
-        audit_info: AuditInfo,
     },
     InterestAccrued {
         ledger_tx_id: LedgerTxId,
         tx_ref: String,
         amount: UsdCents,
         accrued_at: DateTime<Utc>,
-        audit_info: AuditInfo,
     },
     InterestAccrualsPosted {
         ledger_tx_id: LedgerTxId,
@@ -70,7 +67,6 @@ pub enum InterestAccrualCycleEvent {
         obligation_id: Option<ObligationId>,
         total: UsdCents,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     },
 }
 
@@ -218,7 +214,6 @@ impl InterestAccrualCycle {
     pub(crate) fn record_accrual(
         &mut self,
         amount: UsdCents,
-        audit_info: AuditInfo,
     ) -> InterestAccrualData {
         let accrual_period = self
             .next_accrual_period()
@@ -244,7 +239,6 @@ impl InterestAccrualCycle {
                 tx_ref: interest_accrual.tx_ref.to_string(),
                 amount: interest_accrual.interest,
                 accrued_at: interest_accrual.period.end,
-                audit_info,
             });
 
         interest_accrual
@@ -284,7 +278,6 @@ impl InterestAccrualCycle {
             effective,
             ..
         }: InterestAccrualCycleData,
-        audit_info: AuditInfo,
     ) -> Idempotent<Option<NewObligation>> {
         idempotency_guard!(
             self.events.iter_all(),
@@ -299,7 +292,6 @@ impl InterestAccrualCycle {
                     obligation_id: None,
                     total: interest,
                     effective,
-                    audit_info: audit_info.clone(),
                 });
 
             return Idempotent::Executed(None);
@@ -339,7 +331,6 @@ impl InterestAccrualCycle {
             .overdue_date(overdue_date)
             .liquidation_date(liquidation_date)
             .effective(effective)
-            .audit_info(audit_info.clone())
             .build()
             .expect("could not build new interest accrual cycle obligation");
 
@@ -350,7 +341,6 @@ impl InterestAccrualCycle {
                 obligation_id: Some(new_obligation.id),
                 total: interest,
                 effective,
-                audit_info,
             });
 
         Idempotent::Executed(Some(new_obligation))
@@ -368,8 +358,6 @@ pub struct NewInterestAccrualCycle {
     pub period: InterestPeriod,
     pub facility_maturity_date: EffectiveDate,
     terms: TermValues,
-    #[builder(setter(into))]
-    audit_info: AuditInfo,
 }
 
 impl NewInterestAccrualCycle {
@@ -394,7 +382,6 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
                 period: self.period,
                 facility_maturity_date: self.facility_maturity_date,
                 terms: self.terms,
-                audit_info: self.audit_info,
             }],
         )
     }
@@ -402,7 +389,6 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
 
 #[cfg(test)]
 mod test {
-    use audit::AuditEntryId;
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
@@ -451,12 +437,6 @@ mod test {
         InterestInterval::EndOfDay.period_from(default_started_at())
     }
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     fn accrual_from(events: Vec<InterestAccrualCycleEvent>) -> InterestAccrualCycle {
         InterestAccrualCycle::try_from_events(EntityEvents::init(
@@ -477,7 +457,6 @@ mod test {
             period: default_period(),
             facility_maturity_date: terms.duration.maturity_date(started_at),
             terms,
-            audit_info: dummy_audit_info(),
         }]
     }
 
@@ -500,7 +479,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events.clone());
         assert_eq!(
@@ -515,7 +493,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
-            audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events);
         assert_eq!(
@@ -543,7 +520,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events.clone());
         assert_eq!(accrual.count_accrued(), 1);
@@ -555,7 +531,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
-            audit_info: dummy_audit_info(),
         });
         let accrual = accrual_from(events);
         assert_eq!(accrual.count_accrued(), 2);
@@ -583,7 +558,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            audit_info: dummy_audit_info(),
         }]);
         let accrual = accrual_from(events);
 
@@ -610,7 +584,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: final_accrual_at,
-            audit_info: dummy_audit_info(),
         }]);
         let accrual = accrual_from(events);
 
@@ -630,7 +603,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: first_accrual_at,
-            audit_info: dummy_audit_info(),
         });
 
         let second_accrual_period = first_accrual_cycle_period.next();
@@ -640,7 +612,6 @@ mod test {
             tx_ref: "".to_string(),
             amount: UsdCents::ONE,
             accrued_at: second_accrual_at,
-            audit_info: dummy_audit_info(),
         });
 
         let accrual = accrual_from(events);
@@ -652,7 +623,7 @@ mod test {
         let mut accrual = accrual_from(initial_events());
         let InterestAccrualData {
             interest, period, ..
-        } = accrual.record_accrual(UsdCents::ZERO, dummy_audit_info());
+        } = accrual.record_accrual(UsdCents::ZERO);
         assert_eq!(interest, UsdCents::ZERO);
         let start = default_started_at();
         assert_eq!(period.start, start);
@@ -682,7 +653,7 @@ mod test {
 
             let InterestAccrualData {
                 interest, period, ..
-            } = accrual.record_accrual(UsdCents::ZERO, dummy_audit_info());
+            } = accrual.record_accrual(UsdCents::ZERO);
             assert_eq!(interest, UsdCents::ZERO);
             assert_eq!(period.end, expected_end_of_day);
 
@@ -713,7 +684,7 @@ mod test {
             .unwrap();
         for _ in start_day..(end_day + 1) {
             let InterestAccrualData { period, .. } =
-                accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+                accrual.record_accrual(UsdCents::ONE);
             assert_eq!(period.end, expected_end_of_day);
 
             expected_end_of_day += chrono::Duration::days(1);
@@ -733,7 +704,7 @@ mod test {
         for _ in start_day..(end_day + 1) {
             assert!(accrual_cycle_data.is_none());
 
-            accrual.record_accrual(UsdCents::ONE, dummy_audit_info());
+            accrual.record_accrual(UsdCents::ONE);
 
             accrual_cycle_data = accrual.accrual_cycle_data();
         }
@@ -756,7 +727,7 @@ mod test {
 
         for _ in start_day..(end_day + 1) {
             let InterestAccrualData { interest, .. } =
-                accrual.record_accrual(disbursed_outstanding_amount, dummy_audit_info());
+                accrual.record_accrual(disbursed_outstanding_amount);
             assert_eq!(interest, expected_daily_interest);
         }
 

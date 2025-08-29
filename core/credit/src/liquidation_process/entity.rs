@@ -3,7 +3,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::*;
@@ -21,11 +20,8 @@ pub enum LiquidationProcessEvent {
         in_liquidation_account_id: CalaAccountId,
         initial_amount: UsdCents,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     },
-    Completed {
-        audit_info: AuditInfo,
-    },
+    Completed {},
 }
 
 #[derive(EsEntity, Builder)]
@@ -88,8 +84,6 @@ pub struct NewLiquidationProcess {
     pub(super) in_liquidation_account_id: CalaAccountId,
     pub(super) initial_amount: UsdCents,
     pub(super) effective: chrono::NaiveDate,
-    #[builder(setter(into))]
-    pub audit_info: AuditInfo,
 }
 
 impl NewLiquidationProcess {
@@ -110,7 +104,6 @@ impl IntoEvents<LiquidationProcessEvent> for NewLiquidationProcess {
                 in_liquidation_account_id: self.in_liquidation_account_id,
                 initial_amount: self.initial_amount,
                 effective: self.effective,
-                audit_info: self.audit_info,
             }],
         )
     }

@@ -5,7 +5,6 @@ CREATE TABLE core_role_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  audit_info JSONB,
   name VARCHAR,
 
   -- Collection rollups
@@ -44,7 +43,6 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.name := (NEW.event ->> 'name');
     new_row.permission_set_ids := CASE
        WHEN NEW.event ? 'permission_set_ids' THEN
@@ -54,7 +52,6 @@ BEGIN
 ;
   ELSE
     -- Default all fields to current values
-    new_row.audit_info := current_row.audit_info;
     new_row.name := current_row.name;
     new_row.permission_set_ids := current_row.permission_set_ids;
   END IF;
@@ -62,7 +59,6 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.name := (NEW.event ->> 'name');
       new_row.permission_set_ids := CASE
        WHEN NEW.event ? 'permission_set_ids' THEN
@@ -71,10 +67,8 @@ BEGIN
      END
 ;
     WHEN 'permission_set_added' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.permission_set_ids := array_append(COALESCE(current_row.permission_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'permission_set_id')::UUID);
     WHEN 'permission_set_removed' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.permission_set_ids := array_remove(COALESCE(current_row.permission_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'permission_set_id')::UUID);
   END CASE;
 
@@ -83,7 +77,6 @@ BEGIN
     version,
     created_at,
     modified_at,
-    audit_info,
     name,
     permission_set_ids
   )
@@ -92,7 +85,6 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.audit_info,
     new_row.name,
     new_row.permission_set_ids
   );

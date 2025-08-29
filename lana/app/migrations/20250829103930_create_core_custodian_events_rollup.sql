@@ -5,7 +5,6 @@ CREATE TABLE core_custodian_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  audit_info JSONB,
   encrypted_custodian_config JSONB,
   name VARCHAR,
   provider VARCHAR
@@ -43,13 +42,11 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.audit_info := (NEW.event -> 'audit_info');
     new_row.encrypted_custodian_config := (NEW.event -> 'encrypted_custodian_config');
     new_row.name := (NEW.event ->> 'name');
     new_row.provider := (NEW.event ->> 'provider');
   ELSE
     -- Default all fields to current values
-    new_row.audit_info := current_row.audit_info;
     new_row.encrypted_custodian_config := current_row.encrypted_custodian_config;
     new_row.name := current_row.name;
     new_row.provider := current_row.provider;
@@ -58,11 +55,9 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.name := (NEW.event ->> 'name');
       new_row.provider := (NEW.event ->> 'provider');
     WHEN 'config_updated' THEN
-      new_row.audit_info := (NEW.event -> 'audit_info');
       new_row.encrypted_custodian_config := (NEW.event -> 'encrypted_custodian_config');
   END CASE;
 
@@ -71,7 +66,6 @@ BEGIN
     version,
     created_at,
     modified_at,
-    audit_info,
     encrypted_custodian_config,
     name,
     provider
@@ -81,7 +75,6 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.audit_info,
     new_row.encrypted_custodian_config,
     new_row.name,
     new_row.provider

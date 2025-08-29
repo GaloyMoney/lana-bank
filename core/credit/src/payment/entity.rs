@@ -4,7 +4,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::*;
@@ -18,7 +17,6 @@ pub enum PaymentEvent {
         id: PaymentId,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-        audit_info: AuditInfo,
     },
 }
 
@@ -69,8 +67,6 @@ pub struct NewPayment {
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amount: UsdCents,
-    #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewPayment {
@@ -86,7 +82,6 @@ impl IntoEvents<PaymentEvent> for NewPayment {
                 id: self.id,
                 credit_facility_id: self.credit_facility_id,
                 amount: self.amount,
-                audit_info: self.audit_info,
             }],
         )
     }

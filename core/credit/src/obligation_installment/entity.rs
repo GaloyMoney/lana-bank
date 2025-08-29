@@ -4,7 +4,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::*;
@@ -26,7 +25,6 @@ pub enum ObligationInstallmentEvent {
         receivable_account_id: CalaAccountId,
         account_to_be_debited_id: CalaAccountId,
         effective: chrono::NaiveDate,
-        audit_info: AuditInfo,
     },
 }
 
@@ -116,8 +114,6 @@ pub struct NewObligationInstallment {
     pub(crate) effective: chrono::NaiveDate,
     #[builder(setter(into))]
     pub(crate) amount: UsdCents,
-    #[builder(setter(into))]
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewObligationInstallment {
@@ -141,7 +137,6 @@ impl IntoEvents<ObligationInstallmentEvent> for NewObligationInstallment {
                 account_to_be_debited_id: self.account_to_be_debited_id,
                 effective: self.effective,
                 receivable_account_id: self.receivable_account_id,
-                audit_info: self.audit_info,
             }],
         )
     }

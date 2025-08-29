@@ -55,13 +55,11 @@ where
         db: &mut es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
-        audit_info: &audit::AuditInfo,
     ) -> Result<Payment, PaymentError> {
         let new_payment = NewPayment::builder()
             .id(PaymentId::new())
             .amount(amount)
             .credit_facility_id(credit_facility_id)
-            .audit_info(audit_info.clone())
             .build()
             .expect("could not build new payment");
 

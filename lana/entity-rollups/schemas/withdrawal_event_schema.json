@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "UsdCents": {
       "format": "uint64",
       "minimum": 0,
@@ -46,9 +27,6 @@
         "approval_process_id": {
           "format": "uuid",
           "type": "string"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "deposit_account_id": {
           "format": "uuid",
@@ -81,8 +59,7 @@
         "amount",
         "reference",
         "approval_process_id",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     },
@@ -94,9 +71,6 @@
         },
         "approved": {
           "type": "boolean"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "status": {
           "$ref": "#/$defs/WithdrawalStatus"
@@ -110,16 +84,12 @@
         "type",
         "approval_process_id",
         "approved",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -135,16 +105,12 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -160,16 +126,12 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -185,8 +147,7 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     }

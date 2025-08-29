@@ -1,32 +1,8 @@
 {
-  "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    }
-  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -51,16 +27,12 @@
         "type",
         "id",
         "name",
-        "permission_set_ids",
-        "audit_info"
+        "permission_set_ids"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "permission_set_id": {
           "format": "uuid",
           "type": "string"
@@ -72,16 +44,12 @@
       },
       "required": [
         "type",
-        "permission_set_id",
-        "audit_info"
+        "permission_set_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "permission_set_id": {
           "format": "uuid",
           "type": "string"
@@ -93,8 +61,7 @@
       },
       "required": [
         "type",
-        "permission_set_id",
-        "audit_info"
+        "permission_set_id"
       ],
       "type": "object"
     }

@@ -4,7 +4,6 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::primitives::*;
@@ -39,20 +38,16 @@ pub enum DocumentEvent {
         content_type: String,
         path_in_storage: String,
         storage_identifier: String,
-        audit_info: AuditInfo,
     },
     FileUploaded {},
     UploadFailed {
         error: String,
     },
     DownloadLinkGenerated {
-        audit_info: AuditInfo,
     },
     Deleted {
-        audit_info: AuditInfo,
     },
     Archived {
-        audit_info: AuditInfo,
     },
 }
 
@@ -96,9 +91,9 @@ impl Document {
         &self.path_in_storage
     }
 
-    pub fn download_link_generated(&mut self, audit_info: AuditInfo) -> &str {
+    pub fn download_link_generated(&mut self) -> &str {
         self.events
-            .push(DocumentEvent::DownloadLinkGenerated { audit_info });
+            .push(DocumentEvent::DownloadLinkGenerated {});
         &self.path_in_storage
     }
 
@@ -106,18 +101,18 @@ impl Document {
         &self.path_in_storage
     }
 
-    pub fn delete(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+    pub fn delete(&mut self) -> Idempotent<()> {
         idempotency_guard!(self.events.iter_all(), DocumentEvent::Deleted { .. });
 
-        self.events.push(DocumentEvent::Deleted { audit_info });
+        self.events.push(DocumentEvent::Deleted {});
         self.status = DocumentStatus::Deleted;
         Idempotent::Executed(())
     }
 
-    pub fn archive(&mut self, audit_info: AuditInfo) -> Idempotent<()> {
+    pub fn archive(&mut self) -> Idempotent<()> {
         idempotency_guard!(self.events.iter_all(), DocumentEvent::Archived { .. });
 
-        self.events.push(DocumentEvent::Archived { audit_info });
+        self.events.push(DocumentEvent::Archived {});
         self.status = DocumentStatus::Archived;
         Idempotent::Executed(())
     }
@@ -186,7 +181,6 @@ pub struct NewDocument {
     pub(super) storage_identifier: String,
     #[builder(setter(into))]
     pub(super) reference_id: ReferenceId,
-    pub(super) audit_info: AuditInfo,
 }
 
 impl NewDocumentBuilder {
@@ -214,7 +208,6 @@ impl IntoEvents<DocumentEvent> for NewDocument {
             [DocumentEvent::Initialized {
                 id: self.id,
                 document_type: self.document_type,
-                audit_info: self.audit_info,
                 sanitized_filename: self.sanitized_filename,
                 original_filename: self.filename,
                 content_type: self.content_type,

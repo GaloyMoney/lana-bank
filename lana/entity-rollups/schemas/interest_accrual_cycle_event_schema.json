@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "CVLPct": {
       "oneOf": [
         {
@@ -263,9 +244,6 @@
         "account_ids": {
           "$ref": "#/$defs/InterestAccrualCycleAccountIds"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "facility_id": {
           "format": "uuid",
           "type": "string"
@@ -300,8 +278,7 @@
         "period",
         "facility_maturity_date",
         "account_ids",
-        "terms",
-        "audit_info"
+        "terms"
       ],
       "type": "object"
     },
@@ -313,9 +290,6 @@
         },
         "amount": {
           "$ref": "#/$defs/UsdCents"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "ledger_tx_id": {
           "format": "uuid",
@@ -334,16 +308,12 @@
         "ledger_tx_id",
         "tx_ref",
         "amount",
-        "accrued_at",
-        "audit_info"
+        "accrued_at"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "effective": {
           "format": "date",
           "type": "string"
@@ -375,8 +345,7 @@
         "ledger_tx_id",
         "tx_ref",
         "total",
-        "effective",
-        "audit_info"
+        "effective"
       ],
       "type": "object"
     }

@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "DepositStatus": {
       "enum": [
         "Confirmed",
@@ -38,9 +19,6 @@
       "properties": {
         "amount": {
           "$ref": "#/$defs/UsdCents"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "deposit_account_id": {
           "format": "uuid",
@@ -72,16 +50,12 @@
         "deposit_account_id",
         "amount",
         "reference",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -97,8 +71,7 @@
       "required": [
         "type",
         "ledger_tx_id",
-        "status",
-        "audit_info"
+        "status"
       ],
       "type": "object"
     }

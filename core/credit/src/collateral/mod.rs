@@ -100,7 +100,6 @@ where
         collateral_id: CollateralId,
         updated_collateral: core_money::Satoshis,
         effective: chrono::NaiveDate,
-        audit_info: &audit::AuditInfo,
     ) -> Result<Option<CollateralUpdate>, CollateralError> {
         let mut collateral = self.repo.find_by_id(collateral_id).await?;
 
@@ -109,7 +108,7 @@ where
         }
 
         let res = if let es_entity::Idempotent::Executed(data) = collateral
-            .record_collateral_update_via_manual_input(updated_collateral, effective, audit_info)
+            .record_collateral_update_via_manual_input(updated_collateral, effective)
         {
             self.repo.update_in_op(db, &mut collateral).await?;
             Some(data)

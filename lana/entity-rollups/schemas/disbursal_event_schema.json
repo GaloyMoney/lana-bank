@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "CreditFacilityAccountIds": {
       "properties": {
         "collateral_account_id": {
@@ -115,9 +96,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "disbursal_credit_account_id": {
           "format": "uuid",
           "type": "string"
@@ -170,8 +148,7 @@
         "account_ids",
         "disbursal_credit_account_id",
         "due_date",
-        "public_id",
-        "audit_info"
+        "public_id"
       ],
       "type": "object"
     },
@@ -184,9 +161,6 @@
         "approved": {
           "type": "boolean"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "approval_process_concluded",
           "type": "string"
@@ -195,8 +169,7 @@
       "required": [
         "type",
         "approval_process_id",
-        "approved",
-        "audit_info"
+        "approved"
       ],
       "type": "object"
     },
@@ -204,9 +177,6 @@
       "properties": {
         "amount": {
           "$ref": "#/$defs/UsdCents"
-        },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
         },
         "effective": {
           "format": "date",
@@ -230,16 +200,12 @@
         "ledger_tx_id",
         "obligation_id",
         "amount",
-        "effective",
-        "audit_info"
+        "effective"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
@@ -251,8 +217,7 @@
       },
       "required": [
         "type",
-        "ledger_tx_id",
-        "audit_info"
+        "ledger_tx_id"
       ],
       "type": "object"
     }

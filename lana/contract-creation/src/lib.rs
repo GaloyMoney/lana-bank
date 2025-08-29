@@ -98,8 +98,7 @@ where
     ) -> Result<LoanAgreement, ContractCreationError> {
         let customer_id = customer_id.into();
 
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 ContractModuleObject::all_contracts(),
@@ -113,7 +112,6 @@ where
         let document = self
             .document_storage
             .create_in_op(
-                audit_info.clone(),
                 filename,
                 "application/pdf",
                 ReferenceId::from(customer_id),
@@ -146,8 +144,7 @@ where
         let contract_id = contract_id.into();
         let document_id = DocumentId::from(contract_id);
 
-        let _audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 ContractModuleObject::all_contracts(),
@@ -169,8 +166,7 @@ where
         contract_id: impl Into<ContractCreationId> + std::fmt::Debug,
     ) -> Result<GeneratedDocumentDownloadLink, ContractCreationError> {
         let contract_id = contract_id.into();
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 ContractModuleObject::all_contracts(),
@@ -180,7 +176,7 @@ where
 
         let link = self
             .document_storage
-            .generate_download_link(audit_info, contract_id)
+            .generate_download_link(contract_id)
             .await?;
 
         Ok(link)

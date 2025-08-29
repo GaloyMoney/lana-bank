@@ -102,7 +102,6 @@ where
                 credit_facility,
                 credit_facility_activation,
                 next_accrual_period,
-                audit_info,
             }) => {
                 let due_date = credit_facility
                     .maturity_date
@@ -137,13 +136,12 @@ where
                         .due_date(due_date)
                         .overdue_date(overdue_date)
                         .liquidation_date(liquidation_date)
-                        .audit_info(audit_info.clone())
                         .public_id(public_id.id)
                         .build()
                         .expect("could not build new disbursal");
 
                     self.disbursals
-                        .create_first_disbursal_in_op(&mut op, new_disbursal, &audit_info)
+                        .create_first_disbursal_in_op(&mut op, new_disbursal)
                         .await?;
                 }
 

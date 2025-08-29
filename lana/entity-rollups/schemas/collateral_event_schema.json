@@ -1,24 +1,5 @@
 {
   "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    },
     "CollateralAction": {
       "enum": [
         "Add",
@@ -76,9 +57,6 @@
         "action": {
           "$ref": "#/$defs/CollateralAction"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "collateral_amount": {
           "$ref": "#/$defs/Satoshis"
         },
@@ -96,8 +74,7 @@
         "ledger_tx_id",
         "collateral_amount",
         "abs_diff",
-        "action",
-        "audit_info"
+        "action"
       ],
       "type": "object"
     },

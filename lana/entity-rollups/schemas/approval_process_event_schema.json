@@ -38,34 +38,12 @@
           "type": "object"
         }
       ]
-    },
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
     }
   },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -94,8 +72,7 @@
         "policy_id",
         "process_type",
         "rules",
-        "target_ref",
-        "audit_info"
+        "target_ref"
       ],
       "type": "object"
     },
@@ -105,9 +82,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "approved",
           "type": "string"
@@ -115,16 +89,12 @@
       },
       "required": [
         "type",
-        "approver_id",
-        "audit_info"
+        "approver_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "denier_id": {
           "format": "uuid",
           "type": "string"
@@ -140,8 +110,7 @@
       "required": [
         "type",
         "denier_id",
-        "reason",
-        "audit_info"
+        "reason"
       ],
       "type": "object"
     },
@@ -150,9 +119,6 @@
         "approved": {
           "type": "boolean"
         },
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "type": {
           "const": "concluded",
           "type": "string"
@@ -160,8 +126,7 @@
       },
       "required": [
         "type",
-        "approved",
-        "audit_info"
+        "approved"
       ],
       "type": "object"
     }

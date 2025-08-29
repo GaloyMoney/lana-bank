@@ -1,32 +1,8 @@
 {
-  "$defs": {
-    "AuditEntryId": {
-      "format": "int64",
-      "type": "integer"
-    },
-    "AuditInfo": {
-      "properties": {
-        "audit_entry_id": {
-          "$ref": "#/$defs/AuditEntryId"
-        },
-        "sub": {
-          "type": "string"
-        }
-      },
-      "required": [
-        "sub",
-        "audit_entry_id"
-      ],
-      "type": "object"
-    }
-  },
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "oneOf": [
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -42,16 +18,12 @@
       "required": [
         "type",
         "id",
-        "name",
-        "audit_info"
+        "name"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "member_id": {
           "format": "uuid",
           "type": "string"
@@ -63,16 +35,12 @@
       },
       "required": [
         "type",
-        "member_id",
-        "audit_info"
+        "member_id"
       ],
       "type": "object"
     },
     {
       "properties": {
-        "audit_info": {
-          "$ref": "#/$defs/AuditInfo"
-        },
         "member_id": {
           "format": "uuid",
           "type": "string"
@@ -84,8 +52,7 @@
       },
       "required": [
         "type",
-        "member_id",
-        "audit_info"
+        "member_id"
       ],
       "type": "object"
     }

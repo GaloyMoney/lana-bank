@@ -69,8 +69,7 @@ where
     ) -> Result<Document, AccountingCsvExportError> {
         let ledger_account_id = ledger_account_id.into();
 
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_accounting_csvs(),
@@ -82,7 +81,6 @@ where
         let document = self
             .document_storage
             .create_in_op(
-                audit_info.clone(),
                 format!("ledger-account-{ledger_account_id}.csv"),
                 "text/csv",
                 ReferenceId::from(uuid::Uuid::from(ledger_account_id)),
@@ -112,8 +110,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         document_id: DocumentId,
     ) -> Result<GeneratedDocumentDownloadLink, AccountingCsvExportError> {
-        let audit_info = self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_accounting_csvs(),
@@ -123,7 +120,7 @@ where
 
         let link = self
             .document_storage
-            .generate_download_link(audit_info, document_id)
+            .generate_download_link(document_id)
             .await?;
 
         Ok(link)
