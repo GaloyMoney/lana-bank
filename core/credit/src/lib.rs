@@ -65,7 +65,7 @@ pub use obligation::{error::*, obligation_cursor::*, *};
 pub use obligation_installment::*;
 pub use payment::*;
 pub use primitives::*;
-use processes::create_facility_on_proposal_approval::*;
+use processes::activate_credit_facility::*;
 pub use processes::{approve_credit_facility_proposal::*, approve_disbursal::*};
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
@@ -105,7 +105,7 @@ where
     config: CreditConfig,
     approve_disbursal: ApproveDisbursal<Perms, E>,
     cala: CalaLedger,
-    create_credit_facility: CreateCreditFacility<Perms, E>,
+    activate_credit_facility: ActivateCreditFacility<Perms, E>,
     obligations: Obligations<Perms, E>,
     collaterals: Collaterals<Perms, E>,
     custody: CoreCustody<Perms, E>,
@@ -141,7 +141,7 @@ where
             config: self.config.clone(),
             cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
-            create_credit_facility: self.create_credit_facility.clone(),
+            activate_credit_facility: self.activate_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
@@ -213,7 +213,7 @@ where
             authz.audit(),
             governance,
         );
-        let create_credit_facility = CreateCreditFacility::new(
+        let activate_credit_facility = ActivateCreditFacility::new(
             &credit_facilities,
             &disbursals,
             &ledger,
@@ -333,8 +333,8 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityCreationInit::new(outbox, &create_credit_facility),
-            CreditFacilityCreationJobConfig::<Perms, E>::new(),
+            CreditFacilityActivationInit::new(outbox, &activate_credit_facility),
+            CreditFacilityActivationJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
@@ -371,7 +371,7 @@ where
             config,
             cala: cala.clone(),
             approve_disbursal,
-            create_credit_facility,
+            activate_credit_facility,
             chart_of_accounts_integrations,
             terms_templates,
             public_ids: public_ids.clone(),
