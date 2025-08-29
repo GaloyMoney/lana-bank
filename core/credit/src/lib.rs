@@ -452,6 +452,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
+        disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
         amount: UsdCents,
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
@@ -501,6 +502,7 @@ where
             .terms(terms)
             .amount(amount)
             .account_ids(account_ids)
+            .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .build()
             .expect("could not build new credit facility");
 

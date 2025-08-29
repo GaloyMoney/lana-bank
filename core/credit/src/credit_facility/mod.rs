@@ -123,11 +123,20 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    pub(super) async fn create_in_op_via_proposal(
+    pub(super) async fn activate_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
     ) -> Result<(CreditFacility, InterestPeriod), CreditFacilityError> {
+        self.authz
+            .audit()
+            .record_system_entry_in_tx(
+                db,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
+            )
+            .await?;
+
         let proposal = self.proposals.complete_in_op(db, id.into()).await?;
 
         let public_id = self
@@ -139,6 +148,7 @@ where
             .id(proposal.id)
             .ledger_tx_id(LedgerTxId::new())
             .account_ids(crate::CreditFacilityAccountIds::from(proposal.account_ids))
+            .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
             .collateral_id(proposal.collateral_id)
             .terms(proposal.terms)
             .amount(proposal.amount)
