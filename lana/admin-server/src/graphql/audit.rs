@@ -44,7 +44,7 @@ impl AuditEntry {
                     Some(user) => Ok(AuditSubject::User(user)),
                 }
             }
-            DomainSubject::System => {
+            DomainSubject::System(_) => {
                 let system = System { name: "lana" };
                 Ok(AuditSubject::System(system))
             }

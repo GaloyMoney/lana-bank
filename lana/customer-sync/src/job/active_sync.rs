@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use tracing::instrument;
 
-use audit::{AuditSvc, SystemSubject};
+use audit::{AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerStatus};
 use core_deposit::{
@@ -189,12 +189,10 @@ where
                     CustomerStatus::Active => DepositAccountStatus::Active,
                 };
 
+                let system_subject =
+                    <<Perms as PermissionCheck>::Audit as AuditSvcExt>::internal_system_subject();
                 self.deposit
-                    .update_account_status_for_holder(
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                        *id,
-                        deposit_status,
-                    )
+                    .update_account_status_for_holder(&system_subject, *id, deposit_status)
                     .await?;
             }
         }

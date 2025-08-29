@@ -35,11 +35,6 @@ impl<A, O> Default for DummyPerms<A, O> {
 
 #[derive(Debug, Clone, Copy)]
 pub struct DummySubject;
-impl audit::SystemSubject for DummySubject {
-    fn system() -> Self {
-        DummySubject
-    }
-}
 
 impl fmt::Display for DummySubject {
     fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
@@ -69,29 +64,12 @@ where
         unimplemented!()
     }
 
-    async fn record_system_entry(
-        &self,
-        _object: impl Into<Self::Object> + Send,
-        _action: impl Into<Self::Action> + Send,
-    ) -> Result<AuditInfo, AuditError> {
-        Ok(dummy_audit_info())
-    }
-
     async fn record_entry(
         &self,
         _subject: &Self::Subject,
         _object: impl Into<Self::Object> + Send,
         _action: impl Into<Self::Action> + Send,
         _authorized: bool,
-    ) -> Result<AuditInfo, AuditError> {
-        Ok(dummy_audit_info())
-    }
-
-    async fn record_system_entry_in_tx(
-        &self,
-        _tx: &mut impl es_entity::AtomicOperation,
-        _object: impl Into<Self::Object> + Send,
-        _action: impl Into<Self::Action> + Send,
     ) -> Result<AuditInfo, AuditError> {
         Ok(dummy_audit_info())
     }

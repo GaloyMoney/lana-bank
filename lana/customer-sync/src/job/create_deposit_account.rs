@@ -2,7 +2,7 @@ use async_trait::async_trait;
 use futures::StreamExt;
 use tracing::instrument;
 
-use audit::{AuditSvc, SystemSubject};
+use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, CustomerStatus};
 use core_deposit::{
@@ -211,17 +211,18 @@ where
         let active = !(is_customer_create_event && self.config.customer_status_sync_active);
 
         if self.config.auto_create_deposit_account {
-            match self.deposit
-                .create_account(
-                    &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
-                    id,
-                    active,
-                    customer_type,
-                )
+            let system_subject: <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject =
+                match "system:00000000-0000-0000-0000-000000000001".parse() {
+                    Ok(subject) => subject,
+                    Err(_) => panic!("Failed to parse system subject"),
+                };
+            match self
+                .deposit
+                .create_account(&system_subject, id, active, customer_type)
                 .await
             {
                 Ok(_) => {}
-                Err(e) if e.is_account_already_exists() => {},
+                Err(e) if e.is_account_already_exists() => {}
                 Err(e) => return Err(e.into()),
             }
         }

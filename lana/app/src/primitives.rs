@@ -18,6 +18,11 @@ pub use job::JobId;
 pub use lana_ids::*;
 pub use rbac_types::Subject;
 
+/// Helper function to create an internal system subject for audit entries
+pub fn internal_system_subject() -> Subject {
+    Subject::System(rbac_types::SystemId::internal())
+}
+
 pub use cala_ledger::primitives::{
     AccountId as CalaAccountId, AccountSetId as CalaAccountSetId, Currency, EntryId as CalaEntryId,
     JournalId as CalaJournalId, TransactionId as CalaTxId, TxTemplateId as CalaTxTemplateId,

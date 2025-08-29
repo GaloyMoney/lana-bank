@@ -17,7 +17,55 @@ pub use audit_action::*;
 pub use audit_object::*;
 pub use object::*;
 
-const SYSTEM_SUBJECT_ID: Uuid = uuid!("00000000-0000-0000-0000-000000000000");
+/// Predefined system IDs for different types of system actions
+pub const SYSTEM_ID_INTERNAL: Uuid = uuid!("00000000-0000-0000-0000-000000000001");
+pub const SYSTEM_ID_EXTERNAL: Uuid = uuid!("00000000-0000-0000-0000-000000000002");
+
+#[derive(Clone, Copy, Debug, PartialEq, Eq, Hash, Serialize, Deserialize)]
+pub struct SystemId(Uuid);
+
+impl SystemId {
+    /// System actions initiated internally (e.g., by jobs, scheduled tasks)
+    pub const fn internal() -> Self {
+        Self(SYSTEM_ID_INTERNAL)
+    }
+
+    /// System actions initiated externally (e.g., by callbacks, webhooks)
+    pub const fn external() -> Self {
+        Self(SYSTEM_ID_EXTERNAL)
+    }
+
+    /// Create a custom system ID
+    pub const fn new(id: Uuid) -> Self {
+        Self(id)
+    }
+}
+
+impl From<Uuid> for SystemId {
+    fn from(id: Uuid) -> Self {
+        Self(id)
+    }
+}
+
+impl From<SystemId> for Uuid {
+    fn from(id: SystemId) -> Self {
+        id.0
+    }
+}
+
+impl std::fmt::Display for SystemId {
+    fn fmt(&self, f: &mut std::fmt::Formatter<'_>) -> std::fmt::Result {
+        self.0.fmt(f)
+    }
+}
+
+impl std::str::FromStr for SystemId {
+    type Err = uuid::Error;
+
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        Ok(Self(s.parse()?))
+    }
+}
 pub const ROLE_NAME_ACCOUNTANT: &str = "accountant";
 pub const ROLE_NAME_ADMIN: &str = "admin";
 pub const ROLE_NAME_BANK_MANAGER: &str = "bank-manager";
@@ -94,13 +142,7 @@ impl std::str::FromStr for PermissionSetName {
 pub enum Subject {
     Customer(CustomerId),
     User(UserId),
-    System,
-}
-
-impl audit::SystemSubject for Subject {
-    fn system() -> Self {
-        Subject::System
-    }
+    System(SystemId),
 }
 
 impl std::str::FromStr for Subject {
@@ -117,7 +159,7 @@ impl std::str::FromStr for Subject {
         let res = match SubjectDiscriminants::from_str(parts[0])? {
             Customer => Subject::Customer(CustomerId::from(id)),
             User => Subject::User(UserId::from(id)),
-            System => Subject::System,
+            System => Subject::System(SystemId::from(id)),
         };
         Ok(res)
     }
@@ -150,7 +192,7 @@ impl std::fmt::Display for Subject {
         let id: uuid::Uuid = match self {
             Subject::Customer(id) => id.into(),
             Subject::User(id) => id.into(),
-            Subject::System => SYSTEM_SUBJECT_ID,
+            Subject::System(system_id) => (*system_id).into(),
         };
         write!(f, "{}:{}", SubjectDiscriminants::from(self).as_ref(), id)?;
         Ok(())

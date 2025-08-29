@@ -4,7 +4,7 @@ pub mod ledger;
 use chrono::NaiveDate;
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
@@ -52,12 +52,15 @@ where
     ) -> Result<(), TrialBalanceError> {
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_CREATE,
+                true,
             )
             .await?;
 
@@ -81,12 +84,15 @@ where
 
         let mut op = es_entity::DbOp::init(&self.pool).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         self.authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 CoreAccountingObject::all_trial_balance(),
                 CoreAccountingAction::TRIAL_BALANCE_UPDATE,
+                true,
             )
             .await?;
 

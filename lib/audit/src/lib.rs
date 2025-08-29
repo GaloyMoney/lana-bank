@@ -8,7 +8,7 @@ mod primitives;
 mod svc_trait;
 
 pub use primitives::*;
-pub use svc_trait::*;
+pub use svc_trait::{AuditSvc, AuditSvcExt};
 
 // Re-export pagination types for consumers who need them
 pub use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
@@ -34,7 +34,7 @@ impl<S, O, A> Audit<S, O, A> {
 
 impl<S, O, A> AuditSvc for Audit<S, O, A>
 where
-    S: FromStr + fmt::Display + fmt::Debug + Clone + Sync + Send + SystemSubject + 'static,
+    S: FromStr + fmt::Display + fmt::Debug + Clone + Sync + Send + 'static,
     O: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static,
     A: FromStr + fmt::Display + fmt::Debug + Copy + Send + Sync + 'static,
 {

@@ -12,7 +12,7 @@ use tracing::instrument;
 
 use std::collections::{HashMap, HashSet};
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use outbox::{Outbox, OutboxEventMarker};
 
@@ -84,13 +84,16 @@ where
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
         let mut db = self.policy_repo.begin_op().await?;
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut db,
+                &system_subject,
                 GovernanceObject::all_policies(),
                 GovernanceAction::POLICY_CREATE,
+                true,
             )
             .await?;
 
@@ -206,12 +209,15 @@ where
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
         let policy = self.policy_repo.find_by_process_type(process_type).await?;
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry(
+            .record_entry(
+                &system_subject,
                 GovernanceObject::all_approval_processes(),
                 GovernanceAction::APPROVAL_PROCESS_CREATE,
+                true,
             )
             .await?;
         let new_process = policy.spawn_process(id.into(), target_ref, audit_info);
@@ -350,13 +356,16 @@ where
         eligible: HashSet<CommitteeMemberId>,
         process: &mut ApprovalProcess,
     ) -> Result<bool, GovernanceError> {
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 GovernanceObject::approval_process(process.id),
                 GovernanceAction::APPROVAL_PROCESS_CONCLUDE,
+                true,
             )
             .await?;
 

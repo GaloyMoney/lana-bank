@@ -4,7 +4,7 @@ mod repo;
 
 use tracing::instrument;
 
-use audit::AuditSvc;
+use audit::{AuditSvc, AuditSvcExt};
 use authz::PermissionCheck;
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -161,13 +161,16 @@ where
         id: CreditFacilityId,
     ) -> Result<ActivationOutcome, CreditFacilityError> {
         let mut credit_facility = self.repo.find_by_id_in_op(db, id).await?;
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 db,
+                &system_subject,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
+                true,
             )
             .await?;
         let price = self.price.usd_cents_per_btc().await?;
@@ -219,13 +222,16 @@ where
         }
 
         let mut op = self.repo.begin_op().await?;
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 CoreCreditObject::credit_facility(credit_facility.id),
                 CoreCreditAction::CREDIT_FACILITY_CONCLUDE_APPROVAL_PROCESS,
+                true,
             )
             .await?;
 
@@ -249,13 +255,16 @@ where
         op: &mut impl es_entity::AtomicOperation,
         id: CreditFacilityId,
     ) -> Result<ConfirmedAccrual, CreditFacilityError> {
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 op,
+                &system_subject,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_RECORD_INTEREST,
+                true,
             )
             .await?;
 
@@ -428,13 +437,16 @@ where
                 credit_facilities.has_next_page,
             );
             let mut op = self.repo.begin_op().await?;
+            let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
             let audit_info = self
                 .authz
                 .audit()
-                .record_system_entry_in_tx(
+                .record_entry_in_tx(
                     &mut op,
+                    &system_subject,
                     CoreCreditObject::all_credit_facilities(),
                     CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
+                    true,
                 )
                 .await?;
 
@@ -475,13 +487,16 @@ where
         let mut op = self.repo.begin_op().await?;
         let mut credit_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
 
+        let system_subject = <Perms::Audit as AuditSvcExt>::internal_system_subject();
         let audit_info = self
             .authz
             .audit()
-            .record_system_entry_in_tx(
+            .record_entry_in_tx(
                 &mut op,
+                &system_subject,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_UPDATE_COLLATERALIZATION_STATE,
+                true,
             )
             .await?;
 
