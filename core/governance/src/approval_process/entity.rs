@@ -5,7 +5,6 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashSet;
 
-use audit::AuditInfo;
 use es_entity::*;
 
 use crate::{policy::ApprovalRules, primitives::*};
@@ -21,20 +20,16 @@ pub enum ApprovalProcessEvent {
         process_type: ApprovalProcessType,
         rules: ApprovalRules,
         target_ref: String,
-        audit_info: AuditInfo,
     },
     Approved {
         approver_id: CommitteeMemberId,
-        audit_info: AuditInfo,
     },
     Denied {
         denier_id: CommitteeMemberId,
         reason: String,
-        audit_info: AuditInfo,
     },
     Concluded {
         approved: bool,
-        audit_info: AuditInfo,
     },
 }
 
@@ -108,7 +103,6 @@ impl ApprovalProcess {
     pub(crate) fn check_concluded(
         &mut self,
         eligible: HashSet<CommitteeMemberId>,
-        audit_info: AuditInfo,
     ) -> Idempotent<(bool, Option<String>)> {
         idempotency_guard!(
             self.events.iter_all(),
@@ -129,7 +123,6 @@ impl ApprovalProcess {
 
             self.events.push(ApprovalProcessEvent::Concluded {
                 approved,
-                audit_info,
             });
             return Idempotent::Executed((approved, reason));
         }
@@ -155,7 +148,6 @@ impl ApprovalProcess {
         &mut self,
         eligible_members: &HashSet<CommitteeMemberId>,
         approver_id: CommitteeMemberId,
-        audit_info: AuditInfo,
     ) -> Idempotent<()> {
         use ApprovalProcessEvent::*;
         idempotency_guard!(
@@ -170,7 +162,6 @@ impl ApprovalProcess {
 
         self.events.push(ApprovalProcessEvent::Approved {
             approver_id,
-            audit_info,
         });
 
         Idempotent::Executed(())
@@ -181,7 +172,6 @@ impl ApprovalProcess {
         eligible_members: &HashSet<CommitteeMemberId>,
         denier_id: CommitteeMemberId,
         reason: String,
-        audit_info: AuditInfo,
     ) -> Idempotent<()> {
         use ApprovalProcessEvent::*;
         idempotency_guard!(
@@ -197,7 +187,6 @@ impl ApprovalProcess {
         self.events.push(ApprovalProcessEvent::Denied {
             denier_id,
             reason,
-            audit_info,
         });
 
         Idempotent::Executed(())
@@ -260,8 +249,6 @@ pub struct NewApprovalProcess {
     pub(super) rules: ApprovalRules,
     #[builder(setter(into))]
     pub(super) target_ref: String,
-    #[builder(setter(into))]
-    pub audit_info: AuditInfo,
 }
 
 impl NewApprovalProcess {
@@ -284,7 +271,6 @@ impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
                 process_type: self.process_type,
                 rules: self.rules,
                 target_ref: self.target_ref,
-                audit_info: self.audit_info,
             }],
         )
     }
@@ -293,14 +279,7 @@ impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
 #[cfg(test)]
 mod tests {
     use super::*;
-    use audit::{AuditEntryId, AuditInfo};
 
-    fn dummy_audit_info() -> AuditInfo {
-        AuditInfo {
-            audit_entry_id: AuditEntryId::from(1),
-            sub: "sub".to_string(),
-        }
-    }
 
     fn init_events(rules: ApprovalRules) -> EntityEvents<ApprovalProcessEvent> {
         EntityEvents::init(
@@ -311,7 +290,6 @@ mod tests {
                 process_type: ApprovalProcessType::from_owned("type".to_string()),
                 rules,
                 target_ref: "target_ref".to_string(),
-                audit_info: dummy_audit_info(),
             }],
         )
     }
@@ -325,11 +303,10 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
-        let audit_info = dummy_audit_info();
         let eligible = [approver].iter().copied().collect();
         assert!(
             process
-                .approve(&eligible, approver, audit_info.clone())
+                .approve(&eligible, approver)
                 .did_execute()
         );
         assert!(process.approvers().contains(&approver));
@@ -344,10 +321,9 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
-        let audit_info = dummy_audit_info();
         assert!(
             process
-                .approve(&HashSet::new(), approver, audit_info.clone())
+                .approve(&HashSet::new(), approver)
                 .was_ignored()
         );
         assert!(process.approvers().is_empty());
@@ -362,16 +338,15 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
-        let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(
             process
-                .approve(&eligible, approver, audit_info.clone())
+                .approve(&eligible, approver)
                 .did_execute()
         );
         assert!(
             process
-                .approve(&eligible, approver, audit_info.clone())
+                .approve(&eligible, approver)
                 .was_ignored()
         );
     }
@@ -381,13 +356,12 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        let _ = process.check_concluded(HashSet::new(), dummy_audit_info());
+        let _ = process.check_concluded(HashSet::new());
         let approver = CommitteeMemberId::new();
-        let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
         assert!(
             process
-                .approve(&eligible, approver, audit_info.clone())
+                .approve(&eligible, approver)
                 .was_ignored()
         );
     }
@@ -401,12 +375,11 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
-        let audit_info = dummy_audit_info();
         let reason = String::new();
         let eligible = [denier].iter().copied().collect();
         assert!(
             process
-                .deny(&eligible, denier, reason, audit_info.clone())
+                .deny(&eligible, denier, reason)
                 .did_execute()
         );
         assert!(process.deniers().contains(&denier));
@@ -422,10 +395,9 @@ mod tests {
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let reason = String::new();
-        let audit_info = dummy_audit_info();
         assert!(
             process
-                .deny(&HashSet::new(), denier, reason, audit_info.clone())
+                .deny(&HashSet::new(), denier, reason)
                 .was_ignored()
         );
         assert!(process.deniers().is_empty());
@@ -440,16 +412,15 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
-        let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(
             process
-                .approve(&eligible, denier, audit_info.clone())
+                .approve(&eligible, denier)
                 .did_execute()
         );
         assert!(
             process
-                .deny(&eligible, denier, String::new(), audit_info.clone())
+                .deny(&eligible, denier, String::new())
                 .was_ignored()
         );
     }
@@ -459,13 +430,12 @@ mod tests {
         let mut process =
             ApprovalProcess::try_from_events(init_events(ApprovalRules::SystemAutoApprove))
                 .expect("Could not build approval process");
-        let _ = process.check_concluded(HashSet::new(), dummy_audit_info());
+        let _ = process.check_concluded(HashSet::new());
         let denier = CommitteeMemberId::new();
-        let audit_info = dummy_audit_info();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
         assert!(
             process
-                .deny(&eligible, denier, String::new(), audit_info.clone())
+                .deny(&eligible, denier, String::new())
                 .was_ignored()
         );
     }
