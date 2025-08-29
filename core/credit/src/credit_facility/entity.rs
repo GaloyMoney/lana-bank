@@ -250,9 +250,7 @@ impl CreditFacility {
         initiated_at < self.matures_at()
     }
 
-    pub(crate) fn last_started_accrual_cycle(
-        &self,
-    ) -> Option<InterestAccrualCycleInCreditFacility> {
+    fn last_started_accrual_cycle(&self) -> Option<InterestAccrualCycleInCreditFacility> {
         self.events.iter_all().rev().find_map(|event| match event {
             CreditFacilityEvent::InterestAccrualCycleStarted {
                 interest_accrual_cycle_idx,
@@ -937,6 +935,7 @@ mod test {
         // }
     }
 
+    #[test]
     fn structuring_fee() {
         let credit_facility = facility_from(initial_events());
         let expected_fee = default_terms().one_time_fee_rate.apply(default_facility());

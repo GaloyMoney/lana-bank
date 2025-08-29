@@ -128,7 +128,7 @@ where
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
     ) -> Result<(CreditFacility, InterestPeriod), CreditFacilityError> {
-        let proposal = self.proposals.complete_in_op(db, id.into(), true).await?;
+        let proposal = self.proposals.complete_in_op(db, id.into()).await?;
 
         let public_id = self
             .public_ids
