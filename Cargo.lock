@@ -1884,7 +1884,6 @@ name = "document-storage"
 version = "0.0.0"
 dependencies = [
  "async-graphql",
- "audit",
  "chrono",
  "cloud-storage",
  "derive_builder",

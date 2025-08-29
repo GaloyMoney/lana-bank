@@ -6,10 +6,9 @@ license = "FSL-1.1-ALv2"
 [features]
 fail-on-warnings = []
 graphql = ["dep:async-graphql", "es-entity/graphql"]
-json-schema = ["dep:schemars", "es-entity/json-schema", "audit/json-schema"]
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
-audit = { workspace = true }
 cloud-storage = { workspace = true }
 
 es-entity = { workspace = true }
