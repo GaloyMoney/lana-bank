@@ -180,7 +180,7 @@ impl CreditFacilityProposal {
         Idempotent::Executed(())
     }
 
-    fn _complete(&mut self, approved: bool) -> Idempotent<()> {
+    pub(super) fn complete(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
             CreditFacilityProposalEvent::Completed { .. }

@@ -739,7 +739,7 @@ mod test {
     #[test]
     fn can_progress_next_accrual_idx() {
         let mut events = initial_events();
-        let credit_facility = facility_from(events.clone());
+        let mut credit_facility = facility_from(events.clone());
         assert_eq!(
             credit_facility.next_interest_accrual_cycle_idx(),
             InterestAccrualCycleIdx::FIRST
