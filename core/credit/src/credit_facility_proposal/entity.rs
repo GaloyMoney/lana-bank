@@ -30,6 +30,7 @@ pub enum CreditFacilityProposalEvent {
         terms: TermValues,
         amount: UsdCents,
         account_ids: CreditFacilityProposalAccountIds,
+        disbursal_credit_account_id: CalaAccountId,
         approval_process_id: ApprovalProcessId,
     },
     ApprovalProcessConcluded {
@@ -54,6 +55,7 @@ pub struct CreditFacilityProposal {
     pub ledger_tx_id: LedgerTxId,
     pub approval_process_id: ApprovalProcessId,
     pub account_ids: CreditFacilityProposalAccountIds,
+    pub disbursal_credit_account_id: CalaAccountId,
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
     pub collateral_id: CollateralId,
@@ -219,6 +221,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     amount,
                     approval_process_id,
                     account_ids,
+                    disbursal_credit_account_id,
                     terms,
                     ..
                 } => {
@@ -231,6 +234,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                         .amount(*amount)
                         .terms(*terms)
                         .account_ids(*account_ids)
+                        .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .approval_process_id(*approval_process_id);
                 }
                 CreditFacilityProposalEvent::ApprovalProcessConcluded { .. } => {}
@@ -259,8 +263,8 @@ pub struct NewCreditFacilityProposal {
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CreditFacilityProposalCollateralizationState,
     account_ids: CreditFacilityProposalAccountIds,
+    disbursal_credit_account_id: CalaAccountId,
     terms: TermValues,
-
     amount: UsdCents,
 }
 
@@ -283,6 +287,7 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
                 terms: self.terms,
                 amount: self.amount,
                 account_ids: self.account_ids,
+                disbursal_credit_account_id: self.disbursal_credit_account_id,
                 approval_process_id: self.approval_process_id,
             }],
         )
@@ -338,6 +343,7 @@ mod test {
             amount: default_facility(),
             terms: default_terms(),
             account_ids: CreditFacilityProposalAccountIds::new(),
+            disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
         }]
     }

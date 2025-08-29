@@ -96,10 +96,8 @@ where
             .with_db_time()
             .await?;
 
-        let (credit_facility, next_accrual_period) = self
-            .credit_facilities
-            .create_in_op_via_proposal(&mut op, id)
-            .await?;
+        let (credit_facility, next_accrual_period) =
+            self.credit_facilities.activate_in_op(&mut op, id).await?;
 
         let due_date = credit_facility.maturity_date;
         let overdue_date = credit_facility
