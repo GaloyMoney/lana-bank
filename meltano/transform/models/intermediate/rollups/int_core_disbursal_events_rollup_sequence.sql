@@ -1,7 +1,6 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['disbursal_id', 'version'],
-    full_refresh = true,
 ) }}
 
 

@@ -1,7 +1,6 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['obligation_id', 'version'],
-    full_refresh = true,
 ) }}
 
 

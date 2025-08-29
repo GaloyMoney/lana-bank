@@ -1,7 +1,6 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['interest_accrual_cycle_id', 'version'],
-    full_refresh = true,
 ) }}
 
 

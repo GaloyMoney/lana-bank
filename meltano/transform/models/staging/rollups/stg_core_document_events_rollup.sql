@@ -1,7 +1,6 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['id', 'version'],
-    full_refresh = true,
 ) }}
 
 select

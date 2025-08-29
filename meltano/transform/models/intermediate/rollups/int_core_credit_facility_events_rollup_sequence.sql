@@ -1,7 +1,6 @@
 {{ config(
     materialized = 'incremental',
     unique_key = ['credit_facility_id', 'version'],
-    full_refresh = true,
 ) }}
 
 
