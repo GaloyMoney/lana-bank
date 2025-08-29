@@ -123,8 +123,7 @@ where
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
     ) -> Result<(CreditFacility, InterestPeriod), CreditFacilityError> {
-        // TODO: need to update the proposal to be completed
-        let proposal = self.proposals.find_by_id_without_audit(id.into()).await?;
+        let proposal = self.proposals.complete_in_op(db, id.into(), true).await?;
 
         let Ok(es_entity::Idempotent::Executed((credit_facility_activation, next_accrual_period))) =
             credit_facility.activate(now, price, balances)
