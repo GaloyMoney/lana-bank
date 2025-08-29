@@ -196,6 +196,7 @@ where
             jobs,
             &publisher,
             governance,
+            public_ids,
         )
         .await?;
         let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
