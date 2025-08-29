@@ -268,10 +268,7 @@ impl CreditFacility {
         }
     }
 
-    pub(crate) fn approval_process_concluded(
-        &mut self,
-        approved: bool,
-    ) -> Idempotent<()> {
+    pub(crate) fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
             CreditFacilityEvent::ApprovalProcessConcluded { .. }
@@ -544,9 +541,7 @@ impl CreditFacility {
         upgrade_buffer_cvl_pct: CVLPct,
         balances: CreditFacilityBalanceSummary,
     ) -> Idempotent<Option<CollateralizationState>> {
-        let ratio_changed = self
-            .update_collateralization_ratio(&balances)
-            .did_execute();
+        let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
 
         let last_collateralization_state = self.last_collateralization_state();
 
@@ -613,8 +608,7 @@ impl CreditFacility {
             credit_facility_account_ids: self.account_ids,
         };
 
-        self.events
-            .push(CreditFacilityEvent::Completed {});
+        self.events.push(CreditFacilityEvent::Completed {});
 
         Ok(Idempotent::Executed(res))
     }
@@ -768,7 +762,6 @@ mod test {
             .expect("should build a valid term")
     }
 
-
     fn date_from(d: &str) -> DateTime<Utc> {
         d.parse::<DateTime<Utc>>().unwrap()
     }
@@ -840,9 +833,7 @@ mod test {
     }
 
     fn start_interest_accrual_cycle(credit_facility: &mut CreditFacility) {
-        credit_facility
-            .start_interest_accrual_cycle()
-            .unwrap();
+        credit_facility.start_interest_accrual_cycle().unwrap();
         hydrate_accruals_in_facility(credit_facility);
     }
 
@@ -853,8 +844,7 @@ mod test {
         while accrual.next_accrual_period().is_some() {
             accrual.record_accrual(UsdCents::ONE);
         }
-        let _ =
-            accrual.record_accrual_cycle(accrual.accrual_cycle_data().unwrap());
+        let _ = accrual.record_accrual_cycle(accrual.accrual_cycle_data().unwrap());
     }
 
     #[test]
@@ -1064,9 +1054,7 @@ mod test {
 
         let approval_time = Utc::now();
 
-        credit_facility
-            .approval_process_concluded(true)
-            .unwrap();
+        credit_facility.approval_process_concluded(true).unwrap();
         let mut balances = default_balances(credit_facility.amount);
         balances.collateral = default_full_collateral();
 
@@ -1100,9 +1088,7 @@ mod test {
             credit_facility.status(),
             CreditFacilityStatus::PendingApproval
         );
-        credit_facility
-            .approval_process_concluded(true)
-            .unwrap();
+        credit_facility.approval_process_concluded(true).unwrap();
         let mut balances = default_balances(credit_facility.amount);
         balances.collateral = default_full_collateral();
         assert!(
@@ -1132,7 +1118,7 @@ mod test {
                     Utc::now(),
                     default_price(),
                     default_balances(credit_facility.amount),
-                                    ),
+                ),
                 Err(CreditFacilityError::ApprovalInProgress)
             ));
         }
@@ -1151,7 +1137,7 @@ mod test {
                     Utc::now(),
                     default_price(),
                     default_balances(credit_facility.amount),
-                                    ),
+                ),
                 Err(CreditFacilityError::Denied)
             ));
         }
@@ -1170,7 +1156,7 @@ mod test {
                     Utc::now(),
                     default_price(),
                     default_balances(credit_facility.amount),
-                                    ),
+                ),
                 Err(CreditFacilityError::BelowMarginLimit)
             ));
         }
@@ -1189,7 +1175,7 @@ mod test {
                     Utc::now(),
                     default_price(),
                     default_balances(credit_facility.amount),
-                                    ),
+                ),
                 Err(CreditFacilityError::BelowMarginLimit)
             ));
         }
@@ -1214,7 +1200,7 @@ mod test {
                     Utc::now(),
                     default_price(),
                     default_balances(credit_facility.amount),
-                                    ),
+                ),
                 Ok(Idempotent::Ignored)
             ));
         }
@@ -1257,7 +1243,7 @@ mod test {
 
             let _ = credit_facility
                 .complete(
-                        default_price(),
+                    default_price(),
                     default_upgrade_buffer_cvl_pct(),
                     CreditFacilityBalanceSummary {
                         collateral: Satoshis::ZERO,

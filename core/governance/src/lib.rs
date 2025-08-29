@@ -84,8 +84,7 @@ where
         process_type: ApprovalProcessType,
     ) -> Result<Policy, GovernanceError> {
         let mut db = self.policy_repo.begin_op().await?;
- self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 &mut db,
@@ -161,8 +160,7 @@ where
         threshold: usize,
     ) -> Result<Policy, GovernanceError> {
         let policy_id = policy_id.into();
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 GovernanceObject::policy(policy_id),
@@ -205,8 +203,7 @@ where
         process_type: ApprovalProcessType,
     ) -> Result<ApprovalProcess, GovernanceError> {
         let policy = self.policy_repo.find_by_process_type(process_type).await?;
- self
-            .authz
+        self.authz
             .audit()
             .record_system_entry(
                 GovernanceObject::all_approval_processes(),
@@ -236,8 +233,7 @@ where
             for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let process_id = process_id.into();
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 GovernanceObject::all_approval_processes(),
@@ -249,10 +245,7 @@ where
         let mut process = self.process_repo.find_by_id(process_id).await?;
         let eligible = self.eligible_voters_for_process(&process).await?;
 
-        if process
-            .approve(&eligible, member_id)
-            .did_execute()
-        {
+        if process.approve(&eligible, member_id).did_execute() {
             let mut db = self.policy_repo.begin_op().await?;
             self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
                 .await?;
@@ -277,8 +270,7 @@ where
             for<'a> TryFrom<&'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject>,
     {
         let process_id = process_id.into();
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 GovernanceObject::approval_process(process_id),
@@ -296,10 +288,7 @@ where
         } else {
             HashSet::new()
         };
-        if process
-            .deny(&eligible, member_id, reason)
-            .did_execute()
-        {
+        if process.deny(&eligible, member_id, reason).did_execute() {
             let mut db = self.policy_repo.begin_op().await?;
             self.maybe_fire_concluded_event(db.begin().await?, eligible, &mut process)
                 .await?;
@@ -318,8 +307,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
     ) -> Result<Committee, GovernanceError> {
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 GovernanceObject::all_committees(),
@@ -348,8 +336,7 @@ where
         eligible: HashSet<CommitteeMemberId>,
         process: &mut ApprovalProcess,
     ) -> Result<bool, GovernanceError> {
- self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 &mut op,
@@ -389,8 +376,7 @@ where
         member_id: impl Into<CommitteeMemberId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
         let committee_id = committee_id.into();
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 GovernanceObject::committee(committee_id),
@@ -413,8 +399,7 @@ where
         member_id: impl Into<CommitteeMemberId> + std::fmt::Debug,
     ) -> Result<Committee, GovernanceError> {
         let committee_id = committee_id.into();
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 GovernanceObject::committee(committee_id),

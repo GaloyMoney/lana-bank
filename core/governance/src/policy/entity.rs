@@ -85,9 +85,8 @@ impl Policy {
             committee_id,
         };
 
-        self.events.push(PolicyEvent::ApprovalRulesUpdated {
-            rules: self.rules,
-        });
+        self.events
+            .push(PolicyEvent::ApprovalRulesUpdated { rules: self.rules });
         Ok(Idempotent::Executed(()))
     }
 }
@@ -151,7 +150,6 @@ mod test {
 
     use super::*;
 
-
     fn init_events() -> EntityEvents<PolicyEvent> {
         EntityEvents::init(
             PolicyId::new(),
@@ -170,11 +168,7 @@ mod test {
         let n_committee_members = 1;
         let threshold = 1;
         let _ = policy
-            .assign_committee(
-                committee_id,
-                n_committee_members,
-                threshold,
-            )
+            .assign_committee(committee_id, n_committee_members, threshold)
             .unwrap();
         assert_eq!(policy.committee_id(), Some(committee_id));
         assert_eq!(
@@ -192,11 +186,7 @@ mod test {
         let committee_id = CommitteeId::new();
         let n_committee_members = 1;
         let threshold = 2;
-        let res = policy.assign_committee(
-            committee_id,
-            n_committee_members,
-            threshold,
-        );
+        let res = policy.assign_committee(committee_id, n_committee_members, threshold);
 
         assert!(matches!(
             res,
@@ -210,11 +200,7 @@ mod test {
         let committee_id = CommitteeId::new();
         let n_committee_members = 1;
         let threshold = 0;
-        let res = policy.assign_committee(
-            committee_id,
-            n_committee_members,
-            threshold,
-        );
+        let res = policy.assign_committee(committee_id, n_committee_members, threshold);
 
         assert!(matches!(res, Err(PolicyError::PolicyThresholdTooLow(_, _))));
     }

@@ -144,7 +144,6 @@ mod tests {
 
     use super::*;
 
-
     fn init_chart_of_events() -> Chart {
         let id = ChartId::new();
 

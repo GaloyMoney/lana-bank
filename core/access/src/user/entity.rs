@@ -43,9 +43,8 @@ impl User {
         if role.id == current {
             Idempotent::Ignored
         } else {
-            self.events.push(UserEvent::RoleUpdated {
-                role_id: role.id,
-            });
+            self.events
+                .push(UserEvent::RoleUpdated { role_id: role.id });
 
             Idempotent::Executed(current)
         }
@@ -129,7 +128,6 @@ mod tests {
 
     use super::{NewUser, User};
 
-
     fn new_user() -> User {
         let role = new_role();
         let new_user = NewUser::builder()
@@ -147,7 +145,7 @@ mod tests {
             NewRole::builder()
                 .id(RoleId::new())
                 .name("a role".to_string())
-                    .build()
+                .build()
                 .unwrap()
                 .into_events(),
         )
@@ -168,7 +166,7 @@ mod tests {
                 NewRole::builder()
                     .id(initial_role)
                     .name("initial role".to_string())
-                            .build()
+                    .build()
                     .unwrap()
                     .into_events(),
             )

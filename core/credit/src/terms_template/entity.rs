@@ -39,9 +39,8 @@ impl TermsTemplate {
     }
 
     pub fn update_values(&mut self, new_values: TermValues) {
-        self.events.push(TermsTemplateEvent::TermValuesUpdated {
-            values: new_values,
-        });
+        self.events
+            .push(TermsTemplateEvent::TermValuesUpdated { values: new_values });
         self.values = new_values;
     }
 }

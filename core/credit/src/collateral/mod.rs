@@ -107,8 +107,8 @@ where
             return Err(CollateralError::ManualUpdateError);
         }
 
-        let res = if let es_entity::Idempotent::Executed(data) = collateral
-            .record_collateral_update_via_manual_input(updated_collateral, effective)
+        let res = if let es_entity::Idempotent::Executed(data) =
+            collateral.record_collateral_update_via_manual_input(updated_collateral, effective)
         {
             self.repo.update_in_op(db, &mut collateral).await?;
             Some(data)

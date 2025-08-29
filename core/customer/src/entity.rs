@@ -84,18 +84,14 @@ impl Customer {
         true
     }
 
-    pub fn start_kyc(&mut self, applicant_id: String, ) {
+    pub fn start_kyc(&mut self, applicant_id: String) {
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),
-                    });
+        });
         self.applicant_id = Some(applicant_id);
     }
 
-    pub fn approve_kyc(
-        &mut self,
-        level: KycLevel,
-        applicant_id: String,
-    ) -> Idempotent<()> {
+    pub fn approve_kyc(&mut self, level: KycLevel, applicant_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::KycApproved { .. },
@@ -104,38 +100,33 @@ impl Customer {
         self.events.push(CustomerEvent::KycApproved {
             level,
             applicant_id: applicant_id.clone(),
-                    });
+        });
 
         self.applicant_id = Some(applicant_id);
         self.level = KycLevel::Basic;
 
-        self.update_account_status(CustomerStatus::Active, )
+        self.update_account_status(CustomerStatus::Active)
     }
 
-    pub fn decline_kyc(&mut self, applicant_id: String, ) -> Idempotent<()> {
+    pub fn decline_kyc(&mut self, applicant_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::KycDeclined { .. },
             => CustomerEvent::KycApproved { .. }
         );
-        self.events.push(CustomerEvent::KycDeclined {
-            applicant_id,
-                    });
+        self.events
+            .push(CustomerEvent::KycDeclined { applicant_id });
         self.level = KycLevel::NotKyced;
-        self.update_account_status(CustomerStatus::Inactive, )
+        self.update_account_status(CustomerStatus::Inactive)
     }
 
-    fn update_account_status(
-        &mut self,
-        status: CustomerStatus,
-    ) -> Idempotent<()> {
+    fn update_account_status(&mut self, status: CustomerStatus) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::StatusUpdated { status: existing_status, .. } if existing_status == &status,
             => CustomerEvent::StatusUpdated { .. }
         );
-        self.events
-            .push(CustomerEvent::StatusUpdated { status,  });
+        self.events.push(CustomerEvent::StatusUpdated { status });
         self.status = status;
         Idempotent::Executed(())
     }
@@ -152,22 +143,19 @@ impl Customer {
         Idempotent::Executed(())
     }
 
-    pub fn update_telegram_id(
-        &mut self,
-        new_telegram_id: String,
-    ) -> Idempotent<()> {
+    pub fn update_telegram_id(&mut self, new_telegram_id: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::TelegramIdUpdated { telegram_id: existing_telegram_id , ..} if existing_telegram_id == &new_telegram_id
         );
         self.events.push(CustomerEvent::TelegramIdUpdated {
             telegram_id: new_telegram_id.clone(),
-                    });
+        });
         self.telegram_id = new_telegram_id;
         Idempotent::Executed(())
     }
 
-    pub fn update_email(&mut self, new_email: String, ) -> Idempotent<()> {
+    pub fn update_email(&mut self, new_email: String) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             CustomerEvent::EmailUpdated { email: existing_email, .. } if existing_email == &new_email,
@@ -175,7 +163,7 @@ impl Customer {
         );
         self.events.push(CustomerEvent::EmailUpdated {
             email: new_email.clone(),
-                    });
+        });
         self.email = new_email;
         Idempotent::Executed(())
     }

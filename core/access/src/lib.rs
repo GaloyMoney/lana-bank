@@ -119,8 +119,7 @@ where
         name: String,
         permission_sets: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccessObject::all_roles(),
@@ -163,8 +162,7 @@ where
         permission_set_ids: impl IntoIterator<Item = impl Into<PermissionSetId>>,
     ) -> Result<Role, CoreAccessError> {
         let role_id = role_id.into();
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccessObject::role(role_id),
@@ -182,10 +180,7 @@ where
         self.ensure_permission_sets_exist(&permission_set_ids)
             .await?;
         for permission_set_id in permission_set_ids.clone() {
-            if role
-                .add_permission_set(permission_set_id)
-                .did_execute()
-            {
+            if role.add_permission_set(permission_set_id).did_execute() {
                 changed = true;
             }
         }
@@ -214,8 +209,7 @@ where
             .map(|id| id.into())
             .collect::<Vec<_>>();
 
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccessObject::role(role_id),
@@ -232,10 +226,7 @@ where
         let mut changed = false;
 
         for (permission_set_id, _) in permission_sets {
-            if role
-                .remove_permission_set(permission_set_id)
-                .did_execute()
-            {
+            if role.remove_permission_set(permission_set_id).did_execute() {
                 changed = true;
             }
         }

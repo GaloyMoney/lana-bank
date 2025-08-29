@@ -123,8 +123,7 @@ where
     ) -> Result<(Obligation, Option<ObligationOverdueReallocationData>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 op,
@@ -154,8 +153,7 @@ where
     ) -> Result<(Obligation, Option<ObligationDueReallocationData>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 op,
@@ -165,9 +163,7 @@ where
             .await
             .map_err(authz::error::AuthorizationError::from)?;
 
-        let data = if let es_entity::Idempotent::Executed(due) =
-            obligation.record_due(effective)
-        {
+        let data = if let es_entity::Idempotent::Executed(due) = obligation.record_due(effective) {
             self.repo.update_in_op(op, &mut obligation).await?;
             Some(due)
         } else {
@@ -185,8 +181,7 @@ where
     ) -> Result<Option<ObligationDefaultedReallocationData>, ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 op,
@@ -216,8 +211,7 @@ where
     ) -> Result<(Obligation, Option<LiquidationProcess>), ObligationError> {
         let mut obligation = self.repo.find_by_id(id).await?;
 
-        self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 op,

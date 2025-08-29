@@ -211,10 +211,7 @@ impl InterestAccrualCycle {
         untruncated_period.truncate(self.accrual_cycle_ends_at().end_of_day())
     }
 
-    pub(crate) fn record_accrual(
-        &mut self,
-        amount: UsdCents,
-    ) -> InterestAccrualData {
+    pub(crate) fn record_accrual(&mut self, amount: UsdCents) -> InterestAccrualData {
         let accrual_period = self
             .next_accrual_period()
             .expect("Accrual period should exist inside this function");
@@ -436,7 +433,6 @@ mod test {
     fn default_period() -> InterestPeriod {
         InterestInterval::EndOfDay.period_from(default_started_at())
     }
-
 
     fn accrual_from(events: Vec<InterestAccrualCycleEvent>) -> InterestAccrualCycle {
         InterestAccrualCycle::try_from_events(EntityEvents::init(
@@ -683,8 +679,7 @@ mod test {
             .with_ymd_and_hms(start.year(), start.month(), start.day(), 23, 59, 59)
             .unwrap();
         for _ in start_day..(end_day + 1) {
-            let InterestAccrualData { period, .. } =
-                accrual.record_accrual(UsdCents::ONE);
+            let InterestAccrualData { period, .. } = accrual.record_accrual(UsdCents::ONE);
             assert_eq!(period.end, expected_end_of_day);
 
             expected_end_of_day += chrono::Duration::days(1);

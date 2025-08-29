@@ -116,9 +116,7 @@ impl Withdrawal {
             .any(|e| matches!(e, WithdrawalEvent::Reverted { .. }))
     }
 
-    pub fn revert(
-        &mut self,
-    ) -> Result<Idempotent<WithdrawalReversalData>, WithdrawalError> {
+    pub fn revert(&mut self) -> Result<Idempotent<WithdrawalReversalData>, WithdrawalError> {
         if self.is_reverted() || self.is_cancelled() {
             return Ok(Idempotent::Ignored);
         }
@@ -200,10 +198,7 @@ impl Withdrawal {
             .expect("status should always exist")
     }
 
-    pub fn approval_process_concluded(
-        &mut self,
-        approved: bool,
-    ) -> Idempotent<()> {
+    pub fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),
             WithdrawalEvent::ApprovalProcessConcluded { .. }
@@ -365,9 +360,7 @@ mod test {
             .unwrap();
 
         let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
-        withdrawal
-            .approval_process_concluded(true)
-            .unwrap();
+        withdrawal.approval_process_concluded(true).unwrap();
         withdrawal.confirm().unwrap();
         withdrawal
     }
@@ -395,9 +388,7 @@ mod test {
             .unwrap();
 
         let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
-        withdrawal
-            .approval_process_concluded(true)
-            .unwrap();
+        withdrawal.approval_process_concluded(true).unwrap();
         withdrawal.cancel().unwrap();
 
         let result = withdrawal.revert().unwrap();
@@ -425,9 +416,7 @@ mod test {
             .unwrap();
 
         let mut withdrawal = Withdrawal::try_from_events(new_withdrawal.into_events()).unwrap();
-        withdrawal
-            .approval_process_concluded(true)
-            .unwrap();
+        withdrawal.approval_process_concluded(true).unwrap();
 
         let result = withdrawal.revert();
 

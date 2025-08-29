@@ -121,9 +121,8 @@ impl ApprovalProcess {
                 })
                 .next();
 
-            self.events.push(ApprovalProcessEvent::Concluded {
-                approved,
-            });
+            self.events
+                .push(ApprovalProcessEvent::Concluded { approved });
             return Idempotent::Executed((approved, reason));
         }
         Idempotent::Ignored
@@ -160,9 +159,8 @@ impl ApprovalProcess {
             return Idempotent::Ignored;
         }
 
-        self.events.push(ApprovalProcessEvent::Approved {
-            approver_id,
-        });
+        self.events
+            .push(ApprovalProcessEvent::Approved { approver_id });
 
         Idempotent::Executed(())
     }
@@ -184,10 +182,8 @@ impl ApprovalProcess {
             return Idempotent::Ignored;
         }
 
-        self.events.push(ApprovalProcessEvent::Denied {
-            denier_id,
-            reason,
-        });
+        self.events
+            .push(ApprovalProcessEvent::Denied { denier_id, reason });
 
         Idempotent::Executed(())
     }
@@ -280,7 +276,6 @@ impl IntoEvents<ApprovalProcessEvent> for NewApprovalProcess {
 mod tests {
     use super::*;
 
-
     fn init_events(rules: ApprovalRules) -> EntityEvents<ApprovalProcessEvent> {
         EntityEvents::init(
             ApprovalProcessId::new(),
@@ -304,11 +299,7 @@ mod tests {
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
         let eligible = [approver].iter().copied().collect();
-        assert!(
-            process
-                .approve(&eligible, approver)
-                .did_execute()
-        );
+        assert!(process.approve(&eligible, approver).did_execute());
         assert!(process.approvers().contains(&approver));
     }
 
@@ -321,11 +312,7 @@ mod tests {
             }))
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
-        assert!(
-            process
-                .approve(&HashSet::new(), approver)
-                .was_ignored()
-        );
+        assert!(process.approve(&HashSet::new(), approver).was_ignored());
         assert!(process.approvers().is_empty());
     }
 
@@ -339,16 +326,8 @@ mod tests {
             .expect("Could not build approval process");
         let approver = CommitteeMemberId::new();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
-        assert!(
-            process
-                .approve(&eligible, approver)
-                .did_execute()
-        );
-        assert!(
-            process
-                .approve(&eligible, approver)
-                .was_ignored()
-        );
+        assert!(process.approve(&eligible, approver).did_execute());
+        assert!(process.approve(&eligible, approver).was_ignored());
     }
 
     #[test]
@@ -359,11 +338,7 @@ mod tests {
         let _ = process.check_concluded(HashSet::new());
         let approver = CommitteeMemberId::new();
         let eligible: HashSet<_> = [approver].iter().copied().collect();
-        assert!(
-            process
-                .approve(&eligible, approver)
-                .was_ignored()
-        );
+        assert!(process.approve(&eligible, approver).was_ignored());
     }
 
     #[test]
@@ -377,11 +352,7 @@ mod tests {
         let denier = CommitteeMemberId::new();
         let reason = String::new();
         let eligible = [denier].iter().copied().collect();
-        assert!(
-            process
-                .deny(&eligible, denier, reason)
-                .did_execute()
-        );
+        assert!(process.deny(&eligible, denier, reason).did_execute());
         assert!(process.deniers().contains(&denier));
     }
 
@@ -395,11 +366,7 @@ mod tests {
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let reason = String::new();
-        assert!(
-            process
-                .deny(&HashSet::new(), denier, reason)
-                .was_ignored()
-        );
+        assert!(process.deny(&HashSet::new(), denier, reason).was_ignored());
         assert!(process.deniers().is_empty());
     }
 
@@ -413,16 +380,8 @@ mod tests {
             .expect("Could not build approval process");
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
-        assert!(
-            process
-                .approve(&eligible, denier)
-                .did_execute()
-        );
-        assert!(
-            process
-                .deny(&eligible, denier, String::new())
-                .was_ignored()
-        );
+        assert!(process.approve(&eligible, denier).did_execute());
+        assert!(process.deny(&eligible, denier, String::new()).was_ignored());
     }
 
     #[test]
@@ -433,10 +392,6 @@ mod tests {
         let _ = process.check_concluded(HashSet::new());
         let denier = CommitteeMemberId::new();
         let eligible: HashSet<_> = [denier].iter().copied().collect();
-        assert!(
-            process
-                .deny(&eligible, denier, String::new())
-                .was_ignored()
-        );
+        assert!(process.deny(&eligible, denier, String::new()).was_ignored());
     }
 }

@@ -52,9 +52,8 @@ impl Role {
             => RoleEvent::PermissionSetRemoved { permission_set_id: id, .. } if permission_set_id == *id
         );
 
-        self.events.push(RoleEvent::PermissionSetAdded {
-            permission_set_id,
-        });
+        self.events
+            .push(RoleEvent::PermissionSetAdded { permission_set_id });
         self.permission_sets.insert(permission_set_id);
 
         Idempotent::Executed(())
@@ -70,9 +69,8 @@ impl Role {
             => RoleEvent::PermissionSetAdded { permission_set_id: id, ..} if permission_set_id == *id
         );
 
-        self.events.push(RoleEvent::PermissionSetRemoved {
-            permission_set_id,
-        });
+        self.events
+            .push(RoleEvent::PermissionSetRemoved { permission_set_id });
         self.permission_sets.remove(&permission_set_id);
 
         Idempotent::Executed(())

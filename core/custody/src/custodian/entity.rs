@@ -43,17 +43,13 @@ impl Custodian {
             .expect("No events for Custodian")
     }
 
-    pub fn update_custodian_config(
-        &mut self,
-        config: CustodianConfig,
-        secret: &EncryptionKey,
-    ) {
+    pub fn update_custodian_config(&mut self, config: CustodianConfig, secret: &EncryptionKey) {
         let encrypted_config = config.encrypt(secret);
         self.encrypted_custodian_config = encrypted_config.clone();
 
         self.events.push(CustodianEvent::ConfigUpdated {
             encrypted_custodian_config: Some(encrypted_config),
-            });
+        });
     }
 
     #[allow(dead_code)]

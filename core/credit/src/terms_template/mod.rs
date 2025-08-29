@@ -62,8 +62,7 @@ where
         name: String,
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
-        self
-            .subject_can_create_terms_template(sub, true)
+        self.subject_can_create_terms_template(sub, true)
             .await?
             .expect("audit info missing");
         let new_terms_template = NewTermsTemplate::builder()
@@ -99,8 +98,7 @@ where
         id: TermsTemplateId,
         values: TermValues,
     ) -> Result<TermsTemplate, TermsTemplateError> {
-        self
-            .subject_can_update_terms_template(sub, true)
+        self.subject_can_update_terms_template(sub, true)
             .await?
             .expect("audit info missing");
 

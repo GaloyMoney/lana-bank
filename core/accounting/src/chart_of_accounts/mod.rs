@@ -83,8 +83,7 @@ where
         let id = ChartId::new();
 
         let mut op = self.repo.begin_op().await?;
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::chart(id),
@@ -117,8 +116,7 @@ where
         data: impl AsRef<str>,
     ) -> Result<(Chart, Option<Vec<CalaAccountSetId>>), ChartOfAccountsError> {
         let id = id.into();
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::chart(id),
@@ -135,10 +133,8 @@ where
             if let es_entity::Idempotent::Executed(NewChartAccountDetails {
                 parent_account_set_id,
                 new_account_set,
-            }) = chart.create_node_without_verifying_parent(
-                &spec,
-                self.journal_id,
-            ) {
+            }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
+            {
                 let account_set_id = new_account_set.id;
                 new_account_sets.push(new_account_set);
                 if let Some(parent) = parent_account_set_id {
@@ -190,8 +186,7 @@ where
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
         let id = id.into();
         let spec = spec.into();
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::chart(id),
@@ -240,8 +235,7 @@ where
         name: AccountName,
     ) -> Result<(Chart, Option<CalaAccountSetId>), ChartOfAccountsError> {
         let id = id.into();
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::chart(id),
@@ -253,12 +247,7 @@ where
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id,
             new_account_set,
-        }) = chart.create_child_node(
-            parent_code,
-            code,
-            name,
-            self.journal_id,
-        )?
+        }) = chart.create_child_node(parent_code, code, name, self.journal_id)?
         else {
             return Ok((chart, None));
         };
@@ -356,8 +345,7 @@ where
     ) -> Result<LedgerAccountId, ChartOfAccountsError> {
         let mut chart = self.repo.find_by_reference(chart_ref.to_string()).await?;
 
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_charts(),

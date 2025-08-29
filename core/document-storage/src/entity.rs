@@ -43,12 +43,9 @@ pub enum DocumentEvent {
     UploadFailed {
         error: String,
     },
-    DownloadLinkGenerated {
-    },
-    Deleted {
-    },
-    Archived {
-    },
+    DownloadLinkGenerated {},
+    Deleted {},
+    Archived {},
 }
 
 #[derive(EsEntity, Builder)]
@@ -92,8 +89,7 @@ impl Document {
     }
 
     pub fn download_link_generated(&mut self) -> &str {
-        self.events
-            .push(DocumentEvent::DownloadLinkGenerated {});
+        self.events.push(DocumentEvent::DownloadLinkGenerated {});
         &self.path_in_storage
     }
 

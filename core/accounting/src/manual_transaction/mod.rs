@@ -127,8 +127,7 @@ where
         effective: chrono::NaiveDate,
         entries: Vec<ManualEntryInput>,
     ) -> Result<ManualTransaction, ManualTransactionError> {
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreAccountingObject::all_manual_transactions(),

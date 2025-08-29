@@ -121,8 +121,7 @@ where
         permission_sets: &[PermissionSet],
         predefined_roles: &[(&'static str, &[&'static str])],
     ) -> Result<Role, RoleError> {
-        self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 db,
@@ -151,9 +150,7 @@ where
                 .copied()
                 .collect::<HashSet<_>>();
 
-            let _ = self
-                .create_role(db, name.to_string(), sets)
-                .await;
+            let _ = self.create_role(db, name.to_string(), sets).await;
         }
 
         Ok(superuser_role)

@@ -463,8 +463,7 @@ where
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
     ) -> Result<CreditFacilityProposal, CoreCreditError> {
-        self
-            .subject_can_create(sub, true)
+        self.subject_can_create(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -491,11 +490,7 @@ where
 
             let wallet = self
                 .custody
-                .create_wallet_in_op(
-                    &mut db,
-                    custodian_id,
-                    &format!("CF {proposal_id}"),
-                )
+                .create_wallet_in_op(&mut db, custodian_id, &format!("CF {proposal_id}"))
                 .await?;
 
             Some(wallet.id)
@@ -547,8 +542,7 @@ where
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
     ) -> Result<CreditFacility, CoreCreditError> {
-        self
-            .subject_can_create(sub, true)
+        self.subject_can_create(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -576,11 +570,7 @@ where
 
             let wallet = self
                 .custody
-                .create_wallet_in_op(
-                    &mut db,
-                    custodian_id,
-                    &format!("CF {id}"),
-                )
+                .create_wallet_in_op(&mut db, custodian_id, &format!("CF {id}"))
                 .await?;
 
             Some(wallet.id)
@@ -693,8 +683,7 @@ where
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
     ) -> Result<Disbursal, CoreCreditError> {
-        self
-            .subject_can_initiate_disbursal(sub, true)
+        self.subject_can_initiate_disbursal(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -813,8 +802,7 @@ where
         let credit_facility_id = credit_facility_id.into();
         let effective = effective.into();
 
-        self
-            .subject_can_update_collateral(sub, true)
+        self.subject_can_update_collateral(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -872,8 +860,7 @@ where
         amount: UsdCents,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<CreditFacility, CoreCreditError> {
-        self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreCreditObject::all_obligations(),
@@ -896,13 +883,7 @@ where
             .await?;
 
         self.obligations
-            .apply_installment_in_op(
-                db,
-                credit_facility_id,
-                payment.id,
-                amount,
-                effective.into(),
-            )
+            .apply_installment_in_op(db, credit_facility_id, payment.id, amount, effective.into())
             .await?;
 
         Ok(credit_facility)
@@ -933,8 +914,7 @@ where
     ) -> Result<CreditFacility, CoreCreditError> {
         let id = credit_facility_id.into();
 
-        self
-            .subject_can_complete(sub, true)
+        self.subject_can_complete(sub, true)
             .await?
             .expect("audit info missing");
 
@@ -954,7 +934,7 @@ where
                         facility.collateral_id,
                         Satoshis::ZERO,
                         crate::time::now().date_naive(),
-                            )
+                    )
                     .await?;
 
                 self.ledger.complete_credit_facility(db, completion).await?;

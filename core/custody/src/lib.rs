@@ -118,8 +118,7 @@ where
         custodian_name: impl AsRef<str> + std::fmt::Debug,
         custodian_config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreCustodyObject::all_custodians(),
@@ -188,8 +187,7 @@ where
         config: CustodianConfig,
     ) -> Result<Custodian, CoreCustodyError> {
         let id = custodian_id.into();
- self
-            .authz
+        self.authz
             .enforce_permission(
                 sub,
                 CoreCustodyObject::custodian(id),
@@ -213,8 +211,7 @@ where
         &self,
         deprecated_encryption_key: &DeprecatedEncryptionKey,
     ) -> Result<(), CoreCustodyError> {
- self
-            .authz
+        self.authz
             .audit()
             .record_system_entry(
                 CoreCustodyObject::all_custodians(),
@@ -227,10 +224,8 @@ where
         let mut op = self.custodians.begin_op().await?;
 
         for custodian in custodians.iter_mut() {
-            custodian.rotate_encryption_key(
-                &self.config.encryption.key,
-                deprecated_encryption_key,
-            )?;
+            custodian
+                .rotate_encryption_key(&self.config.encryption.key, deprecated_encryption_key)?;
 
             self.custodians
                 .update_config_in_op(&mut op, custodian)
@@ -382,8 +377,7 @@ where
             .find_by_external_wallet_id_in_op(&mut db, external_wallet_id)
             .await?;
 
- self
-            .authz
+        self.authz
             .audit()
             .record_system_entry_in_tx(
                 &mut db,

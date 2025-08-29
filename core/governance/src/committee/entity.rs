@@ -7,7 +7,6 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-
 use crate::primitives::{CommitteeId, CommitteeMemberId};
 
 use super::error::CommitteeError;
@@ -17,16 +16,9 @@ use super::error::CommitteeError;
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "CommitteeId")]
 pub enum CommitteeEvent {
-    Initialized {
-        id: CommitteeId,
-        name: String,
-    },
-    MemberAdded {
-        member_id: CommitteeMemberId,
-    },
-    MemberRemoved {
-        member_id: CommitteeMemberId,
-    },
+    Initialized { id: CommitteeId, name: String },
+    MemberAdded { member_id: CommitteeMemberId },
+    MemberRemoved { member_id: CommitteeMemberId },
 }
 
 #[derive(EsEntity, Builder)]
@@ -52,9 +44,7 @@ impl Committee {
             return Err(CommitteeError::MemberAlreadyAdded(member_id));
         }
 
-        self.events.push(CommitteeEvent::MemberAdded {
-            member_id,
-        });
+        self.events.push(CommitteeEvent::MemberAdded { member_id });
 
         Ok(())
     }
@@ -63,9 +53,8 @@ impl Committee {
         if !self.members().contains(&member_id) {
             return;
         }
-        self.events.push(CommitteeEvent::MemberRemoved {
-            member_id,
-        });
+        self.events
+            .push(CommitteeEvent::MemberRemoved { member_id });
     }
 
     pub fn n_members(&self) -> usize {

@@ -6,7 +6,6 @@ use serde::{Deserialize, Serialize};
 
 use std::collections::HashMap;
 
-
 use es_entity::*;
 
 use crate::primitives::*;
@@ -267,7 +266,7 @@ impl Chart {
                         self.events.push(ChartEvent::ManualTransactionAccountAdded {
                             code: code.clone(),
                             ledger_account_id: id,
-                                        });
+                        });
 
                         if let Some(AccountDetails {
                             manual_transaction_account_id,
@@ -407,7 +406,6 @@ pub struct NewChartAccountDetails {
 mod test {
 
     use super::*;
-
 
     fn chart_from(events: Vec<ChartEvent>) -> Chart {
         Chart::try_from_events(EntityEvents::init(ChartId::new(), events)).unwrap()
@@ -588,9 +586,7 @@ mod test {
         let before_count = chart.events.iter_all().count();
 
         let (account_set_id, new_account) = match chart
-            .manual_transaction_account(
-                AccountIdOrCode::Code(acct_code.clone()),
-            )
+            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
             .unwrap()
         {
             ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
@@ -627,9 +623,7 @@ mod test {
         let acct_code = code("1.1.1");
 
         let first = chart
-            .manual_transaction_account(
-                AccountIdOrCode::Code(acct_code.clone()),
-            )
+            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
             .unwrap();
         let ledger_id = match first {
             ManualAccountFromChart::NewAccount((_, new_account)) => new_account.id,
@@ -637,9 +631,7 @@ mod test {
         };
 
         let second = chart
-            .manual_transaction_account(
-                AccountIdOrCode::Code(acct_code.clone()),
-            )
+            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
             .unwrap();
         match second {
             ManualAccountFromChart::IdInChart(id) => assert_eq!(id, ledger_id.into()),
@@ -653,9 +645,7 @@ mod test {
         let acct_code = code("1.1.1");
 
         let ManualAccountFromChart::NewAccount((_, new_account)) = chart
-            .manual_transaction_account(
-                AccountIdOrCode::Code(acct_code.clone()),
-            )
+            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
             .unwrap()
         else {
             panic!("expected NewAccount");
@@ -692,9 +682,7 @@ mod test {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1");
 
-        let res = chart.manual_transaction_account(
-            AccountIdOrCode::Code(acct_code.clone()),
-        );
+        let res = chart.manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()));
         assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
     }
 
@@ -707,8 +695,7 @@ mod test {
             .manual_transaction_accounts
             .insert(random_id, acct_code);
 
-        let res =
-            chart.manual_transaction_account(AccountIdOrCode::Id(random_id));
+        let res = chart.manual_transaction_account(AccountIdOrCode::Id(random_id));
         assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
     }
 }
