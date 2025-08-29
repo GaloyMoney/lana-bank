@@ -301,11 +301,9 @@
       },
       "kycStatus": {
         "title": "KYC",
-        "status": {
-          "verified": "Verificado",
-          "pendingVerification": "Verificación Pendiente",
-          "rejected": "Rechazado"
-        },
+        "verified": "Verificado",
+        "pending": "Pendiente",
+        "rejected": "Rechazado",
         "labels": {
           "level": "Nivel",
           "status": "Estado",

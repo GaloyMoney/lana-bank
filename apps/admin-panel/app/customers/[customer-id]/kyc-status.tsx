@@ -67,15 +67,19 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
     }
   }
 
-  const getKycVerificationBadge = () => {
-    if (!data?.customer?.kycVerification) return null
+  interface KycVerificationBadgeProps {
+    status: KycVerification
+  }
 
-    switch (data.customer.kycVerification) {
+  const KycVerificationBadge: React.FC<KycVerificationBadgeProps> = ({ status }) => {
+    if (!status) return null
+
+    switch (status) {
       case KycVerification.Verified:
         return (
           <Badge variant="ghost" className="text-green-600 flex items-center gap-1">
             <BadgeCheck className="h-4 w-4 stroke-[3]" />
-            Verified
+            {t("verified")}
           </Badge>
         )
       case KycVerification.PendingVerification:
@@ -85,20 +89,23 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
             className="text-muted-foreground flex items-center gap-1"
           >
             <Clock className="h-4 w-4 stroke-[3]" />
-            Pending
+            {t("pending")}
           </Badge>
         )
       case KycVerification.Rejected:
         return (
           <Badge variant="ghost" className="text-destructive flex items-center gap-1">
             <CircleX className="h-4 w-4 stroke-[3]" />
-            Rejected
+            {t("rejected")}
           </Badge>
         )
-      default:
-        return null
+      default: {
+        const exhaustiveCheck: never = status
+        return exhaustiveCheck
+      }
     }
   }
+
   if (loading && !data) return <Skeleton />
 
   const details: DetailItemProps[] = [
@@ -156,12 +163,14 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
     },
   ]
 
-  const badge = getKycVerificationBadge()
+  const badge = data?.customer?.kycVerification ? (
+    <KycVerificationBadge status={data.customer.kycVerification} />
+  ) : undefined
 
   return (
     <DetailsCard
       title={t("title")}
-      badge={badge || undefined}
+      badge={badge}
       details={details}
       className="w-full md:w-1/2"
     />

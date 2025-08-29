@@ -33,13 +33,17 @@ function UserDetailsCard({
       label: "KYC",
       value: (
         <Badge
-          variant={customer.kycVerification === KycVerification.Verified ? "success" : "secondary"}
+          variant={
+            customer.kycVerification === KycVerification.Verified
+              ? "success"
+              : "secondary"
+          }
         >
           {customer.kycVerification === KycVerification.Verified
             ? "Verified"
             : customer.kycVerification === KycVerification.PendingVerification
-            ? "Pending"
-            : "Rejected"}
+              ? "Pending"
+              : "Rejected"}
         </Badge>
       ),
     },

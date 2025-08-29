@@ -129,9 +129,8 @@ impl Customer {
             CustomerEvent::KycVerificationUpdated { kyc_verification: existing_kyc_verification, .. } if existing_kyc_verification == &kyc_verification,
             => CustomerEvent::KycVerificationUpdated { .. }
         );
-        self.events.push(CustomerEvent::KycVerificationUpdated {
-            kyc_verification,
-        });
+        self.events
+            .push(CustomerEvent::KycVerificationUpdated { kyc_verification });
         self.kyc_verification = kyc_verification;
         Idempotent::Executed(())
     }

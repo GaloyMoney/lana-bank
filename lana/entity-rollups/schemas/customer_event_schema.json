@@ -8,14 +8,6 @@
       ],
       "type": "string"
     },
-    "CustomerKycStatus": {
-      "enum": [
-        "pending",
-        "declined",
-        "approved"
-      ],  
-      "type": "string"
-    },
     "CustomerType": {
       "enum": [
         "Individual",
