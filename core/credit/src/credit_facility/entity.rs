@@ -250,22 +250,20 @@ impl CreditFacility {
         initiated_at < self.matures_at()
     }
 
-    pub(crate) fn last_started_accrual_cycle(&self) -> InterestAccrualCycleInCreditFacility {
-        self.events
-            .iter_all()
-            .rev()
-            .find_map(|event| match event {
-                CreditFacilityEvent::InterestAccrualCycleStarted {
-                    interest_accrual_cycle_idx,
-                    interest_period,
-                    ..
-                } => Some(InterestAccrualCycleInCreditFacility {
-                    idx: *interest_accrual_cycle_idx,
-                    period: *interest_period,
-                }),
-                _ => None,
-            })
-            .expect("InterestAccrualCycleStarted should exist once facility is initialized")
+    pub(crate) fn last_started_accrual_cycle(
+        &self,
+    ) -> Option<InterestAccrualCycleInCreditFacility> {
+        self.events.iter_all().rev().find_map(|event| match event {
+            CreditFacilityEvent::InterestAccrualCycleStarted {
+                interest_accrual_cycle_idx,
+                interest_period,
+                ..
+            } => Some(InterestAccrualCycleInCreditFacility {
+                idx: *interest_accrual_cycle_idx,
+                period: *interest_period,
+            }),
+            _ => None,
+        })
     }
 
     fn in_progress_accrual_cycle_id(&self) -> Option<InterestAccrualCycleId> {
@@ -286,16 +284,23 @@ impl CreditFacility {
     fn next_interest_accrual_cycle_period(
         &self,
     ) -> Result<Option<InterestPeriod>, CreditFacilityError> {
+        let last_accrual_start_date = self
+            .last_started_accrual_cycle()
+            .map(|cycle| cycle.period.start);
+
         let interval = self.terms.accrual_cycle_interval;
-        let full_period = interval
-            .period_from(self.last_started_accrual_cycle().period.start)
-            .next();
+        let full_period = match last_accrual_start_date {
+            Some(last_accrual_start_date) => interval.period_from(last_accrual_start_date).next(),
+            None => interval.period_from(self.created_at),
+        };
 
         Ok(full_period.truncate(self.matures_at()))
     }
 
     fn next_interest_accrual_cycle_idx(&self) -> InterestAccrualCycleIdx {
-        self.last_started_accrual_cycle().idx.next()
+        self.last_started_accrual_cycle()
+            .map(|cycle| cycle.idx.next())
+            .unwrap_or(InterestAccrualCycleIdx::FIRST)
     }
 
     fn is_in_progress_interest_cycle_completed(&self) -> bool {
@@ -667,9 +672,9 @@ mod test {
         UsdCents::from(10_00)
     }
 
-    fn default_full_collateral() -> Satoshis {
-        Satoshis::from(100_000)
-    }
+    // fn default_full_collateral() -> Satoshis {
+    //     Satoshis::from(100_000)
+    // }
 
     fn default_price() -> PriceOfOneBTC {
         PriceOfOneBTC::new(UsdCents::from(5000000))
@@ -679,23 +684,24 @@ mod test {
         CVLPct::new(5)
     }
 
-    fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
-        CreditFacilityBalanceSummary {
-            facility,
-            facility_remaining: facility,
-            collateral: Satoshis::ZERO,
-            disbursed: UsdCents::ZERO,
-            not_yet_due_disbursed_outstanding: UsdCents::ZERO,
-            due_disbursed_outstanding: UsdCents::ZERO,
-            overdue_disbursed_outstanding: UsdCents::ZERO,
-            disbursed_defaulted: UsdCents::ZERO,
-            interest_posted: UsdCents::ZERO,
-            not_yet_due_interest_outstanding: UsdCents::ZERO,
-            due_interest_outstanding: UsdCents::ZERO,
-            overdue_interest_outstanding: UsdCents::ZERO,
-            interest_defaulted: UsdCents::ZERO,
-        }
-    }
+    // NOTE: not required anymore ?
+    // fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
+    //     CreditFacilityBalanceSummary {
+    //         facility,
+    //         facility_remaining: facility,
+    //         collateral: Satoshis::ZERO,
+    //         disbursed: UsdCents::ZERO,
+    //         not_yet_due_disbursed_outstanding: UsdCents::ZERO,
+    //         due_disbursed_outstanding: UsdCents::ZERO,
+    //         overdue_disbursed_outstanding: UsdCents::ZERO,
+    //         disbursed_defaulted: UsdCents::ZERO,
+    //         interest_posted: UsdCents::ZERO,
+    //         not_yet_due_interest_outstanding: UsdCents::ZERO,
+    //         due_interest_outstanding: UsdCents::ZERO,
+    //         overdue_interest_outstanding: UsdCents::ZERO,
+    //         interest_defaulted: UsdCents::ZERO,
+    //     }
+    // }
 
     fn facility_from(events: Vec<CreditFacilityEvent>) -> CreditFacility {
         CreditFacility::try_from_events(EntityEvents::init(CreditFacilityId::new(), events))
@@ -706,7 +712,7 @@ mod test {
         date_from("2021-01-15T12:00:00Z")
     }
 
-    fn account_ids() -> CreditFacilityAccountIds {
+    fn account_ids() -> CreditFacilityLedgerAccountIds {
         CreditFacilityLedgerAccountIds {
             facility_account_id: CalaAccountId::new(),
             in_liquidation_account_id: CalaAccountId::new(),
@@ -733,7 +739,7 @@ mod test {
             collateral_id: CollateralId::new(),
             amount: default_facility(),
             terms: default_terms(),
-            account_ids: account_ids(),
+            account_ids: CreditFacilityAccountIds::new(),
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
             created_at: created_at(),
@@ -771,7 +777,7 @@ mod test {
     #[test]
     fn can_progress_next_accrual_idx() {
         let mut events = initial_events();
-        let mut credit_facility = facility_from(events.clone());
+        let credit_facility = facility_from(events.clone());
         assert_eq!(
             credit_facility.next_interest_accrual_cycle_idx(),
             InterestAccrualCycleIdx::FIRST
