@@ -24,7 +24,8 @@ with source as (
         cast(facility_maturity_date as timestamp) as facility_maturity_date,
 
         idx,
-        cast(json_value(period, "$.start") as timestamp) as period_start_at,
+        -- cast(json_value(period, "$.start") as timestamp) as period_start_at,
+        parse_timestamp('%Y-%m-%dT%H:%M:%E*SZ', json_value(period, "$.start"), 'UTC') as period_start_at,
         cast(json_value(period, "$.end") as timestamp) as period_end_at,
         json_value(period, "$.interval.type") as period_interval_type,
 
