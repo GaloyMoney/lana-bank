@@ -23,6 +23,7 @@ pub enum CreditFacilityProposalEvent {
         id: CreditFacilityProposalId,
         ledger_tx_id: LedgerTxId,
         customer_id: CustomerId,
+        customer_type: CustomerType,
         collateral_id: CollateralId,
         terms: TermValues,
         amount: UsdCents,
@@ -54,6 +55,7 @@ pub struct CreditFacilityProposal {
     pub approval_process_id: ApprovalProcessId,
     pub account_ids: CreditFacilityProposalAccountIds,
     pub customer_id: CustomerId,
+    pub customer_type: CustomerType,
     pub collateral_id: CollateralId,
     pub amount: UsdCents,
     pub terms: TermValues,
@@ -200,6 +202,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     id,
                     ledger_tx_id,
                     customer_id,
+                    customer_type,
                     collateral_id,
                     amount,
                     approval_process_id,
@@ -210,6 +213,7 @@ impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
                     builder = builder
                         .id(*id)
                         .customer_id(*customer_id)
+                        .customer_type(*customer_type)
                         .ledger_tx_id(*ledger_tx_id)
                         .collateral_id(*collateral_id)
                         .amount(*amount)
@@ -237,6 +241,7 @@ pub struct NewCreditFacilityProposal {
     pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
+    pub(super) customer_type: CustomerType,
     #[builder(setter(into))]
     pub(super) collateral_id: CollateralId,
     #[builder(setter(skip), default)]
@@ -261,6 +266,7 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
                 id: self.id,
                 ledger_tx_id: self.ledger_tx_id,
                 customer_id: self.customer_id,
+                customer_type: self.customer_type,
                 collateral_id: self.collateral_id,
                 terms: self.terms,
                 amount: self.amount,
