@@ -261,3 +261,33 @@ report_jobs:
     outputs:
       - type: csv
       - type: txt
+
+  - norm: other
+    id: "calculo_de_riesgo_neto"
+    friendly_name: "cálculo_de_riesgo_neto"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "estado_de_cuenta_de_prestamo"
+    friendly_name: "estado_de_cuenta_de_préstamo"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "historial_de_pagos"
+    friendly_name: "historial_de_pagos"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "listado_de_prestamos_activos"
+    friendly_name: "listado_de_préstamos_activos"
+    outputs:
+      - type: csv
+
+  - norm: other
+    id: "reporte_de_cartera_de_prestamos"
+    friendly_name: "reporte_de_cartera_de_préstamos"
+    outputs:
+      - type: csv
