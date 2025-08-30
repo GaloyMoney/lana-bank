@@ -45,7 +45,7 @@ type CreditFacilityCollateralUpdateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
   creditFacilityId: string
-  btcBalance: Satoshis
+  currentCollateral: Satoshis
   collateralToMatchInitialCvl?: Satoshis | null
 }
 
@@ -55,7 +55,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   setOpenDialog,
   openDialog,
   creditFacilityId,
-  btcBalance,
+  currentCollateral,
   collateralToMatchInitialCvl,
 }) => {
   const t = useTranslations(
@@ -112,8 +112,6 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
     setOpenDialog(false)
     setNewCollateral("")
   }
-
-  const currentCollateral = btcBalance ?? 0
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
