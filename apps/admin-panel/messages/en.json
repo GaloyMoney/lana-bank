@@ -1779,6 +1779,7 @@
       "noData": "No transactions present in this account",
       "columns": {
         "recordedAt": "Recorded At",
+        "layer": "Layer",
         "currency": "Currency",
         "debit": "Debit",
         "credit": "Credit",
@@ -1828,6 +1829,7 @@
       "entryType": "Entry Type",
       "name": "Account Name",
       "transaction": "Transaction",
+      "layer": "Layer",
       "direction": "Direction",
       "amount": "Amount",
       "description": "Description",
@@ -1837,6 +1839,11 @@
     "debitOrCredit": {
       "debit": "Debit",
       "credit": "Credit"
+    },
+    "layer": {
+      "SETTLED": "Settled",
+      "PENDING": "Pending",
+      "ENCUMBRANCE": "Encumbrance"
     }
   },
   "LedgerTransaction": {
@@ -1852,6 +1859,7 @@
     "entriesDescription": "Entries associated with this transaction",
     "table": {
       "entryType": "Entry Type",
+      "layer": "Layer",
       "debit": "Debit",
       "credit": "Credit",
       "amount": "Amount",
@@ -1916,6 +1924,7 @@
       }
     }
   },
+
   "RolesAndPermissions": {
     "title": "Roles & Permissions",
     "description": "Manage roles and their associated permissions",

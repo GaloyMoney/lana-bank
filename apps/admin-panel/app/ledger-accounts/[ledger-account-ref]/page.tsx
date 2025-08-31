@@ -49,6 +49,7 @@ import PaginatedTable, {
 import { DetailsGroup } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
+import LayerLabel from "@/app/journal/layer-label"
 import { MAX_ACCOUNT_CODE_DIGITS } from "@/app/chart-of-accounts/constants"
 
 gql`
@@ -183,6 +184,11 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       key: "createdAt",
       label: t("table.columns.recordedAt"),
       render: (recordedAt: string) => <DateWithTooltip value={recordedAt} />,
+    },
+    {
+      key: "layer",
+      label: t("table.columns.layer"),
+      render: (layer) => <LayerLabel value={layer} />,
     },
     {
       key: "ledgerTransaction",

@@ -1779,6 +1779,7 @@
       "noData": "No hay transacciones presentes en esta cuenta",
       "columns": {
         "recordedAt": "Registrado el",
+        "layer": "Capa",
         "currency": "Moneda",
         "debit": "Debe",
         "credit": "Haber",
@@ -1828,6 +1829,7 @@
       "entryType": "Tipo de entrada",
       "name": "Nombre de cuenta",
       "transaction": "Transacción",
+      "layer": "Capa",
       "direction": "Dirección",
       "amount": "Monto",
       "description": "Descripción",
@@ -1837,6 +1839,11 @@
     "debitOrCredit": {
       "debit": "Debe",
       "credit": "Haber"
+    },
+    "layer": {
+      "SETTLED": "Liquidada",
+      "PENDING": "Pendiente",
+      "ENCUMBRANCE": "Gravamen"
     }
   },
   "LedgerTransaction": {
@@ -1852,6 +1859,7 @@
     "entriesDescription": "Asientos asociados con esta partida",
     "table": {
       "entryType": "Tipo de asiento",
+      "layer": "Capa",
       "debit": "Débito",
       "credit": "Crédito",
       "amount": "Monto",

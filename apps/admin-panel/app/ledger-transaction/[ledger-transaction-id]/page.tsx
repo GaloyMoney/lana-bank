@@ -14,6 +14,7 @@ import { useLedgerTransactionQuery, DebitOrCredit } from "@/lib/graphql/generate
 import { DetailsCard } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
+import LayerLabel from "@/app/journal/layer-label"
 
 gql`
   query LedgerTransaction($id: UUID!) {
@@ -97,6 +98,11 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
           <DataTable
             data={data?.ledgerTransaction?.entries || []}
             columns={[
+              {
+                key: "layer",
+                header: t("table.layer"),
+                render: (layer) => <LayerLabel value={layer} />,
+              },
               {
                 key: "ledgerAccount",
                 header: t("table.ledgerAccount"),

@@ -1050,6 +1050,7 @@ checksums:
     ChartOfAccountsLedgerAccount/addAccount: 180a55852a8b0f21e53512e344808a0a
     ChartOfAccountsLedgerAccount/table/noData: 65d8d992387f1b0dc757c22a4de109dc
     ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
+    ChartOfAccountsLedgerAccount/table/columns/layer: 814ae58a59c6930c0a22031027a2a6ee
     ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f
     ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
     ChartOfAccountsLedgerAccount/table/columns/credit: 2d447a71ec815a039f175e94fbb12a56
@@ -1086,6 +1087,7 @@ checksums:
     Journal/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
     Journal/table/name: 5a4c82f1bc517348b64c107345f94f65
     Journal/table/transaction: 7f5d30475a7934848665e9b3e3dea36d
+    Journal/table/layer: 814ae58a59c6930c0a22031027a2a6ee
     Journal/table/direction: 2920314e7f25957f16577b544b4e860b
     Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     Journal/table/description: e17686a22ffad04cc7bb70524ed4478b
@@ -1093,6 +1095,9 @@ checksums:
     Journal/table/closestAccountWithCode: c9e7b8a5c877605f6efd3fffbeba9e60
     Journal/debitOrCredit/debit: 1b35db901aa1aeed8ee79aec6d807731
     Journal/debitOrCredit/credit: 2d447a71ec815a039f175e94fbb12a56
+    Journal/layer/SETTLED: 9d8966da26c006bf2ef3d196d3255ebb
+    Journal/layer/PENDING: 030a6f3395d5d4efddd3cc67d6009039
+    Journal/layer/ENCUMBRANCE: 496c01210249fd291d3097575f5efc9d
     LedgerTransaction/title: 5bf9168689feff46e9847d43032a002d
     LedgerTransaction/description: e12ba6feb4c9ded56403b71e5f8bfb36
     LedgerTransaction/noEntries: 17c4758dd5718f652fe0a2b338098300
@@ -1102,6 +1107,7 @@ checksums:
     LedgerTransaction/entriesTitle: a4ce78dcd06b9cc27fd29d25ec9079be
     LedgerTransaction/entriesDescription: d2bd608e92a19ca27d17eaadbf8c0cc2
     LedgerTransaction/table/entryType: e640b897b08ffe4a6624f9de5cc4835b
+    LedgerTransaction/table/layer: 814ae58a59c6930c0a22031027a2a6ee
     LedgerTransaction/table/debit: 1b35db901aa1aeed8ee79aec6d807731
     LedgerTransaction/table/credit: 2d447a71ec815a039f175e94fbb12a56
     LedgerTransaction/table/amount: a0ae9c6ff98b57475cdce56f66066aa4

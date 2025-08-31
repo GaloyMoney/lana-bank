@@ -29,6 +29,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import LayerLabel from "@/app/journal/layer-label"
 
 gql`
   query JournalEntries($first: Int!, $after: String) {
@@ -41,6 +42,7 @@ gql`
           entryType
           description
           direction
+          layer
           createdAt
           amount {
             ... on UsdAmount {
@@ -117,6 +119,11 @@ const JournalPage: React.FC = () => {
     {
       key: "entryType",
       label: t("table.entryType"),
+    },
+    {
+      key: "layer",
+      label: t("table.layer"),
+      render: (layer) => <LayerLabel value={layer} />,
     },
     {
       key: "ledgerAccount",
