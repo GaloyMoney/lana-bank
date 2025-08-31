@@ -5,6 +5,8 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
+import { LinkIcon } from "lucide-react"
+
 import { WithdrawalStatusBadge } from "../status-badge"
 
 import { WithdrawalConfirmDialog } from "./confirm"
@@ -47,16 +49,19 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
       href: `/customers/${withdrawal.account.customer.publicId}`,
     },
     {
-      label: t("fields.withdrawalId") || "ID",
+      label: t("fields.withdrawalId"),
       value: (
         <a
           href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline"
+          className="flex items-center gap-1 text-blue-500 hover:underline"
           title={`Full ID: ${withdrawal.withdrawalId}`}
         >
-          {`${withdrawal.withdrawalId.substring(0, 4)}...${withdrawal.withdrawalId.substring(withdrawal.withdrawalId.length - 4)}`}
+          {`${withdrawal.withdrawalId.substring(0, 4)}...${withdrawal.withdrawalId.substring(
+            withdrawal.withdrawalId.length - 4,
+          )}`}
+          <LinkIcon className="h-4 w-4" />
         </a>
       ),
     },
