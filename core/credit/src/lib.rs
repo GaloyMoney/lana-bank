@@ -680,15 +680,16 @@ where
         self.approve_disbursal.execute_from_svc(disbursal).await
     }
 
-    pub async fn ensure_up_to_date_status(
-        &self,
-        _credit_facility: &CreditFacility,
-    ) -> Result<Option<CreditFacility>, CoreCreditError> {
-        unimplemented!()
-        // self.approve_credit_facility
-        //     .execute_from_svc(credit_facility)
-        //     .await
-    }
+    // TODO: check if this is still needed
+    // pub async fn ensure_up_to_date_status(
+    //     &self,
+    //     _credit_facility: &CreditFacility,
+    // ) -> Result<Option<CreditFacility>, CoreCreditError> {
+    //     unimplemented!()
+    //     // self.approve_credit_facility
+    //     //     .execute_from_svc(credit_facility)
+    //     //     .await
+    // }
 
     pub async fn subject_can_update_collateral(
         &self,
@@ -704,6 +705,54 @@ where
                 enforce,
             )
             .await?)
+    }
+
+    #[instrument(name = "credit.update_proposal_collateral", skip(self), err)]
+    pub async fn update_proposal_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug + Copy,
+        updated_collateral: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+        let credit_facility_proposal_id = credit_facility_proposal_id.into();
+        let effective = effective.into();
+
+        self.subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let credit_facility_proposal = self
+            .credit_facility_proposals()
+            .find_by_id_without_audit(credit_facility_proposal_id)
+            .await?;
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let collateral_update = if let Some(collateral_update) = self
+            .collaterals
+            .record_collateral_update_via_manual_input_in_op(
+                &mut db,
+                credit_facility_proposal.collateral_id,
+                updated_collateral,
+                effective,
+            )
+            .await?
+        {
+            collateral_update
+        } else {
+            return Ok(credit_facility_proposal);
+        };
+
+        self.ledger
+            .update_credit_facility_proposal_collateral(
+                db,
+                collateral_update,
+                credit_facility_proposal.account_ids,
+            )
+            .await?;
+
+        Ok(credit_facility_proposal)
     }
 
     #[instrument(name = "credit.update_collateral", skip(self), err)]
