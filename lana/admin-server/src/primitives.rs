@@ -1,6 +1,7 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use async_graphql::*;
+use lana_app::accounting::LedgerAccountId;
 use serde::{Deserialize, Serialize};
 
 pub use lana_app::{
@@ -125,5 +126,6 @@ impl_to_global_id! {
     LedgerTransactionId,
     ObligationInstallmentId,
     PublicId,
-    EntryId
+    EntryId,
+    LedgerAccountId
 }

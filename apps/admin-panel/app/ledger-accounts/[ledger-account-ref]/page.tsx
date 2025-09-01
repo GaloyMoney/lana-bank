@@ -55,6 +55,7 @@ import { MAX_ACCOUNT_CODE_DIGITS } from "@/app/chart-of-accounts/constants"
 gql`
   fragment LedgerAccountDetails on LedgerAccount {
     id
+    ledgerAccountId
     name
     code
     ancestors {
@@ -445,7 +446,7 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
         <ExportCsvDialog
           isOpen={isExportDialogOpen}
           onClose={() => setIsExportDialogOpen(false)}
-          ledgerAccountId={ledgerAccount.id}
+          ledgerAccountId={ledgerAccount.ledgerAccountId}
         />
       )}
 

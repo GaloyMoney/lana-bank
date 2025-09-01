@@ -17,7 +17,8 @@ use super::JournalEntry;
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
 pub struct LedgerAccount {
-    id: UUID,
+    id: ID,
+    ledger_account_id: UUID,
     code: Option<AccountCode>,
 
     #[graphql(skip)]
@@ -27,7 +28,8 @@ pub struct LedgerAccount {
 impl From<DomainLedgerAccount> for LedgerAccount {
     fn from(account: DomainLedgerAccount) -> Self {
         LedgerAccount {
-            id: account.id.into(),
+            id: account.id.to_global_id(),
+            ledger_account_id: UUID::from(account.id),
             code: account.code.as_ref().map(|code| code.into()),
             entity: Arc::new(account),
         }
@@ -116,7 +118,7 @@ impl LedgerAccount {
                 let res = app
                     .accounting()
                     .ledger_accounts()
-                    .history(sub, self.id, query_args)
+                    .history(sub, self.ledger_account_id, query_args)
                     .await?;
 
                 let mut connection = Connection::new(false, res.has_next_page);
