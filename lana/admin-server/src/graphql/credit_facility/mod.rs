@@ -5,6 +5,7 @@ mod error;
 mod history;
 mod ledger_accounts;
 pub(super) mod obligation_installment;
+mod proposal;
 mod repayment;
 
 use async_graphql::*;
@@ -33,6 +34,7 @@ pub use disbursal::*;
 pub use error::*;
 pub use history::*;
 use ledger_accounts::*;
+pub use proposal::*;
 pub use repayment::*;
 
 #[derive(SimpleObject, Clone)]
@@ -43,8 +45,6 @@ pub struct CreditFacility {
     approval_process_id: UUID,
     created_at: Timestamp,
     matures_at: Timestamp,
-    // activated_at: Option<Timestamp>,
-    // matures_at: Option<Timestamp>,
     collateralization_state: CollateralizationState,
     facility_amount: UsdCents,
 
@@ -54,8 +54,6 @@ pub struct CreditFacility {
 
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
-        // let activated_at: Option<Timestamp> = credit_facility.activated_at.map(|t| t.into());
-        // let matures_at: Option<Timestamp> = credit_facility.matures_at().map(|t| t.into());
         let created_at = credit_facility.created_at();
         let matures_at = credit_facility.matures_at();
 
@@ -88,13 +86,7 @@ impl CreditFacility {
     }
 
     async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityStatus> {
-        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .ensure_up_to_date_status(&self.entity)
-            .await?
-            .map(|cf| cf.status())
-            .unwrap_or_else(|| self.entity.status()))
+        Ok(self.entity.status())
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {

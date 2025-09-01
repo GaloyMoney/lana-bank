@@ -33,7 +33,7 @@ pub enum CreditFacilityEvent {
         disbursal_credit_account_id: CalaAccountId,
         approval_process_id: ApprovalProcessId, // TODO: check if we need this
         public_id: PublicId,
-        created_at: DateTime<Utc>,
+        maturity_date: EffectiveDate,
     },
     InterestAccrualCycleStarted {
         interest_accrual_id: InterestAccrualCycleId,
@@ -159,7 +159,6 @@ pub struct CreditFacility {
     pub account_ids: CreditFacilityLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
     pub public_id: PublicId,
-    pub created_at: DateTime<Utc>,
     pub maturity_date: EffectiveDate,
 
     #[es_entity(nested)]
@@ -228,10 +227,8 @@ impl CreditFacility {
             CreditFacilityStatus::Closed
         } else if self.is_matured() {
             CreditFacilityStatus::Matured
-        } else if self.is_fully_collateralized() {
-            CreditFacilityStatus::PendingApproval
         } else {
-            CreditFacilityStatus::PendingCollateralization
+            CreditFacilityStatus::Active
         }
     }
 
@@ -289,7 +286,7 @@ impl CreditFacility {
         let interval = self.terms.accrual_cycle_interval;
         let full_period = match last_accrual_start_date {
             Some(last_accrual_start_date) => interval.period_from(last_accrual_start_date).next(),
-            None => interval.period_from(self.created_at),
+            None => interval.period_from(self.created_at()),
         };
 
         Ok(full_period.truncate(self.matures_at()))
@@ -436,10 +433,6 @@ impl CreditFacility {
             .unwrap_or_default()
     }
 
-    fn is_fully_collateralized(&self) -> bool {
-        self.last_collateralization_state() == CollateralizationState::FullyCollateralized
-    }
-
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
@@ -552,7 +545,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     terms: t,
                     approval_process_id,
                     public_id,
-                    created_at,
+                    maturity_date,
                     ..
                 } => {
                     builder = builder
@@ -562,11 +555,10 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .collateral_id(*collateral_id)
                         .terms(*t)
                         .account_ids(*account_ids)
-                        .created_at(*created_at)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .approval_process_id(*approval_process_id)
                         .public_id(public_id.clone())
-                        .maturity_date(t.duration.maturity_date(*created_at))
+                        .maturity_date(*maturity_date);
                 }
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
                 CreditFacilityEvent::InterestAccrualCycleConcluded { .. } => (),
@@ -595,7 +587,7 @@ pub struct NewCreditFacility {
     pub(super) collateral_id: CollateralId,
     terms: TermValues,
     amount: UsdCents,
-    created_at: DateTime<Utc>,
+    maturity_date: EffectiveDate,
     #[builder(setter(skip), default)]
     pub(super) status: CreditFacilityStatus,
     #[builder(setter(skip), default)]
@@ -628,7 +620,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 approval_process_id: self.approval_process_id,
                 public_id: self.public_id,
-                created_at: self.created_at,
+                maturity_date: self.maturity_date,
             }],
         )
     }
@@ -740,8 +732,8 @@ mod test {
             account_ids: CreditFacilityAccountIds::new(),
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
-            created_at: created_at(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
+            maturity_date: EffectiveDate::from(created_at() + chrono::Duration::days(90)),
         }]
     }
 

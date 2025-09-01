@@ -380,9 +380,8 @@ type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
 	approvalProcessId: UUID!
-	activatedAt: Timestamp
-	maturesAt: Timestamp
 	createdAt: Timestamp!
+	maturesAt: Timestamp!
 	collateralizationState: CollateralizationState!
 	facilityAmount: UsdCents!
 	publicId: PublicId!
@@ -629,6 +628,42 @@ input CreditFacilityPartialPaymentWithDateRecordInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
 	effective: Date!
+}
+
+type CreditFacilityProposal {
+	id: ID!
+	creditFacilityProposalId: UUID!
+	approvalProcessId: UUID!
+	createdAt: Timestamp!
+	collateralizationState: CreditFacilityProposalCollateralizationState!
+	facilityAmount: UsdCents!
+}
+
+input CreditFacilityProposalCollateralUpdateInput {
+	creditFacilityProposalId: UUID!
+	collateral: Satoshis!
+	effective: Date!
+}
+
+type CreditFacilityProposalCollateralUpdatePayload {
+	creditFacilityProposal: CreditFacilityProposal!
+}
+
+enum CreditFacilityProposalCollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_COLLATERALIZED
+}
+
+input CreditFacilityProposalCreateInput {
+	customerId: UUID!
+	disbursalCreditAccountId: UUID!
+	facility: UsdCents!
+	terms: TermsInput!
+	custodianId: UUID
+}
+
+type CreditFacilityProposalCreatePayload {
+	creditFacilityProposal: CreditFacilityProposal!
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -1477,8 +1512,10 @@ type Mutation {
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
+	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
 	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
+	creditFacilityProposalCollateralUpdate(input: CreditFacilityProposalCollateralUpdateInput!): CreditFacilityProposalCollateralUpdatePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!

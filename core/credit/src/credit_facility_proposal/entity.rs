@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -81,6 +82,12 @@ impl CreditFacilityProposal {
             },
             _ => unreachable!("Initialized event must be the first event"),
         }
+    }
+
+    pub fn created_at(&self) -> DateTime<Utc> {
+        self.events
+            .entity_first_persisted_at()
+            .expect("entity_first_persisted_at not found")
     }
 
     pub(crate) fn update_collateralization(

@@ -147,12 +147,18 @@ where
         let new_credit_facility = NewCreditFacility::builder()
             .id(proposal.id)
             .ledger_tx_id(LedgerTxId::new())
-            .account_ids(crate::CreditFacilityAccountIds::from(proposal.account_ids))
+            .customer_id(proposal.customer_id)
+            .customer_type(proposal.customer_type)
+            .account_ids(crate::CreditFacilityLedgerAccountIds::from(
+                proposal.account_ids,
+            ))
             .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
             .collateral_id(proposal.collateral_id)
             .terms(proposal.terms)
             .amount(proposal.amount)
-            .created_at(db.now())
+            .approval_process_id(proposal.approval_process_id)
+            // TODO: avoid rain wreck ?
+            .maturity_date(proposal.terms.duration.maturity_date(crate::time::now()))
             .public_id(public_id.id)
             .build()
             .expect("could not build new credit facility");

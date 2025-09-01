@@ -149,6 +149,22 @@
       ],
       "type": "object"
     },
+    "CustomerType": {
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ],
+      "type": "string"
+    },
+    "EffectiveDate": {
+      "format": "date",
+      "type": "string"
+    },
     "FacilityDuration": {
       "oneOf": [
         {
@@ -349,6 +365,9 @@
           "format": "uuid",
           "type": "string"
         },
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
         "disbursal_credit_account_id": {
           "format": "uuid",
           "type": "string"
@@ -360,6 +379,9 @@
         "ledger_tx_id": {
           "format": "uuid",
           "type": "string"
+        },
+        "maturity_date": {
+          "$ref": "#/$defs/EffectiveDate"
         },
         "public_id": {
           "type": "string"
@@ -376,6 +398,7 @@
         "type",
         "id",
         "customer_id",
+        "customer_type",
         "collateral_id",
         "ledger_tx_id",
         "terms",
@@ -383,50 +406,8 @@
         "account_ids",
         "disbursal_credit_account_id",
         "approval_process_id",
-        "public_id"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "approval_process_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "approved": {
-          "type": "boolean"
-        },
-        "type": {
-          "const": "approval_process_concluded",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "approval_process_id",
-        "approved"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "activated_at": {
-          "format": "date-time",
-          "type": "string"
-        },
-        "ledger_tx_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "type": {
-          "const": "activated",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "ledger_tx_id",
-        "activated_at"
+        "public_id",
+        "maturity_date"
       ],
       "type": "object"
     },

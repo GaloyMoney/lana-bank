@@ -1141,6 +1141,66 @@ impl CreditLedger {
         })
     }
 
+    pub async fn update_credit_facility_proposal_collateral(
+        &self,
+        op: es_entity::DbOp<'_>,
+        CollateralUpdate {
+            tx_id,
+            abs_diff,
+            action,
+            effective,
+        }: CollateralUpdate,
+        credit_facility_proposal_account_ids: CreditFacilityProposalAccountIds,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+        match action {
+            CollateralAction::Add => {
+                self.cala
+                    .post_transaction_in_op(
+                        &mut op,
+                        tx_id,
+                        templates::ADD_COLLATERAL_CODE,
+                        templates::AddCollateralParams {
+                            journal_id: self.journal_id,
+                            currency: self.btc,
+                            amount: abs_diff.to_btc(),
+                            collateral_account_id: credit_facility_proposal_account_ids
+                                .collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
+                            effective,
+                        },
+                    )
+                    .await
+            }
+            CollateralAction::Remove => {
+                self.cala
+                    .post_transaction_in_op(
+                        &mut op,
+                        tx_id,
+                        templates::REMOVE_COLLATERAL_CODE,
+                        templates::RemoveCollateralParams {
+                            journal_id: self.journal_id,
+                            currency: self.btc,
+                            amount: abs_diff.to_btc(),
+                            collateral_account_id: credit_facility_proposal_account_ids
+                                .collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
+                            effective,
+                        },
+                    )
+                    .await
+            }
+        }?;
+        op.commit().await?;
+        Ok(())
+    }
+
     pub async fn update_credit_facility_collateral(
         &self,
         op: es_entity::DbOp<'_>,

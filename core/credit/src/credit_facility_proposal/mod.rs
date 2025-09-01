@@ -26,7 +26,6 @@ where
     ledger: CreditLedger,
     governance: Governance<Perms, E>,
 }
-
 impl<Perms, E> Clone for CreditFacilityProposals<Perms, E>
 where
     Perms: PermissionCheck,
@@ -233,5 +232,20 @@ where
         }
 
         Ok(proposal)
+    }
+
+    pub async fn find_all<T: From<CreditFacilityProposal>>(
+        &self,
+        ids: &[CreditFacilityProposalId],
+    ) -> Result<std::collections::HashMap<CreditFacilityProposalId, T>, CreditFacilityProposalError>
+    {
+        self.repo.find_all(ids).await
+    }
+
+    pub async fn find_by_id_without_audit(
+        &self,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+        self.repo.find_by_id(id.into()).await
     }
 }
