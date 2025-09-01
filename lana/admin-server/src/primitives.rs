@@ -1,10 +1,10 @@
 #![allow(clippy::upper_case_acronyms)]
 
 use async_graphql::*;
-use lana_app::accounting::LedgerAccountId;
 use serde::{Deserialize, Serialize};
 
 pub use lana_app::{
+    accounting::LedgerAccountId,
     primitives::{
         AccountSpec, ApprovalProcessId, ChartId, CollateralId, CommitteeId, CreditFacilityId,
         CustodianId, CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId,
