@@ -119,7 +119,6 @@ Cypress.Commands.add(
           publicId
           applicantId
           level
-          status
           email
           depositAccount {
             depositAccountId
