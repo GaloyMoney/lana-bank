@@ -10,7 +10,7 @@ import { toast } from "sonner"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
-import { KycStatusBadge } from "@/app/customers/status-badge"
+import { KycStatusBadge } from "@/app/customers/kyc-status-badge"
 
 import {
   useGetKycStatusForCustomerQuery,
