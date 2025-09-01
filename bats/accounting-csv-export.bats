@@ -29,7 +29,7 @@ teardown_file() {
   )
 
   exec_admin_graphql 'ledger-account-by-code' "$variables"
-  ledger_account_id=$(graphql_output '.data.ledgerAccountByCode.id')
+  ledger_account_id=$(graphql_output '.data.ledgerAccountByCode.ledgerAccountId')
   [[ "$ledger_account_id" != "null" ]] || exit 1
 
   variables=$(

@@ -1,6 +1,6 @@
 query LedgerAccountByCode($code: String!) {
   ledgerAccountByCode(code: $code) {
-    id
+    ledgerAccountId
     history(first: 100) {
       nodes {
         txId
