@@ -1,24 +1,25 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-use opentelemetry::{KeyValue, global};
-use opentelemetry_otlp::SpanExporter;
+use opentelemetry::{KeyValue, global, trace::TracerProvider};
 use opentelemetry_sdk::{
     Resource,
     propagation::TraceContextPropagator,
-    trace::{Sampler, SdkTracerProvider},
+    resource::{EnvResourceDetector, SdkProvidedResourceDetector},
+    trace::{Config, Sampler},
 };
-use opentelemetry_semantic_conventions::resource::SERVICE_NAMESPACE;
+use opentelemetry_semantic_conventions::resource::{SERVICE_NAME, SERVICE_NAMESPACE};
 use serde::{Deserialize, Serialize};
 use tracing_subscriber::{filter::EnvFilter, fmt, layer::SubscriberExt, util::SubscriberInitExt};
 
 pub use tracing::*;
 
+use std::time::Duration;
+
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct TracingConfig {
     service_name: String,
 }
-
 impl Default for TracingConfig {
     fn default() -> Self {
         Self {
@@ -29,17 +30,17 @@ impl Default for TracingConfig {
 
 pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
     global::set_text_map_propagator(TraceContextPropagator::new());
-
-    let exporter = SpanExporter::builder().with_tonic().build()?;
-
-    let provider = SdkTracerProvider::builder()
-        .with_resource(telemetry_resource(&config))
-        .with_batch_exporter(exporter)
-        .with_sampler(Sampler::AlwaysOn)
-        .build();
-
-    global::set_tracer_provider(provider.clone());
-    let telemetry = tracing_opentelemetry::layer();
+    let provider = opentelemetry_otlp::new_pipeline()
+        .tracing()
+        .with_exporter(opentelemetry_otlp::new_exporter().tonic())
+        .with_trace_config(
+            Config::default()
+                .with_resource(telemetry_resource(&config))
+                .with_sampler(Sampler::AlwaysOn),
+        )
+        .install_batch(opentelemetry_sdk::runtime::Tokio)?;
+    let telemetry =
+        tracing_opentelemetry::layer().with_tracer(provider.tracer(config.service_name));
 
     let fmt_layer = fmt::layer().json();
     let filter_layer = EnvFilter::try_from_default_env()
@@ -54,19 +55,14 @@ pub fn init_tracer(config: TracingConfig) -> anyhow::Result<()> {
         .with(fmt_layer)
         .with(telemetry)
         .init();
-
     setup_panic_hook();
-
     Ok(())
 }
-
 fn setup_panic_hook() {
     let default_panic = std::panic::take_hook();
-
     std::panic::set_hook(Box::new(move |panic_info| {
         let span = error_span!("panic", panic_type = "unhandled");
         let _guard = span.enter();
-
         let message = if let Some(s) = panic_info.payload().downcast_ref::<&str>() {
             s.to_string()
         } else if let Some(s) = panic_info.payload().downcast_ref::<String>() {
@@ -74,7 +70,6 @@ fn setup_panic_hook() {
         } else {
             "Unknown panic payload".to_string()
         };
-
         error!(
             target: "panic",
             panic_message = %message,
@@ -83,16 +78,22 @@ fn setup_panic_hook() {
             panic_backtrace = ?std::backtrace::Backtrace::capture(),
             "Unhandled panic in application"
         );
-
         default_panic(panic_info);
     }));
 }
 
 fn telemetry_resource(config: &TracingConfig) -> Resource {
-    Resource::builder()
-        .with_service_name(config.service_name.clone())
-        .with_attributes([KeyValue::new(SERVICE_NAMESPACE, "lana")])
-        .build()
+    Resource::from_detectors(
+        Duration::from_secs(3),
+        vec![
+            Box::new(EnvResourceDetector::new()),
+            Box::new(SdkProvidedResourceDetector),
+        ],
+    )
+    .merge(&Resource::new(vec![
+        KeyValue::new(SERVICE_NAME, config.service_name.clone()),
+        KeyValue::new(SERVICE_NAMESPACE, "lana"),
+    ]))
 }
 
 pub fn insert_error_fields(level: tracing::Level, error: impl std::fmt::Display) {
