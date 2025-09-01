@@ -76,6 +76,18 @@
       ],
       "type": "string"
     },
+    "CustomerType": {
+      "enum": [
+        "Individual",
+        "GovernmentEntity",
+        "PrivateCompany",
+        "Bank",
+        "FinancialInstitution",
+        "ForeignAgencyOrSubsidiary",
+        "NonDomiciledCompany"
+      ],
+      "type": "string"
+    },
     "FacilityDuration": {
       "oneOf": [
         {
@@ -255,6 +267,13 @@
           "format": "uuid",
           "type": "string"
         },
+        "customer_type": {
+          "$ref": "#/$defs/CustomerType"
+        },
+        "disbursal_credit_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -276,10 +295,12 @@
         "id",
         "ledger_tx_id",
         "customer_id",
+        "customer_type",
         "collateral_id",
         "terms",
         "amount",
         "account_ids",
+        "disbursal_credit_account_id",
         "approval_process_id"
       ],
       "type": "object"
@@ -347,17 +368,13 @@
     },
     {
       "properties": {
-        "approved": {
-          "type": "boolean"
-        },
         "type": {
           "const": "completed",
           "type": "string"
         }
       },
       "required": [
-        "type",
-        "approved"
+        "type"
       ],
       "type": "object"
     }

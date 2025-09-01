@@ -591,7 +591,6 @@ pub enum CollateralizationState {
     Eq,
     strum::Display,
     strum::EnumString,
-    sqlx::Type,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
