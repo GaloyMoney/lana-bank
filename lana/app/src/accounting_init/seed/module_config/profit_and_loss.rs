@@ -32,12 +32,12 @@ pub(in crate::accounting_init::seed) async fn profit_and_loss_module_configure(
         expenses_code,
     } = serde_json::from_str(&data)?;
 
-    let config_values = ChartOfAccountsIntegrationConfig::builder()
-        .chart_of_accounts_id(chart.id)
-        .chart_of_accounts_revenue_code(revenue_code.parse()?)
-        .chart_of_accounts_cost_of_revenue_code(cost_of_revenue_code.parse()?)
-        .chart_of_accounts_expenses_code(expenses_code.parse()?)
-        .build()?;
+    let config_values = ChartOfAccountsIntegrationConfig {
+        chart_of_accounts_id: chart.id,
+        chart_of_accounts_revenue_code: revenue_code.parse()?,
+        chart_of_accounts_cost_of_revenue_code: cost_of_revenue_code.parse()?,
+        chart_of_accounts_expenses_code: expenses_code.parse()?,
+    };
 
     match profit_and_loss
         .set_chart_of_accounts_integration_config(

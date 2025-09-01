@@ -15,9 +15,7 @@ use crate::{
     primitives::{BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject},
 };
 
-pub use chart_of_accounts_integration::{
-    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
-};
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use error::*;
 use ledger::*;
 

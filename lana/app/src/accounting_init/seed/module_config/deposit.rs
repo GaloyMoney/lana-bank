@@ -49,46 +49,34 @@ pub(in crate::accounting_init::seed) async fn deposit_module_configure(
         frozen_non_domiciled_individual_deposit_accounts_parent_code,
     } = serde_json::from_str(&data)?;
 
-    let config_values = ChartOfAccountsIntegrationConfig::builder()
-        .chart_of_accounts_id(chart.id)
-        .chart_of_accounts_omnibus_parent_code(omnibus_parent_code.parse()?)
-        .chart_of_accounts_individual_deposit_accounts_parent_code(
+    let config_values = ChartOfAccountsIntegrationConfig {
+        chart_of_accounts_id: chart.id,
+        chart_of_accounts_omnibus_parent_code: omnibus_parent_code.parse()?,
+        chart_of_accounts_individual_deposit_accounts_parent_code:
             individual_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_accounts_government_entity_deposit_accounts_parent_code(
+        chart_of_accounts_government_entity_deposit_accounts_parent_code:
             government_entity_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_private_company_deposit_accounts_parent_code(
+        chart_of_account_private_company_deposit_accounts_parent_code:
             private_company_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_bank_deposit_accounts_parent_code(
-            bank_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_financial_institution_deposit_accounts_parent_code(
+        chart_of_account_bank_deposit_accounts_parent_code: bank_deposit_accounts_parent_code
+            .parse()?,
+        chart_of_account_financial_institution_deposit_accounts_parent_code:
             financial_institution_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code(
+        chart_of_account_non_domiciled_individual_deposit_accounts_parent_code:
             non_domiciled_individual_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_accounts_frozen_individual_deposit_accounts_parent_code(
+        chart_of_accounts_frozen_individual_deposit_accounts_parent_code:
             frozen_individual_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code(
+        chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code:
             frozen_government_entity_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_frozen_private_company_deposit_accounts_parent_code(
+        chart_of_account_frozen_private_company_deposit_accounts_parent_code:
             frozen_private_company_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_frozen_bank_deposit_accounts_parent_code(
+        chart_of_account_frozen_bank_deposit_accounts_parent_code:
             frozen_bank_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code(
+        chart_of_account_frozen_financial_institution_deposit_accounts_parent_code:
             frozen_financial_institution_deposit_accounts_parent_code.parse()?,
-        )
-        .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code(
+        chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code:
             frozen_non_domiciled_individual_deposit_accounts_parent_code.parse()?,
-        )
-        .build()?;
+    };
 
     match deposit
         .set_chart_of_accounts_integration_config(&Subject::System, chart, config_values)
