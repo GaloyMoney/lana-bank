@@ -7,17 +7,23 @@ import { Button } from "@lana/web/ui/button"
 
 import { formatDate } from "@lana/web/utils"
 
+import { toast } from "sonner"
+
+import { ExternalLinkIcon, CopyIcon } from "lucide-react"
+
+import { Label } from "@lana/web/ui/label"
+
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import { CollateralizationStateLabel } from "../label"
 
 import { CreditFacilityTermsDialog } from "./terms-dialog"
-import { CreditFacilityWalletDialog } from "./wallet-dialog"
 
 import {
   ApprovalProcessStatus,
   CreditFacilityRepaymentType,
   GetCreditFacilityLayoutDetailsQuery,
+  WalletNetwork,
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
 import ApprovalDialog from "@/app/actions/approve"
@@ -39,13 +45,13 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
   creditFacilityDetails,
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.DetailsCard")
+  const commonT = useTranslations("Common")
 
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
-  const [openWalletDialog, setOpenWalletDialog] = React.useState(false)
 
   const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
 
@@ -101,7 +107,44 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       label: t("details.custodian"),
       value: creditFacilityDetails.wallet?.custodian.name ?? t("details.manual"),
     },
-  ]
+    creditFacilityDetails.wallet?.address && {
+      label: (
+        <Label className="inline-flex items-center">
+          {t("details.walletAddress")}
+          <a
+            href={mempoolAddressUrl(
+              creditFacilityDetails.wallet!.address,
+              creditFacilityDetails.wallet!.network,
+            )}
+            target="_blank"
+            className="ml-2 inline-flex items-center gap-1 text-xs text-blue-500 whitespace-nowrap leading-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="leading-none">{t("details.viewOnMempool")}</span>
+            <ExternalLinkIcon className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
+          </a>
+        </Label>
+      ),
+      value: (
+        <div className="flex items-center">
+          <span
+            className="font-mono text-sm truncate max-w-[200px]"
+            title={creditFacilityDetails.wallet.address}
+          >
+            {creditFacilityDetails.wallet.address}
+          </span>
+          <CopyIcon
+            onClick={() => {
+              navigator.clipboard.writeText(creditFacilityDetails.wallet!.address)
+              toast.success(commonT("copiedToClipboard"))
+            }}
+            className="h-3 w-3 shrink-0 cursor-pointer hover:text-blue-500"
+            aria-hidden="true"
+          />
+        </div>
+      ),
+    },
+  ].filter(Boolean) as DetailItemProps[]
 
   const footerContent = (
     <>
@@ -149,15 +192,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
             </Button>
           </>
         )}
-      {creditFacilityDetails?.wallet && (
-        <Button
-          variant="outline"
-          onClick={() => setOpenWalletDialog(true)}
-          data-testid="wallet-details-button"
-        >
-          {t("buttons.walletDetails")}
-        </Button>
-      )}
     </>
   )
 
@@ -176,14 +210,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         openTermsDialog={openTermsDialog}
         setOpenTermsDialog={setOpenTermsDialog}
       />
-      {creditFacilityDetails.wallet && (
-        <CreditFacilityWalletDialog
-          wallet={creditFacilityDetails.wallet}
-          openWalletDialog={openWalletDialog}
-          setOpenWalletDialog={setOpenWalletDialog}
-        />
-      )}
-
       <CreditFacilityCollateralUpdateDialog
         creditFacilityId={creditFacilityId}
         currentCollateral={creditFacilityDetails.balance.collateral.btcBalance}
@@ -210,3 +236,13 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 }
 
 export default CreditFacilityDetailsCard
+
+const MEMPOOL_BASE = {
+  MAINNET: "https://mempool.space/address",
+  TESTNET_3: "https://mempool.space/testnet/address",
+  TESTNET_4: "https://mempool.space/testnet4/address",
+} satisfies Record<WalletNetwork, string>
+
+export function mempoolAddressUrl(address: string, network: WalletNetwork) {
+  return `${MEMPOOL_BASE[network]}/${encodeURIComponent(address)}`
+}

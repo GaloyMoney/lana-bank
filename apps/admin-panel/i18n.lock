@@ -21,6 +21,7 @@ checksums:
     Common/close: 2c2e22f8424a1031de89063bd0022e16
     Common/submit: 7c91ef5f747eea9f77a9c4f23e19fb2e
     Common/set: 72fc8d871f1d34fd81f0cae5c4505591
+    Common/copiedToClipboard: 6a3c394a9a51646bad2f72d7311b242d
     PermissionsDisplay/permissionsLabel: bb2e860b9063f62f4bc1a2ea9c744c7f
     PermissionsDisplay/noRoleSelected: bb1bba152afe692413e833b64f2cb9d9
     PermissionsDisplay/noPermissions: 53beaa15a0f44fff1d0fb8285071dce0
@@ -339,10 +340,6 @@ checksums:
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/dateCreated: ee01a6e3f6a547bee9fe53f7ccdcb2cc
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/structuringFeeRate: 6884eb8153e27f57dfff956ff8efa511
     CreditFacilities/CreditFacilityDetails/TermsDialog/details/effectiveRate: 7dd8de3c81e63d553bf906f47f584518
-    CreditFacilities/CreditFacilityDetails/WalletDialog/title: ffdfb4ea0c46005fe1ab5851154b84ce
-    CreditFacilities/CreditFacilityDetails/WalletDialog/details/address: f2610eb9cd14c93aa34d09018765bb26
-    CreditFacilities/CreditFacilityDetails/WalletDialog/details/network: 151d08f2b23fa8334be0a46af7b7aeaa
-    CreditFacilities/CreditFacilityDetails/WalletDialog/details/viewOnMempool: 2f50678a2906b8cb36fb5852b8a0b2cb
     CreditFacilities/CreditFacilityDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
     CreditFacilities/CreditFacilityDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
@@ -374,8 +371,9 @@ checksums:
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/noMonthlyPaymentAvailable: 3571c074ce377c24810128d5ee89fb5e
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/custodian: 3f479171d178f75a92b6f2349be450d8
     CreditFacilities/CreditFacilityDetails/DetailsCard/details/manual: 772ff39554ea76c8db86f09b7d96fcb9
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/walletAddress: f2610eb9cd14c93aa34d09018765bb26
+    CreditFacilities/CreditFacilityDetails/DetailsCard/details/viewOnMempool: 2f50678a2906b8cb36fb5852b8a0b2cb
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanTerms: 1ebf872e0d722fc8651f5f7108208fc3
-    CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/walletDetails: ffdfb4ea0c46005fe1ab5851154b84ce
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/loanAgreement: 8b57e9c349cfb05286388fec7247d078
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilities/CreditFacilityDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb

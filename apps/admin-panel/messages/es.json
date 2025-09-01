@@ -19,7 +19,8 @@
     "upload": "Subir",
     "close": "Cerrar",
     "submit": "Enviar",
-    "set": "Establecer"
+    "set": "Establecer",
+    "copiedToClipboard": "Copiado al portapapeles"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permisos que tiene este rol",
@@ -547,14 +548,6 @@
           "effectiveRate": "Tasa efectiva"
         }
       },
-      "WalletDialog": {
-        "title": "Detalles de la cartera",
-        "details": {
-          "address": "Dirección de la cartera",
-          "network": "Red",
-          "viewOnMempool": "Ver en mempool"
-        }
-      },
       "CollateralCard": {
         "title": "Garantía",
         "details": {
@@ -597,11 +590,12 @@
           "monthlyPayment": "Cuota mensual",
           "noMonthlyPaymentAvailable": "No hay cuota mensual disponible",
           "custodian": "Custodio",
-          "manual": "Manual"
+          "manual": "Manual",
+          "walletAddress": "Dirección de la cartera",
+          "viewOnMempool": "Ver en mempool"
         },
         "buttons": {
           "loanTerms": "Términos del Préstamo",
-          "walletDetails": "Detalles de la cartera",
           "loanAgreement": "Contrato de Préstamo",
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",

@@ -19,7 +19,8 @@
     "upload": "Upload",
     "close": "Close",
     "submit": "Submit",
-    "set": "Set"
+    "set": "Set",
+    "copiedToClipboard": "Copied to clipboard"
   },
   "PermissionsDisplay": {
     "permissionsLabel": "Permissions this role has",
@@ -547,14 +548,6 @@
           "effectiveRate": "Effective Rate"
         }
       },
-      "WalletDialog": {
-        "title": "Wallet Details",
-        "details": {
-          "address": "Wallet Address",
-          "network": "Network",
-          "viewOnMempool": "View on mempool"
-        }
-      },
       "CollateralCard": {
         "title": "Collateral",
         "details": {
@@ -597,11 +590,12 @@
           "monthlyPayment": "Monthly Payment",
           "noMonthlyPaymentAvailable": "No monthly payment available",
           "custodian": "Custodian",
-          "manual": "Manual"
+          "manual": "Manual",
+          "walletAddress": "Wallet Address",
+          "viewOnMempool": "View on mempool"
         },
         "buttons": {
           "loanTerms": "Loan Terms",
-          "walletDetails": "Wallet Details",
           "loanAgreement": "Loan Agreement",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
