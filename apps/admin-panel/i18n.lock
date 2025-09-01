@@ -143,10 +143,14 @@ checksums:
     Customers/description: 38b688862c41b7af092a0dc32856806f
     Customers/columns/email: e7f34943a0c2fb849db1839ff6ef5cb5
     Customers/columns/telegramId: 0719cb55ded3146892d106733a8431b2
-    Customers/columns/status: 0812527db67eb37688eb605718471c6c
+    Customers/columns/status: 4e1fcce15854d824919b4a582c697c90
+    Customers/columns/kycVerification: 150eea9193777cbe2aed03e4dc774f8c
     Customers/columns/depositAccount: 857ee8a777580666ef3e60098e442c11
     Customers/status/verified: 9566bd61c1f754dd5082eea5101f15a8
     Customers/status/notVerified: fb164eed05b30673bc6852ddadbc6f27
+    Customers/status/active: 3e1ec025c4a50830bbb9ad57a176630a
+    Customers/status/inactive: 239e3b722db75bbafc6c628a2685eed2
+    Customers/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
     Customers/create/title: b6e91545c3b71ffb5958ab19ffb1d51e
     Customers/create/confirmTitle: f0f217e36a6d0817c62edd48d560fcca
     Customers/create/description: 83b80348dac269ef8b459bd903753d2f
@@ -197,9 +201,14 @@ checksums:
     Customers/CustomerDetails/details/labels/publicId: 916fc3fdca16a23af44dbcfec824984d
     Customers/CustomerDetails/details/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/details/status/inactive: 239e3b722db75bbafc6c628a2685eed2
+    Customers/CustomerDetails/details/status/suspended: 6435f2d5f2b7c08a467c4659bc24e6a1
     Customers/CustomerDetails/details/actions/editTelegram: f75713ea7482c56d5fd7dc78ce25c6e1
-    Customers/CustomerDetails/kycStatus/title: 0812527db67eb37688eb605718471c6c
+    Customers/CustomerDetails/kycStatus/title: 4bd5d2fae73d8ec19511c2d011a48025
+    Customers/CustomerDetails/kycStatus/verified: 9566bd61c1f754dd5082eea5101f15a8
+    Customers/CustomerDetails/kycStatus/pending: 030a6f3395d5d4efddd3cc67d6009039
+    Customers/CustomerDetails/kycStatus/rejected: 30202c9a9a2093021b0e9a1c61717fe9
     Customers/CustomerDetails/kycStatus/labels/level: 1e3bf31d5c6083e898dd3e3359fbb0c2
+    Customers/CustomerDetails/kycStatus/labels/status: 4e1fcce15854d824919b4a582c697c90
     Customers/CustomerDetails/kycStatus/labels/kycApplicationLink: c7544d6cfc5e07b0fb4998c9b861c2fa
     Customers/CustomerDetails/kycStatus/actions/createLink: 0cbb6dc593591ff291d0f39715b32880
     Customers/CustomerDetails/kycStatus/actions/creatingLink: 244b61a2b6acf3ec0ce4f083c2887b49
