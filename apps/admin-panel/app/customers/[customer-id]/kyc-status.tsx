@@ -4,16 +4,15 @@ import React from "react"
 import { gql } from "@apollo/client"
 import { HiLink } from "react-icons/hi"
 
-import { Copy, BadgeCheck, Clock, CircleX } from "lucide-react"
+import { Copy } from "lucide-react"
 import { useTranslations } from "next-intl"
 import { toast } from "sonner"
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
-import { Badge } from "@lana/web/ui/badge"
+import { KycStatusBadge } from "@/app/customers/status-badge"
 
 import {
-  KycVerification,
   useGetKycStatusForCustomerQuery,
   useSumsubPermalinkCreateMutation,
 } from "@/lib/graphql/generated"
@@ -64,45 +63,6 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
           },
         },
       })
-    }
-  }
-
-  interface KycVerificationBadgeProps {
-    status: KycVerification
-  }
-
-  const KycVerificationBadge: React.FC<KycVerificationBadgeProps> = ({ status }) => {
-    if (!status) return null
-
-    switch (status) {
-      case KycVerification.Verified:
-        return (
-          <Badge variant="ghost" className="text-green-600 flex items-center gap-1">
-            <BadgeCheck className="h-4 w-4 stroke-[3]" />
-            {t("verified")}
-          </Badge>
-        )
-      case KycVerification.PendingVerification:
-        return (
-          <Badge
-            variant="ghost"
-            className="text-muted-foreground flex items-center gap-1"
-          >
-            <Clock className="h-4 w-4 stroke-[3]" />
-            {t("pending")}
-          </Badge>
-        )
-      case KycVerification.Rejected:
-        return (
-          <Badge variant="ghost" className="text-destructive flex items-center gap-1">
-            <CircleX className="h-4 w-4 stroke-[3]" />
-            {t("rejected")}
-          </Badge>
-        )
-      default: {
-        const exhaustiveCheck: never = status
-        return exhaustiveCheck
-      }
     }
   }
 
@@ -163,14 +123,10 @@ export const KycStatus: React.FC<KycStatusProps> = ({ customerId }) => {
     },
   ]
 
-  const badge = data?.customer?.kycVerification ? (
-    <KycVerificationBadge status={data.customer.kycVerification} />
-  ) : undefined
-
   return (
     <DetailsCard
       title={t("title")}
-      badge={badge}
+      badge={<KycStatusBadge status={data?.customer?.kycVerification} />}
       details={details}
       className="w-full md:w-1/2"
     />
