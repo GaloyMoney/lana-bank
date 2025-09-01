@@ -5,7 +5,7 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
-import { LinkIcon } from "lucide-react"
+import { ExternalLinkIcon } from "lucide-react"
 
 import { WithdrawalStatusBadge } from "../status-badge"
 
@@ -61,7 +61,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
           {`${withdrawal.withdrawalId.substring(0, 4)}...${withdrawal.withdrawalId.substring(
             withdrawal.withdrawalId.length - 4,
           )}`}
-          <LinkIcon className="h-4 w-4" />
+          <ExternalLinkIcon className="h-4 w-4" />
         </a>
       ),
     },
