@@ -9,7 +9,7 @@ import { formatDate } from "@lana/web/utils"
 
 import { toast } from "sonner"
 
-import { ExternalLinkIcon, CopyIcon } from "lucide-react"
+import { ExternalLinkIcon } from "lucide-react"
 
 import { Label } from "@lana/web/ui/label"
 
@@ -126,22 +126,16 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         </Label>
       ),
       value: (
-        <div className="flex items-center">
-          <span
-            className="font-mono text-sm truncate max-w-[200px]"
-            title={creditFacilityDetails.wallet.address}
-          >
-            {creditFacilityDetails.wallet.address}
-          </span>
-          <CopyIcon
-            onClick={() => {
-              navigator.clipboard.writeText(creditFacilityDetails.wallet!.address)
-              toast.success(commonT("copiedToClipboard"))
-            }}
-            className="h-3 w-3 shrink-0 cursor-pointer hover:text-blue-500"
-            aria-hidden="true"
-          />
-        </div>
+        <span
+          onClick={() => {
+            navigator.clipboard.writeText(creditFacilityDetails.wallet!.address)
+            toast.success(commonT("copiedToClipboard"))
+          }}
+          className="cursor-pointer hover:bg-secondary font-mono text-sm"
+          title={creditFacilityDetails.wallet.address}
+        >
+          {creditFacilityDetails.wallet.address}
+        </span>
       ),
     },
   ].filter(Boolean) as DetailItemProps[]
