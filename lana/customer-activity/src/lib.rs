@@ -24,8 +24,8 @@ use outbox::{Outbox, OutboxEventMarker};
 
 pub use config::CustomerActivityCheckConfig;
 pub use jobs::{
-    CustomerActivityCheckInit, CustomerActivityCheckJobConfig, CustomerActivityProjectionConfig,
-    CustomerActivityProjectionInit,
+    CustomerActivityCheckInit, CustomerActivityCheckJobConfig, CustomerActivityUpdateConfig,
+    CustomerActivityUpdateInit,
 };
 pub use primitives::CustomerActivity;
 pub use repo::CustomerActivityRepo;
@@ -77,8 +77,8 @@ where
         activity_check_config: CustomerActivityCheckConfig,
     ) -> Result<Self, CustomerActivityError> {
         jobs.add_initializer_and_spawn_unique(
-            CustomerActivityProjectionInit::new(outbox, pool.clone(), deposit),
-            CustomerActivityProjectionConfig::new(),
+            CustomerActivityUpdateInit::new(outbox, pool.clone(), deposit),
+            CustomerActivityUpdateConfig::new(),
         )
         .await?;
 

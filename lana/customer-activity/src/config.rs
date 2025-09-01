@@ -1,4 +1,4 @@
-use chrono::{NaiveTime, Timelike};
+use chrono::{NaiveTime, Timelike, Duration, DateTime, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -33,6 +33,14 @@ impl CustomerActivityCheckConfig {
     pub fn parse_activity_check_time(&self) -> Result<(u32, u32), Box<dyn std::error::Error>> {
         let time = NaiveTime::parse_from_str(&self.activity_check_utc_time, "%H:%M")?;
         Ok((time.hour(), time.minute()))
+    }
+
+    pub fn get_inactive_threshold_date(&self) -> DateTime<Utc> {
+        crate::time::now() - Duration::days(self.inactive_threshold_days.into())
+    }
+
+    pub fn get_escheatment_threshold_date(&self) -> DateTime<Utc> {
+        crate::time::now() - Duration::days(self.escheatment_threshold_days.into())
     }
 }
 

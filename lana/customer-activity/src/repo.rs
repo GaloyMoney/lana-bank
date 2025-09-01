@@ -1,8 +1,6 @@
 use sqlx::PgPool;
 use sqlx::types::uuid;
 
-use crate::primitives::CustomerActivity;
-use crate::time::now;
 use core_customer::CustomerId;
 
 #[derive(Clone)]
@@ -15,27 +13,6 @@ impl CustomerActivityRepo {
         Self { pool }
     }
 
-    pub async fn persist_activity(&self, activity: &CustomerActivity) -> Result<(), sqlx::Error> {
-        let customer_uuid: uuid::Uuid = activity.customer_id.into();
-        sqlx::query!(
-            r#"
-            INSERT INTO customer_activity (customer_id, last_activity_date, updated_at)
-            VALUES ($1, $2, $3)
-            ON CONFLICT (customer_id) 
-            DO UPDATE SET 
-                last_activity_date = EXCLUDED.last_activity_date,
-                updated_at = EXCLUDED.updated_at
-            "#,
-            customer_uuid,
-            activity.last_activity_date,
-            activity.updated_at
-        )
-        .execute(&self.pool)
-        .await?;
-
-        Ok(())
-    }
-
     pub async fn upsert_activity(
         &self,
         customer_id: CustomerId,
@@ -44,16 +21,15 @@ impl CustomerActivityRepo {
         let customer_uuid: uuid::Uuid = customer_id.into();
         sqlx::query!(
             r#"
-            INSERT INTO customer_activity (customer_id, last_activity_date, updated_at)
-            VALUES ($1, $2, $3)
+            INSERT INTO customer_activity (customer_id, last_activity_date)
+            VALUES ($1, $2)
             ON CONFLICT (customer_id) 
             DO UPDATE SET 
-                last_activity_date = GREATEST(COALESCE(customer_activity.last_activity_date, $2), $2),
-                updated_at = $3
+                last_activity_date = GREATEST(COALESCE(customer_activity.last_activity_date, $2), $2)
+    
             "#,
             customer_uuid,
             activity_date,
-            now()
         )
         .execute(&self.pool)
         .await?;

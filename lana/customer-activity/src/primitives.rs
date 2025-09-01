@@ -7,5 +7,4 @@ use core_customer::CustomerId;
 pub struct CustomerActivity {
     pub customer_id: CustomerId,
     pub last_activity_date: DateTime<Utc>,
-    pub updated_at: DateTime<Utc>,
 }

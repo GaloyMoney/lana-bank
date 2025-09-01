@@ -16,7 +16,6 @@ use outbox::OutboxEventMarker;
 
 use crate::CustomerActivityRepo;
 use crate::config::CustomerActivityCheckConfig;
-use crate::time::now;
 use job::*;
 
 // Use January 1st, 2000 as the minimum date
@@ -164,7 +163,7 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let now = now();
+        let now = crate::time::now();
         if self.config.activity_check_enabled {
             self.perform_activity_check().await?;
         }
@@ -188,28 +187,23 @@ where
 {
     #[instrument(name = "customer_activity_check.perform_check", skip(self), err)]
     async fn perform_activity_check(&self) -> Result<(), Box<dyn std::error::Error>> {
-        let now = now();
-        let inactive_threshold = now - Duration::days(self.config.inactive_threshold_days.into());
-        let escheatment_threshold =
-            now - Duration::days(self.config.escheatment_threshold_days.into());
-
         self.update_customers_by_activity_and_date_range(
             EARLIEST_SEARCH_START,
-            escheatment_threshold,
+            self.config.get_escheatment_threshold_date(),
             core_customer::Activity::Suspended,
         )
         .await?;
 
         self.update_customers_by_activity_and_date_range(
-            escheatment_threshold,
-            inactive_threshold,
+            self.config.get_escheatment_threshold_date(),
+            self.config.get_inactive_threshold_date(),
             core_customer::Activity::Inactive,
         )
         .await?;
 
         self.update_customers_by_activity_and_date_range(
-            inactive_threshold,
-            now,
+            self.config.get_inactive_threshold_date(),
+            crate::time::now(),
             core_customer::Activity::Active,
         )
         .await?;

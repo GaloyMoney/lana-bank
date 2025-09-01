@@ -14,11 +14,11 @@ use crate::CustomerActivityRepo;
 use lana_events::LanaEvent;
 
 #[derive(Default, Clone, Deserialize, Serialize)]
-struct CustomerActivityProjectionJobData {
+struct CustomerActivityUpdateJobData {
     sequence: EventSequence,
 }
 
-pub struct CustomerActivityProjectionJobRunner<Perms, E>
+pub struct CustomerActivityUpdateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -35,7 +35,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CustomerActivityProjectionJobRunner<Perms, E>
+impl<Perms, E> JobRunner for CustomerActivityUpdateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -51,7 +51,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CustomerActivityProjectionJobData>()?
+            .execution_state::<CustomerActivityUpdateJobData>()?
             .unwrap_or_default();
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
@@ -101,7 +101,7 @@ where
     }
 }
 
-impl<Perms, E> CustomerActivityProjectionJobRunner<Perms, E>
+impl<Perms, E> CustomerActivityUpdateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -125,7 +125,7 @@ where
     }
 }
 
-pub struct CustomerActivityProjectionInit<Perms, E>
+pub struct CustomerActivityUpdateInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -141,7 +141,7 @@ where
     deposits: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> CustomerActivityProjectionInit<Perms, E>
+impl<Perms, E> CustomerActivityUpdateInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -162,9 +162,9 @@ where
     }
 }
 
-const CUSTOMER_ACTIVITY_PROJECTION: JobType = JobType::new("customer-activity-projection");
+const CUSTOMER_ACTIVITY_UPDATE: JobType = JobType::new("customer-activity-update");
 
-impl<Perms, E> JobInitializer for CustomerActivityProjectionInit<Perms, E>
+impl<Perms, E> JobInitializer for CustomerActivityUpdateInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -179,11 +179,11 @@ where
     where
         Self: Sized,
     {
-        CUSTOMER_ACTIVITY_PROJECTION
+        CUSTOMER_ACTIVITY_UPDATE
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CustomerActivityProjectionJobRunner::new(
+        Ok(Box::new(CustomerActivityUpdateJobRunner::new(
             &self.outbox,
             &self.repo,
             &self.deposits,
@@ -199,11 +199,11 @@ where
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct CustomerActivityProjectionConfig<Perms, E> {
+pub struct CustomerActivityUpdateConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> CustomerActivityProjectionConfig<Perms, E> {
+impl<Perms, E> CustomerActivityUpdateConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -211,13 +211,13 @@ impl<Perms, E> CustomerActivityProjectionConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> Default for CustomerActivityProjectionConfig<Perms, E> {
+impl<Perms, E> Default for CustomerActivityUpdateConfig<Perms, E> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Perms, E> JobConfig for CustomerActivityProjectionConfig<Perms, E>
+impl<Perms, E> JobConfig for CustomerActivityUpdateConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -228,5 +228,5 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CustomerActivityProjectionInit<Perms, E>;
+    type Initializer = CustomerActivityUpdateInit<Perms, E>;
 }

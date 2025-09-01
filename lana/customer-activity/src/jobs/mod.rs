@@ -1,5 +1,5 @@
 mod activity_check;
-mod projection;
+mod update_customer_activity;
 
 pub use activity_check::{CustomerActivityCheckInit, CustomerActivityCheckJobConfig};
-pub use projection::{CustomerActivityProjectionConfig, CustomerActivityProjectionInit};
+pub use update_customer_activity::{CustomerActivityUpdateConfig, CustomerActivityUpdateInit};
