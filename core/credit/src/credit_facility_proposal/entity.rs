@@ -95,6 +95,10 @@ impl CreditFacilityProposal {
         price: PriceOfOneBTC,
         balances: CreditFacilityProposalBalanceSummary,
     ) -> Idempotent<Option<CreditFacilityProposalCollateralizationState>> {
+        if self.is_completed() {
+            return Idempotent::Ignored;
+        }
+
         let ratio_changed = self.update_collateralization_ratio(&balances).did_execute();
 
         let is_fully_collateralized =
@@ -209,6 +213,12 @@ impl CreditFacilityProposal {
         self.events.push(CreditFacilityProposalEvent::Completed {});
 
         Ok(Idempotent::Executed(()))
+    }
+
+    fn is_completed(&self) -> bool {
+        self.events
+            .iter_all()
+            .any(|event| matches!(event, CreditFacilityProposalEvent::Completed { .. }))
     }
 }
 

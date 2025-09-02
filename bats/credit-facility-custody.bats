@@ -76,44 +76,44 @@ wait_for_collateral() {
     }'
   )
 
-  exec_admin_graphql 'credit-facility-create' "$variables"
+  exec_admin_graphql 'credit-facility-proposal-create' "$variables"
 
-  credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
-  [[ "$credit_facility_id" != "null" ]] || exit 1
+  credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
+  [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
   cache_value 'credit_facility_id' "$credit_facility_id"
 
-  address=$(graphql_output '.data.creditFacilityCreate.creditFacility.wallet.address')
+  address=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.wallet.address')
   [[ "$address" == "bt1qaddressmock" ]] || exit 1
 }
 
 @test "credit-facility-custody: cannot update manually collateral with a custodian" {
-  credit_facility_id=$(read_value 'credit_facility_id')
+  credit_facility_proposal_id=$(read_value 'credit_facility_proposal_id')
 
   variables=$(
     jq -n \
-      --arg credit_facility_id "$credit_facility_id" \
+      --arg credit_facility_proposal_id "$credit_facility_proposal_id" \
       --arg effective "$(naive_now)" \
     '{
       input: {
-        creditFacilityId: $credit_facility_id,
+        creditFacilityProposalId: $credit_facility_proposal_id,
         collateral: 50000000,
         effective: $effective,
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-collateral-update' "$variables"
+  exec_admin_graphql 'credit-facility-proposal-collateral-update' "$variables"
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "ManualUpdateError" ]] || exit 1
 }
 
 @test "credit-facility-custody: can update collateral by a custodian" {
-  credit_facility_id=$(read_value 'credit_facility_id')
+  credit_facility_proposal_id=$(read_value 'credit_facility_proposal_id')
 
   variables=$(
     jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
+      --arg credit_facility_proposal_id "$credit_facility_proposal_id" \
+    '{ id: $credit_facility_proposal_id }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
   collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')

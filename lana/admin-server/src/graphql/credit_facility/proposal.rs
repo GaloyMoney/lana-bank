@@ -1,10 +1,14 @@
 use async_graphql::*;
 
-use crate::{graphql::terms::TermsInput, primitives::*};
+use crate::{
+    graphql::{custody::Wallet, loader::LanaDataLoader, terms::TermsInput},
+    primitives::*,
+};
 
 pub use lana_app::credit::CreditFacilityProposal as DomainCreditFacilityProposal;
 
 #[derive(SimpleObject, Clone)]
+#[graphql(complex)]
 pub struct CreditFacilityProposal {
     id: ID,
     credit_facility_proposal_id: UUID,
@@ -15,6 +19,23 @@ pub struct CreditFacilityProposal {
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainCreditFacilityProposal>,
+}
+
+#[ComplexObject]
+impl CreditFacilityProposal {
+    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Wallet>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let collateral = loader
+            .load_one(self.entity.collateral_id)
+            .await?
+            .expect("credit facility propsal has collateral");
+
+        if let Some(wallet_id) = collateral.wallet_id {
+            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
+        } else {
+            Ok(None)
+        }
+    }
 }
 
 impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {

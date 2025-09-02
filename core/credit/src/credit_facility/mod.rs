@@ -137,7 +137,17 @@ where
             )
             .await?;
 
-        let proposal = self.proposals.complete_in_op(db, id.into()).await?;
+        let crate::CreditFacilityProposal {
+            terms,
+            customer_id,
+            amount,
+            approval_process_id,
+            account_ids,
+            disbursal_credit_account_id,
+            customer_type,
+            collateral_id,
+            ..
+        }: crate::CreditFacilityProposal = self.proposals.complete_in_op(db, id.into()).await?;
 
         let public_id = self
             .public_ids
@@ -145,20 +155,17 @@ where
             .await?;
 
         let new_credit_facility = NewCreditFacility::builder()
-            .id(proposal.id)
+            .id(id)
             .ledger_tx_id(LedgerTxId::new())
-            .customer_id(proposal.customer_id)
-            .customer_type(proposal.customer_type)
-            .account_ids(crate::CreditFacilityLedgerAccountIds::from(
-                proposal.account_ids,
-            ))
-            .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
-            .collateral_id(proposal.collateral_id)
-            .terms(proposal.terms)
-            .amount(proposal.amount)
-            .approval_process_id(proposal.approval_process_id)
-            // TODO: avoid rain wreck ?
-            .maturity_date(proposal.terms.duration.maturity_date(crate::time::now()))
+            .customer_id(customer_id)
+            .customer_type(customer_type)
+            .account_ids(crate::CreditFacilityLedgerAccountIds::from(account_ids))
+            .disbursal_credit_account_id(disbursal_credit_account_id)
+            .collateral_id(collateral_id)
+            .terms(terms)
+            .amount(amount)
+            .approval_process_id(approval_process_id)
+            .maturity_date(terms.maturity_date(crate::time::now()))
             .public_id(public_id.id)
             .build()
             .expect("could not build new credit facility");
