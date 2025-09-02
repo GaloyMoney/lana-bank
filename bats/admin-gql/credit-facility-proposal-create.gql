@@ -4,6 +4,9 @@ mutation CreditFacilityProposalCreate(
   creditFacilityProposalCreate(input: $input) {
     creditFacilityProposal {
       creditFacilityProposalId
+      wallet {
+        address
+      }
     }
   }
 }

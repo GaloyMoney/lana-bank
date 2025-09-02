@@ -637,6 +637,7 @@ type CreditFacilityProposal {
 	createdAt: Timestamp!
 	collateralizationState: CreditFacilityProposalCollateralizationState!
 	facilityAmount: UsdCents!
+	wallet: Wallet
 }
 
 input CreditFacilityProposalCollateralUpdateInput {

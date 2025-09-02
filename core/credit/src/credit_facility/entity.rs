@@ -662,10 +662,6 @@ mod test {
         UsdCents::from(10_00)
     }
 
-    // fn default_full_collateral() -> Satoshis {
-    //     Satoshis::from(100_000)
-    // }
-
     fn default_price() -> PriceOfOneBTC {
         PriceOfOneBTC::new(UsdCents::from(5000000))
     }
@@ -673,25 +669,6 @@ mod test {
     fn default_upgrade_buffer_cvl_pct() -> CVLPct {
         CVLPct::new(5)
     }
-
-    // NOTE: not required anymore ?
-    // fn default_balances(facility: UsdCents) -> CreditFacilityBalanceSummary {
-    //     CreditFacilityBalanceSummary {
-    //         facility,
-    //         facility_remaining: facility,
-    //         collateral: Satoshis::ZERO,
-    //         disbursed: UsdCents::ZERO,
-    //         not_yet_due_disbursed_outstanding: UsdCents::ZERO,
-    //         due_disbursed_outstanding: UsdCents::ZERO,
-    //         overdue_disbursed_outstanding: UsdCents::ZERO,
-    //         disbursed_defaulted: UsdCents::ZERO,
-    //         interest_posted: UsdCents::ZERO,
-    //         not_yet_due_interest_outstanding: UsdCents::ZERO,
-    //         due_interest_outstanding: UsdCents::ZERO,
-    //         overdue_interest_outstanding: UsdCents::ZERO,
-    //         interest_defaulted: UsdCents::ZERO,
-    //     }
-    // }
 
     fn facility_from(events: Vec<CreditFacilityEvent>) -> CreditFacility {
         CreditFacility::try_from_events(EntityEvents::init(CreditFacilityId::new(), events))

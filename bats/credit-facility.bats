@@ -152,11 +152,10 @@ ymd() {
 
   exec_admin_graphql 'credit-facility-proposal-create' "$variables"
 
-  # address=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.wallet.address')
-  # [[ "$address" == "null" ]] || exit 1
+  address=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.wallet.address')
+  [[ "$address" == "null" ]] || exit 1
 
   credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
-  echo $(graphql_output) | jq .
   [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
   cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
@@ -178,7 +177,6 @@ ymd() {
     }'
   )
   exec_admin_graphql 'credit-facility-proposal-collateral-update' "$variables"
-  echo $(graphql_output) | jq .
   credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCollateralUpdate.creditFacilityProposal.creditFacilityProposalId')
   [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
