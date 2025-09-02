@@ -42,7 +42,7 @@ impl CreditFacilityRepaymentPlan {
         let structuring_fee = terms.one_time_fee_rate.apply(facility_amount);
 
         let activated_at = self.activated_at();
-        let maturity_date = terms.duration.maturity_date(activated_at);
+        let maturity_date = terms.maturity_date(activated_at);
 
         let mut disbursals = vec![];
         if !structuring_fee.is_zero() {
@@ -86,7 +86,7 @@ impl CreditFacilityRepaymentPlan {
         let terms = self.terms.expect("Missing FacilityCreated event");
         let activated_at = self.activated_at();
 
-        let maturity_date = terms.duration.maturity_date(activated_at);
+        let maturity_date = terms.maturity_date(activated_at);
         let mut next_interest_period =
             if let Some(last_interest_payment) = self.last_interest_accrual_at {
                 terms

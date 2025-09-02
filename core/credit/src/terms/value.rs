@@ -98,7 +98,7 @@ impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
 }
 
 impl FacilityDuration {
-    pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
+    fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
         match self {
             FacilityDuration::Months(months) => start_date
                 .checked_add_months(chrono::Months::new(*months))
@@ -251,6 +251,10 @@ pub struct TermValues {
 }
 
 impl TermValues {
+    pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
+        self.duration.maturity_date(start_date)
+    }
+
     pub fn is_disbursal_allowed(
         &self,
         balance: CreditFacilityBalanceSummary,
