@@ -6,8 +6,7 @@ CREATE TABLE core_deposit_account_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_holder_id UUID,
-  frozen_deposit_account_id UUID,
-  ledger_account_id UUID,
+  account_ids JSONB,
   public_id VARCHAR,
   status VARCHAR
 ,
@@ -45,15 +44,13 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
-    new_row.frozen_deposit_account_id := (NEW.event ->> 'frozen_deposit_account_id')::UUID;
-    new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
+    new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.public_id := (NEW.event ->> 'public_id');
     new_row.status := (NEW.event ->> 'status');
   ELSE
     -- Default all fields to current values
     new_row.account_holder_id := current_row.account_holder_id;
-    new_row.frozen_deposit_account_id := current_row.frozen_deposit_account_id;
-    new_row.ledger_account_id := current_row.ledger_account_id;
+    new_row.account_ids := current_row.account_ids;
     new_row.public_id := current_row.public_id;
     new_row.status := current_row.status;
   END IF;
@@ -62,8 +59,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_holder_id := (NEW.event ->> 'account_holder_id')::UUID;
-      new_row.frozen_deposit_account_id := (NEW.event ->> 'frozen_deposit_account_id')::UUID;
-      new_row.ledger_account_id := (NEW.event ->> 'ledger_account_id')::UUID;
+      new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.public_id := (NEW.event ->> 'public_id');
       new_row.status := (NEW.event ->> 'status');
     WHEN 'account_status_updated' THEN
@@ -76,8 +72,7 @@ BEGIN
     created_at,
     modified_at,
     account_holder_id,
-    frozen_deposit_account_id,
-    ledger_account_id,
+    account_ids,
     public_id,
     status
   )
@@ -87,8 +82,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_holder_id,
-    new_row.frozen_deposit_account_id,
-    new_row.ledger_account_id,
+    new_row.account_ids,
     new_row.public_id,
     new_row.status
   );

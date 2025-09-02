@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::primitives::*;
+use crate::{ledger::*, primitives::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -15,8 +15,7 @@ pub enum DepositAccountEvent {
     Initialized {
         id: DepositAccountId,
         account_holder_id: DepositAccountHolderId,
-        ledger_account_id: CalaAccountId,
-        frozen_deposit_account_id: CalaAccountId,
+        account_ids: DepositAccountLedgerAccountIds,
         status: DepositAccountStatus,
         public_id: PublicId,
     },
@@ -30,8 +29,7 @@ pub enum DepositAccountEvent {
 pub struct DepositAccount {
     pub id: DepositAccountId,
     pub account_holder_id: DepositAccountHolderId,
-    pub ledger_account_id: CalaAccountId,
-    pub frozen_deposit_account_id: CalaAccountId,
+    pub account_ids: DepositAccountLedgerAccountIds,
     pub status: DepositAccountStatus,
     pub public_id: PublicId,
 
@@ -72,15 +70,13 @@ impl TryFromEvents<DepositAccountEvent> for DepositAccount {
                     account_holder_id,
                     status,
                     public_id,
-                    ledger_account_id,
-                    frozen_deposit_account_id,
+                    account_ids,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .account_holder_id(*account_holder_id)
-                        .ledger_account_id(*ledger_account_id)
-                        .frozen_deposit_account_id(*frozen_deposit_account_id)
+                        .account_ids(*account_ids)
                         .status(*status)
                         .public_id(public_id.clone())
                 }
@@ -100,9 +96,7 @@ pub struct NewDepositAccount {
     #[builder(setter(into))]
     pub(super) account_holder_id: DepositAccountHolderId,
     #[builder(setter(into))]
-    pub(super) ledger_account_id: CalaAccountId,
-    #[builder(setter(into))]
-    pub(super) frozen_deposit_account_id: CalaAccountId,
+    pub(super) account_ids: DepositAccountLedgerAccountIds,
     pub(super) active: bool,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
@@ -121,8 +115,7 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
             [DepositAccountEvent::Initialized {
                 id: self.id,
                 account_holder_id: self.account_holder_id,
-                ledger_account_id: self.ledger_account_id,
-                frozen_deposit_account_id: self.frozen_deposit_account_id,
+                account_ids: self.account_ids,
                 status: if self.active {
                     DepositAccountStatus::Active
                 } else {
@@ -142,14 +135,13 @@ mod tests {
 
     use crate::{DepositAccountHolderId, DepositAccountId, DepositAccountStatus};
 
-    use super::{DepositAccount, DepositAccountEvent};
+    use super::{DepositAccount, DepositAccountEvent, DepositAccountLedgerAccountIds};
 
     fn initial_events() -> Vec<DepositAccountEvent> {
         vec![DepositAccountEvent::Initialized {
             id: DepositAccountId::new(),
             account_holder_id: DepositAccountHolderId::new(),
-            ledger_account_id: CalaAccountId::new(),
-            frozen_deposit_account_id: CalaAccountId::new(),
+            account_ids: DepositAccountLedgerAccountIds::new(),
             status: DepositAccountStatus::Inactive,
             public_id: PublicId::new("1"),
         }]

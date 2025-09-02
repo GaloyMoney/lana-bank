@@ -195,19 +195,19 @@ where
             .create_in_op(&mut op, DEPOSIT_ACCOUNT_REF_TARGET, account_id)
             .await?;
 
-        // Ledger account ID holding the deposit for this account.
-        // For convenience, set it to equal value as the ID of the new entity.
-        let ledger_account_id: CalaAccountId = account_id.into();
-
-        // Ledger account ID potentially holding frozen deposit from this account.
-        // It is created and bound to CoA in advance and used when needed.
-        let frozen_deposit_account_id: CalaAccountId = CalaAccountId::new();
+        let account_ids = DepositAccountLedgerAccountIds {
+            // Ledger account ID holding the deposit for this account.
+            // For convenience, set it to equal value as the ID of the new entity.
+            ledger_account_id: account_id.into(),
+            // Ledger account ID potentially holding frozen deposit from this account.
+            // It is created and bound to CoA in advance and used when needed.
+            frozen_deposit_account_id: CalaAccountId::new(),
+        };
 
         let new_account = NewDepositAccount::builder()
             .id(account_id)
             .account_holder_id(holder_id)
-            .ledger_account_id(ledger_account_id)
-            .frozen_deposit_account_id(frozen_deposit_account_id)
+            .account_ids(account_ids)
             .active(active)
             .public_id(public_id.id)
             .build()

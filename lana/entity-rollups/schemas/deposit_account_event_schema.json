@@ -1,5 +1,22 @@
 {
   "$defs": {
+    "DepositAccountLedgerAccountIds": {
+      "properties": {
+        "frozen_deposit_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "ledger_account_id",
+        "frozen_deposit_account_id"
+      ],
+      "type": "object"
+    },
     "DepositAccountStatus": {
       "enum": [
         "inactive",
@@ -17,15 +34,10 @@
           "format": "uuid",
           "type": "string"
         },
-        "frozen_deposit_account_id": {
-          "format": "uuid",
-          "type": "string"
+        "account_ids": {
+          "$ref": "#/$defs/DepositAccountLedgerAccountIds"
         },
         "id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "ledger_account_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -44,8 +56,7 @@
         "type",
         "id",
         "account_holder_id",
-        "ledger_account_id",
-        "frozen_deposit_account_id",
+        "account_ids",
         "status",
         "public_id"
       ],
