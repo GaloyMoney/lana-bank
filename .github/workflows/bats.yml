@@ -6,35 +6,36 @@ on:
       - main
       - "feature/**"
 
+env:
+  ENGINE_DEFAULT: podman
+  GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+  TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+  SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+  SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+  SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+  TF_VAR_name_prefix: "gha"
+
 jobs:
   bats-tests:
     name: End to End BATS Tests (Podman)
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
+
       - uses: ./.github/actions/setup-podman
-      
+
       - uses: ./.github/actions/setup-nix
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
-          
+
       - name: Run BATS tests with podman
         run: nix develop -c make e2e
-        env:
-          ENGINE_DEFAULT: podman
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
-          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
-          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
-          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
-          TF_VAR_name_prefix: "gha"
-          
+
       - name: Rename bats log
         if: always()
         run: mv .e2e-logs e2e-logs || true
-        
+
       - name: Upload bats log
         if: always()
         uses: actions/upload-artifact@v4
@@ -43,3 +44,10 @@ jobs:
           path: |
             e2e-logs
             *.e2e-logs 
+
+      - run: nix develop -c meltano install
+      - run: nix develop -c meltano run tap-postgres target-bigquery
+      - run: nix develop -c meltano run tap-bitfinexapi target-bigquery
+      - run: nix develop -c meltano run tap-sumsubapi target-bigquery
+      - run: nix develop -c meltano run dbt-bigquery:run
+      - run: nix develop -c meltano run generate-es-reports:run
