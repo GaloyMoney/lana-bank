@@ -1,6 +1,6 @@
 {
   "$defs": {
-    "CreditFacilityAccountIds": {
+    "CreditFacilityLedgerAccountIds": {
       "properties": {
         "collateral_account_id": {
           "format": "uuid",
@@ -87,7 +87,7 @@
     {
       "properties": {
         "account_ids": {
-          "$ref": "#/$defs/CreditFacilityAccountIds"
+          "$ref": "#/$defs/CreditFacilityLedgerAccountIds"
         },
         "amount": {
           "$ref": "#/$defs/UsdCents"

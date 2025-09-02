@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    ledger::CreditFacilityAccountIds,
+    ledger::CreditFacilityLedgerAccountIds,
     obligation::{NewObligation, ObligationAccounts},
     primitives::*,
 };
@@ -22,7 +22,7 @@ pub enum DisbursalEvent {
         approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
         amount: UsdCents,
-        account_ids: CreditFacilityAccountIds,
+        account_ids: CreditFacilityLedgerAccountIds,
         disbursal_credit_account_id: CalaAccountId,
         due_date: EffectiveDate,
         overdue_date: Option<EffectiveDate>,
@@ -51,7 +51,7 @@ pub struct Disbursal {
     pub approval_process_id: ApprovalProcessId,
     pub facility_id: CreditFacilityId,
     pub amount: UsdCents,
-    pub account_ids: CreditFacilityAccountIds,
+    pub account_ids: CreditFacilityLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
     pub due_date: EffectiveDate,
     pub overdue_date: Option<EffectiveDate>,
@@ -248,7 +248,7 @@ pub struct NewDisbursal {
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
     pub(super) amount: UsdCents,
-    pub(super) account_ids: CreditFacilityAccountIds,
+    pub(super) account_ids: CreditFacilityLedgerAccountIds,
     pub(super) disbursal_credit_account_id: CalaAccountId,
     pub(super) due_date: EffectiveDate,
     pub(super) overdue_date: Option<EffectiveDate>,

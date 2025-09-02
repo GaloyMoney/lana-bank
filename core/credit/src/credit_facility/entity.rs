@@ -28,7 +28,7 @@ pub enum CreditFacilityEvent {
         ledger_tx_id: LedgerTxId,
         terms: TermValues,
         amount: UsdCents,
-        account_ids: CreditFacilityAccountIds,
+        account_ids: CreditFacilityLedgerAccountIds,
         disbursal_credit_account_id: CalaAccountId,
         approval_process_id: ApprovalProcessId,
         public_id: PublicId,
@@ -109,8 +109,8 @@ struct InterestAccrualCycleInCreditFacility {
     period: InterestPeriod,
 }
 
-impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInterestAccrual {
-    fn from(data: (InterestAccrualData, CreditFacilityAccountIds)) -> Self {
+impl From<(InterestAccrualData, CreditFacilityLedgerAccountIds)> for CreditFacilityInterestAccrual {
+    fn from(data: (InterestAccrualData, CreditFacilityLedgerAccountIds)) -> Self {
         let (
             InterestAccrualData {
                 interest,
@@ -130,10 +130,10 @@ impl From<(InterestAccrualData, CreditFacilityAccountIds)> for CreditFacilityInt
     }
 }
 
-impl From<(InterestAccrualCycleData, CreditFacilityAccountIds)>
+impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
     for CreditFacilityInterestAccrualCycle
 {
-    fn from(data: (InterestAccrualCycleData, CreditFacilityAccountIds)) -> Self {
+    fn from(data: (InterestAccrualCycleData, CreditFacilityLedgerAccountIds)) -> Self {
         let (
             InterestAccrualCycleData {
                 interest,
@@ -162,7 +162,7 @@ pub struct CreditFacility {
     pub collateral_id: CollateralId,
     pub amount: UsdCents,
     pub terms: TermValues,
-    pub account_ids: CreditFacilityAccountIds,
+    pub account_ids: CreditFacilityLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
     pub public_id: PublicId,
     #[builder(setter(strip_option), default)]
@@ -702,7 +702,7 @@ pub struct NewCreditFacility {
     pub(super) status: CreditFacilityStatus,
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: CollateralizationState,
-    account_ids: CreditFacilityAccountIds,
+    account_ids: CreditFacilityLedgerAccountIds,
     disbursal_credit_account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) public_id: PublicId,
@@ -813,7 +813,7 @@ mod test {
             collateral_id: CollateralId::new(),
             amount: default_facility(),
             terms: default_terms(),
-            account_ids: CreditFacilityAccountIds::new(),
+            account_ids: CreditFacilityLedgerAccountIds::new(),
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),

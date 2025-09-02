@@ -979,7 +979,7 @@ impl CreditLedger {
 
     pub async fn get_credit_facility_balance(
         &self,
-        CreditFacilityAccountIds {
+        CreditFacilityLedgerAccountIds {
             facility_account_id,
             collateral_account_id,
 
@@ -995,7 +995,7 @@ impl CreditLedger {
             in_liquidation_account_id: _,
             fee_income_account_id: _,
             interest_income_account_id: _,
-        }: CreditFacilityAccountIds,
+        }: CreditFacilityLedgerAccountIds,
     ) -> Result<CreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
@@ -1148,7 +1148,7 @@ impl CreditLedger {
             action,
             effective,
         }: CollateralUpdate,
-        credit_facility_account_ids: CreditFacilityAccountIds,
+        credit_facility_account_ids: CreditFacilityLedgerAccountIds,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self
             .cala
@@ -1903,11 +1903,11 @@ impl CreditLedger {
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         credit_facility_id: CreditFacilityId,
-        account_ids: CreditFacilityAccountIds,
+        account_ids: CreditFacilityLedgerAccountIds,
         customer_type: CustomerType,
         duration_type: FacilityDurationType,
     ) -> Result<(), CreditLedgerError> {
-        let CreditFacilityAccountIds {
+        let CreditFacilityLedgerAccountIds {
             facility_account_id,
             in_liquidation_account_id,
             disbursed_receivable_not_yet_due_account_id,

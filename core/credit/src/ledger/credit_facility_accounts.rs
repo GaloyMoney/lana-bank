@@ -11,7 +11,7 @@ use crate::{
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CreditFacilityAccountIds {
+pub struct CreditFacilityLedgerAccountIds {
     pub facility_account_id: CalaAccountId,
     pub in_liquidation_account_id: CalaAccountId,
     pub disbursed_receivable_not_yet_due_account_id: CalaAccountId,
@@ -27,7 +27,7 @@ pub struct CreditFacilityAccountIds {
     pub fee_income_account_id: CalaAccountId,
 }
 
-impl CreditFacilityAccountIds {
+impl CreditFacilityLedgerAccountIds {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
@@ -68,14 +68,14 @@ impl CreditFacilityProposalAccountIds {
 pub struct CreditFacilityCompletion {
     pub tx_id: LedgerTxId,
     pub collateral: Satoshis,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
 }
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCreation {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
     pub facility_amount: UsdCents,
 }
 
@@ -91,7 +91,7 @@ pub struct CreditFacilityProposalCreation {
 pub struct CreditFacilityActivation {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
     pub debit_account_id: CalaAccountId,
     pub facility_amount: UsdCents,
     pub structuring_fee_amount: UsdCents,
@@ -103,7 +103,7 @@ pub struct CreditFacilityInterestAccrual {
     pub tx_ref: String,
     pub interest: UsdCents,
     pub period: InterestPeriod,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
 }
 
 #[derive(Debug, Clone)]
@@ -112,5 +112,5 @@ pub struct CreditFacilityInterestAccrualCycle {
     pub tx_ref: String,
     pub interest: UsdCents,
     pub effective: chrono::NaiveDate,
-    pub credit_facility_account_ids: CreditFacilityAccountIds,
+    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
 }

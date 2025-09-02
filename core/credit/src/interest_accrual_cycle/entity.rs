@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    ledger::CreditFacilityAccountIds,
+    ledger::CreditFacilityLedgerAccountIds,
     obligation::{NewObligation, ObligationAccounts},
     primitives::*,
     terms::{InterestPeriod, TermValues},
@@ -24,8 +24,8 @@ pub struct InterestAccrualCycleAccountIds {
     pub in_liquidation_account_id: CalaAccountId,
 }
 
-impl From<CreditFacilityAccountIds> for InterestAccrualCycleAccountIds {
-    fn from(credit_facility_account_ids: CreditFacilityAccountIds) -> Self {
+impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleAccountIds {
+    fn from(credit_facility_account_ids: CreditFacilityLedgerAccountIds) -> Self {
         Self {
             interest_receivable_not_yet_due_account_id: credit_facility_account_ids
                 .interest_receivable_not_yet_due_account_id,
@@ -448,7 +448,7 @@ mod test {
         vec![InterestAccrualCycleEvent::Initialized {
             id: InterestAccrualCycleId::new(),
             facility_id: CreditFacilityId::new(),
-            account_ids: CreditFacilityAccountIds::new().into(),
+            account_ids: CreditFacilityLedgerAccountIds::new().into(),
             idx: InterestAccrualCycleIdx::FIRST,
             period: default_period(),
             facility_maturity_date: terms.duration.maturity_date(started_at),

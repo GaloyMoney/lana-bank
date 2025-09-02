@@ -553,7 +553,7 @@ where
         }
 
         let id = CreditFacilityId::new();
-        let account_ids = CreditFacilityAccountIds::new();
+        let account_ids = CreditFacilityLedgerAccountIds::new();
         let collateral_id = CollateralId::new();
 
         let mut db = self.facilities.begin_op().await?;
