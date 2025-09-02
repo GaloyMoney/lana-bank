@@ -26,7 +26,7 @@ use crate::{
     },
 };
 
-pub use deposit_accounts::*;
+pub(super) use deposit_accounts::*;
 use error::*;
 
 pub const DEPOSIT_INDIVIDUAL_ACCOUNT_SET_NAME: &str = "Deposit Individual Account Set";
