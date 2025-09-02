@@ -4,13 +4,12 @@ use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CustomerObject};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
-use core_customer::CustomerActivityRepo;
 use lana_events::LanaEvent;
 
 #[derive(Default, Clone, Deserialize, Serialize)]
@@ -27,11 +26,12 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
-    repo: CustomerActivityRepo,
     deposits: CoreDeposit<Perms, E>,
+    customers: Customers<Perms, E>,
 }
 
 #[async_trait]
@@ -44,7 +44,8 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     async fn run(
         &self,
@@ -87,8 +88,8 @@ where
 
                 if let Some(customer_id) = customer_id {
                     let activity_date = message.recorded_at;
-                    self.repo
-                        .upsert_activity(customer_id, activity_date)
+                    self.customers
+                        .record_last_activity_from_system(customer_id, activity_date)
                         .await?;
                 }
             }
@@ -110,16 +111,17 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     pub fn new(
         outbox: &Outbox<E>,
-        repo: &CustomerActivityRepo,
+        customers: &Customers<Perms, E>,
         deposits: &CoreDeposit<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo: repo.clone(),
+            customers: customers.clone(),
             deposits: deposits.clone(),
         }
     }
@@ -134,10 +136,11 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     outbox: Outbox<E>,
-    repo: CustomerActivityRepo,
+    customers: Customers<Perms, E>,
     deposits: CoreDeposit<Perms, E>,
 }
 
@@ -150,13 +153,17 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
-    pub fn new(outbox: &Outbox<E>, pool: sqlx::PgPool, deposits: &CoreDeposit<Perms, E>) -> Self {
-        let repo = CustomerActivityRepo::new(pool);
+    pub fn new(
+        outbox: &Outbox<E>,
+        customers: &Customers<Perms, E>,
+        deposits: &CoreDeposit<Perms, E>,
+    ) -> Self {
         Self {
             outbox: outbox.clone(),
-            repo,
+            customers: customers.clone(),
             deposits: deposits.clone(),
         }
     }
@@ -173,7 +180,8 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     fn job_type() -> JobType
     where
@@ -185,7 +193,7 @@ where
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CustomerActivityUpdateJobRunner::new(
             &self.outbox,
-            &self.repo,
+            &self.customers,
             &self.deposits,
         )))
     }
@@ -226,7 +234,8 @@ where
         From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
     E: OutboxEventMarker<LanaEvent>
         + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
 {
     type Initializer = CustomerActivityUpdateInit<Perms, E>;
 }

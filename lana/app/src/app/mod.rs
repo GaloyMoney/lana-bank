@@ -138,7 +138,6 @@ impl LanaApp {
         let customer_activity = customer_activity::CustomerActivityJobs::init(
             &jobs,
             &outbox,
-            pool.clone(),
             &customers,
             &deposits,
             config.customer_activity,

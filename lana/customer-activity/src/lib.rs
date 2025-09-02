@@ -15,13 +15,11 @@ use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
 };
-use es_entity::prelude::sqlx;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub use config::CustomerActivityCheckConfig;
-pub use core_customer::CustomerActivityRepo;
 pub use jobs::{
     CustomerActivityCheckInit, CustomerActivityCheckJobConfig, CustomerActivityUpdateConfig,
     CustomerActivityUpdateInit,
@@ -68,19 +66,18 @@ where
     pub async fn init(
         jobs: &::job::Jobs,
         outbox: &Outbox<E>,
-        pool: sqlx::PgPool,
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
         activity_check_config: CustomerActivityCheckConfig,
     ) -> Result<Self, CustomerActivityError> {
         jobs.add_initializer_and_spawn_unique(
-            CustomerActivityUpdateInit::new(outbox, pool.clone(), deposit),
+            CustomerActivityUpdateInit::new(outbox, &customers.clone(), deposit),
             CustomerActivityUpdateConfig::new(),
         )
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            CustomerActivityCheckInit::new(customers, pool, activity_check_config),
+            CustomerActivityCheckInit::new(customers, activity_check_config),
             CustomerActivityCheckJobConfig::new(),
         )
         .await?;

@@ -9,13 +9,12 @@ use core_deposit::{
     CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction, GovernanceObject,
 };
 
-use es_entity::prelude::sqlx;
 use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use outbox::OutboxEventMarker;
 
 use crate::config::CustomerActivityCheckConfig;
-use core_customer::CustomerActivityRepo;
+use crate::error::CustomerActivityError;
 use job::*;
 
 // Use January 1st, 2000 as the minimum date
@@ -70,7 +69,6 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     customers: Customers<Perms, E>,
-    customer_activity_repo: CustomerActivityRepo,
     config: CustomerActivityCheckConfig,
 }
 
@@ -82,14 +80,9 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(
-        customers: &Customers<Perms, E>,
-        pool: sqlx::PgPool,
-        config: CustomerActivityCheckConfig,
-    ) -> Self {
+    pub fn new(customers: &Customers<Perms, E>, config: CustomerActivityCheckConfig) -> Self {
         Self {
             customers: customers.clone(),
-            customer_activity_repo: CustomerActivityRepo::new(pool),
             config,
         }
     }
@@ -119,7 +112,6 @@ where
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CustomerActivityCheckJobRunner {
             customers: self.customers.clone(),
-            customer_activity_repo: self.customer_activity_repo.clone(),
             config: self.config.clone(),
         }))
     }
@@ -141,7 +133,6 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     customers: Customers<Perms, E>,
-    customer_activity_repo: CustomerActivityRepo,
     config: CustomerActivityCheckConfig,
 }
 
@@ -216,14 +207,10 @@ where
         start_threshold: DateTime<Utc>,
         end_threshold: DateTime<Utc>,
         activity: core_customer::Activity,
-    ) -> Result<(), Box<dyn std::error::Error>> {
+    ) -> Result<(), CustomerActivityError> {
         let customers = self
-            .customer_activity_repo
-            .find_customers_in_range_with_non_matching_activity(
-                start_threshold,
-                end_threshold,
-                activity,
-            )
+            .customers
+            .find_customers_with_activity_mismatch(start_threshold, end_threshold, activity)
             .await?;
         // TODO: Add a batch update for the customers
         for customer_id in customers {

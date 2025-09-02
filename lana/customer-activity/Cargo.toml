@@ -18,13 +18,11 @@ outbox = { workspace = true }
 job = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
-es-entity = { workspace = true }
 
 serde = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
 chrono = { workspace = true }
-sqlx = { workspace = true }
 tracing = { workspace = true }
 sim-time = { workspace = true, optional = true }

@@ -9,6 +9,7 @@ mod primitives;
 mod publisher;
 mod repo;
 
+use chrono::{DateTime, Utc};
 use std::collections::HashMap;
 use tracing::instrument;
 
@@ -45,6 +46,7 @@ where
     authz: Perms,
     outbox: Outbox<E>,
     repo: CustomerRepo<E>,
+    customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
 }
@@ -59,6 +61,7 @@ where
             authz: self.authz.clone(),
             outbox: self.outbox.clone(),
             repo: self.repo.clone(),
+            customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
         }
@@ -81,10 +84,12 @@ where
     ) -> Self {
         let publisher = CustomerPublisher::new(outbox);
         let repo = CustomerRepo::new(pool, &publisher);
+        let customer_activity_repo = CustomerActivityRepo::new(pool.clone());
         Self {
             repo,
             authz: authz.clone(),
             outbox: outbox.clone(),
+            customer_activity_repo,
             document_storage,
             public_ids: public_id_service,
         }
@@ -556,5 +561,37 @@ where
         }
 
         Ok(customer)
+    }
+
+    #[instrument(name = "customer.record_last_activity_from_system", skip(self), err)]
+    pub async fn record_last_activity_from_system(
+        &self,
+        customer_id: CustomerId,
+        activity_date: DateTime<Utc>,
+    ) -> Result<(), CustomerError> {
+        self.customer_activity_repo
+            .upsert_activity(customer_id, activity_date)
+            .await?;
+        Ok(())
+    }
+
+    #[instrument(
+        name = "customer.find_customers_with_activity_mismatch",
+        skip(self),
+        err
+    )]
+    pub async fn find_customers_with_activity_mismatch(
+        &self,
+        start_threshold: DateTime<Utc>,
+        end_threshold: DateTime<Utc>,
+        activity: Activity,
+    ) -> Result<Vec<CustomerId>, CustomerError> {
+        self.customer_activity_repo
+            .find_customers_in_range_with_non_matching_activity(
+                start_threshold,
+                end_threshold,
+                activity,
+            )
+            .await
     }
 }
