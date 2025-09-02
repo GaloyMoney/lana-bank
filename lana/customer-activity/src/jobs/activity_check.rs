@@ -14,7 +14,6 @@ use lana_events::LanaEvent;
 use outbox::OutboxEventMarker;
 
 use crate::config::CustomerActivityCheckConfig;
-use crate::error::CustomerActivityError;
 use job::*;
 
 // Use January 1st, 2000 as the minimum date
@@ -178,46 +177,29 @@ where
 {
     #[instrument(name = "customer_activity_check.perform_check", skip(self), err)]
     async fn perform_activity_check(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.update_customers_by_activity_and_date_range(
-            EARLIEST_SEARCH_START,
-            self.config.get_escheatment_threshold_date(),
-            core_customer::Activity::Suspended,
-        )
-        .await?;
-
-        self.update_customers_by_activity_and_date_range(
-            self.config.get_escheatment_threshold_date(),
-            self.config.get_inactive_threshold_date(),
-            core_customer::Activity::Inactive,
-        )
-        .await?;
-
-        self.update_customers_by_activity_and_date_range(
-            self.config.get_inactive_threshold_date(),
-            crate::time::now(),
-            core_customer::Activity::Active,
-        )
-        .await?;
-
-        Ok(())
-    }
-
-    async fn update_customers_by_activity_and_date_range(
-        &self,
-        start_threshold: DateTime<Utc>,
-        end_threshold: DateTime<Utc>,
-        activity: core_customer::Activity,
-    ) -> Result<(), CustomerActivityError> {
-        let customers = self
-            .customers
-            .find_customers_with_activity_mismatch(start_threshold, end_threshold, activity)
+        self.customers
+            .update_customers_by_activity_and_date_range(
+                EARLIEST_SEARCH_START,
+                self.config.get_escheatment_threshold_date(),
+                core_customer::Activity::Suspended,
+            )
             .await?;
-        // TODO: Add a batch update for the customers
-        for customer_id in customers {
-            self.customers
-                .update_activity_from_system(customer_id, activity)
-                .await?;
-        }
+
+        self.customers
+            .update_customers_by_activity_and_date_range(
+                self.config.get_escheatment_threshold_date(),
+                self.config.get_inactive_threshold_date(),
+                core_customer::Activity::Inactive,
+            )
+            .await?;
+
+        self.customers
+            .update_customers_by_activity_and_date_range(
+                self.config.get_inactive_threshold_date(),
+                crate::time::now(),
+                core_customer::Activity::Active,
+            )
+            .await?;
 
         Ok(())
     }

@@ -576,22 +576,30 @@ where
     }
 
     #[instrument(
-        name = "customer.find_customers_with_activity_mismatch",
+        name = "customer.update_customers_by_activity_and_date_range",
         skip(self),
         err
     )]
-    pub async fn find_customers_with_activity_mismatch(
+    pub async fn update_customers_by_activity_and_date_range(
         &self,
         start_threshold: DateTime<Utc>,
         end_threshold: DateTime<Utc>,
         activity: Activity,
-    ) -> Result<Vec<CustomerId>, CustomerError> {
-        self.customer_activity_repo
+    ) -> Result<(), CustomerError> {
+        let customers = self
+            .customer_activity_repo
             .find_customers_in_range_with_non_matching_activity(
                 start_threshold,
                 end_threshold,
                 activity,
             )
-            .await
+            .await?;
+        // TODO: Add a batch update for the customers
+        for customer_id in customers {
+            self.update_activity_from_system(customer_id, activity)
+                .await?;
+        }
+
+        Ok(())
     }
 }
