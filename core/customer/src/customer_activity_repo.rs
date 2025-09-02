@@ -1,7 +1,7 @@
 use sqlx::PgPool;
 use sqlx::types::uuid;
 
-use core_customer::CustomerId;
+use crate::{Activity, CustomerId};
 
 #[derive(Clone)]
 pub struct CustomerActivityRepo {
@@ -41,7 +41,7 @@ impl CustomerActivityRepo {
         &self,
         start_threshold: chrono::DateTime<chrono::Utc>,
         end_threshold: chrono::DateTime<chrono::Utc>,
-        activity: core_customer::Activity,
+        activity: Activity,
     ) -> Result<Vec<CustomerId>, sqlx::Error> {
         let activity_str = activity.to_string();
         let rows = sqlx::query!(

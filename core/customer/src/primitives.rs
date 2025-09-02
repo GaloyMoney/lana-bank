@@ -1,3 +1,4 @@
+use chrono::{DateTime, Utc};
 use serde::{Deserialize, Serialize};
 use std::{fmt::Display, str::FromStr};
 
@@ -314,4 +315,10 @@ impl From<CustomerDocumentEntityAction> for CoreCustomerAction {
     fn from(action: CustomerDocumentEntityAction) -> Self {
         CoreCustomerAction::CustomerDocument(action)
     }
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct CustomerActivity {
+    pub customer_id: CustomerId,
+    pub last_activity_date: DateTime<Utc>,
 }

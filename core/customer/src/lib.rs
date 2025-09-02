@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod customer_activity_repo;
 mod entity;
 pub mod error;
 mod event;
@@ -19,6 +20,7 @@ use document_storage::{
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
+pub use customer_activity_repo::CustomerActivityRepo;
 pub use entity::Customer;
 use entity::*;
 use error::*;

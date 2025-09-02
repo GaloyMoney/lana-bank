@@ -10,7 +10,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
-use crate::CustomerActivityRepo;
+use core_customer::CustomerActivityRepo;
 use lana_events::LanaEvent;
 
 #[derive(Default, Clone, Deserialize, Serialize)]

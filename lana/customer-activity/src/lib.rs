@@ -4,8 +4,6 @@
 pub mod config;
 pub mod error;
 pub mod jobs;
-mod primitives;
-mod repo;
 mod time;
 
 use error::*;
@@ -23,12 +21,11 @@ use lana_events::LanaEvent;
 use outbox::{Outbox, OutboxEventMarker};
 
 pub use config::CustomerActivityCheckConfig;
+pub use core_customer::CustomerActivityRepo;
 pub use jobs::{
     CustomerActivityCheckInit, CustomerActivityCheckJobConfig, CustomerActivityUpdateConfig,
     CustomerActivityUpdateInit,
 };
-pub use primitives::CustomerActivity;
-pub use repo::CustomerActivityRepo;
 
 pub struct CustomerActivityJobs<Perms, E>
 where

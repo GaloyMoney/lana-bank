@@ -14,8 +14,8 @@ use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use outbox::OutboxEventMarker;
 
-use crate::CustomerActivityRepo;
 use crate::config::CustomerActivityCheckConfig;
+use core_customer::CustomerActivityRepo;
 use job::*;
 
 // Use January 1st, 2000 as the minimum date

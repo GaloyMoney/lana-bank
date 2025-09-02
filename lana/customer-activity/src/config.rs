@@ -1,4 +1,4 @@
-use chrono::{NaiveTime, Timelike, Duration, DateTime, Utc};
+use chrono::{DateTime, Duration, NaiveTime, Timelike, Utc};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
