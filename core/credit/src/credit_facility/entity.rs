@@ -33,6 +33,7 @@ pub enum CreditFacilityEvent {
         disbursal_credit_account_id: CalaAccountId,
         approval_process_id: ApprovalProcessId, // TODO: check if we need this
         public_id: PublicId,
+        activated_at: DateTime<Utc>,
         maturity_date: EffectiveDate,
     },
     InterestAccrualCycleStarted {
@@ -159,6 +160,7 @@ pub struct CreditFacility {
     pub account_ids: CreditFacilityLedgerAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
     pub public_id: PublicId,
+    pub activated_at: DateTime<Utc>,
     pub maturity_date: EffectiveDate,
 
     #[es_entity(nested)]
@@ -286,7 +288,7 @@ impl CreditFacility {
         let interval = self.terms.accrual_cycle_interval;
         let full_period = match last_accrual_start_date {
             Some(last_accrual_start_date) => interval.period_from(last_accrual_start_date).next(),
-            None => interval.period_from(self.created_at()),
+            None => interval.period_from(self.activated_at),
         };
 
         Ok(full_period.truncate(self.matures_at()))
@@ -546,6 +548,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     approval_process_id,
                     public_id,
                     maturity_date,
+                    activated_at,
                     ..
                 } => {
                     builder = builder
@@ -558,6 +561,7 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
                         .approval_process_id(*approval_process_id)
                         .public_id(public_id.clone())
+                        .activated_at(*activated_at)
                         .maturity_date(*maturity_date);
                 }
                 CreditFacilityEvent::InterestAccrualCycleStarted { .. } => (),
@@ -587,6 +591,7 @@ pub struct NewCreditFacility {
     pub(super) collateral_id: CollateralId,
     terms: TermValues,
     amount: UsdCents,
+    activated_at: DateTime<Utc>,
     maturity_date: EffectiveDate,
     #[builder(setter(skip), default)]
     pub(super) status: CreditFacilityStatus,
@@ -620,6 +625,7 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 approval_process_id: self.approval_process_id,
                 public_id: self.public_id,
+                activated_at: self.activated_at,
                 maturity_date: self.maturity_date,
             }],
         )
@@ -675,7 +681,7 @@ mod test {
             .unwrap()
     }
 
-    fn created_at() -> DateTime<Utc> {
+    fn activated_at() -> DateTime<Utc> {
         date_from("2021-01-15T12:00:00Z")
     }
 
@@ -710,7 +716,8 @@ mod test {
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
-            maturity_date: EffectiveDate::from(created_at() + chrono::Duration::days(90)),
+            activated_at: activated_at(),
+            maturity_date: EffectiveDate::from(activated_at() + chrono::Duration::days(90)),
         }]
     }
 
@@ -753,7 +760,7 @@ mod test {
         events.push(CreditFacilityEvent::InterestAccrualCycleStarted {
             interest_accrual_id: InterestAccrualCycleId::new(),
             interest_accrual_cycle_idx: InterestAccrualCycleIdx::FIRST,
-            interest_period: InterestInterval::EndOfDay.period_from(created_at()),
+            interest_period: InterestInterval::EndOfDay.period_from(activated_at()),
         });
         let credit_facility = facility_from(events);
         assert_eq!(
@@ -766,19 +773,10 @@ mod test {
 
         use super::*;
 
-        // #[test]
-        // TODO: don't need this ?
-        // fn error_if_not_activated_yet() {
-        //     let credit_facility = facility_from(initial_events());
-
-        //     let res = credit_facility.next_interest_accrual_cycle_period();
-        //     assert!(matches!(res, Err(CreditFacilityError::NotActivatedYet)));
-        // }
-
         #[test]
         fn first_period_starts_at_activation_when_no_prior_accrual() {
             let events = initial_events();
-            let first_interest_period = InterestInterval::EndOfMonth.period_from(created_at());
+            let first_interest_period = InterestInterval::EndOfMonth.period_from(activated_at());
             let credit_facility = facility_from(events);
 
             let period = credit_facility
@@ -791,7 +789,7 @@ mod test {
         #[test]
         fn next_period_after_accrual_event() {
             let mut events = initial_events();
-            let first_interest_period = InterestInterval::EndOfMonth.period_from(created_at());
+            let first_interest_period = InterestInterval::EndOfMonth.period_from(activated_at());
             events.extend([CreditFacilityEvent::InterestAccrualCycleStarted {
                 interest_accrual_id: InterestAccrualCycleId::new(),
                 interest_accrual_cycle_idx: InterestAccrualCycleIdx::FIRST,
@@ -839,7 +837,7 @@ mod test {
                 .next_interest_accrual_cycle_period()
                 .unwrap()
                 .unwrap();
-            assert_eq!(start, created_at());
+            assert_eq!(start, activated_at());
 
             credit_facility
                 .start_interest_accrual_cycle()

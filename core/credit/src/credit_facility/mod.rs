@@ -17,7 +17,10 @@ use crate::{
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
     jobs::credit_facility_maturity,
-    ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
+    ledger::{
+        CreditFacilityAccountIds, CreditFacilityInterestAccrual,
+        CreditFacilityInterestAccrualCycle, CreditLedger,
+    },
     obligation::Obligations,
     primitives::*,
     terms::InterestPeriod,
@@ -165,6 +168,7 @@ where
             .terms(terms)
             .amount(amount)
             .approval_process_id(approval_process_id)
+            .activated_at(crate::time::now())
             .maturity_date(terms.maturity_date(crate::time::now()))
             .public_id(public_id.id)
             .build()
