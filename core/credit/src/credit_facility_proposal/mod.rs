@@ -145,6 +145,7 @@ where
             .ledger
             .get_credit_facility_proposal_balance(facility_proposal.account_ids)
             .await?;
+
         let price = self.price.usd_cents_per_btc().await?;
 
         if facility_proposal
