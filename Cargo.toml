@@ -59,9 +59,9 @@ sim-bootstrap = { path = "lana/sim-bootstrap" }
 user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
-es-entity = { version = "0.7.15", features = ["event-context", "tracing"] }
+es-entity = { version = "0.7.17", features = ["event-context", "tracing"] }
 sim-time = "0.7"
-cala-ledger = "0.8.0"
+cala-ledger = "0.8.1"
 
 
 aes = "0.8"
