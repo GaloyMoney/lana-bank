@@ -4,6 +4,8 @@ use serde::{Deserialize, Serialize};
 
 use cala_ledger::AccountId as CalaAccountId;
 
+use crate::DepositAccountId;
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct DepositAccountLedgerAccountIds {
@@ -12,7 +14,7 @@ pub struct DepositAccountLedgerAccountIds {
 }
 
 impl DepositAccountLedgerAccountIds {
-    pub fn new(account_id: impl Into<CalaAccountId>) -> Self {
+    pub fn new(account_id: DepositAccountId) -> Self {
         Self {
             deposit_account_id: account_id.into(),
             frozen_deposit_account_id: CalaAccountId::new(),
