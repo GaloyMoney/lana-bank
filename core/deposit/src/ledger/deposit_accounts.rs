@@ -12,7 +12,6 @@ pub struct DepositAccountLedgerAccountIds {
 }
 
 impl DepositAccountLedgerAccountIds {
-    #[allow(clippy::new_without_default)]
     pub fn new(account_id: impl Into<CalaAccountId>) -> Self {
         Self {
             deposit_account_id: account_id.into(),
