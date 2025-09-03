@@ -1042,10 +1042,10 @@ export type DepositAccountHistoryEntryEdge = {
 
 export type DepositAccountLedgerAccounts = {
   __typename?: 'DepositAccountLedgerAccounts';
+  depositAccountId: Scalars['UUID']['output'];
   frozenDepositAccount: LedgerAccount;
   frozenDepositAccountId: Scalars['UUID']['output'];
   ledgerAccount: LedgerAccount;
-  ledgerAccountId: Scalars['UUID']['output'];
 };
 
 export enum DepositAccountStatus {

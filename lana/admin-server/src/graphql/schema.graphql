@@ -1024,7 +1024,7 @@ type DepositAccountHistoryEntryEdge {
 }
 
 type DepositAccountLedgerAccounts {
-	ledgerAccountId: UUID!
+	depositAccountId: UUID!
 	frozenDepositAccountId: UUID!
 	ledgerAccount: LedgerAccount!
 	frozenDepositAccount: LedgerAccount!

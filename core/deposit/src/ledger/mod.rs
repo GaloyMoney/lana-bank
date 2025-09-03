@@ -607,7 +607,7 @@ impl DepositLedger {
 
         let params = templates::FreezeAccountParams {
             journal_id: self.journal_id,
-            account_id: account.account_ids.ledger_account_id,
+            account_id: account.account_ids.deposit_account_id,
             frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
             amount: balance.settled.to_usd(),
             currency: self.usd,

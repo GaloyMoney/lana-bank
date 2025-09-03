@@ -2,17 +2,17 @@
   "$defs": {
     "DepositAccountLedgerAccountIds": {
       "properties": {
-        "frozen_deposit_account_id": {
+        "deposit_account_id": {
           "format": "uuid",
           "type": "string"
         },
-        "ledger_account_id": {
+        "frozen_deposit_account_id": {
           "format": "uuid",
           "type": "string"
         }
       },
       "required": [
-        "ledger_account_id",
+        "deposit_account_id",
         "frozen_deposit_account_id"
       ],
       "type": "object"
