@@ -9,7 +9,7 @@ meltano:
       method: "{{ env_var('DBT_BIGQUERY_AUTH_METHOD') }}"
       project: "{{ env_var('DBT_BIGQUERY_PROJECT') }}"
       dataset: "{{ env_var('DBT_BIGQUERY_DATASET') }}"
-      threads: 2
+      threads: 16
       refresh_token: "{{ env_var('DBT_BIGQUERY_REFRESH_TOKEN', '') }}"
       client_id: "{{ env_var('DBT_BIGQUERY_CLIENT_ID', '') }}"
       client_secret: "{{ env_var('DBT_BIGQUERY_CLIENT_SECRET', '') }}"
