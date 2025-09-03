@@ -1,10 +1,16 @@
 use async_graphql::*;
 
-pub use lana_app::accounting::ledger_transaction::{
-    LedgerTransaction as DomainLedgerTransaction, LedgerTransactionCursor,
+pub use lana_app::{
+    accounting::ledger_transaction::{
+        LedgerTransaction as DomainLedgerTransaction, LedgerTransactionCursor,
+    },
+    deposit::DEPOSIT_TRANSACTION_ENTITY_TYPE,
 };
 
-use crate::primitives::*;
+use crate::{
+    graphql::{deposit::Deposit, loader::*},
+    primitives::*,
+};
 
 use super::JournalEntry;
 
@@ -18,11 +24,36 @@ pub struct LedgerTransaction {
     #[graphql(skip)]
     pub entity: Arc<DomainLedgerTransaction>,
 }
+#[derive(Union)]
+pub enum LedgerTransactionEntity {
+    Deposit(Deposit),
+}
 
 #[ComplexObject]
 impl LedgerTransaction {
     async fn description(&self) -> &Option<String> {
         &self.entity.description
+    }
+
+    async fn entity(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<LedgerTransactionEntity>> {
+        let Some(ref entity_ref) = self.entity.entity_ref else {
+            return Ok(None);
+        };
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let res = match &entity_ref.entity_type {
+            entity_type if entity_type == &DEPOSIT_TRANSACTION_ENTITY_TYPE => {
+                let deposit = loader
+                    .load_one(DepositId::from(entity_ref.entity_id))
+                    .await?
+                    .expect("Could not find deposit account");
+                Some(LedgerTransactionEntity::Deposit(deposit))
+            }
+            _ => None,
+        };
+        Ok(res)
     }
 
     async fn entries(&self) -> Vec<JournalEntry> {

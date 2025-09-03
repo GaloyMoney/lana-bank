@@ -1325,6 +1325,7 @@ type LedgerTransaction {
 	createdAt: Timestamp!
 	effective: Date!
 	description: String
+	entity: LedgerTransactionEntity
 	entries: [JournalEntry!]!
 }
 
@@ -1356,6 +1357,8 @@ type LedgerTransactionEdge {
 	"""
 	cursor: String!
 }
+
+union LedgerTransactionEntity = Deposit
 
 type LoanAgreement {
 	id: ID!

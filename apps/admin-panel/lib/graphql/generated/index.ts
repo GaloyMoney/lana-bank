@@ -1334,6 +1334,7 @@ export type LedgerTransaction = {
   createdAt: Scalars['Timestamp']['output'];
   description?: Maybe<Scalars['String']['output']>;
   effective: Scalars['Date']['output'];
+  entity?: Maybe<LedgerTransactionEntity>;
   entries: Array<JournalEntry>;
   id: Scalars['ID']['output'];
   ledgerTransactionId: Scalars['UUID']['output'];
@@ -1357,6 +1358,8 @@ export type LedgerTransactionEdge = {
   /** The item at the end of the edge */
   node: LedgerTransaction;
 };
+
+export type LedgerTransactionEntity = Deposit;
 
 export type Loan = {
   __typename?: 'Loan';
