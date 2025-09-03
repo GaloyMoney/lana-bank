@@ -195,8 +195,12 @@ where
             .create_in_op(&mut op, DEPOSIT_ACCOUNT_REF_TARGET, account_id)
             .await?;
 
-        // For convenience, set ledger_account_id to equal value as the ID of the new entity.
-        let account_ids = DepositAccountLedgerAccountIds::with_ledger_account(account_id);
+        // Ledger account ID holding the deposit for this account.
+        // For convenience, set it to equal value as the ID of the new entity.
+
+        // Ledger account ID potentially holding frozen deposit from this account.
+        // It is created and bound to CoA in advance and used when needed.
+        let account_ids = DepositAccountLedgerAccountIds::new(account_id);
 
         let new_account = NewDepositAccount::builder()
             .id(account_id)

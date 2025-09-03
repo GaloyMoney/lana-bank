@@ -140,7 +140,7 @@ mod tests {
         vec![DepositAccountEvent::Initialized {
             id: DepositAccountId::new(),
             account_holder_id: DepositAccountHolderId::new(),
-            account_ids: DepositAccountLedgerAccountIds::new(),
+            account_ids: DepositAccountLedgerAccountIds::new(id),
             status: DepositAccountStatus::Inactive,
             public_id: PublicId::new("1"),
         }]
