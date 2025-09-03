@@ -629,10 +629,11 @@ where
         Ok(balances)
     }
 
+    #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn has_outstanding_obligations(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug,
+        credit_facility_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
     ) -> Result<bool, CreditFacilityError> {
         let id = credit_facility_id.into();
 

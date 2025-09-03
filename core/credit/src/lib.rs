@@ -907,7 +907,7 @@ where
     }
 
     #[instrument(name = "credit.record_payment_with_date", skip(self), err)]
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn record_payment_with_date(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
