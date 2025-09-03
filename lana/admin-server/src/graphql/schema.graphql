@@ -1263,6 +1263,7 @@ type LedgerAccount {
 	id: ID!
 	ledgerAccountId: UUID!
 	code: AccountCode
+	entity: LedgerAccountEntity
 	name: String!
 	normalBalanceType: DebitOrCredit!
 	balanceRange: LedgerAccountBalanceRange!
@@ -1315,6 +1316,8 @@ type LedgerAccountEdge {
 	"""
 	cursor: String!
 }
+
+union LedgerAccountEntity = DepositAccount
 
 type LedgerTransaction {
 	id: ID!

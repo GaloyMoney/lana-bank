@@ -1277,6 +1277,7 @@ export type LedgerAccount = {
   children: Array<LedgerAccount>;
   closestAccountWithCode?: Maybe<LedgerAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
+  entity?: Maybe<LedgerAccountEntity>;
   history: JournalEntryConnection;
   id: Scalars['ID']['output'];
   ledgerAccountId: Scalars['UUID']['output'];
@@ -1325,6 +1326,8 @@ export type LedgerAccountEdge = {
   /** The item at the end of the edge */
   node: LedgerAccount;
 };
+
+export type LedgerAccountEntity = DepositAccount;
 
 export type LedgerTransaction = {
   __typename?: 'LedgerTransaction';

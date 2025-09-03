@@ -3,7 +3,7 @@ use std::collections::HashMap;
 use crate::{
     AccountCode, BalanceRange, CalaAccount, CalaAccountBalance, CalaAccountId, CalaAccountSet,
     CalaAccountSetId, CalaBalanceId, CalaBalanceRange, CalaCurrency, CalaJournalId, DebitOrCredit,
-    LedgerAccountId,
+    LedgerAccountId, primitives::EntityRef,
 };
 
 #[derive(Debug, Clone)]
@@ -14,6 +14,7 @@ pub struct LedgerAccount {
     pub normal_balance_type: DebitOrCredit,
     pub btc_balance_range: Option<BalanceRange>,
     pub usd_balance_range: Option<BalanceRange>,
+    pub entity_ref: Option<EntityRef>,
 
     pub ancestor_ids: Vec<LedgerAccountId>,
     pub children_ids: Vec<LedgerAccountId>,
@@ -104,6 +105,7 @@ impl From<(CalaAccountSet, AccountBalances)> for LedgerAccount {
             children_ids: Vec::new(),
             is_leaf: false,
             cala_external_id: external_id,
+            entity_ref: None,
         }
     }
 }
@@ -144,10 +146,15 @@ impl From<(CalaAccountSet, BalanceRanges)> for LedgerAccount {
             children_ids: Vec::new(),
             is_leaf: false,
             cala_external_id: external_id,
+            entity_ref: None,
         }
     }
 }
 
+#[derive(serde::Deserialize)]
+struct ExtractEntityRef {
+    entity_ref: Option<EntityRef>,
+}
 impl From<(CalaAccount, AccountBalances)> for LedgerAccount {
     fn from(
         (
@@ -174,6 +181,10 @@ impl From<(CalaAccount, AccountBalances)> for LedgerAccount {
         let external_id = values.external_id.clone();
         let normal_balance_type = values.normal_balance_type;
 
+        let extracted = account
+            .metadata::<ExtractEntityRef>()
+            .expect("Could not extract entity_ref");
+
         LedgerAccount {
             id: account.id.into(),
             name: account.into_values().name,
@@ -185,6 +196,7 @@ impl From<(CalaAccount, AccountBalances)> for LedgerAccount {
             children_ids: Vec::new(),
             is_leaf: true,
             cala_external_id: external_id,
+            entity_ref: extracted.and_then(|e| e.entity_ref),
         }
     }
 }
@@ -214,6 +226,10 @@ impl From<(CalaAccount, BalanceRanges)> for LedgerAccount {
         let external_id = values.external_id.clone();
         let normal_balance_type = values.normal_balance_type;
 
+        let extracted = account
+            .metadata::<ExtractEntityRef>()
+            .expect("Could not extract entity_ref");
+
         LedgerAccount {
             id: account.id.into(),
             name: account.into_values().name,
@@ -225,6 +241,7 @@ impl From<(CalaAccount, BalanceRanges)> for LedgerAccount {
             children_ids: Vec::new(),
             is_leaf: true,
             cala_external_id: external_id,
+            entity_ref: extracted.and_then(|e| e.entity_ref),
         }
     }
 }

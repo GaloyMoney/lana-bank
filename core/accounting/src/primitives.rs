@@ -48,10 +48,10 @@ impl EntityType {
     }
 }
 
-#[derive(Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct EntityRef {
-    entity_type: EntityType,
-    entity_id: uuid::Uuid,
+    pub entity_type: EntityType,
+    pub entity_id: uuid::Uuid,
 }
 
 impl EntityRef {

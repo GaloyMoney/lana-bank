@@ -3,16 +3,26 @@ use serde::{Deserialize, Serialize};
 
 use std::sync::Arc;
 
-use lana_app::accounting::{
-    AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
-    journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
+use lana_app::{
+    accounting::{
+        AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
+        journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
+    },
+    deposit::DEPOSIT_ACCOUNT_ENTITY_TYPE,
+    primitives::{Currency, DebitOrCredit},
 };
-use lana_app::primitives::Currency;
-use lana_app::primitives::DebitOrCredit;
 
-use crate::{graphql::loader::*, primitives::*};
+use crate::{
+    graphql::{deposit::DepositAccount, loader::*},
+    primitives::*,
+};
 
 use super::JournalEntry;
+
+#[derive(Union)]
+pub enum LedgerAccountEntity {
+    DepositAccount(DepositAccount),
+}
 
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
@@ -38,6 +48,27 @@ impl From<DomainLedgerAccount> for LedgerAccount {
 
 #[ComplexObject]
 impl LedgerAccount {
+    async fn entity(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Option<LedgerAccountEntity>> {
+        let Some(ref entity_ref) = self.entity.entity_ref else {
+            return Ok(None);
+        };
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let res = match &entity_ref.entity_type {
+            entity_type if entity_type == &DEPOSIT_ACCOUNT_ENTITY_TYPE => {
+                let deposit_account = loader
+                    .load_one(DepositAccountId::from(entity_ref.entity_id))
+                    .await?
+                    .expect("Could not find deposit account");
+                Some(LedgerAccountEntity::DepositAccount(deposit_account))
+            }
+            _ => None,
+        };
+        Ok(res)
+    }
+
     async fn name(&self) -> &str {
         &self.entity.name
     }
