@@ -446,13 +446,6 @@ impl CreditFacility {
         let last_collateralization_state = self.last_collateralization_state();
 
         let collateralization_update = match self.status() {
-            CreditFacilityStatus::PendingCollateralization
-            | CreditFacilityStatus::PendingApproval => self.terms.collateralization_update(
-                balances.facility_amount_cvl(price),
-                last_collateralization_state,
-                None,
-                true,
-            ),
             CreditFacilityStatus::Active | CreditFacilityStatus::Matured => {
                 self.terms.collateralization_update(
                     balances.current_cvl(price),
