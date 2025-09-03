@@ -1,6 +1,6 @@
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
-use std::{fmt::Display, str::FromStr};
+use std::{borrow::Cow, fmt::Display, str::FromStr};
 use thiserror::Error;
 
 use authz::{ActionPermission, AllOrOne, action_description::*, map_action};
@@ -35,6 +35,30 @@ impl From<cala_ledger::account_set::AccountSetMemberId> for LedgerAccountId {
         match value {
             cala_ledger::account_set::AccountSetMemberId::Account(id) => id.into(),
             cala_ledger::account_set::AccountSetMemberId::AccountSet(id) => id.into(),
+        }
+    }
+}
+
+#[derive(Clone, Eq, Hash, PartialEq, Debug, Serialize, Deserialize)]
+#[serde(transparent)]
+pub struct EntityType(Cow<'static, str>);
+impl EntityType {
+    pub const fn new(job_type: &'static str) -> Self {
+        Self(Cow::Borrowed(job_type))
+    }
+}
+
+#[derive(Clone, Serialize, Deserialize)]
+pub struct EntityRef {
+    entity_type: EntityType,
+    entity_id: uuid::Uuid,
+}
+
+impl EntityRef {
+    pub fn new(entity_type: EntityType, id: impl Into<uuid::Uuid>) -> Self {
+        Self {
+            entity_type,
+            entity_id: id.into(),
         }
     }
 }

@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
 
 use audit::AuditInfo;
+use core_accounting::EntityRef;
 
 pub mod error;
 mod templates;
@@ -19,7 +20,9 @@ use crate::{
     DepositAccount, DepositAccountBalance, DepositReversalData, LedgerOmnibusAccountIds,
     WithdrawalReversalData,
     chart_of_accounts_integration::ChartOfAccountsIntegrationConfig,
-    primitives::{CalaAccountId, CalaAccountSetId, DepositAccountType, UsdCents},
+    primitives::{
+        CalaAccountId, CalaAccountSetId, DEPOSIT_ACCOUNT_ENTITY_TYPE, DepositAccountType, UsdCents,
+    },
 };
 
 use error::*;
@@ -714,6 +717,7 @@ impl DepositLedger {
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
+        let entity_ref = EntityRef::new(DEPOSIT_ACCOUNT_ENTITY_TYPE, account.id);
         let deposit_account_name = format!("Deposit Account {holder_id}");
         self.create_account_in_op(
             &mut op,
@@ -722,6 +726,7 @@ impl DepositLedger {
             &format!("deposit-customer-account:{holder_id}"),
             &deposit_account_name,
             &deposit_account_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -736,6 +741,7 @@ impl DepositLedger {
             &format!("frozen-deposit-customer-account:{holder_id}"),
             &frozen_deposit_account_name,
             &frozen_deposit_account_name,
+            entity_ref,
         )
         .await?;
 
@@ -790,6 +796,7 @@ impl DepositLedger {
         reference: &str,
         name: &str,
         description: &str,
+        entity_ref: core_accounting::EntityRef,
     ) -> Result<(), DepositLedgerError> {
         let id = id.into();
 
@@ -800,6 +807,8 @@ impl DepositLedger {
             .description(description)
             .code(id.to_string())
             .normal_balance_type(parent_account_set.normal_balance_type)
+            .metadata(serde_json::json!({"entity_ref": entity_ref}))
+            .expect("Could not add metadata")
             .build()
             .expect("Could not build new account");
         let ledger_account = self
