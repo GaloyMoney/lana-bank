@@ -137,8 +137,9 @@ mod tests {
     use super::{DepositAccount, DepositAccountEvent, DepositAccountLedgerAccountIds};
 
     fn initial_events() -> Vec<DepositAccountEvent> {
+        let id = DepositAccountId::new();
         vec![DepositAccountEvent::Initialized {
-            id: DepositAccountId::new(),
+            id,
             account_holder_id: DepositAccountHolderId::new(),
             account_ids: DepositAccountLedgerAccountIds::new(id),
             status: DepositAccountStatus::Inactive,
