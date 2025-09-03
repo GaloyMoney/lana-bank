@@ -28,7 +28,6 @@ contract-creation = { workspace = true }
 dashboard = { workspace = true }
 user-onboarding = { workspace = true }
 customer-sync = { workspace = true }
-customer-activity = { workspace = true }
 deposit-sync = { workspace = true }
 notification = { workspace = true }
 

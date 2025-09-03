@@ -1,5 +1,4 @@
 use async_trait::async_trait;
-use chrono::{DateTime, Duration, NaiveDate, Utc};
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -13,17 +12,8 @@ use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use outbox::OutboxEventMarker;
 
-use crate::config::UpdateCustomerActivityConfig;
+use crate::config::CustomerSyncConfig;
 use job::*;
-
-// Use January 1st, 2000 as the minimum date
-const EARLIEST_SEARCH_START: DateTime<Utc> = {
-    let date = NaiveDate::from_ymd_opt(2000, 1, 1)
-        .expect("valid date")
-        .and_hms_opt(0, 0, 0)
-        .expect("valid time");
-    DateTime::from_naive_utc_and_offset(date, Utc)
-};
 
 #[derive(serde::Serialize)]
 pub struct UpdateCustomerActivityJobConfig<Perms, E> {
@@ -68,7 +58,7 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     customers: Customers<Perms, E>,
-    config: UpdateCustomerActivityConfig,
+    config: CustomerSyncConfig,
 }
 
 impl<Perms, E> UpdateCustomerActivityInit<Perms, E>
@@ -79,7 +69,7 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(customers: &Customers<Perms, E>, config: UpdateCustomerActivityConfig) -> Self {
+    pub fn new(customers: &Customers<Perms, E>, config: CustomerSyncConfig) -> Self {
         Self {
             customers: customers.clone(),
             config,
@@ -132,7 +122,7 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     customers: Customers<Perms, E>,
-    config: UpdateCustomerActivityConfig,
+    config: CustomerSyncConfig,
 }
 
 #[async_trait]
@@ -155,77 +145,9 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let now = crate::time::now();
         if self.config.activity_update_enabled {
-            self.perform_activity_update().await?;
+            self.customers.perform_activity_update().await?;
         }
-        let next_run_at = self.config.activity_check_run_time().next_after(now);
-        Ok(JobCompletion::RescheduleAt(next_run_awt))
+        let next_run_at = self.config.activity_update_utc_time.next_after(now);
+        Ok(JobCompletion::RescheduleAt(next_run_at))
     }
-}
-
-impl<Perms, E> UpdateCustomerActivityJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    #[instrument(
-        name = "update_customer_activity.perform_activity_update",
-        skip(self),
-        err
-    )]
-    async fn perform_activity_update(&self) -> Result<(), Box<dyn std::error::Error>> {
-        self.customers
-            .update_customers_by_activity_and_date_range(
-                EARLIEST_SEARCH_START,
-                self.config
-                    .get_escheatment_threshold_date(crate::time::now()),
-                core_customer::Activity::Suspended,
-            )
-            .await?;
-
-        self.customers
-            .update_customers_by_activity_and_date_range(
-                self.config
-                    .get_escheatment_threshold_date(crate::time::now()),
-                self.config.get_inactive_threshold_date(crate::time::now()),
-                core_customer::Activity::Inactive,
-            )
-            .await?;
-
-        self.customers
-            .update_customers_by_activity_and_date_range(
-                self.config.get_inactive_threshold_date(crate::time::now()),
-                crate::time::now(),
-                core_customer::Activity::Active,
-            )
-            .await?;
-
-        Ok(())
-    }
-}
-
-fn calculate_next_run_time(
-    from_time: DateTime<Utc>,
-    hours: u32,
-    minutes: u32,
-) -> Result<DateTime<Utc>, Box<dyn std::error::Error>> {
-    let tomorrow = from_time + Duration::days(1);
-
-    let midnight = tomorrow
-        .date_naive()
-        .and_hms_opt(hours, minutes, 0)
-        .ok_or("Failed to create midnight time")?;
-
-    let utc_midnight = midnight
-        .and_local_timezone(Utc)
-        .single()
-        .ok_or("Failed to convert midnight to UTC timezone")?;
-
-    Ok(utc_midnight)
 }

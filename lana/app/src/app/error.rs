@@ -12,8 +12,6 @@ pub enum ApplicationError {
     CustomerError(#[from] crate::customer::error::CustomerError),
     #[error("ApplicationError - CustomerSyncError: {0}")]
     CustomerSyncError(#[from] customer_sync::error::CustomerSyncError),
-    #[error("ApplicationError - CustomerActivityError: {0}")]
-    CustomerActivityError(#[from] customer_activity::error::CustomerActivityError),
     #[error("ApplicationError - DepositSyncError: {0}")]
     DepositSyncError(#[from] deposit_sync::error::DepositSyncError),
     #[error("ApplicationError - NotificationError: {0}")]

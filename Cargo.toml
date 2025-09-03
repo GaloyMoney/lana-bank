@@ -45,7 +45,6 @@ public-id = { path = "core/public-id" }
 # Lana dependencies
 admin-server = { path = "lana/admin-server" }
 contract-creation = { path = "lana/contract-creation" }
-customer-activity = { path = "lana/customer-activity" }
 customer-server = { path = "lana/customer-server" }
 customer-sync = { path = "lana/customer-sync" }
 dashboard = { path = "lana/dashboard" }

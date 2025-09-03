@@ -40,11 +40,8 @@ app:
       client_id: customer-service-account
       realm: customer
       client_secret: secret
-  customer_activity:
-    activity_update_enabled: true
-    inactive_threshold_days: 365
-    escheatment_threshold_days: 3650
     activity_update_utc_time: 00:00
+    activity_update_enabled: true
   deposit_sync:
     sumsub_export_enabled: true
   accounting_init:

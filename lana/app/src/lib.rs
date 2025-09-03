@@ -68,14 +68,6 @@ pub mod customer_sync {
         customer_sync::CustomerSync<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
 
-pub mod customer_activity {
-    pub use customer_activity::config::UpdateCustomerActivityConfig;
-    pub type CustomerActivityJobs = customer_activity::CustomerActivityJobs<
-        crate::authorization::Authorization,
-        lana_events::LanaEvent,
-    >;
-}
-
 pub mod deposit_sync {
     pub use deposit_sync::config::DepositSyncConfig;
     pub type DepositSync =

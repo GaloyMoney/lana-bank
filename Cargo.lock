@@ -1378,6 +1378,7 @@ dependencies = [
  "public-id",
  "schemars 1.0.4",
  "serde",
+ "sim-time",
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.16",
@@ -1598,27 +1599,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "customer-activity"
-version = "0.3.772-dev"
-dependencies = [
- "async-trait",
- "audit",
- "authz",
- "chrono",
- "core-customer",
- "core-deposit",
- "futures",
- "governance",
- "job",
- "lana-events",
- "outbox",
- "serde",
- "sim-time",
- "thiserror 2.0.16",
- "tracing",
-]
-
-[[package]]
 name = "customer-server"
 version = "0.0.0"
 dependencies = [
@@ -1647,14 +1627,17 @@ dependencies = [
  "async-trait",
  "audit",
  "authz",
+ "chrono",
  "core-customer",
  "core-deposit",
  "futures",
  "governance",
  "job",
  "keycloak-client",
+ "lana-events",
  "outbox",
  "serde",
+ "sim-time",
  "thiserror 2.0.16",
  "tracing",
 ]
@@ -3251,7 +3234,6 @@ dependencies = [
  "core-money",
  "core-price",
  "core-report",
- "customer-activity",
  "customer-sync",
  "dashboard",
  "deposit-sync",

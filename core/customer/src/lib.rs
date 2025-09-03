@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+mod config;
 mod customer_activity_repo;
 mod entity;
 pub mod error;
@@ -8,6 +9,7 @@ mod event;
 mod primitives;
 mod publisher;
 mod repo;
+mod time;
 
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
@@ -21,6 +23,7 @@ use document_storage::{
 use outbox::{Outbox, OutboxEventMarker};
 use public_id::PublicIds;
 
+pub use config::*;
 pub use customer_activity_repo::CustomerActivityRepo;
 pub use entity::Customer;
 use entity::*;
@@ -49,6 +52,7 @@ where
     customer_activity_repo: CustomerActivityRepo,
     document_storage: DocumentStorage,
     public_ids: PublicIds,
+    config: CustomerConfig,
 }
 
 impl<Perms, E> Clone for Customers<Perms, E>
@@ -64,6 +68,7 @@ where
             customer_activity_repo: self.customer_activity_repo.clone(),
             document_storage: self.document_storage.clone(),
             public_ids: self.public_ids.clone(),
+            config: self.config.clone(),
         }
     }
 }
@@ -92,6 +97,7 @@ where
             customer_activity_repo,
             document_storage,
             public_ids: public_id_service,
+            config: CustomerConfig::default(),
         }
     }
 
@@ -548,8 +554,7 @@ where
         Ok(result)
     }
 
-    #[instrument(name = "customer.update_activity_from_system", skip(self), err)]
-    pub async fn update_activity_from_system(
+    async fn update_activity_from_system(
         &self,
         customer_id: CustomerId,
         activity: Activity,
@@ -575,12 +580,7 @@ where
         Ok(())
     }
 
-    #[instrument(
-        name = "customer.update_customers_by_activity_and_date_range",
-        skip(self),
-        err
-    )]
-    pub async fn update_customers_by_activity_and_date_range(
+    async fn update_customers_by_activity_and_date_range(
         &self,
         start_threshold: DateTime<Utc>,
         end_threshold: DateTime<Utc>,
@@ -597,6 +597,35 @@ where
         // TODO: Add a batch update for the customers
         for customer_id in customers {
             self.update_activity_from_system(customer_id, activity)
+                .await?;
+        }
+
+        Ok(())
+    }
+
+    #[instrument(name = "customer.perform_activity_update", skip(self), err)]
+    pub async fn perform_activity_update(&self) -> Result<(), CustomerError> {
+        let now = crate::time::now();
+        let ranges = vec![
+            (
+                EARLIEST_SEARCH_START,
+                self.config.get_escheatment_threshold_date(now),
+                Activity::Suspended,
+            ),
+            (
+                self.config.get_escheatment_threshold_date(now),
+                self.config.get_inactive_threshold_date(now),
+                Activity::Inactive,
+            ),
+            (
+                self.config.get_inactive_threshold_date(now),
+                now,
+                Activity::Active,
+            ),
+        ];
+
+        for (start, end, activity) in ranges {
+            self.update_customers_by_activity_and_date_range(start, end, activity)
                 .await?;
         }
 

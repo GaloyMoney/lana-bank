@@ -19,7 +19,6 @@ use crate::{
     credit::Credit,
     custody::Custody,
     customer::Customers,
-    customer_activity::CustomerActivityJobs,
     customer_sync::CustomerSync,
     dashboard::Dashboard,
     deposit::Deposits,
@@ -62,7 +61,6 @@ pub struct LanaApp {
     reports: Reports,
     _user_onboarding: UserOnboarding,
     _customer_sync: CustomerSync,
-    _customer_activity: CustomerActivityJobs,
     _deposit_sync: DepositSync,
 }
 
@@ -133,16 +131,7 @@ impl LanaApp {
         )
         .await?;
         let customer_sync =
-            CustomerSync::init(&jobs, &outbox, &deposits, config.customer_sync).await?;
-
-        let customer_activity = customer_activity::CustomerActivityJobs::init(
-            &jobs,
-            &outbox,
-            &customers,
-            &deposits,
-            config.customer_activity,
-        )
-        .await?;
+            CustomerSync::init(&jobs, &outbox, &customers, &deposits, config.customer_sync).await?;
 
         let applicants = Applicants::new(&pool, &config.sumsub, &authz, &customers);
 
@@ -211,7 +200,6 @@ impl LanaApp {
             reports,
             _user_onboarding: user_onboarding,
             _customer_sync: customer_sync,
-            _customer_activity: customer_activity,
             _deposit_sync: deposit_sync,
         })
     }
