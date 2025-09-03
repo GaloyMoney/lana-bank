@@ -6,12 +6,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, DEPOSIT_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const REVERT_DEPOSIT_CODE: &str = "REVERT_DEPOSIT";
 
 #[derive(Debug)]
 pub struct RevertDepositParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
@@ -64,6 +68,11 @@ impl RevertDepositParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -71,6 +80,7 @@ impl RevertDepositParams {
 impl From<RevertDepositParams> for Params {
     fn from(
         RevertDepositParams {
+            entity_id,
             journal_id,
             deposit_omnibus_account_id,
             credit_account_id,
@@ -90,6 +100,9 @@ impl From<RevertDepositParams> for Params {
         params.insert("external_id", external_id);
 
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(DEPOSIT_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -103,6 +116,7 @@ impl RevertDeposit {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Revert a deposit'")
             .build()
             .expect("Couldn't build TxInput");

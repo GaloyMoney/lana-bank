@@ -35,6 +35,8 @@ pub use core_money::UsdCents;
 
 pub const DEPOSIT_ACCOUNT_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("DepositAccount");
+pub const DEPOSIT_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
+    core_accounting::EntityType::new("Deposit");
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;

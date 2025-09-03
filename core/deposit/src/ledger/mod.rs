@@ -486,6 +486,7 @@ impl DepositLedger {
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::RecordDepositParams {
+            entity_id: tx_id.into(),
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
@@ -570,6 +571,7 @@ impl DepositLedger {
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::RevertDepositParams {
+            entity_id: reversal_data.entity_id.into(),
             journal_id: self.journal_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id: reversal_data.credit_account_id.into(),

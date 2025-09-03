@@ -28,6 +28,7 @@ pub enum DepositEvent {
 }
 
 pub struct DepositReversalData {
+    pub entity_id: DepositId,
     pub ledger_tx_id: CalaTransactionId,
     pub credit_account_id: DepositAccountId,
     pub amount: UsdCents,
@@ -77,6 +78,7 @@ impl Deposit {
         });
 
         Idempotent::Executed(DepositReversalData {
+            entity_id: self.id,
             ledger_tx_id,
             credit_account_id: self.deposit_account_id,
             amount: self.amount,

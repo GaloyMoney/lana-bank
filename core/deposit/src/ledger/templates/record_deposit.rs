@@ -6,12 +6,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, DEPOSIT_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const RECORD_DEPOSIT_CODE: &str = "RECORD_DEPOSIT";
 
 #[derive(Debug)]
 pub struct RecordDepositParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -52,6 +56,11 @@ impl RecordDepositParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -59,6 +68,7 @@ impl RecordDepositParams {
 impl From<RecordDepositParams> for Params {
     fn from(
         RecordDepositParams {
+            entity_id,
             journal_id,
             currency,
             amount,
@@ -73,6 +83,9 @@ impl From<RecordDepositParams> for Params {
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(DEPOSIT_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -86,6 +99,7 @@ impl RecordDeposit {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Record a deposit'")
             .build()
             .expect("Couldn't build TxInput");
