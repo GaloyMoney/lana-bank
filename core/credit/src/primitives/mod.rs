@@ -502,8 +502,6 @@ impl From<TermsTemplateAction> for CoreCreditAction {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CreditFacilityStatus {
     #[default]
-    PendingCollateralization,
-    PendingApproval,
     Active,
     Matured,
     Closed,
