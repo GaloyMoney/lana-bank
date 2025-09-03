@@ -129,11 +129,16 @@ where
                 ..
             }) = message.as_ref().as_event()
             {
-                self.credit_facility_proposals
+                let proposal = self
+                    .credit_facility_proposals
                     .update_collateralization_from_events(CreditFacilityProposalId::from(*id))
                     .await?;
                 state.sequence = message.sequence;
                 current_job.update_execution_state(state).await?;
+
+                if proposal.is_completed() {
+                    return Ok(JobCompletion::Complete);
+                }
             }
         }
 
