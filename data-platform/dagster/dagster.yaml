@@ -2,7 +2,6 @@ scheduler:
   module: dagster.core.scheduler
   class: DagsterDaemonScheduler
 
-
 run_coordinator:
   module: dagster.core.run_coordinator
   class: QueuedRunCoordinator
