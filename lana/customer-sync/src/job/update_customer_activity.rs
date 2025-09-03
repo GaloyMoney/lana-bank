@@ -145,7 +145,7 @@ where
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let now = crate::time::now();
         if self.config.activity_update_enabled {
-            self.customers.perform_activity_update().await?;
+            self.customers.perform_activity_update(now).await?;
         }
         let next_run_at = self.config.activity_update_utc_time.next_after(now);
         Ok(JobCompletion::RescheduleAt(next_run_at))

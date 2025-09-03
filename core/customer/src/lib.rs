@@ -9,7 +9,6 @@ mod event;
 mod primitives;
 mod publisher;
 mod repo;
-mod time;
 
 use chrono::{DateTime, Utc};
 use std::collections::HashMap;
@@ -554,20 +553,6 @@ where
         Ok(result)
     }
 
-    async fn update_activity_from_system(
-        &self,
-        customer_id: CustomerId,
-        activity: Activity,
-    ) -> Result<Customer, CustomerError> {
-        let mut customer = self.repo.find_by_id(customer_id).await?;
-
-        if customer.update_activity(activity).did_execute() {
-            self.repo.update(&mut customer).await?;
-        }
-
-        Ok(customer)
-    }
-
     #[instrument(name = "customer.record_last_activity_from_system", skip(self), err)]
     pub async fn record_last_activity_from_system(
         &self,
@@ -586,7 +571,7 @@ where
         end_threshold: DateTime<Utc>,
         activity: Activity,
     ) -> Result<(), CustomerError> {
-        let customers = self
+        let customer_ids = self
             .customer_activity_repo
             .find_customers_in_range_with_non_matching_activity(
                 start_threshold,
@@ -595,17 +580,18 @@ where
             )
             .await?;
         // TODO: Add a batch update for the customers
-        for customer_id in customers {
-            self.update_activity_from_system(customer_id, activity)
-                .await?;
+        for customer_id in customer_ids {
+            let mut customer = self.repo.find_by_id(customer_id).await?;
+            if customer.update_activity(activity).did_execute() {
+                self.repo.update(&mut customer).await?;
+            }
         }
 
         Ok(())
     }
 
     #[instrument(name = "customer.perform_activity_update", skip(self), err)]
-    pub async fn perform_activity_update(&self) -> Result<(), CustomerError> {
-        let now = crate::time::now();
+    pub async fn perform_activity_update(&self, now: DateTime<Utc>) -> Result<(), CustomerError> {
         let ranges = vec![
             (
                 EARLIEST_SEARCH_START,
