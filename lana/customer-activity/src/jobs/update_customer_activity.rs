@@ -157,9 +157,8 @@ where
         if self.config.activity_update_enabled {
             self.perform_activity_update().await?;
         }
-        let (hours, minutes) = self.config.parse_activity_update_time()?;
-        let next_run = calculate_next_run_time(now, hours, minutes)?;
-        Ok(JobCompletion::RescheduleAt(next_run))
+        let next_run_at = self.config.activity_check_run_time().next_after(now);
+        Ok(JobCompletion::RescheduleAt(next_run_awt))
     }
 }
 
