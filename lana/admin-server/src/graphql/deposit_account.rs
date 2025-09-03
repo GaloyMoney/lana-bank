@@ -7,7 +7,10 @@ pub use lana_app::deposit::{
     DepositAccountHistoryEntry as DomainDepositAccountHistoryEntry, DepositAccountStatus,
 };
 
-use super::{customer::Customer, deposit::*, deposit_account_history::*, withdrawal::*};
+use super::{
+    accounting::LedgerAccount, customer::Customer, deposit::*, deposit_account_history::*,
+    loader::LanaDataLoader, withdrawal::*,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -48,6 +51,34 @@ impl From<lana_app::deposit::DepositAccountBalance> for DepositAccountBalance {
             settled: balance.settled,
             pending: balance.pending,
         }
+    }
+}
+
+#[derive(SimpleObject)]
+#[graphql(complex)]
+pub struct DepositAccountLedgerAccounts {
+    ledger_account_id: UUID,
+    frozen_deposit_account_id: UUID,
+}
+
+#[ComplexObject]
+impl DepositAccountLedgerAccounts {
+    async fn ledger_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let account = loader
+            .load_one(LedgerAccountId::from(self.ledger_account_id))
+            .await?
+            .expect("Ledger account not found");
+        Ok(account)
+    }
+
+    async fn frozen_deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let account = loader
+            .load_one(LedgerAccountId::from(self.ledger_account_id))
+            .await?
+            .expect("Frozen deposit account not found");
+        Ok(account)
     }
 }
 
@@ -134,5 +165,12 @@ impl DepositAccount {
             .expect("customer not found");
 
         Ok(Customer::from(customer))
+    }
+
+    async fn ledger_accounts(&self) -> DepositAccountLedgerAccounts {
+        DepositAccountLedgerAccounts {
+            ledger_account_id: self.entity.account_ids.ledger_account_id.into(),
+            frozen_deposit_account_id: self.entity.account_ids.frozen_deposit_account_id.into(),
+        }
     }
 }

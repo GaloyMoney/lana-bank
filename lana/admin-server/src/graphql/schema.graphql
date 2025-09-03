@@ -976,6 +976,7 @@ type DepositAccount {
 	history(first: Int!, after: String): DepositAccountHistoryEntryConnection!
 	balance: DepositAccountBalance!
 	customer: Customer!
+	ledgerAccounts: DepositAccountLedgerAccounts!
 }
 
 type DepositAccountBalance {
@@ -1020,6 +1021,13 @@ type DepositAccountHistoryEntryEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+type DepositAccountLedgerAccounts {
+	ledgerAccountId: UUID!
+	frozenDepositAccountId: UUID!
+	ledgerAccount: LedgerAccount!
+	frozenDepositAccount: LedgerAccount!
 }
 
 enum DepositAccountStatus {

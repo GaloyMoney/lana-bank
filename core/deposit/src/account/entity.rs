@@ -129,7 +129,6 @@ impl IntoEvents<DepositAccountEvent> for NewDepositAccount {
 
 #[cfg(test)]
 mod tests {
-    use cala_ledger::AccountId as CalaAccountId;
     use es_entity::{EntityEvents, TryFromEvents as _};
     use public_id::PublicId;
 
