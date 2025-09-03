@@ -1,5 +1,5 @@
-mod activity_check;
 mod update_customer_activity;
+mod update_last_activity;
 
-pub use activity_check::{CustomerActivityCheckInit, CustomerActivityCheckJobConfig};
-pub use update_customer_activity::{CustomerActivityUpdateConfig, CustomerActivityUpdateInit};
+pub use update_customer_activity::{UpdateCustomerActivityInit, UpdateCustomerActivityJobConfig};
+pub use update_last_activity::{UpdateLastActivityConfig, UpdateLastActivityInit};

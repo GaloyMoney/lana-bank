@@ -69,7 +69,7 @@ pub mod customer_sync {
 }
 
 pub mod customer_activity {
-    pub use customer_activity::config::CustomerActivityCheckConfig;
+    pub use customer_activity::config::UpdateCustomerActivityConfig;
     pub type CustomerActivityJobs = customer_activity::CustomerActivityJobs<
         crate::authorization::Authorization,
         lana_events::LanaEvent,

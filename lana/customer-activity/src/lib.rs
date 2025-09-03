@@ -19,10 +19,10 @@ use governance::GovernanceEvent;
 use lana_events::LanaEvent;
 use outbox::{Outbox, OutboxEventMarker};
 
-pub use config::CustomerActivityCheckConfig;
+pub use config::UpdateCustomerActivityConfig;
 pub use jobs::{
-    CustomerActivityCheckInit, CustomerActivityCheckJobConfig, CustomerActivityUpdateConfig,
-    CustomerActivityUpdateInit,
+    UpdateCustomerActivityInit, UpdateCustomerActivityJobConfig, UpdateLastActivityConfig,
+    UpdateLastActivityInit,
 };
 
 pub struct CustomerActivityJobs<Perms, E>
@@ -68,17 +68,17 @@ where
         outbox: &Outbox<E>,
         customers: &Customers<Perms, E>,
         deposit: &CoreDeposit<Perms, E>,
-        activity_check_config: CustomerActivityCheckConfig,
+        update_customer_activity_config: UpdateCustomerActivityConfig,
     ) -> Result<Self, CustomerActivityError> {
         jobs.add_initializer_and_spawn_unique(
-            CustomerActivityUpdateInit::new(outbox, &customers.clone(), deposit),
-            CustomerActivityUpdateConfig::new(),
+            UpdateLastActivityInit::new(outbox, &customers.clone(), deposit),
+            UpdateLastActivityConfig::new(),
         )
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            CustomerActivityCheckInit::new(customers, activity_check_config),
-            CustomerActivityCheckJobConfig::new(),
+            UpdateCustomerActivityInit::new(customers, update_customer_activity_config),
+            UpdateCustomerActivityJobConfig::new(),
         )
         .await?;
 
