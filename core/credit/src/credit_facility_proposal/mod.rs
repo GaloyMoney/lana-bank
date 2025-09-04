@@ -243,10 +243,55 @@ where
         self.repo.find_all(ids).await
     }
 
-    pub async fn find_by_id_without_audit(
+    pub(crate) async fn find_by_id_without_audit(
         &self,
         id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
     ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
         self.repo.find_by_id(id.into()).await
+    }
+
+    pub async fn find_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+    ) -> Result<Option<CreditFacilityProposal>, CreditFacilityProposalError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id.into()),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        match self.repo.find_by_id(id).await {
+            Ok(credit_facility) => Ok(Some(credit_facility)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+    ) -> Result<Satoshis, CreditFacilityProposalError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id.into()),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        let credit_facility_proposal = self.repo.find_by_id(id).await?;
+
+        let collateral = self
+            .ledger
+            .get_proposal_collateral(credit_facility_proposal.account_ids.collateral_account_id)
+            .await?;
+
+        Ok(collateral)
     }
 }
