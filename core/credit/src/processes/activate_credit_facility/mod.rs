@@ -11,7 +11,7 @@ use public_id::PublicIds;
 
 use crate::{
     Jobs,
-    credit_facility::{CreditFacilities, CreditFacility, CreditFacilityActivationData},
+    credit_facility::{ActivationData, ActivationOutcome, CreditFacilities},
     disbursal::{Disbursals, NewDisbursal},
     error::CoreCreditError,
     event::CoreCreditEvent,
@@ -87,7 +87,7 @@ where
     pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
-    ) -> Result<CreditFacility, CoreCreditError> {
+    ) -> Result<(), CoreCreditError> {
         let id = id.into();
         let mut op = self
             .credit_facilities
@@ -96,13 +96,15 @@ where
             .with_db_time()
             .await?;
 
-        let CreditFacilityActivationData {
+        let ActivationData {
             credit_facility,
             next_accrual_period,
-            structuring_fee,
             approval_process_id,
-        }: CreditFacilityActivationData =
-            self.credit_facilities.activate_in_op(&mut op, id).await?;
+            structuring_fee,
+        } = match self.credit_facilities.activate_in_op(&mut op, id).await? {
+            ActivationOutcome::Activated(data) => data,
+            ActivationOutcome::Ignored => return Ok(()),
+        };
 
         let due_date = credit_facility.maturity_date;
         let overdue_date = credit_facility
@@ -165,6 +167,6 @@ where
             .handle_facility_activation(op, credit_facility.activation_data())
             .await?;
 
-        Ok(credit_facility)
+        Ok(())
     }
 }

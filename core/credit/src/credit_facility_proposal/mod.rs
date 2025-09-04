@@ -14,6 +14,12 @@ use crate::{event::CoreCreditEvent, ledger::CreditLedger, primitives::*};
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
 use repo::{CreditFacilityProposalRepo, credit_facility_proposal_cursor::*};
+
+pub enum CreditFacilityProposalCompletionOutcome {
+    Ignored,
+    Completed(CreditFacilityProposal),
+}
+
 pub struct CreditFacilityProposals<Perms, E>
 where
     Perms: PermissionCheck,
@@ -218,7 +224,7 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityProposalId,
-    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+    ) -> Result<CreditFacilityProposalCompletionOutcome, CreditFacilityProposalError> {
         let mut proposal = self.repo.find_by_id(id).await?;
 
         let price = self.price.usd_cents_per_btc().await?;
@@ -228,11 +234,13 @@ where
             .get_credit_facility_proposal_balance(proposal.account_ids)
             .await?;
 
-        if let es_entity::Idempotent::Executed(_) = proposal.complete(balances, price)? {
-            self.repo.update_in_op(db, &mut proposal).await?;
-        }
+        let Ok(es_entity::Idempotent::Executed(_)) = proposal.complete(balances, price) else {
+            return Ok(CreditFacilityProposalCompletionOutcome::Ignored);
+        };
 
-        Ok(proposal)
+        self.repo.update_in_op(db, &mut proposal).await?;
+
+        Ok(CreditFacilityProposalCompletionOutcome::Completed(proposal))
     }
 
     pub async fn find_all<T: From<CreditFacilityProposal>>(
