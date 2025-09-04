@@ -4,9 +4,6 @@ SELECT
     CAST(JSON_VALUE(data, '$.created_at') as TIMESTAMP) as created_at,
     CAST(JSON_VALUE(data, '$.modified_at') as TIMESTAMP) as modified_at,
     JSON_VALUE(data, '$.account_holder_id') as account_holder_id,
-    -- TODO: need to fix this
-    JSON_VALUE(data, '$.frozen_deposit_account_id') as frozen_deposit_account_id,
-    JSON_VALUE(data, '$.ledger_account_id') as ledger_account_id,
     JSON_VALUE(data, '$.public_id') as public_id,
     JSON_VALUE(data, '$.status') as status,
     JSON_VALUE(data, '$.audit_entry_ids') as audit_entry_ids,
