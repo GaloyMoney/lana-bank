@@ -1360,10 +1360,10 @@ export const mockDepositAccountLedgerAccounts = (overrides?: Partial<DepositAcco
     relationshipsToOmit.add('DepositAccountLedgerAccounts');
     return {
         __typename: 'DepositAccountLedgerAccounts',
+        depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         depositAccountId: overrides && overrides.hasOwnProperty('depositAccountId') ? overrides.depositAccountId! : generateMockValue.uuid(),
         frozenDepositAccount: overrides && overrides.hasOwnProperty('frozenDepositAccount') ? overrides.frozenDepositAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         frozenDepositAccountId: overrides && overrides.hasOwnProperty('frozenDepositAccountId') ? overrides.frozenDepositAccountId! : generateMockValue.uuid(),
-        ledgerAccount: overrides && overrides.hasOwnProperty('ledgerAccount') ? overrides.ledgerAccount! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
     };
 };
 
