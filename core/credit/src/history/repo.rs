@@ -1,7 +1,6 @@
 use sqlx::PgPool;
-use uuid::Uuid;
 
-use crate::primitives::CreditFacilityId;
+use crate::primitives::CreditFacilityProposalId;
 
 use super::{CreditFacilityHistory, error::*};
 
@@ -24,18 +23,18 @@ impl HistoryRepo {
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId>,
         history: CreditFacilityHistory,
     ) -> Result<(), CreditFacilityHistoryError> {
+        let id = credit_facility_proposal_id.into();
         let json = serde_json::to_value(history).expect("Could not serialize dashboard");
-        let credit_facility_id: Uuid = credit_facility_id.into();
         sqlx::query!(
             r#"
             INSERT INTO core_credit_facility_histories (id, history)
             VALUES ($1, $2)
             ON CONFLICT (id) DO UPDATE SET history = $2
             "#,
-            credit_facility_id,
+            id as CreditFacilityProposalId,
             json
         )
         .execute(&mut **tx)
@@ -45,13 +44,12 @@ impl HistoryRepo {
 
     pub async fn load(
         &self,
-        credit_facility_id: CreditFacilityId,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId>,
     ) -> Result<CreditFacilityHistory, CreditFacilityHistoryError> {
-        let credit_facility_id: Uuid = credit_facility_id.into();
-
+        let id = credit_facility_proposal_id.into();
         let row = sqlx::query!(
             "SELECT history FROM core_credit_facility_histories WHERE id = $1",
-            credit_facility_id
+            id as CreditFacilityProposalId,
         )
         .fetch_optional(&self.pool)
         .await?;
