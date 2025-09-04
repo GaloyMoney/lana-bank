@@ -31,7 +31,7 @@ impl CreditFacilityProposal {
         let collateral = loader
             .load_one(self.entity.collateral_id)
             .await?
-            .expect("credit facility propsal has collateral");
+            .expect("credit facility proposal has collateral");
 
         if let Some(wallet_id) = collateral.wallet_id {
             Ok(loader.load_one(WalletId::from(wallet_id)).await?)
