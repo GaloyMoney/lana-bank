@@ -350,6 +350,10 @@
         "account_ids": {
           "$ref": "#/$defs/CreditFacilityLedgerAccountIds"
         },
+        "activated_at": {
+          "format": "date-time",
+          "type": "string"
+        },
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
@@ -407,6 +411,7 @@
         "disbursal_credit_account_id",
         "approval_process_id",
         "public_id",
+        "activated_at",
         "maturity_date"
       ],
       "type": "object"

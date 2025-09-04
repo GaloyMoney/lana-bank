@@ -282,7 +282,6 @@ CREATE TABLE core_credit_facility_proposal_events (
 CREATE TABLE core_credit_facilities (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
-  approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
