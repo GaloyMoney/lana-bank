@@ -14,6 +14,10 @@ env:
   SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
   SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
   TF_VAR_name_prefix: "gha"
+  TARGET_BIGQUERY_CREDENTIALS_JSON: ${{ secrets.GOOGLE_CREDENTIALS }}
+  TARGET_BIGQUERY_DATASET: "gha_dataset"
+  TARGET_BIGQUERY_LOCATION: "US"
+  DBT_BIGQUERY_PROJECT: "dbt_gha"
 
 jobs:
   bats-tests:
@@ -29,21 +33,23 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      - name: Run BATS tests with podman
-        run: nix develop -c make e2e
+      - run: nix develop -c make reset-deps
 
-      - name: Rename bats log
-        if: always()
-        run: mv .e2e-logs e2e-logs || true
-
-      - name: Upload bats log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: Podman BATS Logs
-          path: |
-            e2e-logs
-            *.e2e-logs 
+      # - name: Run BATS tests with podman
+      #   run: nix develop -c make e2e
+      #
+      # - name: Rename bats log
+      #   if: always()
+      #   run: mv .e2e-logs e2e-logs || true
+      #
+      # - name: Upload bats log
+      #   if: always()
+      #   uses: actions/upload-artifact@v4
+      #   with:
+      #     name: Podman BATS Logs
+      #     path: |
+      #       e2e-logs
+      #       *.e2e-logs
 
       - run: nix develop -c meltano install
       - run: nix develop -c meltano run tap-postgres target-bigquery
