@@ -6,6 +6,7 @@ CREATE TABLE core_credit_facility_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   account_ids JSONB,
+  activated_at TIMESTAMPTZ,
   amount BIGINT,
   approval_process_id UUID,
   collateral BIGINT,
@@ -67,6 +68,7 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.account_ids := (NEW.event -> 'account_ids');
+    new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
     new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
     new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
@@ -107,6 +109,7 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.account_ids := current_row.account_ids;
+    new_row.activated_at := current_row.activated_at;
     new_row.amount := current_row.amount;
     new_row.approval_process_id := current_row.approval_process_id;
     new_row.collateral := current_row.collateral;
@@ -135,6 +138,7 @@ BEGIN
   CASE event_type
     WHEN 'initialized' THEN
       new_row.account_ids := (NEW.event -> 'account_ids');
+      new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
@@ -174,6 +178,7 @@ BEGIN
     created_at,
     modified_at,
     account_ids,
+    activated_at,
     amount,
     approval_process_id,
     collateral,
@@ -203,6 +208,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.account_ids,
+    new_row.activated_at,
     new_row.amount,
     new_row.approval_process_id,
     new_row.collateral,

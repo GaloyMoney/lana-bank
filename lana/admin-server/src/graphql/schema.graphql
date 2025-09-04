@@ -383,11 +383,11 @@ type CreditFacility {
 	createdAt: Timestamp!
 	maturesAt: Timestamp!
 	collateralizationState: CollateralizationState!
+	status: CreditFacilityStatus!
 	facilityAmount: UsdCents!
 	publicId: PublicId!
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
-	status: CreditFacilityStatus!
 	currentCvl: Cvlpct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!

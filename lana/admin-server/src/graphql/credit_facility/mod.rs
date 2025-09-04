@@ -46,6 +46,7 @@ pub struct CreditFacility {
     created_at: Timestamp,
     matures_at: Timestamp,
     collateralization_state: CollateralizationState,
+    status: CreditFacilityStatus,
     facility_amount: UsdCents,
 
     #[graphql(skip)]
@@ -54,16 +55,14 @@ pub struct CreditFacility {
 
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
-        let created_at = credit_facility.created_at();
-        let matures_at = credit_facility.matures_at();
-
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
             approval_process_id: UUID::from(credit_facility.approval_process_id),
-            created_at: created_at.into(),
-            matures_at: matures_at.into(),
+            created_at: Timestamp::from(credit_facility.created_at()),
+            matures_at: Timestamp::from(credit_facility.matures_at()),
             facility_amount: credit_facility.amount,
+            status: credit_facility.status(),
             collateralization_state: credit_facility.last_collateralization_state(),
 
             entity: Arc::new(credit_facility),
@@ -83,10 +82,6 @@ impl CreditFacility {
 
     async fn credit_facility_terms(&self) -> TermValues {
         self.entity.terms.into()
-    }
-
-    async fn status(&self, ctx: &Context<'_>) -> async_graphql::Result<CreditFacilityStatus> {
-        Ok(self.entity.status())
     }
 
     async fn current_cvl(&self, ctx: &Context<'_>) -> async_graphql::Result<CVLPct> {

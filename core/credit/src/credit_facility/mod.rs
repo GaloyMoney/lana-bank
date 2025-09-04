@@ -78,6 +78,13 @@ pub(super) enum CompletionOutcome {
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
 }
 
+pub struct CreditFacilityActivationData {
+    pub credit_facility: CreditFacility,
+    pub next_accrual_period: InterestPeriod,
+    pub approval_process_id: ApprovalProcessId,
+    pub structuring_fee: UsdCents,
+}
+
 #[derive(Clone)]
 pub(super) struct ConfirmedAccrual {
     pub(super) accrual: CreditFacilityInterestAccrual,
@@ -130,8 +137,7 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
-        // CHANGE RETURN TYPE
-    ) -> Result<(CreditFacility, InterestPeriod), CreditFacilityError> {
+    ) -> Result<CreditFacilityActivationData, CreditFacilityError> {
         self.authz
             .audit()
             .record_system_entry_in_tx(
@@ -168,7 +174,6 @@ where
             .collateral_id(collateral_id)
             .terms(terms)
             .amount(amount)
-            .approval_process_id(approval_process_id)
             .activated_at(crate::time::now())
             .maturity_date(terms.maturity_date(crate::time::now()))
             .public_id(public_id.id)
@@ -176,6 +181,7 @@ where
             .expect("could not build new credit facility");
 
         let mut credit_facility = self.repo.create_in_op(db, new_credit_facility).await?;
+        let structuring_fee = credit_facility.structuring_fee();
 
         let periods = credit_facility
             .start_interest_accrual_cycle()?
@@ -195,7 +201,12 @@ where
             )
             .await?;
 
-        Ok((credit_facility, periods.accrual))
+        Ok(CreditFacilityActivationData {
+            credit_facility,
+            next_accrual_period: periods.accrual,
+            approval_process_id,
+            structuring_fee,
+        })
     }
     pub(super) async fn confirm_interest_accrual_in_op(
         &self,

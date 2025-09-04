@@ -11,7 +11,7 @@ use public_id::PublicIds;
 
 use crate::{
     Jobs,
-    credit_facility::{CreditFacilities, CreditFacility},
+    credit_facility::{CreditFacilities, CreditFacility, CreditFacilityActivationData},
     disbursal::{Disbursals, NewDisbursal},
     error::CoreCreditError,
     event::CoreCreditEvent,
@@ -96,7 +96,12 @@ where
             .with_db_time()
             .await?;
 
-        let (credit_facility, next_accrual_period) =
+        let CreditFacilityActivationData {
+            credit_facility,
+            next_accrual_period,
+            structuring_fee,
+            approval_process_id,
+        }: CreditFacilityActivationData =
             self.credit_facilities.activate_in_op(&mut op, id).await?;
 
         let due_date = credit_facility.maturity_date;
@@ -109,7 +114,7 @@ where
             .obligation_liquidation_duration_from_due
             .map(|d| d.end_date(due_date));
 
-        if credit_facility.has_structuring_fee() {
+        if !structuring_fee.is_zero() {
             let disbursal_id = DisbursalId::new();
             let public_id = self
                 .public_ids
@@ -123,8 +128,8 @@ where
             let new_disbursal = NewDisbursal::builder()
                 .id(disbursal_id)
                 .credit_facility_id(credit_facility.id)
-                .approval_process_id(credit_facility.approval_process_id)
-                .amount(credit_facility.structuring_fee())
+                .approval_process_id(approval_process_id)
+                .amount(structuring_fee)
                 .account_ids(credit_facility.account_ids)
                 .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
                 .due_date(due_date)
@@ -143,6 +148,7 @@ where
             .interest_accrual_cycle_in_progress()
             .expect("First accrual not found")
             .id;
+
         self.jobs
             .create_and_spawn_at_in_op(
                 &mut op,
