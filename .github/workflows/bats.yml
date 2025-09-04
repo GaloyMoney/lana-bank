@@ -51,6 +51,13 @@ jobs:
       #       e2e-logs
       #       *.e2e-logs
 
+      - run: |
+          echo $TARGET_BIGQUERY_CREDENTIALS_JSON > meltano/keyfile.json
+          export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
+          export DBT_BIGQUERY_PROJECT="$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
+          echo "DBT_BIGQUERY_KEYFILE=$DBT_BIGQUERY_KEYFILE" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_PROJECT=$DBT_BIGQUERY_PROJECT" >> $GITHUB_ENV
+
       - run: nix develop -c meltano install
       - run: nix develop -c meltano run tap-postgres target-bigquery
       - run: nix develop -c meltano run tap-bitfinexapi target-bigquery
