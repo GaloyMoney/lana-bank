@@ -701,7 +701,7 @@ mod test {
             collateral_id: CollateralId::new(),
             amount: default_facility(),
             terms: default_terms(),
-            account_ids: CreditFacilityAccountIds::new(),
+            account_ids: account_ids(),
             disbursal_credit_account_id: CalaAccountId::new(),
             approval_process_id: ApprovalProcessId::new(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),

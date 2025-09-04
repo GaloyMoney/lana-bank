@@ -17,10 +17,7 @@ use crate::{
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
     jobs::credit_facility_maturity,
-    ledger::{
-        CreditFacilityAccountIds, CreditFacilityInterestAccrual,
-        CreditFacilityInterestAccrualCycle, CreditLedger,
-    },
+    ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     primitives::*,
     terms::InterestPeriod,

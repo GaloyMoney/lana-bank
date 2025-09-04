@@ -159,14 +159,15 @@ pub mod custody {
 pub mod credit {
     pub use core_credit::{
         APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS, APPROVE_DISBURSAL_PROCESS,
-        ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated, CollateralizationUpdated,
-        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilter,
-        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
-        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityProposal,
-        CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, Disbursal, DisbursalExecuted,
-        DisbursalStatus, DisbursalsCursor, DisbursalsFilter, DisbursalsSortBy, IncrementalPayment,
-        InterestAccrualsPosted, ListDirection, ObligationInstallment, ObligationMovedToLiquidation,
-        Payment, RepaymentStatus, RepaymentType, Sort, TermsTemplate, error, terms_template_error,
+        CREDIT_FACILITY_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, Collateral,
+        CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditConfig,
+        CreditFacilitiesCursor, CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacility,
+        CreditFacilityApproved, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
+        CreditFacilityProposal, CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, Disbursal,
+        DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter, DisbursalsSortBy,
+        IncrementalPayment, InterestAccrualsPosted, ListDirection, ObligationInstallment,
+        ObligationMovedToLiquidation, Payment, RepaymentStatus, RepaymentType, Sort, TermsTemplate,
+        error, terms_template_error,
     };
 
     pub type Credit =
