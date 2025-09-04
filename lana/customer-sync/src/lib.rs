@@ -91,14 +91,14 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            UpdateLastActivityInit::new(outbox, customers, deposit),
-            UpdateLastActivityConfig::new(),
+            UpdateLastActivityDateInit::new(outbox, customers, deposit),
+            UpdateLastActivityDateConfig::new(),
         )
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            UpdateCustomerActivityInit::new(customers, config),
-            UpdateCustomerActivityJobConfig::new(),
+            UpdateCustomerActivityStatusInit::new(customers, config),
+            UpdateCustomerActivityStatusJobConfig::new(),
         )
         .await?;
         Ok(Self {

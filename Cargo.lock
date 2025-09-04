@@ -1378,7 +1378,6 @@ dependencies = [
  "public-id",
  "schemars 1.0.4",
  "serde",
- "sim-time",
  "sqlx",
  "strum 0.27.2",
  "thiserror 2.0.16",

@@ -33,4 +33,3 @@ chrono = { workspace = true }
 tracing = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
-sim-time = { workspace = true, optional = true }

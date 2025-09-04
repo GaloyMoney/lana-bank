@@ -553,8 +553,8 @@ where
         Ok(result)
     }
 
-    #[instrument(name = "customer.record_last_activity_from_system", skip(self), err)]
-    pub async fn record_last_activity_from_system(
+    #[instrument(name = "customer.record_last_activity_date", skip(self), err)]
+    pub async fn record_last_activity_date(
         &self,
         customer_id: CustomerId,
         activity_date: DateTime<Utc>,
@@ -590,8 +590,15 @@ where
         Ok(())
     }
 
-    #[instrument(name = "customer.perform_activity_update", skip(self), err)]
-    pub async fn perform_activity_update(&self, now: DateTime<Utc>) -> Result<(), CustomerError> {
+    #[instrument(
+        name = "customer.perform_customer_activity_status_update",
+        skip(self),
+        err
+    )]
+    pub async fn perform_customer_activity_status_update(
+        &self,
+        now: DateTime<Utc>,
+    ) -> Result<(), CustomerError> {
         let ranges = vec![
             (
                 EARLIEST_SEARCH_START,

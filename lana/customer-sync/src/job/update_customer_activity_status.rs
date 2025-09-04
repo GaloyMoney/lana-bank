@@ -16,11 +16,11 @@ use crate::config::CustomerSyncConfig;
 use job::*;
 
 #[derive(serde::Serialize)]
-pub struct UpdateCustomerActivityJobConfig<Perms, E> {
+pub struct UpdateCustomerActivityStatusJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> UpdateCustomerActivityJobConfig<Perms, E> {
+impl<Perms, E> UpdateCustomerActivityStatusJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -28,13 +28,13 @@ impl<Perms, E> UpdateCustomerActivityJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> Default for UpdateCustomerActivityJobConfig<Perms, E> {
+impl<Perms, E> Default for UpdateCustomerActivityStatusJobConfig<Perms, E> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Perms, E> JobConfig for UpdateCustomerActivityJobConfig<Perms, E>
+impl<Perms, E> JobConfig for UpdateCustomerActivityStatusJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -46,10 +46,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = UpdateCustomerActivityInit<Perms, E>;
+    type Initializer = UpdateCustomerActivityStatusInit<Perms, E>;
 }
 
-pub struct UpdateCustomerActivityInit<Perms, E>
+pub struct UpdateCustomerActivityStatusInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<LanaEvent>
@@ -61,7 +61,7 @@ where
     config: CustomerSyncConfig,
 }
 
-impl<Perms, E> UpdateCustomerActivityInit<Perms, E>
+impl<Perms, E> UpdateCustomerActivityStatusInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<LanaEvent>
@@ -77,9 +77,9 @@ where
     }
 }
 
-const UPDATE_CUSTOMER_ACTIVITY: JobType = JobType::new("update-customer-activity");
+const UPDATE_CUSTOMER_ACTIVITY_STATUS: JobType = JobType::new("update-customer-activity-status");
 
-impl<Perms, E> JobInitializer for UpdateCustomerActivityInit<Perms, E>
+impl<Perms, E> JobInitializer for UpdateCustomerActivityStatusInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -95,11 +95,11 @@ where
     where
         Self: Sized,
     {
-        UPDATE_CUSTOMER_ACTIVITY
+        UPDATE_CUSTOMER_ACTIVITY_STATUS
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateCustomerActivityJobRunner {
+        Ok(Box::new(UpdateCustomerActivityStatusJobRunner {
             customers: self.customers.clone(),
             config: self.config.clone(),
         }))
@@ -113,7 +113,7 @@ where
     }
 }
 
-pub struct UpdateCustomerActivityJobRunner<Perms, E>
+pub struct UpdateCustomerActivityStatusJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<LanaEvent>
@@ -126,7 +126,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for UpdateCustomerActivityJobRunner<Perms, E>
+impl<Perms, E> JobRunner for UpdateCustomerActivityStatusJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -138,16 +138,24 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    #[instrument(name = "update_customer_activity.run", skip(self, _current_job), err)]
+    #[instrument(
+        name = "update_customer_activity_status.run",
+        skip(self, _current_job),
+        err
+    )]
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let now = crate::time::now();
         if self.config.activity_update_enabled {
-            self.customers.perform_activity_update(now).await?;
+            let now = crate::time::now();
+            self.customers
+                .perform_customer_activity_status_update(now)
+                .await?;
+            let next_run_at = self.config.activity_update_utc_time.next_after(now);
+            Ok(JobCompletion::RescheduleAt(next_run_at))
+        } else {
+            Ok(JobCompletion::Complete)
         }
-        let next_run_at = self.config.activity_update_utc_time.next_after(now);
-        Ok(JobCompletion::RescheduleAt(next_run_at))
     }
 }
