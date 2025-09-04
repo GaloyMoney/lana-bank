@@ -1637,7 +1637,7 @@ export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relations
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit)],
         closestAccountWithCode: overrides && overrides.hasOwnProperty('closestAccountWithCode') ? overrides.closestAccountWithCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
-        entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
+        entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),

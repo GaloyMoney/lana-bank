@@ -3,6 +3,7 @@ use std::collections::HashMap;
 use serde::{Deserialize, Serialize};
 
 use audit::AuditInfo;
+use core_accounting::EntityRef;
 
 mod balance;
 mod constants;
@@ -25,7 +26,8 @@ use crate::{
     liquidation_process::LiquidationProcess,
     obligation_installment::ObligationInstallment,
     primitives::{
-        CalaAccountId, CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
+        CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
+        CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
         CreditFacilityProposalId, CustomerType, DisbursedReceivableAccountCategory,
         DisbursedReceivableAccountType, InterestReceivableAccountType, LedgerOmnibusAccountIds,
         LedgerTxId, Satoshis, UsdCents,
@@ -1715,6 +1717,7 @@ impl CreditLedger {
         reference: &str,
         name: &str,
         description: &str,
+        entity_ref: core_accounting::EntityRef,
     ) -> Result<(), CreditLedgerError> {
         let id = id.into();
 
@@ -1725,6 +1728,8 @@ impl CreditLedger {
             .description(description)
             .code(id.to_string())
             .normal_balance_type(parent_account_set.normal_balance_type)
+            .metadata(serde_json::json!({"entity_ref": entity_ref}))
+            .expect("Could not add metadata")
             .build()
             .expect("Could not build new account");
         let ledger_account = self
@@ -1870,6 +1875,7 @@ impl CreditLedger {
             collateral_account_id,
         } = account_ids;
 
+        let entity_ref = EntityRef::new(CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, credit_facility_id);
         let collateral_reference = &format!("credit-facility-collateral:{credit_facility_id}");
         let collateral_name =
             &format!("Credit Facility Collateral Account for {credit_facility_id}");
@@ -1880,6 +1886,7 @@ impl CreditLedger {
             collateral_reference,
             collateral_name,
             collateral_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -1893,6 +1900,7 @@ impl CreditLedger {
             facility_reference,
             facility_name,
             facility_name,
+            entity_ref,
         )
         .await?;
 
@@ -1923,6 +1931,7 @@ impl CreditLedger {
             fee_income_account_id,
         } = account_ids;
 
+        let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
         let collateral_reference = &format!("credit-facility-collateral:{credit_facility_id}");
         let collateral_name =
             &format!("Credit Facility Collateral Account for {credit_facility_id}");
@@ -1933,6 +1942,7 @@ impl CreditLedger {
             collateral_reference,
             collateral_name,
             collateral_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -1946,6 +1956,7 @@ impl CreditLedger {
             facility_reference,
             facility_name,
             facility_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -1961,6 +1972,7 @@ impl CreditLedger {
             in_liquidation_reference,
             in_liquidation_name,
             in_liquidation_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -1976,6 +1988,7 @@ impl CreditLedger {
             disbursed_receivable_not_yet_due_reference,
             disbursed_receivable_not_yet_due_name,
             disbursed_receivable_not_yet_due_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -1990,6 +2003,7 @@ impl CreditLedger {
             disbursed_receivable_due_reference,
             disbursed_receivable_due_name,
             disbursed_receivable_due_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2008,6 +2022,7 @@ impl CreditLedger {
             disbursed_receivable_overdue_reference,
             disbursed_receivable_overdue_name,
             disbursed_receivable_overdue_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2022,6 +2037,7 @@ impl CreditLedger {
             disbursed_defaulted_reference,
             disbursed_defaulted_name,
             disbursed_defaulted_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2037,6 +2053,7 @@ impl CreditLedger {
             interest_receivable_not_yet_due_reference,
             interest_receivable_not_yet_due_name,
             interest_receivable_not_yet_due_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2051,6 +2068,7 @@ impl CreditLedger {
             interest_receivable_due_reference,
             interest_receivable_due_name,
             interest_receivable_due_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2066,6 +2084,7 @@ impl CreditLedger {
             interest_receivable_overdue_reference,
             interest_receivable_overdue_name,
             interest_receivable_overdue_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2080,6 +2099,7 @@ impl CreditLedger {
             interest_defaulted_reference,
             interest_defaulted_name,
             interest_defaulted_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2094,6 +2114,7 @@ impl CreditLedger {
             interest_income_reference,
             interest_income_name,
             interest_income_name,
+            entity_ref.clone(),
         )
         .await?;
 
@@ -2107,6 +2128,7 @@ impl CreditLedger {
             fee_income_reference,
             fee_income_name,
             fee_income_name,
+            entity_ref.clone(),
         )
         .await?;
 

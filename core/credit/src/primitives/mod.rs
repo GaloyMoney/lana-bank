@@ -122,6 +122,12 @@ pub struct LedgerOmnibusAccountIds {
     pub account_id: CalaAccountId,
 }
 
+pub const CREDIT_FACILITY_ENTITY_TYPE: core_accounting::EntityType =
+    core_accounting::EntityType::new("CreditFacility");
+
+pub const CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE: core_accounting::EntityType =
+    core_accounting::EntityType::new("CreditFacilityProposal");
+
 pub type CreditFacilityAllOrOne = AllOrOne<CreditFacilityId>;
 pub type ChartOfAccountsIntegrationConfigAllOrOne = AllOrOne<ChartOfAccountsIntegrationConfigId>;
 pub type DisbursalAllOrOne = AllOrOne<DisbursalId>;

@@ -43,8 +43,8 @@ impl From<cala_ledger::account_set::AccountSetMemberId> for LedgerAccountId {
 #[serde(transparent)]
 pub struct EntityType(Cow<'static, str>);
 impl EntityType {
-    pub const fn new(job_type: &'static str) -> Self {
-        Self(Cow::Borrowed(job_type))
+    pub const fn new(entity_type: &'static str) -> Self {
+        Self(Cow::Borrowed(entity_type))
     }
 }
 
