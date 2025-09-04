@@ -63,7 +63,7 @@ pub struct DepositAccountLedgerAccounts {
 
 #[ComplexObject]
 impl DepositAccountLedgerAccounts {
-    async fn ledger_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
+    async fn deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
             .load_one(LedgerAccountId::from(self.deposit_account_id))
@@ -75,9 +75,9 @@ impl DepositAccountLedgerAccounts {
     async fn frozen_deposit_account(&self, ctx: &Context<'_>) -> Result<LedgerAccount> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let account = loader
-            .load_one(LedgerAccountId::from(self.deposit_account_id))
+            .load_one(LedgerAccountId::from(self.frozen_deposit_account_id))
             .await?
-            .expect("Frozen deposit account not found");
+            .expect("Ledger account not found");
         Ok(account)
     }
 }
