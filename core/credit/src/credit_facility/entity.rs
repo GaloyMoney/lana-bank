@@ -209,12 +209,8 @@ impl CreditFacility {
         self.maturity_date.start_of_day()
     }
 
-    pub fn structuring_fee(&self) -> UsdCents {
+    pub(super) fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.amount)
-    }
-
-    pub fn has_structuring_fee(&self) -> bool {
-        !self.structuring_fee().is_zero()
     }
 
     fn is_matured(&self) -> bool {
@@ -881,18 +877,6 @@ mod test {
                     .is_none()
             );
         }
-
-        // NOTE: check if this is required
-        // #[test]
-        // fn errors_for_future_start_date() {
-        //     let events = initial_events();
-        //     let mut credit_facility = facility_from(events);
-
-        //     assert!(matches!(
-        //         credit_facility.start_interest_accrual_cycle(dummy_audit_info()),
-        //         Err(CreditFacilityError::InterestAccrualCycleWithInvalidFutureStartDate)
-        //     ));
-        // }
     }
 
     #[test]

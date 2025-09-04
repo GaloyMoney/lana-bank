@@ -676,17 +676,6 @@ where
         self.approve_disbursal.execute_from_svc(disbursal).await
     }
 
-    // TODO: check if this is still needed
-    // pub async fn ensure_up_to_date_status(
-    //     &self,
-    //     _credit_facility: &CreditFacility,
-    // ) -> Result<Option<CreditFacility>, CoreCreditError> {
-    //     unimplemented!()
-    //     // self.approve_credit_facility
-    //     //     .execute_from_svc(credit_facility)
-    //     //     .await
-    // }
-
     pub async fn subject_can_update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
