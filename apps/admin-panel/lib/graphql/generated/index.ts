@@ -423,6 +423,7 @@ export type CreditFacility = {
   facilityAmount: Scalars['UsdCents']['output'];
   history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
+  ledgerAccounts: CreditFacilityLedgerAccounts;
   maturesAt?: Maybe<Scalars['Timestamp']['output']>;
   publicId: Scalars['PublicId']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
@@ -592,6 +593,36 @@ export type CreditFacilityInterestAccrued = {
   effective: Scalars['Date']['output'];
   recordedAt: Scalars['Timestamp']['output'];
   txId: Scalars['UUID']['output'];
+};
+
+export type CreditFacilityLedgerAccounts = {
+  __typename?: 'CreditFacilityLedgerAccounts';
+  collateralAccount: LedgerAccount;
+  collateralAccountId: Scalars['UUID']['output'];
+  disbursedDefaultedAccount: LedgerAccount;
+  disbursedDefaultedAccountId: Scalars['UUID']['output'];
+  disbursedReceivableDueAccount: LedgerAccount;
+  disbursedReceivableDueAccountId: Scalars['UUID']['output'];
+  disbursedReceivableNotYetDueAccount: LedgerAccount;
+  disbursedReceivableNotYetDueAccountId: Scalars['UUID']['output'];
+  disbursedReceivableOverdueAccount: LedgerAccount;
+  disbursedReceivableOverdueAccountId: Scalars['UUID']['output'];
+  facilityAccount: LedgerAccount;
+  facilityAccountId: Scalars['UUID']['output'];
+  feeIncomeAccount: LedgerAccount;
+  feeIncomeAccountId: Scalars['UUID']['output'];
+  inLiquidationAccount: LedgerAccount;
+  inLiquidationAccountId: Scalars['UUID']['output'];
+  interestDefaultedAccount: LedgerAccount;
+  interestDefaultedAccountId: Scalars['UUID']['output'];
+  interestIncomeAccount: LedgerAccount;
+  interestIncomeAccountId: Scalars['UUID']['output'];
+  interestReceivableDueAccount: LedgerAccount;
+  interestReceivableDueAccountId: Scalars['UUID']['output'];
+  interestReceivableNotYetDueAccount: LedgerAccount;
+  interestReceivableNotYetDueAccountId: Scalars['UUID']['output'];
+  interestReceivableOverdueAccount: LedgerAccount;
+  interestReceivableOverdueAccountId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityLiquidationAmountReserved = {

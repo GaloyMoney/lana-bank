@@ -402,6 +402,7 @@ type CreditFacility {
 	customer: Customer!
 	balance: CreditFacilityBalance!
 	wallet: Wallet
+	ledgerAccounts: CreditFacilityLedgerAccounts!
 }
 
 type CreditFacilityApproved {
@@ -569,6 +570,35 @@ type CreditFacilityInterestAccrued {
 	effective: Date!
 	txId: UUID!
 	days: Int!
+}
+
+type CreditFacilityLedgerAccounts {
+	facilityAccountId: UUID!
+	inLiquidationAccountId: UUID!
+	disbursedReceivableNotYetDueAccountId: UUID!
+	disbursedReceivableDueAccountId: UUID!
+	disbursedReceivableOverdueAccountId: UUID!
+	disbursedDefaultedAccountId: UUID!
+	collateralAccountId: UUID!
+	interestReceivableNotYetDueAccountId: UUID!
+	interestReceivableDueAccountId: UUID!
+	interestReceivableOverdueAccountId: UUID!
+	interestDefaultedAccountId: UUID!
+	interestIncomeAccountId: UUID!
+	feeIncomeAccountId: UUID!
+	facilityAccount: LedgerAccount!
+	inLiquidationAccount: LedgerAccount!
+	disbursedReceivableNotYetDueAccount: LedgerAccount!
+	disbursedReceivableDueAccount: LedgerAccount!
+	disbursedReceivableOverdueAccount: LedgerAccount!
+	disbursedDefaultedAccount: LedgerAccount!
+	collateralAccount: LedgerAccount!
+	interestReceivableNotYetDueAccount: LedgerAccount!
+	interestReceivableDueAccount: LedgerAccount!
+	interestReceivableOverdueAccount: LedgerAccount!
+	interestDefaultedAccount: LedgerAccount!
+	interestIncomeAccount: LedgerAccount!
+	feeIncomeAccount: LedgerAccount!
 }
 
 type CreditFacilityLiquidationAmountReserved {

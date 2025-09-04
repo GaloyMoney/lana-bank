@@ -3,6 +3,7 @@ mod collateral;
 pub(super) mod disbursal;
 mod error;
 mod history;
+mod ledger_accounts;
 pub(super) mod obligation_installment;
 mod repayment;
 
@@ -31,6 +32,7 @@ pub use collateral::*;
 pub use disbursal::*;
 pub use error::*;
 pub use history::*;
+use ledger_accounts::*;
 pub use repayment::*;
 
 #[derive(SimpleObject, Clone)]
@@ -224,6 +226,56 @@ impl CreditFacility {
             Ok(loader.load_one(WalletId::from(wallet_id)).await?)
         } else {
             Ok(None)
+        }
+    }
+
+    async fn ledger_accounts(&self) -> CreditFacilityLedgerAccounts {
+        CreditFacilityLedgerAccounts {
+            facility_account_id: self.entity.account_ids.facility_account_id.into(),
+            in_liquidation_account_id: self.entity.account_ids.in_liquidation_account_id.into(),
+            disbursed_receivable_not_yet_due_account_id: self
+                .entity
+                .account_ids
+                .disbursed_receivable_not_yet_due_account_id
+                .into(),
+            disbursed_receivable_due_account_id: self
+                .entity
+                .account_ids
+                .disbursed_receivable_due_account_id
+                .into(),
+            disbursed_receivable_overdue_account_id: self
+                .entity
+                .account_ids
+                .disbursed_receivable_overdue_account_id
+                .into(),
+            disbursed_defaulted_account_id: self
+                .entity
+                .account_ids
+                .disbursed_defaulted_account_id
+                .into(),
+            collateral_account_id: self.entity.account_ids.collateral_account_id.into(),
+            interest_receivable_not_yet_due_account_id: self
+                .entity
+                .account_ids
+                .interest_receivable_not_yet_due_account_id
+                .into(),
+            interest_receivable_due_account_id: self
+                .entity
+                .account_ids
+                .interest_receivable_due_account_id
+                .into(),
+            interest_receivable_overdue_account_id: self
+                .entity
+                .account_ids
+                .interest_receivable_overdue_account_id
+                .into(),
+            interest_defaulted_account_id: self
+                .entity
+                .account_ids
+                .interest_defaulted_account_id
+                .into(),
+            interest_income_account_id: self.entity.account_ids.interest_income_account_id.into(),
+            fee_income_account_id: self.entity.account_ids.fee_income_account_id.into(),
         }
     }
 }
