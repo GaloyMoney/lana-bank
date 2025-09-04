@@ -27,7 +27,7 @@ pub struct CreditFacilityLedgerAccountIds {
     pub fee_income_account_id: CalaAccountId,
 }
 
-impl CreditFacilityAccountIds {
+impl CreditFacilityLedgerAccountIds {
     #[allow(clippy::new_without_default)]
     #[cfg(test)]
     pub fn new() -> Self {
@@ -49,8 +49,8 @@ impl CreditFacilityAccountIds {
     }
 }
 
-impl From<CreditFacilityProposalLedgerAccountIds> for CreditFacilityLedgerAccountIds {
-    fn from(proposal_ids: CreditFacilityProposalLedgerAccountIds) -> Self {
+impl From<CreditFacilityProposalAccountIds> for CreditFacilityLedgerAccountIds {
+    fn from(proposal_ids: CreditFacilityProposalAccountIds) -> Self {
         Self {
             facility_account_id: proposal_ids.facility_account_id,
             collateral_account_id: proposal_ids.collateral_account_id,
@@ -71,12 +71,12 @@ impl From<CreditFacilityProposalLedgerAccountIds> for CreditFacilityLedgerAccoun
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CreditFacilityProposalLedgerAccountIds {
+pub struct CreditFacilityProposalAccountIds {
     pub facility_account_id: CalaAccountId,
     pub collateral_account_id: CalaAccountId,
 }
 
-impl CreditFacilityProposalLedgerAccountIds {
+impl CreditFacilityProposalAccountIds {
     #[allow(clippy::new_without_default)]
     pub fn new() -> Self {
         Self {
@@ -113,6 +113,7 @@ pub struct CreditFacilityActivation {
     pub structuring_fee_amount: UsdCents,
 }
 
+#[derive(Debug, Clone)]
 pub struct CreditFacilityInterestAccrual {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
