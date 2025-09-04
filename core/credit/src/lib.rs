@@ -344,11 +344,7 @@ where
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            wallet_collateral_sync::WalletCollateralSyncInit::new(
-                outbox,
-                &credit_facilities,
-                &collaterals,
-            ),
+            wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, &collaterals),
             wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
         )
         .await?;
@@ -793,7 +789,11 @@ where
         };
 
         self.ledger
-            .update_credit_facility_collateral(db, collateral_update, credit_facility.account_ids)
+            .update_credit_facility_collateral(
+                db,
+                collateral_update,
+                credit_facility.account_ids.collateral_account_id,
+            )
             .await?;
 
         Ok(credit_facility)

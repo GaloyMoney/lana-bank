@@ -43,6 +43,7 @@ pub enum CollateralEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Collateral {
     pub id: CollateralId,
+    pub account_id: CalaAccountId,
     pub credit_facility_id: CreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
@@ -149,10 +150,12 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     id,
                     credit_facility_id,
                     custody_wallet_id,
+                    account_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
+                        .account_id(*account_id)
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .credit_facility_id(*credit_facility_id)

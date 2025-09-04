@@ -274,6 +274,20 @@ impl Query {
         )
     }
 
+    async fn credit_facility_proposal(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<CreditFacilityProposal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        maybe_fetch_one!(
+            CreditFacilityProposal,
+            ctx,
+            app.credit().credit_facility_proposals().find_by_id(sub, id)
+        )
+    }
+
     async fn credit_facility_by_public_id(
         &self,
         ctx: &Context<'_>,
