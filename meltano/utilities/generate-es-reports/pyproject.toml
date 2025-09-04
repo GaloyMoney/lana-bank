@@ -3,7 +3,7 @@ name = "generate-es-reports"
 version = "0.0.1"
 description = "generate-es-reports"
 readme = "README.md"
-authors = ["Galoy biz@galoy.io"]
+authors = ["Galoy <biz@galoy.io>"]
 include = ["generate_es_reports/schemas/*/*.xsd"]
 
 [tool.poetry.dependencies]
@@ -25,5 +25,5 @@ pytest = "^8.4.1"
 requires = ["poetry-core>=2,<3"]
 build-backend = "poetry.core.masonry.api"
 
-[project.scripts]
+[tool.poetry.scripts]
 generate-es-reports = "generate_es_reports.cli:cli"
