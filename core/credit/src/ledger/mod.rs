@@ -2128,7 +2128,7 @@ impl CreditLedger {
             fee_income_reference,
             fee_income_name,
             fee_income_name,
-            entity_ref.clone(),
+            entity_ref,
         )
         .await?;
 
