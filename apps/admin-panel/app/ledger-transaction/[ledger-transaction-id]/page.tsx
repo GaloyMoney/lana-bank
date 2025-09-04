@@ -40,6 +40,7 @@ gql`
         direction
         layer
         ledgerAccount {
+          id
           ledgerAccountId
           code
           name
@@ -131,6 +132,11 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
                 },
               },
               {
+                key: "layer",
+                header: t("table.layer"),
+                render: (layer) => <LayerLabel value={layer} />,
+              },
+              {
                 key: "direction",
                 header: t("table.debit"),
                 render: (_, record) => {
@@ -153,11 +159,6 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
                     return <Balance amount={record?.amount.btc} currency="btc" />
                   }
                 },
-              },
-              {
-                key: "layer",
-                header: t("table.layer"),
-                render: (layer) => <LayerLabel value={layer} />,
               },
             ]}
             loading={loading}

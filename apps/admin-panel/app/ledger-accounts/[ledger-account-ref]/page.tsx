@@ -214,6 +214,11 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
       },
     },
     {
+      key: "layer",
+      label: t("table.columns.layer"),
+      render: (layer) => <LayerLabel value={layer} />,
+    },
+    {
       key: "__typename",
       label: t("table.columns.debit"),
       render: (_, record) => {
@@ -236,11 +241,6 @@ const LedgerAccountPage: React.FC<LedgerAccountPageProps> = ({ params }) => {
           return <Balance amount={record?.amount.btc} currency="btc" />
         }
       },
-    },
-    {
-      key: "layer",
-      label: t("table.columns.layer"),
-      render: (layer) => <LayerLabel value={layer} />,
     },
   ]
 

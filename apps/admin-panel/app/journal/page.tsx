@@ -53,6 +53,7 @@ gql`
             }
           }
           ledgerAccount {
+            id
             ledgerAccountId
             code
             name
@@ -150,30 +151,34 @@ const JournalPage: React.FC = () => {
         )
       },
     },
-
-    {
-      key: "direction",
-      label: t("table.direction"),
-      render: (direction: DebitOrCredit) =>
-        direction === DebitOrCredit.Debit
-          ? t("debitOrCredit.debit")
-          : t("debitOrCredit.credit"),
-    },
-    {
-      key: "amount",
-      label: t("table.amount"),
-      render: (amount) => {
-        if (amount.__typename === "UsdAmount") {
-          return <Balance currency="usd" amount={amount.usd} />
-        } else if (amount.__typename === "BtcAmount") {
-          return <Balance currency="btc" amount={amount.btc} />
-        }
-      },
-    },
     {
       key: "layer",
       label: t("table.layer"),
       render: (layer) => <LayerLabel value={layer} />,
+    },
+    {
+      key: "amount",
+      label: t("table.debit"),
+      render: (_, record) => {
+        if (record.direction !== DebitOrCredit.Debit) return null
+        if (record.amount.__typename === "UsdAmount") {
+          return <Balance amount={record?.amount.usd} currency="usd" />
+        } else if (record.amount.__typename === "BtcAmount") {
+          return <Balance amount={record?.amount.btc} currency="btc" />
+        }
+      },
+    },
+    {
+      key: "amount",
+      label: t("table.credit"),
+      render: (_, record) => {
+        if (record.direction !== DebitOrCredit.Credit) return null
+        if (record.amount.__typename === "UsdAmount") {
+          return <Balance amount={record?.amount.usd} currency="usd" />
+        } else if (record.amount.__typename === "BtcAmount") {
+          return <Balance amount={record?.amount.btc} currency="btc" />
+        }
+      },
     },
     {
       key: "description",

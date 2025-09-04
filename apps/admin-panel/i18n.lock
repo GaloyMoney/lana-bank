@@ -1094,7 +1094,8 @@ checksums:
     Journal/table/name: 5a4c82f1bc517348b64c107345f94f65
     Journal/table/transaction: 7f5d30475a7934848665e9b3e3dea36d
     Journal/table/layer: 814ae58a59c6930c0a22031027a2a6ee
-    Journal/table/direction: 2920314e7f25957f16577b544b4e860b
+    Journal/table/debit: 1b35db901aa1aeed8ee79aec6d807731
+    Journal/table/credit: 2d447a71ec815a039f175e94fbb12a56
     Journal/table/amount: a0ae9c6ff98b57475cdce56f66066aa4
     Journal/table/description: e17686a22ffad04cc7bb70524ed4478b
     Journal/table/effective: aab6741517742a24eb46f529ebb94bf6
