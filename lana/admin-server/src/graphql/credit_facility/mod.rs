@@ -13,8 +13,7 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    approval_process::*, custody::Wallet, customer::*, loader::LanaDataLoader,
-    primitives::SortDirection, terms::*,
+    custody::Wallet, customer::*, loader::LanaDataLoader, primitives::SortDirection, terms::*,
 };
 pub use lana_app::{
     credit::{
@@ -42,7 +41,6 @@ pub use repayment::*;
 pub struct CreditFacility {
     id: ID,
     credit_facility_id: UUID,
-    approval_process_id: UUID,
     created_at: Timestamp,
     matures_at: Timestamp,
     collateralization_state: CollateralizationState,
@@ -58,7 +56,6 @@ impl From<DomainCreditFacility> for CreditFacility {
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
-            approval_process_id: UUID::from(credit_facility.approval_process_id),
             created_at: Timestamp::from(credit_facility.created_at()),
             matures_at: Timestamp::from(credit_facility.matures_at()),
             facility_amount: credit_facility.amount,
@@ -130,15 +127,6 @@ impl CreditFacility {
             .into_iter()
             .map(CreditFacilityDisbursal::from)
             .collect())
-    }
-
-    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let process = loader
-            .load_one(self.entity.approval_process_id)
-            .await?
-            .expect("process not found");
-        Ok(process)
     }
 
     async fn user_can_update_collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<bool> {

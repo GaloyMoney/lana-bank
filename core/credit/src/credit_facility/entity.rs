@@ -31,7 +31,6 @@ pub enum CreditFacilityEvent {
         amount: UsdCents,
         account_ids: CreditFacilityLedgerAccountIds,
         disbursal_credit_account_id: CalaAccountId,
-        approval_process_id: ApprovalProcessId, // TODO: check if we need this
         public_id: PublicId,
         activated_at: DateTime<Utc>,
         maturity_date: EffectiveDate,
@@ -152,7 +151,6 @@ impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,
-    pub approval_process_id: ApprovalProcessId,
     pub customer_id: CustomerId,
     pub collateral_id: CollateralId,
     pub amount: UsdCents,
@@ -534,7 +532,6 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                     account_ids,
                     disbursal_credit_account_id,
                     terms: t,
-                    approval_process_id,
                     public_id,
                     maturity_date,
                     activated_at,
@@ -548,7 +545,6 @@ impl TryFromEvents<CreditFacilityEvent> for CreditFacility {
                         .terms(*t)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
-                        .approval_process_id(*approval_process_id)
                         .public_id(public_id.clone())
                         .activated_at(*activated_at)
                         .maturity_date(*maturity_date);
@@ -571,8 +567,6 @@ pub struct NewCreditFacility {
     pub(super) id: CreditFacilityId,
     #[builder(setter(into))]
     pub(super) ledger_tx_id: LedgerTxId,
-    #[builder(setter(into))]
-    pub(super) approval_process_id: ApprovalProcessId,
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     pub(super) customer_type: CustomerType,
@@ -612,7 +606,6 @@ impl IntoEvents<CreditFacilityEvent> for NewCreditFacility {
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
-                approval_process_id: self.approval_process_id,
                 public_id: self.public_id,
                 activated_at: self.activated_at,
                 maturity_date: self.maturity_date,
@@ -703,7 +696,6 @@ mod test {
             terms: default_terms(),
             account_ids: account_ids(),
             disbursal_credit_account_id: CalaAccountId::new(),
-            approval_process_id: ApprovalProcessId::new(),
             public_id: PublicId::new(format!("test-public-id-{}", uuid::Uuid::new_v4())),
             activated_at: activated_at(),
             maturity_date: EffectiveDate::from(activated_at() + chrono::Duration::days(90)),
