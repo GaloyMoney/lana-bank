@@ -18,6 +18,8 @@ pub enum CreditFacilityProposalError {
     ApprovalInProgress,
     #[error("CreditFacilityProposalError - BelowMarginLimit")]
     BelowMarginLimit,
+    #[error("CreditFacilityProposalError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityProposalError);

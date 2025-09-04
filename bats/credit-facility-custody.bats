@@ -17,15 +17,15 @@ teardown_file() {
 }
 
 wait_for_collateral() {
-  credit_facility_id=$1
+  credit_facility_proposal_id=$1
 
   variables=$(
     jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
+      --arg creditFacilityProposalId "$credit_facility_proposal_id" \
+    '{ id: $creditFacilityProposalId }'
   )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  exec_admin_graphql 'find-credit-facility-proposal' "$variables"
+  collateral=$(graphql_output '.data.creditFacilityProposal.collateral.btcBalance')
   [[ "$collateral" -eq 1000 ]] || exit 1
 }
 
@@ -81,7 +81,7 @@ wait_for_collateral() {
   credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
   [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
-  cache_value 'credit_facility_id' "$credit_facility_id"
+  cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
 
   address=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.wallet.address')
   [[ "$address" == "bt1qaddressmock" ]] || exit 1
@@ -122,5 +122,5 @@ wait_for_collateral() {
   # external wallet ID 123 is hard coded in mock custodian
   curl -s -X POST --json '{"wallet": "123", "balance": 1000}' http://localhost:5253/webhook/custodian/mock
 
-  retry 10 1 wait_for_collateral "$credit_facility_id"
+  retry 10 1 wait_for_collateral "$credit_facility_proposal_id"
 }

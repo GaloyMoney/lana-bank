@@ -1,7 +1,10 @@
 use async_graphql::*;
 
 use crate::{
-    graphql::{custody::Wallet, loader::LanaDataLoader, terms::TermsInput},
+    graphql::{
+        credit_facility::balance::CollateralBalance, custody::Wallet, loader::LanaDataLoader,
+        terms::TermsInput,
+    },
     primitives::*,
 };
 
@@ -35,6 +38,20 @@ impl CreditFacilityProposal {
         } else {
             Ok(None)
         }
+    }
+
+    async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<CollateralBalance> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let collateral = app
+            .credit()
+            .credit_facility_proposals()
+            .collateral(sub, self.entity.id)
+            .await?;
+
+        Ok(CollateralBalance {
+            btc_balance: collateral,
+        })
     }
 }
 

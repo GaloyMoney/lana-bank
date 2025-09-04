@@ -130,6 +130,7 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
+        // CHANGE RETURN TYPE
     ) -> Result<(CreditFacility, InterestPeriod), CreditFacilityError> {
         self.authz
             .audit()

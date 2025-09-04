@@ -638,6 +638,7 @@ type CreditFacilityProposal {
 	collateralizationState: CreditFacilityProposalCollateralizationState!
 	facilityAmount: UsdCents!
 	wallet: Wallet
+	collateral: CollateralBalance!
 }
 
 input CreditFacilityProposalCollateralUpdateInput {
@@ -691,8 +692,6 @@ enum CreditFacilityRepaymentType {
 }
 
 enum CreditFacilityStatus {
-	PENDING_COLLATERALIZATION
-	PENDING_APPROVAL
 	ACTIVE
 	MATURED
 	CLOSED
@@ -1735,6 +1734,7 @@ type Query {
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
+	creditFacilityProposal(id: UUID!): CreditFacilityProposal
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal

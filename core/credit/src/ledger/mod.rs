@@ -979,6 +979,22 @@ impl CreditLedger {
         ))
     }
 
+    pub(crate) async fn get_proposal_collateral(
+        &self,
+        collateral_account_id: CalaAccountId,
+    ) -> Result<Satoshis, CreditLedgerError> {
+        let collateral_id = (self.journal_id, collateral_account_id, self.btc);
+        let balances = self.cala.balances().find_all(&[collateral_id]).await?;
+
+        let collateral = if let Some(b) = balances.get(&collateral_id) {
+            Satoshis::try_from_btc(b.settled())?
+        } else {
+            Satoshis::ZERO
+        };
+
+        Ok(collateral)
+    }
+
     pub async fn get_credit_facility_balance(
         &self,
         CreditFacilityLedgerAccountIds {
@@ -1210,7 +1226,7 @@ impl CreditLedger {
             action,
             effective,
         }: CollateralUpdate,
-        credit_facility_account_ids: CreditFacilityLedgerAccountIds,
+        collateral_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self
             .cala
@@ -1226,8 +1242,7 @@ impl CreditLedger {
                             journal_id: self.journal_id,
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
-                            collateral_account_id: credit_facility_account_ids
-                                .collateral_account_id,
+                            collateral_account_id,
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
@@ -1246,8 +1261,7 @@ impl CreditLedger {
                             journal_id: self.journal_id,
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
-                            collateral_account_id: credit_facility_account_ids
-                                .collateral_account_id,
+                            collateral_account_id,
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,

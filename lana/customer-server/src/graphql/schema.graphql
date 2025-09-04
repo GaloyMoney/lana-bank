@@ -145,8 +145,6 @@ enum CreditFacilityRepaymentType {
 }
 
 enum CreditFacilityStatus {
-	PENDING_COLLATERALIZATION
-	PENDING_APPROVAL
 	ACTIVE
 	MATURED
 	CLOSED

@@ -215,7 +215,7 @@ impl CreditFacilityProposal {
         Ok(Idempotent::Executed(()))
     }
 
-    pub(crate) fn is_completed(&self) -> bool {
+    fn is_completed(&self) -> bool {
         self.events
             .iter_all()
             .any(|event| matches!(event, CreditFacilityProposalEvent::Completed { .. }))
