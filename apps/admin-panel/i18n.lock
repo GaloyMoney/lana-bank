@@ -1058,7 +1058,6 @@ checksums:
     ChartOfAccountsLedgerAccount/table/noData: 65d8d992387f1b0dc757c22a4de109dc
     ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     ChartOfAccountsLedgerAccount/table/columns/layer: 814ae58a59c6930c0a22031027a2a6ee
-    ChartOfAccountsLedgerAccount/table/columns/currency: d2ba9a9cea418ea653e3ca6785617a3f
     ChartOfAccountsLedgerAccount/table/columns/debit: 1b35db901aa1aeed8ee79aec6d807731
     ChartOfAccountsLedgerAccount/table/columns/credit: 2d447a71ec815a039f175e94fbb12a56
     ChartOfAccountsLedgerAccount/table/columns/closestAccountWithCode: c9e7b8a5c877605f6efd3fffbeba9e60

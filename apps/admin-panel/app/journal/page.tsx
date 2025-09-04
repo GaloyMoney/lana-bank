@@ -53,7 +53,7 @@ gql`
             }
           }
           ledgerAccount {
-            id
+            ledgerAccountId
             code
             name
             closestAccountWithCode {
@@ -121,18 +121,13 @@ const JournalPage: React.FC = () => {
       label: t("table.entryType"),
     },
     {
-      key: "layer",
-      label: t("table.layer"),
-      render: (layer) => <LayerLabel value={layer} />,
-    },
-    {
       key: "ledgerAccount",
       label: t("table.name"),
       render: (account) => {
         const accountName = account.name || account.code
         return (
           <Link
-            href={`/ledger-accounts/${account.code || account.id}`}
+            href={`/ledger-accounts/${account.code || account.ledgerAccountId}`}
             className="hover:underline"
           >
             {accountName}
@@ -140,6 +135,22 @@ const JournalPage: React.FC = () => {
         )
       },
     },
+    {
+      key: "ledgerAccount",
+      label: t("table.closestAccountWithCode"),
+      render: (account) => {
+        const closestAccountWithCode = account.closestAccountWithCode?.code
+        return (
+          <Link
+            href={`/ledger-accounts/${closestAccountWithCode}`}
+            className="hover:underline"
+          >
+            {closestAccountWithCode}
+          </Link>
+        )
+      },
+    },
+
     {
       key: "direction",
       label: t("table.direction"),
@@ -160,26 +171,16 @@ const JournalPage: React.FC = () => {
       },
     },
     {
+      key: "layer",
+      label: t("table.layer"),
+      render: (layer) => <LayerLabel value={layer} />,
+    },
+    {
       key: "description",
       label: t("table.description"),
       render: (description?: string | null) => {
         if (description) return description
         return "-"
-      },
-    },
-    {
-      key: "ledgerAccount",
-      label: t("table.closestAccountWithCode"),
-      render: (account) => {
-        const closestAccountWithCode = account.closestAccountWithCode?.code
-        return (
-          <Link
-            href={`/ledger-accounts/${closestAccountWithCode}`}
-            className="hover:underline"
-          >
-            {closestAccountWithCode}
-          </Link>
-        )
       },
     },
   ]

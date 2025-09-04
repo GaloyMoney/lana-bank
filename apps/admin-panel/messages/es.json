@@ -1783,7 +1783,6 @@
       "columns": {
         "recordedAt": "Registrado el",
         "layer": "Capa",
-        "currency": "Moneda",
         "debit": "Debe",
         "credit": "Haber",
         "closestAccountWithCode": "Código de cuenta superior",

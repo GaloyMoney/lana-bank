@@ -1783,7 +1783,6 @@
       "columns": {
         "recordedAt": "Recorded At",
         "layer": "Layer",
-        "currency": "Currency",
         "debit": "Debit",
         "credit": "Credit",
         "closestAccountWithCode": "Closest Account With Code",
