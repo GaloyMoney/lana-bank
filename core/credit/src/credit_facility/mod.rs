@@ -13,7 +13,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     PublicIds,
-    credit_facility_proposal::CreditFacilityProposals,
+    credit_facility_proposal::{CreditFacilityProposalCompletionOutcome, CreditFacilityProposals},
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
     jobs::credit_facility_maturity,
@@ -75,7 +75,12 @@ pub(super) enum CompletionOutcome {
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
 }
 
-pub struct CreditFacilityActivationData {
+pub(super) enum ActivationOutcome {
+    Ignored,
+    Activated(ActivationData),
+}
+
+pub struct ActivationData {
     pub credit_facility: CreditFacility,
     pub next_accrual_period: InterestPeriod,
     pub approval_process_id: ApprovalProcessId,
@@ -134,7 +139,7 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: CreditFacilityId,
-    ) -> Result<CreditFacilityActivationData, CreditFacilityError> {
+    ) -> Result<ActivationOutcome, CreditFacilityError> {
         self.authz
             .audit()
             .record_system_entry_in_tx(
@@ -144,17 +149,12 @@ where
             )
             .await?;
 
-        let crate::CreditFacilityProposal {
-            terms,
-            customer_id,
-            amount,
-            approval_process_id,
-            account_ids,
-            disbursal_credit_account_id,
-            customer_type,
-            collateral_id,
-            ..
-        }: crate::CreditFacilityProposal = self.proposals.complete_in_op(db, id.into()).await?;
+        let proposal = match self.proposals.complete_in_op(db, id.into()).await? {
+            CreditFacilityProposalCompletionOutcome::Completed(proposal) => proposal,
+            CreditFacilityProposalCompletionOutcome::Ignored => {
+                return Ok(ActivationOutcome::Ignored);
+            }
+        };
 
         let public_id = self
             .public_ids
@@ -164,15 +164,17 @@ where
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
             .ledger_tx_id(LedgerTxId::new())
-            .customer_id(customer_id)
-            .customer_type(customer_type)
-            .account_ids(crate::CreditFacilityLedgerAccountIds::from(account_ids))
-            .disbursal_credit_account_id(disbursal_credit_account_id)
-            .collateral_id(collateral_id)
-            .terms(terms)
-            .amount(amount)
+            .customer_id(proposal.customer_id)
+            .customer_type(proposal.customer_type)
+            .account_ids(crate::CreditFacilityLedgerAccountIds::from(
+                proposal.account_ids,
+            ))
+            .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
+            .collateral_id(proposal.collateral_id)
+            .terms(proposal.terms)
+            .amount(proposal.amount)
             .activated_at(crate::time::now())
-            .maturity_date(terms.maturity_date(crate::time::now()))
+            .maturity_date(proposal.terms.maturity_date(crate::time::now()))
             .public_id(public_id.id)
             .build()
             .expect("could not build new credit facility");
@@ -198,13 +200,14 @@ where
             )
             .await?;
 
-        Ok(CreditFacilityActivationData {
+        Ok(ActivationOutcome::Activated(ActivationData {
             credit_facility,
             next_accrual_period: periods.accrual,
-            approval_process_id,
+            approval_process_id: proposal.approval_process_id,
             structuring_fee,
-        })
+        }))
     }
+
     pub(super) async fn confirm_interest_accrual_in_op(
         &self,
         op: &mut impl es_entity::AtomicOperation,
