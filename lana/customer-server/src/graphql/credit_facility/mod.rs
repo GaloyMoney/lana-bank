@@ -29,8 +29,8 @@ pub struct CreditFacility {
     collateralization_state: CollateralizationState,
     status: CreditFacilityStatus,
     created_at: Timestamp,
-    activated_at: Option<Timestamp>,
-    matures_at: Option<Timestamp>,
+    // activated_at: Option<Timestamp>,
+    matures_at: Timestamp,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainCreditFacility>,
@@ -38,14 +38,14 @@ pub struct CreditFacility {
 
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
-        let activated_at: Option<Timestamp> = credit_facility.activated_at.map(|t| t.into());
-        let matures_at: Option<Timestamp> = credit_facility.matures_at().map(|t| t.into());
+        // let activated_at: Option<Timestamp> = credit_facility.activated_at.map(|t| t.into());
+        // let matures_at: Option<Timestamp> = credit_facility.matures_at().map(|t| t.into());
 
+        let matures_at = credit_facility.matures_at();
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
-            activated_at,
-            matures_at,
+            matures_at: matures_at.into(),
             created_at: credit_facility.created_at().into(),
             facility_amount: credit_facility.amount,
             collateralization_state: credit_facility.last_collateralization_state(),

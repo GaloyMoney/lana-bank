@@ -90,6 +90,10 @@ where
                     | LiquidationProcessConcluded {
                         credit_facility_id: id,
                         ..
+                    }
+                    | FacilityProposalApproved {
+                        credit_facility_id: id,
+                        ..
                     } => *id,
                 };
 

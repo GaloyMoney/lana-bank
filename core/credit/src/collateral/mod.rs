@@ -9,9 +9,7 @@ use tracing::instrument;
 use authz::PermissionCheck;
 use outbox::OutboxEventMarker;
 
-use crate::{
-    CreditFacility, CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent, primitives::*,
-};
+use crate::{CreditFacilityPublisher, CreditLedger, event::CoreCreditEvent, primitives::*};
 
 pub use entity::Collateral;
 pub(super) use entity::*;
@@ -121,17 +119,20 @@ where
 
     #[instrument(
         name = "collateral.record_collateral_update_via_custodian_sync",
-        fields(credit_facility = %credit_facility.id, updated_collateral = %updated_collateral, effective = %effective),
+        fields(updated_collateral = %updated_collateral, effective = %effective),
         skip(self),
         err
     )]
     pub(super) async fn record_collateral_update_via_custodian_sync(
         &self,
-        credit_facility: &CreditFacility,
+        custody_wallet_id: CustodyWalletId,
         updated_collateral: core_money::Satoshis,
         effective: chrono::NaiveDate,
     ) -> Result<(), CollateralError> {
-        let mut collateral = self.repo.find_by_id(credit_facility.collateral_id).await?;
+        let mut collateral = self
+            .repo
+            .find_by_custody_wallet_id(Some(custody_wallet_id))
+            .await?;
 
         if let es_entity::Idempotent::Executed(data) =
             collateral.record_collateral_update_via_custodian_sync(updated_collateral, effective)
@@ -141,7 +142,7 @@ where
             self.repo.update_in_op(&mut db, &mut collateral).await?;
 
             self.ledger
-                .update_credit_facility_collateral(db, data, credit_facility.account_ids)
+                .update_credit_facility_collateral(db, data, collateral.account_id)
                 .await?;
         }
 

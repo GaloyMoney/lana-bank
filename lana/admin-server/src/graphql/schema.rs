@@ -274,6 +274,20 @@ impl Query {
         )
     }
 
+    async fn credit_facility_proposal(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<CreditFacilityProposal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        maybe_fetch_one!(
+            CreditFacilityProposal,
+            ctx,
+            app.credit().credit_facility_proposals().find_by_id(sub, id)
+        )
+    }
+
     async fn credit_facility_by_public_id(
         &self,
         ctx: &Context<'_>,
@@ -1517,13 +1531,13 @@ impl Mutation {
         ))
     }
 
-    pub async fn credit_facility_create(
+    pub async fn credit_facility_proposal_create(
         &self,
         ctx: &Context<'_>,
-        input: CreditFacilityCreateInput,
-    ) -> async_graphql::Result<CreditFacilityCreatePayload> {
+        input: CreditFacilityProposalCreateInput,
+    ) -> async_graphql::Result<CreditFacilityProposalCreatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let CreditFacilityCreateInput {
+        let CreditFacilityProposalCreateInput {
             facility,
             customer_id,
             disbursal_credit_account_id,
@@ -1548,10 +1562,10 @@ impl Mutation {
             .build()?;
 
         exec_mutation!(
-            CreditFacilityCreatePayload,
-            CreditFacility,
+            CreditFacilityProposalCreatePayload,
+            CreditFacilityProposal,
             ctx,
-            app.credit().create_facility(
+            app.credit().create_facility_proposal(
                 sub,
                 customer_id,
                 disbursal_credit_account_id,
@@ -1579,6 +1593,30 @@ impl Mutation {
             ctx,
             app.credit()
                 .update_collateral(sub, credit_facility_id, collateral, effective)
+        )
+    }
+
+    pub async fn credit_facility_proposal_collateral_update(
+        &self,
+        ctx: &Context<'_>,
+        input: CreditFacilityProposalCollateralUpdateInput,
+    ) -> async_graphql::Result<CreditFacilityProposalCollateralUpdatePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let CreditFacilityProposalCollateralUpdateInput {
+            credit_facility_proposal_id,
+            collateral,
+            effective,
+        } = input;
+        exec_mutation!(
+            CreditFacilityProposalCollateralUpdatePayload,
+            CreditFacilityProposal,
+            ctx,
+            app.credit().update_proposal_collateral(
+                sub,
+                credit_facility_proposal_id,
+                collateral,
+                effective
+            )
         )
     }
 

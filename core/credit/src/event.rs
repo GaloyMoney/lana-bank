@@ -20,6 +20,10 @@ pub enum CoreCreditEvent {
         amount: UsdCents,
         created_at: DateTime<Utc>,
     },
+    FacilityProposalApproved {
+        id: CreditFacilityProposalId,
+        credit_facility_id: CreditFacilityId,
+    },
     FacilityApproved {
         id: CreditFacilityId,
     },

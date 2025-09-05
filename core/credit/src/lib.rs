@@ -66,9 +66,7 @@ pub use obligation_installment::*;
 pub use payment::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
-pub use processes::{
-    approve_credit_facility::*, approve_credit_facility_proposal::*, approve_disbursal::*,
-};
+pub use processes::{approve_credit_facility_proposal::*, approve_disbursal::*};
 use publisher::CreditFacilityPublisher;
 pub use repayment_plan::*;
 pub use terms::*;
@@ -107,7 +105,7 @@ where
     config: CreditConfig,
     approve_disbursal: ApproveDisbursal<Perms, E>,
     cala: CalaLedger,
-    approve_credit_facility: ApproveCreditFacility<Perms, E>,
+    activate_credit_facility: ActivateCreditFacility<Perms, E>,
     obligations: Obligations<Perms, E>,
     collaterals: Collaterals<Perms, E>,
     custody: CoreCustody<Perms, E>,
@@ -143,7 +141,7 @@ where
             config: self.config.clone(),
             cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
-            approve_credit_facility: self.approve_credit_facility.clone(),
+            activate_credit_facility: self.activate_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             terms_templates: self.terms_templates.clone(),
             public_ids: self.public_ids.clone(),
@@ -192,11 +190,13 @@ where
             pool,
             authz,
             &obligations,
+            &credit_facility_proposals,
             &ledger,
             price,
             jobs,
             &publisher,
             governance,
+            public_ids,
         )
         .await?;
         let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
@@ -208,8 +208,6 @@ where
         let approve_disbursal =
             ApproveDisbursal::new(&disbursals, &credit_facilities, jobs, governance, &ledger);
 
-        let approve_credit_facility =
-            ApproveCreditFacility::new(&credit_facilities, authz.audit(), governance);
         let approve_credit_facility_proposal = ApproveCreditFacilityProposal::new(
             &credit_facility_proposals,
             authz.audit(),
@@ -330,11 +328,6 @@ where
             E,
         >::new(&credit_facilities));
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityApprovalInit::new(outbox, &approve_credit_facility),
-            CreditFacilityApprovalJobConfig::<Perms, E>::new(),
-        )
-        .await?;
-        jobs.add_initializer_and_spawn_unique(
             DisbursalApprovalInit::new(outbox, &approve_disbursal),
             DisbursalApprovalJobConfig::<Perms, E>::new(),
         )
@@ -351,11 +344,7 @@ where
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            wallet_collateral_sync::WalletCollateralSyncInit::new(
-                outbox,
-                &credit_facilities,
-                &collaterals,
-            ),
+            wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, &collaterals),
             wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
         )
         .await?;
@@ -378,7 +367,7 @@ where
             config,
             cala: cala.clone(),
             approve_disbursal,
-            approve_credit_facility,
+            activate_credit_facility,
             chart_of_accounts_integrations,
             terms_templates,
             public_ids: public_ids.clone(),
@@ -459,6 +448,7 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
+        disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
         amount: UsdCents,
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
@@ -504,9 +494,11 @@ where
             .approval_process_id(proposal_id)
             .collateral_id(collateral_id)
             .customer_id(customer_id)
+            .customer_type(customer.customer_type)
             .terms(terms)
             .amount(amount)
             .account_ids(account_ids)
+            .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .build()
             .expect("could not build new credit facility");
 
@@ -530,98 +522,6 @@ where
             .await?;
 
         Ok(credit_facility_proposal)
-    }
-
-    #[instrument(name = "credit.create_facility", skip(self), err)]
-    pub async fn create_facility(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
-        disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
-        amount: UsdCents,
-        terms: TermValues,
-        custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
-    ) -> Result<CreditFacility, CoreCreditError> {
-        self.subject_can_create(sub, true)
-            .await?
-            .expect("audit info missing");
-
-        let customer = self.customer.find_by_id_without_audit(customer_id).await?;
-
-        if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
-            return Err(CoreCreditError::CustomerNotVerified);
-        }
-
-        let id = CreditFacilityId::new();
-        let account_ids = CreditFacilityLedgerAccountIds::new();
-        let collateral_id = CollateralId::new();
-
-        let mut db = self.facilities.begin_op().await?;
-
-        let wallet_id = if let Some(custodian_id) = custodian_id {
-            let custodian_id = custodian_id.into();
-
-            #[cfg(feature = "mock-custodian")]
-            if custodian_id.is_mock_custodian() {
-                self.custody
-                    .ensure_mock_custodian_in_op(&mut db, sub)
-                    .await?;
-            }
-
-            let wallet = self
-                .custody
-                .create_wallet_in_op(&mut db, custodian_id, &format!("CF {id}"))
-                .await?;
-
-            Some(wallet.id)
-        } else {
-            None
-        };
-
-        let public_id = self
-            .public_ids
-            .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
-            .await?;
-
-        let new_credit_facility = NewCreditFacility::builder()
-            .id(id)
-            .ledger_tx_id(LedgerTxId::new())
-            .approval_process_id(id)
-            .collateral_id(collateral_id)
-            .customer_id(customer_id)
-            .terms(terms)
-            .amount(amount)
-            .account_ids(account_ids)
-            .disbursal_credit_account_id(disbursal_credit_account_id.into())
-            .public_id(public_id.id)
-            .build()
-            .expect("could not build new credit facility");
-
-        self.collaterals
-            .create_in_op(
-                &mut db,
-                collateral_id,
-                id,
-                wallet_id,
-                account_ids.collateral_account_id,
-            )
-            .await?;
-
-        let credit_facility = self
-            .facilities
-            .create_in_op(&mut db, new_credit_facility)
-            .await?;
-
-        self.ledger
-            .handle_facility_create(
-                db,
-                &credit_facility,
-                customer.customer_type,
-                terms.duration.duration_type(),
-            )
-            .await?;
-
-        Ok(credit_facility)
     }
 
     #[instrument(name = "credit.history", skip(self), err)]
@@ -698,9 +598,6 @@ where
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
-        if !facility.is_activated() {
-            return Err(CreditFacilityError::NotActivatedYet.into());
-        }
         let now = crate::time::now();
         if !facility.check_disbursal_date(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());
@@ -717,7 +614,7 @@ where
 
         let mut db = self.facilities.begin_op().await?;
         let disbursal_id = DisbursalId::new();
-        let due_date = facility.maturity_date.expect("Facility is not active");
+        let due_date = facility.maturity_date;
         let overdue_date = facility
             .terms
             .obligation_overdue_duration_from_due
@@ -766,15 +663,6 @@ where
         self.approve_disbursal.execute_from_svc(disbursal).await
     }
 
-    pub async fn ensure_up_to_date_status(
-        &self,
-        credit_facility: &CreditFacility,
-    ) -> Result<Option<CreditFacility>, CoreCreditError> {
-        self.approve_credit_facility
-            .execute_from_svc(credit_facility)
-            .await
-    }
-
     pub async fn subject_can_update_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -789,6 +677,54 @@ where
                 enforce,
             )
             .await?)
+    }
+
+    #[instrument(name = "credit.update_proposal_collateral", skip(self), err)]
+    pub async fn update_proposal_collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug + Copy,
+        updated_collateral: Satoshis,
+        effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
+    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+        let credit_facility_proposal_id = credit_facility_proposal_id.into();
+        let effective = effective.into();
+
+        self.subject_can_update_collateral(sub, true)
+            .await?
+            .expect("audit info missing");
+
+        let credit_facility_proposal = self
+            .credit_facility_proposals()
+            .find_by_id_without_audit(credit_facility_proposal_id)
+            .await?;
+
+        let mut db = self.facilities.begin_op().await?;
+
+        let collateral_update = if let Some(collateral_update) = self
+            .collaterals
+            .record_collateral_update_via_manual_input_in_op(
+                &mut db,
+                credit_facility_proposal.collateral_id,
+                updated_collateral,
+                effective,
+            )
+            .await?
+        {
+            collateral_update
+        } else {
+            return Ok(credit_facility_proposal);
+        };
+
+        self.ledger
+            .update_credit_facility_proposal_collateral(
+                db,
+                collateral_update,
+                credit_facility_proposal.account_ids,
+            )
+            .await?;
+
+        Ok(credit_facility_proposal)
     }
 
     #[instrument(name = "credit.update_collateral", skip(self), err)]
@@ -829,7 +765,11 @@ where
         };
 
         self.ledger
-            .update_credit_facility_collateral(db, collateral_update, credit_facility.account_ids)
+            .update_credit_facility_collateral(
+                db,
+                collateral_update,
+                credit_facility.account_ids.collateral_account_id,
+            )
             .await?;
 
         Ok(credit_facility)

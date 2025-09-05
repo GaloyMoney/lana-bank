@@ -60,7 +60,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_ACTIVATE_JOB: JobType = JobType::new("credit-facility-activation");
+const CREDIT_FACILITY_CREATE_JOB: JobType = JobType::new("credit-facility-creation");
 impl<Perms, E> JobInitializer for CreditFacilityActivationInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -74,7 +74,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_ACTIVATE_JOB
+        CREDIT_FACILITY_CREATE_JOB
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -134,7 +134,10 @@ where
                     credit_facility_id: id,
                     ..
                 })
-                | Some(CoreCreditEvent::FacilityApproved { id, .. }) => {
+                | Some(CoreCreditEvent::FacilityProposalApproved {
+                    credit_facility_id: id,
+                    ..
+                }) => {
                     self.process.execute(*id).await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;
