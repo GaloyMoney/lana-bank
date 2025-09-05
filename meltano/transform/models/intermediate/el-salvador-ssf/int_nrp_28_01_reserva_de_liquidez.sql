@@ -6,6 +6,7 @@ reserve as (
 )
 
 select
+    order_by,
     title,
     balance,
 from reserve
