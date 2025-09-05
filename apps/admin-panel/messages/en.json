@@ -1352,13 +1352,13 @@
     "cards": {
       "activeFacilities": {
         "title": "Active Facilities",
-        "description": "Credit Facilities where money has been disbursed",
+        "description": "Credit Facilities that have met initial collateral requirements and have been approved",
         "pending": "Pending",
         "buttonText": "View Active Facilities"
       },
       "totalDisbursed": {
         "title": "Total Disbursed",
-        "description": "Total amount of money customers withdrew from the bank",
+        "description": "Total amount of loan funds credited to customers' accounts",
         "buttonText": "View Disbursals"
       },
       "totalCollateral": {

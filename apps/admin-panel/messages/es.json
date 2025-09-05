@@ -1352,13 +1352,13 @@
     "cards": {
       "activeFacilities": {
         "title": "Líneas Activas",
-        "description": "Líneas de Crédito donde se ha desembolsado dinero",
+        "description": "Líneas de Crédito que han cumplido con los requisitos de garantía inicial y han sido aprobadas",
         "pending": "Pendiente",
         "buttonText": "Ver Líneas Activas"
       },
       "totalDisbursed": {
         "title": "Total Desembolsado",
-        "description": "Cantidad total de dinero que los clientes retiraron del banco",
+        "description": "Cantidad total de fondos de préstamo acreditados a las cuentas de los clientes",
         "buttonText": "Ver Desembolsos"
       },
       "totalCollateral": {
