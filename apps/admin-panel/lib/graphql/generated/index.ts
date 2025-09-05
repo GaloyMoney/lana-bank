@@ -1399,7 +1399,7 @@ export type LedgerTransactionEdge = {
   node: LedgerTransaction;
 };
 
-export type LedgerTransactionEntity = Deposit;
+export type LedgerTransactionEntity = Deposit | DepositAccount | Withdrawal;
 
 export type Loan = {
   __typename?: 'Loan';

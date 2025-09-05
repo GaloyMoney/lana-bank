@@ -1396,7 +1396,7 @@ type LedgerTransactionEdge {
 	cursor: String!
 }
 
-union LedgerTransactionEntity = Deposit
+union LedgerTransactionEntity = Deposit | DepositAccount | Withdrawal
 
 type LoanAgreement {
 	id: ID!
