@@ -95,11 +95,10 @@ enum ApprovalProcessStatus {
 	IN_PROGRESS
 }
 
-union ApprovalProcessTarget = Withdrawal | CreditFacility | CreditFacilityDisbursal
+union ApprovalProcessTarget = Withdrawal | CreditFacilityProposal | CreditFacilityDisbursal
 
 enum ApprovalProcessType {
 	WITHDRAWAL_APPROVAL
-	CREDIT_FACILITY_APPROVAL
 	DISBURSAL_APPROVAL
 	CREDIT_FACILITY_PROPOSAL_APPROVAL
 }
