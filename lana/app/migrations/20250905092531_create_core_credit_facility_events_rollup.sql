@@ -8,7 +8,6 @@ CREATE TABLE core_credit_facility_events_rollup (
   account_ids JSONB,
   activated_at TIMESTAMPTZ,
   amount BIGINT,
-  approval_process_id UUID,
   collateral BIGINT,
   collateral_id UUID,
   collateralization_ratio JSONB,
@@ -70,7 +69,6 @@ BEGIN
     new_row.account_ids := (NEW.event -> 'account_ids');
     new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
     new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-    new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
     new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
@@ -111,7 +109,6 @@ BEGIN
     new_row.account_ids := current_row.account_ids;
     new_row.activated_at := current_row.activated_at;
     new_row.amount := current_row.amount;
-    new_row.approval_process_id := current_row.approval_process_id;
     new_row.collateral := current_row.collateral;
     new_row.collateral_id := current_row.collateral_id;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
@@ -140,7 +137,6 @@ BEGIN
       new_row.account_ids := (NEW.event -> 'account_ids');
       new_row.activated_at := (NEW.event ->> 'activated_at')::TIMESTAMPTZ;
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
-      new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.customer_type := (NEW.event ->> 'customer_type');
@@ -180,7 +176,6 @@ BEGIN
     account_ids,
     activated_at,
     amount,
-    approval_process_id,
     collateral,
     collateral_id,
     collateralization_ratio,
@@ -210,7 +205,6 @@ BEGIN
     new_row.account_ids,
     new_row.activated_at,
     new_row.amount,
-    new_row.approval_process_id,
     new_row.collateral,
     new_row.collateral_id,
     new_row.collateralization_ratio,

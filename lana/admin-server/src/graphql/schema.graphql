@@ -379,7 +379,6 @@ enum CreditFacilitiesSortBy {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
-	approvalProcessId: UUID!
 	createdAt: Timestamp!
 	maturesAt: Timestamp!
 	collateralizationState: CollateralizationState!
@@ -392,7 +391,6 @@ type CreditFacility {
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
-	approvalProcess: ApprovalProcess!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
@@ -470,18 +468,6 @@ type CreditFacilityConnection {
 	A list of nodes.
 	"""
 	nodes: [CreditFacility!]!
-}
-
-input CreditFacilityCreateInput {
-	customerId: UUID!
-	disbursalCreditAccountId: UUID!
-	facility: UsdCents!
-	terms: TermsInput!
-	custodianId: UUID
-}
-
-type CreditFacilityCreatePayload {
-	creditFacility: CreditFacility!
 }
 
 type CreditFacilityDisbursal {
@@ -1513,7 +1499,6 @@ type Mutation {
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
-	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
 	creditFacilityProposalCollateralUpdate(input: CreditFacilityProposalCollateralUpdateInput!): CreditFacilityProposalCollateralUpdatePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!

@@ -524,19 +524,6 @@ where
         Ok(credit_facility_proposal)
     }
 
-    #[instrument(name = "credit.create_facility", skip(self), err)]
-    pub async fn create_facility(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        customer_id: impl Into<CustomerId> + std::fmt::Debug + Copy,
-        disbursal_credit_account_id: impl Into<CalaAccountId> + std::fmt::Debug,
-        amount: UsdCents,
-        terms: TermValues,
-        custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
-    ) -> Result<CreditFacility, CoreCreditError> {
-        unimplemented!(" need to be removed eventually");
-    }
-
     #[instrument(name = "credit.history", skip(self), err)]
     pub async fn history<T: From<CreditFacilityHistoryEntry>>(
         &self,

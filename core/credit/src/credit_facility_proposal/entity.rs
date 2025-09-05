@@ -384,29 +384,6 @@ mod test {
             ));
         }
 
-        // TODO: what happens when we deny a proposal and then try to complete it?
-
-        //         #[test]
-        //         fn errors_if_denied() {
-        //             let mut events = initial_events();
-        //             events.push(CreditFacilityEvent::ApprovalProcessConcluded {
-        //                 approval_process_id: ApprovalProcessId::new(),
-        //                 approved: false,
-        //                 audit_info: dummy_audit_info(),
-        //             });
-        //             let mut credit_facility = facility_from(events);
-
-        //             assert!(matches!(
-        //                 credit_facility.activate(
-        //                     Utc::now(),
-        //                     default_price(),
-        //                     default_balances(credit_facility.amount),
-        //                     dummy_audit_info()
-        //                 ),
-        //                 Err(CreditFacilityError::Denied)
-        //             ));
-        //         }
-
         #[test]
         fn errors_if_no_collateral() {
             let mut events = initial_events();

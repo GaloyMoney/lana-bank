@@ -357,10 +357,6 @@
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "approval_process_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "collateral_id": {
           "format": "uuid",
           "type": "string"
@@ -409,7 +405,6 @@
         "amount",
         "account_ids",
         "disbursal_credit_account_id",
-        "approval_process_id",
         "public_id",
         "activated_at",
         "maturity_date"
