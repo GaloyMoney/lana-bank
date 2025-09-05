@@ -24,6 +24,7 @@ jobs:
             2>&1 | tee server.log &
           echo "PID=$!" > .server.pid
         env:
+          RUST_BACKTRACE: "1"
           ENGINE_DEFAULT: podman
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           TF_VAR_name_prefix: "gha"
@@ -37,8 +38,8 @@ jobs:
       - name: Check no panics
         run: |
           if grep -q "panicked" server.log; then
-            echo "❌ Server panicked; dumping last 200 lines of logs:"
-            tail -n 200 server.log
+            echo "❌ Server panicked; dumping all lines of logs:"
+            cat server.log
             cat .server.pid | xargs kill || true
             exit 1
           fi
