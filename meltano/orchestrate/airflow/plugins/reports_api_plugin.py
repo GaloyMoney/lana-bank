@@ -169,11 +169,14 @@ class AirflowAdapter(AirflowPort):
 
 class GCSAdapter(StoragePort):
     # reports/{run_id}/{norm_name}/{report_name}.{extension}
+    COMMON_SPANISH_CHARS = r"[0-9A-Za-z_ÁÉÍÓÚÜÑáéíóúüñ\u0300-\u036F]+"
+
     REPORT_RE = re.compile(
         rf"^{re.escape(REPORT_PREFIX)}"
-        r"(?P<run_id>[^/]+)/"                    # run-id
-        r"(?P<norm>[0-9a-z_]+)/"                 # norm
-        r"(?P<name>[0-9a-z_]+)\.(?P<ext>[a-z]+)$",
+        r"(?P<run_id>[^/]+)/"                       # run-id
+        rf"(?P<norm>{COMMON_SPANISH_CHARS})/"       # norm
+        rf"(?P<name>{COMMON_SPANISH_CHARS})"        # name
+        r"\.(?P<ext>[A-Za-z]+)$",                   # extension
         re.IGNORECASE,
     )
 
