@@ -1,4 +1,5 @@
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
+use chrono::{Datelike, Months, NaiveDate};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -30,6 +31,12 @@ pub enum ChartEvent {
         code: AccountCode,
         ledger_account_id: LedgerAccountId,
     },
+    FirstAccountingPeriodOpened {
+        effective: chrono::NaiveDate,
+    },
+    AccountingPeriodClosed {
+        effective: chrono::NaiveDate,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -38,6 +45,8 @@ pub struct Chart {
     pub id: ChartId,
     pub reference: String,
     pub name: String,
+    #[builder(setter(strip_option), default)]
+    pub last_monthly_closed_at: Option<NaiveDate>,
     all_accounts: HashMap<AccountCode, AccountDetails>,
     manual_transaction_accounts: HashMap<LedgerAccountId, AccountCode>,
 
@@ -303,6 +312,65 @@ impl Chart {
         }
     }
 
+    pub fn open_first_accounting_period(&mut self, starts_at: NaiveDate) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all(),
+            ChartEvent::FirstAccountingPeriodOpened { .. }
+        );
+
+        self.events.push(ChartEvent::FirstAccountingPeriodOpened {
+            effective: starts_at,
+        });
+
+        Idempotent::Executed(())
+    }
+
+    pub fn close_last_monthly_period(
+        &mut self,
+    ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError> {
+        let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
+            ChartEvent::AccountingPeriodClosed { effective, .. } => Some(*effective),
+            _ => None,
+        });
+        let new_monthly_closing_date = match last_recorded_date {
+            Some(last_effective) => {
+                let last_day_of_previous_month = crate::time::now()
+                    .date_naive()
+                    .with_day(1)
+                    .and_then(|d| d.pred_opt())
+                    .expect("Failed to compute last day of previous month");
+                if last_effective == last_day_of_previous_month {
+                    return Ok(Idempotent::Ignored);
+                }
+
+                last_effective
+                    .checked_add_months(Months::new(2))
+                    .and_then(|d| d.with_day(1))
+                    .and_then(|d| d.pred_opt())
+                    .expect("Failed to compute new monthly closing date")
+            }
+            None => self
+                .events
+                .iter_all()
+                .find_map(|event| match event {
+                    ChartEvent::FirstAccountingPeriodOpened { effective, .. } => Some(*effective),
+                    _ => None,
+                })
+                .ok_or(ChartOfAccountsError::AccountPeriodStartNotFound)?
+                .checked_add_months(Months::new(1))
+                .and_then(|d| d.with_day(1))
+                .and_then(|d| d.pred_opt())
+                .expect("Failed to compute new monthly closing date"),
+        };
+
+        self.events.push(ChartEvent::AccountingPeriodClosed {
+            effective: new_monthly_closing_date,
+        });
+        self.last_monthly_closed_at = Some(new_monthly_closing_date);
+
+        Ok(Idempotent::Executed(new_monthly_closing_date))
+    }
+
     pub fn chart(&self) -> tree::ChartTree {
         tree::project(self.events.iter_all())
     }
@@ -355,6 +423,10 @@ impl TryFromEvents<ChartEvent> for Chart {
                         *manual_transaction_account_id = Some(*ledger_account_id);
                     }
                 }
+                ChartEvent::AccountingPeriodClosed { effective, .. } => {
+                    builder = builder.last_monthly_closed_at(*effective)
+                }
+                ChartEvent::FirstAccountingPeriodOpened { .. } => (),
             }
         }
         builder
@@ -705,5 +777,80 @@ mod test {
 
         let res = chart.manual_transaction_account(AccountIdOrCode::Id(random_id));
         assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
+    }
+
+    mod close_monthly {
+        use super::*;
+
+        #[test]
+        fn close_last_monthly_period_first_time() {
+            let mut chart = chart_from(initial_events());
+
+            let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
+            let expected_closed_date = "2024-01-31".parse::<NaiveDate>().unwrap();
+
+            let _ = chart.open_first_accounting_period(period_start);
+
+            let closed_date = chart.close_last_monthly_period().unwrap().unwrap();
+            assert_eq!(closed_date, expected_closed_date);
+            assert_eq!(chart.last_monthly_closed_at, Some(expected_closed_date));
+
+            let closing_event_date = chart
+                .events
+                .iter_all()
+                .rev()
+                .find_map(|e| match e {
+                    ChartEvent::AccountingPeriodClosed { effective, .. } => Some(*effective),
+                    _ => None,
+                })
+                .unwrap();
+            assert_eq!(closing_event_date, expected_closed_date);
+        }
+
+        #[test]
+        fn close_last_monthly_period_after_prior_closes() {
+            let mut chart = chart_from(initial_events());
+
+            let period_start = "2024-01-01".parse::<NaiveDate>().unwrap();
+            let expected_second_closed_date = "2024-02-29".parse::<NaiveDate>().unwrap();
+
+            let _ = chart.open_first_accounting_period(period_start);
+            let _ = chart.close_last_monthly_period().unwrap();
+
+            let second_closing_date = chart.close_last_monthly_period().unwrap().unwrap();
+            assert_eq!(second_closing_date, expected_second_closed_date);
+            assert_eq!(
+                chart.last_monthly_closed_at,
+                Some(expected_second_closed_date)
+            );
+        }
+
+        #[test]
+        fn close_last_monthly_ignored_for_current_month() {
+            let mut chart = chart_from(initial_events());
+
+            let first_day_of_last_month = chrono::Utc::now()
+                .date_naive()
+                .checked_sub_months(chrono::Months::new(1))
+                .and_then(|d| d.with_day(1))
+                .unwrap();
+            let _ = chart.open_first_accounting_period(first_day_of_last_month);
+            let _ = chart.close_last_monthly_period().unwrap();
+
+            let second_closing_date = chart.close_last_monthly_period().unwrap();
+            assert!(second_closing_date.was_ignored());
+        }
+
+        #[test]
+        fn errors_if_close_last_monthly_period_without_first_period_start() {
+            let mut chart = chart_from(initial_events());
+
+            let result = chart.close_last_monthly_period();
+
+            assert!(matches!(
+                result,
+                Err(ChartOfAccountsError::AccountPeriodStartNotFound)
+            ));
+        }
     }
 }
