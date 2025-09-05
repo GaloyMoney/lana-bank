@@ -1,0 +1,143 @@
+version: 2
+
+models:
+  - name: uif_07_diario_otros_medios_electronicos
+    description: >
+      Daily report of individual transactions in other electronic payment methods.
+      Allows daily reception of information for electronic payment amounts greater
+      than $25,000 executed during a transaction.
+    columns:
+      - name: numeroRegistroBancario
+        description: "Bank transaction record identifier code."
+        data_type: integer
+        tests:
+          - not_null
+      - name: estacionServicio
+        description: >
+          Electronic service station details (PuntoServicioDTO). Contains:
+          - direccionAgencia: Address where the transaction is performed (string)
+          - idDepartamento: Municipality based on catalog (string)
+          - idMunicipio: Department based on catalog (string)
+        data_type: struct
+      - name: fechaTransaccion
+        description: "Transaction date and time at the service point."
+        data_type: datetime
+        tests:
+          - not_null
+      - name: tipoPersonaA
+        description: >
+          Type of person performing the transaction. Possible values:
+          - 1: Natural person (PersonaDTO)
+          - 2: Legal entity (JuridicaDTO)
+        data_type: integer
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2]
+      - name: detallesPersonaA
+        description: >
+          Person performing the transaction. Can be either PersonaDTO (natural person)
+          or JuridicaDTO (legal entity) based on tipoPersonaA value.
+          
+          If tipoPersonaA = 1 (PersonaDTO), contains:
+          - primerApellido, segundoApellido, apellidoCasado: Surnames (string)
+          - primerNombre, segundoNombre: First and second names (string)
+          - fechaNacimiento: Birth date (datetime, yyyy/mm/dd HH:MM:SS format)
+          - lugarNacimiento: Birth place (string)
+          - codigoNacionalidad: Nationality according to catalog (string)
+          - codigoEstadoCivil: Marital status based on catalog (integer)
+          - tipoDocumento: ID document type according to catalog (integer)
+          - numeroDocumento: ID document number (string)
+          - personaDomicilio: Permanent address (string)
+          - codigoMunicipio: City/municipality (string)
+          - codigoDepartamento: Department/state (string)
+          - profesionPersona: Profession as text or standardized catalog code (string)
+          
+          If tipoPersonaA = 2 (JuridicaDTO), contains:
+          - razonSocial: Organization name (string)
+          - domicilioComercial: Business address (string)
+          - actividadEconomica: Economic activity based on catalog (string)
+          - tipoIdentificacionT: ID document type according to catalog (integer)
+          - numeroIdentificacionT: Document number (string)
+        data_type: struct
+      - name: tipoPersonaB
+        description: >
+          Type of person receiving the transaction in Section B. Possible values:
+          - 1: Natural person (PersonaDTO)
+          - 2: Legal entity (JuridicaDTO)
+        data_type: integer
+        tests:
+          - not_null
+          - accepted_values:
+              values: [1, 2]
+      - name: detallesPersonaB
+        description: >
+          Person receiving the transaction in Section B. Can be either PersonaDTO
+          (natural person) or JuridicaDTO (legal entity) based on tipoPersonaB value.
+          
+          If tipoPersonaB = 1 (PersonaDTO), contains:
+          - primerApellido, segundoApellido, apellidoCasado: Surnames (string)
+          - primerNombre, segundoNombre: First and second names (string)
+          - fechaNacimiento: Birth date (datetime, yyyy/mm/dd HH:MM:SS format)
+          - lugarNacimiento: Birth place (string)
+          - codigoNacionalidad: Nationality according to catalog (string)
+          - codigoEstadoCivil: Marital status based on catalog (integer)
+          - tipoDocumento: ID document type according to catalog (integer)
+          - numeroDocumento: ID document number (string)
+          - personaDomicilio: Permanent address (string)
+          - codigoMunicipio: City/municipality (string)
+          - codigoDepartamento: Department/state (string)
+          - profesionPersona: Profession as text or standardized catalog code (string)
+          
+          If tipoPersonaB = 2 (JuridicaDTO), contains:
+          - razonSocial: Organization name (string)
+          - domicilioComercial: Business address (string)
+          - actividadEconomica: Economic activity based on catalog (string)
+          - tipoIdentificacionT: ID document type according to catalog (integer)
+          - numeroIdentificacionT: Document number (string)
+        data_type: struct
+      - name: numeroCuentaPO
+        description: >
+          Product identifier for the client (e.g., card number, account number,
+          checking account number, etc.).
+        data_type: string
+      - name: claseCuentaPO
+        description: >
+          Product type descriptive name (e.g., checking account, savings account,
+          term deposit, loan, etc.).
+        data_type: string
+      - name: conceptoTransaccionPO
+        description: >
+          Brief description of the transaction concept. Under what figure the cash
+          was obtained (e.g., real estate purchase/sale, vehicles, inventory sales,
+          etc.).
+        data_type: string
+      - name: valorOtrosMediosElectronicosPO
+        description: "Total transaction amount expressed in USD."
+        data_type: decimal(15,2)
+        tests:
+          - not_null
+          - dbt_utils.accepted_range:
+              min_value: 25000
+              max_value: 999999999999.99
+      - name: numeroProductoPB
+        description: >
+          Product identifier for the client (e.g., card number, account number,
+          deposit number, withdrawal number).
+        data_type: string
+      - name: claseCuentaPB
+        description: "Product type classification."
+        data_type: string
+      - name: montoTransaccionPB
+        description: "Total transaction amount expressed in USD."
+        data_type: decimal(15,2)
+        tests:
+          - not_null
+      - name: valorMedioElectronicoPB
+        description: "Total transaction amount expressed in USD."
+        data_type: decimal(15,2)
+        tests:
+          - not_null
+      - name: bancoCuentaDestinatariaPB
+        description: "Destination bank identifier."
+        data_type: string
