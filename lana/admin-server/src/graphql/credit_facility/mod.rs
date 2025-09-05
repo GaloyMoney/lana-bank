@@ -91,6 +91,7 @@ impl CreditFacility {
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
         Ok(app.credit().history(sub, self.entity.id).await?)
     }
 
@@ -256,16 +257,6 @@ impl CreditFacility {
         }
     }
 }
-
-#[derive(InputObject)]
-pub struct CreditFacilityCreateInput {
-    pub customer_id: UUID,
-    pub disbursal_credit_account_id: UUID,
-    pub facility: UsdCents,
-    pub terms: TermsInput,
-    pub custodian_id: Option<UUID>,
-}
-crate::mutation_payload! { CreditFacilityCreatePayload, credit_facility: CreditFacility }
 
 #[derive(InputObject)]
 pub struct CreditFacilityCollateralUpdateInput {
