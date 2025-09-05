@@ -6,12 +6,13 @@ use cala_ledger::{
     *,
 };
 
-use crate::ledger::error::*;
+use crate::{ledger::error::*, primitives::WITHDRAWAL_TRANSACTION_ENTITY_TYPE};
 
 pub const CANCEL_WITHDRAW_CODE: &str = "CANCEL_WITHDRAW";
 
 #[derive(Debug)]
 pub struct CancelWithdrawParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -52,6 +53,11 @@ impl CancelWithdrawParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -59,6 +65,7 @@ impl CancelWithdrawParams {
 impl From<CancelWithdrawParams> for Params {
     fn from(
         CancelWithdrawParams {
+            entity_id,
             journal_id,
             currency,
             amount,
@@ -73,6 +80,9 @@ impl From<CancelWithdrawParams> for Params {
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -86,6 +96,7 @@ impl CancelWithdraw {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Cancel a Withdraw'")
             .build()
             .expect("Couldn't build TxInput");

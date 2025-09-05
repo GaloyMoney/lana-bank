@@ -72,6 +72,7 @@ pub struct Withdrawal {
 
 #[derive(Debug)]
 pub struct WithdrawalReversalData {
+    pub entity_id: WithdrawalId,
     pub ledger_tx_id: CalaTransactionId,
     pub credit_account_id: DepositAccountId,
     pub amount: UsdCents,
@@ -133,6 +134,7 @@ impl Withdrawal {
         });
 
         Ok(Idempotent::Executed(WithdrawalReversalData {
+            entity_id: self.id,
             ledger_tx_id,
             amount: self.amount,
             credit_account_id: self.deposit_account_id,

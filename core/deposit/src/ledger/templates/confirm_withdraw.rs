@@ -7,12 +7,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const CONFIRM_WITHDRAW_CODE: &str = "CONFIRM_WITHDRAW";
 
 #[derive(Debug)]
 pub struct ConfirmWithdrawParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -65,6 +69,11 @@ impl ConfirmWithdrawParams {
                 .r#type(ParamDataType::String)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -72,6 +81,7 @@ impl ConfirmWithdrawParams {
 impl From<ConfirmWithdrawParams> for Params {
     fn from(
         ConfirmWithdrawParams {
+            entity_id,
             journal_id,
             currency,
             amount,
@@ -90,6 +100,9 @@ impl From<ConfirmWithdrawParams> for Params {
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -103,6 +116,7 @@ impl ConfirmWithdraw {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Confirm a withdraw'")
             .build()
             .expect("Couldn't build TxInput");

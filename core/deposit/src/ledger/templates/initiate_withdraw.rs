@@ -6,12 +6,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const INITIATE_WITHDRAW_CODE: &str = "INITIATE_WITHDRAW";
 
 #[derive(Debug)]
 pub struct InitiateWithdrawParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
@@ -52,6 +56,11 @@ impl InitiateWithdrawParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -59,6 +68,7 @@ impl InitiateWithdrawParams {
 impl From<InitiateWithdrawParams> for Params {
     fn from(
         InitiateWithdrawParams {
+            entity_id,
             journal_id,
             deposit_omnibus_account_id,
             credit_account_id,
@@ -74,6 +84,9 @@ impl From<InitiateWithdrawParams> for Params {
         params.insert("deposit_omnibus_account_id", deposit_omnibus_account_id);
         params.insert("credit_account_id", credit_account_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -87,6 +100,7 @@ impl InitiateWithdraw {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Initiate a withdraw'")
             .build()
             .expect("Couldn't build TxInput");

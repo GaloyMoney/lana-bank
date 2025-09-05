@@ -110,10 +110,11 @@ pub mod audit {
 pub mod deposit {
     pub use core_deposit::{
         ChartOfAccountsIntegrationConfig, CoreDepositEvent, DEPOSIT_ACCOUNT_ENTITY_TYPE,
-        DEPOSIT_TRANSACTION_ENTITY_TYPE, Deposit, DepositAccount, DepositAccountBalance,
-        DepositAccountHistoryCursor, DepositAccountHistoryEntry, DepositAccountStatus, DepositId,
-        DepositStatus, DepositsByCreatedAtCursor, Withdrawal, WithdrawalId, WithdrawalStatus,
-        WithdrawalsByCreatedAtCursor, error,
+        DEPOSIT_ACCOUNT_TRANSACTION_ENTITY_TYPE, DEPOSIT_TRANSACTION_ENTITY_TYPE, Deposit,
+        DepositAccount, DepositAccountBalance, DepositAccountHistoryCursor,
+        DepositAccountHistoryEntry, DepositAccountStatus, DepositId, DepositStatus,
+        DepositsByCreatedAtCursor, WITHDRAWAL_TRANSACTION_ENTITY_TYPE, Withdrawal, WithdrawalId,
+        WithdrawalStatus, WithdrawalsByCreatedAtCursor, error,
     };
 
     pub type Deposits =

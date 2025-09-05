@@ -516,6 +516,7 @@ impl DepositLedger {
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::InitiateWithdrawParams {
+            entity_id: tx_id.into(),
             journal_id: self.journal_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id: credit_account_id.into(),
@@ -541,6 +542,7 @@ impl DepositLedger {
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::RevertWithdrawParams {
+            entity_id: reversal_data.entity_id.into(),
             journal_id: self.journal_id,
             deposit_omnibus_account_id: self.deposit_omnibus_account_ids.account_id,
             credit_account_id: reversal_data.credit_account_id.into(),
@@ -608,6 +610,7 @@ impl DepositLedger {
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::FreezeAccountParams {
+            entity_id: account.id.into(),
             journal_id: self.journal_id,
             account_id: account.account_ids.deposit_account_id,
             frozen_accounts_account_id: account.account_ids.frozen_deposit_account_id,
@@ -632,6 +635,7 @@ impl DepositLedger {
     pub async fn confirm_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
+        withdrawal_id: impl Into<uuid::Uuid>,
         tx_id: impl Into<TransactionId>,
         correlation_id: String,
         amount: UsdCents,
@@ -644,6 +648,7 @@ impl DepositLedger {
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::ConfirmWithdrawParams {
+            entity_id: withdrawal_id.into(),
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
@@ -663,6 +668,7 @@ impl DepositLedger {
     pub async fn cancel_withdrawal(
         &self,
         op: es_entity::DbOp<'_>,
+        withdrawal_id: impl Into<uuid::Uuid>,
         tx_id: impl Into<TransactionId>,
         amount: UsdCents,
         credit_account_id: impl Into<AccountId>,
@@ -673,6 +679,7 @@ impl DepositLedger {
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
         let params = templates::CancelWithdrawParams {
+            entity_id: withdrawal_id.into(),
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),

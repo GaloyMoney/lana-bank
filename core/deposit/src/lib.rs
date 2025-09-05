@@ -478,6 +478,7 @@ where
         self.ledger
             .confirm_withdrawal(
                 op,
+                id,
                 tx_id,
                 withdrawal.id.to_string(),
                 withdrawal.amount,
@@ -512,7 +513,13 @@ where
             .update_in_op(&mut op, &mut withdrawal)
             .await?;
         self.ledger
-            .cancel_withdrawal(op, tx_id, withdrawal.amount, withdrawal.deposit_account_id)
+            .cancel_withdrawal(
+                op,
+                id,
+                tx_id,
+                withdrawal.amount,
+                withdrawal.deposit_account_id,
+            )
             .await?;
         Ok(withdrawal)
     }

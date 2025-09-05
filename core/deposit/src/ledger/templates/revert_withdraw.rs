@@ -6,12 +6,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const REVERT_WITHDRAW_CODE: &str = "REVERT_WITHDRAW";
 
 #[derive(Debug)]
 pub struct RevertWithdrawParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub deposit_omnibus_account_id: CalaAccountId,
     pub credit_account_id: CalaAccountId,
@@ -64,6 +68,11 @@ impl RevertWithdrawParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -71,6 +80,7 @@ impl RevertWithdrawParams {
 impl From<RevertWithdrawParams> for Params {
     fn from(
         RevertWithdrawParams {
+            entity_id,
             journal_id,
             deposit_omnibus_account_id,
             credit_account_id,
@@ -89,6 +99,9 @@ impl From<RevertWithdrawParams> for Params {
         params.insert("correlation_id", correlation_id);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(WITHDRAWAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
