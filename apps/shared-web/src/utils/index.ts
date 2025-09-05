@@ -65,5 +65,5 @@ export const fromISODateString = (dateString: string): Date => {
 export const formatSpacedSentenceCaseFromSnakeCase = (str: string): string => {
   return str
     .replace(/_/g, " ") // Replace underscores with spaces
-    .replace(/\b\w/g, (char) => char.toUpperCase()); // Capitalize the first letter of each word
+    .replace(/(?<!\S)\p{L}/gu, (char) => char.toUpperCase()); // Capitalize the first letter of each word
 };
