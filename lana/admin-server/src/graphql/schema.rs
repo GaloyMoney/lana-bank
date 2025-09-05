@@ -1576,51 +1576,6 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_create(
-        &self,
-        ctx: &Context<'_>,
-        input: CreditFacilityCreateInput,
-    ) -> async_graphql::Result<CreditFacilityCreatePayload> {
-        let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let CreditFacilityCreateInput {
-            facility,
-            customer_id,
-            disbursal_credit_account_id,
-            terms,
-            custodian_id,
-        } = input;
-
-        let credit_facility_term_values = lana_app::terms::TermValues::builder()
-            .annual_rate(terms.annual_rate)
-            .accrual_interval(terms.accrual_interval)
-            .accrual_cycle_interval(terms.accrual_cycle_interval)
-            .one_time_fee_rate(terms.one_time_fee_rate)
-            .duration(terms.duration)
-            .interest_due_duration_from_accrual(terms.interest_due_duration_from_accrual)
-            .obligation_overdue_duration_from_due(terms.obligation_overdue_duration_from_due)
-            .obligation_liquidation_duration_from_due(
-                terms.obligation_liquidation_duration_from_due,
-            )
-            .liquidation_cvl(terms.liquidation_cvl)
-            .margin_call_cvl(terms.margin_call_cvl)
-            .initial_cvl(terms.initial_cvl)
-            .build()?;
-
-        exec_mutation!(
-            CreditFacilityCreatePayload,
-            CreditFacility,
-            ctx,
-            app.credit().create_facility(
-                sub,
-                customer_id,
-                disbursal_credit_account_id,
-                facility,
-                credit_facility_term_values,
-                custodian_id
-            )
-        )
-    }
-
     pub async fn credit_facility_collateral_update(
         &self,
         ctx: &Context<'_>,
