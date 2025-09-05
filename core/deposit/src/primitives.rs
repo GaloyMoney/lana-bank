@@ -39,8 +39,6 @@ pub const DEPOSIT_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("Deposit");
 pub const WITHDRAWAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("Withdrawal");
-pub const DEPOSIT_ACCOUNT_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
-    core_accounting::EntityType::new("DepositAccount");
 
 pub type DepositAccountAllOrOne = AllOrOne<DepositAccountId>;
 pub type DepositAccountByHolderAllOrOne = AllOrOne<DepositAccountHolderId>;

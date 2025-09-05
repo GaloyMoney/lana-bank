@@ -8,15 +8,12 @@ use cala_ledger::{
     },
 };
 
-use crate::{
-    ledger::error::DepositLedgerError, primitives::DEPOSIT_ACCOUNT_TRANSACTION_ENTITY_TYPE,
-};
+use crate::ledger::error::DepositLedgerError;
 
 pub const FREEZE_ACCOUNT_CODE: &str = "FREEZE_ACCOUNT";
 
 #[derive(Debug)]
 pub struct FreezeAccountParams {
-    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub account_id: CalaAccountId,
     pub frozen_accounts_account_id: CalaAccountId,
@@ -57,11 +54,6 @@ impl FreezeAccountParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
-            NewParamDefinition::builder()
-                .name("meta")
-                .r#type(ParamDataType::Json)
-                .build()
-                .unwrap(),
         ]
     }
 }
@@ -69,7 +61,6 @@ impl FreezeAccountParams {
 impl From<FreezeAccountParams> for Params {
     fn from(
         FreezeAccountParams {
-            entity_id,
             journal_id,
             account_id,
             frozen_accounts_account_id,
@@ -84,10 +75,6 @@ impl From<FreezeAccountParams> for Params {
         params.insert("account_id", account_id);
         params.insert("frozen_accounts_account_id", frozen_accounts_account_id);
         params.insert("effective", crate::time::now().date_naive());
-        let entity_ref =
-            core_accounting::EntityRef::new(DEPOSIT_ACCOUNT_TRANSACTION_ENTITY_TYPE, entity_id);
-        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
-
         params
     }
 }
@@ -100,7 +87,6 @@ impl FreezeAccount {
             .journal_id("params.journal_id")
             .description("'Freeze a deposit account'")
             .effective("params.effective")
-            .metadata("params.meta")
             .build()
             .expect("Couldn't build TxInput");
 
