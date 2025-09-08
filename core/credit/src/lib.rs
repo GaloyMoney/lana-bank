@@ -104,6 +104,7 @@ where
     price: Price,
     config: CreditConfig,
     approve_disbursal: ApproveDisbursal<Perms, E>,
+    approve_proposal: ApproveCreditFacilityProposal<Perms, E>,
     cala: CalaLedger,
     activate_credit_facility: ActivateCreditFacility<Perms, E>,
     obligations: Obligations<Perms, E>,
@@ -141,6 +142,7 @@ where
             config: self.config.clone(),
             cala: self.cala.clone(),
             approve_disbursal: self.approve_disbursal.clone(),
+            approve_proposal: self.approve_proposal.clone(),
             activate_credit_facility: self.activate_credit_facility.clone(),
             chart_of_accounts_integrations: self.chart_of_accounts_integrations.clone(),
             terms_templates: self.terms_templates.clone(),
@@ -208,7 +210,7 @@ where
         let approve_disbursal =
             ApproveDisbursal::new(&disbursals, &credit_facilities, jobs, governance, &ledger);
 
-        let approve_credit_facility_proposal = ApproveCreditFacilityProposal::new(
+        let approve_proposal = ApproveCreditFacilityProposal::new(
             &credit_facility_proposals,
             authz.audit(),
             governance,
@@ -338,7 +340,7 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityProposalApprovalInit::new(outbox, &approve_credit_facility_proposal),
+            CreditFacilityProposalApprovalInit::new(outbox, &approve_proposal),
             CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
@@ -367,6 +369,7 @@ where
             config,
             cala: cala.clone(),
             approve_disbursal,
+            approve_proposal,
             activate_credit_facility,
             chart_of_accounts_integrations,
             terms_templates,
@@ -661,6 +664,13 @@ where
         disbursal: &Disbursal,
     ) -> Result<Option<Disbursal>, CoreCreditError> {
         self.approve_disbursal.execute_from_svc(disbursal).await
+    }
+
+    pub async fn ensure_up_to_date_proposal_status(
+        &self,
+        proposal: &CreditFacilityProposal,
+    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
+        self.approve_proposal.execute_from_svc(proposal).await
     }
 
     pub async fn subject_can_update_collateral(
