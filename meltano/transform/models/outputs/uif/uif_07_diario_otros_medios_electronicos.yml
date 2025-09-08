@@ -6,6 +6,12 @@ models:
       Daily report of individual transactions in other electronic payment methods.
       Allows daily reception of information for electronic payment amounts greater
       than $25,000 executed during a transaction.
+
+      Relevant transactions include:
+      - Transactions between customer accounts and external bank accounts, including disbursals and deposits.
+      - Transactions between customers of the bank.
+      - Credit facility liquidations.
+
     columns:
       - name: numeroRegistroBancario
         description: "Bank transaction record identifier code."
