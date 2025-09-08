@@ -6,12 +6,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, OBLIGATION_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE: &str = "RECORD_OBLIGATION_DEFAULTED_BALANCE";
 
 #[derive(Debug)]
 pub struct RecordObligationDefaultedBalanceParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub amount: Decimal,
     pub receivable_account_id: CalaAccountId,
@@ -47,12 +51,18 @@ impl RecordObligationDefaultedBalanceParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
 impl From<RecordObligationDefaultedBalanceParams> for Params {
     fn from(
         RecordObligationDefaultedBalanceParams {
+            entity_id,
             journal_id,
             amount,
             receivable_account_id,
@@ -66,6 +76,9 @@ impl From<RecordObligationDefaultedBalanceParams> for Params {
         params.insert("receivable_account_id", receivable_account_id);
         params.insert("defaulted_account_id", defaulted_account_id);
         params.insert("effective", effective);
+        let entity_ref =
+            core_accounting::EntityRef::new(OBLIGATION_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -79,6 +92,7 @@ impl RecordObligationDefaultedBalance {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Record a defaulted obligation balance'")
             .build()
             .expect("Couldn't build TxInput");

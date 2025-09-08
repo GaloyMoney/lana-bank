@@ -6,12 +6,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, OBLIGATION_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const RECORD_OBLIGATION_DUE_BALANCE_CODE: &str = "RECORD_OBLIGATION_DUE_BALANCE";
 
 #[derive(Debug)]
 pub struct RecordObligationDueBalanceParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub amount: Decimal,
     pub receivable_not_yet_due_account_id: CalaAccountId,
@@ -47,12 +51,18 @@ impl RecordObligationDueBalanceParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
 impl From<RecordObligationDueBalanceParams> for Params {
     fn from(
         RecordObligationDueBalanceParams {
+            entity_id,
             journal_id,
             amount,
             receivable_not_yet_due_account_id,
@@ -69,6 +79,9 @@ impl From<RecordObligationDueBalanceParams> for Params {
         );
         params.insert("receivable_due_account_id", receivable_due_account_id);
         params.insert("effective", effective);
+        let entity_ref =
+            core_accounting::EntityRef::new(OBLIGATION_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -82,6 +95,7 @@ impl RecordObligationDueBalance {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Record a due obligation balance'")
             .build()
             .expect("Couldn't build TxInput");

@@ -6,12 +6,16 @@ use cala_ledger::{
     *,
 };
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CREDIT_FACILITY_TRANSACTION_ENTITY_TYPE, CalaAccountId},
+};
 
 pub const CREATE_CREDIT_FACILITY_CODE: &str = "CREATE_CREDIT_FACILITY";
 
 #[derive(Debug)]
 pub struct CreateCreditFacilityParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -58,6 +62,11 @@ impl CreateCreditFacilityParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -65,6 +74,7 @@ impl CreateCreditFacilityParams {
 impl From<CreateCreditFacilityParams> for Params {
     fn from(
         CreateCreditFacilityParams {
+            entity_id,
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -81,6 +91,9 @@ impl From<CreateCreditFacilityParams> for Params {
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(CREDIT_FACILITY_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_red":entity_ref}));
         params
     }
 }
@@ -94,6 +107,7 @@ impl CreateCreditFacility {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
+            .metadata("params.meta")
             .description("'Create credit facility'")
             .build()
             .expect("Couldn't build TxInput");
