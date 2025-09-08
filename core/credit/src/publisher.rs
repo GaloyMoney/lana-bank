@@ -103,10 +103,7 @@ where
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 ApprovalProcessConcluded { approved, .. } if *approved => {
-                    Some(CoreCreditEvent::FacilityProposalApproved {
-                        id: entity.id,
-                        credit_facility_id: entity.id.into(),
-                    })
+                    Some(CoreCreditEvent::FacilityProposalApproved { id: entity.id })
                 }
                 _ => None,
             })

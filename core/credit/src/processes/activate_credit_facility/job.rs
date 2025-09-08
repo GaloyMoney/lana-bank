@@ -7,7 +7,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
+use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId};
 
 use super::ActivateCreditFacility;
 
@@ -129,20 +129,18 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            match message.as_ref().as_event() {
-                Some(CoreCreditEvent::FacilityCollateralUpdated {
-                    credit_facility_id: id,
-                    ..
-                })
-                | Some(CoreCreditEvent::FacilityProposalApproved {
-                    credit_facility_id: id,
-                    ..
-                }) => {
-                    self.process.execute(*id).await?;
-                    state.sequence = message.sequence;
-                    current_job.update_execution_state(state).await?;
-                }
-                _ => (),
+            if let Some(event) = message.as_ref().as_event() {
+                let id: CreditFacilityId = match event {
+                    CoreCreditEvent::FacilityCollateralUpdated {
+                        credit_facility_id, ..
+                    } => *credit_facility_id,
+                    CoreCreditEvent::FacilityProposalApproved { id, .. } => (*id).into(),
+                    _ => continue,
+                };
+
+                self.process.execute(id).await?;
+                state.sequence = message.sequence;
+                current_job.update_execution_state(state).await?;
             }
         }
 

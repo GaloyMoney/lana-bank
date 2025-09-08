@@ -17,7 +17,7 @@ impl CreditFacilityHistory {
 
         match event {
             FacilityCreated { .. } => {}
-            FacilityApproved { .. } => {}
+            FacilityProposalApproved { .. } => {}
             FacilityActivated {
                 activation_tx_id,
                 activated_at,
@@ -144,7 +144,6 @@ impl CreditFacilityHistory {
             ObligationDefaulted { .. } => {}
             LiquidationProcessConcluded { .. } => {}
             ObligationCompleted { .. } => {}
-            FacilityProposalApproved { .. } => {}
         }
     }
 }
