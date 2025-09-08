@@ -64,11 +64,13 @@ impl CreditFacilityProposal {
     pub fn creation_data(&self) -> CreditFacilityProposalCreation {
         match self.events.iter_all().next() {
             Some(CreditFacilityProposalEvent::Initialized {
+                id,
                 ledger_tx_id,
                 account_ids,
                 amount,
                 ..
             }) => CreditFacilityProposalCreation {
+                entity_id: *id,
                 tx_id: *ledger_tx_id,
                 tx_ref: format!("{}-create", self.id),
                 credit_facility_proposal_account_ids: *account_ids,

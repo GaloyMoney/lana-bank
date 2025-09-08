@@ -11,6 +11,7 @@ pub struct ObligationAccounts {
 }
 
 pub struct ObligationDueReallocationData {
+    pub entity_id: ObligationId,
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub not_yet_due_account_id: CalaAccountId,
@@ -19,6 +20,7 @@ pub struct ObligationDueReallocationData {
 }
 
 pub struct ObligationOverdueReallocationData {
+    pub entity_id: ObligationId,
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub due_account_id: CalaAccountId,
@@ -27,6 +29,7 @@ pub struct ObligationOverdueReallocationData {
 }
 
 pub struct ObligationDefaultedReallocationData {
+    pub entity_id: ObligationId,
     pub tx_id: LedgerTxId,
     pub amount: UsdCents,
     pub receivable_account_id: CalaAccountId,

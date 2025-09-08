@@ -113,6 +113,7 @@ impl From<(InterestAccrualData, CreditFacilityLedgerAccountIds)> for CreditFacil
     fn from(data: (InterestAccrualData, CreditFacilityLedgerAccountIds)) -> Self {
         let (
             InterestAccrualData {
+                credit_facility_id,
                 interest,
                 period,
                 tx_ref,
@@ -121,6 +122,7 @@ impl From<(InterestAccrualData, CreditFacilityLedgerAccountIds)> for CreditFacil
             credit_facility_account_ids,
         ) = data;
         Self {
+            credit_facility_id,
             interest,
             period,
             tx_ref,
@@ -136,6 +138,7 @@ impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
     fn from(data: (InterestAccrualCycleData, CreditFacilityLedgerAccountIds)) -> Self {
         let (
             InterestAccrualCycleData {
+                credit_facility_id,
                 interest,
                 effective,
                 tx_ref,
@@ -144,6 +147,7 @@ impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
             credit_facility_account_ids,
         ) = data;
         Self {
+            credit_facility_id,
             interest,
             effective,
             tx_ref,
@@ -182,11 +186,13 @@ impl CreditFacility {
             .iter_all()
             .find_map(|event| match event {
                 CreditFacilityEvent::Initialized {
+                    id,
                     ledger_tx_id,
                     account_ids,
                     amount,
                     ..
                 } => Some(CreditFacilityCreation {
+                    entity_id: *id,
                     tx_id: *ledger_tx_id,
                     tx_ref: format!("{}-create", self.id),
                     credit_facility_account_ids: *account_ids,
@@ -327,6 +333,7 @@ impl CreditFacility {
             .expect("first accrual")
             .expect("first accrual");
         let activation = CreditFacilityActivation {
+            entity_id: self.id,
             tx_id,
             tx_ref: format!("{}-activate", self.id),
             credit_facility_account_ids: self.account_ids,
