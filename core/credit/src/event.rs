@@ -22,10 +22,6 @@ pub enum CoreCreditEvent {
     },
     FacilityProposalApproved {
         id: CreditFacilityProposalId,
-        credit_facility_id: CreditFacilityId,
-    },
-    FacilityApproved {
-        id: CreditFacilityId,
     },
     FacilityActivated {
         id: CreditFacilityId,

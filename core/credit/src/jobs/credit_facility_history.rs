@@ -43,7 +43,6 @@ where
 
                 let id = match event {
                     FacilityCreated { id, .. }
-                    | FacilityApproved { id }
                     | FacilityActivated { id, .. }
                     | FacilityCompleted { id, .. }
                     | FacilityRepaymentRecorded {
@@ -90,11 +89,8 @@ where
                     | LiquidationProcessConcluded {
                         credit_facility_id: id,
                         ..
-                    }
-                    | FacilityProposalApproved {
-                        credit_facility_id: id,
-                        ..
                     } => *id,
+                    FacilityProposalApproved { id, .. } => (*id).into(),
                 };
 
                 let mut db = self.repo.begin().await?;
