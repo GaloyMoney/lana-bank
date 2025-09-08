@@ -20,7 +20,9 @@ models:
           - not_null
       - name: estacionServicio
         description: >
-          Electronic service station details (PuntoServicioDTO). Contains:
+          Electronic service station details (PuntoServicioDTO). In the case of a digital bank, the most sensible info 
+          to place here is the HQ address. For banks with physical branches, this would be the details of the branch 
+          where the transaction got triggered. Contains:
           - direccionAgencia: Address where the transaction is performed (string)
           - idDepartamento: Municipality based on catalog (string)
           - idMunicipio: Department based on catalog (string)
