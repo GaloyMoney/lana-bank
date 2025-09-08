@@ -31,3 +31,4 @@ updates:
     # TODO: remove these once updated to v4
     - dependency-name: "@apollo/client"
     - dependency-name: "@apollo/client-integration-nextjs"
+    - dependency-name: "apollo-upload-client"
