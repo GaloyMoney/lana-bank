@@ -81,7 +81,7 @@ axum-extra = { version = "0.10.1", default-features = false, features = [
 bip32 = "0.5"
 ccm = "0.5"
 csv = "1.3.1"
-chrono = { version = "0.4.40", features = [
+chrono = { version = "0.4.42", features = [
   "clock",
   "serde",
 ], default-features = false }
