@@ -378,8 +378,8 @@ enum CreditFacilitiesSortBy {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
-	createdAt: Timestamp!
 	maturesAt: Timestamp!
+	activatedAt: Timestamp!
 	collateralizationState: CollateralizationState!
 	status: CreditFacilityStatus!
 	facilityAmount: UsdCents!
@@ -624,6 +624,7 @@ type CreditFacilityProposal {
 	facilityAmount: UsdCents!
 	wallet: Wallet
 	collateral: CollateralBalance!
+	status: CreditFacilityProposalStatus!
 }
 
 input CreditFacilityProposalCollateralUpdateInput {
@@ -651,6 +652,12 @@ input CreditFacilityProposalCreateInput {
 
 type CreditFacilityProposalCreatePayload {
 	creditFacilityProposal: CreditFacilityProposal!
+}
+
+enum CreditFacilityProposalStatus {
+	PENDING_COLLATERALIZATION
+	PENDNG_APPROVAL
+	COMPLETED
 }
 
 type CreditFacilityRepaymentPlanEntry {

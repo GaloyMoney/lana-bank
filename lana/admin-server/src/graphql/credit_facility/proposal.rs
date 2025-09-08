@@ -53,6 +53,19 @@ impl CreditFacilityProposal {
             btc_balance: collateral,
         })
     }
+
+    async fn status(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<CreditFacilityProposalStatus> {
+        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app
+            .credit()
+            .ensure_up_to_date_proposal_status(&self.entity)
+            .await?
+            .map(|cf| cf.status())
+            .unwrap_or_else(|| self.entity.status()))
+    }
 }
 
 impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {

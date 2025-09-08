@@ -90,6 +90,19 @@ impl CreditFacilityProposal {
             .expect("entity_first_persisted_at not found")
     }
 
+    pub fn status(&self) -> CreditFacilityProposalStatus {
+        if self.is_completed() {
+            CreditFacilityProposalStatus::Completed
+        } else if matches!(
+            self.last_collateralization_state(),
+            CreditFacilityProposalCollateralizationState::FullyCollateralized
+        ) {
+            CreditFacilityProposalStatus::PendngApproval
+        } else {
+            CreditFacilityProposalStatus::PendingCollateralization
+        }
+    }
+
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,

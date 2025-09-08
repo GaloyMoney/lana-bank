@@ -4,8 +4,8 @@ pub use core_accounting::{
 };
 pub use core_credit::{
     CollateralAction, CollateralId, CreditFacilityId, CreditFacilityProposalCollateralizationState,
-    CreditFacilityProposalId, CreditFacilityStatus, DisbursalId, DisbursalStatus,
-    ObligationInstallmentId, PaymentId, TermsTemplateId,
+    CreditFacilityProposalId, CreditFacilityProposalStatus, CreditFacilityStatus, DisbursalId,
+    DisbursalStatus, ObligationInstallmentId, PaymentId, TermsTemplateId,
 };
 pub use core_custody::{CustodianId, WalletId};
 pub use core_customer::{CustomerDocumentId, CustomerId};

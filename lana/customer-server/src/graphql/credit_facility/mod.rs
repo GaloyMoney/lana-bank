@@ -28,8 +28,7 @@ pub struct CreditFacility {
     facility_amount: UsdCents,
     collateralization_state: CollateralizationState,
     status: CreditFacilityStatus,
-    created_at: Timestamp,
-    // activated_at: Option<Timestamp>,
+    activated_at: Timestamp,
     matures_at: Timestamp,
 
     #[graphql(skip)]
@@ -38,15 +37,11 @@ pub struct CreditFacility {
 
 impl From<DomainCreditFacility> for CreditFacility {
     fn from(credit_facility: DomainCreditFacility) -> Self {
-        // let activated_at: Option<Timestamp> = credit_facility.activated_at.map(|t| t.into());
-        // let matures_at: Option<Timestamp> = credit_facility.matures_at().map(|t| t.into());
-
-        let matures_at = credit_facility.matures_at();
         Self {
             id: credit_facility.id.to_global_id(),
             credit_facility_id: UUID::from(credit_facility.id),
-            matures_at: matures_at.into(),
-            created_at: credit_facility.created_at().into(),
+            matures_at: Timestamp::from(credit_facility.matures_at()),
+            activated_at: Timestamp::from(credit_facility.activated_at),
             facility_amount: credit_facility.amount,
             collateralization_state: credit_facility.last_collateralization_state(),
             status: credit_facility.status(),
