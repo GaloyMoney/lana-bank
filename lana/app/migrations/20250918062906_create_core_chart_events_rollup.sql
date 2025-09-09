@@ -5,6 +5,8 @@ CREATE TABLE core_chart_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
+  account_set_id UUID,
+  effective VARCHAR,
   name VARCHAR,
   reference VARCHAR
 ,
@@ -29,7 +31,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized') THEN
+  IF event_type NOT IN ('initialized', 'first_accounting_period_opened', 'accounting_period_closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -41,10 +43,14 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
+    new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
+    new_row.effective := (NEW.event ->> 'effective');
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
   ELSE
     -- Default all fields to current values
+    new_row.account_set_id := current_row.account_set_id;
+    new_row.effective := current_row.effective;
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
   END IF;
@@ -52,8 +58,13 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
+      new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
+    WHEN 'first_accounting_period_opened' THEN
+      new_row.effective := (NEW.event ->> 'effective');
+    WHEN 'accounting_period_closed' THEN
+      new_row.effective := (NEW.event ->> 'effective');
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -61,6 +72,8 @@ BEGIN
     version,
     created_at,
     modified_at,
+    account_set_id,
+    effective,
     name,
     reference
   )
@@ -69,6 +82,8 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.account_set_id,
+    new_row.effective,
     new_row.name,
     new_row.reference
   );
