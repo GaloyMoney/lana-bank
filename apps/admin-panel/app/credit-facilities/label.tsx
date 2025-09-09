@@ -1,4 +1,5 @@
 import { useTranslations } from "next-intl"
+import { Badge } from "@lana/web/ui/badge"
 
 import { CollateralizationState, InterestInterval, Period } from "@/lib/graphql/generated"
 
@@ -6,24 +7,45 @@ export const CollateralizationStateLabel = ({
   state,
 }: {
   state: CollateralizationState
-}): string => {
+}) => {
   const t = useTranslations("CreditFacilities.collateralizationState")
-  if (!state) return ""
+  if (!state) return null
 
-  switch (state) {
-    case CollateralizationState.FullyCollateralized:
-      return t("fullyCollateralized")
-    case CollateralizationState.NoCollateral:
-      return t("noCollateral")
-    case CollateralizationState.NoExposure:
-      return t("noExposure")
-    case CollateralizationState.UnderLiquidationThreshold:
-      return t("underLiquidationThreshold")
-    case CollateralizationState.UnderMarginCallThreshold:
-      return t("underMarginCallThreshold")
+  const variant = () => {
+    switch (state) {
+      case CollateralizationState.FullyCollateralized:
+        return "success"
+      case CollateralizationState.NoCollateral:
+        return "secondary"
+      case CollateralizationState.NoExposure:
+        return "secondary"
+      case CollateralizationState.UnderLiquidationThreshold:
+        return "destructive"
+      case CollateralizationState.UnderMarginCallThreshold:
+        return "destructive"
+      default:
+        return "outline"
+    }
   }
-  const exhaustiveCheck: never = state
-  return exhaustiveCheck
+
+  const getText = (): string => {
+    switch (state) {
+      case CollateralizationState.FullyCollateralized:
+        return t("fullyCollateralized")
+      case CollateralizationState.NoCollateral:
+        return t("noCollateral")
+      case CollateralizationState.NoExposure:
+        return t("noExposure")
+      case CollateralizationState.UnderLiquidationThreshold:
+        return t("underLiquidationThreshold")
+      case CollateralizationState.UnderMarginCallThreshold:
+        return t("underMarginCallThreshold")
+    }
+    const exhaustiveCheck: never = state
+    return exhaustiveCheck
+  }
+
+  return <Badge variant={variant()}>{getText()}</Badge>
 }
 
 export const InterestIntervalLabel = ({

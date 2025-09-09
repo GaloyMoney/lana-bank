@@ -44,14 +44,7 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
       header: "Due Date",
       render: (date) => <DateWithTooltip value={date} />,
     },
-    {
-      key: "status",
-      header: "Status",
-      align: "right",
-      render: (_, repayment) => {
-        return <RepaymentStatusBadge status={repayment.status} />
-      },
-    },
+
   ]
 
   const repaymentPlanData = creditFacility?.repaymentPlan ?? []

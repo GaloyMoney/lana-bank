@@ -13,7 +13,6 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
-
 import { Label } from "@lana/web/ui/label"
 
 import { useCreditFacilityProposalCollateralUpdateMutation } from "@/lib/graphql/generated"
@@ -23,7 +22,9 @@ import Balance from "@/components/balance/balance"
 import { Satoshis } from "@/types"
 
 gql`
-  mutation CreditFacilityProposalCollateralUpdate($input: CreditFacilityProposalCollateralUpdateInput!) {
+  mutation CreditFacilityProposalCollateralUpdate(
+    $input: CreditFacilityProposalCollateralUpdateInput!
+  ) {
     creditFacilityProposalCollateralUpdate(input: $input) {
       creditFacilityProposal {
         id
@@ -31,6 +32,7 @@ gql`
         collateral {
           btcBalance
         }
+        ...CreditFacilityProposalLayoutFragment
       }
     }
   }
@@ -41,135 +43,191 @@ type CreditFacilityProposalCollateralUpdateDialogProps = {
   openDialog: boolean
   creditFacilityProposalId: string
   currentCollateral: Satoshis
+  collateralToMatchInitialCvl?: Satoshis | null
 }
 
 export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
   CreditFacilityProposalCollateralUpdateDialogProps
-> = ({ setOpenDialog, openDialog, creditFacilityProposalId, currentCollateral }) => {
+> = ({
+  setOpenDialog,
+  openDialog,
+  creditFacilityProposalId,
+  currentCollateral,
+  collateralToMatchInitialCvl,
+}) => {
   const t = useTranslations(
     "CreditFacilityProposals.CreditFacilityProposalCollateralUpdate",
   )
 
-  const [collateralUpdateMutation, { loading }] =
+  const [updateCollateral, { loading, reset }] =
     useCreditFacilityProposalCollateralUpdateMutation()
+  const [error, setError] = useState<string | null>(null)
+  const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
+  const [newCollateral, setNewCollateral] = useState<string>("")
 
-  const [newCollateral, setNewCollateral] = useState("")
-  const [confirming, setConfirming] = useState(false)
-
-  const handleCloseDialog = () => {
-    setOpenDialog(false)
-    setNewCollateral("")
-    setConfirming(false)
-  }
-
-  const handleProceedToConfirm = () => {
-    if (!newCollateral) {
-      toast.error(t("form.errors.emptyCollateral"))
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (newCollateral === "") {
+      setError(t("form.errors.emptyCollateral"))
       return
     }
-    setConfirming(true)
-  }
-
-  const handleBackToForm = () => {
-    setConfirming(false)
-  }
-
-  const handleCollateralUpdate = async () => {
+    setError(null)
     try {
-      const response = await collateralUpdateMutation({
+      const result = await updateCollateral({
         variables: {
           input: {
             creditFacilityProposalId,
-            collateral: currencyConverter.btcToSatoshis(Number(newCollateral)),
+            collateral: currencyConverter.btcToSatoshi(Number(newCollateral)),
             effective: getCurrentLocalDate(),
           },
         },
       })
-
-      if (!response.data) {
-        toast.error(t("form.errors.noData"))
-        return
+      if (result.data) {
+        toast.success(t("messages.success"))
+        handleCloseDialog()
+      } else {
+        throw new Error(t("form.errors.noData"))
       }
-
-      toast.success(t("messages.success"))
-      handleCloseDialog()
-    } catch (err) {
-      console.error("Error updating proposal collateral:", err)
-      toast.error(t("form.errors.unknownError"))
+    } catch (error) {
+      console.error("Error updating credit facility proposal collateral:", error)
+      if (error instanceof Error) {
+        setError(error.message)
+      } else {
+        setError(t("form.errors.unknownError"))
+      }
     }
   }
 
-  const currentCollateralBtc = currencyConverter.satoshisToBtc(currentCollateral)
-  const newCollateralBtc = newCollateral ? Number(newCollateral) : 0
+  const handleConfirm = () => {
+    setIsConfirmed(true)
+  }
+
+  const handleCloseDialog = () => {
+    setError(null)
+    setIsConfirmed(false)
+    reset()
+    setOpenDialog(false)
+    setNewCollateral("")
+  }
 
   return (
     <Dialog open={openDialog} onOpenChange={handleCloseDialog}>
-      <DialogContent className="max-w-md">
-        <DialogHeader>
-          <DialogTitle>
-            {confirming ? t("dialog.confirmTitle") : t("dialog.title")}
-          </DialogTitle>
-          <DialogDescription>
-            {confirming ? t("dialog.confirmDescription") : t("dialog.description")}
-          </DialogDescription>
-        </DialogHeader>
-        {!confirming ? (
-          <div className="flex flex-col gap-4">
-            <div>
-              <Label htmlFor="currentCollateral">{t("form.labels.currentCollateral")}</Label>
-              <div className="p-2 bg-muted rounded">
-                <Balance amount={currentCollateralBtc} currency="btc" />
-              </div>
-            </div>
-            <div>
-              <Label htmlFor="newCollateral">{t("form.labels.newCollateral")}</Label>
-              <div className="flex items-center gap-2">
-                <Input
-                  id="newCollateral"
-                  type="number"
-                  step="0.00000001"
-                  min="0"
-                  value={newCollateral}
-                  onChange={(e) => setNewCollateral(e.target.value)}
-                  placeholder={t("form.placeholders.newCollateral")}
+      <DialogContent>
+        {isConfirmed ? (
+          <>
+            <DialogHeader>
+              <DialogTitle>{t("dialog.confirmTitle")}</DialogTitle>
+              <DialogDescription>{t("dialog.confirmDescription")}</DialogDescription>
+            </DialogHeader>
+            <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
+              <input
+                type="text"
+                className="sr-only"
+                autoFocus
+                onKeyDown={(e) => {
+                  if (e.key === "Backspace") {
+                    e.preventDefault()
+                    setIsConfirmed(false)
+                  }
+                }}
+              />
+              <DetailsGroup layout="horizontal">
+                <DetailItem
+                  label={t("form.labels.currentCollateral")}
+                  value={
+                    <Balance amount={currentCollateral as Satoshis} currency="btc" />
+                  }
                 />
-                <span className="text-sm text-muted-foreground">{t("units.btc")}</span>
-              </div>
-            </div>
-          </div>
+                <DetailItem
+                  label={t("form.labels.newCollateral")}
+                  value={
+                    <Balance
+                      amount={currencyConverter.btcToSatoshi(Number(newCollateral))}
+                      currency="btc"
+                    />
+                  }
+                />
+              </DetailsGroup>
+              {error && <p className="text-destructive">{error}</p>}
+              <DialogFooter>
+                <Button
+                  type="button"
+                  onClick={(e) => {
+                    e.preventDefault()
+                    setIsConfirmed(false)
+                  }}
+                  variant="ghost"
+                  disabled={loading}
+                >
+                  {t("form.buttons.back")}
+                </Button>
+                <Button
+                  type="submit"
+                  loading={loading}
+                  data-testid="confirm-update-button"
+                >
+                  {loading ? t("form.buttons.updating") : t("form.buttons.confirm")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </>
         ) : (
-          <div className="flex flex-col gap-4">
-            <DetailsGroup>
-              <DetailItem label={t("form.labels.currentCollateral")}>
-                <Balance amount={currentCollateralBtc} currency="btc" />
-              </DetailItem>
-              <DetailItem label={t("form.labels.newCollateral")}>
-                <Balance amount={newCollateralBtc} currency="btc" />
-              </DetailItem>
-            </DetailsGroup>
-          </div>
+          <>
+            <DialogHeader>
+              <DialogTitle>{t("dialog.title")}</DialogTitle>
+              <DialogDescription>{t("dialog.description")}</DialogDescription>
+            </DialogHeader>
+            <form className="flex flex-col gap-4" onSubmit={handleConfirm}>
+              <div className="rounded-md">
+                <DetailsGroup layout="horizontal">
+                  <DetailItem
+                    label={t("form.labels.currentCollateral")}
+                    value={
+                      <Balance amount={currentCollateral as Satoshis} currency="btc" />
+                    }
+                    data-testid="current-collateral-balance"
+                  />
+                  {collateralToMatchInitialCvl && (
+                    <DetailItem
+                      label={t("form.labels.expectedCollateral")}
+                      value={
+                        <Balance amount={collateralToMatchInitialCvl} currency="btc" />
+                      }
+                      data-testid="expected-collateral-balance"
+                    />
+                  )}
+                </DetailsGroup>
+              </div>
+              <div>
+                <Label>{t("form.labels.newCollateral")}</Label>
+                <div className="flex items-center gap-1">
+                  <Input
+                    autoFocus
+                    type="number"
+                    value={newCollateral}
+                    onChange={(e) => setNewCollateral(e.target.value)}
+                    placeholder={t("form.placeholders.newCollateral")}
+                    step="0.00000001"
+                    data-testid="new-collateral-input"
+                  />
+                  <div className="p-1.5 bg-input-text rounded-md px-4">
+                    {t("units.btc")}
+                  </div>
+                </div>
+              </div>
+              {error && <p className="text-destructive">{error}</p>}
+              <DialogFooter>
+                <Button
+                  type="submit"
+                  onClick={handleConfirm}
+                  data-testid="proceed-to-confirm-button"
+                >
+                  {t("form.buttons.proceedToConfirm")}
+                </Button>
+              </DialogFooter>
+            </form>
+          </>
         )}
-        <DialogFooter>
-          {!confirming ? (
-            <>
-              <Button variant="outline" onClick={handleCloseDialog}>
-                {t("form.buttons.back")}
-              </Button>
-              <Button onClick={handleProceedToConfirm}>
-                {t("form.buttons.proceedToConfirm")}
-              </Button>
-            </>
-          ) : (
-            <>
-              <Button variant="outline" onClick={handleBackToForm}>
-                {t("form.buttons.back")}
-              </Button>
-              <Button onClick={handleCollateralUpdate} disabled={loading}>
-                {loading ? t("form.buttons.updating") : t("form.buttons.confirm")}
-              </Button>
-            </>
-          )}
-        </DialogFooter>
       </DialogContent>
     </Dialog>
   )

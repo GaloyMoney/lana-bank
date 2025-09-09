@@ -80,6 +80,7 @@ checksums:
     Sidebar/navItems/dashboard: c9380ea68c8c76ea451bd9613329a07c
     Sidebar/navItems/actions: c46571856723b03262fd33f511116298
     Sidebar/navItems/creditFacilities: 4283868565aa25d5513636fc6e12d49c
+    Sidebar/navItems/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
     Sidebar/navItems/disbursals: a926d10544d2ae0fd17a6e5f19a97080
     Sidebar/navItems/termTemplates: 510fe24eb6689e49ff4ab151535c9715
     Sidebar/navItems/customers: c31a0dfd0d92496ba6f5673781db24ef
@@ -117,13 +118,14 @@ checksums:
     CommandMenu/actions/createDeposit: b742a978d97b624c0afc16dacc7dfbb5
     CommandMenu/actions/createWithdrawal: cf4e544c6a71dc437bf4a0da3abd12f7
     CommandMenu/actions/createCustomer: f37a237d98b2ad0651452d41aa007baa
-    CommandMenu/actions/createCreditFacility: 2955e8fe529e8a803b6a271ef5f4a90d
+    CommandMenu/actions/createCreditFacility: 8449763934cb1988457098bccf0a9506
     CommandMenu/actions/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CommandMenu/actions/createDisbursal: f2ed9fbba343f758d33a26a8eb1ca23f
     CommandMenu/actions/makePayment: a4ceeeb4490054375f36454784fedc99
     CommandMenu/actions/createUser: 422ac737cccb1bebcde7be564e903d13
     CommandMenu/actions/updateTermsTemplate: e178deec50459ee7064705367dc1da1c
     CommandMenu/actions/createTermsTemplate: 51fc4806b6fea86ef2d73e2e4ac897bc
+    CommandMenu/actions/duplicateTermsTemplate: eb912be443c2b6e2ba6ac56748c1e74c
     CommandMenu/actions/createCommittee: 061eaa5152ceb07002a0ab2aea9ef97c
     CommandMenu/actions/createCustodian: a8e359b8fcfb691a7c1bf2eb7129938b
     CommandMenu/actions/confirmWithdrawal: b5fd79d4027b04747c948604bade9bce
@@ -179,6 +181,7 @@ checksums:
     Customers/create/failedToCreate: faff3a0924f0643480e4f0cbf9c50384
     Customers/CustomerDetails/layout/tabs/transactions: 59973447457c6bd57c161d594f551651
     Customers/CustomerDetails/layout/tabs/creditFacilities: 4283868565aa25d5513636fc6e12d49c
+    Customers/CustomerDetails/layout/tabs/creditFacilityProposals: 11a59748c3c3c261a3b99fd7afb4a023
     Customers/CustomerDetails/layout/tabs/documents: c3882fc98216636873ab9091f3453f0c
     Customers/CustomerDetails/layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     Customers/CustomerDetails/layout/errors/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
@@ -267,7 +270,7 @@ checksums:
     Customers/CustomerDetails/creditFacilities/table/headers/outstandingBalance: 1d3719e6e455f5662d6d3d693e56f6df
     Customers/CustomerDetails/creditFacilities/table/headers/collateralBtc: 6646d6e674a78795555e3160826cd07e
     Customers/CustomerDetails/creditFacilities/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
-    Customers/CustomerDetails/creditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    Customers/CustomerDetails/creditFacilities/table/headers/activatedAt: 598bd7b17bfe1910961f8adf0c127c03
     Customers/CustomerDetails/Documents/title: c3882fc98216636873ab9091f3453f0c
     Customers/CustomerDetails/Documents/description: 37ae3e70d7ce7aa8391dd5bdc91c1af8
     Customers/CustomerDetails/Documents/columns/id: c8886d38aeea2ed5f785aba4fc96784b
@@ -284,6 +287,107 @@ checksums:
     Customers/CustomerDetails/Documents/messages/fileTooLarge: 76f758aa648b6713f2ed0a79dd00330a
     Customers/CustomerDetails/Documents/messages/uploadFailed: 6c101a1b895d80507425fb5c871260e9
     Customers/CustomerDetails/Documents/messages/unexpectedError: 0537b1f38f5cdd9558216c043fbbd132
+    Customers/CustomerDetails/creditFacilityProposals/title: 11a59748c3c3c261a3b99fd7afb4a023
+    Customers/CustomerDetails/creditFacilityProposals/description: 6f5e46400b076d38c004988290e4b78f
+    Customers/CustomerDetails/creditFacilityProposals/loading: 82b4ea7ed1439094d7c4be13aaba9a66
+    Customers/CustomerDetails/creditFacilityProposals/error: 53a2b5f5e7d83c737c8e02fe18fb4bdb
+    Customers/CustomerDetails/creditFacilityProposals/notFound: 1a0563cca2c98ad949247e0f690794f8
+    Customers/CustomerDetails/creditFacilityProposals/table/headers/status: 4e1fcce15854d824919b4a582c697c90
+    Customers/CustomerDetails/creditFacilityProposals/table/headers/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
+    Customers/CustomerDetails/creditFacilityProposals/table/headers/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
+    Customers/CustomerDetails/creditFacilityProposals/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
+    Customers/CustomerDetails/creditFacilityProposals/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilityProposals/title: 11a59748c3c3c261a3b99fd7afb4a023
+    CreditFacilityProposals/description: 2a883823caefdfda33d041e80dba79f9
+    CreditFacilityProposals/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CreditFacilityProposals/table/headers/status: 4e1fcce15854d824919b4a582c697c90
+    CreditFacilityProposals/table/headers/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
+    CreditFacilityProposals/table/headers/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
+    CreditFacilityProposals/table/headers/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
+    CreditFacilityProposals/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilityProposals/status/pending_collateralization: a3861e1934c1764f40801494dbfe5637
+    CreditFacilityProposals/status/pendng_approval: b25ca494ba78b23ced54002ba14c0bac
+    CreditFacilityProposals/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
+    CreditFacilityProposals/collateralizationState/fullycollateralized: ac0dd4d27277fd887b8a195d815af373
+    CreditFacilityProposals/collateralizationState/undercollateralized: 08bc680351a0f5bb35acf0cc4f7859f8
+    CreditFacilityProposals/errors/fetchError: 97f7c28b3288c6bbf454f0a28198730a
+    CreditFacilityProposals/errors/general: 53a2b5f5e7d83c737c8e02fe18fb4bdb
+    CreditFacilityProposals/CreateCreditFacilityProposal/dialog/customerInfo: ddc2c1be8a3d224ffbd8eedc89d5c89e
+    CreditFacilityProposals/CreateCreditFacilityProposal/dialog/title: 8449763934cb1988457098bccf0a9506
+    CreditFacilityProposals/CreateCreditFacilityProposal/dialog/description: d159a1229a325f6a0270ca1f81882a50
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/custodian: 3f479171d178f75a92b6f2349be450d8
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/manualCustodian: 772ff39554ea76c8db86f09b7d96fcb9
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/termsTemplate: 21fcfdd286d7253fb4818bd0db3b12db
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/creditFacilityTerms: 981094b2d79c6d9ac74c17b56fec30f1
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/interestRate: d4a1febd63ce7963b18c16a27824ce95
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/initialCvl: 8df908fa9a5a85cc569558a3daa9cb42
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/months: da74749fbe80394fa0f72973d7b0964a
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/marginCallCvl: c529157844f9007ce1170fd28729c5d8
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/labels/structuringFeeRate: 7242ef1273e70c16c9cfa50a847e292f
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/facilityAmount: 3f06a0124b2929e2ec4d3d7eff4a42a6
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/custodian: 786b25d289df7fdd856a3510d4d54d9a
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/termsTemplate: 287c659be5bb36ec26ba953e5fc6af0c
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/annualRate: b6b7d2eb8e45df6544d97bafff21b4ea
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/initialCvl: a998ba9d61091370aa7189476c74a7d9
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/duration: 487a1e37328534b35c6e57746df6844a
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/marginCallCvl: 952d084f0d620f22e86f7370c5224cbe
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/liquidationCvl: 5f0f77c8829d191a16ae2dbe15f74162
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/placeholders/structuringFeeRate: cabace0fe5d4058e89d57b2770469c2b
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/buttons/back: f541015a827e37cb3b1234e56bc2aa3c
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/buttons/create: 8449763934cb1988457098bccf0a9506
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/messages/collateralRequired: 3141ab41725148cf6fe94a4fec54ffee
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/messages/btcUsdRate: 3dde0043fd5f869e1a9e80ca6883c8fc
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/messages/noTemplates: 4424183427eac2445893bf62a0a18a0a
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/messages/fillAllFields: fefbc86cf1343d78dc3b5b8e0bc936ad
+    CreditFacilityProposals/CreateCreditFacilityProposal/form/messages/success: afbfab8386fbf3e1deb22f5c65e6ab63
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/dialog/title: 2e591f9b9f68e632dc8029c6f78991df
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/dialog/description: a8b68e4e6f58f11627942d86bc27b7a2
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/dialog/confirmTitle: 3f43219bb3d114f51d1c11de8e5b363e
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/dialog/confirmDescription: 7eb366f29ba092c8b0c71196f91ec708
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/labels/currentCollateral: b9e9264beabb2b884ef5ea3344948761
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/labels/expectedCollateral: fa16306942fdf5d5c5272dd68e990431
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/labels/newCollateral: af7d8fad03fdaf033d91af006023b448
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/placeholders/newCollateral: f0e3c4e71940d3395ff6ea0e33ac2e53
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/errors/emptyCollateral: 6c7f877740d8d99c8ab2fc936f13b360
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/errors/noData: 15bbd3de8bd8d4529675467807b4427b
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/errors/unknownError: 4fa139b42a7b7ed262b07bdda7cd2fb6
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/buttons/back: f541015a827e37cb3b1234e56bc2aa3c
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/buttons/proceedToConfirm: 2c629474c4950c84e593439656d1e80d
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/buttons/confirm: 90930b51154032f119fa75c1bd422d8b
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/form/buttons/updating: 0d59644e851a6a76f1fb45de9353c447
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/messages/success: 7b6da80b56fe7a049432cf9507bc6dc0
+    CreditFacilityProposals/CreditFacilityProposalCollateralUpdate/units/btc: af1432546a2c9130c9163b2269d5b60d
+    CreditFacilityProposals/ProposalDetails/CollateralCard/title: b0dcbdb652cb11f0d9eeb77666c8ca8d
+    CreditFacilityProposals/ProposalDetails/CollateralCard/details/collateralBalance: c10ffee396cceecea1fab22fb04a37d9
+    CreditFacilityProposals/ProposalDetails/CollateralCard/details/currentPrice: 2c254d00cfeeeabc166cb6ba41c2e771
+    CreditFacilityProposals/ProposalDetails/CollateralCard/details/collateralValue: e049af90c4cf0083250c15766fcb5baf
+    CreditFacilityProposals/ProposalDetails/CollateralCard/details/marginCallPrice: fd98fcf98c5067b5d99058a937b05ff3
+    CreditFacilityProposals/ProposalDetails/CollateralCard/details/liquidationPrice: 9acfaa3784e5d2c8235f80200965e67c
+    CreditFacilityProposals/ProposalDetails/CollateralCard/details/collateralToReachTarget: 2cdbafda70e07e079d23b09959c3ff05
+    CreditFacilityProposals/ProposalDetails/CollateralCard/details/currentCvl: c7bb280a34ad5e3a082c74df8187317e
+    CreditFacilityProposals/ProposalDetails/DetailsCard/title: 062cd96fc0ef418286ef0edddf72b3e7
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/customer: 846b48bb14b3d62c75cde5031e6bbfd7
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/status: 4e1fcce15854d824919b4a582c697c90
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
+    CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
+    CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a
+    CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/viewFacility: f02e316eba6ca5ad813099ca29b5c8f1
+    CreditFacilityProposals/ProposalDetails/DetailsCard/alerts/completedTitle: e239fd93835f2dbe4df9c0fae5124c04
+    CreditFacilityProposals/ProposalDetails/DetailsCard/alerts/completedDescription: 3f72513d3acc48ca6a63a1ac819e2986
+    CreditFacilityProposals/ProposalDetails/DetailsCard/alerts/viewAssociatedFacility: 261a89b0014602e14f1bea3ac859fc96
+    CreditFacilityProposals/ProposalDetails/DetailsCard/errors/notFound: f801bc75710531ee9c34ae262873ac26
+    CreditFacilityProposals/ProposalDetails/TermsCard/title: c531b88ecfe7dd2337a34f4a9ed18a5f
+    CreditFacilityProposals/ProposalDetails/TermsCard/description: 1d63f1d44618ada75e52f2a2161ed859
+    CreditFacilityProposals/ProposalDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
+    CreditFacilityProposals/ProposalDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
+    CreditFacilityProposals/ProposalDetails/Layout/errors/notFound: f801bc75710531ee9c34ae262873ac26
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
     CreditFacilities/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7
@@ -291,10 +395,8 @@ checksums:
     CreditFacilities/table/headers/outstanding: 1c88761a69affad9b482d2a76b09e8aa
     CreditFacilities/table/headers/collateralizationState: 118de561d4525b14f9bb29ac9e86161d
     CreditFacilities/table/headers/cvl: 12e0a6186d39f26162179c48207c2507
-    CreditFacilities/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilities/table/headers/activatedAt: 598bd7b17bfe1910961f8adf0c127c03
     CreditFacilities/CreditFacilityStatus/active: 3e1ec025c4a50830bbb9ad57a176630a
-    CreditFacilities/CreditFacilityStatus/pendingApproval: b25ca494ba78b23ced54002ba14c0bac
-    CreditFacilities/CreditFacilityStatus/pendingCollateralization: a3861e1934c1764f40801494dbfe5637
     CreditFacilities/CreditFacilityStatus/closed: 180560eb657a20f3d4edc44d5f7e7c2a
     CreditFacilities/CreditFacilityStatus/matured: efaa50b3c35aca3fc276b8eb1dd04e4b
     CreditFacilities/collateralizationState/fullyCollateralized: ac0dd4d27277fd887b8a195d815af373
@@ -314,11 +416,12 @@ checksums:
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/messages/emptyTable: 8788532b35d0ed9bd00287d4034f7036
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/repaymentTypes/principal: e20184128f2c57ee03dfe700de56afeb
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/repaymentTypes/interest: 74aee9268e3b6f89d89a4252b29864cc
-    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/upcoming: 960febe0c0af09408917d55a0dc032ee
-    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/not_yet_due: 5610cbe51dcb79a9eba7b5ea20945fe3
-    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/due: f68d8596e02773955b31c98a23ecbd95
-    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/overdue: a63e7496e60dfa38beffe0b1d40d7b51
-    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/paid: 57d83a58e2cfe732ed864f5155156033
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/upcoming: 512c91951b0b40020c215ed04b18a5f9
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/notyetdue: 782cce9a953f6ef8037206679c3ebb40
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/due: 7b451f34dc0a3c192a817851d227e563
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/overdue: 24caaa2b5d7a2447ab7664e3771cf98c
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/defaulted: f733510755fb79e104bc3d4efbd39ce6
+    CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/paid: 5e2fa7af50cd5d877d9c54fd87bb3bb5
     CreditFacilities/CreditFacilityDetails/Disbursals/title: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Disbursals/description: df7b13aead3a8b21cf6abca7792937a7
     CreditFacilities/CreditFacilityDetails/Disbursals/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
@@ -502,6 +605,7 @@ checksums:
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/oneTimeFeeRate: 7242ef1273e70c16c9cfa50a847e292f
     TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/update: 079fc039262fd31b10532929685c2d1b
+    TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/duplicate: 27756566785c2b8463e21582c4bb619b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/title: 7692d1ff8036b0d574dfbf925935cfff
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/description: 45fe649cda16d0441781cd976d9c456b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
@@ -522,7 +626,9 @@ checksums:
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/errors/updateFailed: 5ad592f54534461c34d3902a08ae504a
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/success/updated: b912c4586340f2a33e459e528090d6bb
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/title: 51fc4806b6fea86ef2d73e2e4ac897bc
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/titleDuplicate: 55d7e288f9aaffbf6c1fc91d23097454
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/description: e176d9430f97a5c6fd4589e5668f650f
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/descriptionDuplicate: a8ee0a5d3071006cee7ff9989ecb39be
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/name: 7da9de6504c596c0e68e047fa124015f
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
@@ -767,11 +873,11 @@ checksums:
     Actions/table/more: e7bca6beb767f8a0e464a6b5035b244b
     Actions/table/allCaughtUp: 362bd6a2e1a6344b0c49b2da94f38fc3
     Dashboard/cards/activeFacilities/title: 053d7eebca41b51c2d2d3a1343cd0108
-    Dashboard/cards/activeFacilities/description: 7069e1652dee5687fbd0f92d4e3820e6
+    Dashboard/cards/activeFacilities/description: 285b54064a1f5f63ab9a527d27a72f1f
     Dashboard/cards/activeFacilities/pending: 030a6f3395d5d4efddd3cc67d6009039
     Dashboard/cards/activeFacilities/buttonText: b71323a1c5ea035c8d54f03630c6d30f
     Dashboard/cards/totalDisbursed/title: cb99a99a24571c807d0e6e8873058f97
-    Dashboard/cards/totalDisbursed/description: 4ef86d41b280c8ce0887ba9464e4f49d
+    Dashboard/cards/totalDisbursed/description: 67f8c89666afedd04ec4a7d5471cfd52
     Dashboard/cards/totalDisbursed/buttonText: 2d3b3a61fdcce1b4442a367977a31eff
     Dashboard/cards/totalCollateral/title: e9c470aab211c4689b29eb6f923cbd97
     Dashboard/cards/totalCollateral/description: 847cc42c8c2910ea533758a82bf08636
@@ -938,7 +1044,7 @@ checksums:
     CreateButton/menuItems/deposit: e233d53e369427d12f87d610bcf56ccb
     CreateButton/menuItems/withdrawal: 90991ef39c923572c15cac977346ee77
     CreateButton/menuItems/customer: 846b48bb14b3d62c75cde5031e6bbfd7
-    CreateButton/menuItems/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
+    CreateButton/menuItems/creditFacility: 062cd96fc0ef418286ef0edddf72b3e7
     CreateButton/menuItems/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
     CreateButton/menuItems/payment: 95142d3fd8b6a6f551aba771842e9c11
     CreateButton/menuItems/user: 61073457a5c3901084b557d065f876be
