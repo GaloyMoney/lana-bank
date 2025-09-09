@@ -156,3 +156,22 @@ models:
       - name: bancoCuentaDestinatariaPB
         description: "Destination bank identifier."
         data_type: string
+
+exposures:
+  - name: uif_07_diario_otros_medios_electronicos_xml_export
+    description: >
+      XML export of UIF 07 daily report for other electronic payment methods.
+      This exposure generates an XML file on a scheduled basis following the 
+      format specified by the UIF.
+    type: application
+    owner:
+      name: Pablo
+      email: pablo@galoy.io
+    maturity: low
+    url: null
+    depends_on:
+      - ref('uif_07_diario_otros_medios_electronicos')
+    tags:
+      - uif
+      - regulatory-reporting
+      - xml-export
