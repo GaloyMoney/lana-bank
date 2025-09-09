@@ -1,16 +1,128 @@
-use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use std::collections::HashMap;
-
 use es_entity::*;
 
 use crate::primitives::*;
 
+use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
+
+#[cfg(feature = "json-schema")]
+use schemars::JsonSchema;
+
+use std::collections::HashMap;
+
 use super::{error::*, tree};
+
+#[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[serde(tag = "type", rename_all = "snake_case")]
+#[es_event(id = "ChartNodeId")]
+pub enum ChartNodeEvent {
+    Initialized {
+        id: ChartNodeId,
+        chart_id: ChartId,
+        spec: AccountSpec,
+        ledger_account_set_id: CalaAccountSetId,
+        manual_transaction_account_id: Option<LedgerAccountId>,
+    },
+    ManualTransactionAccountAdded {
+        ledger_account_id: LedgerAccountId,
+    },
+}
+
+#[derive(EsEntity, Builder)]
+#[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
+pub struct ChartNode {
+    pub id: ChartNodeId,
+    pub chart_id: ChartId,
+    pub spec: AccountSpec,
+    pub account_set_id: CalaAccountSetId,
+    pub manual_transaction_account_id: Option<LedgerAccountId>,
+
+    events: EntityEvents<ChartNodeEvent>,
+}
+
+impl ChartNode {
+    pub fn add_manual_transaction_account(&mut self) -> Idempotent<(CalaAccountSetId, NewAccount)> {
+        if self.manual_transaction_account_id.is_some() {
+            return Idempotent::Ignored;
+        }
+
+        let ledger_account_id = LedgerAccountId::new();
+
+        self.events
+            .push(ChartNodeEvent::ManualTransactionAccountAdded { ledger_account_id });
+
+        self.manual_transaction_account_id = Some(ledger_account_id);
+
+        let new_account = NewAccount::builder()
+            .name(format!("{} Manual", self.spec.code))
+            .id(ledger_account_id)
+            .code(self.spec.code.manual_account_external_id(self.chart_id))
+            .external_id(self.spec.code.manual_account_external_id(self.chart_id))
+            .build()
+            .expect("Could not build new account");
+
+        Idempotent::Executed((self.account_set_id, new_account))
+    }
+}
+
+impl TryFromEvents<ChartNodeEvent> for ChartNode {
+    fn try_from_events(events: EntityEvents<ChartNodeEvent>) -> Result<Self, EsEntityError> {
+        let mut builder = ChartNodeBuilder::default();
+
+        for event in events.iter_all() {
+            match event {
+                ChartNodeEvent::Initialized {
+                    id,
+                    chart_id,
+                    spec,
+                    ledger_account_set_id,
+                    manual_transaction_account_id,
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .chart_id(*chart_id)
+                        .spec(spec.clone())
+                        .account_set_id(*ledger_account_set_id)
+                        .manual_transaction_account_id(*manual_transaction_account_id);
+                }
+                ChartNodeEvent::ManualTransactionAccountAdded { ledger_account_id } => {
+                    builder = builder.manual_transaction_account_id(Some(*ledger_account_id));
+                }
+            }
+        }
+
+        builder.events(events).build()
+    }
+}
+
+#[derive(Debug, Clone, Builder)]
+pub struct NewChartNode {
+    pub id: ChartNodeId,
+    pub chart_id: ChartId,
+    pub spec: AccountSpec,
+    pub ledger_account_set_id: CalaAccountSetId,
+    pub manual_transaction_account_id: Option<LedgerAccountId>,
+}
+
+impl IntoEvents<ChartNodeEvent> for NewChartNode {
+    fn into_events(self) -> EntityEvents<ChartNodeEvent> {
+        EntityEvents::init(
+            self.id,
+            vec![ChartNodeEvent::Initialized {
+                id: self.id,
+                chart_id: self.chart_id,
+                spec: self.spec,
+                ledger_account_set_id: self.ledger_account_set_id,
+                manual_transaction_account_id: self.manual_transaction_account_id,
+            }],
+        )
+    }
+}
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -22,14 +134,6 @@ pub enum ChartEvent {
         name: String,
         reference: String,
     },
-    NodeAdded {
-        spec: AccountSpec,
-        ledger_account_set_id: CalaAccountSetId,
-    },
-    ManualTransactionAccountAdded {
-        code: AccountCode,
-        ledger_account_id: LedgerAccountId,
-    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -38,10 +142,15 @@ pub struct Chart {
     pub id: ChartId,
     pub reference: String,
     pub name: String,
-    all_accounts: HashMap<AccountCode, AccountDetails>,
-    manual_transaction_accounts: HashMap<LedgerAccountId, AccountCode>,
+
+    all_accounts: HashMap<AccountCode, ChartNodeId>,
+    manual_transaction_accounts: HashMap<LedgerAccountId, ChartNodeId>,
 
     events: EntityEvents<ChartEvent>,
+
+    #[es_entity(nested)]
+    #[builder(default)]
+    chart_nodes: Nested<ChartNode>,
 }
 
 impl Chart {
@@ -53,28 +162,28 @@ impl Chart {
         if self.all_accounts.contains_key(&spec.code) {
             return Idempotent::Ignored;
         }
+
+        let node_id = ChartNodeId::new();
         let ledger_account_set_id = CalaAccountSetId::new();
-        self.events.push(ChartEvent::NodeAdded {
+
+        let new_chart_node = NewChartNode {
+            id: node_id,
+            chart_id: self.id,
             spec: spec.clone(),
             ledger_account_set_id,
-        });
+            manual_transaction_account_id: None,
+        };
+
+        self.chart_nodes.add_new(new_chart_node);
+
+        self.all_accounts.insert(spec.code.clone(), node_id);
+
         let parent_account_set_id = if let Some(parent) = spec.parent.as_ref() {
-            self.all_accounts.get(parent).map(
-                |AccountDetails {
-                     account_set_id: id, ..
-                 }| *id,
-            )
+            self.get_node_by_code(parent)
+                .map(|node| node.account_set_id)
         } else {
             None
         };
-        self.all_accounts.insert(
-            spec.code.clone(),
-            AccountDetails {
-                spec: spec.clone(),
-                account_set_id: ledger_account_set_id,
-                manual_transaction_account_id: None,
-            },
-        );
 
         let new_account_set = NewAccountSet::builder()
             .id(ledger_account_set_id)
@@ -100,9 +209,8 @@ impl Chart {
         journal_id: CalaJournalId,
     ) -> Result<Idempotent<NewChartAccountDetails>, ChartOfAccountsError> {
         let parent_normal_balance_type = self
-            .all_accounts
-            .get(&parent_code)
-            .map(|AccountDetails { spec, .. }| spec.normal_balance_type)
+            .get_node_by_code(&parent_code)
+            .map(|node| node.spec.normal_balance_type)
             .ok_or(ChartOfAccountsError::ParentAccountNotFound(
                 parent_code.to_string(),
             ))?;
@@ -117,60 +225,39 @@ impl Chart {
         Ok(self.create_node_without_verifying_parent(&spec, journal_id))
     }
 
-    pub(super) fn trial_balance_account_ids_from_new_accounts(
-        &self,
-        new_account_set_ids: &[CalaAccountSetId],
-    ) -> impl Iterator<Item = CalaAccountSetId> {
-        self.all_accounts
-            .values()
-            .filter(
-                move |AccountDetails {
-                          spec,
-                          account_set_id: id,
-                          ..
-                      }| {
-                    spec.code.len_sections() == 2 && new_account_set_ids.contains(id)
-                },
-            )
-            .map(
-                |AccountDetails {
-                     account_set_id: id, ..
-                 }| *id,
-            )
+    pub(super) fn trial_balance_account_ids_from_new_accounts<'a>(
+        &'a mut self,
+        new_account_set_ids: &'a [CalaAccountSetId],
+    ) -> impl Iterator<Item = CalaAccountSetId> + '_ {
+        self.chart_nodes
+            .iter_persisted_mut()
+            .filter(move |node| {
+                node.spec.code.len_sections() == 2
+                    && new_account_set_ids.contains(&node.account_set_id)
+            })
+            .map(move |node| node.account_set_id)
     }
 
     pub(super) fn trial_balance_account_id_from_new_account(
-        &self,
+        &mut self,
         new_account_set_id: CalaAccountSetId,
     ) -> Option<CalaAccountSetId> {
-        self.all_accounts.values().find_map(
-            |AccountDetails {
-                 spec,
-                 account_set_id: id,
-                 ..
-             }| {
-                if spec.code.len_sections() == 2 && new_account_set_id == *id {
-                    Some(*id)
-                } else {
-                    None
-                }
-            },
-        )
-    }
-
-    fn account_spec(&self, code: &AccountCode) -> Option<&AccountDetails> {
-        self.all_accounts.get(code)
+        self.chart_nodes.iter_persisted_mut().find_map(|node| {
+            if node.spec.code.len_sections() == 2 && new_account_set_id == node.account_set_id {
+                Some(node.account_set_id)
+            } else {
+                None
+            }
+        })
     }
 
     /// Returns ancestors, in this chart of accounts, of an account with `code` (not included).
-    /// The lower in hierarchy the parent is, the lower index it will have in the resulting vector;
-    /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
         let mut current_code = code;
 
-        if let Some(AccountDetails { spec, .. }) = self.all_accounts.get(current_code) {
-            current_code = match &spec.parent {
+        if let Some(node) = self.get_node_by_code(current_code) {
+            current_code = match &node.spec.parent {
                 Some(parent_code) => parent_code,
                 None => return result,
             };
@@ -178,14 +265,9 @@ impl Chart {
             return result;
         }
 
-        while let Some(AccountDetails {
-            spec,
-            account_set_id,
-            ..
-        }) = self.all_accounts.get(current_code)
-        {
-            result.push(T::from(*account_set_id));
-            match &spec.parent {
+        while let Some(node) = self.get_node_by_code(current_code) {
+            result.push(T::from(node.account_set_id));
+            match &node.spec.parent {
                 Some(parent_code) => current_code = parent_code,
                 None => break,
             }
@@ -195,32 +277,38 @@ impl Chart {
     }
 
     /// Returns direct children, in this chart of accounts, of an account with `code` (not included).
-    /// No particular order of the children is guaranteed.
     pub fn children(
         &self,
         code: &AccountCode,
     ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
-        self.all_accounts
-            .iter()
-            .filter_map(|(account_code, details)| {
-                if details.spec.parent.as_ref() == Some(code) {
-                    Some((account_code, details.account_set_id))
+        self.chart_nodes
+            .iter_persisted_mut()
+            .filter_map(move |node| {
+                if node.spec.parent.as_ref() == Some(code) {
+                    Some((&node.spec.code, node.account_set_id))
                 } else {
                     None
                 }
             })
     }
 
+    fn get_node_by_code(&self, code: &AccountCode) -> Option<&ChartNode> {
+        self.all_accounts
+            .get(code)
+            .and_then(|node_id| self.chart_nodes.get_persisted(node_id))
+    }
+
+    fn get_node_by_code_mut(&mut self, code: &AccountCode) -> Option<&mut ChartNode> {
+        let node_id = self.all_accounts.get(code)?;
+        self.chart_nodes.get_persisted_mut(node_id)
+    }
+
     pub fn account_set_id_from_code(
         &self,
         code: &AccountCode,
     ) -> Result<CalaAccountSetId, ChartOfAccountsError> {
-        self.account_spec(code)
-            .map(
-                |AccountDetails {
-                     account_set_id: id, ..
-                 }| *id,
-            )
+        self.get_node_by_code(code)
+            .map(|node| node.account_set_id)
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
     }
 
@@ -234,85 +322,66 @@ impl Chart {
         }
     }
 
-    fn manual_transaction_account_id_from_code(
-        &self,
-        code: &AccountCode,
-    ) -> Result<(CalaAccountSetId, Option<LedgerAccountId>), ChartOfAccountsError> {
-        let account_details = self
-            .account_spec(code)
-            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
-
-        self.check_can_have_manual_transactions(code)?;
-
-        let AccountDetails {
-            account_set_id,
-            manual_transaction_account_id,
-            ..
-        } = account_details;
-
-        Ok((*account_set_id, *manual_transaction_account_id))
-    }
-
     pub fn manual_transaction_account(
         &mut self,
         account_id_or_code: AccountIdOrCode,
     ) -> Result<ManualAccountFromChart, ChartOfAccountsError> {
         match account_id_or_code {
             AccountIdOrCode::Id(id) => Ok(match self.manual_transaction_accounts.get(&id) {
-                Some(code) => {
-                    self.check_can_have_manual_transactions(code)?;
-
+                Some(node_id) => {
+                    let node = self
+                        .chart_nodes
+                        .get_persisted(node_id)
+                        .expect("Node ID in index should exist");
+                    self.check_can_have_manual_transactions(&node.spec.code)?;
                     ManualAccountFromChart::IdInChart(id)
                 }
                 None => ManualAccountFromChart::NonChartId(id),
             }),
             AccountIdOrCode::Code(code) => {
-                let manual_account = match self.manual_transaction_account_id_from_code(&code)? {
-                    (_, Some(id)) => ManualAccountFromChart::IdInChart(id),
-                    (account_set_id, None) => {
-                        let id = LedgerAccountId::new();
-                        self.events.push(ChartEvent::ManualTransactionAccountAdded {
-                            code: code.clone(),
-                            ledger_account_id: id,
-                        });
+                self.check_can_have_manual_transactions(&code)?;
 
-                        if let Some(AccountDetails {
-                            manual_transaction_account_id,
-                            ..
-                        }) = self.all_accounts.get_mut(&code)
-                        {
-                            *manual_transaction_account_id = Some(id);
-                        }
-                        self.manual_transaction_accounts.insert(id, code.clone());
+                let node = self
+                    .get_node_by_code(&code)
+                    .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
-                        ManualAccountFromChart::NewAccount((
+                if let Some(existing_id) = node.manual_transaction_account_id {
+                    return Ok(ManualAccountFromChart::IdInChart(existing_id));
+                }
+
+                let node_id = *self.all_accounts.get(&code).unwrap();
+                let node_mut = self.chart_nodes.get_persisted_mut(&node_id).unwrap();
+
+                match node_mut.add_manual_transaction_account() {
+                    Idempotent::Executed((account_set_id, new_account)) => {
+                        self.manual_transaction_accounts
+                            .insert(new_account.id.into(), node_id);
+
+                        Ok(ManualAccountFromChart::NewAccount((
                             account_set_id,
-                            NewAccount::builder()
-                                .name(format!("{code} Manual"))
-                                .id(id)
-                                .code(code.manual_account_external_id(self.id))
-                                .external_id(code.manual_account_external_id(self.id))
-                                .build()
-                                .expect("Could not build new account"),
+                            new_account,
+                        )))
+                    }
+                    Idempotent::Ignored => {
+                        let node = self.chart_nodes.get_persisted(&node_id).unwrap();
+                        Ok(ManualAccountFromChart::IdInChart(
+                            node.manual_transaction_account_id.unwrap(),
                         ))
                     }
-                };
-
-                Ok(manual_account)
+                }
             }
         }
     }
 
     pub fn chart(&self) -> tree::ChartTree {
-        tree::project(self.events.iter_all())
+        tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted_mut())
     }
 }
 
 impl TryFromEvents<ChartEvent> for Chart {
     fn try_from_events(events: EntityEvents<ChartEvent>) -> Result<Self, EsEntityError> {
         let mut builder = ChartBuilder::default();
-        let mut all_accounts = HashMap::new();
-        let mut manual_transaction_accounts = HashMap::new();
+
         for event in events.iter_all() {
             match event {
                 ChartEvent::Initialized {
@@ -324,46 +393,44 @@ impl TryFromEvents<ChartEvent> for Chart {
                     builder = builder
                         .id(*id)
                         .reference(reference.to_string())
-                        .name(name.to_string())
-                }
-                ChartEvent::NodeAdded {
-                    spec,
-                    ledger_account_set_id,
-                    ..
-                } => {
-                    all_accounts.insert(
-                        spec.code.clone(),
-                        AccountDetails {
-                            spec: spec.clone(),
-                            account_set_id: *ledger_account_set_id,
-                            manual_transaction_account_id: None,
-                        },
-                    );
-                }
-                ChartEvent::ManualTransactionAccountAdded {
-                    code,
-                    ledger_account_id,
-                    ..
-                } => {
-                    manual_transaction_accounts.insert(*ledger_account_id, code.clone());
-
-                    if let Some(AccountDetails {
-                        manual_transaction_account_id,
-                        ..
-                    }) = all_accounts.get_mut(code)
-                    {
-                        *manual_transaction_account_id = Some(*ledger_account_id);
-                    }
+                        .name(name.to_string());
                 }
             }
         }
+
         builder
-            .all_accounts(all_accounts)
-            .manual_transaction_accounts(manual_transaction_accounts)
+            .all_accounts(HashMap::new())
+            .manual_transaction_accounts(HashMap::new())
             .events(events)
             .build()
     }
 }
+
+// impl es_entity::Parent<ChartNode> for Chart {
+//     fn new_children_mut(&mut self) -> &mut Vec<<ChartNode as EsEntity>::New> {
+//         self.chart_nodes.new_entities_mut()
+//     }
+
+//     fn iter_persisted_children_mut<'a>(&'a mut self) -> impl Iterator<Item = &'a mut ChartNode>
+//     where
+//         ChartNode: 'a,
+//     {
+//         self.chart_nodes.iter_persisted_mut()
+//     }
+
+//     fn inject_children(&mut self, children: impl IntoIterator<Item = ChartNode>) {
+//
+//         let children_vec = children.into_iter().collect();
+//         for child_node in &children_vec {
+//             if let Some(manual_id) = child_node.manual_transaction_account_id {
+//                 self.manual_transaction_accounts.insert(manual_id, child_node.id);
+//             }
+//             self.all_accounts.insert(child_node.spec.code.clone(), child_node.id);
+
+//         }
+//         self.chart_nodes.load(children_vec);
+//     }
+// }
 
 #[derive(Debug, Builder)]
 pub struct NewChart {
@@ -399,311 +466,7 @@ pub enum ManualAccountFromChart {
     NewAccount((CalaAccountSetId, NewAccount)),
 }
 
-struct AccountDetails {
-    spec: AccountSpec,
-    account_set_id: CalaAccountSetId,
-    manual_transaction_account_id: Option<LedgerAccountId>,
-}
-
 pub struct NewChartAccountDetails {
     pub new_account_set: NewAccountSet,
     pub parent_account_set_id: Option<CalaAccountSetId>,
-}
-
-#[cfg(test)]
-mod test {
-
-    use super::*;
-
-    fn chart_from(events: Vec<ChartEvent>) -> Chart {
-        Chart::try_from_events(EntityEvents::init(ChartId::new(), events)).unwrap()
-    }
-
-    fn initial_events() -> Vec<ChartEvent> {
-        vec![ChartEvent::Initialized {
-            id: ChartId::new(),
-            name: "Test Chart".to_string(),
-            reference: "test-chart".to_string(),
-        }]
-    }
-
-    fn default_chart() -> (
-        Chart,
-        (CalaAccountSetId, CalaAccountSetId, CalaAccountSetId),
-    ) {
-        let mut chart = chart_from(initial_events());
-        let NewChartAccountDetails {
-            new_account_set: level_1_new_account_set,
-            ..
-        } = chart
-            .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    None,
-                    vec![section("1")],
-                    "Assets".parse::<AccountName>().unwrap(),
-                    DebitOrCredit::Debit,
-                )
-                .unwrap(),
-                CalaJournalId::new(),
-            )
-            .expect("Already executed");
-        let NewChartAccountDetails {
-            new_account_set: level_2_new_account_set,
-            ..
-        } = chart
-            .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    Some(code("1")),
-                    vec![section("1"), section("1")],
-                    "Current Assets".parse::<AccountName>().unwrap(),
-                    DebitOrCredit::Debit,
-                )
-                .unwrap(),
-                CalaJournalId::new(),
-            )
-            .expect("Already executed");
-        let NewChartAccountDetails {
-            new_account_set: level_3_new_account_set,
-            ..
-        } = chart
-            .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    Some(code("1.1")),
-                    vec![section("1"), section("1"), section("1")],
-                    "Cash".parse::<AccountName>().unwrap(),
-                    DebitOrCredit::Debit,
-                )
-                .unwrap(),
-                CalaJournalId::new(),
-            )
-            .expect("Already executed");
-
-        (
-            chart,
-            (
-                level_1_new_account_set.id,
-                level_2_new_account_set.id,
-                level_3_new_account_set.id,
-            ),
-        )
-    }
-
-    fn section(s: &str) -> AccountCodeSection {
-        s.parse::<AccountCodeSection>().unwrap()
-    }
-
-    fn code(s: &str) -> AccountCode {
-        s.parse::<AccountCode>().unwrap()
-    }
-
-    #[test]
-    fn errors_for_create_child_node_if_parent_node_does_not_exist() {
-        let (mut chart, _) = default_chart();
-
-        let res = chart.create_child_node(
-            code("1.9"),
-            code("1.9.1"),
-            "Cash".parse::<AccountName>().unwrap(),
-            CalaJournalId::new(),
-        );
-
-        assert!(matches!(
-            res,
-            Err(ChartOfAccountsError::ParentAccountNotFound(_))
-        ))
-    }
-
-    #[test]
-    fn unchecked_creates_node_if_parent_node_does_not_exist() {
-        let (mut chart, _) = default_chart();
-
-        let res = chart.create_node_without_verifying_parent(
-            &AccountSpec::try_new(
-                Some(code("1.9")),
-                vec![section("1"), section("9"), section("1")],
-                "Cash".parse::<AccountName>().unwrap(),
-                DebitOrCredit::Debit,
-            )
-            .unwrap(),
-            CalaJournalId::new(),
-        );
-        assert!(res.did_execute());
-    }
-
-    #[test]
-    fn adds_from_all_new_trial_balance_accounts() {
-        let (chart, (level_1_id, level_2_id, level_3_id)) = default_chart();
-
-        let new_ids = chart
-            .trial_balance_account_ids_from_new_accounts(&[level_1_id, level_2_id, level_3_id])
-            .collect::<Vec<_>>();
-        assert_eq!(new_ids.len(), 1);
-        assert!(new_ids.contains(&level_2_id));
-    }
-
-    #[test]
-    fn adds_from_some_new_trial_balance_accounts() {
-        let (mut chart, _) = default_chart();
-
-        let NewChartAccountDetails {
-            new_account_set:
-                NewAccountSet {
-                    id: new_account_set_id,
-                    ..
-                },
-            ..
-        } = chart
-            .create_node_without_verifying_parent(
-                &AccountSpec::try_new(
-                    Some(code("1")),
-                    vec![section("1"), section("2")],
-                    "Long-term Assets".parse::<AccountName>().unwrap(),
-                    DebitOrCredit::Debit,
-                )
-                .unwrap(),
-                CalaJournalId::new(),
-            )
-            .expect("Already executed");
-
-        let new_ids = chart
-            .trial_balance_account_ids_from_new_accounts(&[new_account_set_id])
-            .collect::<Vec<_>>();
-        assert!(new_ids.contains(&new_account_set_id));
-        assert_eq!(new_ids.len(), 1);
-    }
-
-    #[test]
-    fn manual_transaction_account_by_id_non_chart_id() {
-        let mut chart = chart_from(initial_events());
-        let random_id = LedgerAccountId::new();
-
-        let id = match chart
-            .manual_transaction_account(AccountIdOrCode::Id(random_id))
-            .unwrap()
-        {
-            ManualAccountFromChart::NonChartId(id) => id,
-            _ => panic!("expected NonChartId"),
-        };
-        assert_eq!(id, random_id);
-    }
-
-    #[test]
-    fn manual_transaction_account_by_code_new_account() {
-        let (mut chart, (_l1, _l2, level_3_set_id)) = default_chart();
-        let acct_code = code("1.1.1");
-        let before_count = chart.events.iter_all().count();
-
-        let (account_set_id, new_account) = match chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap()
-        {
-            ManualAccountFromChart::NewAccount((account_set_id, new_account)) => {
-                (account_set_id, new_account)
-            }
-            _ => panic!("expected NewAccount"),
-        };
-
-        assert_eq!(account_set_id, level_3_set_id);
-        assert!(
-            chart
-                .manual_transaction_accounts
-                .contains_key(&new_account.id.into())
-        );
-
-        let events: Vec<_> = chart.events.iter_all().collect();
-        assert_eq!(events.len(), before_count + 1);
-
-        let (code, ledger_account_id) = match events.last().unwrap() {
-            ChartEvent::ManualTransactionAccountAdded {
-                code,
-                ledger_account_id,
-                ..
-            } => (code.clone(), *ledger_account_id),
-            _ => panic!("expected ManualTransactionAccountAdded"),
-        };
-        assert_eq!(code, acct_code);
-        assert_eq!(ledger_account_id, new_account.id.into());
-    }
-
-    #[test]
-    fn manual_transaction_account_by_code_existing_account() {
-        let (mut chart, _) = default_chart();
-        let acct_code = code("1.1.1");
-
-        let first = chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap();
-        let ledger_id = match first {
-            ManualAccountFromChart::NewAccount((_, new_account)) => new_account.id,
-            _ => panic!("expected NewAccount"),
-        };
-
-        let second = chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap();
-        match second {
-            ManualAccountFromChart::IdInChart(id) => assert_eq!(id, ledger_id.into()),
-            other => panic!("expected IdInChart, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn manual_transaction_account_by_id_in_chart() {
-        let (mut chart, _) = default_chart();
-        let acct_code = code("1.1.1");
-
-        let ManualAccountFromChart::NewAccount((_, new_account)) = chart
-            .manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()))
-            .unwrap()
-        else {
-            panic!("expected NewAccount");
-        };
-
-        let ledger_id = LedgerAccountId::from(new_account.id);
-        let id = match chart
-            .manual_transaction_account(AccountIdOrCode::Id(ledger_id))
-            .unwrap()
-        {
-            ManualAccountFromChart::IdInChart(id) => id,
-            _ => panic!("expected IdInChart"),
-        };
-        assert_eq!(id, ledger_id)
-    }
-
-    #[test]
-    fn manual_transaction_account_code_not_found() {
-        let mut chart = chart_from(initial_events());
-        let bad_code = code("9.9.9");
-
-        let err = chart
-            .manual_transaction_account(AccountIdOrCode::Code(bad_code.clone()))
-            .unwrap_err();
-
-        match err {
-            ChartOfAccountsError::CodeNotFoundInChart(c) => assert_eq!(c, bad_code),
-            other => panic!("expected CodeNotFoundInChart, got {other:?}"),
-        }
-    }
-
-    #[test]
-    fn manual_transaction_non_leaf_code() {
-        let (mut chart, _) = default_chart();
-        let acct_code = code("1.1");
-
-        let res = chart.manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()));
-        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
-    }
-
-    #[test]
-    fn manual_transaction_non_leaf_account_id_in_chart() {
-        let (mut chart, _) = default_chart();
-        let random_id = LedgerAccountId::new();
-        let acct_code = code("1.1");
-        chart
-            .manual_transaction_accounts
-            .insert(random_id, acct_code);
-
-        let res = chart.manual_transaction_account(AccountIdOrCode::Id(random_id));
-        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
-    }
 }
