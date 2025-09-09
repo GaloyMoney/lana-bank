@@ -20,6 +20,8 @@ pub enum ChartOfAccountsError {
     CalaAccount(#[from] cala_ledger::account::error::AccountError),
     #[error("ChartOfAccountsError - CalaAccountSetError: {0}")]
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
+    #[error("ChartOfAccountsError - ChartLedgerError: {0}")]
+    ChartLedgerError(#[from] super::ledger::error::ChartLedgerError),
     #[error("ChartOfAccountsError - AccountCodeError: {0}")]
     AccountCode(#[from] crate::primitives::AccountCodeError),
     #[error("ChartOfAccountsError - NonLeafAccount: {0}")]

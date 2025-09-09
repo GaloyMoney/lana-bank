@@ -27,6 +27,7 @@ pub use entity::Chart;
 pub use entity::ChartEvent;
 pub(super) use entity::*;
 use error::*;
+use ledger::*;
 pub(super) use repo::*;
 
 pub struct ChartOfAccounts<Perms>
@@ -34,7 +35,8 @@ where
     Perms: PermissionCheck,
 {
     repo: ChartRepo,
-    cala: CalaLedger,
+    chart_ledger: ChartLedger,
+    cala: CalaLedger, // TODO: move calls into chart ledger
     authz: Perms,
     journal_id: CalaJournalId,
 }
@@ -46,6 +48,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            chart_ledger: self.chart_ledger.clone(),
             cala: self.cala.clone(),
             authz: self.authz.clone(),
             journal_id: self.journal_id,
@@ -66,8 +69,11 @@ where
         journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
+        let chart_ledger = ChartLedger::new(cala, journal_id);
+
         Self {
             repo: chart_of_account,
+            chart_ledger,
             cala: cala.clone(),
             authz: authz.clone(),
             journal_id,
@@ -106,7 +112,9 @@ where
 
         let chart = self.repo.create_in_op(&mut op, new_chart).await?;
 
-        op.commit().await?;
+        self.chart_ledger
+            .create_chart_root_account_set_in_op(op, &chart)
+            .await?;
 
         Ok(chart)
     }
