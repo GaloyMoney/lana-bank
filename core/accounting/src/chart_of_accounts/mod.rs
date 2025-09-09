@@ -1,6 +1,7 @@
 mod csv;
 mod entity;
 pub mod error;
+pub mod ledger;
 mod repo;
 pub mod tree;
 
