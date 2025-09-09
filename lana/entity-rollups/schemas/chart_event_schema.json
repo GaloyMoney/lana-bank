@@ -77,6 +77,10 @@
   "oneOf": [
     {
       "properties": {
+        "account_set_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -95,6 +99,7 @@
       "required": [
         "type",
         "id",
+        "account_set_id",
         "name",
         "reference"
       ],
@@ -139,6 +144,40 @@
         "type",
         "code",
         "ledger_account_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "type": {
+          "const": "first_accounting_period_opened",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "effective"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "effective": {
+          "format": "date",
+          "type": "string"
+        },
+        "type": {
+          "const": "accounting_period_closed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "effective"
       ],
       "type": "object"
     }
