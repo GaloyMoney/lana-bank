@@ -8,9 +8,16 @@ models:
       than $25,000 executed during a transaction.
 
       Relevant transactions include:
-      - Transactions between customer accounts and external bank accounts, including disbursals and deposits.
-      - Transactions between customers of the bank.
-      - Credit facility liquidations.
+      - Deposits and withdrawals between customer accounts and external bank accounts.
+
+      These type of transactions would be relevant but we have not implemented them hence we don't look for them in 
+      the system:
+      - Transfer between different customers within the bank itself.
+
+      Other transactions are not in scope. These not in scope group includes:
+      - Posting and returning collateral.
+      - Liquidations.
+      - Disbursals and payments of credit facilities.
 
     columns:
       - name: numeroRegistroBancario
