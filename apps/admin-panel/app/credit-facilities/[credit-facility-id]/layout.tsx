@@ -25,7 +25,6 @@ import {
   useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
-import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 gql`
   fragment CreditFacilityLayoutFragment on CreditFacility {
@@ -35,7 +34,7 @@ gql`
     facilityAmount
     maturesAt
     collateralizationState
-    createdAt
+    activatedAt
     currentCvl {
       __typename
       ... on FiniteCVLPct {
@@ -138,16 +137,6 @@ gql`
         name
       }
     }
-    approvalProcess {
-      id
-      deniedReason
-      status
-      userCanSubmitDecision
-      approvalProcessId
-      approvalProcessType
-      createdAt
-      ...ApprovalProcessFields
-    }
     userCanUpdateCollateral
     userCanInitiateDisbursal
     userCanRecordPayment
@@ -245,7 +234,6 @@ export default function CreditFacilityLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     data?.creditFacilityByPublicId?.status,
-    data?.creditFacilityByPublicId?.approvalProcess?.status,
   ])
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={4} />
@@ -262,7 +250,6 @@ export default function CreditFacilityLayout({
         <FacilityCard creditFacility={data.creditFacilityByPublicId} />
         <CreditFacilityCollateral creditFacility={data.creditFacilityByPublicId} />
       </div>
-      <VotersCard approvalProcess={data.creditFacilityByPublicId.approvalProcess} />
       <Tabs
         defaultValue={TABS[0].url}
         value={currentTab}

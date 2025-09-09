@@ -24,10 +24,10 @@ import {
   SelectValue,
 } from "@lana/web/ui/select"
 
-import { useCreateContext } from "../create"
+import { useCreateContext } from "@/app/create"
 
 import {
-  useCreditFacilityCreateMutation,
+  useCreditFacilityProposalCreateMutation,
   useGetRealtimePriceUpdatesQuery,
   useTermsTemplatesQuery,
   useCustodiansQuery,
@@ -46,29 +46,16 @@ import { DEFAULT_TERMS } from "@/lib/constants/terms"
 const DEFAULT_CUSTODIAN = "manual-custodian"
 
 gql`
-  mutation CreditFacilityCreate($input: CreditFacilityCreateInput!) {
-    creditFacilityCreate(input: $input) {
-      creditFacility {
+  mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
+    creditFacilityProposalCreate(input: $input) {
+      creditFacilityProposal {
         id
-        creditFacilityId
-        publicId
+        creditFacilityProposalId
         customer {
           id
-          creditFacilities {
+          email
+          creditFacilityProposals {
             id
-            creditFacilityId
-            publicId
-            collateralizationState
-            status
-            createdAt
-            balance {
-              collateral {
-                btcBalance
-              }
-              outstanding {
-                usdBalance
-              }
-            }
           }
         }
       }
@@ -76,9 +63,9 @@ gql`
   }
 `
 
-type CreateCreditFacilityDialogProps = {
-  setOpenCreateCreditFacilityDialog: (isOpen: boolean) => void
-  openCreateCreditFacilityDialog: boolean
+type CreateCreditFacilityProposalDialogProps = {
+  setOpenCreateCreditFacilityProposalDialog: (isOpen: boolean) => void
+  openCreateCreditFacilityProposalDialog: boolean
   customerId: string
   disbursalCreditAccountId: string
 }
@@ -94,16 +81,18 @@ const initialFormValues = {
   oneTimeFeeRate: "",
 }
 
-export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProps> = ({
-  setOpenCreateCreditFacilityDialog,
-  openCreateCreditFacilityDialog,
+export const CreateCreditFacilityProposalDialog: React.FC<
+  CreateCreditFacilityProposalDialogProps
+> = ({
+  setOpenCreateCreditFacilityProposalDialog,
+  openCreateCreditFacilityProposalDialog,
   customerId,
   disbursalCreditAccountId,
 }) => {
-  const t = useTranslations("CreditFacilities.CreditFacilityDetails.CreateCreditFacility")
+  const t = useTranslations("CreditFacilityProposals.CreateCreditFacilityProposal")
 
   const handleCloseDialog = () => {
-    setOpenCreateCreditFacilityDialog(false)
+    setOpenCreateCreditFacilityProposalDialog(false)
     resetForm()
     reset()
   }
@@ -123,16 +112,7 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     variables: { first: 50 },
   })
   const [createCreditFacility, { loading, error, reset }] =
-    useCreditFacilityCreateMutation({
-      update: (cache) => {
-        cache.modify({
-          fields: {
-            creditFacilities: (_, { DELETE }) => DELETE,
-          },
-        })
-        cache.gc()
-      },
-    })
+    useCreditFacilityProposalCreateMutation()
 
   const isLoading = loading || isNavigating
 
@@ -250,10 +230,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
           },
         },
         onCompleted: (data) => {
-          if (data.creditFacilityCreate) {
+          if (data.creditFacilityProposalCreate) {
             toast.success(t("form.messages.success"))
             navigate(
-              `/credit-facilities/${data?.creditFacilityCreate.creditFacility.publicId}`,
+              `/credit-facility-proposals/${data?.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId}`,
             )
           }
         },
@@ -287,11 +267,11 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
   }
 
   useEffect(() => {
-    if (openCreateCreditFacilityDialog) {
+    if (openCreateCreditFacilityProposalDialog) {
       resetForm()
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [openCreateCreditFacilityDialog])
+  }, [openCreateCreditFacilityProposalDialog])
 
   const collateralRequiredForDesiredFacility = calculateInitialCollateralRequired({
     amount: Number(formValues.facility) || 0,
@@ -299,7 +279,10 @@ export const CreateCreditFacilityDialog: React.FC<CreateCreditFacilityDialogProp
     priceInfo: priceInfo,
   })
   return (
-    <Dialog open={openCreateCreditFacilityDialog} onOpenChange={handleCloseDialog}>
+    <Dialog
+      open={openCreateCreditFacilityProposalDialog}
+      onOpenChange={handleCloseDialog}
+    >
       <DialogContent className="max-w-[40rem]">
         {customer?.email && (
           <div
