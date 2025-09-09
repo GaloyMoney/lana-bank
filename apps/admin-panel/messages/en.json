@@ -485,8 +485,8 @@
       }
     },
     "status": {
-      "pendingcollateralization": "Pending Collateralization",
-      "pendngapproval": "Pending Approval",
+      "pending_collateralization": "Pending Collateralization",
+      "pendng_approval": "Pending Approval",
       "completed": "Completed"
     },
     "collateralizationState": {
@@ -552,6 +552,7 @@
       "form": {
         "labels": {
           "currentCollateral": "Current Collateral",
+          "expectedCollateral": "Expected Collateral",
           "newCollateral": "New Collateral"
         },
         "placeholders": {
@@ -575,6 +576,58 @@
       "units": {
         "btc": "BTC"
       }
+    },
+    "ProposalDetails": {
+      "CollateralCard": {
+        "title": "Collateral",
+        "details": {
+          "collateralBalance": "Collateral balance (BTC)",
+          "currentPrice": "Current BTC/USD Price",
+          "collateralValue": "Collateral value (USD)",
+          "marginCallPrice": "Margin Call Price BTC/USD ({percentage})",
+          "liquidationPrice": "Liquidation Price BTC/USD ({percentage})",
+          "collateralToReachTarget": "Collateral to reach target ({percentage})",
+          "currentCvl": "Current CVL"
+        }
+      },
+      "DetailsCard": {
+        "title": "Credit Facility Proposal",
+        "details": {
+          "customer": "Customer",
+          "status": "Status",
+          "facilityAmount": "Facility Amount",
+          "collateralizationState": "Collateralization State",
+          "collateral": "Collateral",
+          "createdAt": "Created At"
+        },
+        "buttons": {
+          "updateCollateral": "Update Collateral",
+          "approve": "Approve",
+          "deny": "Deny",
+          "viewFacility": "View Credit Facility"
+        },
+        "alerts": {
+          "completedTitle": "Proposal completed",
+          "completedDescription": "This proposal has been approved and completed.",
+          "viewAssociatedFacility": "View associated credit facility"
+        },
+        "errors": {
+          "notFound": "Credit facility proposal not found"
+        }
+      },
+      "TermsCard": {
+        "title": "Terms",
+        "description": "Details about the terms for this proposal"
+      },
+      "Layout": {
+        "tabs": {
+          "history": "History",
+          "repaymentPlan": "Repayment Plan"
+        },
+        "errors": {
+          "notFound": "Credit facility proposal not found"
+        }
+      }
     }
   },
   "CreditFacilities": {
@@ -592,8 +645,6 @@
     },
     "CreditFacilityStatus": {
       "active": "Active",
-      "pendingApproval": "Pending Approval",
-      "pendingCollateralization": "Pending Collateralization",
       "closed": "Closed",
       "matured": "Matured"
     },
@@ -627,11 +678,12 @@
           "interest": "Interest"
         },
         "status": {
-          "upcoming": "UPCOMING",
-          "not_yet_due": "NOT YET DUE",
-          "due": "DUE",
-          "overdue": "OVERDUE",
-          "paid": "PAID"
+          "upcoming": "Upcoming",
+          "notyetdue": "Not Yet Due",
+          "due": "Due",
+          "overdue": "Overdue",
+          "defaulted": "Defaulted",
+          "paid": "Paid"
         }
       },
       "Disbursals": {

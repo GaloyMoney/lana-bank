@@ -21,7 +21,7 @@ export const CreditFacilityProposalStatusBadge: React.FC<
       case CreditFacilityProposalStatus.PendngApproval:
         return "secondary"
       case CreditFacilityProposalStatus.PendingCollateralization:
-        return "warning"
+        return "destructive"
       default: {
         const exhaustiveCheck: never = status
         return exhaustiveCheck
@@ -30,7 +30,11 @@ export const CreditFacilityProposalStatusBadge: React.FC<
   }
 
   return (
-    <Badge variant={badgeVariant()} className={cn(className)}>
+    <Badge
+      variant={badgeVariant()}
+      className={cn(className)}
+      data-testid="proposal-status-badge"
+    >
       {t(status.toLowerCase())}
     </Badge>
   )

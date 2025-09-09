@@ -9,7 +9,7 @@ import { formatDate } from "@lana/web/utils"
 
 import { toast } from "sonner"
 
-import { ExternalLinkIcon } from "lucide-react"
+import { ExternalLinkIcon, FileText, Download, RefreshCw, Eye } from "lucide-react"
 
 import { Label } from "@lana/web/ui/label"
 
@@ -145,6 +145,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         onClick={() => setOpenTermsDialog(true)}
         data-testid="loan-terms-button"
       >
+        <FileText className="h-4 w-4 mr-2" />
         {t("buttons.loanTerms")}
       </Button>
       <Button
@@ -153,6 +154,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         loading={isGenerating}
         data-testid="loan-agreement-button"
       >
+        <Download className="h-4 w-4 mr-2" />
         {t("buttons.loanAgreement")}
       </Button>
       {creditFacilityDetails.userCanUpdateCollateral && (
@@ -161,11 +163,15 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           data-testid="update-collateral-button"
           onClick={() => setOpenCollateralUpdateDialog(true)}
         >
+          <RefreshCw className="h-4 w-4 mr-2" />
           {t("buttons.updateCollateral")}
         </Button>
       )}
       <Link href={`/credit-facility-proposals/${creditFacilityDetails.creditFacilityId}`}>
-        <Button variant="outline">View Proposal</Button>
+        <Button variant="outline">
+          <Eye className="h-4 w-4 mr-2" />
+          View Proposal
+        </Button>
       </Link>
     </>
   )

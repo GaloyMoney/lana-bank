@@ -12,12 +12,12 @@ export const CreditFacilityProposalCollateralizationStateLabel: React.FC<
 > = ({ state }) => {
   const t = useTranslations("CreditFacilityProposals.collateralizationState")
 
-  const variant = (): "default" | "secondary" | "destructive" | "outline" => {
+  const variant = () => {
     switch (state) {
       case CreditFacilityProposalCollateralizationState.FullyCollateralized:
-        return "default"
+        return "success"
       case CreditFacilityProposalCollateralizationState.UnderCollateralized:
-        return "destructive"
+        return "warning"
       default: {
         const exhaustiveCheck: never = state
         return exhaustiveCheck
@@ -25,9 +25,5 @@ export const CreditFacilityProposalCollateralizationStateLabel: React.FC<
     }
   }
 
-  return (
-    <Badge variant={variant()}>
-      {t(state.toLowerCase().replace(/_/g, ""))}
-    </Badge>
-  )
+  return <Badge variant={variant()}>{t(state.toLowerCase().replace(/_/g, ""))}</Badge>
 }
