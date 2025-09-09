@@ -61,6 +61,7 @@ export default function CustomerLayout({
   const TABS = [
     { id: "1", url: "/", tabLabel: t("tabs.transactions") },
     { id: "2", url: "/credit-facilities", tabLabel: t("tabs.creditFacilities") },
+    { id: "3", url: "/credit-facility-proposals", tabLabel: t("tabs.creditFacilityProposals") },
     { id: "4", url: "/documents", tabLabel: t("tabs.documents") },
   ]
 

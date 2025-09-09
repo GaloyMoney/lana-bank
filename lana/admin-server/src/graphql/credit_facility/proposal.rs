@@ -1,7 +1,12 @@
 use async_graphql::*;
 
 use crate::{
-    graphql::{custody::Wallet, customer::*, loader::LanaDataLoader, terms::TermsInput},
+    graphql::{
+        custody::Wallet,
+        customer::*,
+        loader::LanaDataLoader,
+        terms::{TermValues, TermsInput},
+    },
     primitives::*,
 };
 
@@ -76,6 +81,10 @@ impl CreditFacilityProposal {
             .await?
             .expect("customer not found");
         Ok(customer)
+    }
+
+    async fn credit_facility_terms(&self) -> TermValues {
+        self.entity.terms.into()
     }
 
     async fn history(

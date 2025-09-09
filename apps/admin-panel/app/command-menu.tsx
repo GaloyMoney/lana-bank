@@ -28,7 +28,7 @@ import {
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
-import { CreateCreditFacilityDialog } from "./credit-facilities/create"
+import { CreateCreditFacilityProposalDialog } from "./credit-facility-proposals/create"
 import { CreditFacilityPartialPaymentDialog } from "./credit-facilities/partial-payment"
 import { CreditFacilityCollateralUpdateDialog } from "./credit-facilities/collateral-update"
 import { CreateUserDialog } from "./users/create"
@@ -459,9 +459,9 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
             setOpenWithdrawalInitiateDialog={() => setCreateWithdrawal(false)}
             depositAccountId={customer.depositAccount.depositAccountId}
           />
-          <CreateCreditFacilityDialog
-            openCreateCreditFacilityDialog={createFacility}
-            setOpenCreateCreditFacilityDialog={() => setCreateFacility(false)}
+          <CreateCreditFacilityProposalDialog
+            openCreateCreditFacilityProposalDialog={createFacility}
+            setOpenCreateCreditFacilityProposalDialog={() => setCreateFacility(false)}
             customerId={customer.customerId}
             disbursalCreditAccountId={customer.depositAccount.depositAccountId}
           />
