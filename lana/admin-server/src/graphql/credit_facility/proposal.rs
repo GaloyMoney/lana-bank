@@ -2,13 +2,16 @@ use async_graphql::*;
 
 use crate::{
     graphql::{
-        credit_facility::balance::CollateralBalance, custody::Wallet, loader::LanaDataLoader,
-        terms::TermsInput,
+        credit_facility::balance::CollateralBalance, custody::Wallet, customer::*,
+        loader::LanaDataLoader, terms::TermsInput,
     },
     primitives::*,
 };
 
-pub use lana_app::credit::CreditFacilityProposal as DomainCreditFacilityProposal;
+pub use lana_app::credit::{
+    CreditFacilityProposal as DomainCreditFacilityProposal,
+    CreditFacilityProposalsByCreatedAtCursor,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -65,6 +68,15 @@ impl CreditFacilityProposal {
             .await?
             .map(|cf| cf.status())
             .unwrap_or_else(|| self.entity.status()))
+    }
+
+    async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let customer = loader
+            .load_one(self.entity.customer_id)
+            .await?
+            .expect("customer not found");
+        Ok(customer)
     }
 }
 

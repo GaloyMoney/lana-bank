@@ -13,7 +13,8 @@ use crate::{event::CoreCreditEvent, ledger::CreditLedger, primitives::*};
 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
-use repo::{CreditFacilityProposalRepo, credit_facility_proposal_cursor::*};
+use repo::CreditFacilityProposalRepo;
+pub use repo::credit_facility_proposal_cursor::*;
 
 pub enum CreditFacilityProposalCompletionOutcome {
     Ignored,
@@ -218,6 +219,38 @@ where
             }
         }
         Ok(())
+    }
+
+    pub async fn list(
+        &self,
+        _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityProposalsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            CreditFacilityProposal,
+            CreditFacilityProposalsByCreatedAtCursor,
+        >,
+        CreditFacilityProposalError,
+    > {
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
+    }
+
+    pub async fn list_for_customer_by_created_at(
+        &self,
+        _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<crate::primitives::CustomerId> + std::fmt::Debug,
+    ) -> Result<Vec<CreditFacilityProposal>, CreditFacilityProposalError> {
+        Ok(self
+            .repo
+            .list_for_customer_id_by_created_at(
+                customer_id.into(),
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
     }
 
     pub(crate) async fn complete_in_op(
