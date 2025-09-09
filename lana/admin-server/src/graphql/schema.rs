@@ -288,6 +288,30 @@ impl Query {
         )
     }
 
+    async fn credit_facility_proposals(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<
+            CreditFacilityProposalsByCreatedAtCursor,
+            CreditFacilityProposal,
+            EmptyFields,
+            EmptyFields,
+        >,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CreditFacilityProposalsByCreatedAtCursor,
+            CreditFacilityProposal,
+            ctx,
+            after,
+            first,
+            |query| app.credit().credit_facility_proposals().list(sub, query)
+        )
+    }
+
     async fn credit_facility_by_public_id(
         &self,
         ctx: &Context<'_>,
