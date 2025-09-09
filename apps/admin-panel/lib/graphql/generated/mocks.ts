@@ -878,9 +878,12 @@ export const mockCreditFacilityProposal = (overrides?: Partial<CreditFacilityPro
         collateralizationState: overrides && overrides.hasOwnProperty('collateralizationState') ? overrides.collateralizationState! : CreditFacilityProposalCollateralizationState.FullyCollateralized,
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacilityProposalId: overrides && overrides.hasOwnProperty('creditFacilityProposalId') ? overrides.creditFacilityProposalId! : generateMockValue.uuid(),
+        creditFacilityTerms: overrides && overrides.hasOwnProperty('creditFacilityTerms') ? overrides.creditFacilityTerms! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         facilityAmount: overrides && overrides.hasOwnProperty('facilityAmount') ? overrides.facilityAmount! : generateMockValue.usdCents(),
+        history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : [relationshipsToOmit.has('CreditFacilityApproved') ? {} as CreditFacilityApproved : mockCreditFacilityApproved({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        repaymentPlan: overrides && overrides.hasOwnProperty('repaymentPlan') ? overrides.repaymentPlan! : [relationshipsToOmit.has('CreditFacilityRepaymentPlanEntry') ? {} as CreditFacilityRepaymentPlanEntry : mockCreditFacilityRepaymentPlanEntry({}, relationshipsToOmit)],
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityProposalStatus.Completed,
         wallet: overrides && overrides.hasOwnProperty('wallet') ? overrides.wallet! : relationshipsToOmit.has('Wallet') ? {} as Wallet : mockWallet({}, relationshipsToOmit),
     };

@@ -1,6 +1,6 @@
 "use client"
 
-import { gql, useApolloClient } from "@apollo/client"
+import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
@@ -16,12 +16,7 @@ import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { PublicIdBadge } from "@/components/public-id-badge"
 
 import {
-  ApprovalProcessStatus,
   CreditFacility,
-  CreditFacilityStatus,
-  GetCreditFacilityLayoutDetailsDocument,
-  GetCreditFacilityRepaymentPlanDocument,
-  GetCreditFacilityHistoryDocument,
   useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
@@ -162,7 +157,6 @@ export default function CreditFacilityLayout({
   const navTranslations = useTranslations("Sidebar.navItems")
 
   const { "credit-facility-id": publicId } = use(params)
-  const client = useApolloClient()
   const { setFacility } = useCreateContext()
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
@@ -204,37 +198,6 @@ export default function CreditFacilityLayout({
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.creditFacilityByPublicId, currentTab])
-
-  useEffect(() => {
-    if (
-      data?.creditFacilityByPublicId?.status === CreditFacilityStatus.PendingApproval &&
-      data?.creditFacilityByPublicId?.approvalProcess?.status ===
-        ApprovalProcessStatus.Approved
-    ) {
-      const timer = setInterval(() => {
-        client.query({
-          query: GetCreditFacilityLayoutDetailsDocument,
-          variables: { publicId },
-          fetchPolicy: "network-only",
-        })
-        client.query({
-          query: GetCreditFacilityHistoryDocument,
-          variables: { publicId },
-          fetchPolicy: "network-only",
-        })
-        client.query({
-          query: GetCreditFacilityRepaymentPlanDocument,
-          variables: { publicId },
-          fetchPolicy: "network-only",
-        })
-      }, 3000)
-
-      return () => clearInterval(timer)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    data?.creditFacilityByPublicId?.status,
-  ])
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={4} />
   if (error) return <div className="text-destructive">{error.message}</div>

@@ -14,15 +14,13 @@ import {
   ApprovalProcessStatus,
   GetDisbursalDetailsQuery,
   GetWithdrawalDetailsQuery,
+  ApprovalProcessFieldsFragment,
 } from "@/lib/graphql/generated"
 
 export const VotersCard = ({
   approvalProcess,
 }: {
-  approvalProcess:
-    | NonNullable<GetDisbursalDetailsQuery["disbursalByPublicId"]>["approvalProcess"]
-    | NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>["approvalProcess"]
-    | null
+  approvalProcess: ApprovalProcessFieldsFragment | null
 }) => {
   const t = useTranslations("Disbursals.DisbursalDetails.VotersCard")
 

@@ -648,9 +648,12 @@ export type CreditFacilityProposal = {
   collateralizationState: CreditFacilityProposalCollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityProposalId: Scalars['UUID']['output'];
+  creditFacilityTerms: TermValues;
   customer: Customer;
   facilityAmount: Scalars['UsdCents']['output'];
+  history: Array<CreditFacilityHistoryEntry>;
   id: Scalars['ID']['output'];
+  repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityProposalStatus;
   wallet?: Maybe<Wallet>;
 };
@@ -3060,12 +3063,90 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null } } };
 
+export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: CreditFacilityProposalCollateralizationState, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+      | { __typename: 'FiniteCVLPct', value: any }
+      | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+    , marginCallCvl:
+      | { __typename: 'FiniteCVLPct', value: any }
+      | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+    , initialCvl:
+      | { __typename: 'FiniteCVLPct', value: any }
+      | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+     } };
+
+export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
+  creditFacilityProposalId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: CreditFacilityProposalCollateralizationState, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+      , marginCallCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+      , initialCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+       } } | null };
+
+export type GetApprovalProcessByIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetApprovalProcessByIdQuery = { __typename?: 'Query', approvalProcess?: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+      | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
+      | { __typename?: 'SystemApproval', autoApprove: boolean }
+    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } | null };
+
+export type CreditFacilityProposalHistoryFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, history: Array<
+    | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any }
+    | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any }
+    | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any }
+    | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
+    | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
+    | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
+    | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+  > };
+
+export type GetCreditFacilityProposalHistoryQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCreditFacilityProposalHistoryQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, history: Array<
+      | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any }
+      | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any }
+      | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: Satoshis, outstandingInterest: UsdCents, outstandingDisbursal: UsdCents, recordedAt: any, price: UsdCents, effective: any }
+      | { __typename?: 'CreditFacilityDisbursalExecuted', cents: UsdCents, recordedAt: any, txId: string, effective: any }
+      | { __typename?: 'CreditFacilityIncrementalPayment', cents: UsdCents, recordedAt: any, txId: string, effective: any }
+      | { __typename?: 'CreditFacilityInterestAccrued', cents: UsdCents, recordedAt: any, txId: string, days: number, effective: any }
+      | { __typename?: 'CreditFacilityLiquidationAmountReserved', cents: UsdCents, recordedAt: any, effective: any, txId: string }
+    > } | null };
+
+export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCreditFacilityProposalRepaymentPlanQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }> } | null };
+
 export type CreditFacilityProposalCollateralUpdateMutationVariables = Exact<{
   input: CreditFacilityProposalCollateralUpdateInput;
 }>;
 
 
-export type CreditFacilityProposalCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityProposalCollateralUpdate: { __typename?: 'CreditFacilityProposalCollateralUpdatePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis } } } };
+export type CreditFacilityProposalCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityProposalCollateralUpdate: { __typename?: 'CreditFacilityProposalCollateralUpdatePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: CreditFacilityProposalCollateralizationState, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , marginCallCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , initialCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+         } } } };
 
 export type CreditFacilityProposalCreateMutationVariables = Exact<{
   input: CreditFacilityProposalCreateInput;
@@ -3808,6 +3889,13 @@ export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?:
     | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } }
    | null };
 
+export type GetCreditFacilityPublicIdQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetCreditFacilityPublicIdQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', publicId: any } | null };
+
 export const UsdBalanceFragmentFragmentDoc = gql`
     fragment UsdBalanceFragment on UsdLedgerAccountBalance {
   settled {
@@ -4162,6 +4250,99 @@ export const CvlPctDataFragmentDoc = gql`
   }
   ... on InfiniteCVLPct {
     isInfinite
+  }
+}
+    `;
+export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
+    fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
+  id
+  creditFacilityProposalId
+  approvalProcessId
+  createdAt
+  status
+  facilityAmount
+  collateralizationState
+  collateral {
+    btcBalance
+  }
+  customer {
+    customerId
+    publicId
+    email
+  }
+  creditFacilityTerms {
+    annualRate
+    accrualInterval
+    accrualCycleInterval
+    oneTimeFeeRate
+    duration {
+      period
+      units
+    }
+    liquidationCvl {
+      ...CVLPctData
+    }
+    marginCallCvl {
+      ...CVLPctData
+    }
+    initialCvl {
+      ...CVLPctData
+    }
+  }
+}
+    ${CvlPctDataFragmentDoc}`;
+export const CreditFacilityProposalHistoryFragmentFragmentDoc = gql`
+    fragment CreditFacilityProposalHistoryFragment on CreditFacilityProposal {
+  id
+  creditFacilityProposalId
+  history {
+    ... on CreditFacilityIncrementalPayment {
+      cents
+      recordedAt
+      txId
+      effective
+    }
+    ... on CreditFacilityCollateralUpdated {
+      satoshis
+      recordedAt
+      action
+      txId
+      effective
+    }
+    ... on CreditFacilityApproved {
+      cents
+      recordedAt
+      txId
+      effective
+    }
+    ... on CreditFacilityCollateralizationUpdated {
+      state
+      collateral
+      outstandingInterest
+      outstandingDisbursal
+      recordedAt
+      price
+      effective
+    }
+    ... on CreditFacilityDisbursalExecuted {
+      cents
+      recordedAt
+      txId
+      effective
+    }
+    ... on CreditFacilityInterestAccrued {
+      cents
+      recordedAt
+      txId
+      days
+      effective
+    }
+    ... on CreditFacilityLiquidationAmountReserved {
+      cents
+      recordedAt
+      effective
+      txId
+    }
   }
 }
     `;
@@ -5469,6 +5650,170 @@ export function useCreditFacilityPartialPaymentWithDateRecordMutation(baseOption
 export type CreditFacilityPartialPaymentWithDateRecordMutationHookResult = ReturnType<typeof useCreditFacilityPartialPaymentWithDateRecordMutation>;
 export type CreditFacilityPartialPaymentWithDateRecordMutationResult = Apollo.MutationResult<CreditFacilityPartialPaymentWithDateRecordMutation>;
 export type CreditFacilityPartialPaymentWithDateRecordMutationOptions = Apollo.BaseMutationOptions<CreditFacilityPartialPaymentWithDateRecordMutation, CreditFacilityPartialPaymentWithDateRecordMutationVariables>;
+export const GetCreditFacilityProposalLayoutDetailsDocument = gql`
+    query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
+  creditFacilityProposal(id: $creditFacilityProposalId) {
+    ...CreditFacilityProposalLayoutFragment
+  }
+}
+    ${CreditFacilityProposalLayoutFragmentFragmentDoc}`;
+
+/**
+ * __useGetCreditFacilityProposalLayoutDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityProposalLayoutDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityProposalLayoutDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
+ *   variables: {
+ *      creditFacilityProposalId: // value for 'creditFacilityProposalId'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityProposalLayoutDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables> & ({ variables: GetCreditFacilityProposalLayoutDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>(GetCreditFacilityProposalLayoutDetailsDocument, options);
+      }
+export function useGetCreditFacilityProposalLayoutDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>(GetCreditFacilityProposalLayoutDetailsDocument, options);
+        }
+export function useGetCreditFacilityProposalLayoutDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>(GetCreditFacilityProposalLayoutDetailsDocument, options);
+        }
+export type GetCreditFacilityProposalLayoutDetailsQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsQuery>;
+export type GetCreditFacilityProposalLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsLazyQuery>;
+export type GetCreditFacilityProposalLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalLayoutDetailsSuspenseQuery>;
+export type GetCreditFacilityProposalLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityProposalLayoutDetailsQuery, GetCreditFacilityProposalLayoutDetailsQueryVariables>;
+export const GetApprovalProcessByIdDocument = gql`
+    query GetApprovalProcessById($id: UUID!) {
+  approvalProcess(id: $id) {
+    ...ApprovalProcessFields
+  }
+}
+    ${ApprovalProcessFieldsFragmentDoc}`;
+
+/**
+ * __useGetApprovalProcessByIdQuery__
+ *
+ * To run a query within a React component, call `useGetApprovalProcessByIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetApprovalProcessByIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetApprovalProcessByIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetApprovalProcessByIdQuery(baseOptions: Apollo.QueryHookOptions<GetApprovalProcessByIdQuery, GetApprovalProcessByIdQueryVariables> & ({ variables: GetApprovalProcessByIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetApprovalProcessByIdQuery, GetApprovalProcessByIdQueryVariables>(GetApprovalProcessByIdDocument, options);
+      }
+export function useGetApprovalProcessByIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetApprovalProcessByIdQuery, GetApprovalProcessByIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetApprovalProcessByIdQuery, GetApprovalProcessByIdQueryVariables>(GetApprovalProcessByIdDocument, options);
+        }
+export function useGetApprovalProcessByIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetApprovalProcessByIdQuery, GetApprovalProcessByIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetApprovalProcessByIdQuery, GetApprovalProcessByIdQueryVariables>(GetApprovalProcessByIdDocument, options);
+        }
+export type GetApprovalProcessByIdQueryHookResult = ReturnType<typeof useGetApprovalProcessByIdQuery>;
+export type GetApprovalProcessByIdLazyQueryHookResult = ReturnType<typeof useGetApprovalProcessByIdLazyQuery>;
+export type GetApprovalProcessByIdSuspenseQueryHookResult = ReturnType<typeof useGetApprovalProcessByIdSuspenseQuery>;
+export type GetApprovalProcessByIdQueryResult = Apollo.QueryResult<GetApprovalProcessByIdQuery, GetApprovalProcessByIdQueryVariables>;
+export const GetCreditFacilityProposalHistoryDocument = gql`
+    query GetCreditFacilityProposalHistory($id: UUID!) {
+  creditFacilityProposal(id: $id) {
+    ...CreditFacilityProposalHistoryFragment
+  }
+}
+    ${CreditFacilityProposalHistoryFragmentFragmentDoc}`;
+
+/**
+ * __useGetCreditFacilityProposalHistoryQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityProposalHistoryQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityProposalHistoryQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityProposalHistoryQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityProposalHistoryQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityProposalHistoryQuery, GetCreditFacilityProposalHistoryQueryVariables> & ({ variables: GetCreditFacilityProposalHistoryQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityProposalHistoryQuery, GetCreditFacilityProposalHistoryQueryVariables>(GetCreditFacilityProposalHistoryDocument, options);
+      }
+export function useGetCreditFacilityProposalHistoryLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityProposalHistoryQuery, GetCreditFacilityProposalHistoryQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityProposalHistoryQuery, GetCreditFacilityProposalHistoryQueryVariables>(GetCreditFacilityProposalHistoryDocument, options);
+        }
+export function useGetCreditFacilityProposalHistorySuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityProposalHistoryQuery, GetCreditFacilityProposalHistoryQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCreditFacilityProposalHistoryQuery, GetCreditFacilityProposalHistoryQueryVariables>(GetCreditFacilityProposalHistoryDocument, options);
+        }
+export type GetCreditFacilityProposalHistoryQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalHistoryQuery>;
+export type GetCreditFacilityProposalHistoryLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalHistoryLazyQuery>;
+export type GetCreditFacilityProposalHistorySuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalHistorySuspenseQuery>;
+export type GetCreditFacilityProposalHistoryQueryResult = Apollo.QueryResult<GetCreditFacilityProposalHistoryQuery, GetCreditFacilityProposalHistoryQueryVariables>;
+export const GetCreditFacilityProposalRepaymentPlanDocument = gql`
+    query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
+  creditFacilityProposal(id: $id) {
+    id
+    creditFacilityProposalId
+    repaymentPlan {
+      ...RepaymentOnFacilityPage
+    }
+  }
+}
+    ${RepaymentOnFacilityPageFragmentDoc}`;
+
+/**
+ * __useGetCreditFacilityProposalRepaymentPlanQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityProposalRepaymentPlanQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityProposalRepaymentPlanQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityProposalRepaymentPlanQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityProposalRepaymentPlanQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables> & ({ variables: GetCreditFacilityProposalRepaymentPlanQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables>(GetCreditFacilityProposalRepaymentPlanDocument, options);
+      }
+export function useGetCreditFacilityProposalRepaymentPlanLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables>(GetCreditFacilityProposalRepaymentPlanDocument, options);
+        }
+export function useGetCreditFacilityProposalRepaymentPlanSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables>(GetCreditFacilityProposalRepaymentPlanDocument, options);
+        }
+export type GetCreditFacilityProposalRepaymentPlanQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalRepaymentPlanQuery>;
+export type GetCreditFacilityProposalRepaymentPlanLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalRepaymentPlanLazyQuery>;
+export type GetCreditFacilityProposalRepaymentPlanSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalRepaymentPlanSuspenseQuery>;
+export type GetCreditFacilityProposalRepaymentPlanQueryResult = Apollo.QueryResult<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables>;
 export const CreditFacilityProposalCollateralUpdateDocument = gql`
     mutation CreditFacilityProposalCollateralUpdate($input: CreditFacilityProposalCollateralUpdateInput!) {
   creditFacilityProposalCollateralUpdate(input: $input) {
@@ -5478,10 +5823,11 @@ export const CreditFacilityProposalCollateralUpdateDocument = gql`
       collateral {
         btcBalance
       }
+      ...CreditFacilityProposalLayoutFragment
     }
   }
 }
-    `;
+    ${CreditFacilityProposalLayoutFragmentFragmentDoc}`;
 export type CreditFacilityProposalCollateralUpdateMutationFn = Apollo.MutationFunction<CreditFacilityProposalCollateralUpdateMutation, CreditFacilityProposalCollateralUpdateMutationVariables>;
 
 /**
@@ -9332,3 +9678,43 @@ export type SearchPublicIdTargetQueryHookResult = ReturnType<typeof useSearchPub
 export type SearchPublicIdTargetLazyQueryHookResult = ReturnType<typeof useSearchPublicIdTargetLazyQuery>;
 export type SearchPublicIdTargetSuspenseQueryHookResult = ReturnType<typeof useSearchPublicIdTargetSuspenseQuery>;
 export type SearchPublicIdTargetQueryResult = Apollo.QueryResult<SearchPublicIdTargetQuery, SearchPublicIdTargetQueryVariables>;
+export const GetCreditFacilityPublicIdDocument = gql`
+    query GetCreditFacilityPublicId($id: UUID!) {
+  creditFacility(id: $id) {
+    publicId
+  }
+}
+    `;
+
+/**
+ * __useGetCreditFacilityPublicIdQuery__
+ *
+ * To run a query within a React component, call `useGetCreditFacilityPublicIdQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCreditFacilityPublicIdQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCreditFacilityPublicIdQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCreditFacilityPublicIdQuery(baseOptions: Apollo.QueryHookOptions<GetCreditFacilityPublicIdQuery, GetCreditFacilityPublicIdQueryVariables> & ({ variables: GetCreditFacilityPublicIdQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCreditFacilityPublicIdQuery, GetCreditFacilityPublicIdQueryVariables>(GetCreditFacilityPublicIdDocument, options);
+      }
+export function useGetCreditFacilityPublicIdLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCreditFacilityPublicIdQuery, GetCreditFacilityPublicIdQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCreditFacilityPublicIdQuery, GetCreditFacilityPublicIdQueryVariables>(GetCreditFacilityPublicIdDocument, options);
+        }
+export function useGetCreditFacilityPublicIdSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCreditFacilityPublicIdQuery, GetCreditFacilityPublicIdQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCreditFacilityPublicIdQuery, GetCreditFacilityPublicIdQueryVariables>(GetCreditFacilityPublicIdDocument, options);
+        }
+export type GetCreditFacilityPublicIdQueryHookResult = ReturnType<typeof useGetCreditFacilityPublicIdQuery>;
+export type GetCreditFacilityPublicIdLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityPublicIdLazyQuery>;
+export type GetCreditFacilityPublicIdSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityPublicIdSuspenseQuery>;
+export type GetCreditFacilityPublicIdQueryResult = Apollo.QueryResult<GetCreditFacilityPublicIdQuery, GetCreditFacilityPublicIdQueryVariables>;
