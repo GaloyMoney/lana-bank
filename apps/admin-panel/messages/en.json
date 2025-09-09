@@ -190,6 +190,7 @@
       "createUser": "Create User",
       "updateTermsTemplate": "Update Terms Template",
       "createTermsTemplate": "Create Terms Template",
+      "duplicateTermsTemplate": "Duplicate Terms Template",
       "createCommittee": "Create Committee",
       "createCustodian": "Add Custodian",
       "confirmWithdrawal": "Confirm Withdrawal",
@@ -831,7 +832,8 @@
           "oneTimeFeeRate": "Structuring Fee Rate (%)"
         },
         "buttons": {
-          "update": "Update"
+          "update": "Update",
+          "duplicate": "Duplicate"
         }
       },
       "UpdateTermsTemplate": {
@@ -867,7 +869,9 @@
       },
       "CreateTermsTemplate": {
         "title": "Create Terms Template",
+        "titleDuplicate": "Duplicate Terms Template: {name}",
         "description": "Create a new Terms Template by providing the required information.",
+        "descriptionDuplicate": "Create a new Terms Template based on the existing template. You can modify the values as needed.",
         "fields": {
           "name": "Template Name",
           "annualRate": "Interest Rate (APR)",

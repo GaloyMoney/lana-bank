@@ -7,6 +7,7 @@ import { useTranslations } from "next-intl"
 import {
   CheckCircle2,
   CheckSquare,
+  Copy,
   FileEdit,
   Plus,
   Settings,
@@ -101,6 +102,8 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
   const [makePayment, setMakePayment] = useState(false)
   const [openCreateUserDialog, setOpenCreateUserDialog] = useState(false)
   const [openCreateTermsTemplateDialog, setOpenCreateTermsTemplateDialog] =
+    useState(false)
+  const [openDuplicateTermsTemplateDialog, setOpenDuplicateTermsTemplateDialog] =
     useState(false)
   const [openCreateCommitteeDialog, setOpenCreateCommitteeDialog] = useState(false)
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] = useState(false)
@@ -272,6 +275,16 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATES, PATH_CONFIGS.TERMS_TEMPLATE_DETAILS],
     },
     {
+      label: t("actions.duplicateTermsTemplate"),
+      icon: Copy,
+      action: () => {
+        setOpenDuplicateTermsTemplateDialog(true)
+        setOpen(false)
+      },
+      allowedPaths: [PATH_CONFIGS.TERMS_TEMPLATE_DETAILS],
+      condition: () => Boolean(termsTemplate),
+    },
+    {
       label: t("actions.createCommittee"),
       icon: Plus,
       action: () => {
@@ -423,6 +436,11 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       <CreateTermsTemplateDialog
         openCreateTermsTemplateDialog={openCreateTermsTemplateDialog}
         setOpenCreateTermsTemplateDialog={setOpenCreateTermsTemplateDialog}
+      />
+      <CreateTermsTemplateDialog
+        openCreateTermsTemplateDialog={openDuplicateTermsTemplateDialog}
+        setOpenCreateTermsTemplateDialog={setOpenDuplicateTermsTemplateDialog}
+        templateToDuplicate={termsTemplate}
       />
       <CreateCommitteeDialog
         openCreateCommitteeDialog={openCreateCommitteeDialog}

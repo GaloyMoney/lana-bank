@@ -1,7 +1,7 @@
 "use client"
 
 import { useTranslations } from "next-intl"
-import React, { useState } from "react"
+import React, { useState, useEffect } from "react"
 import { gql } from "@apollo/client"
 import { toast } from "sonner"
 
@@ -18,9 +18,13 @@ import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
 
-import { useCreateTermsTemplateMutation } from "@/lib/graphql/generated"
+import {
+  useCreateTermsTemplateMutation,
+  TermsTemplateFieldsFragment,
+} from "@/lib/graphql/generated"
 import { DEFAULT_TERMS } from "@/lib/constants/terms"
 import { useModalNavigation } from "@/hooks/use-modal-navigation"
+import { getCvlValue } from "@/lib/utils"
 
 gql`
   mutation CreateTermsTemplate($input: TermsTemplateCreateInput!) {
@@ -35,11 +39,13 @@ gql`
 type CreateTermsTemplateDialogProps = {
   setOpenCreateTermsTemplateDialog: (isOpen: boolean) => void
   openCreateTermsTemplateDialog: boolean
+  templateToDuplicate?: TermsTemplateFieldsFragment | null
 }
 
 export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps> = ({
   setOpenCreateTermsTemplateDialog,
   openCreateTermsTemplateDialog,
+  templateToDuplicate = null,
 }) => {
   const t = useTranslations("TermsTemplates.TermsTemplateDetails.CreateTermsTemplate")
   const { navigate, isNavigating } = useModalNavigation({
@@ -72,8 +78,21 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     durationUnits: "",
     oneTimeFeeRate: "",
   })
-
   const [error, setError] = useState<string | null>(null)
+
+  useEffect(() => {
+    if (templateToDuplicate && openCreateTermsTemplateDialog) {
+      setFormValues({
+        name: `${templateToDuplicate.name} (Copy)`,
+        annualRate: templateToDuplicate.values.annualRate.toString(),
+        liquidationCvl: getCvlValue(templateToDuplicate.values.liquidationCvl).toString(),
+        marginCallCvl: getCvlValue(templateToDuplicate.values.marginCallCvl).toString(),
+        initialCvl: getCvlValue(templateToDuplicate.values.initialCvl).toString(),
+        durationUnits: templateToDuplicate.values.duration.units.toString(),
+        oneTimeFeeRate: templateToDuplicate.values.oneTimeFeeRate.toString(),
+      })
+    }
+  }, [templateToDuplicate, openCreateTermsTemplateDialog])
 
   const handleChange = (e: React.ChangeEvent<HTMLInputElement | HTMLSelectElement>) => {
     const { name, value } = e.target
@@ -160,8 +179,14 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     >
       <DialogContent className="max-w-[38rem]">
         <DialogHeader>
-          <DialogTitle>{t("title")}</DialogTitle>
-          <DialogDescription>{t("description")}</DialogDescription>
+          <DialogTitle>
+            {templateToDuplicate
+              ? t("titleDuplicate", { name: templateToDuplicate.name })
+              : t("title")}
+          </DialogTitle>
+          <DialogDescription>
+            {templateToDuplicate ? t("descriptionDuplicate") : t("description")}
+          </DialogDescription>
         </DialogHeader>
         <form className="flex flex-col gap-4" onSubmit={handleSubmit}>
           <div>

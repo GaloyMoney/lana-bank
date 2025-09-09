@@ -190,6 +190,7 @@
       "createUser": "Crear Usuario",
       "updateTermsTemplate": "Actualizar Plantilla de Términos",
       "createTermsTemplate": "Crear Plantilla de Términos",
+      "duplicateTermsTemplate": "Duplicar Plantilla de Términos",
       "createCommittee": "Crear Comité",
       "createCustodian": "Agregar Custodio",
       "confirmWithdrawal": "Confirmar Retiro",
@@ -831,7 +832,8 @@
           "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
         },
         "buttons": {
-          "update": "Actualizar"
+          "update": "Actualizar",
+          "duplicate": "Duplicar"
         }
       },
       "UpdateTermsTemplate": {
@@ -867,7 +869,9 @@
       },
       "CreateTermsTemplate": {
         "title": "Crear Plantilla de Términos",
+        "titleDuplicate": "Duplicar Plantilla de Términos: {name}",
         "description": "Cree una nueva Plantilla de Términos proporcionando la información requerida.",
+        "descriptionDuplicate": "Cree una nueva Plantilla de Términos basada en la plantilla existente. Puede modificar los valores según sea necesario.",
         "fields": {
           "name": "Nombre de la Plantilla",
           "annualRate": "Tasa de Interés (APR)",
