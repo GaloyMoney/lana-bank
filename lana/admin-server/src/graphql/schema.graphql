@@ -626,6 +626,8 @@ type CreditFacilityProposal {
 	collateral: CollateralBalance!
 	status: CreditFacilityProposalStatus!
 	customer: Customer!
+	history: [CreditFacilityHistoryEntry!]!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 }
 
 input CreditFacilityProposalCollateralUpdateInput {

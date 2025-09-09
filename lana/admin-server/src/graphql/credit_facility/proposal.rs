@@ -1,12 +1,11 @@
 use async_graphql::*;
 
 use crate::{
-    graphql::{
-        credit_facility::balance::CollateralBalance, custody::Wallet, customer::*,
-        loader::LanaDataLoader, terms::TermsInput,
-    },
+    graphql::{custody::Wallet, customer::*, loader::LanaDataLoader, terms::TermsInput},
     primitives::*,
 };
+
+use super::{CollateralBalance, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry};
 
 pub use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal,
@@ -77,6 +76,23 @@ impl CreditFacilityProposal {
             .await?
             .expect("customer not found");
         Ok(customer)
+    }
+
+    async fn history(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        Ok(app.credit().history(sub, self.entity.id).await?)
+    }
+
+    async fn repayment_plan(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
     }
 }
 
