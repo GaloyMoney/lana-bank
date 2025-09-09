@@ -9,7 +9,10 @@ import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import DataTable, { Column } from "@/components/data-table"
 
-import { GetCreditFacilityRepaymentPlanQuery } from "@/lib/graphql/generated"
+import {
+  GetCreditFacilityRepaymentPlanQuery,
+  GetCreditFacilityProposalRepaymentPlanQuery,
+} from "@/lib/graphql/generated"
 
 import Balance from "@/components/balance/balance"
 import CardWrapper from "@/components/card-wrapper"
@@ -22,7 +25,8 @@ type RepaymentPlan = NonNullable<
 
 type CreditFacilityRepaymentPlanProps = {
   creditFacility: NonNullable<
-    GetCreditFacilityRepaymentPlanQuery["creditFacilityByPublicId"]
+    | GetCreditFacilityRepaymentPlanQuery["creditFacilityByPublicId"]
+    | GetCreditFacilityProposalRepaymentPlanQuery["creditFacilityProposal"]
   >
 }
 

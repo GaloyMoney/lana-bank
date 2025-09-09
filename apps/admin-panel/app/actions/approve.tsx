@@ -15,10 +15,11 @@ import { formatDate } from "@lana/web/utils"
 
 import {
   GetCreditFacilityLayoutDetailsDocument,
-  GetCreditFacilityLayoutDetailsQuery,
   GetDisbursalDetailsDocument,
   GetWithdrawalDetailsDocument,
+  GetCreditFacilityProposalLayoutDetailsDocument,
   useApprovalProcessApproveMutation,
+  ApprovalProcessFieldsFragment,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatProcessType } from "@/lib/utils"
@@ -78,9 +79,7 @@ gql`
 type ApprovalDialogProps = {
   setOpenApprovalDialog: (isOpen: boolean) => void
   openApprovalDialog: boolean
-  approvalProcess: NonNullable<
-    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
-  >["approvalProcess"]
+  approvalProcess: ApprovalProcessFieldsFragment
 }
 
 export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
@@ -121,6 +120,7 @@ export const ApprovalDialog: React.FC<ApprovalDialogProps> = ({
               GetCreditFacilityLayoutDetailsDocument,
               GetWithdrawalDetailsDocument,
               GetDisbursalDetailsDocument,
+              GetCreditFacilityProposalLayoutDetailsDocument,
             ],
           })
           toast.success(t("success.processApproved"))
