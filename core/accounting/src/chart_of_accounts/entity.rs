@@ -19,6 +19,7 @@ use super::{error::*, tree};
 pub enum ChartEvent {
     Initialized {
         id: ChartId,
+        account_set_id: CalaAccountSetId,
         name: String,
         reference: String,
     },
@@ -34,6 +35,7 @@ pub enum ChartEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Chart {
     pub id: ChartId,
+    pub account_set_id: CalaAccountSetId,
     pub reference: String,
     pub name: String,
     #[builder(setter(strip_option), default)]
@@ -339,12 +341,14 @@ impl TryFromEvents<ChartEvent> for Chart {
             match event {
                 ChartEvent::Initialized {
                     id,
+                    account_set_id,
                     reference,
                     name,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
+                        .account_set_id(*account_set_id)
                         .reference(reference.to_string())
                         .name(name.to_string());
                 }
@@ -363,6 +367,8 @@ impl TryFromEvents<ChartEvent> for Chart {
 pub struct NewChart {
     #[builder(setter(into))]
     pub(super) id: ChartId,
+    #[builder(setter(into))]
+    pub(super) account_set_id: CalaAccountSetId,
     pub(super) name: String,
     pub(super) reference: String,
 }
@@ -379,6 +385,7 @@ impl IntoEvents<ChartEvent> for NewChart {
             self.id,
             [ChartEvent::Initialized {
                 id: self.id,
+                account_set_id: self.account_set_id,
                 name: self.name,
                 reference: self.reference,
             }],
@@ -436,6 +443,7 @@ mod test {
     fn initial_events() -> Vec<ChartEvent> {
         vec![ChartEvent::Initialized {
             id: ChartId::new(),
+            account_set_id: CalaAccountSetId::new(),
             name: "Test Chart".to_string(),
             reference: "test-chart".to_string(),
         }]

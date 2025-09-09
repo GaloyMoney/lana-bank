@@ -97,12 +97,14 @@ where
 
         let new_chart = NewChart::builder()
             .id(id)
+            .account_set_id(id)
             .name(name)
             .reference(reference)
             .build()
             .expect("Could not build new chart of accounts");
 
         let chart = self.repo.create_in_op(&mut op, new_chart).await?;
+
         op.commit().await?;
 
         Ok(chart)
