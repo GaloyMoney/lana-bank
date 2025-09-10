@@ -1,6 +1,5 @@
 {{ config(
     unique_key ='ID',
-    full_refresh = true,
 ) }}
 
 select
