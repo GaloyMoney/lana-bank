@@ -15,6 +15,10 @@ from singer_sdk import typing as th  # JSON Schema typing helpers
 from tap_sumsubapi.postgres_client import PostgresClient
 from tap_sumsubapi.sumsub_client import SumsubClient
 
+import logging
+
+logger = logging.getLogger(__name__)
+
 
 class ApplicantStream(Stream):
     name = "sumsub_applicants"
@@ -66,17 +70,21 @@ class ApplicantStream(Stream):
     def get_records(self, context: Dict[str, Any]) -> Iterable[Dict[str, Any]]:
         """Generator function that yields records."""
         with self.postgres_client as pg_client:
+            starting_timestamp=self._starting_timestamp(context)
+            logger.info(f'starting_timestamp = {starting_timestamp}')
             keys = pg_client.get_keys(
-                starting_timestamp=self._starting_timestamp(context),
+                starting_timestamp,
             )
             with self.sumsub_client as ss_client:
                 for customer_id, recorded_at in keys:
                     try:
+                        logger.info(f'---> get sumsub external customer_id = {customer_id}, recorded_at = {recorded_at}')
                         response = ss_client.get_applicant_data(customer_id)
                         content = response.text
                         response_json = response.json()
                         document_images = []
                         if "id" in response_json:
+                            logger.info(f'<--- customer_id = {customer_id}, sumsub_id = {response_json["id"]}')
                             metadata = ss_client.get_document_metadata(
                                 response_json["id"]
                             )
@@ -93,6 +101,7 @@ class ApplicantStream(Stream):
                                     }
                                 )
                     except requests.exceptions.RequestException as e:
+                        logger.info(f'error = {e}')
                         content = json.dumps({"error": e})
                         document_images = []
                     yield {
