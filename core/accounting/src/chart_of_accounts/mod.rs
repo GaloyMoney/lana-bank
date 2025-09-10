@@ -196,7 +196,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = id.into();
         let mut chart = self.repo.find_by_id(id).await?;
-        let _first_closed_as_of_date =
+        let first_closed_as_of_date =
             if let Idempotent::Executed(date) = chart.open_first_accounting_period(opening_date) {
                 date
             } else {
@@ -206,7 +206,9 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        // TODO: ledger.close_chart_as_of(first_closed_as_of_date)
+        self.chart_ledger
+            .close_chart_as_of(op, chart.id, first_closed_as_of_date)
+            .await?;
 
         Ok(chart)
     }
@@ -223,7 +225,7 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = id.into();
         let mut chart = self.repo.find_by_id(id).await?;
-        let _closed_as_of_date =
+        let closed_as_of_date =
             if let Idempotent::Executed(date) = chart.close_last_monthly_period()? {
                 date
             } else {
@@ -233,7 +235,9 @@ where
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
-        // TODO: ledger.close_chart_as_of(closed_as_of_date)
+        self.chart_ledger
+            .close_chart_as_of(op, chart.id, closed_as_of_date)
+            .await?;
 
         Ok(chart)
     }
