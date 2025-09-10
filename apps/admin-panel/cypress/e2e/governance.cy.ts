@@ -84,12 +84,12 @@ describe("Governance Test", () => {
 
   it("attach a committee to a policy", () => {
     cy.visit(`/policies`)
-    cy.get('[data-testid="table-row-3"] > :nth-child(3) > a > .gap-2').should(
+    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a > .gap-2').should(
       "be.visible",
     )
     cy.takeScreenshot("12_step-visit-policies-page")
 
-    cy.get('[data-testid="table-row-3"] > :nth-child(3) > a > .gap-2').click()
+    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a > .gap-2').click()
     cy.takeScreenshot("13_step-select-policy")
 
     cy.get('[data-testid="policy-assign-committee"]').click()
