@@ -236,6 +236,7 @@ type ChartOfAccounts {
 	id: ID!
 	chartId: UUID!
 	name: String!
+	lastMonthlyClosedAt: Date
 	children: [ChartNode!]!
 }
 

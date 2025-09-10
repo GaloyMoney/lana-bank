@@ -358,6 +358,7 @@ export const mockChartOfAccounts = (overrides?: Partial<ChartOfAccounts>, _relat
         chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('ChartNode') ? {} as ChartNode : mockChartNode({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        lastMonthlyClosedAt: overrides && overrides.hasOwnProperty('lastMonthlyClosedAt') ? overrides.lastMonthlyClosedAt! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
     };
 };

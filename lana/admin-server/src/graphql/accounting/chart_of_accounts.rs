@@ -11,6 +11,7 @@ pub struct ChartOfAccounts {
     id: ID,
     chart_id: UUID,
     name: String,
+    last_monthly_closed_at: Option<Date>,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainChart>,
@@ -22,6 +23,7 @@ impl From<DomainChart> for ChartOfAccounts {
             id: chart.id.to_global_id(),
             chart_id: UUID::from(chart.id),
             name: chart.name.to_string(),
+            last_monthly_closed_at: chart.last_monthly_closed_at.map(|d| d.into()),
 
             entity: Arc::new(chart),
         }
