@@ -266,6 +266,7 @@ export type ChartOfAccounts = {
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
   id: Scalars['ID']['output'];
+  lastMonthlyClosedAt?: Maybe<Scalars['Date']['output']>;
   name: Scalars['String']['output'];
 };
 
