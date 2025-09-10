@@ -5,9 +5,11 @@ with all_accounts as (
         name as account_name,
         normal_balance_type,
         code as account_code,
-        lax_bool(
-            parse_json(json_value(latest_values, "$.config.is_account_set"))
-        ) as is_account_set
+-- TODO: need fixing, where did old latest_values go which held "$.config.is_account_set" flag
+--        lax_bool(
+--            parse_json(json_value(latest_values, "$.config.is_account_set"))
+--        ) as is_account_set
+        false as is_account_set
 
     from {{ ref('stg_accounts') }}
     where _sdc_batched_at >= (

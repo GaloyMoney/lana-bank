@@ -23,7 +23,6 @@ with source as (
         cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
         cast(0 as numeric) / {{ var('cents_per_usd') }} as interest_usd,
         cast(0 as numeric) / {{ var('cents_per_usd') }} as disbursal_usd,
-        is_payment_allocated,
         created_at as payment_created_at,
         modified_at as payment_modified_at,
 
@@ -31,7 +30,6 @@ with source as (
             payment_id,
             credit_facility_id,
             amount,
-            is_payment_allocated,
             created_at,
             modified_at,
 

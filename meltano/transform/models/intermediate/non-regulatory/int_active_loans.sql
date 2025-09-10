@@ -4,20 +4,10 @@ active_cf as(
     select
         * except (
             interest_accrual_cycle_idx,
-            interest_period_start_at,
-            interest_period_end_at,
-            interest_period_interval_type,
-            interest_due_duration_from_accrual_value,
-            interest_due_duration_from_accrual_type,
-            obligation_overdue_duration_from_due_value,
-            obligation_overdue_duration_from_due_type,
-            obligation_liquidation_duration_from_due_value,
-            obligation_liquidation_duration_from_due_type,
             approval_process_id,
             collateral_id,
             disbursal_credit_account_id,
             interest_accrual_ids,
-            audit_entry_ids,
             obligation_ids
         )
     from {{ ref('int_core_credit_facility_events_rollup') }}

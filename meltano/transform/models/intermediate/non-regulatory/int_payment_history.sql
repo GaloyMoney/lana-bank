@@ -8,7 +8,7 @@ credit_facilities as(
 )
 
 , payments as(
-    select * except(is_payment_allocated, audit_entry_ids)
+    select *
     from {{ ref('int_core_payment_events_rollup') }}
 )
 

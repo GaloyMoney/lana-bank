@@ -10,7 +10,7 @@ with ordered as (
         code,
         name,
         normal_balance_type,
-        latest_values,
+        null as latest_values,  -- TODO: need fixing, where did old latest_values go which held "$.config.is_account_set" flag
         created_at,
         _sdc_batched_at,
         row_number()
