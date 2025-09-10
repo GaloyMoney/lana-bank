@@ -153,7 +153,9 @@ describe("credit facility", () => {
         Cypress.env("creditFacilityProposalId", proposalId)
       })
 
-    cy.contains(t(CFP + ".collateralizationState.undercollateralized")).should("be.visible")
+    cy.contains(t(CFP + ".collateralizationState.undercollateralized")).should(
+      "be.visible",
+    )
     cy.takeScreenshot("05_proposal_created_success")
   })
 
@@ -164,7 +166,7 @@ describe("credit facility", () => {
     cy.takeScreenshot("proposal_in_list")
   })
 
-  it("should approve proposal first, then update collateral to create active credit facility", () => {
+  it("should navigate to proposal and verify initial state", () => {
     const proposalUuid = Cypress.env("creditFacilityProposalId")
     expect(proposalUuid).to.exist
 
@@ -172,74 +174,134 @@ describe("credit facility", () => {
     cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("06_visit_proposal_page")
 
-    cy.get('[data-testid="approval-process-approve-button"]')
+    cy.get('[data-testid="collateral-to-reach-target"]').should("be.visible")
+    cy.get('[data-testid="update-collateral-button"]').should("be.visible")
+  })
+
+  it("should calculate and store required collateral amount", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    expect(proposalUuid).to.exist
+
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+    cy.wait(2000)
+
+    cy.get('[data-testid="collateral-to-reach-target"]')
       .should("be.visible")
+      .invoke("text")
+      .then((collateralValue) => {
+        const numericValue = parseFloat(collateralValue.split(" ")[0])
+        Cypress.env("requiredCollateralAmount", numericValue)
+        cy.log(`Required collateral amount: ${numericValue}`)
+      })
+  })
+
+  it("should open collateral update form and enter required amount", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    const requiredAmount = Cypress.env("requiredCollateralAmount")
+    expect(proposalUuid).to.exist
+    expect(requiredAmount).to.exist
+
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+
+    cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
+    cy.takeScreenshot("07_click_update_collateral_button")
+
+    cy.get('[data-testid="new-collateral-input"]')
+      .should("be.visible")
+      .clear()
+      .type(requiredAmount.toString())
+    cy.takeScreenshot("08_enter_new_collateral_value")
+
+    cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
+  })
+
+  it("should confirm collateral update", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    const requiredAmount = Cypress.env("requiredCollateralAmount")
+    expect(proposalUuid).to.exist
+    expect(requiredAmount).to.exist
+
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+
+    cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
+    cy.get('[data-testid="new-collateral-input"]')
+      .should("be.visible")
+      .clear()
+      .type(requiredAmount.toString())
+
+    cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
+    cy.takeScreenshot("09_confirm_collateral_update")
+
+    cy.get('[data-testid="proceed-to-confirm-button"]')
+      .should("be.visible")
+      .then(($el) => {
+        $el.on("click", (e) => e.preventDefault())
+      })
       .click()
-    cy.wait(2000).then(() => {
-      cy.takeScreenshot("07_approve_proposal")
+
+    cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
+    cy.takeScreenshot("10_collateral_updated")
+  })
+
+  it("should approve the proposal after collateral update", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    expect(proposalUuid).to.exist
+
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+    cy.wait(5000)
+    cy.reload()
+
+    cy.get('[data-testid="approval-process-approve-button"]').should("be.visible").click()
+
+    cy.wait(5000).then(() => {
+      cy.takeScreenshot("11_approve_proposal")
       cy.get('[data-testid="approval-process-dialog-approve-button"]')
         .should("be.visible")
         .click()
-
-      cy.wait(5000).then(() => {
-        cy.reload().then(() => {
-          cy.takeScreenshot("08_proposal_approved")
-          
-          cy.wait(1000)
-          cy.get('[data-testid="collateral-to-reach-target"]')
-            .should("be.visible")
-            .invoke("text")
-            .then((collateralValue) => {
-              const numericValue = parseFloat(collateralValue.split(" ")[0])
-
-              cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
-              cy.takeScreenshot("09_click_update_collateral_button")
-
-              cy.get('[data-testid="new-collateral-input"]')
-                .should("be.visible")
-                .clear()
-                .type(numericValue.toString())
-              cy.takeScreenshot("10_enter_new_collateral_value")
-
-              cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
-              cy.takeScreenshot("11_confirm_collateral_update")
-
-              cy.get('[data-testid="proceed-to-confirm-button"]')
-                .should("be.visible")
-                .then(($el) => {
-                  $el.on("click", (e) => e.preventDefault())
-                })
-                .click()
-
-              cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
-              cy.takeScreenshot("12_collateral_updated")
-
-              cy.wait(10000).then(() => {
-                cy.reload().then(() => {
-                  cy.get("[data-testid=proposal-status-badge]", { timeout: 10000 })
-                    .should("be.visible")
-                    .invoke("text")
-                    .should("eq", t(CFP + ".status.completed"))
-                  
-                  cy.get('[data-testid="view-facility-button"]').should("be.visible").click()
-                  cy.url()
-                    .should("match", /\/credit-facilities\/\d+$/)
-                    .then((url) => {
-                      const publicId = url.split("/").pop() as string
-                      Cypress.env("creditFacilityPublicId", publicId)
-                    })
-                  
-                  cy.get("[data-testid=credit-facility-status-badge]")
-                    .should("be.visible")
-                    .invoke("text")
-                    .should("eq", t(CF + ".CreditFacilityStatus.active"))
-                  cy.takeScreenshot("13_verify_active_status")
-                })
-              })
-            })
-        })
-      })
     })
+  })
+
+  it("should verify proposal completion status", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    expect(proposalUuid).to.exist
+
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+    cy.wait(10000)
+    cy.reload()
+
+    cy.get("[data-testid=proposal-status-badge]")
+      .should("be.visible")
+      .invoke("text")
+      .should("eq", t(CFP + ".status.completed"))
+  })
+
+  it("should navigate to created credit facility", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    expect(proposalUuid).to.exist
+
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+
+    cy.get('[data-testid="view-facility-button"]').should("be.visible").click()
+    cy.url()
+      .should("match", /\/credit-facilities\/\d+$/)
+      .then((url) => {
+        const publicId = url.split("/").pop() as string
+        Cypress.env("creditFacilityPublicId", publicId)
+        cy.log(`Credit facility public ID: ${publicId}`)
+      })
+  })
+
+  it("should verify credit facility is active", () => {
+    const publicId = Cypress.env("creditFacilityPublicId")
+    expect(publicId).to.exist
+
+    cy.visit(`/credit-facilities/${publicId}`)
+
+    cy.get("[data-testid=credit-facility-status-badge]")
+      .should("be.visible")
+      .invoke("text")
+      .should("eq", t(CF + ".CreditFacilityStatus.active"))
+    cy.takeScreenshot("12_verify_active_status")
   })
 
   it("should show newly created credit facility in the list", () => {
