@@ -63,7 +63,7 @@ export const CreditFacilityProposalCollateral: React.FC<
 
   return (
     <DetailsCard
-      className="w-5/12"
+      className="w-[45%]"
       title={t("title")}
       details={collateralDependentDetails}
       columns={2}

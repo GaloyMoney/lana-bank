@@ -67,19 +67,19 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       href: `/customers/${creditFacilityDetails.customer.publicId}`,
     },
     {
-      label: t("details.collateralizationState"),
-      value: (
-        <CollateralizationStateLabel
-          state={creditFacilityDetails.collateralizationState}
-        />
-      ),
-    },
-    {
       label: t("details.status"),
       value: (
         <LoanAndCreditFacilityStatusBadge
           data-testid="credit-facility-status-badge"
           status={creditFacilityDetails.status}
+        />
+      ),
+    },
+    {
+      label: t("details.collateralizationState"),
+      value: (
+        <CollateralizationStateLabel
+          state={creditFacilityDetails.collateralizationState}
         />
       ),
     },
