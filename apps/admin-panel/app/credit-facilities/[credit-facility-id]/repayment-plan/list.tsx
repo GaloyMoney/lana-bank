@@ -121,7 +121,7 @@ const getStatusVariant = (status: RepaymentPlan["status"]): BadgeProps["variant"
 
 const RepaymentStatusBadge: React.FC<StatusBadgeProps> = ({ status, t, ...props }) => {
   const variant = getStatusVariant(status)
-  
+
   const getStatusKey = (status: RepaymentPlan["status"]): string => {
     switch (status) {
       case CreditFacilityRepaymentStatus.Upcoming:

@@ -107,7 +107,11 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
       },
     },
     CreditFacilityProposal: {
-      collateralToMatchInitialCvl: async (proposal: CreditFacilityProposal, _, { cache }) => {
+      collateralToMatchInitialCvl: async (
+        proposal: CreditFacilityProposal,
+        _,
+        { cache },
+      ) => {
         const priceInfo = await fetchData(cache)
         if (!priceInfo) return null
 

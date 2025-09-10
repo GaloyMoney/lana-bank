@@ -12,8 +12,6 @@ import {
 
 import {
   ApprovalProcessStatus,
-  GetDisbursalDetailsQuery,
-  GetWithdrawalDetailsQuery,
   ApprovalProcessFieldsFragment,
 } from "@/lib/graphql/generated"
 

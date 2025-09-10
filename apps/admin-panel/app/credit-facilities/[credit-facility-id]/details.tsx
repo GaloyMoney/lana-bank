@@ -13,12 +13,13 @@ import { ExternalLinkIcon, FileText, Download, RefreshCw, Eye } from "lucide-rea
 
 import { Label } from "@lana/web/ui/label"
 
+import Link from "next/link"
+
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
 import { CollateralizationStateLabel } from "../label"
 
 import { CreditFacilityTermsDialog } from "./terms-dialog"
-import Link from "next/link"
 
 import {
   CreditFacilityRepaymentType,
@@ -47,8 +48,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
-  const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
-  const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
   const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()

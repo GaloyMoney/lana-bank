@@ -4,11 +4,10 @@ import { MockedProvider } from "@apollo/client/testing"
 import CreditFacilityLayout from "./layout"
 
 import {
-  ApprovalProcessStatus,
   CreditFacilityStatus,
   GetCreditFacilityLayoutDetailsDocument,
 } from "@/lib/graphql/generated"
-import { mockApprovalProcess, mockCreditFacility } from "@/lib/graphql/generated/mocks"
+import { mockCreditFacility } from "@/lib/graphql/generated/mocks"
 
 const meta: Meta<typeof CreditFacilityLayout> = {
   title: "Pages/CreditFacilities/CreditFacility/Layout",
@@ -30,10 +29,7 @@ export const Default: StoryObj<typeof CreditFacilityLayout> = {
         result: {
           data: {
             creditFacility: mockCreditFacility({
-              status: CreditFacilityStatus.PendingApproval,
-              approvalProcess: mockApprovalProcess({
-                status: ApprovalProcessStatus.InProgress,
-              }),
+              status: CreditFacilityStatus.Active,
             }),
           },
         },

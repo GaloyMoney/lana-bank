@@ -9,6 +9,8 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@lana/web/ui/tab"
 import CreditFacilityProposalDetailsCard from "./details"
 import { CreditFacilityProposalCollateral } from "./collateral-card"
 
+import { CreditFacilityTermsCard } from "./terms-card"
+
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useTabNavigation } from "@/hooks/use-tab-navigation"
 
@@ -17,7 +19,6 @@ import {
   useGetCreditFacilityProposalLayoutDetailsQuery,
   useGetApprovalProcessByIdQuery,
 } from "@/lib/graphql/generated"
-import { CreditFacilityTermsCard } from "./terms-card"
 
 gql`
   fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
@@ -91,7 +92,6 @@ gql`
     }
   }
 `
-
 
 export default function CreditFacilityProposalLayout({
   children,

@@ -39,7 +39,11 @@ export function useNavItems() {
 
   const navLoansItems: NavItem[] = [
     { title: t("creditFacilities"), url: "/credit-facilities", icon: Grid2x2 },
-    { title: t("creditFacilityProposals"), url: "/credit-facility-proposals", icon: FileText },
+    {
+      title: t("creditFacilityProposals"),
+      url: "/credit-facility-proposals",
+      icon: FileText,
+    },
     { title: t("disbursals"), url: "/disbursals", icon: ClipboardList },
     { title: t("termTemplates"), url: "/terms-templates", icon: LayoutTemplate },
   ]

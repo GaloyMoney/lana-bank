@@ -4,14 +4,16 @@ import { useTranslations } from "next-intl"
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
-  CreditFacilityProposal,
+  GetCreditFacilityProposalLayoutDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
 import { CENTS_PER_USD, formatCvl, SATS_PER_BTC } from "@/lib/utils"
 import { Satoshis, UsdCents } from "@/types"
 
 type CreditFacilityProposalCollateralProps = {
-  proposal: CreditFacilityProposal
+  proposal: NonNullable<
+    GetCreditFacilityProposalLayoutDetailsQuery["creditFacilityProposal"]
+  >
 }
 
 export const CreditFacilityProposalCollateral: React.FC<
