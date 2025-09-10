@@ -204,6 +204,7 @@ where
         }))
     }
 
+    #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn approve(
         &self,
         id: CreditFacilityId,
@@ -457,7 +458,7 @@ where
         Ok(())
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_events(
         &self,
         id: CreditFacilityId,
@@ -629,7 +630,6 @@ where
         Ok(balances)
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn has_outstanding_obligations(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
