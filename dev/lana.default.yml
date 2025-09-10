@@ -9,7 +9,7 @@ customer_server:
   jwks_url: http://localhost:4456/.well-known/jwks.json
   aud: https://customer-api/graphql
 app:
-  job_execution:
+  job_poller:
     job_lost_interval: 300
     max_jobs_per_process: 50
     min_jobs_per_process: 30

@@ -10,7 +10,7 @@ use cloud_storage::{Storage, config::StorageConfig};
 use core_accounting::CoreAccounting;
 use document_storage::DocumentStorage;
 use helpers::{action, object};
-use job::{Jobs, JobsConfig};
+use job::{JobSvcConfig, Jobs};
 
 #[tokio::test]
 async fn ledger_account_ancestors() -> anyhow::Result<()> {
@@ -26,7 +26,7 @@ async fn ledger_account_ancestors() -> anyhow::Result<()> {
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::new(&pool, JobsConfig::default());
+    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -156,7 +156,7 @@ async fn ledger_account_children() -> anyhow::Result<()> {
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::new(&pool, JobsConfig::default());
+    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -254,7 +254,7 @@ async fn internal_account_contains_coa_account() -> anyhow::Result<()> {
     let journal_id = helpers::init_journal(&cala).await?;
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::new(&pool, JobsConfig::default());
+    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));

@@ -152,7 +152,7 @@ where
             }
             state.sequence = message.sequence;
             current_job
-                .update_execution_state_in_tx(&mut op, &state)
+                .update_execution_state_in_op(&mut op, &state)
                 .await?;
             op.commit().await?;
         }

@@ -82,7 +82,14 @@ impl LanaApp {
         )
         .await?;
 
-        let mut jobs = Jobs::new(&pool, config.job_execution);
+        let mut jobs = Jobs::init(
+            job::JobSvcConfig::builder()
+                .pool(pool.clone())
+                .poller_config(config.job_poller)
+                .build()
+                .unwrap(),
+        )
+        .await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
