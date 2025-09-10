@@ -36,9 +36,7 @@ export const CustomerCreditFacilityProposalsTable: React.FC<
     {
       key: "facilityAmount",
       header: t("table.headers.facilityAmount"),
-      render: (amount) => (
-        <Balance amount={amount} currency="usd" />
-      ),
+      render: (amount) => <Balance amount={amount} currency="usd" />,
     },
     {
       key: "collateral",
@@ -50,7 +48,9 @@ export const CustomerCreditFacilityProposalsTable: React.FC<
     {
       key: "collateralizationState",
       header: t("table.headers.collateralizationState"),
-      render: (state) => <CreditFacilityProposalCollateralizationStateLabel state={state} />,
+      render: (state) => (
+        <CreditFacilityProposalCollateralizationStateLabel state={state} />
+      ),
     },
     {
       key: "createdAt",
@@ -64,7 +64,9 @@ export const CustomerCreditFacilityProposalsTable: React.FC<
       <DataTable
         data={creditFacilityProposals}
         columns={columns}
-        navigateTo={(proposal) => `/credit-facility-proposals/${proposal.creditFacilityProposalId}`}
+        navigateTo={(proposal) =>
+          `/credit-facility-proposals/${proposal.creditFacilityProposalId}`
+        }
       />
     </CardWrapper>
   )

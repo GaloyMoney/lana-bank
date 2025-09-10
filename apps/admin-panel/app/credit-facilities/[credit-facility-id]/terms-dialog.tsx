@@ -58,7 +58,7 @@ export const CreditFacilityTermsDialog: React.FC<CreditFacilityTermsDialogProps>
     },
     {
       label: t("details.dateCreated"),
-      value: formatDate(creditFacility.createdAt),
+      value: formatDate(creditFacility.activatedAt),
     },
     {
       label: t("details.structuringFeeRate"),

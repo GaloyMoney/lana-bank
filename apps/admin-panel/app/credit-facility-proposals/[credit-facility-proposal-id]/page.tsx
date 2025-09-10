@@ -2,6 +2,7 @@
 
 import { use } from "react"
 import { gql } from "@apollo/client"
+
 import { useGetCreditFacilityProposalHistoryQuery } from "@/lib/graphql/generated"
 import { CreditFacilityHistory } from "@/app/credit-facilities/[credit-facility-id]/history"
 

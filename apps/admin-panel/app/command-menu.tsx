@@ -349,7 +349,9 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       ],
       condition: () => {
         const entity = getActiveEntity()
-        return (
+        return !!(
+          entity &&
+          "approvalProcess" in entity &&
           entity?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
           entity?.approvalProcess?.userCanSubmitDecision
         )
@@ -369,7 +371,9 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
       ],
       condition: () => {
         const entity = getActiveEntity()
-        return (
+        return !!(
+          entity &&
+          "approvalProcess" in entity &&
           entity?.approvalProcess?.status === ApprovalProcessStatus.InProgress &&
           entity?.approvalProcess?.userCanSubmitDecision
         )
@@ -538,7 +542,7 @@ const CommandMenu = ({ open, onOpenChange }: CommandMenuProps) => {
         (() => {
           const currentApprovalProcess =
             approvalAction.type === "facility"
-              ? facility?.approvalProcess
+              ? null // CreditFacility doesn't have approvalProcess
               : approvalAction.type === "withdraw"
                 ? withdraw?.approvalProcess
                 : approvalAction.type === "disbursal"

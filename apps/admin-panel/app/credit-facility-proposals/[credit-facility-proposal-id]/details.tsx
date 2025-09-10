@@ -7,6 +7,14 @@ import { formatDate } from "@lana/web/utils"
 import Link from "next/link"
 import { RefreshCw, Check, X, ArrowRight } from "lucide-react"
 
+import { Alert, AlertDescription, AlertTitle } from "@lana/web/ui/alert"
+
+import { CreditFacilityProposalStatusBadge } from "../status-badge"
+
+import { CreditFacilityProposalCollateralizationStateLabel } from "../label"
+
+import { CreditFacilityProposalCollateralUpdateDialog } from "../collateral-update"
+
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import {
@@ -19,10 +27,6 @@ import ApprovalDialog from "@/app/actions/approve"
 import DenialDialog from "@/app/actions/deny"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
-import { CreditFacilityProposalStatusBadge } from "../status-badge"
-import { CreditFacilityProposalCollateralizationStateLabel } from "../label"
-import { CreditFacilityProposalCollateralUpdateDialog } from "../collateral-update"
-import { Alert, AlertDescription, AlertTitle } from "@lana/web/ui/alert"
 import { removeUnderscore } from "@/lib/utils"
 type CreditFacilityProposalDetailsCardProps = {
   proposalDetails: CreditFacilityProposal
