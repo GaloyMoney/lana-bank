@@ -14,8 +14,8 @@ use super::primitives::*;
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCreditEvent {
-    FacilityCreated {
-        id: CreditFacilityId,
+    FacilityProposalCreated {
+        id: CreditFacilityProposalId,
         terms: TermValues,
         amount: UsdCents,
         created_at: DateTime<Utc>,

@@ -58,12 +58,6 @@ where
         use CreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
-                Initialized { amount, terms, .. } => Some(CoreCreditEvent::FacilityCreated {
-                    id: entity.id,
-                    terms: *terms,
-                    amount: *amount,
-                    created_at: entity.created_at(),
-                }),
                 Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
                     id: entity.id,
                     completed_at: event.recorded_at,
@@ -102,6 +96,14 @@ where
         use CreditFacilityProposalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
+                Initialized { amount, terms, .. } => {
+                    Some(CoreCreditEvent::FacilityProposalCreated {
+                        id: entity.id,
+                        terms: *terms,
+                        amount: *amount,
+                        created_at: entity.created_at(),
+                    })
+                }
                 ApprovalProcessConcluded { approved, .. } if *approved => {
                     Some(CoreCreditEvent::FacilityProposalApproved { id: entity.id })
                 }

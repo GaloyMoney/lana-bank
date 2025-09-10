@@ -135,6 +135,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[instrument(name = "credit.credit_facility.activate", skip(self, db), err)]
     pub(super) async fn activate_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,

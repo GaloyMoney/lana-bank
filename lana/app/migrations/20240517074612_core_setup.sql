@@ -603,7 +603,7 @@ CREATE TABLE core_credit_facility_histories (
 );
 
 CREATE TABLE core_credit_facility_repayment_plans (
-  id UUID PRIMARY KEY REFERENCES core_credit_facilities(id),
+  id UUID PRIMARY KEY REFERENCES core_credit_facility_proposals(id),
   repayment_plan JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -146,6 +146,11 @@ where
         Ok(facility_proposal)
     }
 
+    #[instrument(
+        name = "credit.credit_facility_proposals.complete_in_op",
+        skip(self, db)
+    )]
+    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub(crate) async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,

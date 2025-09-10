@@ -524,7 +524,7 @@ pub enum CreditFacilityStatus {
 pub enum CreditFacilityProposalStatus {
     #[default]
     PendingCollateralization,
-    PendngApproval,
+    PendingApproval,
     Completed,
 }
 
