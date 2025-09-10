@@ -4,8 +4,6 @@ import React from "react"
 
 import DataTable, { Column } from "@lana/web/components/data-table"
 
-import { Badge, BadgeProps } from "@lana/web/ui/badge"
-
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import { GetCreditFacilityQuery } from "@/lib/graphql/generated"
@@ -44,7 +42,6 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
       header: "Due Date",
       render: (date) => <DateWithTooltip value={date} />,
     },
-
   ]
 
   const repaymentPlanData = creditFacility?.repaymentPlan ?? []
@@ -59,36 +56,6 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
         </div>
       }
     />
-  )
-}
-
-interface StatusBadgeProps extends BadgeProps {
-  status: RepaymentPlan["status"]
-}
-
-const getStatusVariant = (status: RepaymentPlan["status"]): BadgeProps["variant"] => {
-  switch (status) {
-    case "UPCOMING":
-      return "default"
-    case "NOT_YET_DUE":
-      return "outline"
-    case "DUE":
-      return "warning"
-    case "OVERDUE":
-      return "destructive"
-    case "PAID":
-      return "success"
-    default:
-      return "default"
-  }
-}
-
-const RepaymentStatusBadge: React.FC<StatusBadgeProps> = ({ status, ...props }) => {
-  const variant = getStatusVariant(status)
-  return (
-    <Badge variant={variant} {...props}>
-      {status}
-    </Badge>
   )
 }
 
