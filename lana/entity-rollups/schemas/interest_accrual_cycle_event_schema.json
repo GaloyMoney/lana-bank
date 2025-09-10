@@ -52,7 +52,7 @@
         }
       ]
     },
-    "InterestAccrualCycleAccountIds": {
+    "InterestAccrualCycleLedgerAccountIds": {
       "properties": {
         "in_liquidation_account_id": {
           "format": "uuid",
@@ -242,7 +242,7 @@
     {
       "properties": {
         "account_ids": {
-          "$ref": "#/$defs/InterestAccrualCycleAccountIds"
+          "$ref": "#/$defs/InterestAccrualCycleLedgerAccountIds"
         },
         "facility_id": {
           "format": "uuid",

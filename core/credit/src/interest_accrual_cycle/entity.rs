@@ -15,7 +15,7 @@ use crate::{
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct InterestAccrualCycleAccountIds {
+pub struct InterestAccrualCycleLedgerAccountIds {
     pub interest_receivable_not_yet_due_account_id: CalaAccountId,
     pub interest_receivable_due_account_id: CalaAccountId,
     pub interest_receivable_overdue_account_id: CalaAccountId,
@@ -24,7 +24,7 @@ pub struct InterestAccrualCycleAccountIds {
     pub in_liquidation_account_id: CalaAccountId,
 }
 
-impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleAccountIds {
+impl From<CreditFacilityLedgerAccountIds> for InterestAccrualCycleLedgerAccountIds {
     fn from(credit_facility_account_ids: CreditFacilityLedgerAccountIds) -> Self {
         Self {
             interest_receivable_not_yet_due_account_id: credit_facility_account_ids
@@ -52,7 +52,7 @@ pub enum InterestAccrualCycleEvent {
         idx: InterestAccrualCycleIdx,
         period: InterestPeriod,
         facility_maturity_date: EffectiveDate,
-        account_ids: InterestAccrualCycleAccountIds,
+        account_ids: InterestAccrualCycleLedgerAccountIds,
         terms: TermValues,
     },
     InterestAccrued {
@@ -75,7 +75,7 @@ pub enum InterestAccrualCycleEvent {
 pub struct InterestAccrualCycle {
     pub id: InterestAccrualCycleId,
     pub credit_facility_id: CreditFacilityId,
-    pub account_ids: InterestAccrualCycleAccountIds,
+    pub account_ids: InterestAccrualCycleLedgerAccountIds,
     pub idx: InterestAccrualCycleIdx,
     pub facility_maturity_date: EffectiveDate,
     pub terms: TermValues,
@@ -350,7 +350,7 @@ pub struct NewInterestAccrualCycle {
     pub id: InterestAccrualCycleId,
     #[builder(setter(into))]
     pub credit_facility_id: CreditFacilityId,
-    pub account_ids: InterestAccrualCycleAccountIds,
+    pub account_ids: InterestAccrualCycleLedgerAccountIds,
     pub idx: InterestAccrualCycleIdx,
     pub period: InterestPeriod,
     pub facility_maturity_date: EffectiveDate,
