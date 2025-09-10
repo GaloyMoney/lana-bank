@@ -6,6 +6,7 @@ pub mod ledger;
 mod repo;
 pub mod tree;
 
+use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -184,6 +185,61 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
+    }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.open_first_accounting_period",
+        skip(self,),
+        err
+    )]
+    pub async fn open_first_accounting_period(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        opening_date: chrono::NaiveDate,
+    ) -> Result<Chart, ChartOfAccountsError> {
+        let id = id.into();
+        let mut chart = self.repo.find_by_id(id).await?;
+        let _first_closed_as_of_date =
+            if let Idempotent::Executed(date) = chart.open_first_accounting_period(opening_date) {
+                date
+            } else {
+                return Ok(chart);
+            };
+
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        // TODO: ledger.close_chart_as_of(first_closed_as_of_date)
+
+        Ok(chart)
+    }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.close_monthly",
+        skip(self,),
+        err
+    )]
+    pub async fn close_monthly(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Chart, ChartOfAccountsError> {
+        let id = id.into();
+        let mut chart = self.repo.find_by_id(id).await?;
+        let _closed_as_of_date =
+            if let Idempotent::Executed(date) = chart.close_last_monthly_period()? {
+                date
+            } else {
+                return Ok(chart);
+            };
+
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        // TODO: ledger.close_chart_as_of(closed_as_of_date)
+
+        Ok(chart)
     }
 
     #[instrument(

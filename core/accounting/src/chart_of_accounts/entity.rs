@@ -270,7 +270,7 @@ impl Chart {
         }
     }
 
-    pub fn open_first_accounting_period(&mut self, starts_at: NaiveDate) -> Idempotent<()> {
+    pub fn open_first_accounting_period(&mut self, starts_at: NaiveDate) -> Idempotent<NaiveDate> {
         idempotency_guard!(
             self.events.iter_all(),
             ChartEvent::FirstAccountingPeriodOpened { .. }
@@ -280,7 +280,12 @@ impl Chart {
             effective: starts_at,
         });
 
-        Idempotent::Executed(())
+        let last_monthly_closed_at = starts_at
+            .pred_opt()
+            .expect("Failed to get day prior to opening date");
+        self.last_monthly_closed_at = Some(last_monthly_closed_at);
+
+        Idempotent::Executed(last_monthly_closed_at)
     }
 
     pub fn close_last_monthly_period(
@@ -356,7 +361,13 @@ impl TryFromEvents<ChartEvent> for Chart {
                 ChartEvent::AccountingPeriodClosed { effective, .. } => {
                     builder = builder.last_monthly_closed_at(*effective)
                 }
-                ChartEvent::FirstAccountingPeriodOpened { .. } => (),
+                ChartEvent::FirstAccountingPeriodOpened { effective, .. } => {
+                    builder = builder.last_monthly_closed_at(
+                        effective
+                            .pred_opt()
+                            .expect("Failed to get day prior to opening date"),
+                    )
+                }
             }
         }
 
@@ -765,6 +776,32 @@ mod test {
 
     mod close_monthly {
         use super::*;
+
+        #[test]
+        fn last_monthly_closed_at_set_after_open_first_accounting_period() {
+            let mut chart = chart_from(initial_events());
+            assert_eq!(chart.last_monthly_closed_at, None);
+
+            let starts_at = "2024-01-15".parse::<NaiveDate>().unwrap();
+            let expected_last_closed = "2024-01-14".parse::<NaiveDate>().unwrap();
+
+            let result = chart.open_first_accounting_period(starts_at);
+            assert_eq!(result.unwrap(), expected_last_closed);
+            assert_eq!(chart.last_monthly_closed_at, Some(expected_last_closed));
+        }
+
+        #[test]
+        fn last_monthly_closed_at_from_chart_with_first_accounting_period_event() {
+            let starts_at = "2024-03-01".parse::<NaiveDate>().unwrap();
+            let expected_last_closed = "2024-02-29".parse::<NaiveDate>().unwrap();
+
+            let mut events = initial_events();
+            events.push(ChartEvent::FirstAccountingPeriodOpened {
+                effective: starts_at,
+            });
+            let chart = chart_from(events);
+            assert_eq!(chart.last_monthly_closed_at, Some(expected_last_closed));
+        }
 
         #[test]
         fn close_last_monthly_period_first_time() {
