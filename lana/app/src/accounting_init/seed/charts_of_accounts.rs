@@ -66,6 +66,8 @@ async fn seed_chart_of_accounts(
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
+        chart_of_accounts_opening_date,
+
         credit_config_path,
         deposit_config_path,
         balance_sheet_config_path,
@@ -89,6 +91,16 @@ async fn seed_chart_of_accounts(
     } else {
         return Ok(());
     };
+
+    if let Some(opening_date) = chart_of_accounts_opening_date {
+        chart_of_accounts
+            .open_first_accounting_period(&Subject::System, chart_id, opening_date)
+            .await
+            .map(|_| ())
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
 
     if let Some(config_path) = credit_config_path {
         credit_module_configure(credit, &chart, config_path)
