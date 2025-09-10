@@ -148,9 +148,7 @@ where
             {
                 let account_set_id = new_account_set.id;
                 new_account_sets.push(new_account_set);
-                if let Some(parent) = parent_account_set_id {
-                    new_connections.push((parent, account_set_id));
-                }
+                new_connections.push((parent_account_set_id, account_set_id));
             }
         }
         let new_account_set_ids = new_account_sets.iter().map(|a| a.id).collect::<Vec<_>>();
@@ -207,7 +205,7 @@ where
         let mut chart = self.repo.find_by_id(id).await?;
 
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
-            parent_account_set_id: _,
+            parent_account_set_id,
             new_account_set,
         }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
         else {
@@ -224,6 +222,10 @@ where
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, parent_account_set_id, account_set_id)
             .await?;
 
         op.commit().await?;
@@ -274,12 +276,10 @@ where
             .account_sets()
             .create_in_op(&mut op, new_account_set)
             .await?;
-        if let Some(parent) = parent_account_set_id {
-            self.cala
-                .account_sets()
-                .add_member_in_op(&mut op, parent, account_set_id)
-                .await?;
-        }
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, parent_account_set_id, account_set_id)
+            .await?;
 
         op.commit().await?;
 

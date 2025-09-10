@@ -69,14 +69,19 @@ impl Chart {
             spec: spec.clone(),
             ledger_account_set_id,
         });
+
+        let chart_root_account_set_id = self.account_set_id;
         let parent_account_set_id = if let Some(parent) = spec.parent.as_ref() {
-            self.all_accounts.get(parent).map(
-                |AccountDetails {
-                     account_set_id: id, ..
-                 }| *id,
-            )
+            self.all_accounts
+                .get(parent)
+                .map(
+                    |AccountDetails {
+                         account_set_id: id, ..
+                     }| *id,
+                )
+                .expect("Parent was not added to all_accounts as yet")
         } else {
-            None
+            chart_root_account_set_id
         };
         self.all_accounts.insert(
             spec.code.clone(),
@@ -486,7 +491,7 @@ struct AccountDetails {
 
 pub struct NewChartAccountDetails {
     pub new_account_set: NewAccountSet,
-    pub parent_account_set_id: Option<CalaAccountSetId>,
+    pub parent_account_set_id: CalaAccountSetId,
 }
 
 #[cfg(test)]
