@@ -18,7 +18,7 @@ export const CreditFacilityProposalStatusBadge: React.FC<
     switch (status) {
       case CreditFacilityProposalStatus.Completed:
         return "success"
-      case CreditFacilityProposalStatus.PendngApproval:
+      case CreditFacilityProposalStatus.PendingApproval:
         return "secondary"
       case CreditFacilityProposalStatus.PendingCollateralization:
         return "destructive"
