@@ -299,6 +299,18 @@ where
         Ok(chart)
     }
 
+    #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
+    pub async fn close_monthly(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_id: ChartId,
+    ) -> Result<Chart, CoreAccountingError> {
+        Ok(self
+            .chart_of_accounts()
+            .close_monthly(sub, chart_id)
+            .await?)
+    }
+
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
     pub async fn add_root_node(
         &self,
