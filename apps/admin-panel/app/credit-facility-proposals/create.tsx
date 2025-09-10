@@ -90,6 +90,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
   disbursalCreditAccountId,
 }) => {
   const t = useTranslations("CreditFacilityProposals.CreateCreditFacilityProposal")
+  const commonT = useTranslations("Common")
 
   const handleCloseDialog = () => {
     setOpenCreateCreditFacilityProposalDialog(false)
@@ -505,7 +506,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                 onClick={() => setUseTemplateTerms(true)}
                 variant="ghost"
               >
-                {t("form.buttons.back")}
+                {commonT("back")}
               </Button>
             )}
             <Button

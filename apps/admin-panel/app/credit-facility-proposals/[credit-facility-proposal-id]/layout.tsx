@@ -102,6 +102,7 @@ export default function CreditFacilityProposalLayout({
 }) {
   const { "credit-facility-proposal-id": proposalId } = use(params)
   const t = useTranslations("CreditFacilityProposals.ProposalDetails.Layout")
+  const commonT = useTranslations("Common")
 
   const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
     variables: { creditFacilityProposalId: proposalId },
@@ -122,7 +123,7 @@ export default function CreditFacilityProposalLayout({
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.creditFacilityProposal) return <div>{t("errors.notFound")}</div>
+  if (!data?.creditFacilityProposal) return <div>{commonT("notFound")}</div>
 
   return (
     <main className="max-w-7xl m-auto">

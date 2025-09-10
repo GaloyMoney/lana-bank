@@ -51,6 +51,7 @@ gql`
 
 const CreditFacilityProposals = () => {
   const t = useTranslations("CreditFacilityProposals")
+  const commonT = useTranslations("Common")
 
   const { data, loading, error, fetchMore } = useCreditFacilityProposalsQuery({
     variables: {
@@ -60,7 +61,7 @@ const CreditFacilityProposals = () => {
 
   return (
     <div>
-      {error && <p className="text-destructive text-sm">{t("errors.general")}</p>}
+      {error && <p className="text-destructive text-sm">{commonT("error")}</p>}
       <PaginatedTable<CreditFacilityProposal>
         columns={columns(t)}
         data={data?.creditFacilityProposals as PaginatedData<CreditFacilityProposal>}

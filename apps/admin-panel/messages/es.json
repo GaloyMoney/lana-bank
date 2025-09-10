@@ -486,16 +486,12 @@
     },
     "status": {
       "pending_collateralization": "Colateralización Pendiente",
-      "pendng_approval": "Aprobación Pendiente",
+      "pending_approval": "Aprobación Pendiente",
       "completed": "Completado"
     },
     "collateralizationState": {
       "fullycollateralized": "Totalmente garantizado",
       "undercollateralized": "Insuficientemente garantizado"
-    },
-    "errors": {
-      "fetchError": "Ocurrió un error al obtener los datos.",
-      "general": "Ha ocurrido un error"
     },
     "CreateCreditFacilityProposal": {
       "dialog": {
@@ -530,7 +526,6 @@
           "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
         },
         "buttons": {
-          "back": "Volver",
           "create": "Crear Propuesta de Línea de Crédito"
         },
         "messages": {
@@ -560,14 +555,11 @@
         },
         "errors": {
           "emptyCollateral": "Por favor ingrese un monto de garantía válido.",
-          "noData": "No se devolvieron datos de la mutación",
-          "unknownError": "Ocurrió un error desconocido"
+          "noData": "No se devolvieron datos de la mutación"
         },
         "buttons": {
-          "back": "Volver",
           "proceedToConfirm": "Proceder a Confirmar",
-          "confirm": "Confirmar",
-          "updating": "Actualizando..."
+          "confirm": "Confirmar"
         }
       },
       "messages": {
@@ -584,10 +576,7 @@
           "collateralBalance": "Balance de garantía (BTC)",
           "currentPrice": "Precio actual BTC/USD",
           "collateralValue": "Valor de garantía (USD)",
-          "marginCallPrice": "Precio de llamada de margen BTC/USD ({percentage})",
-          "liquidationPrice": "Precio de liquidación BTC/USD ({percentage})",
-          "collateralToReachTarget": "Garantía para alcanzar objetivo ({percentage})",
-          "currentCvl": "CVL actual"
+          "collateralToReachTarget": "Garantía para alcanzar objetivo ({percentage})"
         }
       },
       "DetailsCard": {
@@ -610,9 +599,6 @@
           "completedTitle": "Propuesta completada",
           "completedDescription": "Esta propuesta ha sido aprobada y completada.",
           "viewAssociatedFacility": "Ver línea de crédito asociada"
-        },
-        "errors": {
-          "notFound": "Propuesta de línea de crédito no encontrada"
         }
       },
       "TermsCard": {
@@ -623,9 +609,6 @@
         "tabs": {
           "history": "Historial",
           "repaymentPlan": "Plan de Pago"
-        },
-        "errors": {
-          "notFound": "Propuesta de línea de crédito no encontrada"
         }
       }
     }
@@ -656,7 +639,6 @@
       "noExposure": "Sin exposición"
     },
     "errors": {
-      "fetchError": "Ocurrió un error al obtener los datos.",
       "general": "Ocurrió un error"
     },
     "CreditFacilityDetails": {
@@ -785,7 +767,8 @@
           "loanAgreement": "Contrato de Préstamo",
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
-          "deny": "Rechazar"
+          "deny": "Rechazar",
+          "viewProposal": "Ver Propuesta"
         },
         "loanAgreement": {
           "success": "Contrato de préstamo generado exitosamente",
@@ -801,51 +784,6 @@
         "errors": {
           "notFound": "No encontrado",
           "loading": "Cargando..."
-        }
-      },
-      "CreateCreditFacility": {
-        "dialog": {
-          "customerInfo": "Creando línea de crédito para {email}",
-          "title": "Crear Línea de Crédito",
-          "description": "Complete los detalles para crear una línea de crédito."
-        },
-        "form": {
-          "labels": {
-            "facilityAmount": "Monto de Línea",
-            "custodian": "Custodio",
-            "manualCustodian": "Manual",
-            "termsTemplate": "Plantilla de Términos",
-            "creditFacilityTerms": "Términos de Línea de Crédito",
-            "interestRate": "Tasa de interés nominal",
-            "initialCvl": "CVL Inicial (%)",
-            "duration": "Duración",
-            "months": "meses",
-            "marginCallCvl": "CVL de Llamada de Margen (%)",
-            "liquidationCvl": "CVL de Liquidación (%)",
-            "structuringFeeRate": "Tasa de Comisión de Estructuración (%)"
-          },
-          "placeholders": {
-            "facilityAmount": "Ingrese el monto de la línea",
-            "custodian": "Seleccione un custodio",
-            "termsTemplate": "Seleccione de la plantilla de términos predefinida",
-            "annualRate": "Ingrese la tasa anual",
-            "initialCvl": "Ingrese el CVL inicial",
-            "duration": "Introduce la duración en meses",
-            "marginCallCvl": "Ingrese el CVL de llamada de margen",
-            "liquidationCvl": "Ingrese el CVL de liquidación",
-            "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
-          },
-          "buttons": {
-            "back": "Atrás",
-            "create": "Crear Línea de Crédito"
-          },
-          "messages": {
-            "collateralRequired": "garantía requerida",
-            "btcUsdRate": "BTC/USD:",
-            "noTemplates": "No hay plantillas de términos disponibles, por favor cree una o especifique manualmente los términos a continuación.",
-            "fillAllFields": "Por favor complete todos los campos.",
-            "success": "Línea de Crédito creada exitosamente"
-          }
         }
       },
       "CreditFacilityPartialPayment": {
