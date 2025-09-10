@@ -447,6 +447,7 @@ where
         ))
     }
 
+    #[instrument(name = "credit.create_proposal", skip(self), err)]
     pub async fn create_facility_proposal(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -773,7 +774,6 @@ where
         } else {
             return Ok(credit_facility);
         };
-
         self.ledger
             .update_credit_facility_collateral(
                 db,
