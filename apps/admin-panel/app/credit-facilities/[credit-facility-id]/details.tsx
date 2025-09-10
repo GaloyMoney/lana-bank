@@ -169,7 +169,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       <Link href={`/credit-facility-proposals/${creditFacilityDetails.creditFacilityId}`}>
         <Button variant="outline">
           <Eye className="h-4 w-4 mr-2" />
-          View Proposal
+          {t("buttons.viewProposal")}
         </Button>
       </Link>
     </>

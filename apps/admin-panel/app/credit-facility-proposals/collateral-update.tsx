@@ -58,6 +58,7 @@ export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
   const t = useTranslations(
     "CreditFacilityProposals.CreditFacilityProposalCollateralUpdate",
   )
+  const commonT = useTranslations("Common")
 
   const [updateCollateral, { loading, reset }] =
     useCreditFacilityProposalCollateralUpdateMutation()
@@ -93,7 +94,7 @@ export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
       if (error instanceof Error) {
         setError(error.message)
       } else {
-        setError(t("form.errors.unknownError"))
+        setError(commonT("error"))
       }
     }
   }
@@ -159,14 +160,14 @@ export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
                   variant="ghost"
                   disabled={loading}
                 >
-                  {t("form.buttons.back")}
+                  {commonT("back")}
                 </Button>
                 <Button
                   type="submit"
                   loading={loading}
                   data-testid="confirm-update-button"
                 >
-                  {loading ? t("form.buttons.updating") : t("form.buttons.confirm")}
+                  {t("form.buttons.confirm")}
                 </Button>
               </DialogFooter>
             </form>
@@ -220,6 +221,7 @@ export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
                 <Button
                   type="submit"
                   onClick={handleConfirm}
+                  loading={loading}
                   data-testid="proceed-to-confirm-button"
                 >
                   {t("form.buttons.proceedToConfirm")}

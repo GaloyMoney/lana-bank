@@ -486,16 +486,12 @@
     },
     "status": {
       "pending_collateralization": "Pending Collateralization",
-      "pendng_approval": "Pending Approval",
+      "pending_approval": "Pending Approval",
       "completed": "Completed"
     },
     "collateralizationState": {
       "fullycollateralized": "Fully Collateralized",
       "undercollateralized": "Under Collateralized"
-    },
-    "errors": {
-      "fetchError": "An error occurred while fetching data.",
-      "general": "An error occurred"
     },
     "CreateCreditFacilityProposal": {
       "dialog": {
@@ -530,7 +526,6 @@
           "structuringFeeRate": "Enter the Structuring Fee Rate"
         },
         "buttons": {
-          "back": "Back",
           "create": "Create Credit Facility Proposal"
         },
         "messages": {
@@ -560,14 +555,11 @@
         },
         "errors": {
           "emptyCollateral": "Please enter a valid collateral amount.",
-          "noData": "No data returned from mutation",
-          "unknownError": "An unknown error occurred"
+          "noData": "No data returned from mutation"
         },
         "buttons": {
-          "back": "Back",
           "proceedToConfirm": "Proceed to Confirm",
-          "confirm": "Confirm",
-          "updating": "Updating..."
+          "confirm": "Confirm"
         }
       },
       "messages": {
@@ -584,10 +576,7 @@
           "collateralBalance": "Collateral balance (BTC)",
           "currentPrice": "Current BTC/USD Price",
           "collateralValue": "Collateral value (USD)",
-          "marginCallPrice": "Margin Call Price BTC/USD ({percentage})",
-          "liquidationPrice": "Liquidation Price BTC/USD ({percentage})",
-          "collateralToReachTarget": "Collateral to reach target ({percentage})",
-          "currentCvl": "Current CVL"
+          "collateralToReachTarget": "Collateral to reach target ({percentage})"
         }
       },
       "DetailsCard": {
@@ -610,9 +599,6 @@
           "completedTitle": "Proposal completed",
           "completedDescription": "This proposal has been approved and completed.",
           "viewAssociatedFacility": "View associated credit facility"
-        },
-        "errors": {
-          "notFound": "Credit facility proposal not found"
         }
       },
       "TermsCard": {
@@ -623,9 +609,6 @@
         "tabs": {
           "history": "History",
           "repaymentPlan": "Repayment Plan"
-        },
-        "errors": {
-          "notFound": "Credit facility proposal not found"
         }
       }
     }
@@ -656,7 +639,6 @@
       "noExposure": "No Exposure"
     },
     "errors": {
-      "fetchError": "An error occurred while fetching data.",
       "general": "An error occurred"
     },
     "CreditFacilityDetails": {
@@ -785,7 +767,8 @@
           "loanAgreement": "Loan Agreement",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
-          "deny": "Deny"
+          "deny": "Deny",
+          "viewProposal": "View Proposal"
         },
         "loanAgreement": {
           "success": "Loan agreement generated successfully",
@@ -801,51 +784,6 @@
         "errors": {
           "notFound": "Not found",
           "loading": "Loading..."
-        }
-      },
-      "CreateCreditFacility": {
-        "dialog": {
-          "customerInfo": "Creating credit facility for {email}",
-          "title": "Create Credit Facility",
-          "description": "Fill in the details to create a credit facility."
-        },
-        "form": {
-          "labels": {
-            "facilityAmount": "Facility Amount",
-            "custodian": "Custodian",
-            "manualCustodian": "Manual",
-            "termsTemplate": "Terms Template",
-            "creditFacilityTerms": "Credit Facility Terms",
-            "interestRate": "Nominal Interest Rate",
-            "initialCvl": "Initial CVL (%)",
-            "duration": "Duration",
-            "months": "months",
-            "marginCallCvl": "Margin Call CVL (%)",
-            "liquidationCvl": "Liquidation CVL (%)",
-            "structuringFeeRate": "Structuring Fee Rate (%)"
-          },
-          "placeholders": {
-            "facilityAmount": "Enter the facility amount",
-            "custodian": "Select a custodian",
-            "termsTemplate": "Select from predefined terms template",
-            "annualRate": "Enter the annual rate",
-            "initialCvl": "Enter the initial CVL",
-            "duration": "Enter duration in months",
-            "marginCallCvl": "Enter the margin call CVL",
-            "liquidationCvl": "Enter the liquidation CVL",
-            "structuringFeeRate": "Enter the Structuring Fee Rate"
-          },
-          "buttons": {
-            "back": "Back",
-            "create": "Create Credit Facility"
-          },
-          "messages": {
-            "collateralRequired": "collateral required",
-            "btcUsdRate": "BTC/USD:",
-            "noTemplates": "No terms templates available please create one or manually specify the terms below.",
-            "fillAllFields": "Please fill in all the fields.",
-            "success": "Credit Facility created successfully"
-          }
         }
       },
       "CreditFacilityPartialPayment": {
