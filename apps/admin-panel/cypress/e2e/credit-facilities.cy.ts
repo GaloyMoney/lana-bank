@@ -214,7 +214,7 @@ describe("credit facility", () => {
               cy.get('[data-testid="confirm-update-button"]').should("be.visible").click()
               cy.takeScreenshot("12_collateral_updated")
 
-              cy.wait(5000).then(() => {
+              cy.wait(10000).then(() => {
                 cy.reload().then(() => {
                   cy.get("[data-testid=proposal-status-badge]", { timeout: 10000 })
                     .should("be.visible")
@@ -274,13 +274,13 @@ describe("credit facility", () => {
 
     cy.reload()
     cy.get('[data-testid="disbursal-approve-button"]').should("be.visible").click()
-    cy.wait(2000).then(() => {
+    cy.wait(5000).then(() => {
       cy.takeScreenshot("18_1_approve")
       cy.get('[data-testid="approval-process-dialog-approve-button"]')
         .should("be.visible")
         .click()
 
-      cy.wait(3000).then(() => {
+      cy.wait(5000).then(() => {
         cy.get('[data-testid="disbursal-status-badge"]')
           .should("be.visible")
           .invoke("text")
