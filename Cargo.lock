@@ -836,9 +836,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "e713e5cf7ce81ec8f035492daa739d46253d1b73061f654dd8211452bf41f183"
+checksum = "da9884d47d9f972eb873ce9a13586ed0044bc904e61cd30cd48628dc1a9ff7c0"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -852,9 +852,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3268ede073003c295cf754a003c1debde387706bd73005f8153af171ab48edd6"
+checksum = "964a78ecc09ff2b82b4961362c7867c4a433f523bebc5e6ab5c84b486fdd54d6"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -862,9 +862,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "10901ee7bc08d19e76875e909f7645e60d2b5eeac6da6327791517316caeee4c"
+checksum = "61cfc246835b806c26f0384e76d9a841de572b9cc578666a01fc377fb8251397"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -876,6 +876,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "futures",
+ "job",
  "opentelemetry",
  "prost",
  "prost-wkt-types",
@@ -898,9 +899,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "9b02e6a644dfe5a6b3c3b956ca629ca3fc0f97384db8213db40bbf3bba5c4153"
+checksum = "442d02a164a8c41eca4e31e25793c231bd4a4e45b498ad3fa305473f264a9e16"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -920,9 +921,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.10.0"
+version = "0.11.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "917fdd67ea843b58f43a4efa0d044b83480733911eca9004455cd0adf1caf16f"
+checksum = "eb91473e25dcf64c8373e9071a76876cdfdcae277159357340464e031650e55a"
 dependencies = [
  "anyhow",
  "axum-extra 0.9.6",
@@ -3054,9 +3055,10 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "job"
-version = "0.0.0"
+version = "0.1.8"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "56e63460cce8ba846f1918edc31d8f73b0d3526a66c9c579e40c2e2159b0efbc"
 dependencies = [
- "anyhow",
  "async-trait",
  "chrono",
  "derive_builder",

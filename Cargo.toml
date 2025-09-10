@@ -18,7 +18,6 @@ audit = { path = "lib/audit" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
-job = { path = "lib/job" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
@@ -60,7 +59,8 @@ user-onboarding = { path = "lana/user-onboarding" }
 # External dependencies
 es-entity = { version = "0.7.18", features = ["event-context", "tracing"] }
 sim-time = "0.7"
-cala-ledger = "0.10.0"
+cala-ledger = "0.11.0"
+job = "0.1"
 
 
 aes = "0.8"
