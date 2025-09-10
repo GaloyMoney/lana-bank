@@ -689,7 +689,7 @@ type CreditFacilityProposalEdge {
 
 enum CreditFacilityProposalStatus {
 	PENDING_COLLATERALIZATION
-	PENDNG_APPROVAL
+	PENDING_APPROVAL
 	COMPLETED
 }
 

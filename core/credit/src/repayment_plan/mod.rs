@@ -149,7 +149,7 @@ impl CreditFacilityRepaymentPlan {
         let mut existing_obligations = self.existing_obligations();
 
         match event {
-            CoreCreditEvent::FacilityCreated { terms, amount, .. } => {
+            CoreCreditEvent::FacilityProposalCreated { terms, amount, .. } => {
                 self.terms = Some(*terms);
                 self.facility_amount = *amount;
             }
@@ -328,8 +328,8 @@ mod tests {
         let mut plan = CreditFacilityRepaymentPlan::default();
         plan.process_event(
             Default::default(),
-            &CoreCreditEvent::FacilityCreated {
-                id: CreditFacilityId::new(),
+            &CoreCreditEvent::FacilityProposalCreated {
+                id: CreditFacilityProposalId::new(),
                 terms,
                 amount: default_facility_amount(),
                 created_at: default_start_date(),

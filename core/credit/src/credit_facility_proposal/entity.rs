@@ -97,7 +97,7 @@ impl CreditFacilityProposal {
             self.last_collateralization_state(),
             CreditFacilityProposalCollateralizationState::FullyCollateralized
         ) {
-            CreditFacilityProposalStatus::PendngApproval
+            CreditFacilityProposalStatus::PendingApproval
         } else {
             CreditFacilityProposalStatus::PendingCollateralization
         }

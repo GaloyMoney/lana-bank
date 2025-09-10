@@ -27,7 +27,8 @@ use super::{entity::*, error::CreditFacilityProposalError};
             update(accessor = "last_collateralization_state()")
         ),
     ),
-    tbl_prefix = "core"
+    tbl_prefix = "core",
+    post_persist_hook = "publish"
 )]
 pub struct CreditFacilityProposalRepo<E>
 where
@@ -58,6 +59,17 @@ where
             pool: pool.clone(),
             publisher: publisher.clone(),
         }
+    }
+
+    async fn publish(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &CreditFacilityProposal,
+        new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
+    ) -> Result<(), CreditFacilityProposalError> {
+        self.publisher
+            .publish_proposal(op, entity, new_events)
+            .await
     }
 }
 
