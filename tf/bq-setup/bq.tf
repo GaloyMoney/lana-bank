@@ -23,11 +23,12 @@ resource "google_bigquery_dataset_iam_member" "dataset_additional_owners" {
 }
 
 resource "google_bigquery_dataset" "dbt" {
-  project       = local.gcp_project
-  dataset_id    = local.dbt_dataset_name
-  friendly_name = "${local.name_prefix} dbt"
-  description   = "dbt for ${local.name_prefix}"
-  location      = local.location
+  project                    = local.gcp_project
+  dataset_id                 = local.dbt_dataset_name
+  friendly_name              = "${local.name_prefix} dbt"
+  description                = "dbt for ${local.name_prefix}"
+  location                   = local.location
+  delete_contents_on_destroy = true
 }
 
 resource "google_bigquery_dataset_iam_member" "dbt_owner" {
