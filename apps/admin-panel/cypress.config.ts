@@ -1,10 +1,18 @@
 import { defineConfig } from "cypress"
+import * as fs from "fs"
+import * as path from "path"
 
 const multiplier = 10 // Browserstack local tunnel on GHA Runner can be quite slow
 
 export default defineConfig({
   e2e: {
-    setupNodeEvents(on) {
+    setupNodeEvents(on, config) {
+      // Ensure logs directory exists
+      const logsDir = path.join(config.projectRoot, "cypress", "logs")
+      if (!fs.existsSync(logsDir)) {
+        fs.mkdirSync(logsDir, { recursive: true })
+      }
+
       on("task", {
         checkUrl(url: string) {
           return new Promise((resolve) => {
@@ -12,6 +20,21 @@ export default defineConfig({
               .then((response) => resolve(response.ok))
               .catch(() => resolve(false))
           })
+        },
+        log(message) {
+          const timestamp = new Date().toISOString()
+          const logEntry = `[${timestamp}] ${message}\n`
+          const logFile = path.join(logsDir, "cypress-test.log")
+          fs.appendFileSync(logFile, logEntry)
+          console.log(message)
+          return null
+        },
+        clearLogs() {
+          const logFile = path.join(logsDir, "cypress-test.log")
+          if (fs.existsSync(logFile)) {
+            fs.writeFileSync(logFile, "")
+          }
+          return null
         },
       })
       on("before:browser:launch", (browser, launchOptions) => {
@@ -44,9 +67,9 @@ export default defineConfig({
     viewportWidth: 1280,
     viewportHeight: 720,
     specPattern: [
+      "cypress/e2e/credit-facilities.cy.ts",
       "cypress/e2e/modules.cy.ts",
       "cypress/e2e/user.cy.ts",
-      "cypress/e2e/credit-facilities.cy.ts",
       "cypress/e2e/customers.cy.ts",
       "cypress/e2e/transactions.cy.ts",
       "cypress/e2e/terms-templates.cy.ts",

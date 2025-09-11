@@ -20,12 +20,13 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
           free_disk_space: false
-      - uses: ./.github/actions/cache-pnpm 
+      - uses: ./.github/actions/cache-pnpm
       - run: nix develop -c make build-for-tests
       - name: Start services for Cypress tests
         run: nix develop -c make start-cypress-stack
         env:
           ENGINE_DEFAULT: podman
+          DATA_PIPELINE: "false"
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -33,6 +34,14 @@ jobs:
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: "gha"
       - run: nix develop -c make test-cypress-in-ci
+      - name: Upload backend logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: backend-logs
+          path: |
+            cypress-stack.log
+            admin-panel.log
       - uses: actions/upload-artifact@v4
         with:
           name: screenshots
@@ -42,6 +51,15 @@ jobs:
         with:
           name: videos
           path: apps/admin-panel/cypress/videos/*
+      - name: Upload Cypress logs
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: cypress-logs
+          path: |
+            apps/admin-panel/cypress/logs/*
+            apps/admin-panel/cypress/reports/*
+            apps/admin-panel/cypress/results/*
 
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
