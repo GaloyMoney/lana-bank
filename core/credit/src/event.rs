@@ -44,6 +44,7 @@ pub enum CoreCreditEvent {
     },
     FacilityCollateralUpdated {
         credit_facility_id: CreditFacilityId,
+        credit_facility_proposal_id: CreditFacilityProposalId,
         ledger_tx_id: LedgerTxId,
         new_amount: Satoshis,
         abs_diff: Satoshis,

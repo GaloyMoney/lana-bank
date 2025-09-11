@@ -72,13 +72,14 @@ where
         &self,
         db: &mut es_entity::DbOp<'_>,
         collateral_id: CollateralId,
-        credit_facility_id: CreditFacilityId,
+        proposal_id: CreditFacilityProposalId,
         custody_wallet_id: Option<CustodyWalletId>,
         account_id: CalaAccountId,
     ) -> Result<Collateral, CollateralError> {
         let new_collateral = NewCollateral::builder()
             .id(collateral_id)
-            .credit_facility_id(credit_facility_id)
+            .credit_facility_id(proposal_id)
+            .credit_facility_proposal_id(proposal_id)
             .account_id(account_id)
             .custody_wallet_id(custody_wallet_id)
             .build()
