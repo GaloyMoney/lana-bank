@@ -20,7 +20,7 @@ use cala_ledger::{
 };
 
 use crate::{
-    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
+    ChartOfAccountsIntegrationConfig, CollateralId, FacilityDurationType, Obligation,
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
     liquidation_process::LiquidationProcess,
@@ -1185,6 +1185,7 @@ impl CreditLedger {
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
+                            entity_id: entity_id.into(),
                             journal_id: self.journal_id,
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
@@ -1207,7 +1208,6 @@ impl CreditLedger {
         &self,
         op: &mut LedgerOperation<'_>,
         installment @ ObligationInstallment {
-            id,
             ledger_tx_id,
             amount,
             account_to_be_debited_id,
@@ -1217,7 +1217,6 @@ impl CreditLedger {
         }: ObligationInstallment,
     ) -> Result<(), CreditLedgerError> {
         let params = templates::RecordObligationInstallmentParams {
-            entity_id: id.into(),
             journal_id: self.journal_id,
             currency: self.usd,
             amount: amount.to_usd(),
@@ -1260,7 +1259,6 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         ObligationDueReallocationData {
-            entity_id,
             tx_id,
             amount: outstanding_amount,
             not_yet_due_account_id,
@@ -1278,7 +1276,6 @@ impl CreditLedger {
                 tx_id,
                 templates::RECORD_OBLIGATION_DUE_BALANCE_CODE,
                 templates::RecordObligationDueBalanceParams {
-                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     amount: outstanding_amount.to_usd(),
                     receivable_not_yet_due_account_id: not_yet_due_account_id,
@@ -1295,7 +1292,6 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         ObligationOverdueReallocationData {
-            entity_id,
             tx_id,
             amount: outstanding_amount,
             due_account_id,
@@ -1313,7 +1309,6 @@ impl CreditLedger {
                 tx_id,
                 templates::RECORD_OBLIGATION_OVERDUE_BALANCE_CODE,
                 templates::RecordObligationOverdueBalanceParams {
-                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     amount: outstanding_amount.to_usd(),
                     receivable_due_account_id: due_account_id,
@@ -1330,7 +1325,6 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         ObligationDefaultedReallocationData {
-            entity_id,
             tx_id,
             amount: outstanding_amount,
             receivable_account_id,
@@ -1348,7 +1342,6 @@ impl CreditLedger {
                 tx_id,
                 templates::RECORD_OBLIGATION_DEFAULTED_BALANCE_CODE,
                 templates::RecordObligationDefaultedBalanceParams {
-                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     amount: outstanding_amount.to_usd(),
                     receivable_account_id,
@@ -1397,6 +1390,7 @@ impl CreditLedger {
 
     pub async fn complete_credit_facility(
         &self,
+        entity_id: CollateralId,
         op: es_entity::DbOp<'_>,
         CreditFacilityCompletion {
             tx_id,
@@ -1413,6 +1407,7 @@ impl CreditLedger {
                 tx_id,
                 templates::REMOVE_COLLATERAL_CODE,
                 templates::RemoveCollateralParams {
+                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     currency: self.btc,
                     amount: collateral.to_btc(),
@@ -1430,7 +1425,6 @@ impl CreditLedger {
         &self,
         mut op: cala_ledger::LedgerOperation<'_>,
         CreditFacilityCreation {
-            entity_id,
             tx_id,
             tx_ref,
             credit_facility_account_ids,
@@ -1443,7 +1437,6 @@ impl CreditLedger {
                 tx_id,
                 templates::CREATE_CREDIT_FACILITY_CODE,
                 templates::CreateCreditFacilityParams {
-                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
@@ -1461,7 +1454,6 @@ impl CreditLedger {
         &self,
         mut op: cala_ledger::LedgerOperation<'_>,
         CreditFacilityProposalCreation {
-            entity_id,
             tx_id,
             tx_ref,
             credit_facility_proposal_account_ids,
@@ -1474,7 +1466,6 @@ impl CreditLedger {
                 tx_id,
                 templates::CREATE_CREDIT_FACILITY_PROPOSAL_CODE,
                 templates::CreateCreditFacilityProposalParams {
-                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_proposal_account_ids
@@ -1493,7 +1484,6 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOpWithTime<'_>,
         CreditFacilityActivation {
-            entity_id,
             tx_id,
             tx_ref,
             credit_facility_account_ids,
@@ -1509,7 +1499,6 @@ impl CreditLedger {
                 tx_id,
                 templates::ACTIVATE_CREDIT_FACILITY_CODE,
                 templates::ActivateCreditFacilityParams {
-                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: credit_facility_account_ids.facility_account_id,
@@ -1532,7 +1521,6 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         CreditFacilityInterestAccrual {
-            credit_facility_id,
             tx_id,
             tx_ref,
             interest,
@@ -1549,7 +1537,6 @@ impl CreditLedger {
                 tx_id,
                 templates::CREDIT_FACILITY_ACCRUE_INTEREST_CODE,
                 templates::CreditFacilityAccrueInterestParams {
-                    entity_id: credit_facility_id.into(),
                     journal_id: self.journal_id,
 
                     credit_facility_interest_receivable_account: credit_facility_account_ids
@@ -1570,7 +1557,6 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         CreditFacilityInterestAccrualCycle {
-            credit_facility_id,
             tx_id,
             tx_ref,
             interest,
@@ -1587,7 +1573,6 @@ impl CreditLedger {
                 tx_id,
                 templates::CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE,
                 templates::CreditFacilityPostAccruedInterestParams {
-                    entity_id: credit_facility_id.into(),
                     journal_id: self.journal_id,
 
                     credit_facility_interest_receivable_account: credit_facility_account_ids

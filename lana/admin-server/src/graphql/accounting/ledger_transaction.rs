@@ -4,19 +4,13 @@ pub use lana_app::{
     accounting::ledger_transaction::{
         LedgerTransaction as DomainLedgerTransaction, LedgerTransactionCursor,
     },
-    credit::{
-        COLLATERAL_TRANSACTION_ENTITY_TYPE, CREDIT_FACILITY_TRANSACTION_ENTITY_TYPE,
-        DISBURSAL_TRANSACTION_ENTITY_TYPE, OBLIGATION_INSTALLMENT_TRANSACTION_ENTITY_TYPE,
-    },
+    credit::{COLLATERAL_TRANSACTION_ENTITY_TYPE, DISBURSAL_TRANSACTION_ENTITY_TYPE},
     deposit::{DEPOSIT_TRANSACTION_ENTITY_TYPE, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
 };
 
 use crate::{
     graphql::{
-        credit_facility::{
-            Collateral, CreditFacility, CreditFacilityDisbursal,
-            obligation_installment::CreditFacilityObligationInstallment,
-        },
+        credit_facility::{Collateral, CreditFacilityDisbursal},
         deposit::Deposit,
         loader::*,
         withdrawal::Withdrawal,
@@ -40,11 +34,8 @@ pub struct LedgerTransaction {
 pub enum LedgerTransactionEntity {
     Deposit(Deposit),
     Withdrawal(Withdrawal),
-    // CreditFacility(CreditFacility),
     Collateral(Collateral),
     Disbursal(CreditFacilityDisbursal),
-    // ObligationInstallment(CreditFacilityObligationInstallment),
-    // Obligation?
 }
 
 #[ComplexObject]
@@ -90,24 +81,6 @@ impl LedgerTransaction {
                     .expect("Could not find collateral entity");
                 Some(LedgerTransactionEntity::Collateral(collateral))
             }
-            // entity_type if entity_type == &CREDIT_FACILITY_TRANSACTION_ENTITY_TYPE => {
-            //     let credit_facility = loader
-            //         .load_one(CreditFacilityId::from(entity_ref.entity_id))
-            //         .await?
-            //         .expect("Could not find credit facility entity");
-            //     Some(LedgerTransactionEntity::CreditFacility(credit_facility))
-            // }
-
-            // Plus, no find_all fn for this
-            // entity_type if entity_type == &OBLIGATION_INSTALLMENT_TRANSACTION_ENTITY_TYPE => {
-            //     let obligation_installment = loader
-            //         .load_one(ObligationInstallmentId::from(entity_ref.entity_id))
-            //         .await?
-            //         .expect("Could not find obligation installment entity");
-            //     Some(LedgerTransactionEntity::ObligationInstallment(
-            //         obligation_installment,
-            //     ))
-            // }
             _ => None,
         };
         Ok(res)
