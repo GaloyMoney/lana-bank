@@ -164,6 +164,7 @@ where
 
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
+            .credit_facility_proposal_id(proposal.id)
             .ledger_tx_id(LedgerTxId::new())
             .customer_id(proposal.customer_id)
             .customer_type(proposal.customer_type)

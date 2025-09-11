@@ -361,6 +361,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "credit_facility_proposal_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "customer_id": {
           "format": "uuid",
           "type": "string"
@@ -397,6 +401,7 @@
       "required": [
         "type",
         "id",
+        "credit_facility_proposal_id",
         "customer_id",
         "customer_type",
         "collateral_id",
