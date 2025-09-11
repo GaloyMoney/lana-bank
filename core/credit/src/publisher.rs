@@ -145,6 +145,7 @@ where
                     effective: event.recorded_at.date_naive(),
                     new_amount: entity.amount,
                     credit_facility_id: entity.credit_facility_id,
+                    credit_facility_proposal_id: entity.credit_facility_proposal_id,
                 }),
                 _ => None,
             })
