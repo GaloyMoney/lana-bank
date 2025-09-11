@@ -1228,7 +1228,7 @@ impl CreditLedger {
         self.cala
             .post_transaction_in_op(
                 op,
-                ledger_tx_id.into(),
+                ledger_tx_id,
                 templates::RECORD_OBLIGATION_INSTALLMENT_CODE,
                 params,
             )
