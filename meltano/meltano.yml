@@ -52,7 +52,7 @@ schedules:
     interval: "0,30 * * * *"
     job: tap-postgres-to-target-bigquery
   - name: dbt-on-bigquery
-    interval: "5,35 * * * *"
+    interval: "15,45 * * * *"
     job: dbt-bigquery-run
   - name: poll-bitfinex-on-minute
     interval: "* * * * *"
