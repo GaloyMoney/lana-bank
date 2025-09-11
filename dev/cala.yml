@@ -1,5 +1,0 @@
-app:
-  job_execution:
-    poll_interval: 1
-db:
-  pool_size: 200
