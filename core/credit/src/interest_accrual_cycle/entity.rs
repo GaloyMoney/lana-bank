@@ -85,7 +85,6 @@ pub struct InterestAccrualCycle {
 
 #[derive(Debug, Clone)]
 pub(crate) struct InterestAccrualCycleData {
-    pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) interest: UsdCents,
     pub(crate) tx_ref: String,
     pub(crate) tx_id: LedgerTxId,
@@ -100,7 +99,6 @@ pub(crate) struct NewInterestAccrualCycleData {
 
 #[derive(Debug, Clone)]
 pub(crate) struct InterestAccrualData {
-    pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) interest: UsdCents,
     pub(crate) period: InterestPeriod,
     pub(crate) tx_ref: String,
@@ -226,7 +224,6 @@ impl InterestAccrualCycle {
 
         let accrual_tx_ref = format!("{}-interest-accrual-{}", self.id, self.count_accrued() + 1);
         let interest_accrual = InterestAccrualData {
-            credit_facility_id: self.credit_facility_id,
             interest: interest_for_period,
             period: accrual_period,
             tx_ref: accrual_tx_ref,
@@ -258,7 +255,6 @@ impl InterestAccrualCycle {
                     self.credit_facility_id, self.idx
                 );
                 let interest_accrual_cycle = InterestAccrualCycleData {
-                    credit_facility_id: self.credit_facility_id,
                     interest: self.total_accrued(),
                     tx_ref: accrual_cycle_tx_ref,
                     tx_id: LedgerTxId::new(),

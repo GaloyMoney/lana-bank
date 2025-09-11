@@ -6,16 +6,12 @@ use cala_ledger::{
     *,
 };
 
-use crate::{
-    ledger::error::*,
-    primitives::{CalaAccountId, OBLIGATION_INSTALLMENT_TRANSACTION_ENTITY_TYPE},
-};
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const RECORD_OBLIGATION_INSTALLMENT_CODE: &str = "RECORD_OBLIGATION_INSTALLMENT";
 
 #[derive(Debug)]
 pub struct RecordObligationInstallmentParams {
-    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -63,18 +59,12 @@ impl RecordObligationInstallmentParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
-            NewParamDefinition::builder()
-                .name("meta")
-                .r#type(ParamDataType::Json)
-                .build()
-                .unwrap(),
         ]
     }
 }
 impl From<RecordObligationInstallmentParams> for Params {
     fn from(
         RecordObligationInstallmentParams {
-            entity_id,
             journal_id,
             currency,
             amount,
@@ -92,11 +82,6 @@ impl From<RecordObligationInstallmentParams> for Params {
         params.insert("account_to_be_debited_id", account_to_be_debited_id);
         params.insert("receivable_account_id", receivable_account_id);
         params.insert("effective", effective);
-        let entity_ref = core_accounting::EntityRef::new(
-            OBLIGATION_INSTALLMENT_TRANSACTION_ENTITY_TYPE,
-            entity_id,
-        );
-        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
 
         params
     }
@@ -111,7 +96,6 @@ impl RecordObligationInstallment {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .metadata("param.meta")
             .description("'Record a deposit'")
             .build()
             .expect("Couldn't build TxInput");

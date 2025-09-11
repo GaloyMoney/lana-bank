@@ -303,6 +303,13 @@ export type ChartOfAccountsCsvImportPayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
+export type Collateral = {
+  __typename?: 'Collateral';
+  collateralId: Scalars['UUID']['output'];
+  id: Scalars['ID']['output'];
+  walletId?: Maybe<Scalars['UUID']['output']>;
+};
+
 export enum CollateralAction {
   Add = 'ADD',
   Remove = 'REMOVE'
@@ -1400,7 +1407,7 @@ export type LedgerTransactionEdge = {
   node: LedgerTransaction;
 };
 
-export type LedgerTransactionEntity = Deposit | Withdrawal;
+export type LedgerTransactionEntity = Collateral | CreditFacilityDisbursal | Deposit | Withdrawal;
 
 export type Loan = {
   __typename?: 'Loan';

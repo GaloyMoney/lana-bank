@@ -330,7 +330,6 @@ impl Obligation {
         }
 
         let res = ObligationDueReallocationData {
-            entity_id: self.id,
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
             not_yet_due_account_id: self.not_yet_due_accounts().receivable_account_id,
@@ -364,7 +363,6 @@ impl Obligation {
         }
 
         let res = ObligationOverdueReallocationData {
-            entity_id: self.id,
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
             due_account_id: self.due_accounts().receivable_account_id,
@@ -398,7 +396,6 @@ impl Obligation {
         }
 
         let res = ObligationDefaultedReallocationData {
-            entity_id: self.id,
             tx_id: LedgerTxId::new(),
             amount: self.outstanding(),
             receivable_account_id: self.receivable_account_id().expect("Obligation is Paid"),

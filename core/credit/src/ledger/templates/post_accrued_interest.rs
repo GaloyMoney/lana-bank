@@ -6,17 +6,13 @@ use cala_ledger::{
     *,
 };
 
-use crate::{
-    ledger::error::*,
-    primitives::{CREDIT_FACILITY_TRANSACTION_ENTITY_TYPE, CalaAccountId},
-};
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const CREDIT_FACILITY_POST_ACCRUED_INTEREST_CODE: &str =
     "CREDIT_FACILITY_POST_ACCRUED_INTEREST";
 
 #[derive(Debug)]
 pub struct CreditFacilityPostAccruedInterestParams {
-    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub credit_facility_interest_receivable_account: CalaAccountId,
     pub credit_facility_interest_income_account: CalaAccountId,
@@ -58,11 +54,6 @@ impl CreditFacilityPostAccruedInterestParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
-            NewParamDefinition::builder()
-                .name("meta")
-                .r#type(ParamDataType::Json)
-                .build()
-                .unwrap(),
         ]
     }
 }
@@ -70,7 +61,6 @@ impl CreditFacilityPostAccruedInterestParams {
 impl From<CreditFacilityPostAccruedInterestParams> for Params {
     fn from(
         CreditFacilityPostAccruedInterestParams {
-            entity_id,
             journal_id,
             credit_facility_interest_receivable_account,
             credit_facility_interest_income_account,
@@ -92,9 +82,6 @@ impl From<CreditFacilityPostAccruedInterestParams> for Params {
         params.insert("interest_amount", interest_amount);
         params.insert("external_id", external_id);
         params.insert("effective", effective);
-        let entity_ref =
-            core_accounting::EntityRef::new(CREDIT_FACILITY_TRANSACTION_ENTITY_TYPE, entity_id);
-        params.insert("meta", serde_json::json!({"entity_ref":entity_ref}));
         params
     }
 }
@@ -108,7 +95,6 @@ impl CreditFacilityPostAccruedInterest {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .metadata("params.meta")
             .description("'Post accrued interest from accrual cycle for credit facility'")
             .build()
             .expect("Couldn't build TxInput");

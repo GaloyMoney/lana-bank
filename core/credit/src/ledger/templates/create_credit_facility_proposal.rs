@@ -6,16 +6,12 @@ use cala_ledger::{
     *,
 };
 
-use crate::{
-    ledger::error::*,
-    primitives::{CREDIT_FACILITY_PROPOSAL_TRANSACTION_ENTITY_TYPE, CalaAccountId},
-};
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const CREATE_CREDIT_FACILITY_PROPOSAL_CODE: &str = "CREATE_CREDIT_FACILITY_PROPOSAL";
 
 #[derive(Debug)]
 pub struct CreateCreditFacilityProposalParams {
-    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -62,11 +58,6 @@ impl CreateCreditFacilityProposalParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
-            NewParamDefinition::builder()
-                .name("meta")
-                .r#type(ParamDataType::Json)
-                .build()
-                .unwrap(),
         ]
     }
 }
@@ -74,7 +65,6 @@ impl CreateCreditFacilityProposalParams {
 impl From<CreateCreditFacilityProposalParams> for Params {
     fn from(
         CreateCreditFacilityProposalParams {
-            entity_id,
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -91,11 +81,6 @@ impl From<CreateCreditFacilityProposalParams> for Params {
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
-        let entity_ref = core_accounting::EntityRef::new(
-            CREDIT_FACILITY_PROPOSAL_TRANSACTION_ENTITY_TYPE,
-            entity_id,
-        );
-        params.insert("meta", serde_json::json!({"entity_ref":entity_ref}));
         params
     }
 }
@@ -109,7 +94,6 @@ impl CreateCreditFacilityProposal {
             .journal_id("params.journal_id")
             .effective("params.effective")
             .external_id("params.external_id")
-            .metadata("params.meta")
             .description("'Create credit facility'")
             .build()
             .expect("Couldn't build TxInput");

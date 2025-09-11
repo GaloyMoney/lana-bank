@@ -161,16 +161,14 @@ pub mod credit {
     pub use core_credit::{
         APPROVE_CREDIT_FACILITY_PROCESS, APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
         APPROVE_DISBURSAL_PROCESS, COLLATERAL_TRANSACTION_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE,
-        CREDIT_FACILITY_TRANSACTION_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, Collateral,
-        CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditConfig,
-        CreditFacilitiesCursor, CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacility,
-        CreditFacilityApproved, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
-        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
-        DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, ListDirection,
-        OBLIGATION_INSTALLMENT_TRANSACTION_ENTITY_TYPE, ObligationInstallment,
-        ObligationMovedToLiquidation, Payment, RepaymentStatus, RepaymentType, Sort, TermsTemplate,
-        error, terms_template_error,
+        ChartOfAccountsIntegrationConfig, Collateral, CollateralUpdated, CollateralizationUpdated,
+        CoreCreditEvent, CreditConfig, CreditFacilitiesCursor, CreditFacilitiesFilter,
+        CreditFacilitiesSortBy, CreditFacility, CreditFacilityApproved,
+        CreditFacilityBalanceSummary, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry,
+        CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE, Disbursal, DisbursalExecuted,
+        DisbursalStatus, DisbursalsCursor, DisbursalsFilter, DisbursalsSortBy, IncrementalPayment,
+        InterestAccrualsPosted, ListDirection, ObligationInstallment, ObligationMovedToLiquidation,
+        Payment, RepaymentStatus, RepaymentType, Sort, TermsTemplate, error, terms_template_error,
     };
 
     pub type Credit =
