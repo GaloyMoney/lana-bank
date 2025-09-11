@@ -58,8 +58,8 @@ impl RemoveCollateralParams {
                 .build()
                 .unwrap(),
             NewParamDefinition::builder()
-                .name("effective")
-                .r#type(ParamDataType::Date)
+                .name("meta")
+                .r#type(ParamDataType::Json)
                 .build()
                 .unwrap(),
         ]
