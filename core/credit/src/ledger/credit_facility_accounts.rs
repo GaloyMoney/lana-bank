@@ -5,7 +5,7 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 
 use crate::{
-    primitives::{CreditFacilityId, CreditFacilityProposalId, LedgerTxId, Satoshis, UsdCents},
+    primitives::{LedgerTxId, Satoshis, UsdCents},
     terms::InterestPeriod,
 };
 
@@ -73,7 +73,6 @@ pub struct CreditFacilityCompletion {
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityCreation {
-    pub entity_id: CreditFacilityId,
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
@@ -82,7 +81,6 @@ pub struct CreditFacilityCreation {
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityProposalCreation {
-    pub entity_id: CreditFacilityProposalId,
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub credit_facility_proposal_account_ids: CreditFacilityProposalAccountIds,
@@ -91,7 +89,6 @@ pub struct CreditFacilityProposalCreation {
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityActivation {
-    pub entity_id: CreditFacilityId,
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
@@ -102,7 +99,6 @@ pub struct CreditFacilityActivation {
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityInterestAccrual {
-    pub credit_facility_id: CreditFacilityId,
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub interest: UsdCents,
@@ -112,7 +108,6 @@ pub struct CreditFacilityInterestAccrual {
 
 #[derive(Debug, Clone)]
 pub struct CreditFacilityInterestAccrualCycle {
-    pub credit_facility_id: CreditFacilityId,
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
     pub interest: UsdCents,
