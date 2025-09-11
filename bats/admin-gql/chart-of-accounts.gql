@@ -2,6 +2,7 @@ query ChartOfAccounts {
   chartOfAccounts {
     chartId
     name
+    lastMonthlyClosedAt
     children {
       ...child
       children {
