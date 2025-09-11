@@ -20,6 +20,7 @@ use super::{entity::*, error::CreditFacilityError};
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
         collateral_id(ty = "CollateralId", update(persist = false)),
+        credit_facility_proposal_id(ty = "CreditFacilityProposalId", update(persist = false)),
         collateralization_ratio(
             ty = "CollateralizationRatio",
             list_by,

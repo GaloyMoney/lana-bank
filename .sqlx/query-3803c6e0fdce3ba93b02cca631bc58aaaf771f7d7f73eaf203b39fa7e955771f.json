@@ -1,0 +1,21 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "INSERT INTO core_credit_facilities (id, customer_id, collateral_id, credit_facility_proposal_id, collateralization_state, status, public_id, created_at) VALUES ($1, $2, $3, $4, $5, $6, $7, COALESCE($8, NOW()))",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Varchar",
+        "Varchar",
+        "Varchar",
+        "Timestamptz"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "3803c6e0fdce3ba93b02cca631bc58aaaf771f7d7f73eaf203b39fa7e955771f"
+}
