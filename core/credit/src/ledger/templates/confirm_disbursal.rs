@@ -116,7 +116,7 @@ impl ConfirmDisbursal {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .metadata("parans.meta")
+            .metadata("params.meta")
             .description("'Settle a disbursal'")
             .build()
             .expect("Couldn't build TxInput");
