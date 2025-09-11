@@ -4,7 +4,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use super::{entity::ChartEvent, entity::ChartNode};
+use crate::chart_node::ChartNode;
 use crate::primitives::{AccountCode, AccountName, AccountSpec, CalaAccountSetId, ChartId};
 
 #[derive(Debug)]
@@ -85,7 +85,6 @@ pub(super) fn project_from_nodes<'a>(
             parent: node.spec.parent.clone(),
             children: vec![],
         }));
-
         if let Some(parent) = node.spec.parent {
             if let Some(parent_weak) = tree_nodes_by_code.get_mut(&parent) {
                 if let Some(parent_rc) = parent_weak.upgrade() {
@@ -122,10 +121,7 @@ mod tests {
     use es_entity::*;
 
     use crate::{
-        chart_of_accounts::{
-            Chart, NewChart,
-            chart_node::{ChartNode, NewChartNode},
-        },
+        chart_of_accounts::{Chart, NewChart, NewChartNode, chart_node::ChartNode},
         primitives::CalaJournalId,
     };
 
@@ -148,6 +144,7 @@ mod tests {
     #[test]
     fn test_project_chart_structure() {
         let mut chart = init_chart_of_events();
+        chart.rebuild_indexes();
 
         chart
             .create_node_without_verifying_parent(

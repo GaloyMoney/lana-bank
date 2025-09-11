@@ -6,6 +6,7 @@ use crate::primitives::ChartId;
 use crate::primitives::ChartNodeId;
 
 use super::{entity::*, error::ChartOfAccountsError};
+use crate::chart_node::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -15,7 +16,13 @@ use super::{entity::*, error::ChartOfAccountsError};
     tbl_prefix = "core"
 )]
 struct ChartNodeRepo {
+    #[allow(dead_code)]
     pool: PgPool,
+}
+impl ChartNodeRepo {
+    pub fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
+    }
 }
 
 #[derive(EsRepo, Clone)]
@@ -34,9 +41,10 @@ pub struct ChartRepo {
 
 impl ChartRepo {
     pub fn new(pool: &PgPool) -> Self {
+        let chart_nodes = ChartNodeRepo::new(pool);
         Self {
             pool: pool.clone(),
-            chart_nodes: ChartNodeRepo { pool: pool.clone() },
+            chart_nodes,
         }
     }
 }
