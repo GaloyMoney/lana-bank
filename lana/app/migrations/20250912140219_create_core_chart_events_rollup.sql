@@ -5,14 +5,12 @@ CREATE TABLE core_chart_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
-  code JSONB,
   name VARCHAR,
   reference VARCHAR,
-  spec JSONB,
 
   -- Collection rollups
-  ledger_account_set_ids UUID[],
-  manual_ledger_account_ids UUID[]
+  ledger_account_set_ids VARCHAR[],
+  manual_ledger_account_ids VARCHAR[]
 ,
   PRIMARY KEY (id, version)
 );
@@ -47,30 +45,26 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
-    new_row.code := (NEW.event -> 'code');
     new_row.ledger_account_set_ids := CASE
        WHEN NEW.event ? 'ledger_account_set_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_account_set_ids'))
-       ELSE ARRAY[]::UUID[]
+         ARRAY(SELECT value::text FROM jsonb_array_elements_text(NEW.event -> 'ledger_account_set_ids'))
+       ELSE ARRAY[]::VARCHAR[]
      END
 ;
     new_row.manual_ledger_account_ids := CASE
        WHEN NEW.event ? 'manual_ledger_account_ids' THEN
-         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'manual_ledger_account_ids'))
-       ELSE ARRAY[]::UUID[]
+         ARRAY(SELECT value::text FROM jsonb_array_elements_text(NEW.event -> 'manual_ledger_account_ids'))
+       ELSE ARRAY[]::VARCHAR[]
      END
 ;
     new_row.name := (NEW.event ->> 'name');
     new_row.reference := (NEW.event ->> 'reference');
-    new_row.spec := (NEW.event -> 'spec');
   ELSE
     -- Default all fields to current values
-    new_row.code := current_row.code;
     new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
     new_row.manual_ledger_account_ids := current_row.manual_ledger_account_ids;
     new_row.name := current_row.name;
     new_row.reference := current_row.reference;
-    new_row.spec := current_row.spec;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -79,11 +73,9 @@ BEGIN
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'node_added' THEN
-      new_row.ledger_account_set_ids := array_append(COALESCE(current_row.ledger_account_set_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_set_id')::UUID);
-      new_row.spec := (NEW.event -> 'spec');
+      new_row.ledger_account_set_ids := array_append(COALESCE(current_row.ledger_account_set_ids, ARRAY[]::VARCHAR[]), (NEW.event ->> 'ledger_account_set_id'));
     WHEN 'manual_transaction_account_added' THEN
-      new_row.code := (NEW.event -> 'code');
-      new_row.manual_ledger_account_ids := array_append(COALESCE(current_row.manual_ledger_account_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_id')::UUID);
+      new_row.manual_ledger_account_ids := array_append(COALESCE(current_row.manual_ledger_account_ids, ARRAY[]::VARCHAR[]), (NEW.event ->> 'ledger_account_id'));
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -91,24 +83,20 @@ BEGIN
     version,
     created_at,
     modified_at,
-    code,
     ledger_account_set_ids,
     manual_ledger_account_ids,
     name,
-    reference,
-    spec
+    reference
   )
   VALUES (
     new_row.id,
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
-    new_row.code,
     new_row.ledger_account_set_ids,
     new_row.manual_ledger_account_ids,
     new_row.name,
-    new_row.reference,
-    new_row.spec
+    new_row.reference
   );
 
   RETURN NEW;

@@ -21,6 +21,7 @@ pub use core_money::{Satoshis, UsdCents};
 
 es_entity::entity_id! {
     ChartId,
+    ChartNodeId,
     ManualTransactionId,
     LedgerAccountId,
     AccountingCsvId;
