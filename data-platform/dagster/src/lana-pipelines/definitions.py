@@ -1,12 +1,16 @@
+import json
+import base64
+
 import dagster as dg
 import dlt
+from dlt.destinations import bigquery
 
 def build_definitions():
 
     @dlt.source()
     def lana_core_pg():
         
-        @dlt.resource(name="lana_table", write_disposition="replace")
+        @dlt.resource(name="lana_table")
         def lana_table():
             for i in range(1, 10):
                 yield {"name": "some_name", "id": i}
@@ -14,22 +18,49 @@ def build_definitions():
         return lana_table
 
 
+    def create_bigquery_destination(base64_credentials):
+        """Create BigQuery destination with programmatic credentials configuration"""
+
+        try:
+            # Decode the base64-encoded JSON credentials
+            credentials_json = base64.b64decode(base64_credentials).decode('utf-8')
+            credentials = json.loads(credentials_json)
+        except (base64.binascii.Error, json.JSONDecodeError) as e:
+            raise ValueError(f"Failed to decode base64 credentials: {e}")
+        
+        # Validate that we have the required fields
+        required_fields = ["type", "project_id", "private_key", "client_email"]
+        for field in required_fields:
+            if field not in credentials:
+                raise ValueError(f"Missing required field '{field}' in credentials")
+        
+        return bigquery(
+            credentials=credentials,
+            project_id=credentials["project_id"],
+            location="US"  # Optional: specify location
+        )
+
     @dg.asset()
     def lana_pipeline_asset(context: dg.AssetExecutionContext):
-        """Asset that runs only the lana_table resource and writes to Postgres"""
-        context.log.info(f"Running lana_table pipeline for partition: {context.partition_key}")
+        """Asset that runs only the lana_table resource and writes to Big Query"""
+        context.log.info(f"Running lana_table pipeline.")
+
+        base64_credentials = dg.EnvVar("TF_VAR_sa_creds").get_value()
         
-        # Create the pipeline
+        bigquery_dest = create_bigquery_destination(base64_credentials)
+        
         pipeline = dlt.pipeline(
             pipeline_name="lana_pipeline",
-            destination="postgres",
-            dataset_name="lana_data"
+            destination=bigquery_dest,
+            dataset_name="counterweight_dataset"
         )
         
-        # Run only the lana_table resource from the source
-        load_info = pipeline.run(lana_core_pg().with_resources("lana_table"))
+        load_info = pipeline.run(
+            lana_core_pg().with_resources("lana_table"),
+            write_disposition="replace"
+        )
         
-        context.log.info(f"Pipeline completed. Load info: {load_info}")
+        context.log.info(f"Pipeline completed.")
         return load_info
 
     @dg.asset(
