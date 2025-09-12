@@ -1,18 +1,19 @@
+with int_uif_07_diario_otros_medios_electronicos as (select * from {{ ref("int_uif_07_diario_otros_medios_electronicos") }})
 select
-    null as numeroRegistroBancario,
-    null as estacionServicio,
-    null as fechaTransaccion,
-    null as tipoPersonaA,
-    null as detallesPersonaA,
-    null as tipoPersonaB,
-    null as detallesPersonaB,
-    null as numeroCuentaPO,
-    null as claseCuentaPO,
-    null as conceptoTransaccionPO,
-    null as valorOtrosMediosElectronicosPO,
-    null as numeroProductoPB,
-    null as claseCuentaPB,
-    null as montoTransaccionPB,
-    null as valorMedioElectronicoPB,
-    null as bancoCuentaDestinatariaPB
-
+    numeroRegistroBancario,
+    estacionServicio,
+    fechaTransaccion,
+    tipoPersonaA,
+    detallesPersonaA,
+    tipoPersonaB,
+    detallesPersonaB,
+    numeroCuentaPO,
+    claseCuentaPO,
+    conceptoTransaccionPO,
+    valorOtrosMediosElectronicosPO,
+    numeroProductoPB,
+    claseCuentaPB,
+    montoTransaccionPB,
+    valorMedioElectronicoPB,
+    bancoCuentaDestinatariaPB
+from int_uif_07_diario_otros_medios_electronicos
