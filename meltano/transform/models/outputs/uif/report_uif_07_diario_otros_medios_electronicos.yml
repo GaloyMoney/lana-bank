@@ -1,7 +1,7 @@
 version: 2
 
 models:
-  - name: uif_07_diario_otros_medios_electronicos
+  - name: report_uif_07_diario_otros_medios_electronicos
     description: >
       Daily report of individual transactions in other electronic payment methods.
       Allows daily reception of information for electronic payment amounts greater
@@ -170,7 +170,7 @@ exposures:
     maturity: low
     url: null
     depends_on:
-      - ref('uif_07_diario_otros_medios_electronicos')
+      - ref('report_uif_07_diario_otros_medios_electronicos')
     tags:
       - uif
       - regulatory-reporting

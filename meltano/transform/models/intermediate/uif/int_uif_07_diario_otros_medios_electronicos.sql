@@ -1,6 +1,11 @@
+with seed_bank_address as (select * from {{ ref("seed_bank_address") }})
 select
     null as numeroRegistroBancario,
-    null as estacionServicio,
+    JSON_OBJECT(
+        'direccionAgencia', bank_address.full_address,
+        'idDepartamento', bank_address.region_id,
+        'idMunicipio', bank_address.town_id
+    ) as estacionServicio,
     null as fechaTransaccion,
     null as tipoPersonaA,
     null as detallesPersonaA,
@@ -15,4 +20,6 @@ select
     null as montoTransaccionPB,
     null as valorMedioElectronicoPB,
     null as bancoCuentaDestinatariaPB
-
+from seed_bank_address as bank_address
+-- Note: this table should be cross joined to actual transactions, not accessed like this.
+-- Right now it's just here cause there are no more tables.
