@@ -66,7 +66,6 @@ impl Chart {
             chart_id: self.id,
             spec: spec.clone(),
             ledger_account_set_id,
-            manual_transaction_account_id: None,
         };
 
         self.chart_nodes.add_new(new_chart_node);
@@ -89,8 +88,8 @@ impl Chart {
             .expect("Could not build new account set");
 
         Idempotent::Executed(NewChartAccountDetails {
-            parent_account_set_id,
             new_account_set,
+            parent_account_set_id,
         })
     }
 
@@ -184,36 +183,24 @@ impl Chart {
     }
 
     fn get_node_by_code(&self, code: &AccountCode) -> Option<&ChartNode> {
-        self.chart_nodes.iter_persisted().find_map(|node| {
-            if node.spec.code == *code {
-                Some(node)
-            } else {
-                None
-            }
-        })
+        self.chart_nodes
+            .iter_persisted()
+            .find(|node| node.spec.code == *code)
     }
 
     fn get_node_by_code_mut(&mut self, code: &AccountCode) -> Option<&mut ChartNode> {
-        self.chart_nodes.iter_persisted_mut().find_map(|node| {
-            if node.spec.code == *code {
-                Some(node)
-            } else {
-                None
-            }
-        })
+        self.chart_nodes
+            .iter_persisted_mut()
+            .find(|node| node.spec.code == *code)
     }
 
     fn get_node_by_manual_transaction_account_id(
         &self,
         id: &LedgerAccountId,
     ) -> Option<&ChartNode> {
-        self.chart_nodes.iter_persisted().find_map(|node| {
-            if node.manual_transaction_account_id == Some(*id) {
-                Some(node)
-            } else {
-                None
-            }
-        })
+        self.chart_nodes
+            .iter_persisted()
+            .find(|node| node.manual_transaction_account_id == Some(*id))
     }
 
     pub fn account_set_id_from_code(
@@ -277,14 +264,7 @@ impl Chart {
         }
     }
 
-    pub fn chart(&mut self) -> tree::ChartTree {
-        let new_entities = self
-            .chart_nodes
-            .new_entities_mut()
-            .drain(..)
-            .map(|new| ChartNode::try_from_events(new.into_events()).expect("hydrate failed"))
-            .collect::<Vec<_>>();
-        self.chart_nodes.load(new_entities);
+    pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
 }
@@ -639,5 +619,33 @@ mod test {
 
         let res = chart.manual_transaction_account(AccountIdOrCode::Code(acct_code.clone()));
         assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
+    }
+
+    #[test]
+    fn test_project_chart_structure() {
+        let chart = default_chart().0;
+        let tree = chart.chart();
+
+        assert_eq!(tree.id, chart.id);
+        assert_eq!(tree.name, chart.name);
+        assert_eq!(tree.children.len(), 1);
+
+        let assets = &tree.children[0];
+        assert_eq!(assets.code, AccountCode::new(vec!["1".parse().unwrap()]));
+        assert_eq!(assets.children.len(), 1);
+
+        let current_assets = &assets.children[0];
+        assert_eq!(
+            current_assets.code,
+            AccountCode::new(["1", "1"].iter().map(|c| c.parse().unwrap()).collect())
+        );
+        assert_eq!(current_assets.children.len(), 1);
+
+        let cash = &current_assets.children[0];
+        assert_eq!(
+            cash.code,
+            AccountCode::new(["1", "1", "1"].iter().map(|c| c.parse().unwrap()).collect())
+        );
+        assert!(cash.children.is_empty());
     }
 }

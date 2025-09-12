@@ -100,7 +100,6 @@ pub struct NewChartNode {
     pub chart_id: ChartId,
     pub spec: AccountSpec,
     pub ledger_account_set_id: CalaAccountSetId,
-    pub manual_transaction_account_id: Option<LedgerAccountId>,
 }
 
 impl IntoEvents<ChartNodeEvent> for NewChartNode {
@@ -141,7 +140,6 @@ mod tests {
             chart_id: ChartId::new(),
             spec: default_spec(),
             ledger_account_set_id: CalaAccountSetId::new(),
-            manual_transaction_account_id: None,
         }
     }
 
