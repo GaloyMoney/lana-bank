@@ -82,6 +82,7 @@ impl Collateral {
         self.amount = new_amount;
 
         Idempotent::Executed(CollateralUpdate {
+            entity_id: self.id,
             tx_id,
             abs_diff,
             action,
@@ -114,6 +115,7 @@ impl Collateral {
         self.amount = new_amount;
 
         Idempotent::Executed(CollateralUpdate {
+            entity_id: self.id,
             tx_id,
             abs_diff,
             action,
