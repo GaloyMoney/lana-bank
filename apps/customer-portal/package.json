@@ -24,7 +24,7 @@
     "@lana/web": "workspace:*",
     "@sumsub/websdk-react": "^2.4.1",
     "@t3-oss/env-nextjs": "^0.13.8",
-    "axios": "^1.11.0",
+    "axios": "^1.12.0",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.1.1",
     "input-otp": "^1.2.4",
