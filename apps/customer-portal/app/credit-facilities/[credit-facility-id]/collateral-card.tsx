@@ -91,15 +91,6 @@ export const calculateBaseAmountInCents = ({
   disbursals: { status: DisbursalStatus }[]
   balance: { outstanding: { usdBalance: number } }
 }) => {
-  if (
-    [
-      CreditFacilityStatus.PendingCollateralization,
-      CreditFacilityStatus.PendingApproval,
-    ].includes(status)
-  ) {
-    return facilityAmount
-  }
-
   if (status === CreditFacilityStatus.Active) {
     const hasApprovedDisbursals = disbursals.some(
       (d) => d.status === DisbursalStatus.Approved,

@@ -18,10 +18,11 @@ import { formatDate } from "@lana/web/utils"
 
 import {
   GetCreditFacilityLayoutDetailsDocument,
-  GetCreditFacilityLayoutDetailsQuery,
   GetDisbursalDetailsDocument,
   GetWithdrawalDetailsDocument,
+  GetCreditFacilityProposalLayoutDetailsDocument,
   useApprovalProcessDenyMutation,
+  ApprovalProcessFieldsFragment,
 } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { formatProcessType } from "@/lib/utils"
@@ -39,9 +40,7 @@ gql`
 type DenialDialogProps = {
   setOpenDenialDialog: (isOpen: boolean) => void
   openDenialDialog: boolean
-  approvalProcess: NonNullable<
-    GetCreditFacilityLayoutDetailsQuery["creditFacilityByPublicId"]
-  >["approvalProcess"]
+  approvalProcess: ApprovalProcessFieldsFragment
 }
 
 export const DenialDialog: React.FC<DenialDialogProps> = ({
@@ -89,6 +88,7 @@ export const DenialDialog: React.FC<DenialDialogProps> = ({
               GetCreditFacilityLayoutDetailsDocument,
               GetWithdrawalDetailsDocument,
               GetDisbursalDetailsDocument,
+              GetCreditFacilityProposalLayoutDetailsDocument,
             ],
           })
           toast.success(t("success.processDenied"))

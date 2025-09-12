@@ -9,7 +9,7 @@ use schemars::JsonSchema;
 
 use crate::{
     EffectiveDate,
-    ledger::CreditFacilityBalanceSummary,
+    ledger::{CreditFacilityBalanceSummary, CreditFacilityProposalBalanceSummary},
     primitives::{
         CVLPct, CollateralizationState, DisbursedReceivableAccountCategory, PriceOfOneBTC,
         Satoshis, UsdCents,
@@ -98,7 +98,7 @@ impl From<FacilityDurationType> for DisbursedReceivableAccountCategory {
 }
 
 impl FacilityDuration {
-    pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
+    fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
         match self {
             FacilityDuration::Months(months) => start_date
                 .checked_add_months(chrono::Months::new(*months))
@@ -251,6 +251,10 @@ pub struct TermValues {
 }
 
 impl TermValues {
+    pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
+        self.duration.maturity_date(start_date)
+    }
+
     pub fn is_disbursal_allowed(
         &self,
         balance: CreditFacilityBalanceSummary,
@@ -261,6 +265,15 @@ impl TermValues {
             .with_added_disbursal(amount)
             .outstanding_amount_cvl(price);
         cvl >= self.margin_call_cvl
+    }
+
+    pub fn is_proposal_completion_allowed(
+        &self,
+        balance: CreditFacilityProposalBalanceSummary,
+        price: PriceOfOneBTC,
+    ) -> bool {
+        let total = balance.facility_amount_cvl(price);
+        total >= self.initial_cvl
     }
 
     pub fn is_activation_allowed(

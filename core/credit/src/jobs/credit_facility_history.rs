@@ -42,9 +42,10 @@ where
                 };
 
                 let id = match event {
-                    FacilityCreated { id, .. }
-                    | FacilityApproved { id }
-                    | FacilityActivated { id, .. }
+                    FacilityProposalCreated { id, .. } | FacilityProposalApproved { id, .. } => {
+                        (*id).into()
+                    }
+                    FacilityActivated { id, .. }
                     | FacilityCompleted { id, .. }
                     | FacilityRepaymentRecorded {
                         credit_facility_id: id,

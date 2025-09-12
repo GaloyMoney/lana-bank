@@ -53,7 +53,7 @@ gql`
           creditFacilityId
           publicId
           collateralizationState
-          createdAt
+          activatedAt
           status
           facilityAmount
           currentCvl {
@@ -135,20 +135,15 @@ export default CreditFacilities
 
 const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
   {
+    key: "status",
+    label: t("table.headers.status"),
+    render: (status) => <LoanAndCreditFacilityStatusBadge status={status} />,
+    filterValues: Object.values(CreditFacilityStatus),
+  },
+  {
     key: "customer",
     label: t("table.headers.customer"),
     render: (customer) => customer.email,
-  },
-  {
-    key: "status",
-    label: t("table.headers.status"),
-    render: (status) => (
-      <LoanAndCreditFacilityStatusBadge
-        className="flex items-center justify-center text-center min-h-full min-w-full"
-        status={status}
-      />
-    ),
-    filterValues: Object.values(CreditFacilityStatus),
   },
   {
     key: "balance",
@@ -170,8 +165,8 @@ const columns = (t: (key: string) => string): Column<CreditFacility>[] => [
     sortable: true,
   },
   {
-    key: "createdAt",
-    label: t("table.headers.createdAt"),
+    key: "activatedAt",
+    label: t("table.headers.activatedAt"),
     render: (date) => <DateWithTooltip value={date} />,
     sortable: true,
   },

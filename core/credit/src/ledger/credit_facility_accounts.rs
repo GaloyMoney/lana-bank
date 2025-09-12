@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::AccountId as CalaAccountId;
 
 use crate::{
-    primitives::{LedgerTxId, Satoshis, UsdCents},
-    terms::InterestPeriod,
+    primitives::{CreditFacilityId, CustomerType, LedgerTxId, Satoshis, UsdCents},
+    terms::{FacilityDurationType, InterestPeriod},
 };
 
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
@@ -29,15 +29,16 @@ pub struct CreditFacilityLedgerAccountIds {
 
 impl CreditFacilityLedgerAccountIds {
     #[allow(clippy::new_without_default)]
+    #[cfg(test)]
     pub fn new() -> Self {
         Self {
             facility_account_id: CalaAccountId::new(),
+            collateral_account_id: CalaAccountId::new(),
             in_liquidation_account_id: CalaAccountId::new(),
             disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
             disbursed_receivable_due_account_id: CalaAccountId::new(),
             disbursed_receivable_overdue_account_id: CalaAccountId::new(),
             disbursed_defaulted_account_id: CalaAccountId::new(),
-            collateral_account_id: CalaAccountId::new(),
             interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
             interest_receivable_due_account_id: CalaAccountId::new(),
             interest_receivable_overdue_account_id: CalaAccountId::new(),
@@ -47,6 +48,27 @@ impl CreditFacilityLedgerAccountIds {
         }
     }
 }
+
+impl From<CreditFacilityProposalAccountIds> for CreditFacilityLedgerAccountIds {
+    fn from(proposal_ids: CreditFacilityProposalAccountIds) -> Self {
+        Self {
+            facility_account_id: proposal_ids.facility_account_id,
+            collateral_account_id: proposal_ids.collateral_account_id,
+            in_liquidation_account_id: CalaAccountId::new(),
+            disbursed_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            disbursed_receivable_due_account_id: CalaAccountId::new(),
+            disbursed_receivable_overdue_account_id: CalaAccountId::new(),
+            disbursed_defaulted_account_id: CalaAccountId::new(),
+            interest_receivable_not_yet_due_account_id: CalaAccountId::new(),
+            interest_receivable_due_account_id: CalaAccountId::new(),
+            interest_receivable_overdue_account_id: CalaAccountId::new(),
+            interest_defaulted_account_id: CalaAccountId::new(),
+            interest_income_account_id: CalaAccountId::new(),
+            fee_income_account_id: CalaAccountId::new(),
+        }
+    }
+}
+
 #[derive(Debug, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub struct CreditFacilityProposalAccountIds {
@@ -72,14 +94,6 @@ pub struct CreditFacilityCompletion {
 }
 
 #[derive(Debug, Clone)]
-pub struct CreditFacilityCreation {
-    pub tx_id: LedgerTxId,
-    pub tx_ref: String,
-    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
-    pub facility_amount: UsdCents,
-}
-
-#[derive(Debug, Clone)]
 pub struct CreditFacilityProposalCreation {
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
@@ -87,13 +101,15 @@ pub struct CreditFacilityProposalCreation {
     pub facility_amount: UsdCents,
 }
 
-#[derive(Debug, Clone)]
 pub struct CreditFacilityActivation {
+    pub credit_facility_id: CreditFacilityId,
     pub tx_id: LedgerTxId,
     pub tx_ref: String,
-    pub credit_facility_account_ids: CreditFacilityLedgerAccountIds,
-    pub debit_account_id: CalaAccountId,
+    pub account_ids: CreditFacilityLedgerAccountIds,
+    pub customer_type: CustomerType,
+    pub duration_type: FacilityDurationType,
     pub facility_amount: UsdCents,
+    pub debit_account_id: CalaAccountId,
     pub structuring_fee_amount: UsdCents,
 }
 

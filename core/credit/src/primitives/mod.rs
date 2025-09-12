@@ -502,11 +502,30 @@ impl From<TermsTemplateAction> for CoreCreditAction {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CreditFacilityStatus {
     #[default]
-    PendingCollateralization,
-    PendingApproval,
     Active,
     Matured,
     Closed,
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum CreditFacilityProposalStatus {
+    #[default]
+    PendingCollateralization,
+    PendingApproval,
+    Completed,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
@@ -591,7 +610,6 @@ pub enum CollateralizationState {
     Eq,
     strum::Display,
     strum::EnumString,
-    sqlx::Type,
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

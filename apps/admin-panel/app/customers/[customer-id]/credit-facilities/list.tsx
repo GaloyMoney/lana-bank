@@ -53,8 +53,8 @@ export const CustomerCreditFacilitiesTable: React.FC<
       render: (state) => <CollateralizationStateLabel state={state} />,
     },
     {
-      key: "createdAt",
-      header: t("table.headers.createdAt"),
+      key: "activatedAt",
+      header: t("table.headers.activatedAt"),
       render: (date) => <DateWithTooltip value={date} />,
     },
   ]

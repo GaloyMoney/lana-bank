@@ -12,12 +12,15 @@ import {
   GetCreditFacilityHistoryQuery,
   CreditFacilityHistoryEntry,
   CollateralAction,
+  GetCreditFacilityProposalHistoryQuery,
 } from "@/lib/graphql/generated"
 import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacilityHistoryProps = {
-  creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacilityByPublicId"]>
+  creditFacility:
+    | NonNullable<GetCreditFacilityHistoryQuery["creditFacilityByPublicId"]>
+    | NonNullable<GetCreditFacilityProposalHistoryQuery["creditFacilityProposal"]>
 }
 
 export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
@@ -47,10 +50,10 @@ export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({
             )
           case "CreditFacilityCollateralizationUpdated":
             return (
-              <div className="flex flex-row gap-1">
+              <div className="flex flex-col gap-1">
                 <div>{t("entryTypes.collateralizationUpdated")}</div>
-                <div className="text-textColor-secondary text-sm">
-                  (<CollateralizationStateLabel state={entry.state} />)
+                <div>
+                  <CollateralizationStateLabel state={entry.state} />
                 </div>
               </div>
             )
