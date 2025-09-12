@@ -1,6 +1,6 @@
 load_from:
   # Each entry here corresponds to a service in the docker-compose file that exposes user code.
   - grpc_server:
-      host: docker_lana_pipelines
+      host: lana_pipelines
       port: 4000
       location_name: "Lana Pipelines"
