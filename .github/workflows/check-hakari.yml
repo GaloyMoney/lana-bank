@@ -14,9 +14,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-nix
-        with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
+      - uses: DeterminateSystems/nix-installer-action@v16
       - name: Check workspace-hack Cargo.toml is up-to-date
         run: nix develop -c cargo hakari generate --diff
       - name: Check all crates depend on workspace-hack
