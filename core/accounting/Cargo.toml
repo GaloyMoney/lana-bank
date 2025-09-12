@@ -31,8 +31,9 @@ strum = { workspace = true }
 thiserror = { workspace = true }
 tracing = { workspace = true }
 uuid = { workspace = true }
-async-graphql = { workspace = true, optional = true}
+async-graphql = { workspace = true, optional = true }
 async-trait = { workspace = true }
+sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
 
 tokio = { workspace = true }
@@ -42,3 +43,4 @@ anyhow = { workspace = true }
 authz = { workspace = true, features = ["test-dummy"] }
 rand = { workspace = true }
 rust_decimal_macros = { workspace = true }
+cala-cel-interpreter = { workspace = true }

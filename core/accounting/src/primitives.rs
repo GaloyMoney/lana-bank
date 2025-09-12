@@ -25,6 +25,7 @@ es_entity::entity_id! {
     LedgerAccountId,
     AccountingCsvId;
 
+    ChartId => CalaAccountSetId,
     LedgerAccountId => CalaAccountId,
     LedgerAccountId => CalaAccountSetId,
     AccountingCsvId => job::JobId,

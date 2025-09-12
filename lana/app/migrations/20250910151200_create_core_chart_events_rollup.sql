@@ -5,7 +5,9 @@ CREATE TABLE core_chart_events_rollup (
   created_at TIMESTAMPTZ NOT NULL,
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
+  account_set_id UUID,
   code JSONB,
+  effective VARCHAR,
   name VARCHAR,
   reference VARCHAR,
   spec JSONB,
@@ -35,7 +37,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'node_added', 'manual_transaction_account_added') THEN
+  IF event_type NOT IN ('initialized', 'node_added', 'manual_transaction_account_added', 'first_accounting_period_opened', 'accounting_period_closed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -47,7 +49,9 @@ BEGIN
 
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
+    new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
     new_row.code := (NEW.event -> 'code');
+    new_row.effective := (NEW.event ->> 'effective');
     new_row.ledger_account_set_ids := CASE
        WHEN NEW.event ? 'ledger_account_set_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_account_set_ids'))
@@ -65,7 +69,9 @@ BEGIN
     new_row.spec := (NEW.event -> 'spec');
   ELSE
     -- Default all fields to current values
+    new_row.account_set_id := current_row.account_set_id;
     new_row.code := current_row.code;
+    new_row.effective := current_row.effective;
     new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
     new_row.manual_ledger_account_ids := current_row.manual_ledger_account_ids;
     new_row.name := current_row.name;
@@ -76,6 +82,7 @@ BEGIN
   -- Update only the fields that are modified by the specific event
   CASE event_type
     WHEN 'initialized' THEN
+      new_row.account_set_id := (NEW.event ->> 'account_set_id')::UUID;
       new_row.name := (NEW.event ->> 'name');
       new_row.reference := (NEW.event ->> 'reference');
     WHEN 'node_added' THEN
@@ -84,6 +91,10 @@ BEGIN
     WHEN 'manual_transaction_account_added' THEN
       new_row.code := (NEW.event -> 'code');
       new_row.manual_ledger_account_ids := array_append(COALESCE(current_row.manual_ledger_account_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_id')::UUID);
+    WHEN 'first_accounting_period_opened' THEN
+      new_row.effective := (NEW.event ->> 'effective');
+    WHEN 'accounting_period_closed' THEN
+      new_row.effective := (NEW.event ->> 'effective');
   END CASE;
 
   INSERT INTO core_chart_events_rollup (
@@ -91,7 +102,9 @@ BEGIN
     version,
     created_at,
     modified_at,
+    account_set_id,
     code,
+    effective,
     ledger_account_set_ids,
     manual_ledger_account_ids,
     name,
@@ -103,7 +116,9 @@ BEGIN
     new_row.version,
     new_row.created_at,
     new_row.modified_at,
+    new_row.account_set_id,
     new_row.code,
+    new_row.effective,
     new_row.ledger_account_set_ids,
     new_row.manual_ledger_account_ids,
     new_row.name,

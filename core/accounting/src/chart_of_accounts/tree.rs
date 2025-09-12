@@ -149,6 +149,7 @@ mod tests {
 
         let new_chart = NewChart::builder()
             .id(id)
+            .account_set_id(id)
             .name("Test Chart".to_string())
             .reference("ref-01".to_string())
             .build()
