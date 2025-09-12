@@ -17,7 +17,7 @@ jobs:
       
       - uses: ./.github/actions/setup-nix
         with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
           
       - name: Run BATS tests with podman
