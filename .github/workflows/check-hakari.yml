@@ -1,0 +1,23 @@
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+name: cargo hakari
+
+jobs:
+  workspace-hack-check:
+    name: Check workspace-hack
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN_LANA_CI }}
+      - name: Check workspace-hack Cargo.toml is up-to-date
+        run: nix develop -c cargo hakari generate --diff
+      - name: Check all crates depend on workspace-hack
+        run: nix develop -c cargo hakari manage-deps --dry-run

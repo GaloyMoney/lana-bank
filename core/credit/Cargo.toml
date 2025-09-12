@@ -46,6 +46,7 @@ futures = { workspace = true }
 async-graphql = { workspace = true, optional = true }
 sim-time = { workspace = true, optional = true }
 schemars = { workspace = true, optional = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 document-storage = { workspace = true }
