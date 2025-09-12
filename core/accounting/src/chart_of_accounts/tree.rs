@@ -121,7 +121,7 @@ mod tests {
     use es_entity::*;
 
     use crate::{
-        chart_of_accounts::{Chart, NewChart, NewChartNode, chart_node::ChartNode},
+        chart_of_accounts::{Chart, NewChart},
         primitives::CalaJournalId,
     };
 
@@ -144,7 +144,6 @@ mod tests {
     #[test]
     fn test_project_chart_structure() {
         let mut chart = init_chart_of_events();
-        chart.rebuild_indexes();
 
         chart
             .create_node_without_verifying_parent(
@@ -202,7 +201,6 @@ mod tests {
                 CalaJournalId::new(),
             )
             .unwrap();
-
         let tree = chart.chart();
 
         assert_eq!(tree.id, chart.id);
