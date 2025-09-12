@@ -29,6 +29,7 @@ thiserror = { workspace = true }
 lettre = { workspace = true }
 handlebars = { workspace = true }
 chrono = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 anyhow = { workspace = true }
