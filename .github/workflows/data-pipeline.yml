@@ -1,0 +1,80 @@
+name: data pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+jobs:
+  data-pipeline-tests:
+    name: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-podman
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Provision BigQuery infrastructure
+        run: |
+          # Generate unique name prefix for this run
+          UNIQUE_PREFIX="gha-$(date +%s)-$(head -c 4 /dev/urandom | xxd -p)"
+          echo "UNIQUE_PREFIX=$UNIQUE_PREFIX" >> $GITHUB_ENV
+
+          # Setup credentials
+          echo $TF_VAR_sa_creds | base64 -d > /tmp/creds.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds.json
+
+          # Create tfvars file
+          cd tf/bq-setup
+          cat > terraform.tfvars <<EOF
+          name_prefix = "$UNIQUE_PREFIX"
+          gcp_project = "$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
+          gcp_region = "us-central1"
+          git_token = "dummy_token"
+          EOF
+
+          nix develop -c tofu init
+          nix develop -c tofu plan -out=tfplan
+          nix develop -c tofu apply tfplan
+        env:
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+
+      - name: Run BATS tests with podman
+        run: nix develop -c make e2e
+        env:
+          ENGINE_DEFAULT: podman
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+          TF_VAR_name_prefix: ${{ env.UNIQUE_PREFIX }}
+
+      - name: Cleanup BigQuery infrastructure
+        if: always()
+        run: |
+          # Setup credentials
+          echo $TF_VAR_sa_creds | base64 -d > /tmp/creds.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds.json
+
+          cd tf/bq-setup
+          nix develop -c tofu destroy -auto-approve
+        env:
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+
+      - name: Rename bats log
+        if: always()
+        run: mv .e2e-logs e2e-logs || true
+
+      - name: Upload bats log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Podman BATS Logs
+          path: |
+            e2e-logs
+            *.e2e-logs 
