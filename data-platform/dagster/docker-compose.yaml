@@ -77,6 +77,8 @@ services:
         condition: service_healthy
       lana_pipelines:
         condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   dagster_postgres:
     image: postgres:15

@@ -4,6 +4,8 @@ import base64
 import dagster as dg
 import dlt
 from dlt.destinations import bigquery
+from dlt.sources.sql_database import sql_table
+from dlt.sources.credentials import ConnectionStringCredentials
 
 def build_definitions():
 
@@ -16,6 +18,22 @@ def build_definitions():
                 yield {"name": "some_name", "id": i}
 
         return lana_table
+    
+    postgres_credentials = ConnectionStringCredentials()
+    # Set the necessary attributes
+    postgres_credentials.drivername = "postgresql"
+    postgres_credentials.database = "pg"
+    postgres_credentials.username = "user"
+    postgres_credentials.password = "password"  # type: ignore
+    postgres_credentials.host = "172.17.0.1"
+    postgres_credentials.port = 5433
+    
+    postgres_resource = sql_table(
+        credentials=postgres_credentials,
+        schema="public",
+        backend="sqlalchemy",
+        table="core_deposit_events_rollup"
+    )
 
 
     def create_bigquery_destination(base64_credentials):
@@ -56,8 +74,9 @@ def build_definitions():
         )
         
         load_info = pipeline.run(
-            lana_core_pg().with_resources("lana_table"),
-            write_disposition="replace"
+            postgres_resource,
+            write_disposition="replace",
+            table_name="test_table"
         )
         
         context.log.info(f"Pipeline completed.")
