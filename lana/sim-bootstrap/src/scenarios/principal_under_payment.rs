@@ -82,7 +82,9 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
                 obligation_type,
                 ..
             })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
-                tx.send((*obligation_type, *amount)).await?;
+                if tx.send((*obligation_type, *amount)).await.is_err() {
+                    break;
+                };
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
                 if cf.id == *id {
