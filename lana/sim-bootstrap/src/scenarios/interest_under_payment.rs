@@ -7,6 +7,7 @@ use rust_decimal_macros::dec;
 use crate::helpers;
 
 // Scenario 5: A fresh credit facility with no previous payments (interest under payment)
+#[tracing::instrument(name = "sim_bootstrap.interest_under_payment_scenario", skip(app), err)]
 pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, deposit_account_id) =
         helpers::create_customer(&sub, app, "5-interest-under-payment").await?;

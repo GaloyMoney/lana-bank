@@ -7,6 +7,7 @@ use tokio::sync::mpsc;
 use crate::helpers;
 
 // Scenario 3: A credit facility with an principal payment >90 days late
+#[tracing::instrument(name = "sim_bootstrap.principal_late_scenario", skip(app), err)]
 pub async fn principal_late_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, deposit_account_id) =
         helpers::create_customer(&sub, app, "3-principal-late").await?;

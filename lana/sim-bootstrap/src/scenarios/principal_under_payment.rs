@@ -8,6 +8,11 @@ use tokio::sync::mpsc;
 use crate::helpers;
 
 // Scenario 6: A fresh credit facility with interests paid out (principal under payment)
+#[tracing::instrument(
+    name = "sim_bootstrap.principal_under_payment_scenario",
+    skip(app),
+    err
+)]
 pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, deposit_account_id) =
         helpers::create_customer(&sub, app, "6-principal-under-payment").await?;

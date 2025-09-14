@@ -5384,6 +5384,7 @@ dependencies = [
  "serde",
  "sim-time",
  "tokio",
+ "tracing",
 ]
 
 [[package]]

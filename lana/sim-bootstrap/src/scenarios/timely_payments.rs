@@ -7,6 +7,7 @@ use tokio::sync::mpsc;
 use crate::helpers;
 
 // Scenario 1: A credit facility that made timely payments and was paid off all according to the initial payment plan
+#[tracing::instrument(name = "sim_bootstrap.timely_payments_scenario", skip(app), err)]
 pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Result<()> {
     let (customer_id, deposit_account_id) =
         helpers::create_customer(&sub, app, "1-timely-paid").await?;

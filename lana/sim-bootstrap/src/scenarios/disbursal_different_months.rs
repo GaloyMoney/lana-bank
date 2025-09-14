@@ -7,6 +7,11 @@ use tokio::sync::mpsc;
 use crate::helpers;
 
 // Scenario 4: A credit facility that has multiple disbursals making timely payments
+#[tracing::instrument(
+    name = "sim_bootstrap.disbursal_different_months_scenario",
+    skip(app),
+    err
+)]
 pub async fn disbursal_different_months_scenario(
     sub: Subject,
     app: &LanaApp,
