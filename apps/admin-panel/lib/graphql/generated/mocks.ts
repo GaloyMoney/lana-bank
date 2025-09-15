@@ -873,6 +873,7 @@ export const mockCreditFacilityProposal = (overrides?: Partial<CreditFacilityPro
     relationshipsToOmit.add('CreditFacilityProposal');
     return {
         __typename: 'CreditFacilityProposal',
+        approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
         approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
         collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : relationshipsToOmit.has('CollateralBalance') ? {} as CollateralBalance : mockCollateralBalance({}, relationshipsToOmit),
         collateralToMatchInitialCvl: overrides && overrides.hasOwnProperty('collateralToMatchInitialCvl') ? overrides.collateralToMatchInitialCvl! : generateMockValue.satoshis(),
@@ -882,7 +883,6 @@ export const mockCreditFacilityProposal = (overrides?: Partial<CreditFacilityPro
         creditFacilityTerms: overrides && overrides.hasOwnProperty('creditFacilityTerms') ? overrides.creditFacilityTerms! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         facilityAmount: overrides && overrides.hasOwnProperty('facilityAmount') ? overrides.facilityAmount! : generateMockValue.usdCents(),
-        history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : [relationshipsToOmit.has('CreditFacilityApproved') ? {} as CreditFacilityApproved : mockCreditFacilityApproved({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         repaymentPlan: overrides && overrides.hasOwnProperty('repaymentPlan') ? overrides.repaymentPlan! : [relationshipsToOmit.has('CreditFacilityRepaymentPlanEntry') ? {} as CreditFacilityRepaymentPlanEntry : mockCreditFacilityRepaymentPlanEntry({}, relationshipsToOmit)],
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityProposalStatus.Completed,

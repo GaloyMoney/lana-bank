@@ -12,15 +12,12 @@ import {
   GetCreditFacilityHistoryQuery,
   CreditFacilityHistoryEntry,
   CollateralAction,
-  GetCreditFacilityProposalHistoryQuery,
 } from "@/lib/graphql/generated"
 import { formatCollateralAction, cn } from "@/lib/utils"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacilityHistoryProps = {
-  creditFacility:
-    | NonNullable<GetCreditFacilityHistoryQuery["creditFacilityByPublicId"]>
-    | NonNullable<GetCreditFacilityProposalHistoryQuery["creditFacilityProposal"]>
+  creditFacility: NonNullable<GetCreditFacilityHistoryQuery["creditFacilityByPublicId"]>
 }
 
 export const CreditFacilityHistory: React.FC<CreditFacilityHistoryProps> = ({

@@ -5,9 +5,13 @@ import { useTranslations } from "next-intl"
 import { Button } from "@lana/web/ui/button"
 import { formatDate } from "@lana/web/utils"
 import Link from "next/link"
-import { RefreshCw, Check, X, ArrowRight } from "lucide-react"
+import { RefreshCw, Check, X, ArrowRight, ExternalLinkIcon } from "lucide-react"
 
 import { Alert, AlertDescription, AlertTitle } from "@lana/web/ui/alert"
+
+import { Label } from "@lana/web/ui/label"
+
+import { toast } from "sonner"
 
 import { CreditFacilityProposalStatusBadge } from "../status-badge"
 
@@ -18,9 +22,9 @@ import { CreditFacilityProposalCollateralUpdateDialog } from "../collateral-upda
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import {
-  CreditFacilityProposal,
   ApprovalProcessStatus,
   ApprovalProcessFieldsFragment,
+  GetCreditFacilityProposalLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { usePublicIdForCreditFacility } from "@/hooks/use-public-id"
 import ApprovalDialog from "@/app/actions/approve"
@@ -28,20 +32,24 @@ import DenialDialog from "@/app/actions/deny"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 import { removeUnderscore } from "@/lib/utils"
+import { mempoolAddressUrl } from "@/app/credit-facilities/[credit-facility-id]/details"
+
 type CreditFacilityProposalDetailsCardProps = {
-  proposalDetails: CreditFacilityProposal
-  approvalProcess?: ApprovalProcessFieldsFragment | null
+  proposalDetails: NonNullable<
+    GetCreditFacilityProposalLayoutDetailsQuery["creditFacilityProposal"]
+  >
 }
 
 const CreditFacilityProposalDetailsCard: React.FC<
   CreditFacilityProposalDetailsCardProps
-> = ({ proposalDetails, approvalProcess }) => {
+> = ({ proposalDetails }) => {
   const t = useTranslations("CreditFacilityProposals.ProposalDetails.DetailsCard")
 
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
   const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
   const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
+  const commonT = useTranslations("Common")
 
   const details: DetailItemProps[] = [
     {
@@ -74,8 +82,42 @@ const CreditFacilityProposalDetailsCard: React.FC<
       label: t("details.createdAt"),
       value: formatDate(proposalDetails.createdAt),
     },
-  ]
-
+    {
+      label: t("details.custodian"),
+      value: proposalDetails.wallet?.custodian.name ?? t("details.manual"),
+    },
+    proposalDetails.wallet?.address && {
+      label: (
+        <Label className="inline-flex items-center">
+          {t("details.walletAddress")}
+          <a
+            href={mempoolAddressUrl(
+              proposalDetails.wallet!.address,
+              proposalDetails.wallet!.network,
+            )}
+            target="_blank"
+            className="ml-2 inline-flex items-center gap-1 text-xs text-blue-500 whitespace-nowrap leading-none"
+            onClick={(e) => e.stopPropagation()}
+          >
+            <span className="leading-none">{t("details.viewOnMempool")}</span>
+            <ExternalLinkIcon className="h-2.5 w-2.5 shrink-0" aria-hidden="true" />
+          </a>
+        </Label>
+      ),
+      value: (
+        <span
+          onClick={() => {
+            navigator.clipboard.writeText(proposalDetails.wallet!.address)
+            toast.success(commonT("copiedToClipboard"))
+          }}
+          className="cursor-pointer hover:bg-secondary font-mono text-sm"
+          title={proposalDetails.wallet.address}
+        >
+          {proposalDetails.wallet.address}
+        </span>
+      ),
+    },
+  ].filter(Boolean) as DetailItemProps[]
   const { publicId: facilityPublicId } = usePublicIdForCreditFacility(
     proposalDetails.creditFacilityProposalId,
   )
@@ -92,8 +134,8 @@ const CreditFacilityProposalDetailsCard: React.FC<
           {t("buttons.updateCollateral")}
         </Button>
       )}
-      {approvalProcess?.status === ApprovalProcessStatus.InProgress &&
-        approvalProcess.userCanSubmitDecision && (
+      {proposalDetails.approvalProcess.status === ApprovalProcessStatus.InProgress &&
+        proposalDetails.approvalProcess.userCanSubmitDecision && (
           <>
             <Button
               variant="outline"
@@ -131,7 +173,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
         details={details}
         columns={3}
         footerContent={footerContent}
-        errorMessage={approvalProcess?.deniedReason ?? undefined}
+        errorMessage={proposalDetails.approvalProcess.deniedReason ?? undefined}
       />
 
       {proposalDetails.status === "COMPLETED" && (
@@ -156,14 +198,16 @@ const CreditFacilityProposalDetailsCard: React.FC<
         currentCollateral={proposalDetails.collateral.btcBalance}
         collateralToMatchInitialCvl={proposalDetails.collateralToMatchInitialCvl}
       />
-      {approvalProcess && <VotersCard approvalProcess={approvalProcess} />}
+      {proposalDetails.approvalProcess && (
+        <VotersCard approvalProcess={proposalDetails.approvalProcess} />
+      )}
       <ApprovalDialog
-        approvalProcess={approvalProcess as ApprovalProcessFieldsFragment}
+        approvalProcess={proposalDetails.approvalProcess as ApprovalProcessFieldsFragment}
         openApprovalDialog={openApprovalDialog}
         setOpenApprovalDialog={() => setOpenApprovalDialog(false)}
       />
       <DenialDialog
-        approvalProcess={approvalProcess as ApprovalProcessFieldsFragment}
+        approvalProcess={proposalDetails.approvalProcess as ApprovalProcessFieldsFragment}
         openDenialDialog={openDenialDialog}
         setOpenDenialDialog={() => setOpenDenialDialog(false)}
       />

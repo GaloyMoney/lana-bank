@@ -11,11 +11,7 @@ import { CreditFacilityTermsCard } from "./terms-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
-import {
-  CreditFacilityProposal,
-  useGetCreditFacilityProposalLayoutDetailsQuery,
-  useGetApprovalProcessByIdQuery,
-} from "@/lib/graphql/generated"
+import { useGetCreditFacilityProposalLayoutDetailsQuery } from "@/lib/graphql/generated"
 
 gql`
   fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
@@ -72,20 +68,24 @@ gql`
         }
       }
     }
+    wallet {
+      id
+      walletId
+      address
+      network
+      custodian {
+        name
+      }
+    }
+    approvalProcess {
+      ...ApprovalProcessFields
+    }
     collateralToMatchInitialCvl @client
   }
 
   query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
     creditFacilityProposal(id: $creditFacilityProposalId) {
       ...CreditFacilityProposalLayoutFragment
-    }
-  }
-`
-
-gql`
-  query GetApprovalProcessById($id: UUID!) {
-    approvalProcess(id: $id) {
-      ...ApprovalProcessFields
     }
   }
 `
@@ -103,12 +103,6 @@ export default function CreditFacilityProposalLayout({
   const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
     variables: { creditFacilityProposalId: proposalId },
   })
-  const approvalProcessId = data?.creditFacilityProposal?.approvalProcessId
-  const { data: approvalData } = useGetApprovalProcessByIdQuery({
-    variables: approvalProcessId ? { id: approvalProcessId } : (undefined as never),
-    skip: !approvalProcessId,
-    fetchPolicy: "cache-and-network",
-  })
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
@@ -116,10 +110,7 @@ export default function CreditFacilityProposalLayout({
 
   return (
     <main className="max-w-7xl m-auto">
-      <CreditFacilityProposalDetailsCard
-        proposalDetails={data.creditFacilityProposal as CreditFacilityProposal}
-        approvalProcess={approvalData?.approvalProcess ?? null}
-      />
+      <CreditFacilityProposalDetailsCard proposalDetails={data.creditFacilityProposal} />
       <div className="flex md:flex-row gap-2 my-2 w-full">
         <CreditFacilityTermsCard creditFacilityProposal={data.creditFacilityProposal} />
         <CreditFacilityProposalCollateral proposal={data.creditFacilityProposal} />

@@ -587,7 +587,11 @@
           "facilityAmount": "Facility Amount",
           "collateralizationState": "Collateralization State",
           "collateral": "Collateral",
-          "createdAt": "Created At"
+          "createdAt": "Created At",
+          "custodian": "Custodian",
+          "manual": "Manual",
+          "walletAddress": "Wallet Address",
+          "viewOnMempool": "View on mempool"
         },
         "buttons": {
           "updateCollateral": "Update Collateral",

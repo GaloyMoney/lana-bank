@@ -1,6 +1,7 @@
-import { defineConfig } from "cypress"
 import * as fs from "fs"
 import * as path from "path"
+
+import { defineConfig } from "cypress"
 
 const multiplier = 10 // Browserstack local tunnel on GHA Runner can be quite slow
 

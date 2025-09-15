@@ -366,6 +366,10 @@ checksums:
     CreditFacilityProposals/ProposalDetails/DetailsCard/details/collateralizationState: 7c33429a42e7cb133439b578ee6f1b78
     CreditFacilityProposals/ProposalDetails/DetailsCard/details/collateral: b0dcbdb652cb11f0d9eeb77666c8ca8d
     CreditFacilityProposals/ProposalDetails/DetailsCard/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/custodian: 3f479171d178f75a92b6f2349be450d8
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/manual: 772ff39554ea76c8db86f09b7d96fcb9
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/walletAddress: f2610eb9cd14c93aa34d09018765bb26
+    CreditFacilityProposals/ProposalDetails/DetailsCard/details/viewOnMempool: 2f50678a2906b8cb36fb5852b8a0b2cb
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/updateCollateral: b515a49f68419c34c213866ac50fb4b5
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/approve: df82197ab4899a770b4677fbea82abbb
     CreditFacilityProposals/ProposalDetails/DetailsCard/buttons/deny: 5e4572e4d0e5bce1f27f74f857be1c6a

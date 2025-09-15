@@ -587,7 +587,11 @@
           "facilityAmount": "Monto de Línea",
           "collateralizationState": "Estado de Colateralización",
           "collateral": "Garantía",
-          "createdAt": "Fecha de Creación"
+          "createdAt": "Fecha de Creación",
+          "custodian": "Custodio",
+          "manual": "Manual",
+          "walletAddress": "Dirección de la cartera",
+          "viewOnMempool": "Ver en mempool"
         },
         "buttons": {
           "updateCollateral": "Actualizar Garantía",
