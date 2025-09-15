@@ -4,6 +4,9 @@ members = [
   "lana/*",
   "core/*",
   "lib/*"
+,
+  "workspace-hack"
+,
 ]
 exclude = [
   "dev/check-dependency-dag",
