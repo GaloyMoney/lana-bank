@@ -64,7 +64,6 @@
           || pkgs.lib.hasInfix "/.sqlx/" path
           || pkgs.lib.hasInfix "/lana/app/migrations/" path
           || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
-          || pkgs.lib.hasInfix "/lana/entity-rollups/src/templates/" path
           || pkgs.lib.hasInfix "/lana/contract-creation/src/templates/" path
           || pkgs.lib.hasInfix "/lib/rendering/config/" path;
       };
@@ -231,16 +230,6 @@
         installPhase = "touch $out";
       };
 
-      entity-rollups = craneLib.buildPackage {
-        src = rustSource;
-        cargoToml = ./Cargo.toml;
-        cargoArtifacts = debugCargoArtifacts;
-        pname = "entity-rollups";
-        version = "0.0.0";
-        doCheck = false;
-        SQLX_OFFLINE = true;
-        cargoExtraArgs = "-p entity-rollups --all-features";
-      };
 
       write_sdl = craneLib.buildPackage {
         src = rustSource;
@@ -361,7 +350,6 @@
           static = lana-cli-static;
           check-code = checkCode;
           test-in-ci = testInCi;
-          entity-rollups = entity-rollups;
           write_sdl = write_sdl;
           write_customer_sdl = write_customer_sdl;
           meltano = meltanoPkgs.meltano;

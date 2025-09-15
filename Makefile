@@ -62,17 +62,17 @@ check-dag:
 check-code-rust: sdl-rust update-schemas
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
-	git diff --exit-code lana/entity-rollups/schemas
-	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
+	git diff --exit-code dev/entity-rollups/schemas
+	test -z "$$(git ls-files --others --exclude-standard dev/entity-rollups/schemas)"
 	nix build .#check-code -L --option sandbox false
 
 # Cargo alternative for faster compilation during development
 check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo generate-default-config
 	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
 	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
-	git diff --exit-code lana/entity-rollups/schemas
+	git diff --exit-code dev/entity-rollups/schemas
 	git diff --exit-code dev/lana.default.yml
-	test -z "$$(git ls-files --others --exclude-standard lana/entity-rollups/schemas)"
+	test -z "$$(git ls-files --others --exclude-standard dev/entity-rollups/schemas)"
 	SQLX_OFFLINE=true cargo fmt --check --all
 	SQLX_OFFLINE=true cargo check
 	SQLX_OFFLINE=true cargo clippy --all-features --all-targets
@@ -83,10 +83,10 @@ check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo generate-default-conf
 
 # Default (nix-based) schema update
 update-schemas:
-	nix run .#entity-rollups -- update-schemas --force-recreate
+	exit 1
 
 update-schemas-cargo:
-	SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas --force-recreate
+	cd dev/entity-rollups && SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas --force-recreate
 
 clippy:
 	SQLX_OFFLINE=true cargo clippy --all-features
