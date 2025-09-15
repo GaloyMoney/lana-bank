@@ -988,9 +988,7 @@ where
                     )
                     .await?;
 
-                self.ledger
-                    .complete_credit_facility(facility.collateral_id, db, completion)
-                    .await?;
+                self.ledger.complete_credit_facility(db, completion).await?;
                 facility
             }
         };
