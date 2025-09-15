@@ -296,6 +296,7 @@
           cargo-watch
           cargo-deny
           cargo-machete
+          cargo-hakari
           bacon
           typos
           postgresql
