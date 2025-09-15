@@ -10,9 +10,7 @@ pub use lana_app::{
 
 use crate::{
     graphql::{
-        credit_facility::{Collateral, CreditFacilityDisbursal},
-        deposit::Deposit,
-        loader::*,
+        credit_facility::CreditFacilityDisbursal, deposit::Deposit, loader::*,
         withdrawal::Withdrawal,
     },
     primitives::*,
