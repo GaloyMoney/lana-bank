@@ -46,6 +46,7 @@ pub struct Collateral {
     pub credit_facility_id: CreditFacilityId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
+    pub account_id: CalaAccountId,
 
     events: EntityEvents<CollateralEvent>,
 }
@@ -149,6 +150,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                     id,
                     credit_facility_id,
                     custody_wallet_id,
+                    account_id,
                     ..
                 } => {
                     builder = builder
@@ -156,6 +158,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .credit_facility_id(*credit_facility_id)
+                        .account_id(*account_id)
                 }
                 CollateralEvent::UpdatedViaManualInput {
                     collateral_amount: new_value,
