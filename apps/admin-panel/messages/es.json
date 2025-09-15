@@ -487,6 +487,7 @@
     "status": {
       "pending_collateralization": "Colateralización Pendiente",
       "pending_approval": "Aprobación Pendiente",
+      "pending_completion": "Pendiente de completar",
       "completed": "Completado"
     },
     "collateralizationState": {

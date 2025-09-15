@@ -307,6 +307,7 @@ checksums:
     CreditFacilityProposals/table/headers/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     CreditFacilityProposals/status/pending_collateralization: a3861e1934c1764f40801494dbfe5637
     CreditFacilityProposals/status/pending_approval: b25ca494ba78b23ced54002ba14c0bac
+    CreditFacilityProposals/status/pending_completion: 2d7aaa8f1196ff1c4010058a9203da1e
     CreditFacilityProposals/status/completed: 0e4bbce9985f25eb673d9a054c8d5334
     CreditFacilityProposals/collateralizationState/fullycollateralized: ac0dd4d27277fd887b8a195d815af373
     CreditFacilityProposals/collateralizationState/undercollateralized: 08bc680351a0f5bb35acf0cc4f7859f8
