@@ -20,8 +20,8 @@ use cala_ledger::{
 };
 
 use crate::{
-    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
-    ObligationDefaultedReallocationData, ObligationDueReallocationData,
+    COLLATERAL_ENTITY_TYPE, ChartOfAccountsIntegrationConfig, CollateralId, FacilityDurationType,
+    Obligation, ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
     liquidation_process::LiquidationProcess,
     obligation_installment::ObligationInstallment,
@@ -1842,6 +1842,7 @@ impl CreditLedger {
     pub(super) async fn handle_facility_create(
         &self,
         op: es_entity::DbOp<'_>,
+        collateral_id: CollateralId,
         credit_facility: &crate::CreditFacility,
         customer_type: CustomerType,
         duration_type: FacilityDurationType,
@@ -1853,6 +1854,7 @@ impl CreditLedger {
         self.create_accounts_for_credit_facility(
             &mut op,
             credit_facility.id,
+            collateral_id,
             credit_facility.account_ids,
             customer_type,
             duration_type,
@@ -1917,6 +1919,7 @@ impl CreditLedger {
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         credit_facility_id: CreditFacilityId,
+        collateral_id: CollateralId,
         account_ids: CreditFacilityLedgerAccountIds,
         customer_type: CustomerType,
         duration_type: FacilityDurationType,
@@ -1948,7 +1951,7 @@ impl CreditLedger {
             collateral_reference,
             collateral_name,
             collateral_name,
-            entity_ref.clone(),
+            EntityRef::new(COLLATERAL_ENTITY_TYPE, collateral_id),
         )
         .await?;
 

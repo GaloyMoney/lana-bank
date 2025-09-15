@@ -615,6 +615,7 @@ where
         self.ledger
             .handle_facility_create(
                 db,
+                collateral_id,
                 &credit_facility,
                 customer.customer_type,
                 terms.duration.duration_type(),

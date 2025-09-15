@@ -8,13 +8,17 @@ use lana_app::{
         AccountCode as DomainAccountCode, AccountCodeSection as DomainAccountCodeSection,
         journal::JournalEntryCursor, ledger_account::LedgerAccount as DomainLedgerAccount,
     },
-    credit::CREDIT_FACILITY_ENTITY_TYPE,
+    credit::{COLLATERAL_ENTITY_TYPE, CREDIT_FACILITY_ENTITY_TYPE},
     deposit::DEPOSIT_ACCOUNT_ENTITY_TYPE,
     primitives::{Currency, DebitOrCredit},
 };
 
 use crate::{
-    graphql::{credit_facility::CreditFacility, deposit::DepositAccount, loader::*},
+    graphql::{
+        credit_facility::{Collateral, CreditFacility},
+        deposit::DepositAccount,
+        loader::*,
+    },
     primitives::*,
 };
 
@@ -24,6 +28,7 @@ use super::JournalEntry;
 pub enum LedgerAccountEntity {
     DepositAccount(DepositAccount),
     CreditFacility(CreditFacility),
+    Collateral(Collateral),
 }
 
 #[derive(Clone, SimpleObject)]
@@ -72,6 +77,13 @@ impl LedgerAccount {
                     .await?
                     .expect("Could not find credit facility");
                 Some(LedgerAccountEntity::CreditFacility(credit_facility))
+            }
+            entity_type if entity_type == &COLLATERAL_ENTITY_TYPE => {
+                let collateral = loader
+                    .load_one(CollateralId::from(entity_ref.entity_id))
+                    .await?
+                    .expect("Could not find collateral");
+                Some(LedgerAccountEntity::Collateral(collateral))
             }
             _ => None,
         };

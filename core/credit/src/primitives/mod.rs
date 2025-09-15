@@ -126,6 +126,8 @@ pub const CREDIT_FACILITY_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("CreditFacility");
 pub const CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("CreditFacilityProposal");
+pub const COLLATERAL_ENTITY_TYPE: core_accounting::EntityType =
+    core_accounting::EntityType::new("Collateral");
 pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("Disbursal");
 
