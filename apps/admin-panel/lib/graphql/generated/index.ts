@@ -710,7 +710,8 @@ export type CreditFacilityProposalEdge = {
 export enum CreditFacilityProposalStatus {
   Completed = 'COMPLETED',
   PendingApproval = 'PENDING_APPROVAL',
-  PendingCollateralization = 'PENDING_COLLATERALIZATION'
+  PendingCollateralization = 'PENDING_COLLATERALIZATION',
+  PendingCompletion = 'PENDING_COMPLETION'
 }
 
 export type CreditFacilityRepaymentPlanEntry = {

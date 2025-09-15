@@ -93,13 +93,15 @@ impl CreditFacilityProposal {
     pub fn status(&self) -> CreditFacilityProposalStatus {
         if self.is_completed() {
             CreditFacilityProposalStatus::Completed
-        } else if matches!(
+        } else if !matches!(
             self.last_collateralization_state(),
             CreditFacilityProposalCollateralizationState::FullyCollateralized
         ) {
+            CreditFacilityProposalStatus::PendingCollateralization
+        } else if !self.is_approval_process_concluded() {
             CreditFacilityProposalStatus::PendingApproval
         } else {
-            CreditFacilityProposalStatus::PendingCollateralization
+            CreditFacilityProposalStatus::PendingCompletion
         }
     }
 

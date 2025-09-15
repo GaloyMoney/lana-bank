@@ -526,6 +526,7 @@ pub enum CreditFacilityProposalStatus {
     PendingCollateralization,
     PendingApproval,
     Completed,
+    PendingCompletion,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

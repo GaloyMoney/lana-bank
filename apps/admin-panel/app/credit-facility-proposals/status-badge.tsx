@@ -22,6 +22,8 @@ export const CreditFacilityProposalStatusBadge: React.FC<
         return "secondary"
       case CreditFacilityProposalStatus.PendingCollateralization:
         return "destructive"
+      case CreditFacilityProposalStatus.PendingCompletion:
+        return "secondary"
       default: {
         const exhaustiveCheck: never = status
         return exhaustiveCheck

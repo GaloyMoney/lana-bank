@@ -691,6 +691,7 @@ enum CreditFacilityProposalStatus {
 	PENDING_COLLATERALIZATION
 	PENDING_APPROVAL
 	COMPLETED
+	PENDING_COMPLETION
 }
 
 type CreditFacilityRepaymentPlanEntry {
