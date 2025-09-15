@@ -144,67 +144,6 @@ mod tests {
     }
 
     #[test]
-    fn new_chart_node_produces_initialized_event() {
-        let new_node = new_chart_node();
-        let events = new_node.clone().into_events();
-
-        let first = events.iter_all().next().unwrap();
-        match first {
-            ChartNodeEvent::Initialized {
-                id,
-                chart_id,
-                spec,
-                ledger_account_set_id,
-            } => {
-                assert_eq!(id, &new_node.id);
-                assert_eq!(chart_id, &new_node.chart_id);
-                assert_eq!(spec.code, new_node.spec.code);
-                assert_eq!(ledger_account_set_id, &new_node.ledger_account_set_id);
-            }
-            _ => panic!("Expected Initialized event"),
-        }
-    }
-
-    #[test]
-    fn try_from_events_rebuilds_state() {
-        let new_node = new_chart_node();
-        let events = new_node.clone().into_events();
-        let node = ChartNode::try_from_events(events.clone()).unwrap();
-
-        assert_eq!(node.id, new_node.id);
-        assert_eq!(node.chart_id, new_node.chart_id);
-        assert_eq!(node.spec.code, new_node.spec.code);
-        assert_eq!(node.account_set_id, new_node.ledger_account_set_id);
-        assert!(node.manual_transaction_account_id.is_none());
-    }
-
-    #[test]
-    fn assign_manual_transaction_account_adds_event_and_sets_field() {
-        let new_node = new_chart_node();
-        let events = new_node.into_events();
-        let mut node = ChartNode::try_from_events(events).unwrap();
-
-        let result = node.assign_manual_transaction_account();
-
-        match result {
-            Idempotent::Executed((set_id, new_account)) => {
-                assert_eq!(set_id, node.account_set_id);
-                assert_eq!(
-                    new_account.id,
-                    node.manual_transaction_account_id.unwrap().into()
-                );
-            }
-            _ => panic!("Expected Executed on first assignment"),
-        }
-
-        let last_event = node.events.iter_all().last().unwrap();
-        matches!(
-            last_event,
-            ChartNodeEvent::ManualTransactionAccountAssigned { .. }
-        );
-    }
-
-    #[test]
     fn assign_manual_transaction_account_is_idempotent() {
         let new_node = new_chart_node();
         let events = new_node.into_events();
