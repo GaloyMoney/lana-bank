@@ -305,6 +305,7 @@ export type ChartOfAccountsCsvImportPayload = {
 
 export type Collateral = {
   __typename?: 'Collateral';
+  account: LedgerAccount;
   accountId: Scalars['UUID']['output'];
   collateralId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
