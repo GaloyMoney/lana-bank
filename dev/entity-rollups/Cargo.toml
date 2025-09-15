@@ -1,10 +1,8 @@
 [package]
 name = "entity-rollups"
-
+version = "0.1.0"
 license = "FSL-1.1-ALv2"
 edition = "2024"
-
-[workspace]
 
 [features]
 fail-on-warnings = []
@@ -33,15 +31,16 @@ core-credit = { path = "../../core/credit" }
 core-accounting = { path = "../../core/accounting" }
 document-storage = { path = "../../core/document-storage" }
 
-clap = { version = "4.5.47", features = ["derive", "env"] }
-schemars = { version = "1.0.4", features = ["derive", "chrono04", "rust_decimal1"] }
-serde_json = "1.0.143"
-anyhow = "1.0.99"
+clap = { workspace = true }
+schemars = { workspace = true }
+serde_json = { workspace = true }
+anyhow = { workspace = true }
 colored = "3.0"
 similar = { version = "2.6", features = ["inline"] }
-handlebars = "6.3.2"
-chrono = { version = "0.4.42", features = ["clock", "serde"], default-features = false }
-serde = { version = "1.0.214", features = ["derive"] }
+handlebars = { workspace = true }
+chrono = { workspace = true }
+serde = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 tempfile = "3.22.0"

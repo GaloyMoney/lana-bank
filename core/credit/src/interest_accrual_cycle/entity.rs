@@ -386,6 +386,8 @@ impl IntoEvents<InterestAccrualCycleEvent> for NewInterestAccrualCycle {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::inconsistent_digit_grouping)]
+
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 

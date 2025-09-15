@@ -3,7 +3,7 @@ use cargo_metadata::{CargoOpt, MetadataCommand};
 
 fn main() -> Result<()> {
     let metadata = MetadataCommand::new()
-        .manifest_path("../../Cargo.toml")
+        .manifest_path("./Cargo.toml")
         .features(CargoOpt::AllFeatures)
         .exec()?;
 
@@ -14,7 +14,7 @@ fn main() -> Result<()> {
         let relative_path = package_path.strip_prefix(&metadata.workspace_root).unwrap();
 
         // Skip packages that don't follow our tier structure (like tools and scripts)
-        let tier = match get_tier(&relative_path.to_string()) {
+        let tier = match get_tier(relative_path.as_ref()) {
             Ok(tier) => tier,
             Err(_) => continue, // Skip packages not in our tier structure
         };
@@ -22,7 +22,7 @@ fn main() -> Result<()> {
         for dependency in &package.dependencies {
             if let Some(dep_path) = &dependency.path {
                 let dep_relative = dep_path.strip_prefix(&metadata.workspace_root).unwrap();
-                let dep_tier = match get_tier(&dep_relative.to_string()) {
+                let dep_tier = match get_tier(dep_relative.as_ref()) {
                     Ok(tier) => tier,
                     Err(_) => continue, // Skip dependencies not in our tier structure
                 };

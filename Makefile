@@ -43,70 +43,17 @@ run-server-nix:
 run-server-with-bootstrap:
 	cargo run --all-features --bin lana-cli -- --config ./bats/lana.yml | tee .e2e-logs
 
-check-code: check-code-rust-cargo check-code-apps check-code-tf check-code-nix
+check-code: check-code-apps
+	nix flake check
 
-check-code-tf:
-	tofu fmt -recursive .
-	git diff --exit-code *.tf
-
-check-code-nix:
-	nix fmt .
-	git diff --exit-code *.nix
-
-# Dependency DAG validation targets
-check-dag:
-	@echo "🔍 Checking dependency DAG..."
-	@cd dev/check-dependency-dag && cargo run --quiet
-
-# Default (nix-based) code checking
-check-code-rust: sdl-rust update-schemas
-	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
-	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
-	git diff --exit-code dev/entity-rollups/schemas
-	test -z "$$(git ls-files --others --exclude-standard dev/entity-rollups/schemas)"
-	nix build .#check-code -L --option sandbox false
-
-# Cargo alternative for faster compilation during development
-check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo generate-default-config
-	git diff --exit-code lana/customer-server/src/graphql/schema.graphql
-	git diff --exit-code lana/admin-server/src/graphql/schema.graphql
-	git diff --exit-code dev/entity-rollups/schemas
-	git diff --exit-code dev/lana.default.yml
-	test -z "$$(git ls-files --others --exclude-standard dev/entity-rollups/schemas)"
-	SQLX_OFFLINE=true cargo fmt --check --all
-	SQLX_OFFLINE=true cargo check
-	SQLX_OFFLINE=true cargo clippy --all-features --all-targets
-	SQLX_OFFLINE=true cargo audit
-	cargo deny check --hide-inclusion-graph
-	cargo machete
-	make check-dag
-
-# Default (nix-based) schema update
 update-schemas:
-	exit 1
-
-update-schemas-cargo:
-	cd dev/entity-rollups && SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas --force-recreate
-
-clippy:
-	SQLX_OFFLINE=true cargo clippy --all-features
-
-build:
-	SQLX_OFFLINE=true cargo build --locked
-
-build-for-tests:
-	nix build .
+	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
 e2e: clean-deps start-deps build-for-tests
 	bats -t bats
 
-# Default (nix-based) SDL generation
-sdl-rust:
-	SQLX_OFFLINE=true nix run .#write_sdl -- > lana/admin-server/src/graphql/schema.graphql
-	SQLX_OFFLINE=true nix run .#write_customer_sdl -- > lana/customer-server/src/graphql/schema.graphql
-
 # Cargo alternative for faster compilation during development
-sdl-rust-cargo:
+sdl-rust:
 	SQLX_OFFLINE=true cargo run --bin write_sdl > lana/admin-server/src/graphql/schema.graphql
 	SQLX_OFFLINE=true cargo run --bin write_customer_sdl > lana/customer-server/src/graphql/schema.graphql
 
