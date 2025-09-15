@@ -103,7 +103,9 @@ where
             structuring_fee,
         } = match self.credit_facilities.activate_in_op(&mut op, id).await? {
             ActivationOutcome::Activated(data) => data,
-            ActivationOutcome::Ignored => return Ok(()),
+            ActivationOutcome::Ignored => {
+                return Ok(());
+            }
         };
 
         let due_date = credit_facility.maturity_date;

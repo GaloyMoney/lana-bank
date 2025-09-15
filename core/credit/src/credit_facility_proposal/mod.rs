@@ -150,7 +150,6 @@ where
         name = "credit.credit_facility_proposals.complete_in_op",
         skip(self, db)
     )]
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub(crate) async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
@@ -165,7 +164,7 @@ where
             .get_credit_facility_proposal_balance(proposal.account_ids)
             .await?;
 
-        let Ok(es_entity::Idempotent::Executed(_)) = proposal.complete(balances, price) else {
+        let es_entity::Idempotent::Executed(_) = proposal.complete(balances, price)? else {
             return Ok(CreditFacilityProposalCompletionOutcome::Ignored);
         };
 

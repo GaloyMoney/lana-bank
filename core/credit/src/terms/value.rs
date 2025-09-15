@@ -273,15 +273,6 @@ impl TermValues {
         price: PriceOfOneBTC,
     ) -> bool {
         let total = balance.facility_amount_cvl(price);
-        total >= self.initial_cvl
-    }
-
-    pub fn is_activation_allowed(
-        &self,
-        balance: CreditFacilityBalanceSummary,
-        price: PriceOfOneBTC,
-    ) -> bool {
-        let total = balance.facility_amount_cvl(price);
         total >= self.margin_call_cvl
     }
 
@@ -869,13 +860,16 @@ mod test {
         let required_collateral =
             price.cents_to_sats_round_up(terms.margin_call_cvl.scale(principal));
 
-        let mut balance = default_balances(principal);
-        balance.collateral = required_collateral - Satoshis::ONE;
+        let balance = CreditFacilityProposalBalanceSummary::new(
+            principal,
+            required_collateral - Satoshis::from(1),
+        );
 
-        assert!(!terms.is_activation_allowed(balance, price));
+        assert!(!terms.is_proposal_completion_allowed(balance, price));
 
-        balance.collateral = required_collateral;
-        assert!(terms.is_activation_allowed(balance, price));
+        let balance = CreditFacilityProposalBalanceSummary::new(principal, required_collateral);
+
+        assert!(terms.is_proposal_completion_allowed(balance, price));
     }
 
     #[test]
