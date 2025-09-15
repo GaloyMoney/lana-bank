@@ -7,6 +7,7 @@ members = [
 ]
 exclude = [
   "dev/check-dependency-dag",
+  "dev/entity-rollups",
   "lib/js",
 ]
 

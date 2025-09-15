@@ -16,6 +16,7 @@ pub enum CVLPct {
     Infinite,
 }
 
+#[cfg(feature = "graphql")]
 async_graphql::scalar!(CVLPct);
 
 impl PartialOrd for CVLPct {
