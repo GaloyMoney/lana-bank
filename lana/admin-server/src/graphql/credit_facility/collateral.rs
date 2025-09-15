@@ -12,7 +12,7 @@ pub struct Collateral {
     id: ID,
     collateral_id: UUID,
     pub(crate) wallet_id: Option<UUID>,
-    pub(crate) account_id: UUID,
+    account_id: UUID,
 }
 
 impl From<DomainCollateral> for Collateral {
