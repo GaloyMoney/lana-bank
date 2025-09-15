@@ -13,7 +13,8 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    custody::Wallet, customer::*, loader::LanaDataLoader, primitives::SortDirection, terms::*,
+    approval_process::ApprovalProcess, custody::Wallet, customer::*, loader::LanaDataLoader,
+    primitives::SortDirection, terms::*,
 };
 pub use lana_app::{
     credit::{

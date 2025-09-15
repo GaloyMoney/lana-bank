@@ -604,12 +604,6 @@
       "TermsCard": {
         "title": "Terms",
         "description": "Details about the terms for this proposal"
-      },
-      "Layout": {
-        "tabs": {
-          "history": "History",
-          "repaymentPlan": "Repayment Plan"
-        }
       }
     }
   },

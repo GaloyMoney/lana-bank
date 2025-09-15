@@ -604,12 +604,6 @@
       "TermsCard": {
         "title": "Términos",
         "description": "Detalles sobre los términos de esta propuesta"
-      },
-      "Layout": {
-        "tabs": {
-          "history": "Historial",
-          "repaymentPlan": "Plan de Pago"
-        }
       }
     }
   },

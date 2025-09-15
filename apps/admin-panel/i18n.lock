@@ -375,8 +375,6 @@ checksums:
     CreditFacilityProposals/ProposalDetails/DetailsCard/alerts/viewAssociatedFacility: 261a89b0014602e14f1bea3ac859fc96
     CreditFacilityProposals/ProposalDetails/TermsCard/title: c531b88ecfe7dd2337a34f4a9ed18a5f
     CreditFacilityProposals/ProposalDetails/TermsCard/description: 1d63f1d44618ada75e52f2a2161ed859
-    CreditFacilityProposals/ProposalDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
-    CreditFacilityProposals/ProposalDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
     CreditFacilities/title: 4283868565aa25d5513636fc6e12d49c
     CreditFacilities/description: 18da4507529b9ddbd3762bce95c86b8f
     CreditFacilities/table/headers/customer: 846b48bb14b3d62c75cde5031e6bbfd7

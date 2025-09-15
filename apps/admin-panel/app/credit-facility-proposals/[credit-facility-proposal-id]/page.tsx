@@ -3,8 +3,8 @@
 import { use } from "react"
 import { gql } from "@apollo/client"
 
-import { useGetCreditFacilityProposalHistoryQuery } from "@/lib/graphql/generated"
-import { CreditFacilityHistory } from "@/app/credit-facilities/[credit-facility-id]/history"
+import { useGetCreditFacilityProposalRepaymentPlanQuery } from "@/lib/graphql/generated"
+import { CreditFacilityRepaymentPlan } from "@/app/credit-facilities/[credit-facility-id]/repayment-plan/list"
 
 interface CreditFacilityProposalDetailsPageProps {
   params: Promise<{
@@ -13,63 +13,13 @@ interface CreditFacilityProposalDetailsPageProps {
 }
 
 gql`
-  fragment CreditFacilityProposalHistoryFragment on CreditFacilityProposal {
-    id
-    creditFacilityProposalId
-    history {
-      ... on CreditFacilityIncrementalPayment {
-        cents
-        recordedAt
-        txId
-        effective
-      }
-      ... on CreditFacilityCollateralUpdated {
-        satoshis
-        recordedAt
-        action
-        txId
-        effective
-      }
-      ... on CreditFacilityApproved {
-        cents
-        recordedAt
-        txId
-        effective
-      }
-      ... on CreditFacilityCollateralizationUpdated {
-        state
-        collateral
-        outstandingInterest
-        outstandingDisbursal
-        recordedAt
-        price
-        effective
-      }
-      ... on CreditFacilityDisbursalExecuted {
-        cents
-        recordedAt
-        txId
-        effective
-      }
-      ... on CreditFacilityInterestAccrued {
-        cents
-        recordedAt
-        txId
-        days
-        effective
-      }
-      ... on CreditFacilityLiquidationAmountReserved {
-        cents
-        recordedAt
-        effective
-        txId
-      }
-    }
-  }
-
-  query GetCreditFacilityProposalHistory($id: UUID!) {
+  query GetCreditFacilityProposalRepaymentPlan($id: UUID!) {
     creditFacilityProposal(id: $id) {
-      ...CreditFacilityProposalHistoryFragment
+      id
+      creditFacilityProposalId
+      repaymentPlan {
+        ...RepaymentOnFacilityPage
+      }
     }
   }
 `
@@ -78,12 +28,11 @@ export default function CreditFacilityProposalDetailsPage({
   params,
 }: CreditFacilityProposalDetailsPageProps) {
   const { "credit-facility-proposal-id": proposalId } = use(params)
-  const { data } = useGetCreditFacilityProposalHistoryQuery({
+  const { data } = useGetCreditFacilityProposalRepaymentPlanQuery({
     variables: { id: proposalId },
-    fetchPolicy: "cache-and-network",
   })
 
   if (!data?.creditFacilityProposal) return null
 
-  return <CreditFacilityHistory creditFacility={data.creditFacilityProposal} />
+  return <CreditFacilityRepaymentPlan creditFacility={data.creditFacilityProposal} />
 }

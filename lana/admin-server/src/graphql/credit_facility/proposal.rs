@@ -10,7 +10,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{CollateralBalance, CreditFacilityHistoryEntry, CreditFacilityRepaymentPlanEntry};
+use super::{ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry};
 
 pub use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal,
@@ -87,21 +87,21 @@ impl CreditFacilityProposal {
         self.entity.terms.into()
     }
 
-    async fn history(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<CreditFacilityHistoryEntry>> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
-        Ok(app.credit().history(sub, self.entity.id).await?)
-    }
-
     async fn repayment_plan(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<CreditFacilityRepaymentPlanEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         Ok(app.credit().repayment_plan(sub, self.entity.id).await?)
+    }
+
+    async fn approval_process(&self, ctx: &Context<'_>) -> async_graphql::Result<ApprovalProcess> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let process = loader
+            .load_one(self.entity.approval_process_id)
+            .await?
+            .expect("process not found");
+        Ok(process)
     }
 }
 

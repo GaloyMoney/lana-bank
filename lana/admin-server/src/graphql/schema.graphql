@@ -627,8 +627,8 @@ type CreditFacilityProposal {
 	status: CreditFacilityProposalStatus!
 	customer: Customer!
 	creditFacilityTerms: TermValues!
-	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	approvalProcess: ApprovalProcess!
 }
 
 input CreditFacilityProposalCollateralUpdateInput {
