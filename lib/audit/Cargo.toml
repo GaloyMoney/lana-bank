@@ -7,7 +7,7 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-json-schema = ["dep:schemars"]
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 es-entity = { workspace = true }
@@ -18,3 +18,4 @@ serde = { workspace = true }
 chrono = { workspace = true }
 async-trait = { workspace = true }
 schemars = { workspace = true, optional = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

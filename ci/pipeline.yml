@@ -42,8 +42,130 @@ groups:
       -  #@ build_app_edge_image_name("customer-portal")
       - build-meltano-edge-image
       - build-static-binary
+  - name: nix-cache
+    jobs: [populate-nix-cache]
 
 jobs:
+  - name: populate-nix-cache
+    plan:
+    - get: lana-prs
+      trigger: true
+      version: every
+    - in_parallel:
+      - put: lana-prs
+        params:
+          path: lana-prs
+          status: pending
+          context: populate-nix-cache
+      - task: cache-lana-deps
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: lana-prs
+            path: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          outputs:
+          - name: repo
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-deps
+    - in_parallel:
+      - task: nix-flake-check
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                
+                cachix watch-exec $CACHIX_CACHE_NAME -- nix flake check
+      - task: cache-dev-profile
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix develop --profile /tmp/dev-profile --command true
+
+      - task: cache-lana-cli-debug
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-debug
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#bats
+      - task: cache-nextest
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#nextest
+      on_failure:
+        put: lana-prs
+        params:
+          path: lana-prs
+          status: failure
+          context: populate-nix-cache
+    - put: lana-prs
+      params:
+        path: lana-prs
+        status: success
+        context: populate-nix-cache
+
   -  #@ build_edge_image()
 
   - name: bats-integrations-test
@@ -546,3 +668,17 @@ resources:
   -  #@ app_src_resource("customer-portal", "main")
   -  #@ app_edge_image("customer-portal")
   -  #@ app_latest_image("customer-portal")
+  - name: lana-prs
+    type: pull-request
+    check_every: 24h
+    webhook_token: ((webhook.secret))
+    source:
+      base_branch: #@ data.values.git_branch
+      repository: #@ data.values.gh_org + "/" + data.values.gh_repository
+      access_token: #@ data.values.github_token
+
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource

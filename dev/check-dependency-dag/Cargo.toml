@@ -1,8 +1,10 @@
 [package]
 name = "check-dependency-dag"
 version = "0.1.0"
+license = "FSL-1.1-ALv2"
 edition = "2024"
 
 [dependencies]
 cargo_metadata = "0.18"
-anyhow = "1.0" 
+anyhow = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

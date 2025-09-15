@@ -33,4 +33,4 @@ runs:
         # Test podman
         podman version
         podman info
-      shell: bash 
+      shell: bash
