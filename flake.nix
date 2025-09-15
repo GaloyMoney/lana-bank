@@ -230,7 +230,6 @@
         installPhase = "touch $out";
       };
 
-
       write_sdl = craneLib.buildPackage {
         src = rustSource;
         cargoToml = ./Cargo.toml;
