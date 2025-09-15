@@ -124,13 +124,8 @@ pub struct LedgerOmnibusAccountIds {
 
 pub const CREDIT_FACILITY_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("CreditFacility");
-
 pub const CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("CreditFacilityProposal");
-
-pub const COLLATERAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
-    core_accounting::EntityType::new("Collateral");
-
 pub const DISBURSAL_TRANSACTION_ENTITY_TYPE: core_accounting::EntityType =
     core_accounting::EntityType::new("Disbursal");
 
@@ -608,7 +603,6 @@ pub enum CreditFacilityProposalCollateralizationState {
 }
 
 pub struct CollateralUpdate {
-    pub entity_id: CollateralId,
     pub tx_id: LedgerTxId,
     pub abs_diff: Satoshis,
     pub action: CollateralAction,

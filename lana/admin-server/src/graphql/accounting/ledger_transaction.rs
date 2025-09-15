@@ -4,7 +4,7 @@ pub use lana_app::{
     accounting::ledger_transaction::{
         LedgerTransaction as DomainLedgerTransaction, LedgerTransactionCursor,
     },
-    credit::{COLLATERAL_TRANSACTION_ENTITY_TYPE, DISBURSAL_TRANSACTION_ENTITY_TYPE},
+    credit::DISBURSAL_TRANSACTION_ENTITY_TYPE,
     deposit::{DEPOSIT_TRANSACTION_ENTITY_TYPE, WITHDRAWAL_TRANSACTION_ENTITY_TYPE},
 };
 
@@ -34,7 +34,6 @@ pub struct LedgerTransaction {
 pub enum LedgerTransactionEntity {
     Deposit(Deposit),
     Withdrawal(Withdrawal),
-    Collateral(Collateral),
     Disbursal(CreditFacilityDisbursal),
 }
 
@@ -73,13 +72,6 @@ impl LedgerTransaction {
                     .await?
                     .expect("Could not find disbursal entity");
                 Some(LedgerTransactionEntity::Disbursal(disbursal))
-            }
-            entity_type if entity_type == &COLLATERAL_TRANSACTION_ENTITY_TYPE => {
-                let collateral = loader
-                    .load_one(CollateralId::from(entity_ref.entity_id))
-                    .await?
-                    .expect("Could not find collateral entity");
-                Some(LedgerTransactionEntity::Collateral(collateral))
             }
             _ => None,
         };

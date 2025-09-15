@@ -6,16 +6,12 @@ use cala_ledger::{
     *,
 };
 
-use crate::{
-    ledger::error::*,
-    primitives::{COLLATERAL_TRANSACTION_ENTITY_TYPE, CalaAccountId},
-};
+use crate::{ledger::error::*, primitives::CalaAccountId};
 
 pub const REMOVE_COLLATERAL_CODE: &str = "REMOVE_COLLATERAL";
 
 #[derive(Debug)]
 pub struct RemoveCollateralParams {
-    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -57,11 +53,6 @@ impl RemoveCollateralParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
-            NewParamDefinition::builder()
-                .name("meta")
-                .r#type(ParamDataType::Json)
-                .build()
-                .unwrap(),
         ]
     }
 }
@@ -69,7 +60,6 @@ impl RemoveCollateralParams {
 impl From<RemoveCollateralParams> for Params {
     fn from(
         RemoveCollateralParams {
-            entity_id,
             journal_id,
             currency,
             amount,
@@ -85,9 +75,6 @@ impl From<RemoveCollateralParams> for Params {
         params.insert("collateral_account_id", collateral_account_id);
         params.insert("bank_collateral_account_id", bank_collateral_account_id);
         params.insert("effective", effective);
-        let entity_ref =
-            core_accounting::EntityRef::new(COLLATERAL_TRANSACTION_ENTITY_TYPE, entity_id);
-        params.insert("meta", serde_json::json!({"entity_ref":entity_ref}));
         params
     }
 }
@@ -100,7 +87,6 @@ impl RemoveCollateral {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
-            .metadata("params.meta")
             .description("'Record a deposit'")
             .build()
             .expect("Couldn't build TxInput");

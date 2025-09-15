@@ -20,7 +20,7 @@ use cala_ledger::{
 };
 
 use crate::{
-    ChartOfAccountsIntegrationConfig, CollateralId, FacilityDurationType, Obligation,
+    ChartOfAccountsIntegrationConfig, FacilityDurationType, Obligation,
     ObligationDefaultedReallocationData, ObligationDueReallocationData,
     ObligationOverdueReallocationData,
     liquidation_process::LiquidationProcess,
@@ -1145,7 +1145,6 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         CollateralUpdate {
-            entity_id,
             tx_id,
             abs_diff,
             action,
@@ -1164,7 +1163,6 @@ impl CreditLedger {
                         tx_id,
                         templates::ADD_COLLATERAL_CODE,
                         templates::AddCollateralParams {
-                            entity_id: entity_id.into(),
                             journal_id: self.journal_id,
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
@@ -1185,7 +1183,6 @@ impl CreditLedger {
                         tx_id,
                         templates::REMOVE_COLLATERAL_CODE,
                         templates::RemoveCollateralParams {
-                            entity_id: entity_id.into(),
                             journal_id: self.journal_id,
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
@@ -1390,7 +1387,6 @@ impl CreditLedger {
 
     pub async fn complete_credit_facility(
         &self,
-        entity_id: CollateralId,
         op: es_entity::DbOp<'_>,
         CreditFacilityCompletion {
             tx_id,
@@ -1407,7 +1403,6 @@ impl CreditLedger {
                 tx_id,
                 templates::REMOVE_COLLATERAL_CODE,
                 templates::RemoveCollateralParams {
-                    entity_id: entity_id.into(),
                     journal_id: self.journal_id,
                     currency: self.btc,
                     amount: collateral.to_btc(),
