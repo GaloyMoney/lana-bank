@@ -270,12 +270,6 @@ type ChartOfAccountsCsvImportPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
-type Collateral {
-	id: ID!
-	collateralId: UUID!
-	walletId: UUID
-}
-
 enum CollateralAction {
 	ADD
 	REMOVE
@@ -1403,7 +1397,7 @@ type LedgerTransactionEdge {
 	cursor: String!
 }
 
-union LedgerTransactionEntity = Deposit | Withdrawal | Collateral | CreditFacilityDisbursal
+union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 
 type LoanAgreement {
 	id: ID!
