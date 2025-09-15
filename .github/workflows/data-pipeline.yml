@@ -20,8 +20,8 @@ jobs:
 
       - name: Provision BigQuery infrastructure
         run: |
-          # Generate unique name prefix for this run
-          UNIQUE_PREFIX="gha-$(date +%s)-$(head -c 4 /dev/urandom | xxd -p)"
+          # Generate unique name prefix for this run (max 30 chars for GCP service accounts)
+          UNIQUE_PREFIX="gha-$(date +%s | tail -c 6)-$(head -c 2 /dev/urandom | xxd -p)"
           echo "UNIQUE_PREFIX=$UNIQUE_PREFIX" >> $GITHUB_ENV
 
           # Setup credentials
