@@ -39,9 +39,7 @@ pub struct ChartNode {
 }
 
 impl ChartNode {
-    pub fn assign_manual_transaction_account(
-        &mut self,
-    ) -> Idempotent<(CalaAccountSetId, NewAccount)> {
+    pub fn assign_manual_transaction_account(&mut self) -> Idempotent<NewAccount> {
         idempotency_guard!(
             self.events.iter_all().rev(),
             ChartNodeEvent::ManualTransactionAccountAssigned { .. }
@@ -62,7 +60,7 @@ impl ChartNode {
             .build()
             .expect("Could not build new account");
 
-        Idempotent::Executed((self.account_set_id, new_account))
+        Idempotent::Executed(new_account)
     }
 }
 

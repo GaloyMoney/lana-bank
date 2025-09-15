@@ -254,9 +254,10 @@ impl Chart {
                     .get_node_by_code_mut(&code)
                     .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
                 match node_mut.assign_manual_transaction_account() {
-                    Idempotent::Executed((account_set_id, new_account)) => Ok(
-                        ManualAccountFromChart::NewAccount((account_set_id, new_account)),
-                    ),
+                    Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
+                        node_mut.account_set_id,
+                        new_account,
+                    ))),
                     Idempotent::Ignored => Ok(ManualAccountFromChart::IdInChart(
                         node_mut
                             .manual_transaction_account_id

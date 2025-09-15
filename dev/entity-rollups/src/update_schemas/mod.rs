@@ -370,12 +370,6 @@ pub fn update_schemas(
         SchemaInfo {
             name: "ChartEvent",
             filename: "chart_event_schema.json",
-            collections: vec![CollectionRollup {
-                column_name: "chart_ids",
-                values: "id",
-                add_events: vec!["Initialized".to_string()],
-                remove_events: vec![],
-            }],
             generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
             ..Default::default()
         },
