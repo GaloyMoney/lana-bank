@@ -85,11 +85,15 @@ pub(super) fn project_from_nodes<'a>(
             parent: node.spec.parent.clone(),
             children: vec![],
         }));
-        if let Some(parent) = node.spec.parent
-            && let Some(parent_weak) = tree_nodes_by_code.get_mut(&parent)
-            && let Some(parent_rc) = parent_weak.upgrade()
-        {
-            parent_rc.borrow_mut().children.push(Rc::clone(&node_rc));
+        if let Some(parent) = node.spec.parent {
+            tree_nodes_by_code
+                .get_mut(&parent)
+                .expect("Parent missing in tree_nodes_by_code for code")
+                .upgrade()
+                .expect("Parent node for code was dropped")
+                .borrow_mut()
+                .children
+                .push(Rc::clone(&node_rc));
         } else {
             chart_children.push(Rc::clone(&node_rc));
         }

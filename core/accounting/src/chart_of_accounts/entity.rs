@@ -144,6 +144,8 @@ impl Chart {
     }
 
     /// Returns ancestors, in this chart of accounts, of an account with `code` (not included).
+    /// The lower in hierarchy the parent is, the lower index it will have in the resulting vector;
+    /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
         let mut current_code = code;
@@ -169,6 +171,7 @@ impl Chart {
     }
 
     /// Returns direct children, in this chart of accounts, of an account with `code` (not included).
+    /// No particular order of the children is guaranteed.
     pub fn children(
         &self,
         code: &AccountCode,

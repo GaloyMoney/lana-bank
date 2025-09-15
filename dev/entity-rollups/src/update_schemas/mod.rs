@@ -4,7 +4,7 @@ mod migration;
 use colored::*;
 
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
-use core_accounting::event_schema::{ChartEvent, ManualTransactionEvent};
+use core_accounting::event_schema::{ChartEvent, ChartNodeEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
     InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent,
@@ -370,21 +370,33 @@ pub fn update_schemas(
         SchemaInfo {
             name: "ChartEvent",
             filename: "chart_event_schema.json",
+            collections: vec![CollectionRollup {
+                column_name: "chart_ids",
+                values: "id",
+                add_events: vec!["Initialized".to_string()],
+                remove_events: vec![],
+            }],
+            generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "ChartNodeEvent",
+            filename: "chart_node_event_schema.json",
             collections: vec![
                 CollectionRollup {
                     column_name: "ledger_account_set_ids",
                     values: "ledger_account_set_id",
-                    add_events: vec!["NodeAdded".to_string()],
+                    add_events: vec!["Initialized".to_string()],
                     remove_events: vec![],
                 },
                 CollectionRollup {
                     column_name: "manual_ledger_account_ids",
                     values: "ledger_account_id",
-                    add_events: vec!["ManualTransactionAccountAdded".to_string()],
+                    add_events: vec!["ManualTransactionAccountAssigned".to_string()],
                     remove_events: vec![],
                 },
             ],
-            generate_schema: || serde_json::to_value(schema_for!(ChartEvent)).unwrap(),
+            generate_schema: || serde_json::to_value(schema_for!(ChartNodeEvent)).unwrap(),
             ..Default::default()
         },
         SchemaInfo {

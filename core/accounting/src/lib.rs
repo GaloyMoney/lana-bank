@@ -40,6 +40,7 @@ pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
+    pub use crate::chart_node::ChartNodeEvent;
     pub use crate::chart_of_accounts::ChartEvent;
     pub use crate::manual_transaction::ManualTransactionEvent;
 }
