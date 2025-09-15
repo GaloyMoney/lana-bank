@@ -75,6 +75,7 @@ impl From<RemoveCollateralParams> for Params {
         params.insert("collateral_account_id", collateral_account_id);
         params.insert("bank_collateral_account_id", bank_collateral_account_id);
         params.insert("effective", effective);
+
         params
     }
 }

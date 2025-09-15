@@ -425,6 +425,7 @@ export const mockCollateral = (overrides?: Partial<Collateral>, _relationshipsTo
     relationshipsToOmit.add('Collateral');
     return {
         __typename: 'Collateral',
+        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         accountId: overrides && overrides.hasOwnProperty('accountId') ? overrides.accountId! : generateMockValue.uuid(),
         collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),

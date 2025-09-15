@@ -275,6 +275,7 @@ type Collateral {
 	collateralId: UUID!
 	walletId: UUID
 	accountId: UUID!
+	account: LedgerAccount!
 }
 
 enum CollateralAction {
