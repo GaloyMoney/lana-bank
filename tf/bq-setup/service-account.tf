@@ -41,3 +41,24 @@ resource "google_project_iam_member" "project_iam_admin" {
   role    = "roles/resourcemanager.projectIamAdmin"
   member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
 }
+
+resource "google_project_iam_member" "storage_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/storage.admin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_project_iam_member" "secret_manager_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/secretmanager.admin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_project_iam_member" "sa_key_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/iam.serviceAccountKeyAdmin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
