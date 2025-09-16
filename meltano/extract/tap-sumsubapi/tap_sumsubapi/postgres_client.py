@@ -37,7 +37,9 @@ class PostgresClient:
                     where recorded_at > %s
                     and content->>'type' in ('applicantReviewed', 'applicantPersonalInfoChanged')
                 )
-                select customer_id, now()
+                select
+                    customer_id,
+                    now() as recorded_at
                 from customer_ids
             """
             cursor.execute(query, (starting_timestamp,))
