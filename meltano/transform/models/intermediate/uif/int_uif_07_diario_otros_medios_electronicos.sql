@@ -1,7 +1,15 @@
 with seed_bank_address as (select * from {{ ref("seed_bank_address") }}),
-int_core_withdrawal_events_rollup as (select * from {{ ref("int_core_withdrawal_events_rollup")}})
+int_core_withdrawal_events_rollup_sequence as (select * from {{ ref("int_core_withdrawal_events_rollup_sequence") }}) ,
+int_core_withdrawal_events_rollup as (select * from {{ ref("int_core_withdrawal_events_rollup") }}),
+int_core_deposit_account_events_rollup as (select * from {{ ref("int_core_deposit_account_events_rollup") }}),
+approved_withdrawals as (
+    select withdrawal_id
+    from int_core_withdrawal_events_rollup_sequence
+    where is_confirmed = true
+    group by withdrawal_id
+)
 select
-    null as numeroRegistroBancario,
+    wer.withdrawal_id as numeroRegistroBancario, -- probably this should be a public id and not the private uuid
     JSON_OBJECT(
         'direccionAgencia', bank_address.full_address,
         'idDepartamento', bank_address.region_id,
@@ -12,15 +20,19 @@ select
     null as detallesPersonaA,
     null as tipoPersonaB,
     null as detallesPersonaB,
-    null as numeroCuentaPO,
-    null as claseCuentaPO,
+    aer.public_id as numeroCuentaPO,
+    "Cuenta Corriente" as claseCuentaPO,
     null as conceptoTransaccionPO,
-    null as valorOtrosMediosElectronicosPO,
+    wer.amount_usd as valorOtrosMediosElectronicosPO,
     null as numeroProductoPB,
     null as claseCuentaPB,
-    null as montoTransaccionPB,
-    null as valorMedioElectronicoPB,
+    wer.amount_usd as montoTransaccionPB,
+    wer.amount_usd as valorMedioElectronicoPB,
     null as bancoCuentaDestinatariaPB
-from seed_bank_address as bank_address
--- Note: this table should be cross joined to actual transactions, not accessed like this.
--- Right now it's just here cause there are no more tables.
+from int_core_withdrawal_events_rollup wer
+inner join approved_withdrawals aw 
+    on wer.withdrawal_id = aw.withdrawal_id
+left join int_core_deposit_account_events_rollup aer
+    on wer.deposit_account_id = aer.deposit_account_id
+cross join -- Note: this assumes there's only one address!
+seed_bank_address as bank_address
