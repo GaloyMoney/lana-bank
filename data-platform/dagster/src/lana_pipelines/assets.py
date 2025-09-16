@@ -5,9 +5,11 @@ from dlt.sources.credentials import ConnectionStringCredentials
 from lana_pipelines.resources import create_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
 
-def build_core_to_bq_el_asset():
+def build_core_to_bq_el_asset(table_name):
+
+    asset_key = f"el_target_{table_name}"
             
-    @dg.asset()
+    @dg.asset(name=asset_key)
     def lana_pipeline_asset(context: dg.AssetExecutionContext):
         """Asset that runs only the lana_table resource and writes to Big Query"""
         context.log.info(f"Running lana_table pipeline.")
@@ -20,15 +22,13 @@ def build_core_to_bq_el_asset():
         postgres_credentials.host = "172.17.0.1"
         postgres_credentials.port = 5433
 
-        postgres_table_name = "core_deposit_events_rollup"
-
-        postgres_resource = create_postgres_resource(postgres_credentials, table_name=postgres_table_name)
+        postgres_resource = create_postgres_resource(postgres_credentials, table_name=table_name)
     
         base64_credentials = dg.EnvVar("TF_VAR_sa_creds").get_value()
         bigquery_dest = create_bigquery_destination(base64_credentials)
         
         pipeline = dlt.pipeline(
-            pipeline_name="lana_pipeline",
+            pipeline_name=asset_key,
             destination=bigquery_dest,
             dataset_name="counterweight_dataset"
         )
@@ -36,7 +36,7 @@ def build_core_to_bq_el_asset():
         load_info = pipeline.run(
             postgres_resource,
             write_disposition="replace",
-            table_name="test_table"
+            table_name=table_name
         )
         
         context.log.info(f"Pipeline completed.")
