@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Dagster Pipeline Monitor Script
-# Triggers the lana_pipeline_job and monitors its execution
+# Triggers the lana_to_dw_job and monitors its execution
 
 set -e
 
@@ -10,6 +10,9 @@ DAGSTER_URL="http://localhost:3000/graphql"
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 TRIGGER_GQL="$SCRIPT_DIR/dagster-lana-pipeline-trigger.gql"
 STATUS_GQL="$SCRIPT_DIR/dagster-lana-pipeline-status.gql"
+
+# Pipeline configuration - easily changeable
+PIPELINE_JOB_NAME="lana_to_dw_job"
 
 # Colors for output
 RED='\033[0;31m'
@@ -23,14 +26,17 @@ make_graphql_request() {
     local query_file="$1"
     local variables="$2"
     
+    # Replace PIPELINE_JOB_NAME placeholder in the query
+    local query_content=$(cat "$query_file" | sed "s/PIPELINE_JOB_NAME_PLACEHOLDER/$PIPELINE_JOB_NAME/g")
+    
     if [ -n "$variables" ]; then
         curl -s -X POST "$DAGSTER_URL" \
             -H "Content-Type: application/json" \
-            -d "{\"query\": \"$(cat "$query_file" | tr '\n' ' ' | sed 's/"/\\"/g')\", \"variables\": $variables}"
+            -d "{\"query\": \"$(echo "$query_content" | tr '\n' ' ' | sed 's/"/\\"/g')\", \"variables\": $variables}"
     else
         curl -s -X POST "$DAGSTER_URL" \
             -H "Content-Type: application/json" \
-            -d "{\"query\": \"$(cat "$query_file" | tr '\n' ' ' | sed 's/"/\\"/g')\"}"
+            -d "{\"query\": \"$(echo "$query_content" | tr '\n' ' ' | sed 's/"/\\"/g')\"}"
     fi
 }
 
@@ -66,7 +72,7 @@ fi
 echo -e "${GREEN}✅ Dagster server is running${NC}"
 
 # Trigger the pipeline
-echo -e "${YELLOW}🎯 Triggering lana_pipeline_job...${NC}"
+echo -e "${YELLOW}🎯 Triggering lana_to_dw_job...${NC}"
 trigger_response=$(make_graphql_request "$TRIGGER_GQL")
 
 if has_error "$trigger_response"; then
@@ -128,7 +134,7 @@ while [ $attempt -lt $max_attempts ]; do
                 echo -e "${GREEN}🎉 Status: SUCCESS (completed successfully)${NC}"
                 echo -e "${GREEN}=====================================${NC}"
                 echo -e "${GREEN}🎊 Pipeline completed successfully! 🎊${NC}"
-                echo -e "${GREEN}✅ Your lana_pipeline_job has finished successfully${NC}"
+                echo -e "${GREEN}✅ Your $PIPELINE_JOB_NAME has finished successfully${NC}"
                 echo -e "${GREEN}📊 Data has been processed and loaded to BigQuery${NC}"
                 echo -e "${GREEN}=====================================${NC}"
                 exit 0

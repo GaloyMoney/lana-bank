@@ -1,7 +1,7 @@
 mutation DagsterLanaPipelineTrigger {
   launchRun(executionParams: {
     selector: {
-      jobName: "lana_pipeline_job"
+      jobName: "PIPELINE_JOB_NAME_PLACEHOLDER"
       repositoryLocationName: "Lana Pipelines"
       repositoryName: "__repository__"
     }

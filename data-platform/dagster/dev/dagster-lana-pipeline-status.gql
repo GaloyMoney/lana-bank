@@ -1,7 +1,7 @@
 query DagsterLanaPipelineStatus {
   runsOrError(
     filter: {
-      pipelineName: "lana_pipeline_job"
+      pipelineName: "PIPELINE_JOB_NAME_PLACEHOLDER"
     }
     limit: 1
   ) {
