@@ -39,6 +39,11 @@ jobs:
 
           nix develop -c tofu init
           nix develop -c tofu apply -auto-approve
+
+          SA_CREDS=$(nix develop -c tofu output -raw service_account_key_base64)
+
+          echo "SA_CREDS=$SA_CREDS" >> $GITHUB_ENV
+          echo "NAME_PREFIX=$UNIQUE_PREFIX" >> $GITHUB_ENV
         env:
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
 
@@ -46,17 +51,15 @@ jobs:
         run: nix develop -c make e2e
         env:
           ENGINE_DEFAULT: podman
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
-          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          TF_VAR_sa_creds: ${{ env.SA_CREDS }}
+          SA_CREDS_BASE64: ${{ env.SA_CREDS }}
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
-          TF_VAR_name_prefix: ${{ env.UNIQUE_PREFIX }}
+          TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
 
       - name: Cleanup BigQuery infrastructure
         if: always()
         run: |
-          # Setup credentials
           echo $TF_VAR_sa_creds | base64 -d > /tmp/creds.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds.json
 
