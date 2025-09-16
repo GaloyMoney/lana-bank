@@ -84,6 +84,16 @@ async fn prepare_test() -> anyhow::Result<(
         .chart_of_accounts()
         .import_from_csv(&DummySubject, chart_id, import)
         .await?;
+    accounting
+        .chart_of_accounts()
+        .open_first_accounting_period(
+            &DummySubject,
+            chart_id,
+            "2021-01-01".parse::<chrono::NaiveDate>().unwrap(),
+        )
+        .await
+        .map(|_| ())
+        .unwrap();
 
     Ok((accounting, chart_ref))
 }
