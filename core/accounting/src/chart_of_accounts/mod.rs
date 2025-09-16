@@ -23,10 +23,10 @@ pub use crate::chart_node::ChartNode;
 #[cfg(feature = "json-schema")]
 pub use crate::chart_node::ChartNodeEvent;
 pub(super) use csv::{CsvParseError, CsvParser};
-pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
+pub use entity::{AccountingClosing, Chart, PeriodClosing};
 use error::*;
 use ledger::*;
 pub(super) use repo::*;

@@ -38,6 +38,11 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
+export type AccountingClosing = {
+  __typename?: 'AccountingClosing';
+  monthly?: Maybe<PeriodClosing>;
+};
+
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -265,8 +270,8 @@ export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
+  closing: AccountingClosing;
   id: Scalars['ID']['output'];
-  lastMonthlyClosedAt?: Maybe<Scalars['Date']['output']>;
   name: Scalars['String']['output'];
 };
 
@@ -1812,6 +1817,12 @@ export enum Period {
   Days = 'DAYS',
   Months = 'MONTHS'
 }
+
+export type PeriodClosing = {
+  __typename?: 'PeriodClosing';
+  closedAsOf: Scalars['Date']['output'];
+  closedAt: Scalars['Timestamp']['output'];
+};
 
 export type PermissionSet = {
   __typename?: 'PermissionSet';

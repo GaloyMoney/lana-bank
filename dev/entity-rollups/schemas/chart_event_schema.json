@@ -37,6 +37,10 @@
           "format": "date",
           "type": "string"
         },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
         "type": {
           "const": "first_accounting_period_opened",
           "type": "string"
@@ -44,7 +48,8 @@
       },
       "required": [
         "type",
-        "effective"
+        "effective",
+        "recorded_at"
       ],
       "type": "object"
     },
@@ -54,6 +59,10 @@
           "format": "date",
           "type": "string"
         },
+        "recorded_at": {
+          "format": "date-time",
+          "type": "string"
+        },
         "type": {
           "const": "accounting_period_closed",
           "type": "string"
@@ -61,7 +70,8 @@
       },
       "required": [
         "type",
-        "effective"
+        "effective",
+        "recorded_at"
       ],
       "type": "object"
     }
