@@ -5,14 +5,21 @@ from dlt.sources.credentials import ConnectionStringCredentials
 from lana_pipelines.resources import create_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
 
-def build_core_to_bq_el_asset(table_name):
+def build_lana_source_asset(table_name):
 
-    asset_key = f"el_target_{table_name}"
+    lana_source_asset = dg.AssetSpec(
+        key=f"source_asset__lana__{table_name}"
+        )
+
+    return lana_source_asset
+
+def build_lana_to_dw_el_asset(table_name):
+
+    asset_key = f"el_target__lana__{table_name}"
             
-    @dg.asset(name=asset_key)
-    def lana_pipeline_asset(context: dg.AssetExecutionContext):
-        """Asset that runs only the lana_table resource and writes to Big Query"""
-        context.log.info(f"Running lana_table pipeline.")
+    @dg.asset(name=asset_key, deps=[f"source_asset__lana__{table_name}"])
+    def lana_to_dw_el_asset(context: dg.AssetExecutionContext):
+        context.log.info(f"Running lana_to_dw_el_asset pipeline for table {table_name}.")
 
         postgres_credentials = ConnectionStringCredentials()
         postgres_credentials.drivername = "postgresql"
@@ -43,4 +50,4 @@ def build_core_to_bq_el_asset(table_name):
         context.log.info(load_info)
         return load_info
 
-    return lana_pipeline_asset
+    return lana_to_dw_el_asset
