@@ -38,8 +38,13 @@ jobs:
           EOF
 
           nix develop -c tofu init
-          nix develop -c tofu plan -out=tfplan
-          nix develop -c tofu apply tfplan
+          nix develop -c tofu apply -auto-approve \
+            -target=google_bigquery_dataset.dataset \
+            -target=google_bigquery_dataset.dbt \
+            -target=google_service_account.bq_access_sa \
+            -target=google_bigquery_dataset_iam_member.dataset_owner_sa \
+            -target=google_bigquery_dataset_iam_member.dbt_owner \
+            -target=google_bigquery_dataset_access.view_access
         env:
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
 
