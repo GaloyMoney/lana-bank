@@ -61,7 +61,8 @@ def build_definitions():
     ]
 
     lana_to_dw_el_job = dg.define_asset_job(
-        "lana_to_dw_el_job", selection=lana_to_dw_el_assets
+        name="lana_to_dw_el_job",
+        selection=lana_to_dw_el_assets
     )
 
     all_assets = lana_source_assets + lana_to_dw_el_assets
