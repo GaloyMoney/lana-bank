@@ -38,7 +38,6 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**
 
 - Choose the install method for your system https://docs.docker.com/desktop/
 
-
 ### Environment Variables
 
 Set them in your `.env` file
