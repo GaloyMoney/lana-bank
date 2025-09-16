@@ -38,6 +38,12 @@ For enterprise inquiries, contact **[biz@galoy.io](mailto:biz@galoy.io)**
 
 - Choose the install method for your system https://docs.docker.com/desktop/
 
+For MacOS, the following command is needed to access the customer portal locally:
+```
+sudo sh -c 'printf "\n127.0.0.1 app.localhost\n::1 app.localhost\n" >> /etc/hosts'
+```
+
+
 ### Environment Variables
 
 Set them in your `.env` file
