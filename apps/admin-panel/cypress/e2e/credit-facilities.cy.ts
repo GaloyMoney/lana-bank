@@ -220,9 +220,7 @@ describe("credit facility", () => {
     const requiredAmount = Cypress.env("requiredCollateralAmount")
     expect(proposalUuid).to.exist
     expect(requiredAmount).to.exist
-
     cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-
     cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
     cy.get('[data-testid="new-collateral-input"]')
       .should("be.visible")
@@ -242,7 +240,7 @@ describe("credit facility", () => {
     cy.get('[data-testid="confirm-update-button"]')
       .should("be.visible")
       .click()
-      .wait(5000)
+      .wait(2000)
     cy.takeScreenshot("10_collateral_updated")
   })
 
@@ -261,151 +259,16 @@ describe("credit facility", () => {
         .should("exist")
         .should("be.visible")
         .click()
-      cy.wait(5000)
+      cy.wait(2000)
     })
   })
 
   it("should verify proposal completion status", () => {
     const proposalUuid = Cypress.env("creditFacilityProposalId")
     expect(proposalUuid).to.exist
-
-    // GraphQL queries for detailed logging
-    const proposalDetailsQuery = `query GetProposalDetails($proposalId: UUID!) {
-      creditFacilityProposal(id: $proposalId) {
-        id
-        creditFacilityProposalId
-        status
-        facilityAmount
-        collateralizationState
-        collateral {
-          btcBalance
-        }
-        approvalProcessId
-        customer {
-          customerId
-          publicId
-        }
-      }
-    }`
-
-    const approvalProcessQuery = `query GetApprovalProcessDetails($approvalProcessId: UUID!) {
-      approvalProcess(id: $approvalProcessId) {
-        id
-        approvalProcessId
-        status
-        approvalProcessType
-        createdAt
-        deniedReason
-        userCanSubmitDecision
-        target {
-          __typename
-          ... on CreditFacilityProposal {
-            creditFacilityProposalId
-            collateralizationState
-            status
-          }
-          ... on CreditFacilityDisbursal {
-            disbursalId
-            status
-          }
-          ... on Withdrawal {
-            withdrawalId
-            status
-          }
-        }
-        voters {
-          didVote
-          didApprove
-          didDeny
-          stillEligible
-          user {
-            email
-            userId
-          }
-        }
-        rules {
-          __typename
-          ... on CommitteeThreshold {
-            threshold
-            committee {
-              name
-            }
-          }
-          ... on SystemApproval {
-            autoApprove
-          }
-        }
-      }
-    }`
-
-    const creditFacilityQuery = `query GetCreditFacility($facilityId: UUID!) {
-      creditFacility(id: $facilityId) {
-        id
-        creditFacilityId
-        publicId
-        status
-        facilityAmount
-        balance {
-          facilityRemaining {
-            usdBalance
-          }
-          collateral {
-            btcBalance
-          }
-          outstanding {
-            usdBalance
-          }
-        }
-        customer {
-          id
-          publicId
-        }
-      }
-    }`
-
     cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-    cy.wait(10000)
+    cy.wait(2000)
     cy.reload()
-
-    // Log final proposal details
-    cy.graphqlRequest(proposalDetailsQuery, {
-      proposalId: proposalUuid,
-    }).then((response) => {
-      cy.task("log", "=== FINAL PROPOSAL VERIFICATION ===")
-      cy.task("log", JSON.stringify(response.data, null, 2))
-      cy.task("log", "===================================")
-
-      // Log final approval process state
-      const approvalProcessId = response.data?.creditFacilityProposal?.approvalProcessId
-      if (approvalProcessId) {
-        cy.graphqlRequest(approvalProcessQuery, {
-          approvalProcessId: approvalProcessId,
-        }).then((approvalResponse) => {
-          cy.task("log", "=== FINAL APPROVAL PROCESS STATE ===")
-          cy.task("log", JSON.stringify(approvalResponse.data, null, 2))
-          cy.task("log", "==================================")
-        })
-      }
-
-      // Log credit facility details - use creditFacility by ID, not publicId
-      cy.graphqlRequest(creditFacilityQuery, {
-        facilityId: proposalUuid,
-      }).then((facilityResponse) => {
-        cy.task("log", "=== FINAL CREDIT FACILITY STATE ===")
-        cy.task("log", JSON.stringify(facilityResponse.data, null, 2))
-        cy.task("log", "==================================")
-      })
-
-      // Check if verification failed and mark critical test failure
-      if (response.data?.creditFacilityProposal?.status !== "COMPLETED") {
-        cy.task(
-          "log",
-          "❌ CRITICAL TEST FAILURE: Proposal verification failed - not completed",
-        )
-        Cypress.env("criticalTestFailed", true)
-      }
-    })
-
     cy.get("[data-testid=proposal-status-badge]")
       .should("be.visible")
       .invoke("text")
@@ -413,20 +276,9 @@ describe("credit facility", () => {
   })
 
   it("should navigate to created credit facility", () => {
-    // Skip this test if critical test failed
-    if (Cypress.env("criticalTestFailed")) {
-      cy.task(
-        "log",
-        "⚠️  SKIPPING TEST: Critical test failed - proposal approval unsuccessful",
-      )
-      return
-    }
-
     const proposalUuid = Cypress.env("creditFacilityProposalId")
     expect(proposalUuid).to.exist
-
     cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-
     cy.get('[data-testid="view-facility-button"]').should("be.visible").click()
     cy.url()
       .should("match", /\/credit-facilities\/\d+$/)
@@ -438,15 +290,6 @@ describe("credit facility", () => {
   })
 
   it("should verify credit facility is active", () => {
-    // Skip this test if critical test failed
-    if (Cypress.env("criticalTestFailed")) {
-      cy.task(
-        "log",
-        "⚠️  SKIPPING TEST: Critical test failed - proposal approval unsuccessful",
-      )
-      return
-    }
-
     const publicId = Cypress.env("creditFacilityPublicId")
     expect(publicId).to.exist
 
@@ -460,15 +303,6 @@ describe("credit facility", () => {
   })
 
   it("should show newly created credit facility in the list", () => {
-    // Skip this test if critical test failed
-    if (Cypress.env("criticalTestFailed")) {
-      cy.task(
-        "log",
-        "⚠️  SKIPPING TEST: Critical test failed - proposal approval unsuccessful",
-      )
-      return
-    }
-
     cy.visit(`/credit-facilities`)
     cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
     cy.contains("$5,000.00").should("be.visible")
@@ -476,15 +310,6 @@ describe("credit facility", () => {
   })
 
   it("should successfully initiate and confirm a disbursal", () => {
-    // Skip this test if critical test failed
-    if (Cypress.env("criticalTestFailed")) {
-      cy.task(
-        "log",
-        "⚠️  SKIPPING TEST: Critical test failed - proposal approval unsuccessful",
-      )
-      return
-    }
-
     const publicId = Cypress.env("creditFacilityPublicId")
     expect(publicId).to.exist
 
@@ -509,13 +334,13 @@ describe("credit facility", () => {
 
     cy.reload()
     cy.get('[data-testid="disbursal-approve-button"]').should("be.visible").click()
-    cy.wait(5000).then(() => {
+    cy.wait(2000).then(() => {
       cy.takeScreenshot("18_1_approve")
       cy.get('[data-testid="approval-process-dialog-approve-button"]')
         .should("be.visible")
         .click()
 
-      cy.wait(5000).then(() => {
+      cy.wait(2000).then(() => {
         cy.get('[data-testid="disbursal-status-badge"]')
           .should("be.visible")
           .invoke("text")
@@ -526,15 +351,6 @@ describe("credit facility", () => {
   })
 
   it("should show disbursal in the list page", () => {
-    // Skip this test if critical test failed
-    if (Cypress.env("criticalTestFailed")) {
-      cy.task(
-        "log",
-        "⚠️  SKIPPING TEST: Critical test failed - proposal approval unsuccessful",
-      )
-      return
-    }
-
     cy.visit(`/disbursals`)
     cy.contains("$1,000.00").should("be.visible")
     cy.takeScreenshot("20_disbursal_in_list")

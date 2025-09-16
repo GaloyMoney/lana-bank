@@ -27,6 +27,7 @@ jobs:
         env:
           ENGINE_DEFAULT: podman
           DATA_PIPELINE: "false"
+          BFX_LOCAL_PRICE: "true"
           GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
@@ -51,16 +52,6 @@ jobs:
         with:
           name: videos
           path: apps/admin-panel/cypress/videos/*
-      - name: Upload Cypress logs
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: cypress-logs
-          path: |
-            apps/admin-panel/cypress/logs/*
-            apps/admin-panel/cypress/reports/*
-            apps/admin-panel/cypress/results/*
-
       - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
       - uses: actions/download-artifact@v4
         with:
