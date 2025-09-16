@@ -19,6 +19,7 @@ pub struct EmailTemplate {
 }
 
 impl EmailTemplate {
+    #[allow(clippy::result_large_err)]
     pub fn new(admin_panel_url: String) -> Result<Self, EmailError> {
         let mut handlebars = Handlebars::new();
         handlebars.register_template_string("base", include_str!("layouts/base.hbs"))?;
@@ -31,6 +32,7 @@ impl EmailTemplate {
         })
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn render_email(&self, email_type: &EmailType) -> Result<(String, String), EmailError> {
         match email_type {
             EmailType::OverduePayment(data) => self.render_overdue_payment_email(data),
@@ -38,6 +40,7 @@ impl EmailTemplate {
         }
     }
 
+    #[allow(clippy::result_large_err)]
     pub fn generic_email_template(
         &self,
         subject: &str,
@@ -51,6 +54,7 @@ impl EmailTemplate {
         Ok((subject.to_owned(), html_body))
     }
 
+    #[allow(clippy::result_large_err)]
     fn render_overdue_payment_email(
         &self,
         data: &OverduePaymentEmailData,
