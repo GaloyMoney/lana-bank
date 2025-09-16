@@ -28,6 +28,8 @@ jobs:
           echo $TF_VAR_sa_creds | base64 -d > /tmp/creds.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds.json
 
+          cat $GOOGLE_APPLICATION_CREDENTIALS | jq -r '.client_email'
+
           # Create tfvars file
           cd tf/bq-setup
           cat > terraform.tfvars <<EOF
