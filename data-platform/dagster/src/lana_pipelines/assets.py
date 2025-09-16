@@ -51,8 +51,11 @@ def build_lana_to_dw_el_asset(table_name):
             dataset_name="counterweight_dataset",
         )
 
+        destination_table_name = table_name + "_dg"
         load_info = pipeline.run(
-            postgres_resource, write_disposition="replace", table_name=table_name
+            postgres_resource,
+            write_disposition="replace",
+            table_name=destination_table_name,
         )
 
         context.log.info(f"Pipeline completed.")
