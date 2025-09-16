@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Dagster Pipeline Monitor Script
-# Triggers the lana_to_dw_job and monitors its execution
+# Triggers a job and monitors its execution
 
 set -e
 
@@ -12,7 +12,7 @@ TRIGGER_GQL="$SCRIPT_DIR/dagster-lana-pipeline-trigger.gql"
 STATUS_GQL="$SCRIPT_DIR/dagster-lana-pipeline-status.gql"
 
 # Pipeline configuration - easily changeable
-PIPELINE_JOB_NAME="lana_to_dw_job"
+PIPELINE_JOB_NAME="lana_to_dw_el_job"
 
 # Colors for output
 RED='\033[0;31m'

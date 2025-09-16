@@ -4,8 +4,6 @@ import base64
 from dlt.destinations import bigquery
 
 def create_bigquery_destination(base64_credentials):
-        """Create BigQuery destination with programmatic credentials configuration"""
-
         try:
             # Decode the base64-encoded JSON credentials
             credentials_json = base64.b64decode(base64_credentials).decode('utf-8')
