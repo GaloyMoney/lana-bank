@@ -1782,6 +1782,8 @@
     },
     "addChildNode": "Add Sub Account",
     "addAccount": "Add Account",
+    "viewCustomer": "View Customer",
+    "viewCreditFacility": "View Credit Facility",
     "table": {
       "noData": "No transactions present in this account",
       "columns": {
@@ -1857,6 +1859,8 @@
     "title": "Ledger Transaction",
     "description": "A record of a financial transaction in the ledger",
     "noEntries": "No entries",
+    "viewDeposit": "View Deposit",
+    "viewWithdrawal": "View Withdrawal",
     "details": {
       "description": "Description",
       "createdAt": "Created At",

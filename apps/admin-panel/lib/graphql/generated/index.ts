@@ -3266,7 +3266,10 @@ export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
 
 export type AccountingCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', accountingCsvDownloadLinkGenerate: { __typename?: 'AccountingCsvDownloadLinkGeneratePayload', link: { __typename?: 'AccountingCsvDownloadLink', url: string, csvId: string } } };
 
-export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange:
+export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+    | { __typename: 'CreditFacility', publicId: any }
+    | { __typename: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', publicId: any } }
+   | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
   , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
@@ -3281,7 +3284,10 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange:
+export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+      | { __typename: 'CreditFacility', publicId: any }
+      | { __typename: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', publicId: any } }
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
     , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
@@ -3296,7 +3302,10 @@ export type LedgerAccountQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange:
+export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+      | { __typename: 'CreditFacility', publicId: any }
+      | { __typename: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', publicId: any } }
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
     , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
@@ -3323,7 +3332,10 @@ export type LedgerTransactionQueryVariables = Exact<{
 }>;
 
 
-export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, entries: Array<{ __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
+export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, entity?:
+      | { __typename: 'Deposit', depositId: string }
+      | { __typename: 'Withdrawal', withdrawalId: string }
+     | null, entries: Array<{ __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
         | { __typename: 'BtcAmount', btc: Satoshis }
         | { __typename: 'UsdAmount', usd: UsdCents }
       , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: any | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } }> } | null };
@@ -4200,13 +4212,27 @@ export const LedgerAccountDetailsFragmentDoc = gql`
   ledgerAccountId
   name
   code
+  entity {
+    __typename
+    ... on DepositAccount {
+      depositAccountId
+      customer {
+        publicId
+      }
+    }
+    ... on CreditFacility {
+      publicId
+    }
+  }
   ancestors {
     id
+    ledgerAccountId
     name
     code
   }
   children {
     id
+    ledgerAccountId
     name
     code
   }
@@ -7031,6 +7057,15 @@ export const LedgerTransactionDocument = gql`
     createdAt
     description
     effective
+    entity {
+      __typename
+      ... on Deposit {
+        depositId
+      }
+      ... on Withdrawal {
+        withdrawalId
+      }
+    }
     entries {
       id
       entryId

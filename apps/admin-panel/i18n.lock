@@ -124,6 +124,7 @@ checksums:
     CommandMenu/actions/createUser: 422ac737cccb1bebcde7be564e903d13
     CommandMenu/actions/updateTermsTemplate: e178deec50459ee7064705367dc1da1c
     CommandMenu/actions/createTermsTemplate: 51fc4806b6fea86ef2d73e2e4ac897bc
+    CommandMenu/actions/duplicateTermsTemplate: eb912be443c2b6e2ba6ac56748c1e74c
     CommandMenu/actions/createCommittee: 061eaa5152ceb07002a0ab2aea9ef97c
     CommandMenu/actions/createCustodian: a8e359b8fcfb691a7c1bf2eb7129938b
     CommandMenu/actions/confirmWithdrawal: b5fd79d4027b04747c948604bade9bce
@@ -502,6 +503,7 @@ checksums:
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/liquidationCvl: 9d30f40e2446a6678c2a50da22a662ba
     TermsTemplates/TermsTemplateDetails/DetailsCard/fields/oneTimeFeeRate: 7242ef1273e70c16c9cfa50a847e292f
     TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/update: 079fc039262fd31b10532929685c2d1b
+    TermsTemplates/TermsTemplateDetails/DetailsCard/buttons/duplicate: 27756566785c2b8463e21582c4bb619b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/title: 7692d1ff8036b0d574dfbf925935cfff
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/description: 45fe649cda16d0441781cd976d9c456b
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
@@ -522,7 +524,9 @@ checksums:
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/errors/updateFailed: 5ad592f54534461c34d3902a08ae504a
     TermsTemplates/TermsTemplateDetails/UpdateTermsTemplate/success/updated: b912c4586340f2a33e459e528090d6bb
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/title: 51fc4806b6fea86ef2d73e2e4ac897bc
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/titleDuplicate: 55d7e288f9aaffbf6c1fc91d23097454
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/description: e176d9430f97a5c6fd4589e5668f650f
+    TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/descriptionDuplicate: a8ee0a5d3071006cee7ff9989ecb39be
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/name: 7da9de6504c596c0e68e047fa124015f
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/annualRate: cda40ba773dec9bdf510201b70014393
     TermsTemplates/TermsTemplateDetails/CreateTermsTemplate/fields/duration: bf6ed0974fdd4eb9d8bd3f4f8c4bd5ae
@@ -767,11 +771,11 @@ checksums:
     Actions/table/more: e7bca6beb767f8a0e464a6b5035b244b
     Actions/table/allCaughtUp: 362bd6a2e1a6344b0c49b2da94f38fc3
     Dashboard/cards/activeFacilities/title: 053d7eebca41b51c2d2d3a1343cd0108
-    Dashboard/cards/activeFacilities/description: 7069e1652dee5687fbd0f92d4e3820e6
+    Dashboard/cards/activeFacilities/description: 285b54064a1f5f63ab9a527d27a72f1f
     Dashboard/cards/activeFacilities/pending: 030a6f3395d5d4efddd3cc67d6009039
     Dashboard/cards/activeFacilities/buttonText: b71323a1c5ea035c8d54f03630c6d30f
     Dashboard/cards/totalDisbursed/title: cb99a99a24571c807d0e6e8873058f97
-    Dashboard/cards/totalDisbursed/description: 4ef86d41b280c8ce0887ba9464e4f49d
+    Dashboard/cards/totalDisbursed/description: 67f8c89666afedd04ec4a7d5471cfd52
     Dashboard/cards/totalDisbursed/buttonText: 2d3b3a61fdcce1b4442a367977a31eff
     Dashboard/cards/totalCollateral/title: e9c470aab211c4689b29eb6f923cbd97
     Dashboard/cards/totalCollateral/description: 847cc42c8c2910ea533758a82bf08636
@@ -1055,6 +1059,8 @@ checksums:
     ChartOfAccountsLedgerAccount/details/children: f09021b02811dd9c354e8da8525ddf9f
     ChartOfAccountsLedgerAccount/addChildNode: aee0a7b3cd53ce03d00724d4ab56ccbb
     ChartOfAccountsLedgerAccount/addAccount: 180a55852a8b0f21e53512e344808a0a
+    ChartOfAccountsLedgerAccount/viewCustomer: 232903fb7e397b92489b7a3c62edb67f
+    ChartOfAccountsLedgerAccount/viewCreditFacility: f02e316eba6ca5ad813099ca29b5c8f1
     ChartOfAccountsLedgerAccount/table/noData: 65d8d992387f1b0dc757c22a4de109dc
     ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b
     ChartOfAccountsLedgerAccount/table/columns/layer: 814ae58a59c6930c0a22031027a2a6ee
@@ -1108,6 +1114,8 @@ checksums:
     LedgerTransaction/title: 5bf9168689feff46e9847d43032a002d
     LedgerTransaction/description: e12ba6feb4c9ded56403b71e5f8bfb36
     LedgerTransaction/noEntries: 17c4758dd5718f652fe0a2b338098300
+    LedgerTransaction/viewDeposit: dbf2d129615df467f01477450307d4d6
+    LedgerTransaction/viewWithdrawal: 78d212f2007a5e565963255de4913e0a
     LedgerTransaction/details/description: e17686a22ffad04cc7bb70524ed4478b
     LedgerTransaction/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     LedgerTransaction/details/effective: aab6741517742a24eb46f529ebb94bf6
