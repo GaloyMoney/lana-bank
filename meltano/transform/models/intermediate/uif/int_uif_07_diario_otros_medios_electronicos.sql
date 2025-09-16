@@ -1,4 +1,5 @@
-with seed_bank_address as (select * from {{ ref("seed_bank_address") }})
+with seed_bank_address as (select * from {{ ref("seed_bank_address") }}),
+int_core_withdrawal_events_rollup as (select * from {{ ref("int_core_withdrawal_events_rollup")}})
 select
     null as numeroRegistroBancario,
     JSON_OBJECT(
