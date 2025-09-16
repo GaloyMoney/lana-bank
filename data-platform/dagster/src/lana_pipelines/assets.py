@@ -20,7 +20,11 @@ def build_lana_to_dw_el_asset(table_name):
 
     asset_key = f"el_target_asset__lana__{table_name}"
 
-    @dg.asset(name=asset_key, tags={"asset_type": "el_source__asset", "system": "lana"})
+    @dg.asset(
+        name=asset_key,
+        deps=[f"el_source_asset__lana__{table_name}"],
+        tags={"asset_type": "el_target__asset", "system": "lana"},
+    )
     def lana_to_dw_el_asset(context: dg.AssetExecutionContext):
         context.log.info(
             f"Running lana_to_dw_el_asset pipeline for table {table_name}."
