@@ -31,10 +31,14 @@ class PostgresClient:
     def get_keys(self, starting_timestamp):
         with self.connection.cursor() as cursor:
             query = """
-                SELECT customer_id, recorded_at
-                FROM sumsub_callbacks
-                WHERE recorded_at > %s
-                    AND content->>'type' IN ('applicantReviewed', 'applicantPersonalInfoChanged')
+                with customer_ids as (
+                    select distinct customer_id
+                    from sumsub_callbacks
+                    where recorded_at > %s
+                    and content->>'type' in ('applicantReviewed', 'applicantPersonalInfoChanged')
+                )
+                select customer_id, now()
+                from customer_ids
             """
             cursor.execute(query, (starting_timestamp,))
             yield from cursor
