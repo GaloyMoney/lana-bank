@@ -1,0 +1,20 @@
+query DagsterLanaPipelineStatus {
+  runsOrError(
+    filter: {
+      pipelineName: "lana_pipeline_job"
+    }
+    limit: 1
+  ) {
+    __typename
+    ... on Runs {
+      results {
+        id
+        runId
+        status
+      }
+    }
+    ... on PythonError {
+      message
+    }
+  }
+}

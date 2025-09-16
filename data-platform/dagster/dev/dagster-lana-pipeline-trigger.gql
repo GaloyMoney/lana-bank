@@ -1,0 +1,21 @@
+mutation DagsterLanaPipelineTrigger {
+  launchRun(executionParams: {
+    selector: {
+      jobName: "lana_pipeline_job"
+      repositoryLocationName: "Lana Pipelines"
+      repositoryName: "__repository__"
+    }
+  }) {
+    __typename
+    ... on LaunchRunSuccess {
+      run {
+        id
+        runId
+        status
+      }
+    }
+    ... on PythonError {
+      message
+    }
+  }
+}

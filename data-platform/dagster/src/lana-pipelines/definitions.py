@@ -9,31 +9,15 @@ from dlt.sources.credentials import ConnectionStringCredentials
 
 def build_definitions():
 
-    @dlt.source()
-    def lana_core_pg():
-        
-        @dlt.resource(name="lana_table")
-        def lana_table():
-            for i in range(1, 10):
-                yield {"name": "some_name", "id": i}
+    def create_postgres_resource(connection_string_details, table_name):       
+        postgres_resource = sql_table(
+            credentials=connection_string_details,
+            schema="public",
+            backend="sqlalchemy",
+            table=table_name
+        )
 
-        return lana_table
-    
-    postgres_credentials = ConnectionStringCredentials()
-    # Set the necessary attributes
-    postgres_credentials.drivername = "postgresql"
-    postgres_credentials.database = "pg"
-    postgres_credentials.username = "user"
-    postgres_credentials.password = "password"  # type: ignore
-    postgres_credentials.host = "172.17.0.1"
-    postgres_credentials.port = 5433
-    
-    postgres_resource = sql_table(
-        credentials=postgres_credentials,
-        schema="public",
-        backend="sqlalchemy",
-        table="core_deposit_events_rollup"
-    )
+        return postgres_resource
 
 
     def create_bigquery_destination(base64_credentials):
@@ -63,8 +47,19 @@ def build_definitions():
         """Asset that runs only the lana_table resource and writes to Big Query"""
         context.log.info(f"Running lana_table pipeline.")
 
+        postgres_credentials = ConnectionStringCredentials()
+        postgres_credentials.drivername = "postgresql"
+        postgres_credentials.database = "pg"
+        postgres_credentials.username = "user"
+        postgres_credentials.password = "password"
+        postgres_credentials.host = "172.17.0.1"
+        postgres_credentials.port = 5433
+
+        postgres_table_name = "core_deposit_events_rollup"
+
+        postgres_resource = create_postgres_resource(postgres_credentials, table_name=postgres_table_name)
+    
         base64_credentials = dg.EnvVar("TF_VAR_sa_creds").get_value()
-        
         bigquery_dest = create_bigquery_destination(base64_credentials)
         
         pipeline = dlt.pipeline(
@@ -72,7 +67,7 @@ def build_definitions():
             destination=bigquery_dest,
             dataset_name="counterweight_dataset"
         )
-        
+ 
         load_info = pipeline.run(
             postgres_resource,
             write_disposition="replace",
@@ -80,6 +75,7 @@ def build_definitions():
         )
         
         context.log.info(f"Pipeline completed.")
+        context.log.info(load_info)
         return load_info
 
     lana_pipeline_job = dg.define_asset_job("lana_pipeline_job", selection=[lana_pipeline_asset])
