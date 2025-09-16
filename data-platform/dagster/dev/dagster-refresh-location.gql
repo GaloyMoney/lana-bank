@@ -1,0 +1,11 @@
+mutation DagsterRefreshLocation {
+  reloadRepositoryLocation(repositoryLocationName: "Lana Pipelines") {
+    __typename
+    ... on PythonError {
+      message
+    }
+    ... on RepositoryLocationNotFound {
+      message
+    }
+  }
+}
