@@ -4,21 +4,11 @@ import base64
 import dagster as dg
 import dlt
 from dlt.destinations import bigquery
-from dlt.sources.sql_database import sql_table
 from dlt.sources.credentials import ConnectionStringCredentials
 
+from lana_pipelines.resources import create_postgres_resource
+
 def build_definitions():
-
-    def create_postgres_resource(connection_string_details, table_name):       
-        postgres_resource = sql_table(
-            credentials=connection_string_details,
-            schema="public",
-            backend="sqlalchemy",
-            table=table_name
-        )
-
-        return postgres_resource
-
 
     def create_bigquery_destination(base64_credentials):
         """Create BigQuery destination with programmatic credentials configuration"""
