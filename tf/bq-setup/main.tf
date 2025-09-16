@@ -11,6 +11,12 @@ variable "additional_owners" {
   default = []
 }
 
+variable "grant_provisioning_permissions" {
+  type        = bool
+  default     = false
+  description = "Grant elevated permissions to allow the service account to provision new infrastructure"
+}
+
 locals {
   name_prefix       = var.name_prefix
   holistics_sa_name = "${var.name_prefix}-holistics"

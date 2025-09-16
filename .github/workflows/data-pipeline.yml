@@ -28,8 +28,6 @@ jobs:
           echo $TF_VAR_sa_creds | base64 -d > /tmp/creds.json
           export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds.json
 
-          cat $GOOGLE_APPLICATION_CREDENTIALS | jq -r '.client_email'
-
           # Create tfvars file
           cd tf/bq-setup
           cat > terraform.tfvars <<EOF
@@ -40,13 +38,7 @@ jobs:
           EOF
 
           nix develop -c tofu init
-          nix develop -c tofu apply -auto-approve \
-            -target=google_bigquery_dataset.dataset \
-            -target=google_bigquery_dataset.dbt \
-            -target=google_service_account.bq_access_sa \
-            -target=google_bigquery_dataset_iam_member.dataset_owner_sa \
-            -target=google_bigquery_dataset_iam_member.dbt_owner \
-            -target=google_bigquery_dataset_access.view_access
+          nix develop -c tofu apply -auto-approve
         env:
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
 
