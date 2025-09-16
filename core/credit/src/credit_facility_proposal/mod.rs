@@ -164,7 +164,7 @@ where
             .get_credit_facility_proposal_balance(proposal.account_ids)
             .await?;
 
-        let es_entity::Idempotent::Executed(_) = proposal.complete(balances, price)? else {
+        let Ok(es_entity::Idempotent::Executed(_)) = proposal.complete(balances, price) else {
             return Ok(CreditFacilityProposalCompletionOutcome::Ignored);
         };
 
