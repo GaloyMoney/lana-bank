@@ -3,6 +3,7 @@ mutation ExecuteManualTransaction($input: ManualTransactionExecuteInput!) {
     transaction {
       ledgerTransactionId
       createdAt
+      effective
       description
       entries {
         entryId

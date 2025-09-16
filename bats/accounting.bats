@@ -222,7 +222,8 @@ teardown_file() {
 }
 
 @test "accounting: cannot execute transaction before last closing date" {
-  exec_admin_graphql 'chart-of-accounts'
+  exec_admin_graphql 'chart-of-accounts-closing'
+  graphql_output
   closing_date=$(graphql_output '.data.chartOfAccounts.closing.monthly.closedAsOf')
   [[ "$closing_date" != "null" ]] || exit 1
 
@@ -255,6 +256,7 @@ teardown_file() {
   )
 
   exec_admin_graphql 'manual-transaction-execute' "$variables"
+  graphql_output
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "VelocityError" ]] || exit 1
 }
