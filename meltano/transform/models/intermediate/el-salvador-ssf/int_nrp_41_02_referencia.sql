@@ -88,6 +88,7 @@ final as (
 select
     credit_facility.id as credit_facility_id,
     customer.id as customer_id,
+    disbursement.id as disbursal_id,
     disbursement.id as reference_id,
     customer.id as `nit_deudor`,
     '{{ npb4_17_01_tipos_de_cartera('Cartera propia Ley Acceso al Crédito (19)') }}' as `cod_cartera`,
