@@ -1,9 +1,8 @@
 select
-    -- uses the 20 leftmost no-hyphen characters from backend loan_id
     -- loan-to-collateral being 1-to-1
-    left(replace(upper(disbursal_id), '-', ''), 20) as `identificacion_garantia`,
+    disbursement.id as `identificacion_garantia`,
 
-    left(replace(customer_id, '-', ''), 14) as `nit_depositante`,
+    customer.id as `nit_depositante`,
 
     -- Deposit date.
     date(most_recent_collateral_deposit_at) as `fecha_deposito`,
@@ -19,5 +18,7 @@ select
     'BC99' as `cod_banco`
 
 from {{ ref('int_approved_credit_facility_loans') }}
+left join {{ ref('stg_core_public_ids') }} as disbursement on disbursal_id = disbursement.target_id
+left join {{ ref('stg_core_public_ids') }} as customer on customer_id = customer.target_id
 
 where not matured
