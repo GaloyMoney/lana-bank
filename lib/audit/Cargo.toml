@@ -7,7 +7,7 @@ edition = "2024"
 [features]
 
 fail-on-warnings = []
-json-schema = ["dep:schemars"]
+json-schema = ["dep:schemars", "es-entity/json-schema"]
 
 [dependencies]
 es-entity = { workspace = true }

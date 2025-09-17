@@ -86,6 +86,35 @@
           || pkgs.lib.hasInfix "/lib/rendering/config/" path;
       };
 
+      commonArgs = {
+        src = rustSource;
+        strictDeps = true;
+
+        buildInputs = [
+          # Add additional build inputs here
+        ];
+
+        # Additional environment variables can be set directly
+        SQLX_OFFLINE = true;
+      };
+      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+      individualCrateArgs =
+        commonArgs
+        // {
+          inherit cargoArtifacts;
+          inherit (craneLib.crateNameFromCargoToml {src = rustSource;}) version;
+          # NB: we disable tests since we'll run them all via cargo-nextest
+          doCheck = false;
+        };
+      audit = craneLib.buildPackage (
+        individualCrateArgs
+        // {
+          pname = "lana-bank-audit";
+          cargoExtraArgs = "-p audit";
+          src = rustSource;
+        }
+      );
+
       # Separate toolchain for musl cross-compilation
       rustToolchainMusl = rustVersion.override {
         extensions = ["rust-src"];
@@ -160,17 +189,21 @@
     in
       with pkgs; {
         packages = {
-          default = lana-cli-debug; # Debug as default
-          debug = lana-cli-debug;
-          release = lana-cli-release;
-          static = lana-cli-static;
-          check-code = checkCode;
-          test-in-ci = testInCi;
-          write_sdl = write_sdl;
-          write_customer_sdl = write_customer_sdl;
         };
 
-        apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
+        checks = {
+          # Build the crates as part of `nix flake check` for convenience
+          inherit audit;
+          # workspace-clippy = craneLib.cargoClippy (
+          #   commonArgs
+          #   // {
+          #     inherit cargoArtifacts;
+          #     cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+          #   }
+          # );
+        };
+
+        # apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
         devShells.default = mkShell (devEnvVars
           // {
