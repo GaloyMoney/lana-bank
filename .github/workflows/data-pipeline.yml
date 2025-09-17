@@ -6,6 +6,12 @@ on:
       - main
       - "feature/**"
 
+env:
+  ENGINE_DEFAULT: podman
+  SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+  SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+  TARGET_BIGQUERY_LOCATION: "US"
+
 jobs:
   data-pipeline-tests:
     name: 
@@ -17,6 +23,8 @@ jobs:
         with:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - run: nix develop -c meltano install
 
       - name: Provision BigQuery infrastructure
         run: |
@@ -50,12 +58,35 @@ jobs:
       - name: Run BATS tests with podman
         run: nix develop -c make e2e
         env:
-          ENGINE_DEFAULT: podman
           TF_VAR_sa_creds: ${{ env.SA_CREDS }}
           SA_CREDS_BASE64: ${{ env.SA_CREDS }}
-          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
-          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
           TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
+
+      - run: |
+          echo "TF_VAR_name_prefix=$TF_VAR_name_prefix" >> $GITHUB_ENV
+          echo $SA_CREDS_BASE64 | base64 --decode > meltano/keyfile.json
+
+          export TARGET_BIGQUERY_CREDENTIALS_JSON=$(cat meltano/keyfile.json)
+          export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
+          export DBT_BIGQUERY_PROJECT="$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
+          export TARGET_BIGQUERY_DATASET="${TF_VAR_name_prefix}_dataset"
+          export DBT_BIGQUERY_DATASET="dbt_${TF_VAR_name_prefix}"
+
+          echo "TARGET_BIGQUERY_CREDENTIALS_JSON=$TARGET_BIGQUERY_CREDENTIALS_JSON" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_KEYFILE=$DBT_BIGQUERY_KEYFILE" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_PROJECT=$DBT_BIGQUERY_PROJECT" >> $GITHUB_ENV
+          echo "TARGET_BIGQUERY_DATASET=$TARGET_BIGQUERY_DATASET" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_DATASET=$DBT_BIGQUERY_DATASET" >> $GITHUB_ENV
+        env:
+          TF_VAR_sa_creds: ${{ env.SA_CREDS }}
+          SA_CREDS_BASE64: ${{ env.SA_CREDS }}
+          TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
+
+      - run: nix develop -c meltano run tap-postgres target-bigquery
+      - run: nix develop -c meltano run tap-bitfinexapi target-bigquery
+      - run: nix develop -c meltano run tap-sumsubapi target-bigquery
+      - run: nix develop -c meltano run dbt-bigquery:run --full-refresh
+      - run: nix develop -c meltano run generate-es-reports:run
 
       - name: Cleanup BigQuery infrastructure
         if: always()
