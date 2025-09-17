@@ -1,6 +1,6 @@
 select
-    line_of_credit as `Línea de crédito`,
-    disbursement_number as `Número de desembolso`,
+    credit_facility.id as `Línea de crédito`,
+    disbursement.id as `Número de desembolso`,
     principal_balance as `Saldo de Capital o Principal`,
     interest as `Intereses`,
     total_debt as `Deuda Total`,
@@ -11,3 +11,5 @@ select
     reserve_percentage as `% de Reserva`,
     reserve as `Reserva`,
 from {{ ref('int_net_risk_calculation') }}
+left join {{ ref('stg_core_public_ids') }} as credit_facility on line_of_credit = credit_facility.target_id
+left join {{ ref('stg_core_public_ids') }} as disbursement on disbursement_number = disbursement.target_id
