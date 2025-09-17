@@ -308,6 +308,7 @@ export type Collateral = {
   account: LedgerAccount;
   accountId: Scalars['UUID']['output'];
   collateralId: Scalars['UUID']['output'];
+  creditFacility: CreditFacility;
   id: Scalars['ID']['output'];
   walletId?: Maybe<Scalars['UUID']['output']>;
 };
