@@ -278,6 +278,8 @@ impl CreditFacilityRepaymentPlan {
 
 #[cfg(test)]
 mod tests {
+    #![allow(clippy::inconsistent_digit_grouping)]
+
     use rust_decimal_macros::dec;
 
     use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct};
