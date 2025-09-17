@@ -1,7 +1,7 @@
 use async_graphql::*;
 
 use crate::{
-    graphql::{accounting::LedgerAccount, loader::LanaDataLoader},
+    graphql::{accounting::LedgerAccount, credit_facility::CreditFacility, loader::LanaDataLoader},
     primitives::*,
 };
 pub use lana_app::credit::Collateral as DomainCollateral;
@@ -13,6 +13,9 @@ pub struct Collateral {
     collateral_id: UUID,
     pub(crate) wallet_id: Option<UUID>,
     account_id: UUID,
+
+    #[graphql(skip)]
+    entity: Arc<DomainCollateral>,
 }
 
 impl From<DomainCollateral> for Collateral {
@@ -22,6 +25,7 @@ impl From<DomainCollateral> for Collateral {
             collateral_id: collateral.id.into(),
             wallet_id: collateral.custody_wallet_id.map(|id| id.into()),
             account_id: collateral.account_id.into(),
+            entity: Arc::new(collateral),
         }
     }
 }
@@ -35,5 +39,13 @@ impl Collateral {
             .await?
             .expect("Collateral account not found");
         Ok(collateral)
+    }
+    async fn credit_facility(&self, ctx: &Context<'_>) -> Result<CreditFacility> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let facility = loader
+            .load_one(self.entity.credit_facility_id)
+            .await?
+            .expect("Credit facility not found");
+        Ok(facility)
     }
 }
