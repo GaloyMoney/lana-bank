@@ -31,7 +31,11 @@ final as (
 
 
 select
-    left(replace(customer_id, '-', ''), 14) as `NIU`,
-    left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de cuenta`,
+    customer.id as `NIU`,
+    deposit_account.id as `Número de cuenta`,
 from
     final
+left join
+    {{ ref('stg_core_public_ids') }} as customer on customer_id = customer.target_id
+left join
+    {{ ref('stg_core_public_ids') }} as deposit_account on deposit_account_id = deposit_account.target_id
