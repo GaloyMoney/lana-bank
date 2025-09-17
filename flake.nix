@@ -124,14 +124,32 @@
           ];
         };
 
-      audit = craneLib.buildPackage (
-        individualCrateArgs
-        // {
-          pname = "lana-bank-audit";
-          cargoExtraArgs = "-p audit";
-          src = fileSetForCrate ./lib/audit;
-        }
-      );
+      # Helper function to create build target for a lib crate
+      mkLibCrate = crateName:
+        craneLib.buildPackage (
+          individualCrateArgs
+          // {
+            pname = "lana-bank-${crateName}";
+            cargoExtraArgs = "-p ${crateName}";
+            src = fileSetForCrate ./lib/${crateName};
+          }
+        );
+
+      # Individual lib crate targets
+      audit = mkLibCrate "audit";
+      airflow = mkLibCrate "airflow";
+      authz = mkLibCrate "authz";
+      bitgo = mkLibCrate "bitgo";
+      cloud-storage = mkLibCrate "cloud-storage";
+      job = mkLibCrate "job";
+      jwks-utils = mkLibCrate "jwks-utils";
+      keycloak-client = mkLibCrate "keycloak-client";
+      komainu = mkLibCrate "komainu";
+      lib-blank = mkLibCrate "lib-blank";
+      outbox = mkLibCrate "outbox";
+      rendering = mkLibCrate "rendering";
+      sumsub = mkLibCrate "sumsub";
+      tracing-utils = mkLibCrate "tracing-utils";
 
       # Separate toolchain for musl cross-compilation
       rustToolchainMusl = rustVersion.override {
@@ -211,14 +229,30 @@
 
         checks = {
           # Build the crates as part of `nix flake check` for convenience
-          inherit audit;
-          # workspace-clippy = craneLib.cargoClippy (
-          #   commonArgs
-          #   // {
-          #     inherit cargoArtifacts;
-          #     cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-          #   }
-          # );
+          inherit
+            audit
+            airflow
+            ;
+          # authz
+          # bitgo
+          # cloud-storage
+          # job
+          # jwks-utils
+          # keycloak-client
+          # komainu
+          # lib-blank
+          # outbox
+          # rendering
+          # sumsub
+          # tracing-utils;
+
+          workspace-clippy = craneLib.cargoClippy (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            }
+          );
         };
 
         # apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
