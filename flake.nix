@@ -97,7 +97,10 @@
         # Additional environment variables can be set directly
         SQLX_OFFLINE = true;
       };
-      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+      cargoArtifacts = craneLib.buildDepsOnly (commonArgs
+        // {
+          pname = "lana-bank-deps";
+        });
       individualCrateArgs =
         commonArgs
         // {
@@ -106,12 +109,27 @@
           # NB: we disable tests since we'll run them all via cargo-nextest
           doCheck = false;
         };
+      fileSetForCrate = crate:
+        pkgs.lib.fileset.toSource {
+          root = ./.;
+          fileset = pkgs.lib.fileset.unions [
+            ./Cargo.toml
+            ./Cargo.lock
+            ./.sqlx
+            (craneLib.fileset.commonCargoSources ./lana/lana-blank)
+            (craneLib.fileset.commonCargoSources ./core/core-blank)
+            (craneLib.fileset.commonCargoSources ./lib/lib-blank)
+            (craneLib.fileset.commonCargoSources ./workspace-hack)
+            (craneLib.fileset.commonCargoSources crate)
+          ];
+        };
+
       audit = craneLib.buildPackage (
         individualCrateArgs
         // {
           pname = "lana-bank-audit";
           cargoExtraArgs = "-p audit";
-          src = rustSource;
+          src = fileSetForCrate ./lib/audit;
         }
       );
 
