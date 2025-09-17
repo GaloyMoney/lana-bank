@@ -613,6 +613,19 @@ mod test {
     }
 
     #[test]
+    fn manual_transaction_non_leaf_account_id_in_chart() {
+        let (mut chart, _) = default_chart();
+        let random_id = LedgerAccountId::new();
+        chart
+            .get_node_by_code_mut(&code("1.1"))
+            .unwrap()
+            .manual_transaction_account_id = Some(random_id);
+
+        let res = chart.manual_transaction_account(AccountIdOrCode::Id(random_id));
+        assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
+    }
+
+    #[test]
     fn test_project_chart_structure() {
         let chart = default_chart().0;
         let tree = chart.chart();
