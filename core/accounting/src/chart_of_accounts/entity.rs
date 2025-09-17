@@ -43,18 +43,7 @@ impl Chart {
         spec: &AccountSpec,
         journal_id: CalaJournalId,
     ) -> Idempotent<NewChartAccountDetails> {
-        if self
-            .chart_nodes
-            .iter_persisted()
-            .find_map(|node| {
-                if node.spec.code == spec.code {
-                    Some(node.id)
-                } else {
-                    None
-                }
-            })
-            .is_some()
-        {
+        if self.get_node_by_code(&spec.code).is_some() {
             return Idempotent::Ignored;
         }
 
@@ -240,19 +229,17 @@ impl Chart {
                 })
             }
             AccountIdOrCode::Code(code) => {
-                self.check_can_have_manual_transactions(&code)?;
-
                 let node = self
                     .get_node_by_code(&code)
                     .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+
+                self.check_can_have_manual_transactions(&code)?;
 
                 if let Some(existing_id) = node.manual_transaction_account_id {
                     return Ok(ManualAccountFromChart::IdInChart(existing_id));
                 }
 
-                let node_mut = self
-                    .get_node_by_code_mut(&code)
-                    .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+                let node_mut = self.get_node_by_code_mut(&code).expect("Node should exist");
                 match node_mut.assign_manual_transaction_account() {
                     Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
                         node_mut.account_set_id,
