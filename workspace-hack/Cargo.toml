@@ -36,7 +36,7 @@ digest = { version = "0.10", features = ["mac", "oid", "std"] }
 ecdsa = { version = "0.16", default-features = false, features = ["pem", "signing", "std", "verifying"] }
 either = { version = "1", features = ["serde", "use_std"] }
 elliptic-curve = { version = "0.13", default-features = false, features = ["digest", "hazmat", "pem", "std"] }
-es-entity = { version = "0.8", default-features = false, features = ["event-context", "graphql", "json-schema", "sim-time", "tracing-context"] }
+es-entity = { version = "0.9", default-features = false, features = ["event-context", "graphql", "json-schema", "sim-time", "tracing-context"] }
 ff = { version = "0.13", default-features = false, features = ["alloc"] }
 fixedbitset = { version = "0.4" }
 form_urlencoded = { version = "1" }
@@ -81,6 +81,7 @@ rustls = { version = "0.23", default-features = false, features = ["logging", "r
 schemars = { version = "1", features = ["chrono04", "rust_decimal1", "uuid1"] }
 sec1 = { version = "0.7", features = ["pem", "std", "subtle"] }
 serde = { version = "1", features = ["alloc", "derive", "rc"] }
+serde_core = { version = "1", default-features = false, features = ["alloc", "rc", "result", "std"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 serde_with = { version = "3" }
 sha2 = { version = "0.10" }
@@ -116,7 +117,7 @@ chrono = { version = "0.4", features = ["serde"] }
 crypto-common = { version = "0.1", default-features = false, features = ["getrandom", "std"] }
 digest = { version = "0.10", features = ["mac", "oid", "std"] }
 either = { version = "1", features = ["serde", "use_std"] }
-es-entity-macros = { version = "0.8", default-features = false, features = ["event-context", "graphql"] }
+es-entity-macros = { version = "0.9", default-features = false, features = ["event-context", "graphql"] }
 fixedbitset = { version = "0.4" }
 form_urlencoded = { version = "1" }
 futures-channel = { version = "0.3", features = ["sink"] }
@@ -145,6 +146,7 @@ regex-syntax = { version = "0.8" }
 rust_decimal = { version = "1", features = ["maths"] }
 rustls = { version = "0.23", default-features = false, features = ["logging", "ring", "std", "tls12"] }
 serde = { version = "1", features = ["alloc", "derive", "rc"] }
+serde_core = { version = "1", default-features = false, features = ["alloc", "rc", "result", "std"] }
 serde_json = { version = "1", features = ["alloc", "raw_value"] }
 sha2 = { version = "0.10" }
 smallvec = { version = "1", default-features = false, features = ["const_new", "serde", "union"] }
