@@ -6,8 +6,9 @@ use super::{
     approval_process::ApprovalProcess, deposit_account::DepositAccount, loader::LanaDataLoader,
 };
 
-pub use lana_app::deposit::{
-    Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor,
+pub use lana_app::{
+    deposit::{Withdrawal as DomainWithdrawal, WithdrawalStatus, WithdrawalsByCreatedAtCursor},
+    public_id::PublicId,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -40,6 +41,10 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
 
 #[ComplexObject]
 impl Withdrawal {
+    async fn public_id(&self) -> &PublicId {
+        &self.entity.public_id
+    }
+
     async fn reference(&self) -> &str {
         &self.entity.reference
     }

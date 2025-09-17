@@ -989,6 +989,7 @@ type Deposit {
 	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	publicId: PublicId!
 	reference: String!
 	status: DepositStatus!
 	account: DepositAccount!
@@ -1675,7 +1676,7 @@ type ProfitAndLossStatementModuleConfigurePayload {
 
 scalar PublicId
 
-union PublicIdTarget = Customer | DepositAccount | CreditFacility | CreditFacilityDisbursal
+union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
 	me: Me!
@@ -1690,8 +1691,10 @@ type Query {
 	customerByPublicId(id: PublicId!): Customer
 	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
+	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
+	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
@@ -2120,6 +2123,7 @@ type Withdrawal {
 	approvalProcessId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	publicId: PublicId!
 	reference: String!
 	status: WithdrawalStatus!
 	approvalProcess: ApprovalProcess!

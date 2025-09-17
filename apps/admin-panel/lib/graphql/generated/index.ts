@@ -1009,6 +1009,7 @@ export type Deposit = {
   createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: DepositStatus;
 };
@@ -1910,7 +1911,7 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
   profitAndLossConfig: ProfitAndLossStatementModuleConfig;
 };
 
-export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | DepositAccount;
+export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Withdrawal;
 
 export type Query = {
   __typename?: 'Query';
@@ -1936,6 +1937,7 @@ export type Query = {
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
   depositAccount?: Maybe<DepositAccount>;
+  depositByPublicId?: Maybe<Deposit>;
   depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
@@ -1966,6 +1968,7 @@ export type Query = {
   user?: Maybe<User>;
   users: Array<User>;
   withdrawal?: Maybe<Withdrawal>;
+  withdrawalByPublicId?: Maybe<Withdrawal>;
   withdrawals: WithdrawalConnection;
 };
 
@@ -2068,6 +2071,11 @@ export type QueryDepositArgs = {
 
 export type QueryDepositAccountArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDepositByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
 };
 
 
@@ -2200,6 +2208,11 @@ export type QueryUserArgs = {
 
 export type QueryWithdrawalArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryWithdrawalByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
 };
 
 
@@ -2591,6 +2604,7 @@ export type Withdrawal = {
   approvalProcessId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
@@ -3732,7 +3746,9 @@ export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?:
     | { __typename: 'CreditFacility', id: string, publicId: any, facilityAmount: UsdCents }
     | { __typename: 'CreditFacilityDisbursal', id: string, amount: UsdCents, publicId: any }
     | { __typename: 'Customer', id: string, customerId: string, publicId: any, email: string }
+    | { __typename: 'Deposit' }
     | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } }
+    | { __typename: 'Withdrawal' }
    | null };
 
 export const UsdBalanceFragmentFragmentDoc = gql`

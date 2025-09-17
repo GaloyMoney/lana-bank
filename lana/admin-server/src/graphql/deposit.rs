@@ -6,7 +6,10 @@ use super::loader::LanaDataLoader;
 
 pub use super::deposit_account::DepositAccount;
 
-pub use lana_app::deposit::{Deposit as DomainDeposit, DepositStatus, DepositsByCreatedAtCursor};
+pub use lana_app::{
+    deposit::{Deposit as DomainDeposit, DepositStatus, DepositsByCreatedAtCursor},
+    public_id::PublicId,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
@@ -37,6 +40,10 @@ impl From<DomainDeposit> for Deposit {
 
 #[ComplexObject]
 impl Deposit {
+    async fn public_id(&self) -> &PublicId {
+        &self.entity.public_id
+    }
+
     async fn reference(&self) -> &str {
         &self.entity.reference
     }

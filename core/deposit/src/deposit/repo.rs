@@ -5,7 +5,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreDepositEvent,
-    primitives::{DepositAccountId, DepositId},
+    primitives::{DepositAccountId, DepositId, PublicId},
     publisher::DepositPublisher,
 };
 
@@ -17,7 +17,8 @@ use super::{entity::*, error::*};
     err = "DepositError",
     columns(
         deposit_account_id(ty = "DepositAccountId", list_for, update(persist = false)),
-        reference(ty = "String", create(accessor = "reference()"))
+        reference(ty = "String", create(accessor = "reference()")),
+        public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish"

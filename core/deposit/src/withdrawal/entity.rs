@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::primitives::{
-    ApprovalProcessId, CalaTransactionId, DepositAccountId, UsdCents, WithdrawalId,
+    ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, UsdCents, WithdrawalId,
 };
 
 use super::error::WithdrawalError;
@@ -36,6 +36,7 @@ pub enum WithdrawalEvent {
         reference: String,
         approval_process_id: ApprovalProcessId,
         status: WithdrawalStatus,
+        public_id: PublicId,
     },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
@@ -64,6 +65,7 @@ pub struct Withdrawal {
     pub reference: String,
     pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
+    pub public_id: PublicId,
     #[builder(setter(strip_option), default)]
     pub cancelled_tx_id: Option<CalaTransactionId>,
 
@@ -230,6 +232,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                     deposit_account_id,
                     amount,
                     approval_process_id,
+                    public_id,
                     ..
                 } => {
                     builder = builder
@@ -238,6 +241,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                         .amount(*amount)
                         .reference(reference.clone())
                         .approval_process_id(*approval_process_id)
+                        .public_id(public_id.clone())
                 }
                 WithdrawalEvent::Cancelled { ledger_tx_id, .. } => {
                     builder = builder.cancelled_tx_id(*ledger_tx_id)
@@ -260,6 +264,8 @@ pub struct NewWithdrawal {
     pub(super) amount: UsdCents,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
+    #[builder(setter(into))]
+    pub(super) public_id: PublicId,
     reference: Option<String>,
 }
 
@@ -298,6 +304,7 @@ impl IntoEvents<WithdrawalEvent> for NewWithdrawal {
                 amount: self.amount,
                 approval_process_id: self.approval_process_id,
                 status: WithdrawalStatus::PendingApproval,
+                public_id: self.public_id,
             }],
         )
     }
@@ -315,6 +322,7 @@ mod test {
             .amount(UsdCents::ZERO)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
+            .public_id(PublicId::new("test-public-id"))
             .build();
 
         assert!(matches!(
@@ -330,6 +338,7 @@ mod test {
             .deposit_account_id(DepositAccountId::new())
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
+            .public_id(PublicId::new("test-public-id"))
             .build();
 
         assert!(matches!(
@@ -346,6 +355,7 @@ mod test {
             .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
+            .public_id(PublicId::new("test-public-id"))
             .build();
 
         assert!(withdrawal.is_ok());
@@ -358,6 +368,7 @@ mod test {
             .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
+            .public_id(PublicId::new("test-public-id"))
             .build()
             .unwrap();
 
@@ -386,6 +397,7 @@ mod test {
             .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
+            .public_id(PublicId::new("test-public-id"))
             .build()
             .unwrap();
 
@@ -414,6 +426,7 @@ mod test {
             .amount(UsdCents::ONE)
             .reference(None)
             .approval_process_id(ApprovalProcessId::new())
+            .public_id(PublicId::new("test-public-id"))
             .build()
             .unwrap();
 

@@ -147,6 +147,7 @@ CREATE TABLE core_deposits (
   id UUID PRIMARY KEY,
   deposit_account_id UUID NOT NULL REFERENCES core_deposit_accounts(id),
   reference VARCHAR NOT NULL UNIQUE,
+  public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -166,6 +167,7 @@ CREATE TABLE core_withdrawals (
   approval_process_id UUID REFERENCES core_approval_processes(id),
   cancelled_tx_id UUID DEFAULT NULL,
   reference VARCHAR NOT NULL UNIQUE,
+  public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

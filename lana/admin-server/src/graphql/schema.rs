@@ -181,6 +181,23 @@ impl Query {
         )
     }
 
+    async fn withdrawal_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<Withdrawal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
+            return Ok(None);
+        };
+        maybe_fetch_one!(
+            Withdrawal,
+            ctx,
+            app.deposits()
+                .find_withdrawal_by_id(sub, public_id.target_id)
+        )
+    }
+
     async fn withdrawals(
         &self,
         ctx: &Context<'_>,
@@ -203,6 +220,22 @@ impl Query {
     async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
+    }
+
+    async fn deposit_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<Deposit>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
+            return Ok(None);
+        };
+        maybe_fetch_one!(
+            Deposit,
+            ctx,
+            app.deposits().find_deposit_by_id(sub, public_id.target_id)
+        )
     }
 
     async fn deposit_account(
@@ -824,6 +857,14 @@ impl Query {
                 .deposit_account(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::DepositAccount),
+            "deposit" => self
+                .deposit(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::Deposit),
+            "withdrawal" => self
+                .withdrawal(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::Withdrawal),
             "credit_facility" => self
                 .credit_facility(ctx, public_id.target_id.into())
                 .await?

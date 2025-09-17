@@ -325,15 +325,20 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
+        let mut op = self.deposits.begin_op().await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
+            .await?;
+
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
             .ledger_transaction_id(deposit_id)
             .deposit_account_id(deposit_account_id)
             .amount(amount)
+            .public_id(public_id.id)
             .reference(reference)
             .build()?;
-
-        let mut op = self.deposits.begin_op().await?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
             .record_deposit(op, deposit_id, amount, deposit_account_id)
@@ -359,15 +364,21 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
+        let mut op = self.withdrawals.begin_op().await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
+            .await?;
+
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
             .amount(amount)
             .approval_process_id(withdrawal_id)
+            .public_id(public_id.id)
             .reference(reference)
             .build()?;
 
-        let mut op = self.withdrawals.begin_op().await?;
         self.governance
             .start_process(
                 &mut op,
