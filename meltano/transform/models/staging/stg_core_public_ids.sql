@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['id', 'target_id'],
+    unique_key = ['target_id'],
 ) }}
 
 with ordered as (
@@ -11,10 +11,11 @@ with ordered as (
         created_at,
         row_number()
             over (
-                partition by id, target_id
-                order by _sdc_received_at desc
+                partition by target_id
+                order by _sdc_batched_at desc
             )
-            as order_received_desc
+            as order_received_desc,
+        _sdc_batched_at,
 
     from {{ source("lana", "public_core_public_ids_view") }}
 
