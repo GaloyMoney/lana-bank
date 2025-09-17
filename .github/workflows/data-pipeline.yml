@@ -46,7 +46,9 @@ jobs:
           nix develop -c tofu init
           nix develop -c tofu apply -auto-approve
 
-          SA_CREDS=$(nix develop -c tofu output -raw service_account_key_base64)
+          nix develop -c tofu output -raw service_account_key_base64 > sa_creds_base64.txt
+          SA_CREDS=$(tail -n 1 sa_creds_base64.txt)
+          rm sa_creds_base64.txt
 
           echo "SA_CREDS=$SA_CREDS" >> $GITHUB_ENV
           echo "NAME_PREFIX=$UNIQUE_PREFIX" >> $GITHUB_ENV
