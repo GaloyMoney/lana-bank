@@ -1,3 +1,4 @@
+mod closing;
 pub mod error;
 
 use cala_ledger::{
@@ -9,6 +10,7 @@ use cala_ledger::{
     },
 };
 
+use closing::*;
 use error::*;
 
 use crate::Chart;
@@ -68,7 +70,7 @@ impl ChartLedger {
         Ok(())
     }
 
-    pub async fn close_chart_as_of(
+    pub async fn monthly_close_chart_as_of(
         &self,
         op: es_entity::DbOp<'_>,
         chart_root_account_set_id: impl Into<AccountSetId>,
@@ -86,13 +88,7 @@ impl ChartLedger {
             .clone()
             .metadata
             .unwrap_or_else(|| serde_json::json!({}));
-        metadata
-            .as_object_mut()
-            .expect("metadata should be an object")
-            .insert(
-                "closedAsOf".to_string(),
-                serde_json::json!(closed_as_of.to_string()),
-            );
+        AccountingClosingMetadata::update_metadata(&mut metadata, closed_as_of);
 
         let mut update_values = AccountSetUpdate::default();
         update_values
@@ -113,17 +109,13 @@ impl ChartLedger {
         &self,
         op: &mut LedgerOperation<'_>,
     ) -> Result<VelocityControlId, ChartLedgerError> {
-        let cel_conditions: &str = r#"
-            !has(context.vars.account.metadata) ||
-            !has(context.vars.account.metadata.closedAsOf) ||
-            date(context.vars.account.metadata.closedAsOf) >= context.vars.transaction.effective
-        "#;
+        let monthly_cel_conditions = AccountingClosingMetadata::monthly_cel_conditions();
 
         let new_control = NewVelocityControl::builder()
             .id(VelocityControlId::new())
             .name("Account Closing")
             .description("Control to restrict posting to closed accounts")
-            .condition(cel_conditions)
+            .condition(&monthly_cel_conditions)
             .build()
             .expect("build control");
         let control = self

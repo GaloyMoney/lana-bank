@@ -211,7 +211,7 @@ where
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         self.chart_ledger
-            .close_chart_as_of(op, chart.id, first_closed_as_of_date)
+            .monthly_close_chart_as_of(op, chart.id, first_closed_as_of_date)
             .await?;
 
         Ok(chart)
@@ -240,7 +240,7 @@ where
         self.repo.update_in_op(&mut op, &mut chart).await?;
 
         self.chart_ledger
-            .close_chart_as_of(op, chart.id, closed_as_of_date)
+            .monthly_close_chart_as_of(op, chart.id, closed_as_of_date)
             .await?;
 
         Ok(chart)
