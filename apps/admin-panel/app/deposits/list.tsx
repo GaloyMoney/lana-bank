@@ -13,6 +13,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment DepositFields on Deposit {
@@ -76,11 +77,9 @@ export default Deposits
 
 const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
-    key: "depositId",
+    key: "publicId",
     label: t("headers.depositId"),
-    render: (depositId) => {
-      return `${depositId.substring(0, 4)}...${depositId.substring(depositId.length - 4)}`
-    },
+    render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
     key: "account",

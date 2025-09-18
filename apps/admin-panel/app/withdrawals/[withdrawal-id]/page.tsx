@@ -20,6 +20,7 @@ gql`
     amount
     status
     reference
+    createdAt
     account {
       customer {
         id

@@ -2,7 +2,7 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
-import { ExternalLinkIcon } from "lucide-react"
+import { ExternalLinkIcon, RotateCcw } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -34,21 +34,6 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
       href: `/customers/${deposit.account.customer.publicId}`,
     },
     {
-      label: t("fields.depositId"),
-      value: (
-        <a
-          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-blue-500 hover:underline"
-          title={`Full ID: ${deposit.depositId}`}
-        >
-          {`${deposit.depositId.substring(0, 4)}...${deposit.depositId.substring(deposit.depositId.length - 4)}`}
-          <ExternalLinkIcon className="h-4 w-4" />
-        </a>
-      ),
-    },
-    {
       label: t("fields.depositAmount"),
       value: <Balance amount={deposit.amount} currency="usd" />,
     },
@@ -75,9 +60,20 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
           variant="outline"
           onClick={() => setOpenDepositRevertDialog(deposit)}
         >
+          <RotateCcw className="h-4 w-4" />
           {t("buttons.revert")}
         </Button>
       )}
+      <Button asChild variant="outline">
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("buttons.viewOnSumsub")}
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>
+      </Button>
     </>
   )
 

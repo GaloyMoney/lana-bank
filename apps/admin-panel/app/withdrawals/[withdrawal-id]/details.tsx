@@ -5,7 +5,9 @@ import { useTranslations } from "next-intl"
 
 import { Button } from "@lana/web/ui/button"
 
-import { ExternalLinkIcon } from "lucide-react"
+import { formatDate } from "@lana/web/utils"
+
+import { ExternalLinkIcon, Check, X, RotateCcw, CheckCircle, XCircle } from "lucide-react"
 
 import { WithdrawalStatusBadge } from "../status-badge"
 
@@ -49,23 +51,6 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
       href: `/customers/${withdrawal.account.customer.publicId}`,
     },
     {
-      label: t("fields.withdrawalId"),
-      value: (
-        <a
-          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="flex items-center gap-1 text-blue-500 hover:underline"
-          title={`Full ID: ${withdrawal.withdrawalId}`}
-        >
-          {`${withdrawal.withdrawalId.substring(0, 4)}...${withdrawal.withdrawalId.substring(
-            withdrawal.withdrawalId.length - 4,
-          )}`}
-          <ExternalLinkIcon className="h-4 w-4" />
-        </a>
-      ),
-    },
-    {
       label: t("fields.withdrawalAmount"),
       value: <Balance amount={withdrawal.amount} currency="usd" />,
     },
@@ -75,6 +60,10 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
         withdrawal.reference === withdrawal.withdrawalId
           ? t("values.na")
           : withdrawal.reference,
+    },
+    {
+      label: t("fields.createdAt"),
+      value: formatDate(withdrawal.createdAt),
     },
     {
       label: t("fields.status"),
@@ -92,6 +81,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
             data-testid="withdraw-confirm-button"
             variant="outline"
           >
+            <Check className="h-4 w-4" />
             {t("buttons.confirm")}
           </Button>
           <Button
@@ -99,6 +89,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
             variant="outline"
             onClick={() => setOpenWithdrawalCancelDialog(withdrawal)}
           >
+            <X className="h-4 w-4" />
             {t("buttons.cancel")}
           </Button>
         </>
@@ -109,9 +100,20 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
           variant="outline"
           onClick={() => setOpenWithdrawalRevertDialog(withdrawal)}
         >
+          <RotateCcw className="h-4 w-4" />
           {t("buttons.revert")}
         </Button>
       )}
+      <Button asChild variant="outline">
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${withdrawal.withdrawalId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("buttons.viewOnSumsub")}
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>
+      </Button>
       {withdrawal?.approvalProcess.status === ApprovalProcessStatus.InProgress &&
         withdrawal.approvalProcess.userCanSubmitDecision && (
           <>
@@ -120,6 +122,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
               onClick={() => setOpenApprovalDialog(true)}
               data-testid="approval-process-approve-button"
             >
+              <CheckCircle className="h-4 w-4" />
               {t("buttons.approve")}
             </Button>
             <Button
@@ -127,6 +130,7 @@ const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal })
               onClick={() => setOpenDenialDialog(true)}
               data-testid="approval-process-deny-button"
             >
+              <XCircle className="h-4 w-4" />
               {t("buttons.deny")}
             </Button>
           </>

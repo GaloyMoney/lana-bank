@@ -13,6 +13,7 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment WithdrawalFields on Withdrawal {
@@ -76,11 +77,9 @@ export default Withdrawals
 
 const columns = (t: ReturnType<typeof useTranslations>): Column<Withdrawal>[] => [
   {
-    key: "withdrawalId",
+    key: "publicId",
     label: t("headers.withdrawalId"),
-    render: (withdrawalId) => {
-      return `${withdrawalId.substring(0, 4)}...${withdrawalId.substring(withdrawalId.length - 4)}`
-    },
+    render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
     key: "account",
