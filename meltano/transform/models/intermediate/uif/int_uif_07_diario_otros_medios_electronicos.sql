@@ -19,6 +19,12 @@ withdrawal_confirmation_timestamps as (
         on ers.withdrawal_id = cw.withdrawal_id
     where ers.is_confirmed = true
     group by ers.withdrawal_id
+),
+confirmed_deposits as (
+    select deposit_id
+    from int_core_deposit_events_rollup_sequence
+    where status = 'Confirmed'
+    group by deposit_id
 )
 
 select
