@@ -7,6 +7,7 @@ use es_entity::*;
 
 use crate::primitives::*;
 
+use crate::chart_of_accounts::error::ChartOfAccountsError;
 use cala_ledger::account::NewAccount;
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -23,6 +24,12 @@ pub enum ChartNodeEvent {
     ManualTransactionAccountAssigned {
         ledger_account_id: LedgerAccountId,
     },
+    ChildNodeAdded {
+        child_node_id: ChartNodeId,
+    },
+    ParentNodeAssigned {
+        parent_node_id: ChartNodeId,
+    },
 }
 
 #[derive(EsEntity, Builder)]
@@ -34,6 +41,11 @@ pub struct ChartNode {
     pub account_set_id: CalaAccountSetId,
     #[builder(setter(strip_option), default)]
     pub manual_transaction_account_id: Option<LedgerAccountId>,
+
+    children: Vec<ChartNodeId>,
+
+    #[builder(setter(strip_option), default)]
+    parent_node_id: Option<ChartNodeId>,
 
     events: EntityEvents<ChartNodeEvent>,
 }
@@ -62,11 +74,41 @@ impl ChartNode {
 
         Idempotent::Executed(new_account)
     }
+
+    pub fn add_child_node(&mut self, child_node_id: ChartNodeId) -> Idempotent<()> {
+        idempotency_guard!(
+            self.events.iter_all().rev(),
+            ChartNodeEvent::ChildNodeAdded { child_node_id: id, .. } if id == &child_node_id
+        );
+
+        self.children.push(child_node_id);
+        self.events
+            .push(ChartNodeEvent::ChildNodeAdded { child_node_id });
+        Idempotent::Executed(())
+    }
+
+    pub fn get_children(&self) -> Vec<ChartNodeId> {
+        self.children.clone()
+    }
+
+    pub fn get_parent_node_id(&self) -> Option<ChartNodeId> {
+        self.parent_node_id.clone()
+    }
+
+    pub fn check_can_have_manual_transactions(&self) -> Result<(), ChartOfAccountsError> {
+        match self.children.is_empty() {
+            true => Ok(()),
+            false => Err(ChartOfAccountsError::NonLeafAccount(
+                self.spec.code.to_string(),
+            )),
+        }
+    }
 }
 
 impl TryFromEvents<ChartNodeEvent> for ChartNode {
     fn try_from_events(events: EntityEvents<ChartNodeEvent>) -> Result<Self, EsEntityError> {
         let mut builder = ChartNodeBuilder::default();
+        let mut children = Vec::new();
 
         for event in events.iter_all() {
             match event {
@@ -80,37 +122,50 @@ impl TryFromEvents<ChartNodeEvent> for ChartNode {
                         .id(*id)
                         .chart_id(*chart_id)
                         .spec(spec.clone())
-                        .account_set_id(*ledger_account_set_id)
+                        .account_set_id(*ledger_account_set_id);
                 }
                 ChartNodeEvent::ManualTransactionAccountAssigned { ledger_account_id } => {
                     builder = builder.manual_transaction_account_id(*ledger_account_id);
                 }
+                ChartNodeEvent::ChildNodeAdded { child_node_id } => {
+                    children.push(*child_node_id);
+                }
+                ChartNodeEvent::ParentNodeAssigned { parent_node_id } => {
+                    builder = builder.parent_node_id(*parent_node_id);
+                }
             }
         }
 
+        builder = builder.children(children);
         builder.events(events).build()
     }
 }
-
 #[derive(Debug, Clone, Builder)]
 pub struct NewChartNode {
     pub id: ChartNodeId,
     pub chart_id: ChartId,
     pub spec: AccountSpec,
     pub ledger_account_set_id: CalaAccountSetId,
+    #[builder(setter(strip_option), default)]
+    pub parent_node_id: Option<ChartNodeId>,
 }
 
 impl IntoEvents<ChartNodeEvent> for NewChartNode {
     fn into_events(self) -> EntityEvents<ChartNodeEvent> {
-        EntityEvents::init(
-            self.id,
-            vec![ChartNodeEvent::Initialized {
-                id: self.id,
-                chart_id: self.chart_id,
-                spec: self.spec,
-                ledger_account_set_id: self.ledger_account_set_id,
-            }],
-        )
+        let mut events = vec![ChartNodeEvent::Initialized {
+            id: self.id,
+            chart_id: self.chart_id,
+            spec: self.spec,
+            ledger_account_set_id: self.ledger_account_set_id,
+        }];
+
+        if let Some(parent_id) = self.parent_node_id {
+            events.push(ChartNodeEvent::ParentNodeAssigned {
+                parent_node_id: parent_id,
+            });
+        }
+
+        EntityEvents::init(self.id, events)
     }
 }
 
@@ -138,6 +193,7 @@ mod tests {
             chart_id: ChartId::new(),
             spec: default_spec(),
             ledger_account_set_id: CalaAccountSetId::new(),
+            parent_node_id: None,
         }
     }
 
