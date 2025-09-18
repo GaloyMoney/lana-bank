@@ -13,7 +13,7 @@ confirmed_withdrawals as (
 withdrawal_confirmation_timestamps as (
     select 
         ers.withdrawal_id,
-        min(withdrawal_modified_at) as withdrawal_confirmed_at
+        min(ers.withdrawal_modified_at) as withdrawal_confirmed_at
     from int_core_withdrawal_events_rollup_sequence ers
     inner join confirmed_withdrawals cw 
         on ers.withdrawal_id = cw.withdrawal_id
@@ -23,6 +23,16 @@ withdrawal_confirmation_timestamps as (
 confirmed_deposits as (
     select deposit_id
     from int_core_deposit_events_rollup_sequence
+    where status = 'Confirmed'
+    group by deposit_id
+),
+deposit_confirmation_timestamps as (
+    select 
+        ers.deposit_id,
+        min(ers.deposit_modified_at)
+    from int_core_deposit_events_rollup_sequence ers
+    inner join confirmed_deposits cd
+        on ers.deposit_id = cd.deposit_id
     where status = 'Confirmed'
     group by deposit_id
 )
