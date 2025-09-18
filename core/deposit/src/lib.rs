@@ -627,6 +627,48 @@ where
         }
     }
 
+    #[instrument(name = "deposit.find_deposit_by_public_id", skip(self), err)]
+    pub async fn find_deposit_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<Deposit>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_READ,
+            )
+            .await?;
+
+        match self.deposits.find_by_public_id(public_id.into()).await {
+            Ok(deposit) => Ok(Some(deposit)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    #[instrument(name = "deposit.find_withdrawal_by_public_id", skip(self), err)]
+    pub async fn find_withdrawal_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<Withdrawal>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_READ,
+            )
+            .await?;
+
+        match self.withdrawals.find_by_public_id(public_id.into()).await {
+            Ok(withdrawal) => Ok(Some(withdrawal)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
     #[instrument(name = "deposit.find_withdrawal_by_cancelled_tx_id", skip(self), err)]
     pub async fn find_withdrawal_by_cancelled_tx_id(
         &self,
