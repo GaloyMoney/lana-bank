@@ -451,7 +451,7 @@ mod test {
             account_ids: CreditFacilityLedgerAccountIds::new().into(),
             idx: InterestAccrualCycleIdx::FIRST,
             period: default_period(),
-            facility_maturity_date: terms.duration.maturity_date(started_at),
+            facility_maturity_date: terms.maturity_date(started_at),
             terms,
         }]
     }
@@ -567,7 +567,7 @@ mod test {
     fn next_accrual_period_at_end() {
         let mut events = initial_events();
 
-        let facility_maturity_date = default_terms().duration.maturity_date(default_started_at());
+        let facility_maturity_date = default_terms().maturity_date(default_started_at());
         let final_accrual_period = default_terms()
             .accrual_cycle_interval
             .period_from(default_started_at())

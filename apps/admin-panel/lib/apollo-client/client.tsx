@@ -9,6 +9,7 @@ import { getToken } from "@/app/auth/keycloak"
 
 import {
   CreditFacility,
+  CreditFacilityProposal,
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -97,6 +98,29 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
         const initialCvlDecimal =
           facility.creditFacilityTerms.initialCvl.__typename === "FiniteCVLPct"
             ? Number(facility.creditFacilityTerms.initialCvl.value || 0) / 100
+            : Infinity
+
+        const requiredCollateralInSats =
+          (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) / bitcoinPrice
+
+        return Math.floor(requiredCollateralInSats)
+      },
+    },
+    CreditFacilityProposal: {
+      collateralToMatchInitialCvl: async (
+        proposal: CreditFacilityProposal,
+        _,
+        { cache },
+      ) => {
+        const priceInfo = await fetchData(cache)
+        if (!priceInfo) return null
+
+        const bitcoinPrice = priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD
+        const basisAmountInUsd = proposal.facilityAmount / CENTS_PER_USD
+
+        const initialCvlDecimal =
+          proposal.creditFacilityTerms.initialCvl.__typename === "FiniteCVLPct"
+            ? Number(proposal.creditFacilityTerms.initialCvl.value || 0) / 100
             : Infinity
 
         const requiredCollateralInSats =

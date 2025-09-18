@@ -8,12 +8,20 @@ use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::OutboxEventMarker;
+use tracing::instrument;
 
 use crate::{event::CoreCreditEvent, ledger::CreditLedger, primitives::*};
 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
-use repo::{CreditFacilityProposalRepo, credit_facility_proposal_cursor::*};
+use repo::CreditFacilityProposalRepo;
+pub use repo::credit_facility_proposal_cursor::*;
+
+pub enum CreditFacilityProposalCompletionOutcome {
+    Ignored,
+    Completed(CreditFacilityProposal),
+}
+
 pub struct CreditFacilityProposals<Perms, E>
 where
     Perms: PermissionCheck,
@@ -26,7 +34,6 @@ where
     ledger: CreditLedger,
     governance: Governance<Perms, E>,
 }
-
 impl<Perms, E> Clone for CreditFacilityProposals<Perms, E>
 where
     Perms: PermissionCheck,
@@ -90,6 +97,10 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
+    #[instrument(
+        name = "credit.credit_facility_proposals.create_in_op",
+        skip(self, db, new_proposal)
+    )]
     pub(super) async fn create_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -106,6 +117,7 @@ where
         self.repo.create_in_op(db, new_proposal).await
     }
 
+    #[instrument(name = "credit.credit_facility_proposals.approve", skip(self))]
     pub(super) async fn approve(
         &self,
         id: CreditFacilityProposalId,
@@ -134,6 +146,33 @@ where
         Ok(facility_proposal)
     }
 
+    #[instrument(
+        name = "credit.credit_facility_proposals.complete_in_op",
+        skip(self, db)
+    )]
+    pub(crate) async fn complete_in_op(
+        &self,
+        db: &mut es_entity::DbOpWithTime<'_>,
+        id: CreditFacilityProposalId,
+    ) -> Result<CreditFacilityProposalCompletionOutcome, CreditFacilityProposalError> {
+        let mut proposal = self.repo.find_by_id(id).await?;
+
+        let price = self.price.usd_cents_per_btc().await?;
+
+        let balances = self
+            .ledger
+            .get_credit_facility_proposal_balance(proposal.account_ids)
+            .await?;
+
+        let Ok(es_entity::Idempotent::Executed(_)) = proposal.complete(balances, price) else {
+            return Ok(CreditFacilityProposalCompletionOutcome::Ignored);
+        };
+
+        self.repo.update_in_op(db, &mut proposal).await?;
+
+        Ok(CreditFacilityProposalCompletionOutcome::Completed(proposal))
+    }
+
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub(super) async fn update_collateralization_from_events(
         &self,
@@ -146,6 +185,7 @@ where
             .ledger
             .get_credit_facility_proposal_balance(facility_proposal.account_ids)
             .await?;
+
         let price = self.price.usd_cents_per_btc().await?;
 
         if facility_proposal
@@ -188,19 +228,19 @@ where
 
             let mut at_least_one = false;
 
-            for facility in credit_facility_proposals.entities.iter_mut() {
-                // if facility.status() == CreditFacilityStatus::Closed {
-                //     continue;
-                // } // TODO: handle this case when we have status fn
+            for proposal in credit_facility_proposals.entities.iter_mut() {
+                if proposal.status() == CreditFacilityProposalStatus::Completed {
+                    continue;
+                }
                 let balances = self
                     .ledger
-                    .get_credit_facility_proposal_balance(facility.account_ids)
+                    .get_credit_facility_proposal_balance(proposal.account_ids)
                     .await?;
-                if facility
+                if proposal
                     .update_collateralization(price, balances)
                     .did_execute()
                 {
-                    self.repo.update_in_op(&mut op, facility).await?;
+                    self.repo.update_in_op(&mut op, proposal).await?;
                     at_least_one = true;
                 }
             }
@@ -212,5 +252,104 @@ where
             }
         }
         Ok(())
+    }
+
+    #[instrument(name = "credit.credit_facility_proposals.list", skip(self))]
+    pub async fn list(
+        &self,
+        _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityProposalsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            CreditFacilityProposal,
+            CreditFacilityProposalsByCreatedAtCursor,
+        >,
+        CreditFacilityProposalError,
+    > {
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
+    }
+
+    #[instrument(
+        name = "credit.credit_facility_proposals.list_for_customer_by_created_at",
+        skip(self)
+    )]
+    pub async fn list_for_customer_by_created_at(
+        &self,
+        _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<crate::primitives::CustomerId> + std::fmt::Debug,
+    ) -> Result<Vec<CreditFacilityProposal>, CreditFacilityProposalError> {
+        Ok(self
+            .repo
+            .list_for_customer_id_by_created_at(
+                customer_id.into(),
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
+
+    #[instrument(name = "credit.credit_facility_proposals.find_all", skip(self, ids))]
+    pub async fn find_all<T: From<CreditFacilityProposal>>(
+        &self,
+        ids: &[CreditFacilityProposalId],
+    ) -> Result<std::collections::HashMap<CreditFacilityProposalId, T>, CreditFacilityProposalError>
+    {
+        self.repo.find_all(ids).await
+    }
+
+    pub(crate) async fn find_by_id_without_audit(
+        &self,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
+        self.repo.find_by_id(id.into()).await
+    }
+
+    #[instrument(name = "credit.credit_facility_proposals.find_by_id", skip(self, sub))]
+    pub async fn find_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+    ) -> Result<Option<CreditFacilityProposal>, CreditFacilityProposalError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id.into()),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        match self.repo.find_by_id(id).await {
+            Ok(credit_facility) => Ok(Some(credit_facility)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    pub async fn collateral(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+    ) -> Result<Satoshis, CreditFacilityProposalError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id.into()),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        let credit_facility_proposal = self.repo.find_by_id(id).await?;
+
+        let collateral = self
+            .ledger
+            .get_proposal_collateral(credit_facility_proposal.account_ids.collateral_account_id)
+            .await?;
+
+        Ok(collateral)
     }
 }

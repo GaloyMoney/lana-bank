@@ -141,17 +141,19 @@ impl ApprovalProcess {
                     .expect("withdrawal not found");
                 Ok(ApprovalProcessTarget::Withdrawal(withdrawal))
             }
-            ApprovalProcessType::CreditFacilityApproval => {
-                let credit_facility = loader
+            ApprovalProcessType::CreditFacilityProposalApproval => {
+                let credit_facility_proposal = loader
                     .load_one(
                         self.entity
                             .target_ref()
-                            .parse::<CreditFacilityId>()
+                            .parse::<CreditFacilityProposalId>()
                             .expect("invalid target ref"),
                     )
                     .await?
-                    .expect("credit facility not found");
-                Ok(ApprovalProcessTarget::CreditFacility(credit_facility))
+                    .expect("credit facility proposal not found");
+                Ok(ApprovalProcessTarget::CreditFacilityProposal(
+                    credit_facility_proposal,
+                ))
             }
             ApprovalProcessType::DisbursalApproval => {
                 let disbursal = loader
@@ -165,9 +167,6 @@ impl ApprovalProcess {
                     .expect("disbursal not found");
                 Ok(ApprovalProcessTarget::CreditFacilityDisbursal(disbursal))
             }
-            ApprovalProcessType::CreditFacilityProposalApproval => {
-                unimplemented!("CreditFacilityProcessApproval target not implemented yet")
-            }
         }
     }
 }
@@ -176,7 +175,6 @@ impl ApprovalProcess {
 #[allow(clippy::enum_variant_names)]
 pub enum ApprovalProcessType {
     WithdrawalApproval,
-    CreditFacilityApproval,
     DisbursalApproval,
     CreditFacilityProposalApproval,
 }
@@ -185,8 +183,6 @@ impl From<&DomainApprovalProcessType> for ApprovalProcessType {
     fn from(process_type: &DomainApprovalProcessType) -> Self {
         if process_type == &lana_app::governance::APPROVE_WITHDRAWAL_PROCESS {
             Self::WithdrawalApproval
-        } else if process_type == &lana_app::governance::APPROVE_CREDIT_FACILITY_PROCESS {
-            Self::CreditFacilityApproval
         } else if process_type == &lana_app::governance::APPROVE_DISBURSAL_PROCESS {
             Self::DisbursalApproval
         } else if process_type == &lana_app::governance::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS {
@@ -225,7 +221,7 @@ impl ApprovalProcessVoter {
 #[derive(async_graphql::Union)]
 pub(super) enum ApprovalProcessTarget {
     Withdrawal(Withdrawal),
-    CreditFacility(CreditFacility),
+    CreditFacilityProposal(CreditFacilityProposal),
     CreditFacilityDisbursal(CreditFacilityDisbursal),
 }
 

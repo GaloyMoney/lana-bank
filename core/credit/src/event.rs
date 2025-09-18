@@ -14,14 +14,14 @@ use super::primitives::*;
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type")]
 pub enum CoreCreditEvent {
-    FacilityCreated {
-        id: CreditFacilityId,
+    FacilityProposalCreated {
+        id: CreditFacilityProposalId,
         terms: TermValues,
         amount: UsdCents,
         created_at: DateTime<Utc>,
     },
-    FacilityApproved {
-        id: CreditFacilityId,
+    FacilityProposalApproved {
+        id: CreditFacilityProposalId,
     },
     FacilityActivated {
         id: CreditFacilityId,
@@ -44,6 +44,7 @@ pub enum CoreCreditEvent {
     },
     FacilityCollateralUpdated {
         credit_facility_id: CreditFacilityId,
+        credit_facility_proposal_id: CreditFacilityProposalId,
         ledger_tx_id: LedgerTxId,
         new_amount: Satoshis,
         abs_diff: Satoshis,

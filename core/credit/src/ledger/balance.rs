@@ -201,8 +201,7 @@ impl CreditFacilityProposalBalanceSummary {
     }
 
     pub fn facility_amount_cvl(&self, price: PriceOfOneBTC) -> CVLPct {
-        let facility_amount = self.facility;
-        CVLData::new(self.collateral, facility_amount).cvl(price)
+        CVLData::new(self.collateral, self.facility).cvl(price)
     }
 }
 

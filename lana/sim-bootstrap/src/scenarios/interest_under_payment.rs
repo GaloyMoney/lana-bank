@@ -23,9 +23,9 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
 
     let cf_terms = helpers::std_terms();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
-    let cf = app
+    let cf_proposal = app
         .credit()
-        .create_facility(
+        .create_facility_proposal(
             &sub,
             customer_id,
             deposit_account_id,
@@ -38,21 +38,23 @@ pub async fn interest_under_payment_scenario(sub: Subject, app: &LanaApp) -> any
     let mut stream = app.outbox().listen_persisted(None).await?;
     while let Some(msg) = stream.next().await {
         match &msg.payload {
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
+            Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalApproved { id, .. }))
+                if cf_proposal.id == *id =>
+            {
                 app.credit()
-                    .update_collateral(
+                    .update_proposal_collateral(
                         &sub,
-                        cf.id,
+                        *id,
                         Satoshis::try_from_btc(dec!(230))?,
                         sim_time::now().date_naive(),
                     )
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
-                if cf.id == *id =>
+                if *id == cf_proposal.id.into() =>
             {
                 app.credit()
-                    .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                    .initiate_disbursal(&sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
 
                 break;
