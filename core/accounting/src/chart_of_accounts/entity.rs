@@ -50,11 +50,12 @@ impl Chart {
         let node_id = ChartNodeId::new();
         let ledger_account_set_id = CalaAccountSetId::new();
 
-        let new_chart_node = NewChartNode {
+        let mut new_chart_node = NewChartNode {
             id: node_id,
             chart_id: self.id,
             spec: spec.clone(),
             ledger_account_set_id,
+            parent_node_id: None,
         };
 
         self.chart_nodes.add_new(new_chart_node);
@@ -165,12 +166,15 @@ impl Chart {
         &self,
         code: &AccountCode,
     ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
-        self.chart_nodes.iter_persisted().filter_map(move |node| {
-            if node.spec.parent.as_ref() == Some(code) {
-                Some((&node.spec.code, node.account_set_id))
-            } else {
-                None
-            }
+        self.get_node_by_code(code)
+        .into_iter()
+        .flat_map(move |node| {
+            node.get_children().iter().map(move |child_node_id| {
+                let child_node = self.chart_nodes
+                    .get_persisted(child_node_id)
+                    .expect("Child node should exist");
+                (child_node.spec.code, child_node.account_set_id)
+            })
         })
     }
 
@@ -225,24 +229,23 @@ impl Chart {
             AccountIdOrCode::Id(id) => {
                 Ok(match self.get_node_by_manual_transaction_account_id(&id) {
                     Some(node) => {
-                        self.check_can_have_manual_transactions(&node.spec.code)?;
+                        node.check_can_have_manual_transactions()?;
                         ManualAccountFromChart::IdInChart(id)
                     }
                     None => ManualAccountFromChart::NonChartId(id),
                 })
             }
             AccountIdOrCode::Code(code) => {
-                let node = self
-                    .get_node_details_by_code(&code)
+                let node_mut = self
+                    .get_node_by_code_mut(&code)
                     .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
-                self.check_can_have_manual_transactions(&code)?;
+                node_mut.check_can_have_manual_transactions()?;
 
-                if let Some(existing_id) = node.manual_transaction_account_id {
+                if let Some(existing_id) = node_mut.manual_transaction_account_id {
                     return Ok(ManualAccountFromChart::IdInChart(existing_id));
                 }
 
-                let node_mut = self.get_node_by_code_mut(&code).expect("Node should exist");
                 match node_mut.assign_manual_transaction_account() {
                     Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
                         node_mut.account_set_id,
