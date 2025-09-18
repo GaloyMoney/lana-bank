@@ -1,8 +1,10 @@
 with seed_bank_address as (select * from {{ ref("seed_bank_address") }}),
 int_core_withdrawal_events_rollup_sequence as (select * from {{ ref("int_core_withdrawal_events_rollup_sequence") }}) ,
 int_core_withdrawal_events_rollup as (select * from {{ ref("int_core_withdrawal_events_rollup") }}),
+int_core_deposit_events_rollup_sequence as (select * from {{ ref("int_core_deposit_events_rollup_sequence") }}) ,
+int_core_deposit_events_rollup as (select * from {{ ref("int_core_deposit_events_rollup") }}),
 int_core_deposit_account_events_rollup as (select * from {{ ref("int_core_deposit_account_events_rollup") }}),
-approved_withdrawals as (
+confirmed_withdrawals as (
     select withdrawal_id
     from int_core_withdrawal_events_rollup_sequence
     where is_confirmed = true
@@ -13,11 +15,12 @@ withdrawal_confirmation_timestamps as (
         ers.withdrawal_id,
         min(withdrawal_modified_at) as withdrawal_confirmed_at
     from int_core_withdrawal_events_rollup_sequence ers
-    inner join approved_withdrawals aw 
-        on ers.withdrawal_id = aw.withdrawal_id
+    inner join confirmed_withdrawals cw 
+        on ers.withdrawal_id = cw.withdrawal_id
     where ers.is_confirmed = true
     group by ers.withdrawal_id
 )
+
 select
     wer.withdrawal_id as numeroRegistroBancario, -- probably this should be a public id and not the private uuid
     JSON_OBJECT(
@@ -40,10 +43,10 @@ select
     wer.amount_usd as valorMedioElectronicoPB,
     null as bancoCuentaDestinatariaPB
 from int_core_withdrawal_events_rollup wer
-inner join approved_withdrawals aw 
-    on wer.withdrawal_id = aw.withdrawal_id
+inner join confirmed_withdrawals cw 
+    on wer.withdrawal_id = cw.withdrawal_id
 left join withdrawal_confirmation_timestamps wct
-    on aw.withdrawal_id = wct.withdrawal_id
+    on wer.withdrawal_id = wct.withdrawal_id
 left join int_core_deposit_account_events_rollup aer
     on wer.deposit_account_id = aer.deposit_account_id
 cross join -- Note: this assumes there's only one address!
