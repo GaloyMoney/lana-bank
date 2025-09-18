@@ -3,10 +3,7 @@ resolver = "2"
 members = [
   "lana/*",
   "core/*",
-  "lib/*"
-,
-  "workspace-hack"
-,
+  "lib/*",
 ]
 exclude = [
   "dev/check-dependency-dag",
