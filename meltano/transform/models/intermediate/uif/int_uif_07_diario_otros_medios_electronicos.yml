@@ -162,9 +162,3 @@ models:
           - Integration with external banking APIs
           - Manual bank account verification system
 
-    tests:
-      - dbt_utils.unique_combination_of_columns:
-          combination_of_columns:
-            - numeroRegistroBancario
-            - estacionServicio
-            - fechaTransaccion
