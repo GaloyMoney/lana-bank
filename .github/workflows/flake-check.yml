@@ -1,15 +1,12 @@
 on:
-  push:
-    branches:
-      - main
   pull_request:
     branches:
       - main
 
-name: cargo hakari
+name: Nix flake check
 
 jobs:
-  workspace-hack-check:
+  nix-flake-check:
     name: Nix flake check
     runs-on: ubuntu-latest
     steps:
