@@ -210,23 +210,19 @@
             // {
               inherit cargoArtifacts;
               cargoClippyExtraArgs = "--all-targets -- --deny warnings";
-              pname = "lana-bank-clippy";
             }
           );
           workspace-fmt = craneLib.cargoFmt {
             src = rustSource;
-            pname = "lana-bank-fmt";
           };
 
           workspace-audit = craneLib.cargoAudit {
             inherit advisory-db;
             src = rustSource;
-            pname = "lana-bank-audit";
           };
 
           workspace-deny = craneLib.cargoDeny {
             src = rustSource;
-            pname = "lana-bank-deny";
           };
 
           workspace-machete = craneLib.mkCargoDerivation {
