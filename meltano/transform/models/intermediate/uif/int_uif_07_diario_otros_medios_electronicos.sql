@@ -7,6 +7,16 @@ approved_withdrawals as (
     from int_core_withdrawal_events_rollup_sequence
     where is_confirmed = true
     group by withdrawal_id
+),
+withdrawal_confirmation_timestamps as (
+    select 
+        ers.withdrawal_id,
+        min(withdrawal_modified_at) as withdrawal_confirmed_at
+    from int_core_withdrawal_events_rollup_sequence ers
+    inner join approved_withdrawals aw 
+        on ers.withdrawal_id = aw.withdrawal_id
+    where ers.is_confirmed = true
+    group by ers.withdrawal_id
 )
 select
     wer.withdrawal_id as numeroRegistroBancario, -- probably this should be a public id and not the private uuid
@@ -15,7 +25,7 @@ select
         'idDepartamento', bank_address.region_id,
         'idMunicipio', bank_address.town_id
     ) as estacionServicio,
-    null as fechaTransaccion,
+    wct.withdrawal_confirmed_at as fechaTransaccion,
     null as tipoPersonaA,
     null as detallesPersonaA,
     null as tipoPersonaB,
@@ -32,6 +42,8 @@ select
 from int_core_withdrawal_events_rollup wer
 inner join approved_withdrawals aw 
     on wer.withdrawal_id = aw.withdrawal_id
+left join withdrawal_confirmation_timestamps wct
+    on aw.withdrawal_id = wct.withdrawal_id
 left join int_core_deposit_account_events_rollup aer
     on wer.deposit_account_id = aer.deposit_account_id
 cross join -- Note: this assumes there's only one address!
