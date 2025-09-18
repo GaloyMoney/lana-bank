@@ -117,13 +117,13 @@
         };
 
       lana-cli = craneLib.buildPackage (
-          individualCrateArgs
-          // {
-            pname = "lana-cli";
-            cargoExtraArgs = "-p lana-cli";
-            src = rustSource;
-          }
-        );
+        individualCrateArgs
+        // {
+          pname = "lana-cli";
+          cargoExtraArgs = "-p lana-cli";
+          src = rustSource;
+        }
+      );
 
       # Separate toolchain for musl cross-compilation
       rustToolchainMusl = rustVersion.override {
@@ -206,26 +206,29 @@
           # Build the crates as part of `nix flake check` for convenience
           inherit lana-cli;
 
-           workspace-clippy = craneLib.cargoClippy (
+          workspace-clippy = craneLib.cargoClippy (
             commonArgs
             // {
               inherit cargoArtifacts;
               cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+              pname = "lana-bank-clippy";
             }
           );
           workspace-fmt = craneLib.cargoFmt {
             src = rustSource;
+            pname = "lana-bank-fmt";
           };
 
           workspace-audit = craneLib.cargoAudit {
             inherit advisory-db;
             src = rustSource;
+            pname = "lana-bank-audit";
           };
 
           workspace-deny = craneLib.cargoDeny {
             src = rustSource;
+            pname = "lana-bank-deny";
           };
-
         };
 
         # apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
