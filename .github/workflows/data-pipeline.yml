@@ -70,6 +70,7 @@ jobs:
           export TARGET_BIGQUERY_CREDENTIALS_JSON=$(cat meltano/keyfile.json)
           export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
           export DBT_BIGQUERY_PROJECT="$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
+          export DOCS_BUCKET_NAME="${TF_VAR_name_prefix}-lana-documents"
 
           RAW_PREFIX="${TF_VAR_name_prefix}"
           SAFE_PREFIX="$(printf '%s' "$RAW_PREFIX" | tr -c '[:alnum:]_' '_' )"
@@ -80,6 +81,7 @@ jobs:
           echo "DBT_BIGQUERY_PROJECT=$DBT_BIGQUERY_PROJECT" >> $GITHUB_ENV
           echo "TARGET_BIGQUERY_DATASET=$TARGET_BIGQUERY_DATASET" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_DATASET=$DBT_BIGQUERY_DATASET" >> $GITHUB_ENV
+          echo "DOCS_BUCKET_NAME=$DOCS_BUCKET_NAME" >> $GITHUB_ENV
 
           {
             echo "TARGET_BIGQUERY_CREDENTIALS_JSON<<EOF"
