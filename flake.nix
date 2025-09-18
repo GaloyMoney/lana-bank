@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    advisory-db = {
+      url = "github:rustsec/advisory-db";
+      flake = false;
+    };
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs = {
@@ -19,6 +23,7 @@
     flake-utils,
     rust-overlay,
     crane,
+    advisory-db,
   }:
     flake-utils.lib.eachDefaultSystem
     (system: let
@@ -101,6 +106,7 @@
         // {
           pname = "lana-bank-deps";
         });
+
       individualCrateArgs =
         commonArgs
         // {
@@ -109,47 +115,15 @@
           # NB: we disable tests since we'll run them all via cargo-nextest
           doCheck = false;
         };
-      fileSetForCrate = crate:
-        pkgs.lib.fileset.toSource {
-          root = ./.;
-          fileset = pkgs.lib.fileset.unions [
-            ./Cargo.toml
-            ./Cargo.lock
-            ./.sqlx
-            (craneLib.fileset.commonCargoSources ./lana/lana-blank)
-            (craneLib.fileset.commonCargoSources ./core/core-blank)
-            (craneLib.fileset.commonCargoSources ./lib/lib-blank)
-            (craneLib.fileset.commonCargoSources ./workspace-hack)
-            (craneLib.fileset.commonCargoSources crate)
-          ];
-        };
 
-      # Helper function to create build target for a lib crate
-      mkLibCrate = crateName:
-        craneLib.buildPackage (
+      lana-cli = craneLib.buildPackage (
           individualCrateArgs
           // {
-            pname = "lana-bank-${crateName}";
-            cargoExtraArgs = "-p ${crateName}";
-            src = fileSetForCrate ./lib/${crateName};
+            pname = "lana-cli";
+            cargoExtraArgs = "-p lana-cli";
+            src = rustSource;
           }
         );
-
-      # Individual lib crate targets
-      audit = mkLibCrate "audit";
-      airflow = mkLibCrate "airflow";
-      authz = mkLibCrate "authz";
-      bitgo = mkLibCrate "bitgo";
-      cloud-storage = mkLibCrate "cloud-storage";
-      job = mkLibCrate "job";
-      jwks-utils = mkLibCrate "jwks-utils";
-      keycloak-client = mkLibCrate "keycloak-client";
-      komainu = mkLibCrate "komainu";
-      lib-blank = mkLibCrate "lib-blank";
-      outbox = mkLibCrate "outbox";
-      rendering = mkLibCrate "rendering";
-      sumsub = mkLibCrate "sumsub";
-      tracing-utils = mkLibCrate "tracing-utils";
 
       # Separate toolchain for musl cross-compilation
       rustToolchainMusl = rustVersion.override {
@@ -229,30 +203,28 @@
 
         checks = {
           # Build the crates as part of `nix flake check` for convenience
-          inherit
-            audit
-            airflow
-            ;
-          # authz
-          # bitgo
-          # cloud-storage
-          # job
-          # jwks-utils
-          # keycloak-client
-          # komainu
-          # lib-blank
-          # outbox
-          # rendering
-          # sumsub
-          # tracing-utils;
+          inherit lana-cli;
 
-          workspace-clippy = craneLib.cargoClippy (
+           workspace-clippy = craneLib.cargoClippy (
             commonArgs
             // {
               inherit cargoArtifacts;
               cargoClippyExtraArgs = "--all-targets -- --deny warnings";
             }
           );
+          workspace-fmt = craneLib.cargoFmt {
+            src = rustSource;
+          };
+
+          workspace-audit = craneLib.cargoAudit {
+            inherit advisory-db;
+            src = rustSource;
+          };
+
+          workspace-deny = craneLib.cargoDeny {
+            src = rustSource;
+          };
+
         };
 
         # apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
