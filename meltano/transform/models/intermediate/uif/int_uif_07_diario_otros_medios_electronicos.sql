@@ -45,19 +45,19 @@ select
         'idMunicipio', bank_address.town_id
     ) as estacionServicio,
     wct.withdrawal_confirmed_at as fechaTransaccion,
-    null as tipoPersonaA,
+    CAST(null AS INTEGER) as tipoPersonaA,
     null as detallesPersonaA,
-    null as tipoPersonaB,
+    CAST(null AS INTEGER) as tipoPersonaB,
     null as detallesPersonaB,
     aer.public_id as numeroCuentaPO,
     "Cuenta Corriente" as claseCuentaPO,
-    null as conceptoTransaccionPO,
+    CAST(null AS STRING) as conceptoTransaccionPO,
     wer.amount_usd as valorOtrosMediosElectronicosPO,
-    null as numeroProductoPB,
-    null as claseCuentaPB,
+    CAST(null AS STRING) as numeroProductoPB,
+    CAST(null AS STRING) as claseCuentaPB,
     wer.amount_usd as montoTransaccionPB,
     wer.amount_usd as valorMedioElectronicoPB,
-    null as bancoCuentaDestinatariaPB
+    CAST(null AS STRING) as bancoCuentaDestinatariaPB
 from int_core_withdrawal_events_rollup wer
 inner join confirmed_withdrawals cw 
     on wer.withdrawal_id = cw.withdrawal_id
@@ -77,19 +77,19 @@ select
         'idMunicipio', bank_address.town_id
     ) as estacionServicio,
     dct.deposit_confirmed_at as fechaTransaccion,
-    null as tipoPersonaA,
+    CAST(null AS INTEGER) as tipoPersonaA,
     null as detallesPersonaA,
-    null as tipoPersonaB,
+    CAST(null AS INTEGER) as tipoPersonaB,
     null as detallesPersonaB,
-    null as numeroCuentaPO,
-    null as claseCuentaPO,
-    null as conceptoTransaccionPO,
+    CAST(null AS STRING) as numeroCuentaPO,
+    CAST(null AS STRING) as claseCuentaPO,
+    CAST(null AS STRING) as conceptoTransaccionPO,
     der.amount_usd as valorOtrosMediosElectronicosPO,
     aer.public_id as numeroProductoPB,
     "Cuenta Corriente" as claseCuentaPB,
     der.amount_usd as montoTransaccionPB,
     der.amount_usd as valorMedioElectronicoPB,
-    null as bancoCuentaDestinatariaPB
+    CAST(null AS STRING) as bancoCuentaDestinatariaPB
 from int_core_deposit_events_rollup der
 inner join confirmed_deposits cd 
     on der.deposit_id = cd.deposit_id
@@ -100,3 +100,41 @@ left join int_core_deposit_account_events_rollup aer
 cross join -- Note: this assumes there's only one address!
 seed_bank_address as bank_address
 )
+
+select 
+    numeroRegistroBancario,
+    estacionServicio,
+    fechaTransaccion,
+    tipoPersonaA,
+    detallesPersonaA,
+    tipoPersonaB,
+    detallesPersonaB,
+    numeroCuentaPO,
+    claseCuentaPO,
+    conceptoTransaccionPO,
+    valorOtrosMediosElectronicosPO,
+    numeroProductoPB,
+    claseCuentaPB,
+    montoTransaccionPB,
+    valorMedioElectronicoPB,
+    bancoCuentaDestinatariaPB
+from withdrawal_transactions
+union all
+select 
+    numeroRegistroBancario,
+    estacionServicio,
+    fechaTransaccion,
+    tipoPersonaA,
+    detallesPersonaA,
+    tipoPersonaB,
+    detallesPersonaB,
+    numeroCuentaPO,
+    claseCuentaPO,
+    conceptoTransaccionPO,
+    valorOtrosMediosElectronicosPO,
+    numeroProductoPB,
+    claseCuentaPB,
+    montoTransaccionPB,
+    valorMedioElectronicoPB,
+    bancoCuentaDestinatariaPB
+from deposit_transactions
