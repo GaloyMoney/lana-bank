@@ -147,7 +147,6 @@
           cargo-watch
           cargo-deny
           cargo-machete
-          cargo-hakari
           bacon
           typos
           postgresql
@@ -228,6 +227,21 @@
           workspace-deny = craneLib.cargoDeny {
             src = rustSource;
             pname = "lana-bank-deny";
+          };
+
+          workspace-machete = craneLib.mkCargoDerivation {
+            src = rustSource;
+            pname = "workspace-machete";
+            cargoArtifacts = null;
+            doInstallCargoArtifacts = false;
+
+            buildPhaseCargoCommand = ''
+              cargo machete
+            '';
+
+            nativeBuildInputs = [
+              pkgs.cargo-machete
+            ];
           };
         };
 
