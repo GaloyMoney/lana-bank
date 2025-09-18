@@ -94,18 +94,10 @@
       commonArgs = {
         src = rustSource;
         strictDeps = true;
-
-        buildInputs = [
-          # Add additional build inputs here
-        ];
-
-        # Additional environment variables can be set directly
         SQLX_OFFLINE = true;
       };
-      cargoArtifacts = craneLib.buildDepsOnly (commonArgs
-        // {
-          pname = "lana-bank-deps";
-        });
+
+      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
 
       individualCrateArgs =
         commonArgs
@@ -116,10 +108,10 @@
           doCheck = false;
         };
 
-      lana-cli = craneLib.buildPackage (
+      lana-cli-debug = craneLib.buildPackage (
         individualCrateArgs
         // {
-          pname = "lana-cli";
+          pname = "lana-cli-debug";
           cargoExtraArgs = "-p lana-cli";
           src = rustSource;
         }
@@ -198,11 +190,12 @@
     in
       with pkgs; {
         packages = {
+          default = lana-cli-debug;
         };
 
         checks = {
           # Build the crates as part of `nix flake check` for convenience
-          inherit lana-cli;
+          inherit lana-cli-debug;
 
           workspace-clippy = craneLib.cargoClippy (
             commonArgs
@@ -240,7 +233,7 @@
           };
         };
 
-        # apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
+        apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
 
         devShells.default = mkShell (devEnvVars
           // {
