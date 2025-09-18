@@ -110,14 +110,11 @@ models:
       - name: conceptoTransaccionPO
         description: >
           Brief description of the transaction concept for the originating side.
-          Currently null as transaction concepts are not yet implemented in the source data.
-          This field should describe the business purpose or nature of the transaction
-          (e.g., "real estate purchase", "vehicle sale", "inventory sales", etc.).
+          This field contains the reference/description provided by the customer when
+          initiating the transaction. It describes the business purpose or nature of
+          the transaction (e.g., "real estate purchase", "vehicle sale", "inventory sales", etc.).
           
-          **Missing Data Source:** Transaction purpose/concept data from:
-          - Customer-provided transaction descriptions
-          - Business categorization logic
-          - Manual transaction tagging system
+          Currently being mapped from the deposit/withdrawal reference.
           
       - name: valorOtrosMediosElectronicosPO
         description: >
