@@ -4,10 +4,11 @@ int_core_withdrawal_events_rollup as (select * from {{ ref("int_core_withdrawal_
 int_core_deposit_events_rollup_sequence as (select * from {{ ref("int_core_deposit_events_rollup_sequence") }}),
 int_core_deposit_events_rollup as (select * from {{ ref("int_core_deposit_events_rollup") }}),
 int_core_deposit_account_events_rollup as (select * from {{ ref("int_core_deposit_account_events_rollup") }}),
-confirmed_withdrawals as (
+relevant_withdrawals as (
     select withdrawal_id
     from int_core_withdrawal_events_rollup_sequence
     where is_confirmed = true
+        and amount_usd > 25000
     group by withdrawal_id
 ),
 withdrawal_confirmation_timestamps as (
@@ -15,15 +16,16 @@ withdrawal_confirmation_timestamps as (
         ers.withdrawal_id,
         min(ers.withdrawal_modified_at) as withdrawal_confirmed_at
     from int_core_withdrawal_events_rollup_sequence ers
-    inner join confirmed_withdrawals cw 
-        on ers.withdrawal_id = cw.withdrawal_id
+    inner join relevant_withdrawals rw 
+        on ers.withdrawal_id = rw.withdrawal_id
     where ers.is_confirmed = true
     group by ers.withdrawal_id
 ),
-confirmed_deposits as (
+relevant_deposits as (
     select deposit_id
     from int_core_deposit_events_rollup_sequence
     where status = 'Confirmed'
+        and amount_usd > 25000
     group by deposit_id
 ),
 deposit_confirmation_timestamps as (
@@ -31,8 +33,8 @@ deposit_confirmation_timestamps as (
         ers.deposit_id,
         min(ers.deposit_modified_at) as deposit_confirmed_at
     from int_core_deposit_events_rollup_sequence ers
-    inner join confirmed_deposits cd
-        on ers.deposit_id = cd.deposit_id
+    inner join relevant_deposits rd
+        on ers.deposit_id = rd.deposit_id
     where status = 'Confirmed'
     group by deposit_id
 ),
@@ -59,8 +61,8 @@ select
     wer.amount_usd as valorMedioElectronicoPB,
     CAST(null AS STRING) as bancoCuentaDestinatariaPB
 from int_core_withdrawal_events_rollup wer
-inner join confirmed_withdrawals cw 
-    on wer.withdrawal_id = cw.withdrawal_id
+inner join relevant_withdrawals rw 
+    on wer.withdrawal_id = rw.withdrawal_id
 left join withdrawal_confirmation_timestamps wct
     on wer.withdrawal_id = wct.withdrawal_id
 left join int_core_deposit_account_events_rollup aer
@@ -91,8 +93,8 @@ select
     der.amount_usd as valorMedioElectronicoPB,
     CAST(null AS STRING) as bancoCuentaDestinatariaPB
 from int_core_deposit_events_rollup der
-inner join confirmed_deposits cd 
-    on der.deposit_id = cd.deposit_id
+inner join relevant_deposits rd 
+    on der.deposit_id = rd.deposit_id
 left join deposit_confirmation_timestamps dct
     on der.deposit_id = dct.deposit_id
 left join int_core_deposit_account_events_rollup aer
