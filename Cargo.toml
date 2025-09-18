@@ -166,3 +166,6 @@ keycloak = "26.3.202"
 
 [profile.release]
 lto = true 
+
+[workspace.metadata.crane]
+name = "lana-bank"
