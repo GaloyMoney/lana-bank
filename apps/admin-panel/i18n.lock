@@ -139,6 +139,8 @@ checksums:
     CommandMenu/searchResultTypes/depositAccount: 23d240412c0bf14efcff84a2325587be
     CommandMenu/searchResultTypes/creditFacility: d96f87cd95639f3ba97b53f681f2fb5f
     CommandMenu/searchResultTypes/disbursal: 2aa8ff038a96888966ede2b19fc8b8bb
+    CommandMenu/searchResultTypes/deposit: e233d53e369427d12f87d610bcf56ccb
+    CommandMenu/searchResultTypes/withdrawal: 90991ef39c923572c15cac977346ee77
     CommandMenu/searchResultTypes/amount: a0ae9c6ff98b57475cdce56f66066aa4
     CommandMenu/searchResultTypes/facilityAmount: 70e63659ee9f7ab8a38ec09c24f3c97c
     Customers/title: c31a0dfd0d92496ba6f5673781db24ef

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
+import { ExternalLinkIcon } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -13,6 +14,7 @@ import { DepositRevertDialog } from "./revert"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
+
 import { GetDepositDetailsQuery, DepositStatus } from "@/lib/graphql/generated"
 
 type DepositDetailsProps = {
@@ -32,16 +34,17 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
       href: `/customers/${deposit.account.customer.publicId}`,
     },
     {
-      label: t("fields.depositId") || "ID",
+      label: t("fields.depositId"),
       value: (
         <a
           href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
           target="_blank"
           rel="noopener noreferrer"
-          className="text-primary hover:underline"
+          className="flex items-center gap-1 text-blue-500 hover:underline"
           title={`Full ID: ${deposit.depositId}`}
         >
           {`${deposit.depositId.substring(0, 4)}...${deposit.depositId.substring(deposit.depositId.length - 4)}`}
+          <ExternalLinkIcon className="h-4 w-4" />
         </a>
       ),
     },

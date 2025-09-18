@@ -3347,8 +3347,8 @@ export type LedgerTransactionQueryVariables = Exact<{
 
 
 export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, entity?:
-      | { __typename: 'Deposit', depositId: string }
-      | { __typename: 'Withdrawal', withdrawalId: string }
+      | { __typename: 'Deposit', publicId: any }
+      | { __typename: 'Withdrawal', publicId: any }
      | null, entries: Array<{ __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
         | { __typename: 'BtcAmount', btc: Satoshis }
         | { __typename: 'UsdAmount', usd: UsdCents }
@@ -7084,10 +7084,10 @@ export const LedgerTransactionDocument = gql`
     entity {
       __typename
       ... on Deposit {
-        depositId
+        publicId
       }
       ... on Withdrawal {
-        withdrawalId
+        publicId
       }
     }
     entries {
