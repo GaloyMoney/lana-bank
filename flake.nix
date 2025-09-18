@@ -230,7 +230,7 @@
 
           workspace-machete = craneLib.mkCargoDerivation {
             src = rustSource;
-            pname = "workspace-machete";
+            pname = "lana-bank-machete";
             cargoArtifacts = null;
             doInstallCargoArtifacts = false;
 
