@@ -4,6 +4,7 @@
 
 [package]
 name = "workspace-hack"
+license = "FSL-1.1-ALv2"
 version = "0.1.0"
 edition = "2021"
 description = "workspace-hack package, managed by hakari"
