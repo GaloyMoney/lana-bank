@@ -86,14 +86,14 @@ final as (
 )
 
 select
-    credit_facility.id as credit_facility_id,
-    customer.id as customer_id,
-    disbursement.id as disbursal_id,
-    disbursement.id as reference_id,
-    customer.id as `nit_deudor`,
+    credit_facility_public_ids.id as credit_facility_id,
+    customer_public_ids.id as customer_id,
+    disbursement_public_ids.id as disbursal_id,
+    disbursement_public_ids.id as reference_id,
+    customer_public_ids.id as `nit_deudor`,
     '{{ npb4_17_01_tipos_de_cartera('Cartera propia Ley Acceso al Crédito (19)') }}' as `cod_cartera`,
     '{{ npb4_17_02_tipos_de_activos_de_riesgo('Préstamos') }}' as `cod_activo`,
-    disbursement.id as `num_referencia`,
+    disbursement_public_ids.id as `num_referencia`,
     loan_amount_usd as `monto_referencia`,
     remaining_balance_usd,
     remaining_balance_usd as `saldo_referencia`,
@@ -221,6 +221,6 @@ select
     cast(null as date) as `fecha_cump_cafe`
 
 from final
-left join {{ ref('stg_core_public_ids') }} as credit_facility on credit_facility_id = credit_facility.target_id
-left join {{ ref('stg_core_public_ids') }} as disbursement on reference_id = disbursement.target_id
-left join {{ ref('stg_core_public_ids') }} as customer on customer_id = customer.target_id
+left join {{ ref('stg_core_public_ids') }} as credit_facility_public_ids on credit_facility_id = credit_facility_public_ids.target_id
+left join {{ ref('stg_core_public_ids') }} as disbursement_public_ids on reference_id = disbursement_public_ids.target_id
+left join {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id

@@ -1,8 +1,8 @@
 select
     -- loan-to-collateral being 1-to-1
-    disbursement.id as `identificacion_garantia`,
+    disbursement_public_ids.id as `identificacion_garantia`,
 
-    customer.id as `nit_depositante`,
+    customer_public_ids.id as `nit_depositante`,
 
     -- Deposit date.
     date(most_recent_collateral_deposit_at) as `fecha_deposito`,
@@ -18,7 +18,7 @@ select
     'BC99' as `cod_banco`
 
 from {{ ref('int_approved_credit_facility_loans') }}
-left join {{ ref('stg_core_public_ids') }} as disbursement on disbursal_id = disbursement.target_id
-left join {{ ref('stg_core_public_ids') }} as customer on customer_id = customer.target_id
+left join {{ ref('stg_core_public_ids') }} as disbursement_public_ids on disbursal_id = disbursement_public_ids.target_id
+left join {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id
 
 where not matured

@@ -1,9 +1,9 @@
 select
-    credit_facility.id                    as `No Linea de crédito`,
-    disbursement.id                       as `Número de desembolso`,
+    credit_facility_public_ids.id         as `No Linea de crédito`,
+    disbursement_public_ids.id            as `Número de desembolso`,
     product_code                          as `Cod Producto`,
     product                               as `Producto`,
-    customer.id                           as `Código de Cliente`,
+    customer_public_ids.id                as `Código de Cliente`,
     customer_name                         as `Nombre del cliente`,
     disbursement_date                     as `Fecha de desembolso`,
     maturity_date                         as `Fecha de vencimiento`,
@@ -25,6 +25,6 @@ select
     capital_account                       as `Cuenta contable Capital`,
     interest_account                      as `Cuenta contable Interes`,
 from {{ ref('int_loan_portfolio') }}
-left join {{ ref('stg_core_public_ids') }} as credit_facility on line_of_credit_no = credit_facility.target_id
-left join {{ ref('stg_core_public_ids') }} as disbursement on disbursement_number = disbursement.target_id
-left join {{ ref('stg_core_public_ids') }} as customer on customer_code = customer.target_id
+left join {{ ref('stg_core_public_ids') }} as credit_facility_public_ids on line_of_credit_no = credit_facility_public_ids.target_id
+left join {{ ref('stg_core_public_ids') }} as disbursement_public_ids on disbursement_number = disbursement_public_ids.target_id
+left join {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_code = customer_public_ids.target_id

@@ -38,10 +38,10 @@ final as (
 
 
 select
-    customer.id as `NIU`,
+    customer_public_ids.id as `NIU`,
     `Código del Documento`,
     `Número de documento`
 from
     final
 left join
-    {{ ref('stg_core_public_ids') }} as customer on customer_id = customer.target_id
+    {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id

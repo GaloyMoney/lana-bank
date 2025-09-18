@@ -22,12 +22,12 @@ with loans_and_credit_facilities as (
 )
 
 select
-    disbursement.id as `num_referencia`,
+    disbursement_public_ids.id as `num_referencia`,
     '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}' as `cod_cartera`,
     '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
-    disbursement.id as `identificacion_garantia`,
+    disbursement_public_ids.id as `identificacion_garantia`,
     '{{ npb4_17_09_tipos_de_garantias("Pignorada - Depósito de dinero") }}' as `tipo_garantia`,
     coalesce(safe_divide(collateral_amount_usd, loan_amount_usd) * 100, 1) as `valor_garantia_proporcional`
 
 from loans_and_credit_facilities
-left join {{ ref('stg_core_public_ids') }} as disbursement on reference_id = disbursement.target_id
+left join {{ ref('stg_core_public_ids') }} as disbursement_public_ids on reference_id = disbursement_public_ids.target_id
