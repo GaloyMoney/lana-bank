@@ -25,19 +25,19 @@ import DenialDialog from "@/app/actions/deny"
 import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 type WithdrawalDetailsProps = {
-  withdrawal: NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>
+  withdrawal: NonNullable<GetWithdrawalDetailsQuery["withdrawalByPublicId"]>
 }
 
 const WithdrawalDetailsCard: React.FC<WithdrawalDetailsProps> = ({ withdrawal }) => {
   const t = useTranslations("Withdrawals.WithdrawDetails.WithdrawalDetailsCard")
   const [openWithdrawalCancelDialog, setOpenWithdrawalCancelDialog] = useState<
-    GetWithdrawalDetailsQuery["withdrawal"] | null
+    GetWithdrawalDetailsQuery["withdrawalByPublicId"] | null
   >(null)
   const [openWithdrawalConfirmDialog, setOpenWithdrawalConfirmDialog] = useState<
-    GetWithdrawalDetailsQuery["withdrawal"] | null
+    GetWithdrawalDetailsQuery["withdrawalByPublicId"] | null
   >(null)
   const [openWithdrawalRevertDialog, setOpenWithdrawalRevertDialog] = useState<
-    GetWithdrawalDetailsQuery["withdrawal"] | null
+    GetWithdrawalDetailsQuery["withdrawalByPublicId"] | null
   >(null)
   const [openApprovalDialog, setOpenApprovalDialog] = useState(false)
   const [openDenialDialog, setOpenDenialDialog] = useState(false)

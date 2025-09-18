@@ -18,6 +18,7 @@ gql`
   fragment DepositFields on Deposit {
     id
     depositId
+    publicId
     reference
     createdAt
     amount
@@ -65,7 +66,7 @@ const Deposits = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(deposit) => `/deposits/${deposit.depositId}`}
+        navigateTo={(deposit) => `/deposits/${deposit.publicId}`}
       />
     </div>
   )

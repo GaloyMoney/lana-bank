@@ -2,17 +2,21 @@
 import { gql } from "@apollo/client"
 
 import { useEffect, use } from "react"
+import { useTranslations } from "next-intl"
 
 import WithdrawalDetailsCard from "./details"
 
 import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 import { useCreateContext } from "@/app/create"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment WithdrawDetailsPageFragment on Withdrawal {
     id
     withdrawalId
+    publicId
     amount
     status
     reference
@@ -36,8 +40,8 @@ gql`
     }
   }
 
-  query GetWithdrawalDetails($id: UUID!) {
-    withdrawal(id: $id) {
+  query GetWithdrawalDetails($publicId: PublicId!) {
+    withdrawalByPublicId(id: $publicId) {
       ...WithdrawDetailsPageFragment
     }
   }
@@ -50,27 +54,45 @@ function WithdrawalPage({
     "withdrawal-id": string
   }>
 }) {
-  const { "withdrawal-id": withdrawalId } = use(params)
+  const { "withdrawal-id": publicId } = use(params)
   const { setWithdraw } = useCreateContext()
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { data, loading, error } = useGetWithdrawalDetailsQuery({
-    variables: { id: withdrawalId },
+    variables: { publicId },
   })
 
   useEffect(() => {
-    data?.withdrawal && setWithdraw(data?.withdrawal)
+    data?.withdrawalByPublicId && setWithdraw(data?.withdrawalByPublicId)
     return () => setWithdraw(null)
-  }, [data?.withdrawal, setWithdraw])
+  }, [data?.withdrawalByPublicId, setWithdraw])
+
+  useEffect(() => {
+    if (data?.withdrawalByPublicId) {
+      setCustomLinks([
+        { title: navTranslations("withdrawals"), href: "/withdrawals" },
+        {
+          title: <PublicIdBadge publicId={data.withdrawalByPublicId.publicId} />,
+          isCurrentPage: true,
+        },
+      ])
+    }
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.withdrawalByPublicId])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.withdrawal) return <div>Not found</div>
+  if (!data?.withdrawalByPublicId) return <div>Not found</div>
 
   return (
     <main className="max-w-7xl m-auto">
-      <WithdrawalDetailsCard withdrawal={data.withdrawal} />
+      <WithdrawalDetailsCard withdrawal={data.withdrawalByPublicId} />
     </main>
   )
 }

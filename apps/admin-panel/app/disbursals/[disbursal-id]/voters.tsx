@@ -21,7 +21,7 @@ export const VotersCard = ({
 }: {
   approvalProcess:
     | NonNullable<GetDisbursalDetailsQuery["disbursalByPublicId"]>["approvalProcess"]
-    | NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>["approvalProcess"]
+    | NonNullable<GetWithdrawalDetailsQuery["withdrawalByPublicId"]>["approvalProcess"]
     | null
 }) => {
   const t = useTranslations("Disbursals.DisbursalDetails.VotersCard")

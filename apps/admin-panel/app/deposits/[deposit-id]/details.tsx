@@ -16,13 +16,13 @@ import Balance from "@/components/balance/balance"
 import { GetDepositDetailsQuery, DepositStatus } from "@/lib/graphql/generated"
 
 type DepositDetailsProps = {
-  deposit: NonNullable<GetDepositDetailsQuery["deposit"]>
+  deposit: NonNullable<GetDepositDetailsQuery["depositByPublicId"]>
 }
 
 const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
   const t = useTranslations("Deposits.DepositDetails.DepositDetailsCard")
   const [openDepositRevertDialog, setOpenDepositRevertDialog] = useState<
-    GetDepositDetailsQuery["deposit"] | null
+    GetDepositDetailsQuery["depositByPublicId"] | null
   >(null)
 
   const details: DetailItemProps[] = [

@@ -1,17 +1,21 @@
 "use client"
 
 import { gql } from "@apollo/client"
-import { use } from "react"
+import { use, useEffect } from "react"
+import { useTranslations } from "next-intl"
 
 import DepositDetailsCard from "./details"
 
 import { useGetDepositDetailsQuery } from "@/lib/graphql/generated"
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
+import { useBreadcrumb } from "@/app/breadcrumb-provider"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment DepositDetailsPageFragment on Deposit {
     id
     depositId
+    publicId
     amount
     createdAt
     reference
@@ -33,8 +37,8 @@ gql`
     }
   }
 
-  query GetDepositDetails($id: UUID!) {
-    deposit(id: $id) {
+  query GetDepositDetails($publicId: PublicId!) {
+    depositByPublicId(id: $publicId) {
       ...DepositDetailsPageFragment
     }
   }
@@ -47,21 +51,39 @@ function DepositPage({
     "deposit-id": string
   }>
 }) {
-  const { "deposit-id": depositId } = use(params)
+  const { "deposit-id": publicId } = use(params)
+  const { setCustomLinks, resetToDefault } = useBreadcrumb()
+  const navTranslations = useTranslations("Sidebar.navItems")
 
   const { data, loading, error } = useGetDepositDetailsQuery({
-    variables: { id: depositId },
+    variables: { publicId },
   })
+
+  useEffect(() => {
+    if (data?.depositByPublicId) {
+      setCustomLinks([
+        { title: navTranslations("deposits"), href: "/deposits" },
+        {
+          title: <PublicIdBadge publicId={data.depositByPublicId.publicId} />,
+          isCurrentPage: true,
+        },
+      ])
+    }
+    return () => {
+      resetToDefault()
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [data?.depositByPublicId])
 
   if (loading && !data) {
     return <DetailsPageSkeleton tabs={0} tabsCards={0} />
   }
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.deposit) return <div>Not found</div>
+  if (!data?.depositByPublicId) return <div>Not found</div>
 
   return (
     <main className="max-w-7xl m-auto">
-      <DepositDetailsCard deposit={data.deposit} />
+      <DepositDetailsCard deposit={data.depositByPublicId} />
     </main>
   )
 }

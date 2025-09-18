@@ -209,6 +209,8 @@
       "depositAccount": "Deposit Account",
       "creditFacility": "Credit Facility",
       "disbursal": "Disbursal",
+      "deposit": "Deposit",
+      "withdrawal": "Withdrawal",
       "amount": "Amount",
       "facilityAmount": "Facility Amount"
     }

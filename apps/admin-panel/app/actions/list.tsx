@@ -43,6 +43,7 @@ gql`
             __typename
             ... on Withdrawal {
               withdrawalId
+              publicId
               account {
                 customer {
                   email
@@ -115,7 +116,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
       data.approvalProcessType === ApprovalProcessType.WithdrawalApproval &&
       data.target.__typename === "Withdrawal"
     ) {
-      return `/withdrawals/${data.target.withdrawalId}`
+      return `/withdrawals/${data.target.publicId}`
     } else if (
       data.approvalProcessType === ApprovalProcessType.DisbursalApproval &&
       data.target.__typename === "CreditFacilityDisbursal"

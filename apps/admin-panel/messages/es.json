@@ -209,6 +209,8 @@
       "depositAccount": "Cuenta de depósito",
       "creditFacility": "Línea de crédito",
       "disbursal": "Desembolso",
+      "deposit": "Depósito",
+      "withdrawal": "Retiro",
       "amount": "Monto",
       "facilityAmount": "Monto de línea"
     }

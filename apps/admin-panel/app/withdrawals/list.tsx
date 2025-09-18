@@ -20,6 +20,7 @@ gql`
     status
     reference
     withdrawalId
+    publicId
     createdAt
     amount
     account {
@@ -65,7 +66,7 @@ const Withdrawals = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(withdrawal) => `/withdrawals/${withdrawal.withdrawalId}`}
+        navigateTo={(withdrawal) => `/withdrawals/${withdrawal.publicId}`}
       />
     </div>
   )
