@@ -43,11 +43,11 @@
     },
     {
       "properties": {
-        "effective": {
+        "closed_as_of": {
           "format": "date",
           "type": "string"
         },
-        "recorded_at": {
+        "closed_at": {
           "format": "date-time",
           "type": "string"
         },
@@ -58,8 +58,8 @@
       },
       "required": [
         "type",
-        "effective",
-        "recorded_at"
+        "closed_as_of",
+        "closed_at"
       ],
       "type": "object"
     }

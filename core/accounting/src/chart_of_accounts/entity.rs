@@ -26,8 +26,8 @@ pub enum ChartEvent {
         first_period_opened_at: DateTime<Utc>,
     },
     AccountingPeriodClosed {
-        effective: chrono::NaiveDate,
-        recorded_at: DateTime<Utc>,
+        closed_as_of: chrono::NaiveDate,
+        closed_at: DateTime<Utc>,
     },
 }
 
@@ -273,7 +273,7 @@ impl Chart {
         &mut self,
     ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError> {
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
-            ChartEvent::AccountingPeriodClosed { effective, .. } => Some(*effective),
+            ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
             _ => None,
         });
         let new_monthly_closing_date = match last_recorded_date {
@@ -310,12 +310,12 @@ impl Chart {
                 .expect("Failed to compute new monthly closing date"),
         };
 
-        let recorded_at = crate::time::now();
+        let closed_at = crate::time::now();
         self.events.push(ChartEvent::AccountingPeriodClosed {
-            effective: new_monthly_closing_date,
-            recorded_at,
+            closed_as_of: new_monthly_closing_date,
+            closed_at,
         });
-        self.closing = AccountingClosing::monthly_from(new_monthly_closing_date, recorded_at);
+        self.closing = AccountingClosing::monthly_from(new_monthly_closing_date, closed_at);
 
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
@@ -356,11 +356,11 @@ impl TryFromEvents<ChartEvent> for Chart {
                         .name(name.to_string());
                 }
                 ChartEvent::AccountingPeriodClosed {
-                    effective,
-                    recorded_at,
+                    closed_as_of,
+                    closed_at,
                 } => {
                     builder =
-                        builder.closing(AccountingClosing::monthly_from(*effective, *recorded_at))
+                        builder.closing(AccountingClosing::monthly_from(*closed_as_of, *closed_at))
                 }
             }
         }
@@ -832,7 +832,7 @@ mod test {
                 .iter_all()
                 .rev()
                 .find_map(|e| match e {
-                    ChartEvent::AccountingPeriodClosed { effective, .. } => Some(*effective),
+                    ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
                     _ => None,
                 })
                 .unwrap();
