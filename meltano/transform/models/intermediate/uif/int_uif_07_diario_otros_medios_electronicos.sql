@@ -1,4 +1,4 @@
-{% set min_transaction_amount_usd = 25000 %}
+{% set min_usd_amount_to_report = 25000 %}
 
 with seed_bank_address as (select * from {{ ref("seed_bank_address") }}),
 int_core_withdrawal_events_rollup_sequence as (select * from {{ ref("int_core_withdrawal_events_rollup_sequence") }}),
@@ -11,7 +11,7 @@ relevant_withdrawals as (
     select withdrawal_id
     from int_core_withdrawal_events_rollup_sequence
     where is_confirmed = true
-        and amount_usd > {{ min_transaction_amount_usd }}
+        and amount_usd >= {{ min_usd_amount_to_report }}
     group by withdrawal_id
 ),
 withdrawal_confirmation_timestamps as (
@@ -28,7 +28,7 @@ relevant_deposits as (
     select deposit_id
     from int_core_deposit_events_rollup_sequence
     where status = 'Confirmed'
-        and amount_usd > {{ min_transaction_amount_usd }}
+        and amount_usd >= {{ min_usd_amount_to_report }}
     group by deposit_id
 ),
 deposit_confirmation_timestamps as (
