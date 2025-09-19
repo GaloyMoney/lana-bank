@@ -36,10 +36,9 @@ final as (
     where passport_number is not null
 )
 
-
 select
-    left(replace(customer_id, '-', ''), 14) as `NIU`,
     `Código del Documento`,
-    `Número de documento`
+    `Número de documento`,
+    left(replace(customer_id, '-', ''), 14) as `NIU`
 from
     final

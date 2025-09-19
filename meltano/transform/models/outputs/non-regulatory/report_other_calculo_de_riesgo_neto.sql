@@ -9,5 +9,5 @@ select
     category_b as `Categoria B`,
     net_risk as `Riesgo Neto`,
     reserve_percentage as `% de Reserva`,
-    reserve as `Reserva`,
+    reserve as `Reserva`
 from {{ ref('int_net_risk_calculation') }}

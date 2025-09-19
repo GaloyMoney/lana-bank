@@ -90,7 +90,6 @@ breakeven_sum as (
     group by bench_mark
 )
 
-
 select
     1 as order_by,
     'Value Approved CF (USD)' as kpi_title,

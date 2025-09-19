@@ -8,7 +8,6 @@ balances as (
     from {{ ref('int_account_sets_expanded_with_balances') }}
 ),
 
-
 final as (
     select
         code,
