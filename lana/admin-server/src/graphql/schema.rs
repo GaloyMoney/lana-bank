@@ -119,14 +119,7 @@ impl Query {
         id: PublicId,
     ) -> async_graphql::Result<Option<Customer>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
-            return Ok(None);
-        };
-        maybe_fetch_one!(
-            Customer,
-            ctx,
-            app.customers().find_by_id(sub, public_id.target_id)
-        )
+        maybe_fetch_one!(Customer, ctx, app.customers().find_by_public_id(sub, id))
     }
 
     async fn customers(
@@ -181,6 +174,19 @@ impl Query {
         )
     }
 
+    async fn withdrawal_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<Withdrawal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Withdrawal,
+            ctx,
+            app.deposits().find_withdrawal_by_public_id(sub, id)
+        )
+    }
+
     async fn withdrawals(
         &self,
         ctx: &Context<'_>,
@@ -203,6 +209,19 @@ impl Query {
     async fn deposit(&self, ctx: &Context<'_>, id: UUID) -> async_graphql::Result<Option<Deposit>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         maybe_fetch_one!(Deposit, ctx, app.deposits().find_deposit_by_id(sub, id))
+    }
+
+    async fn deposit_by_public_id(
+        &self,
+        ctx: &Context<'_>,
+        id: PublicId,
+    ) -> async_graphql::Result<Option<Deposit>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        maybe_fetch_one!(
+            Deposit,
+            ctx,
+            app.deposits().find_deposit_by_public_id(sub, id)
+        )
     }
 
     async fn deposit_account(
@@ -280,15 +299,10 @@ impl Query {
         id: PublicId,
     ) -> async_graphql::Result<Option<CreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
-            return Ok(None);
-        };
         maybe_fetch_one!(
             CreditFacility,
             ctx,
-            app.credit()
-                .facilities()
-                .find_by_id(sub, public_id.target_id)
+            app.credit().facilities().find_by_public_id(sub, id)
         )
     }
 
@@ -362,15 +376,10 @@ impl Query {
         id: PublicId,
     ) -> async_graphql::Result<Option<CreditFacilityDisbursal>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let Some(public_id) = app.public_ids().find_by_id(id).await? else {
-            return Ok(None);
-        };
         maybe_fetch_one!(
             CreditFacilityDisbursal,
             ctx,
-            app.credit()
-                .disbursals()
-                .find_by_id(sub, public_id.target_id)
+            app.credit().disbursals().find_by_public_id(sub, id)
         )
     }
 
@@ -824,6 +833,14 @@ impl Query {
                 .deposit_account(ctx, public_id.target_id.into())
                 .await?
                 .map(PublicIdTarget::DepositAccount),
+            "deposit" => self
+                .deposit(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::Deposit),
+            "withdrawal" => self
+                .withdrawal(ctx, public_id.target_id.into())
+                .await?
+                .map(PublicIdTarget::Withdrawal),
             "credit_facility" => self
                 .credit_facility(ctx, public_id.target_id.into())
                 .await?
@@ -1097,72 +1114,53 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
-        let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig::builder()
-            .chart_of_accounts_id(chart.id)
-            .chart_of_accounts_individual_deposit_accounts_parent_code(
-                input
-                    .chart_of_accounts_individual_deposit_accounts_parent_code
+        let DepositModuleConfigureInput {
+            chart_of_accounts_omnibus_parent_code,
+            chart_of_accounts_individual_deposit_accounts_parent_code,
+            chart_of_accounts_government_entity_deposit_accounts_parent_code,
+            chart_of_account_private_company_deposit_accounts_parent_code,
+            chart_of_account_bank_deposit_accounts_parent_code,
+            chart_of_account_financial_institution_deposit_accounts_parent_code,
+            chart_of_account_non_domiciled_individual_deposit_accounts_parent_code,
+            chart_of_accounts_frozen_individual_deposit_accounts_parent_code,
+            chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code,
+            chart_of_account_frozen_private_company_deposit_accounts_parent_code,
+            chart_of_account_frozen_bank_deposit_accounts_parent_code,
+            chart_of_account_frozen_financial_institution_deposit_accounts_parent_code,
+            chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code,
+        } = input;
+
+        let config_values = lana_app::deposit::ChartOfAccountsIntegrationConfig {
+            chart_of_accounts_id: chart.id,
+            chart_of_accounts_individual_deposit_accounts_parent_code:
+                chart_of_accounts_individual_deposit_accounts_parent_code.parse()?,
+            chart_of_accounts_government_entity_deposit_accounts_parent_code:
+                chart_of_accounts_government_entity_deposit_accounts_parent_code.parse()?,
+            chart_of_account_private_company_deposit_accounts_parent_code:
+                chart_of_account_private_company_deposit_accounts_parent_code.parse()?,
+            chart_of_account_bank_deposit_accounts_parent_code:
+                chart_of_account_bank_deposit_accounts_parent_code.parse()?,
+            chart_of_account_financial_institution_deposit_accounts_parent_code:
+                chart_of_account_financial_institution_deposit_accounts_parent_code.parse()?,
+            chart_of_account_non_domiciled_individual_deposit_accounts_parent_code:
+                chart_of_account_non_domiciled_individual_deposit_accounts_parent_code.parse()?,
+            chart_of_accounts_frozen_individual_deposit_accounts_parent_code:
+                chart_of_accounts_frozen_individual_deposit_accounts_parent_code.parse()?,
+            chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code:
+                chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code.parse()?,
+            chart_of_account_frozen_private_company_deposit_accounts_parent_code:
+                chart_of_account_frozen_private_company_deposit_accounts_parent_code.parse()?,
+            chart_of_account_frozen_bank_deposit_accounts_parent_code:
+                chart_of_account_frozen_bank_deposit_accounts_parent_code.parse()?,
+            chart_of_account_frozen_financial_institution_deposit_accounts_parent_code:
+                chart_of_account_frozen_financial_institution_deposit_accounts_parent_code
                     .parse()?,
-            )
-            .chart_of_accounts_government_entity_deposit_accounts_parent_code(
-                input
-                    .chart_of_accounts_government_entity_deposit_accounts_parent_code
+            chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code:
+                chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code
                     .parse()?,
-            )
-            .chart_of_account_private_company_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_private_company_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_bank_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_bank_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_financial_institution_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_financial_institution_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_non_domiciled_individual_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_accounts_frozen_individual_deposit_accounts_parent_code(
-                input
-                    .chart_of_accounts_frozen_individual_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code(
-                input
-                    .chart_of_accounts_frozen_government_entity_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_frozen_private_company_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_frozen_private_company_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_frozen_bank_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_frozen_bank_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_frozen_financial_institution_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code(
-                input
-                    .chart_of_account_frozen_non_domiciled_individual_deposit_accounts_parent_code
-                    .parse()?,
-            )
-            .chart_of_accounts_omnibus_parent_code(
-                input.chart_of_accounts_omnibus_parent_code.parse()?,
-            )
-            .build()?;
+            chart_of_accounts_omnibus_parent_code: chart_of_accounts_omnibus_parent_code.parse()?,
+        };
+
         let config = app
             .deposits()
             .set_chart_of_accounts_integration_config(sub, chart.as_ref(), config_values)
@@ -1439,74 +1437,128 @@ impl Mutation {
             chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code,
         } = input;
 
-        let config_values = lana_app::credit::ChartOfAccountsIntegrationConfig::builder()
-            .chart_of_accounts_id(chart.id)
-            .chart_of_account_facility_omnibus_parent_code(
-                chart_of_account_facility_omnibus_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_collateral_omnibus_parent_code(
-                chart_of_account_collateral_omnibus_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_in_liquidation_omnibus_parent_code(
-                chart_of_account_in_liquidation_omnibus_parent_code
-                    .parse()?,
-            )
-            .chart_of_account_facility_parent_code(
-                chart_of_account_facility_parent_code.parse()?,
-            )
-            .chart_of_account_collateral_parent_code(
-                chart_of_account_collateral_parent_code.parse()?,
-            )
-            .chart_of_account_in_liquidation_parent_code(
+        let config_values = lana_app::credit::ChartOfAccountsIntegrationConfig {
+            chart_of_accounts_id: chart.id,
+            chart_of_account_facility_omnibus_parent_code:
+                chart_of_account_facility_omnibus_parent_code.parse()?,
+            chart_of_account_collateral_omnibus_parent_code:
+                chart_of_account_collateral_omnibus_parent_code.parse()?,
+            chart_of_account_in_liquidation_omnibus_parent_code:
+                chart_of_account_in_liquidation_omnibus_parent_code.parse()?,
+            chart_of_account_facility_parent_code: chart_of_account_facility_parent_code.parse()?,
+            chart_of_account_collateral_parent_code: chart_of_account_collateral_parent_code
+                .parse()?,
+            chart_of_account_in_liquidation_parent_code:
                 chart_of_account_in_liquidation_parent_code.parse()?,
-            )
-            .chart_of_account_interest_income_parent_code(
+            chart_of_account_interest_income_parent_code:
                 chart_of_account_interest_income_parent_code.parse()?,
-            )
-            .chart_of_account_fee_income_parent_code(
-                chart_of_account_fee_income_parent_code.parse()?,
-            )
-            .chart_of_account_short_term_individual_disbursed_receivable_parent_code(chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_government_entity_disbursed_receivable_parent_code(chart_of_account_short_term_government_entity_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_private_company_disbursed_receivable_parent_code(chart_of_account_short_term_private_company_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_bank_disbursed_receivable_parent_code(chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code(chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_individual_disbursed_receivable_parent_code(chart_of_account_long_term_individual_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_government_entity_disbursed_receivable_parent_code(chart_of_account_long_term_government_entity_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_private_company_disbursed_receivable_parent_code(chart_of_account_long_term_private_company_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_bank_disbursed_receivable_parent_code(chart_of_account_long_term_bank_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code(chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
+            chart_of_account_fee_income_parent_code: chart_of_account_fee_income_parent_code
+                .parse()?,
+            chart_of_account_short_term_individual_disbursed_receivable_parent_code:
+                chart_of_account_short_term_individual_disbursed_receivable_parent_code.parse()?,
+            chart_of_account_short_term_government_entity_disbursed_receivable_parent_code:
+                chart_of_account_short_term_government_entity_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_private_company_disbursed_receivable_parent_code:
+                chart_of_account_short_term_private_company_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_bank_disbursed_receivable_parent_code:
+                chart_of_account_short_term_bank_disbursed_receivable_parent_code.parse()?,
+            chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code:
+                chart_of_account_short_term_financial_institution_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
+                chart_of_account_short_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code:
+                chart_of_account_short_term_non_domiciled_company_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_individual_disbursed_receivable_parent_code:
+                chart_of_account_long_term_individual_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_government_entity_disbursed_receivable_parent_code:
+                chart_of_account_long_term_government_entity_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_private_company_disbursed_receivable_parent_code:
+                chart_of_account_long_term_private_company_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_bank_disbursed_receivable_parent_code:
+                chart_of_account_long_term_bank_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code:
+                chart_of_account_long_term_financial_institution_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
+                chart_of_account_long_term_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code:
+                chart_of_account_long_term_non_domiciled_company_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_individual_interest_receivable_parent_code:
+                chart_of_account_short_term_individual_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_government_entity_interest_receivable_parent_code:
+                chart_of_account_short_term_government_entity_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_private_company_interest_receivable_parent_code:
+                chart_of_account_short_term_private_company_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_bank_interest_receivable_parent_code:
+                chart_of_account_short_term_bank_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_financial_institution_interest_receivable_parent_code:
+                chart_of_account_short_term_financial_institution_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
+                chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code:
+                chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_individual_interest_receivable_parent_code:
+                chart_of_account_long_term_individual_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_government_entity_interest_receivable_parent_code:
+                chart_of_account_long_term_government_entity_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_private_company_interest_receivable_parent_code:
+                chart_of_account_long_term_private_company_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_bank_interest_receivable_parent_code:
+                chart_of_account_long_term_bank_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_financial_institution_interest_receivable_parent_code:
+                chart_of_account_long_term_financial_institution_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code:
+                chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code:
+                chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code
+                    .parse()?,
+            chart_of_account_overdue_individual_disbursed_receivable_parent_code:
+                chart_of_account_overdue_individual_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_overdue_government_entity_disbursed_receivable_parent_code:
+                chart_of_account_overdue_government_entity_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_overdue_private_company_disbursed_receivable_parent_code:
+                chart_of_account_overdue_private_company_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_overdue_bank_disbursed_receivable_parent_code:
+                chart_of_account_overdue_bank_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code:
+                chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code:
+                chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code
+                    .parse()?,
+            chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code:
+                chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code
+                    .parse()?
+        };
 
-            .chart_of_account_short_term_individual_interest_receivable_parent_code(chart_of_account_short_term_individual_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_government_entity_interest_receivable_parent_code(chart_of_account_short_term_government_entity_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_private_company_interest_receivable_parent_code(chart_of_account_short_term_private_company_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_bank_interest_receivable_parent_code(chart_of_account_short_term_bank_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_financial_institution_interest_receivable_parent_code(chart_of_account_short_term_financial_institution_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(chart_of_account_short_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
-            .chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code(chart_of_account_short_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_individual_interest_receivable_parent_code(chart_of_account_long_term_individual_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_government_entity_interest_receivable_parent_code(chart_of_account_long_term_government_entity_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_private_company_interest_receivable_parent_code(chart_of_account_long_term_private_company_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_bank_interest_receivable_parent_code(chart_of_account_long_term_bank_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_financial_institution_interest_receivable_parent_code(chart_of_account_long_term_financial_institution_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code(chart_of_account_long_term_foreign_agency_or_subsidiary_interest_receivable_parent_code.parse()?)
-            .chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code(chart_of_account_long_term_non_domiciled_company_interest_receivable_parent_code.parse()?)
-
-            .chart_of_account_overdue_individual_disbursed_receivable_parent_code(chart_of_account_overdue_individual_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_overdue_government_entity_disbursed_receivable_parent_code(chart_of_account_overdue_government_entity_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_overdue_private_company_disbursed_receivable_parent_code(chart_of_account_overdue_private_company_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_overdue_bank_disbursed_receivable_parent_code(chart_of_account_overdue_bank_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code(chart_of_account_overdue_financial_institution_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code(chart_of_account_overdue_foreign_agency_or_subsidiary_disbursed_receivable_parent_code.parse()?)
-            .chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code(chart_of_account_overdue_non_domiciled_company_disbursed_receivable_parent_code.parse()?)
-
-            .build()?;
         let config = app
             .credit()
             .chart_of_accounts_integrations()
@@ -1891,17 +1943,26 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
-        let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig::builder()
-            .chart_of_accounts_id(chart.id)
-            .chart_of_accounts_assets_code(input.chart_of_accounts_assets_code.parse()?)
-            .chart_of_accounts_liabilities_code(input.chart_of_accounts_liabilities_code.parse()?)
-            .chart_of_accounts_equity_code(input.chart_of_accounts_equity_code.parse()?)
-            .chart_of_accounts_revenue_code(input.chart_of_accounts_revenue_code.parse()?)
-            .chart_of_accounts_cost_of_revenue_code(
-                input.chart_of_accounts_cost_of_revenue_code.parse()?,
-            )
-            .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
-            .build()?;
+        let BalanceSheetModuleConfigureInput {
+            chart_of_accounts_assets_code,
+            chart_of_accounts_liabilities_code,
+            chart_of_accounts_equity_code,
+            chart_of_accounts_revenue_code,
+            chart_of_accounts_cost_of_revenue_code,
+            chart_of_accounts_expenses_code,
+        } = input;
+
+        let config_values = lana_app::balance_sheet::ChartOfAccountsIntegrationConfig {
+            chart_of_accounts_id: chart.id,
+            chart_of_accounts_assets_code: chart_of_accounts_assets_code.parse()?,
+            chart_of_accounts_liabilities_code: chart_of_accounts_liabilities_code.parse()?,
+            chart_of_accounts_equity_code: chart_of_accounts_equity_code.parse()?,
+            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
+            chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
+                .parse()?,
+            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
+        };
+
         let config = app
             .accounting()
             .balance_sheets()
@@ -1930,14 +1991,20 @@ impl Mutation {
             .await?
             .unwrap_or_else(|| panic!("Chart of accounts not found for ref {CHART_REF:?}"));
 
-        let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig::builder()
-            .chart_of_accounts_id(chart.id)
-            .chart_of_accounts_revenue_code(input.chart_of_accounts_revenue_code.parse()?)
-            .chart_of_accounts_cost_of_revenue_code(
-                input.chart_of_accounts_cost_of_revenue_code.parse()?,
-            )
-            .chart_of_accounts_expenses_code(input.chart_of_accounts_expenses_code.parse()?)
-            .build()?;
+        let ProfitAndLossModuleConfigureInput {
+            chart_of_accounts_revenue_code,
+            chart_of_accounts_cost_of_revenue_code,
+            chart_of_accounts_expenses_code,
+        } = input;
+
+        let config_values = lana_app::profit_and_loss::ChartOfAccountsIntegrationConfig {
+            chart_of_accounts_id: chart.id,
+            chart_of_accounts_revenue_code: chart_of_accounts_revenue_code.parse()?,
+            chart_of_accounts_cost_of_revenue_code: chart_of_accounts_cost_of_revenue_code
+                .parse()?,
+            chart_of_accounts_expenses_code: chart_of_accounts_expenses_code.parse()?,
+        };
+
         let config = app
             .accounting()
             .profit_and_loss()

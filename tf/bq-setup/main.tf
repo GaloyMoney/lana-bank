@@ -11,6 +11,18 @@ variable "additional_owners" {
   default = []
 }
 
+variable "grant_provisioning_permissions" {
+  type        = bool
+  default     = false
+  description = "Grant elevated permissions to allow the service account to provision new infrastructure"
+}
+
+variable "force_destroy_bucket" {
+  type        = bool
+  default     = false
+  description = "Allow force destruction of the storage bucket even if it contains objects"
+}
+
 locals {
   name_prefix       = var.name_prefix
   holistics_sa_name = "${var.name_prefix}-holistics"
@@ -24,7 +36,8 @@ locals {
   git_token           = var.git_token
   git_token_secret_id = "${var.name_prefix}-git-token"
 
-  dbt_dataset_name = replace("dbt_${local.name_prefix}", "-", "_")
-  location         = "US"
-  docs_bucket_name = "${var.name_prefix}-lana-documents"
+  dbt_dataset_name     = replace("dbt_${local.name_prefix}", "-", "_")
+  location             = "US"
+  docs_bucket_name     = "${var.name_prefix}-lana-documents"
+  force_destroy_bucket = var.force_destroy_bucket
 }

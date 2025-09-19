@@ -209,6 +209,8 @@
       "depositAccount": "Cuenta de depósito",
       "creditFacility": "Línea de crédito",
       "disbursal": "Desembolso",
+      "deposit": "Depósito",
+      "withdrawal": "Retiro",
       "amount": "Monto",
       "facilityAmount": "Monto de línea"
     }
@@ -1094,11 +1096,11 @@
     "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
     "table": {
       "headers": {
-        "depositId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
         "amount": "Monto",
-        "status": "Estado"
+        "status": "Estado",
+        "depositId": "ID"
       },
       "errors": {
         "general": "Ocurrió un error al obtener los depósitos."
@@ -1154,7 +1156,6 @@
         "title": "Depósito",
         "fields": {
           "customerEmail": "Correo Electrónico del Cliente",
-          "depositId": "ID",
           "depositAmount": "Monto del Depósito",
           "depositReference": "Referencia del Depósito",
           "createdAt": "Fecha de Creación",
@@ -1164,7 +1165,8 @@
           "na": "N/A"
         },
         "buttons": {
-          "revert": "Revertir"
+          "revert": "Revertir",
+          "viewOnSumsub": "Ver en Sumsub"
         }
       }
     }
@@ -1174,11 +1176,11 @@
     "description": "Dinero retirado de las cuentas del cliente",
     "table": {
       "headers": {
-        "withdrawalId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
         "amount": "Monto",
-        "status": "Estado"
+        "status": "Estado",
+        "withdrawalId": "ID"
       },
       "errors": {
         "general": "Ocurrió un error al obtener los retiros."
@@ -1258,9 +1260,9 @@
         "title": "Retiro",
         "fields": {
           "customerEmail": "Correo Electrónico del Cliente",
-          "withdrawalId": "ID",
           "withdrawalAmount": "Monto del Retiro",
           "withdrawalReference": "Referencia del Retiro",
+          "createdAt": "Fecha de registro",
           "status": "Estado"
         },
         "values": {
@@ -1271,7 +1273,8 @@
           "cancel": "Cancelar",
           "approve": "Aprobar",
           "deny": "Rechazar",
-          "revert": "Revertir"
+          "revert": "Revertir",
+          "viewOnSumsub": "Ver en Sumsub"
         }
       }
     },
@@ -1356,7 +1359,7 @@
     "cards": {
       "activeFacilities": {
         "title": "Líneas Activas",
-        "description": "Líneas de Crédito que han cumplido con los requisitos de garantía inicial y han sido aprobadas",
+        "description": "Facilidades de crédito que han cumplido con los requisitos iniciales de garantía y han sido aprobadas",
         "pending": "Pendiente",
         "buttonText": "Ver Líneas Activas"
       },
@@ -1782,6 +1785,8 @@
     },
     "addChildNode": "Agregar subcuenta",
     "addAccount": "Agregar cuenta",
+    "viewCustomer": "Ver Cliente",
+    "viewCreditFacility": "Ver Línea de Crédito",
     "table": {
       "noData": "No hay transacciones presentes en esta cuenta",
       "columns": {
@@ -1857,6 +1862,8 @@
     "title": "Partida contable",
     "description": "Un registro de una partida contable en el libro mayor",
     "noEntries": "Sin asientos",
+    "viewDeposit": "Ver depósito",
+    "viewWithdrawal": "Ver retiro",
     "details": {
       "description": "Descripción",
       "createdAt": "Fecha de registro",

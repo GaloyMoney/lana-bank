@@ -4,7 +4,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use super::entity::ChartEvent;
+use crate::chart_node::ChartNode;
 use crate::primitives::{AccountCode, AccountName, AccountSpec, CalaAccountSetId, ChartId};
 
 #[derive(Debug)]
@@ -59,38 +59,24 @@ pub struct EntityNode {
     pub spec: AccountSpec,
 }
 
-pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent>) -> ChartTree {
-    let mut id: Option<ChartId> = None;
-    let mut name: Option<String> = None;
-    let mut entity_nodes: Vec<EntityNode> = vec![];
-
-    for event in events {
-        match event {
-            ChartEvent::Initialized {
-                id: chart_id,
-                name: chart_name,
-                ..
-            } => {
-                id = Some(*chart_id);
-                name = Some(chart_name.to_string());
-            }
-            ChartEvent::NodeAdded {
-                ledger_account_set_id: id,
-                spec,
-                ..
-            } => entity_nodes.push(EntityNode {
-                id: *id,
-                spec: spec.clone(),
-            }),
-            _ => (),
-        }
-    }
-
+pub(super) fn project_from_nodes<'a>(
+    chart_id: ChartId,
+    chart_name: &str,
+    nodes: impl Iterator<Item = &'a ChartNode>,
+) -> ChartTree {
     let mut chart_children: Vec<Rc<RefCell<TreeNodeWithRef>>> = vec![];
     let mut tree_nodes_by_code: HashMap<AccountCode, Weak<RefCell<TreeNodeWithRef>>> =
         HashMap::new();
 
-    entity_nodes.sort_by_key(|l| l.spec.code.clone());
+    let mut entity_nodes: Vec<EntityNode> = nodes
+        .map(|node| EntityNode {
+            id: node.account_set_id,
+            spec: node.spec.clone(),
+        })
+        .collect();
+
+    entity_nodes.sort_by_key(|node| node.spec.code.clone());
+
     for node in entity_nodes {
         let node_rc = Rc::new(RefCell::new(TreeNodeWithRef {
             id: node.id,
@@ -118,8 +104,8 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
     }
 
     ChartTree {
-        id: id.expect("chart id is missing"),
-        name: name.expect("chart name is missing"),
+        id: chart_id,
+        name: chart_name.to_string(),
         children: chart_children
             .into_iter()
             .map(|child_rc| {
@@ -129,114 +115,5 @@ pub(super) fn project<'a>(events: impl DoubleEndedIterator<Item = &'a ChartEvent
                 child_refcell.into_node()
             })
             .collect(),
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use cala_ledger::DebitOrCredit;
-    use es_entity::*;
-
-    use crate::{
-        chart_of_accounts::{Chart, NewChart},
-        primitives::CalaJournalId,
-    };
-
-    use super::*;
-
-    fn init_chart_of_events() -> Chart {
-        let id = ChartId::new();
-
-        let new_chart = NewChart::builder()
-            .id(id)
-            .name("Test Chart".to_string())
-            .reference("ref-01".to_string())
-            .build()
-            .unwrap();
-
-        let events = new_chart.into_events();
-        Chart::try_from_events(events).unwrap()
-    }
-
-    #[test]
-    fn test_project_chart_structure() {
-        let mut chart = init_chart_of_events();
-
-        {
-            chart
-                .create_node_without_verifying_parent(
-                    &AccountSpec {
-                        parent: None,
-                        code: AccountCode::new(vec!["1".parse().unwrap()]),
-                        name: "Assets".parse().unwrap(),
-                        normal_balance_type: DebitOrCredit::Credit,
-                    },
-                    CalaJournalId::new(),
-                )
-                .unwrap();
-            chart
-                .create_node_without_verifying_parent(
-                    &AccountSpec {
-                        parent: Some(AccountCode::new(vec!["1".parse().unwrap()])),
-                        code: AccountCode::new(vec!["11".parse().unwrap()]),
-                        name: "Assets".parse().unwrap(),
-                        normal_balance_type: DebitOrCredit::Credit,
-                    },
-                    CalaJournalId::new(),
-                )
-                .unwrap();
-            chart
-                .create_node_without_verifying_parent(
-                    &AccountSpec {
-                        parent: Some(AccountCode::new(vec!["11".parse().unwrap()])),
-                        code: AccountCode::new(
-                            ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),
-                        ),
-                        name: "Cash".parse().unwrap(),
-                        normal_balance_type: DebitOrCredit::Credit,
-                    },
-                    CalaJournalId::new(),
-                )
-                .unwrap();
-            chart
-                .create_node_without_verifying_parent(
-                    &AccountSpec {
-                        parent: Some(AccountCode::new(
-                            ["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),
-                        )),
-                        code: AccountCode::new(
-                            ["11", "01", "0101"]
-                                .iter()
-                                .map(|c| c.parse().unwrap())
-                                .collect(),
-                        ),
-                        name: "Central Office".parse().unwrap(),
-                        normal_balance_type: DebitOrCredit::Credit,
-                    },
-                    CalaJournalId::new(),
-                )
-                .unwrap();
-        }
-        let tree = chart.chart();
-        let assets = &tree.children[0];
-        assert_eq!(assets.code, AccountCode::new(vec!["1".parse().unwrap()]));
-        let assets_2 = &assets.children[0];
-        assert_eq!(assets_2.code, AccountCode::new(vec!["11".parse().unwrap()]));
-        let cash = &assets_2.children[0];
-        assert_eq!(
-            cash.code,
-            AccountCode::new(["11", "01"].iter().map(|c| c.parse().unwrap()).collect(),)
-        );
-        let central_office = &cash.children[0];
-        assert_eq!(
-            central_office.code,
-            AccountCode::new(
-                ["11", "01", "0101"]
-                    .iter()
-                    .map(|c| c.parse().unwrap())
-                    .collect(),
-            )
-        );
-        assert!(central_office.children.is_empty());
     }
 }

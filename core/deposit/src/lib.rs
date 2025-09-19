@@ -30,9 +30,7 @@ use public_id::PublicIds;
 
 pub use account::DepositAccount;
 use account::*;
-pub use chart_of_accounts_integration::{
-    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
-};
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 use deposit::*;
 pub use deposit::{Deposit, DepositsByCreatedAtCursor};
 pub use deposit_account_balance::DepositAccountBalance;
@@ -327,15 +325,20 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let deposit_id = DepositId::new();
+        let mut op = self.deposits.begin_op().await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, DEPOSIT_REF_TARGET, deposit_id)
+            .await?;
+
         let new_deposit = NewDeposit::builder()
             .id(deposit_id)
             .ledger_transaction_id(deposit_id)
             .deposit_account_id(deposit_account_id)
             .amount(amount)
+            .public_id(public_id.id)
             .reference(reference)
             .build()?;
-
-        let mut op = self.deposits.begin_op().await?;
         let deposit = self.deposits.create_in_op(&mut op, new_deposit).await?;
         self.ledger
             .record_deposit(op, deposit_id, amount, deposit_account_id)
@@ -361,15 +364,21 @@ where
             .await?;
         self.check_account_active(deposit_account_id).await?;
         let withdrawal_id = WithdrawalId::new();
+        let mut op = self.withdrawals.begin_op().await?;
+        let public_id = self
+            .public_ids
+            .create_in_op(&mut op, WITHDRAWAL_REF_TARGET, withdrawal_id)
+            .await?;
+
         let new_withdrawal = NewWithdrawal::builder()
             .id(withdrawal_id)
             .deposit_account_id(deposit_account_id)
             .amount(amount)
             .approval_process_id(withdrawal_id)
+            .public_id(public_id.id)
             .reference(reference)
             .build()?;
 
-        let mut op = self.withdrawals.begin_op().await?;
         self.governance
             .start_process(
                 &mut op,
@@ -612,6 +621,48 @@ where
             .await?;
 
         match self.withdrawals.find_by_id(id).await {
+            Ok(withdrawal) => Ok(Some(withdrawal)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    #[instrument(name = "deposit.find_deposit_by_public_id", skip(self), err)]
+    pub async fn find_deposit_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<Deposit>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_deposits(),
+                CoreDepositAction::DEPOSIT_READ,
+            )
+            .await?;
+
+        match self.deposits.find_by_public_id(public_id.into()).await {
+            Ok(deposit) => Ok(Some(deposit)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e.into()),
+        }
+    }
+
+    #[instrument(name = "deposit.find_withdrawal_by_public_id", skip(self), err)]
+    pub async fn find_withdrawal_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<Withdrawal>, CoreDepositError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreDepositObject::all_withdrawals(),
+                CoreDepositAction::WITHDRAWAL_READ,
+            )
+            .await?;
+
+        match self.withdrawals.find_by_public_id(public_id.into()).await {
             Ok(withdrawal) => Ok(Some(withdrawal)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e.into()),

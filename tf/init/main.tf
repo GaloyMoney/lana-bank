@@ -39,7 +39,8 @@ module "setup" {
 module "gha_setup" {
   source = "../bq-setup"
 
-  name_prefix = "gha"
+  name_prefix                    = "gha"
+  grant_provisioning_permissions = true
 
   additional_owners = [local.owner]
   gcp_project       = local.project

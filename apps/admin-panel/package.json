@@ -44,7 +44,7 @@
     "sonner": "^2.0.7",
     "tailwind-merge": "^3.3.1",
     "uuid": "^13.0.0",
-    "zod": "^4.1.8"
+    "zod": "^4.1.9"
   },
   "devDependencies": {
     "@chromatic-com/storybook": "^4.1.1",
@@ -54,10 +54,10 @@
     "@graphql-codegen/typescript": "^5.0.0",
     "@graphql-codegen/typescript-operations": "^5.0.0",
     "@graphql-codegen/typescript-react-apollo": "^4.3.3",
-    "@storybook/addon-docs": "^9.1.6",
-    "@storybook/addon-links": "^9.1.6",
-    "@storybook/addon-onboarding": "^9.1.6",
-    "@storybook/nextjs": "^9.1.6",
+    "@storybook/addon-docs": "^9.1.7",
+    "@storybook/addon-links": "^9.1.7",
+    "@storybook/addon-onboarding": "^9.1.7",
+    "@storybook/nextjs": "^9.1.7",
     "@svgr/webpack": "^8.1.0",
     "@types/apollo-upload-client": "^18.0.0",
     "@types/lodash": "^4.17.20",
@@ -72,12 +72,12 @@
     "eslint-config-prettier": "^10.1.8",
     "eslint-plugin-import": "^2.32.0",
     "eslint-plugin-prettier": "^5.5.4",
-    "eslint-plugin-storybook": "^9.1.6",
+    "eslint-plugin-storybook": "^9.1.7",
     "graphql-codegen-typescript-mock-data": "^5.0.2",
     "lodash": "^4.17.21",
     "postcss": "^8",
     "prettier": "^3.6.2",
-    "storybook": "^9.1.6",
+    "storybook": "^9.1.7",
     "tailwindcss": "^3.3.5",
     "typescript": "5"
   }

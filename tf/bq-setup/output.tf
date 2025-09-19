@@ -1,5 +1,6 @@
 output "service_account_key_base64" {
-  value = google_service_account_key.bq_access_sa_key.private_key
+  value     = google_service_account_key.bq_access_sa_key.private_key
+  sensitive = true
 }
 
 output "service_account_email" {
@@ -27,7 +28,8 @@ output "bucket_name" {
 }
 
 output "holistics_service_account_key_base64" {
-  value = google_service_account_key.holistics_key.private_key
+  value     = google_service_account_key.holistics_key.private_key
+  sensitive = true
 }
 
 output "holistics_service_account_email" {

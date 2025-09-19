@@ -5,7 +5,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     event::CoreDepositEvent,
-    primitives::{ApprovalProcessId, CalaTransactionId, DepositAccountId, WithdrawalId},
+    primitives::{ApprovalProcessId, CalaTransactionId, DepositAccountId, PublicId, WithdrawalId},
     publisher::DepositPublisher,
 };
 
@@ -19,7 +19,8 @@ use super::{entity::*, error::*};
         deposit_account_id(ty = "DepositAccountId", list_for, update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", update(persist = false)),
         cancelled_tx_id(ty = "Option<CalaTransactionId>", create(persist = false)),
-        reference(ty = "String", create(accessor = "reference()"))
+        reference(ty = "String", create(accessor = "reference()")),
+        public_id(ty = "PublicId", list_by)
     ),
     tbl_prefix = "core",
     post_persist_hook = "publish"

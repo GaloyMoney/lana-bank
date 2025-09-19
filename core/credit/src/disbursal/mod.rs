@@ -185,6 +185,27 @@ where
         Ok(disbursal)
     }
 
+    #[instrument(name = "core_credit.disbursals.find_by_public_id", skip(self), err)]
+    pub async fn find_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<Disbursal>, DisbursalError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_disbursals(),
+                CoreCreditAction::DISBURSAL_READ,
+            )
+            .await?;
+
+        match self.repo.find_by_public_id(public_id.into()).await {
+            Ok(disbursal) => Ok(Some(disbursal)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     pub(super) async fn conclude_approval_process_in_op(
         &self,
         op: &mut es_entity::DbOpWithTime<'_>,

@@ -14,22 +14,6 @@ pub enum AccountingInitError {
     CreditChartOfAccountsIntegrationError(#[from] core_credit::ChartOfAccountsIntegrationError),
     #[error("AccountingInitError - CoreDepositError: {0}")]
     CoreDepositError(#[from] core_deposit::error::CoreDepositError),
-    #[error("AccountingInitError - CreditChartIntegrationConfigBuilderError: {0}")]
-    CreditChartIntegrationConfigBuilderError(
-        #[from] core_credit::ChartOfAccountsIntegrationConfigBuilderError,
-    ),
-    #[error("AccountingInitError - DepositChartIntegrationConfigBuilderError: {0}")]
-    DepositChartIntegrationConfigBuilderError(
-        #[from] core_deposit::ChartOfAccountsIntegrationConfigBuilderError,
-    ),
-    #[error("AccountingInitError - BalanceSheetChartIntegrationConfigBuilderError: {0}")]
-    BalanceSheetChartIntegrationConfigBuilderError(
-        #[from] crate::balance_sheet::ChartOfAccountsIntegrationConfigBuilderError,
-    ),
-    #[error("AccountingInitError - ProfitAndLossStatementChartIntegrationConfigBuilderError: {0}")]
-    ProfitAndLossStatementChartIntegrationConfigBuilderError(
-        #[from] crate::profit_and_loss::ChartOfAccountsIntegrationConfigBuilderError,
-    ),
     #[error("AccountingInitError - LedgerError: {0}")]
     LedgerError(#[from] cala_ledger::error::LedgerError),
     #[error("AccountingInitError - JournalError: {0}")]

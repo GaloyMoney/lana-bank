@@ -40,6 +40,9 @@
           "format": "uuid",
           "type": "string"
         },
+        "public_id": {
+          "type": "string"
+        },
         "reference": {
           "type": "string"
         },
@@ -59,7 +62,8 @@
         "amount",
         "reference",
         "approval_process_id",
-        "status"
+        "status",
+        "public_id"
       ],
       "type": "object"
     },

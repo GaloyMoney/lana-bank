@@ -42,7 +42,7 @@ const getResultInfo = (
         url: `/customers/${result.publicId}`,
         primary: result.email,
         secondary: t("searchResultTypes.customer"),
-        id: result.id,
+        id: result.publicId,
       }
     case "CreditFacility":
       return {
@@ -54,7 +54,7 @@ const getResultInfo = (
           </div>
         ),
         secondary: t("searchResultTypes.creditFacility"),
-        id: result.id,
+        id: result.publicId,
       }
     case "CreditFacilityDisbursal":
       return {
@@ -66,9 +66,35 @@ const getResultInfo = (
           </div>
         ),
         secondary: t("searchResultTypes.disbursal"),
-        id: result.id,
+        id: result.publicId,
+      }
+    case "Deposit":
+      return {
+        url: `/deposits/${result.publicId}`,
+        primary: (
+          <div className="flex items-center gap-2">
+            <span>{t("searchResultTypes.amount")}</span>
+            <Balance amount={result.amount} currency="usd" />
+          </div>
+        ),
+        secondary: t("searchResultTypes.deposit"),
+        id: result.publicId,
+      }
+    case "Withdrawal":
+      return {
+        url: `/withdrawals/${result.publicId}`,
+        primary: (
+          <div className="flex items-center gap-2">
+            <span>{t("searchResultTypes.amount")}</span>
+            <Balance amount={result.amount} currency="usd" />
+          </div>
+        ),
+        secondary: t("searchResultTypes.withdrawal"),
+        id: result.publicId,
       }
     default:
+      // eslint-disable-next-line @typescript-eslint/no-unused-vars
+      const _exhaustiveCheck: never = result
       return null
   }
 }

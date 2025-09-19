@@ -92,7 +92,7 @@ After bringing the development stack up, you can access the following services:
 
 > If you see a cookie error, delete the cookie and reload the page (but this should not happen if you're using separate browsers)
 
-If you're running the env on Linux, you might need to add these entries in your `/etc/hosts` file for authentication to work correctly on the customer portal:
+You might need to add these entries in your `/etc/hosts` file for authentication to work correctly on the customer portal:
 
 ```
 127.0.0.1 app.localhost

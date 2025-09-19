@@ -1,5 +1,6 @@
 mod csv;
 mod entity;
+
 pub mod error;
 mod repo;
 pub mod tree;
@@ -16,6 +17,9 @@ use crate::primitives::{
     ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
+pub use crate::chart_node::ChartNode;
+#[cfg(feature = "json-schema")]
+pub use crate::chart_node::ChartNodeEvent;
 pub(super) use csv::{CsvParseError, CsvParser};
 pub use entity::Chart;
 #[cfg(feature = "json-schema")]

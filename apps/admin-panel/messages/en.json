@@ -209,6 +209,8 @@
       "depositAccount": "Deposit Account",
       "creditFacility": "Credit Facility",
       "disbursal": "Disbursal",
+      "deposit": "Deposit",
+      "withdrawal": "Withdrawal",
       "amount": "Amount",
       "facilityAmount": "Facility Amount"
     }
@@ -1094,11 +1096,11 @@
     "description": "Sums of money added from credit facilities into customer's accounts",
     "table": {
       "headers": {
-        "depositId": "ID",
         "customer": "Customer",
         "reference": "Reference",
         "amount": "Amount",
-        "status": "Status"
+        "status": "Status",
+        "depositId": "ID"
       },
       "errors": {
         "general": "An error occurred while fetching deposits."
@@ -1154,7 +1156,6 @@
         "title": "Deposit",
         "fields": {
           "customerEmail": "Customer Email",
-          "depositId": "ID",
           "depositAmount": "Deposit Amount",
           "depositReference": "Deposit Reference",
           "createdAt": "Created At",
@@ -1164,7 +1165,8 @@
           "na": "N/A"
         },
         "buttons": {
-          "revert": "Revert"
+          "revert": "Revert",
+          "viewOnSumsub": "View on Sumsub"
         }
       }
     }
@@ -1174,11 +1176,11 @@
     "description": "Money taken out from customer's accounts",
     "table": {
       "headers": {
-        "withdrawalId": "ID",
         "customer": "Customer",
         "reference": "Reference",
         "amount": "Amount",
-        "status": "Status"
+        "status": "Status",
+        "withdrawalId": "ID"
       },
       "errors": {
         "general": "An error occurred while fetching withdrawals."
@@ -1258,9 +1260,9 @@
         "title": "Withdrawal",
         "fields": {
           "customerEmail": "Customer Email",
-          "withdrawalId": "ID",
           "withdrawalAmount": "Withdrawal Amount",
           "withdrawalReference": "Withdrawal Reference",
+          "createdAt": "Created At",
           "status": "Status"
         },
         "values": {
@@ -1271,7 +1273,8 @@
           "cancel": "Cancel",
           "approve": "Approve",
           "deny": "Deny",
-          "revert": "Revert"
+          "revert": "Revert",
+          "viewOnSumsub": "View on Sumsub"
         }
       }
     },
@@ -1782,6 +1785,8 @@
     },
     "addChildNode": "Add Sub Account",
     "addAccount": "Add Account",
+    "viewCustomer": "View Customer",
+    "viewCreditFacility": "View Credit Facility",
     "table": {
       "noData": "No transactions present in this account",
       "columns": {
@@ -1857,6 +1862,8 @@
     "title": "Ledger Transaction",
     "description": "A record of a financial transaction in the ledger",
     "noEntries": "No entries",
+    "viewDeposit": "View Deposit",
+    "viewWithdrawal": "View Withdrawal",
     "details": {
       "description": "Description",
       "createdAt": "Created At",

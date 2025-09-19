@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { useTranslations } from "next-intl"
+import { ExternalLinkIcon, RotateCcw } from "lucide-react"
 
 import { Button } from "@lana/web/ui/button"
 
@@ -13,16 +14,17 @@ import { DepositRevertDialog } from "./revert"
 
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import Balance from "@/components/balance/balance"
+
 import { GetDepositDetailsQuery, DepositStatus } from "@/lib/graphql/generated"
 
 type DepositDetailsProps = {
-  deposit: NonNullable<GetDepositDetailsQuery["deposit"]>
+  deposit: NonNullable<GetDepositDetailsQuery["depositByPublicId"]>
 }
 
 const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
   const t = useTranslations("Deposits.DepositDetails.DepositDetailsCard")
   const [openDepositRevertDialog, setOpenDepositRevertDialog] = useState<
-    GetDepositDetailsQuery["deposit"] | null
+    GetDepositDetailsQuery["depositByPublicId"] | null
   >(null)
 
   const details: DetailItemProps[] = [
@@ -30,20 +32,6 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
       label: t("fields.customerEmail"),
       value: deposit.account.customer.email,
       href: `/customers/${deposit.account.customer.publicId}`,
-    },
-    {
-      label: t("fields.depositId") || "ID",
-      value: (
-        <a
-          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:underline"
-          title={`Full ID: ${deposit.depositId}`}
-        >
-          {`${deposit.depositId.substring(0, 4)}...${deposit.depositId.substring(deposit.depositId.length - 4)}`}
-        </a>
-      ),
     },
     {
       label: t("fields.depositAmount"),
@@ -72,9 +60,20 @@ const DepositDetailsCard: React.FC<DepositDetailsProps> = ({ deposit }) => {
           variant="outline"
           onClick={() => setOpenDepositRevertDialog(deposit)}
         >
+          <RotateCcw className="h-4 w-4" />
           {t("buttons.revert")}
         </Button>
       )}
+      <Button asChild variant="outline">
+        <a
+          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${deposit.depositId}`}
+          target="_blank"
+          rel="noopener noreferrer"
+        >
+          {t("buttons.viewOnSumsub")}
+          <ExternalLinkIcon className="h-4 w-4" />
+        </a>
+      </Button>
     </>
   )
 

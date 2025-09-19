@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 use core_money::UsdCents;
 use es_entity::*;
 
-use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus};
+use crate::primitives::{CalaTransactionId, DepositAccountId, DepositId, DepositStatus, PublicId};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -20,6 +20,7 @@ pub enum DepositEvent {
         amount: UsdCents,
         reference: String,
         status: DepositStatus,
+        public_id: PublicId,
     },
     Reverted {
         ledger_tx_id: CalaTransactionId,
@@ -43,6 +44,7 @@ pub struct Deposit {
     pub deposit_account_id: DepositAccountId,
     pub amount: UsdCents,
     pub reference: String,
+    pub public_id: PublicId,
     events: EntityEvents<DepositEvent>,
 }
 
@@ -98,13 +100,15 @@ impl TryFromEvents<DepositEvent> for Deposit {
                     reference,
                     deposit_account_id,
                     amount,
+                    public_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
                         .deposit_account_id(*deposit_account_id)
                         .amount(*amount)
-                        .reference(reference.clone());
+                        .reference(reference.clone())
+                        .public_id(public_id.clone());
                 }
                 DepositEvent::Reverted { .. } => {}
             }
@@ -124,6 +128,8 @@ pub struct NewDeposit {
     pub(super) deposit_account_id: DepositAccountId,
     #[builder(setter(into))]
     pub(super) amount: UsdCents,
+    #[builder(setter(into))]
+    pub(super) public_id: PublicId,
     reference: Option<String>,
 }
 
@@ -161,6 +167,7 @@ impl IntoEvents<DepositEvent> for NewDeposit {
                 deposit_account_id: self.deposit_account_id,
                 amount: self.amount,
                 status: DepositStatus::Confirmed,
+                public_id: self.public_id,
             }],
         )
     }
@@ -178,6 +185,7 @@ mod test {
             .deposit_account_id(DepositAccountId::new())
             .amount(UsdCents::ZERO)
             .reference(None)
+            .public_id(PublicId::new("test-public-id"))
             .build();
 
         assert!(matches!(
@@ -193,6 +201,7 @@ mod test {
             .ledger_transaction_id(CalaTransactionId::new())
             .deposit_account_id(DepositAccountId::new())
             .reference(None)
+            .public_id(PublicId::new("test-public-id"))
             .build();
 
         assert!(matches!(
@@ -209,6 +218,7 @@ mod test {
             .deposit_account_id(DepositAccountId::new())
             .amount(UsdCents::ONE)
             .reference(None)
+            .public_id(PublicId::new("test-public-id"))
             .build();
 
         assert!(deposit.is_ok());
@@ -222,6 +232,7 @@ mod test {
             .deposit_account_id(DepositAccountId::new())
             .amount(UsdCents::ONE)
             .reference(None)
+            .public_id(PublicId::new("test-public-id"))
             .build()
             .unwrap();
 

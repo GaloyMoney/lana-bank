@@ -36,6 +36,18 @@ gql`
         amount
         publicId
       }
+      ... on Deposit {
+        id
+        amount
+        publicId
+        depositId
+      }
+      ... on Withdrawal {
+        id
+        amount
+        publicId
+        withdrawalId
+      }
     }
   }
 `
@@ -44,7 +56,7 @@ type SearchResult = NonNullable<SearchPublicIdTargetQuery["publicIdTarget"]>
 
 export function usePublicIdSearch() {
   const [searchTerm, setSearchTerm] = useState("")
-  const [searchResults, setSearchResults] = useState<SearchResult | null>()
+  const [searchResults, setSearchResults] = useState<SearchResult | null>(null)
   const [isSearching, setIsSearching] = useState(false)
 
   const [searchPublicIdTarget, { loading: searchLoading }] =

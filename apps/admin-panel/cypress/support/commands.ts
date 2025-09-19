@@ -22,8 +22,8 @@ declare global {
       createTermsTemplate(input: TermsTemplateCreateInput): Chainable<string>
       graphqlRequest<T>(query: string, variables?: Record<string, unknown>): Chainable<T>
       getIdFromUrl(pathSegment: string): Chainable<string>
-      createDeposit(amount: number, depositAccountId: string): Chainable<string>
-      initiateWithdrawal(amount: number, depositAccountId: string): Chainable<string>
+      createDeposit(amount: number, depositAccountId: string): Chainable<string> // Returns deposit public ID
+      initiateWithdrawal(amount: number, depositAccountId: string): Chainable<string> // Returns withdrawal public ID
       uploadChartOfAccounts(): Chainable<void>
       waitForKeycloak(): Chainable<void>
       KcLogin(email: string): Chainable<void>
@@ -208,6 +208,7 @@ interface DepositResponse {
     depositRecord: {
       deposit: {
         depositId: string
+        publicId: string
       }
     }
   }
@@ -218,6 +219,7 @@ interface WithdrawalInitiateResponse {
     withdrawalInitiate: {
       withdrawal: {
         withdrawalId: string
+        publicId: string
       }
     }
   }
@@ -231,6 +233,7 @@ Cypress.Commands.add(
         depositRecord(input: $input) {
           deposit {
             depositId
+            publicId
           }
         }
       }
@@ -239,7 +242,7 @@ Cypress.Commands.add(
       .graphqlRequest<DepositResponse>(mutation, {
         input: { amount, depositAccountId },
       })
-      .then((response) => response.data.depositRecord.deposit.depositId)
+      .then((response) => response.data.depositRecord.deposit.publicId)
   },
 )
 
@@ -251,6 +254,7 @@ Cypress.Commands.add(
         withdrawalInitiate(input: $input) {
           withdrawal {
             withdrawalId
+            publicId
           }
         }
       }
@@ -259,7 +263,7 @@ Cypress.Commands.add(
       .graphqlRequest<WithdrawalInitiateResponse>(mutation, {
         input: { amount, depositAccountId },
       })
-      .then((response) => response.data.withdrawalInitiate.withdrawal.withdrawalId)
+      .then((response) => response.data.withdrawalInitiate.withdrawal.publicId)
   },
 )
 
