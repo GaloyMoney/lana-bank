@@ -134,7 +134,7 @@ impl PaymentEntry {
         let payment = app
             .credit()
             .for_subject(sub)?
-            .find_obligation_installment_by_id(self.tx_id)
+            .find_payment_allocation_by_id(self.tx_id)
             .await?;
 
         Ok(CreditFacilityObligationInstallment::from(payment))

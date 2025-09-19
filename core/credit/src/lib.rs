@@ -20,7 +20,7 @@ mod jobs;
 pub mod ledger;
 mod liquidation_process;
 mod obligation;
-mod obligation_installment;
+mod payment_allocation;
 mod payment;
 mod primitives;
 mod processes;
@@ -62,7 +62,7 @@ pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
-pub use obligation_installment::*;
+pub use payment_allocation::*;
 pub use payment::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
@@ -81,7 +81,7 @@ pub mod event_schema {
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
-        obligation_installment::ObligationInstallmentEvent, payment::PaymentEvent,
+        payment_allocation::PaymentAllocationEvent, payment::PaymentEvent,
     };
 }
 
@@ -878,7 +878,7 @@ where
             .await?;
 
         self.obligations
-            .apply_installment_in_op(
+            .apply_allocation_in_op(
                 db,
                 credit_facility_id,
                 payment.id,
@@ -934,7 +934,7 @@ where
             .await?;
 
         self.obligations
-            .apply_installment_in_op(db, credit_facility_id, payment.id, amount, effective.into())
+            .apply_allocation_in_op(db, credit_facility_id, payment.id, amount, effective.into())
             .await?;
 
         Ok(credit_facility)

@@ -30,7 +30,7 @@ es_entity::entity_id! {
     CreditFacilityProposalId,
     DisbursalId,
     PaymentId,
-    ObligationInstallmentId,
+    PaymentAllocationId,
     ChartOfAccountsIntegrationConfigId,
     CollateralId,
     ObligationId,
@@ -49,7 +49,7 @@ es_entity::entity_id! {
     ObligationId => job::JobId,
 
     DisbursalId => LedgerTxId,
-    ObligationInstallmentId => LedgerTxId,
+    PaymentAllocationId => LedgerTxId,
 
     CreditFacilityId => public_id::PublicIdTargetId,
     DisbursalId => public_id::PublicIdTargetId,
@@ -91,7 +91,7 @@ impl From<ObligationType> for BalanceUpdatedType {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum BalanceUpdatedSource {
     Obligation(ObligationId),
-    ObligationInstallment(ObligationInstallmentId),
+    PaymentAllocation(PaymentAllocationId),
 }
 
 impl From<ObligationId> for BalanceUpdatedSource {
@@ -100,9 +100,9 @@ impl From<ObligationId> for BalanceUpdatedSource {
     }
 }
 
-impl From<ObligationInstallmentId> for BalanceUpdatedSource {
-    fn from(allocation_id: ObligationInstallmentId) -> Self {
-        Self::ObligationInstallment(allocation_id)
+impl From<PaymentAllocationId> for BalanceUpdatedSource {
+    fn from(allocation_id: PaymentAllocationId) -> Self {
+        Self::PaymentAllocation(allocation_id)
     }
 }
 

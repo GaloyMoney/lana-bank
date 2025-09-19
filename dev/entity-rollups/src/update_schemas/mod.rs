@@ -8,7 +8,7 @@ use core_accounting::event_schema::{ChartEvent, ChartNodeEvent, ManualTransactio
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
     InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent,
-    ObligationInstallmentEvent, PaymentEvent, TermsTemplateEvent,
+    PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
@@ -354,10 +354,10 @@ pub fn update_schemas(
             ..Default::default()
         },
         SchemaInfo {
-            name: "ObligationInstallmentEvent",
-            filename: "obligation_installment_event_schema.json",
+            name: "PaymentAllocationEvent",
+            filename: "payment_allocation_event_schema.json",
             generate_schema: || {
-                serde_json::to_value(schema_for!(ObligationInstallmentEvent)).unwrap()
+                serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap()
             },
             ..Default::default()
         },

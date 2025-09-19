@@ -62,9 +62,9 @@ pub enum CreditFacilityError {
     GovernanceError(#[from] governance::error::GovernanceError),
     #[error("CreditFacilityError - PublicIdError: {0}")]
     PublicIdError(#[from] public_id::PublicIdError),
-    #[error("CreditFacilityError - ObligationInstallmentError: {0}")]
-    ObligationInstallmentError(
-        #[from] crate::obligation_installment::error::ObligationInstallmentError,
+    #[error("CreditFacilityError - PaymentAllocationError: {0}")]
+    PaymentAllocationError(
+        #[from] crate::payment_allocation::error::PaymentAllocationError,
     ),
     #[error("CreditFacilityError - JobError: {0}")]
     JobError(#[from] job::error::JobError),

@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::primitives::*;
 
-pub use lana_app::credit::ObligationInstallment as DomainObligationInstallment;
+pub use lana_app::credit::PaymentAllocation as DomainObligationInstallment;
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]
