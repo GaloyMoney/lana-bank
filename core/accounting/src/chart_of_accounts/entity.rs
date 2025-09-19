@@ -55,14 +55,17 @@ impl Chart {
             chart_id: self.id,
             spec: spec.clone(),
             ledger_account_set_id,
-            parent_node_id: None,
+            children_node_ids: None,
         };
 
         self.chart_nodes.add_new(new_chart_node);
 
-        let parent_account_set_id = if let Some(parent) = spec.parent.as_ref() {
-            self.get_node_details_by_code(parent)
-                .map(|details| details.account_set_id)
+        let parent_account_set_id = if let Some(parent_code) = spec.parent.as_ref() {
+            let parent_node = self
+                .get_node_by_code_mut(parent_code)
+                .expect("Parent node should exist");
+            parent_node.add_child_node(node_id);
+            Some(parent_node.account_set_id)
         } else {
             None
         };
@@ -114,7 +117,7 @@ impl Chart {
         self.chart_nodes
             .iter_persisted()
             .filter(move |node| {
-                node.spec.code.len_sections() == 2
+                node.is_trial_balance_account()
                     && new_account_set_ids.contains(&node.account_set_id)
             })
             .map(move |node| node.account_set_id)
@@ -124,8 +127,8 @@ impl Chart {
         &self,
         new_account_set_id: CalaAccountSetId,
     ) -> Option<CalaAccountSetId> {
-        self.chart_nodes.iter_persisted().find_map(|node| {
-            if node.spec.code.len_sections() == 2 && new_account_set_id == node.account_set_id {
+        self.chart_nodes.find_map_persisted(|node| {
+            if node.is_trial_balance_account() && new_account_set_id == node.account_set_id {
                 Some(node.account_set_id)
             } else {
                 None
@@ -167,15 +170,16 @@ impl Chart {
         code: &AccountCode,
     ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
         self.get_node_by_code(code)
-        .into_iter()
-        .flat_map(move |node| {
-            node.get_children().iter().map(move |child_node_id| {
-                let child_node = self.chart_nodes
-                    .get_persisted(child_node_id)
-                    .expect("Child node should exist");
-                (child_node.spec.code, child_node.account_set_id)
+            .into_iter()
+            .flat_map(move |node| {
+                node.get_children().iter().map(move |child_node_id| {
+                    let child_node = self
+                        .chart_nodes
+                        .get_persisted(child_node_id)
+                        .expect("Child node should exist");
+                    (child_node.spec.code, child_node.account_set_id)
+                })
             })
-        })
     }
 
     fn get_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
