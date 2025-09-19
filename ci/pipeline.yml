@@ -55,6 +55,7 @@ jobs:
       params:
         path: lana-prs
         status: pending
+        context: populate-nix-cache
     - in_parallel:
       - task: nix-flake-check
         config:
@@ -123,10 +124,12 @@ jobs:
         params:
           path: lana-prs
           status: failure
+          context: populate-nix-cache
     - put: lana-prs
       params:
         path: lana-prs
         status: success
+        context: populate-nix-cache
 
   -  #@ build_edge_image()
 
