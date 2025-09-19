@@ -133,7 +133,15 @@ where
         let account_specs = CsvParser::new(data).account_specs()?;
         let mut new_account_sets = Vec::new();
         let mut new_connections = Vec::new();
+        //problems:
+        // 1. parent is not created before child
+        // 2. parent is created but it is a new entity and not persisted
+        // Solution:
+        // for 1.sort account_specs so that parents are created before children
+        //
         for spec in account_specs {
+            // for 2. persist each iteration or consider both entity and new entity
+            // add find_new_mut to nested
             if let es_entity::Idempotent::Executed(NewChartAccountDetails {
                 parent_account_set_id,
                 new_account_set,
