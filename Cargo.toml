@@ -170,3 +170,6 @@ lto = true
 
 [workspace.metadata.crane]
 name = "lana-bank"
+
+[workspace.metadata.cargo-machete]
+ignored = ["workspace-hack"]
