@@ -73,6 +73,26 @@ jobs:
                 cachix use $CACHIX_CACHE_NAME
                 
                 cachix watch-exec $CACHIX_CACHE_NAME -- nix flake check
+      - task: cache-dev-profile
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: lana-prs
+            path: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+            CI: true
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix develop --profile /tmp/dev-profile --command true
   -  #@ build_edge_image()
 
   - name: bats-integrations-test
