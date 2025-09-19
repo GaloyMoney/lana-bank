@@ -1258,7 +1258,6 @@ dependencies = [
  "async-graphql",
  "audit",
  "authz",
- "chrono",
  "core-customer",
  "es-entity",
  "job 0.0.0",
