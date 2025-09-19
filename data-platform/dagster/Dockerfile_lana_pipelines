@@ -5,7 +5,9 @@ RUN pip install \
     dagster-postgres \
     dagster-docker \
     dagster-dlt \
-    dlt[bigquery]
+    dlt[bigquery] \
+    dagster-dbt \
+    dbt-bigquery
 
 WORKDIR /opt/dagster/app
 

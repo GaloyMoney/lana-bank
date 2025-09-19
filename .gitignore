@@ -56,3 +56,6 @@ lib/rendering/test-output
 
 # mdbook
 docs/book/
+
+
+venv

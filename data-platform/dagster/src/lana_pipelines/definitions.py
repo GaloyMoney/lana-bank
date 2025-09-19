@@ -1,6 +1,7 @@
 import dagster as dg
 
-from lana_pipelines.assets import build_lana_source_asset, build_lana_to_dw_el_asset
+from lana_pipelines.assets import build_lana_source_asset, build_lana_to_dw_el_asset, build_dbt_assets
+from lana_pipelines.resources import dbt_resource
 
 
 def build_definitions():
@@ -60,15 +61,27 @@ def build_definitions():
         for table_name in lana_to_dw_el_tables
     ]
 
+    dbt_assets = [build_dbt_assets()]
+
     lana_to_dw_el_job = dg.define_asset_job(
         name="lana_to_dw_el_job",
-        selection=lana_to_dw_el_assets
+        selection=lana_to_dw_el_assets,
+        config={
+            "execution": {
+                "config": {
+                    "multiprocess": {"max_concurrent": 4},
+                }
+            }
+        },
     )
 
-    all_assets = lana_source_assets + lana_to_dw_el_assets
+    all_assets = lana_source_assets + lana_to_dw_el_assets + dbt_assets
     all_jobs = [lana_to_dw_el_job]
+    all_resources = {
+        "dbt": dbt_resource
+    }
 
-    return dg.Definitions(assets=all_assets, jobs=all_jobs)
+    return dg.Definitions(assets=all_assets, jobs=all_jobs, resources=all_resources)
 
 
 defs = build_definitions()
