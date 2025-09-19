@@ -50,18 +50,22 @@ impl Chart {
         let node_id = ChartNodeId::new();
         let ledger_account_set_id = CalaAccountSetId::new();
 
-        let new_chart_node = NewChartNode {
+        let mut new_chart_node = NewChartNode {
             id: node_id,
             chart_id: self.id,
             spec: spec.clone(),
             ledger_account_set_id,
+            children_node_ids: None,
         };
 
         self.chart_nodes.add_new(new_chart_node);
 
-        let parent_account_set_id = if let Some(parent) = spec.parent.as_ref() {
-            self.get_node_details_by_code(parent)
-                .map(|details| details.account_set_id)
+        let parent_account_set_id = if let Some(parent_code) = spec.parent.as_ref() {
+            let parent_node = self
+                .get_node_by_code_mut(parent_code)
+                .expect("Parent node should exist");
+            parent_node.add_child_node(node_id);
+            Some(parent_node.account_set_id)
         } else {
             None
         };
@@ -113,7 +117,7 @@ impl Chart {
         self.chart_nodes
             .iter_persisted()
             .filter(move |node| {
-                node.spec.code.len_sections() == 2
+                node.is_trial_balance_account()
                     && new_account_set_ids.contains(&node.account_set_id)
             })
             .map(move |node| node.account_set_id)
@@ -123,8 +127,8 @@ impl Chart {
         &self,
         new_account_set_id: CalaAccountSetId,
     ) -> Option<CalaAccountSetId> {
-        self.chart_nodes.iter_persisted().find_map(|node| {
-            if node.spec.code.len_sections() == 2 && new_account_set_id == node.account_set_id {
+        self.chart_nodes.find_map_persisted(|node| {
+            if node.is_trial_balance_account() && new_account_set_id == node.account_set_id {
                 Some(node.account_set_id)
             } else {
                 None
@@ -165,13 +169,17 @@ impl Chart {
         &self,
         code: &AccountCode,
     ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
-        self.chart_nodes.iter_persisted().filter_map(move |node| {
-            if node.spec.parent.as_ref() == Some(code) {
-                Some((&node.spec.code, node.account_set_id))
-            } else {
-                None
-            }
-        })
+        self.get_node_by_code(code)
+            .into_iter()
+            .flat_map(move |node| {
+                node.get_children().iter().map(move |child_node_id| {
+                    let child_node = self
+                        .chart_nodes
+                        .get_persisted(child_node_id)
+                        .expect("Child node should exist");
+                    (child_node.spec.code, child_node.account_set_id)
+                })
+            })
     }
 
     fn get_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
@@ -225,24 +233,23 @@ impl Chart {
             AccountIdOrCode::Id(id) => {
                 Ok(match self.get_node_by_manual_transaction_account_id(&id) {
                     Some(node) => {
-                        self.check_can_have_manual_transactions(&node.spec.code)?;
+                        node.check_can_have_manual_transactions()?;
                         ManualAccountFromChart::IdInChart(id)
                     }
                     None => ManualAccountFromChart::NonChartId(id),
                 })
             }
             AccountIdOrCode::Code(code) => {
-                let node = self
-                    .get_node_details_by_code(&code)
+                let node_mut = self
+                    .get_node_by_code_mut(&code)
                     .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
-                self.check_can_have_manual_transactions(&code)?;
+                node_mut.check_can_have_manual_transactions()?;
 
-                if let Some(existing_id) = node.manual_transaction_account_id {
+                if let Some(existing_id) = node_mut.manual_transaction_account_id {
                     return Ok(ManualAccountFromChart::IdInChart(existing_id));
                 }
 
-                let node_mut = self.get_node_by_code_mut(&code).expect("Node should exist");
                 match node_mut.assign_manual_transaction_account() {
                     Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
                         node_mut.account_set_id,
