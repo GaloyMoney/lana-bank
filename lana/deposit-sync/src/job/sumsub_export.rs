@@ -5,10 +5,9 @@ use serde::{Deserialize, Serialize};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountHolderId,
-    GovernanceAction, GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
+    GovernanceObject,
 };
-use core_money::UsdCents;
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker};
 use sumsub::SumsubClient;
@@ -37,21 +36,6 @@ impl std::fmt::Display for SumsubTransactionDirection {
             SumsubTransactionDirection::Out => write!(f, "out"),
         }
     }
-}
-
-/// Transaction data for export to Sumsub
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct SumsubExportJobData {
-    pub transaction_id: String,
-    pub deposit_account_holder_id: DepositAccountHolderId,
-    pub amount: UsdCents,
-    pub transaction_type: TransactionType,
-}
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub enum TransactionType {
-    Deposit,
-    Withdrawal,
 }
 
 #[derive(serde::Serialize)]
