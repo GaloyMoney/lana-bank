@@ -47,7 +47,7 @@ impl ChartLedger {
             .normal_balance_type(DebitOrCredit::Debit)
             .build()
             .expect("Could not build new account set");
-        let account_set = self
+        let mut chart_account_set = self
             .cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
@@ -61,9 +61,30 @@ impl ChartLedger {
             .attach_control_to_account_set_in_op(
                 &mut op,
                 control_id,
-                account_set.id(),
+                chart_account_set.id(),
                 Params::new(),
             )
+            .await?;
+
+        let mut metadata = chart_account_set
+            .values()
+            .clone()
+            .metadata
+            .unwrap_or_else(|| serde_json::json!({}));
+        AccountingClosingMetadata::update_metadata(
+            &mut metadata,
+            chart.closing.monthly.expect("Exists").closed_as_of,
+        );
+
+        let mut update_values = AccountSetUpdate::default();
+        update_values
+            .metadata(Some(metadata))
+            .expect("Failed to serialize metadata");
+
+        chart_account_set.update(update_values);
+        self.cala
+            .account_sets()
+            .persist_in_op(&mut op, &mut chart_account_set)
             .await?;
 
         op.commit().await?;

@@ -91,6 +91,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
+        first_period_opened_as_of: chrono::NaiveDate,
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
@@ -108,6 +109,7 @@ where
             .account_set_id(id)
             .name(name)
             .reference(reference)
+            .first_period_opened_as_of(first_period_opened_as_of)
             .build()
             .expect("Could not build new chart of accounts");
 
@@ -185,36 +187,6 @@ where
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))
-    }
-
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.open_first_accounting_period",
-        skip(self,),
-        err
-    )]
-    pub async fn open_first_accounting_period(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<ChartId> + std::fmt::Debug,
-        opening_date: chrono::NaiveDate,
-    ) -> Result<Chart, ChartOfAccountsError> {
-        let id = id.into();
-        let mut chart = self.repo.find_by_id(id).await?;
-        let first_closed_as_of_date =
-            if let Idempotent::Executed(date) = chart.open_first_accounting_period(opening_date) {
-                date
-            } else {
-                return Ok(chart);
-            };
-
-        let mut op = self.repo.begin_op().await?;
-        self.repo.update_in_op(&mut op, &mut chart).await?;
-
-        self.chart_ledger
-            .monthly_close_chart_as_of(op, chart.id, first_closed_as_of_date)
-            .await?;
-
-        Ok(chart)
     }
 
     #[instrument(
