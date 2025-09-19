@@ -1,0 +1,20 @@
+version: 2
+
+models:
+  - name: int_nrp_41_02_referencia
+    columns:
+      - name: credit_facility_id
+        tests:
+          - not_null_quoted
+      - name: customer_id
+        tests:
+          - not_null_quoted
+      - name: disbursal_id
+        tests:
+          - not_null_quoted
+      - name: reference_id
+        tests:
+          - not_null_quoted
+      - name: nit_deudor
+        tests:
+          - not_null_quoted
