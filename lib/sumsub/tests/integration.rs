@@ -5,7 +5,7 @@ use sumsub::testing_utils;
 #[cfg(feature = "sumsub-testing")]
 #[tokio::test]
 async fn test_create_real_applicant() {
-    use sumsub::{testing::*, SumsubClient};
+    use sumsub::{SumsubClient, testing::*};
     use uuid::Uuid;
 
     // Load configuration from environment

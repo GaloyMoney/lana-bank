@@ -4,7 +4,6 @@ use sqlx::PgPool;
 
 use super::error::ApplicantError;
 
-
 #[derive(Clone)]
 pub struct ApplicantRepo {
     pool: PgPool,

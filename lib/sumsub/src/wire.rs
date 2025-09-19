@@ -79,10 +79,10 @@ impl ApplicantInfo {
         // If not found, try to get it from passport documents
         if let Some(ref id_docs) = self.id_docs {
             for doc in id_docs {
-                if doc.doc_type == "PASSPORT" {
-                    if let Some(ref country) = doc.country {
-                        return Some(country);
-                    }
+                if doc.doc_type == "PASSPORT"
+                    && let Some(ref country) = doc.country
+                {
+                    return Some(country);
                 }
             }
         }

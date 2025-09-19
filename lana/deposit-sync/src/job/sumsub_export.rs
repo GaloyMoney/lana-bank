@@ -5,8 +5,8 @@ use serde::{Deserialize, Serialize};
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject,
-    GovernanceAction, GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
+    GovernanceObject,
 };
 use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker};
@@ -37,7 +37,6 @@ impl std::fmt::Display for SumsubTransactionDirection {
         }
     }
 }
-
 
 #[derive(serde::Serialize)]
 pub struct SumsubExportJobConfig<Perms, E> {

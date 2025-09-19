@@ -94,7 +94,6 @@ impl ReportRun {
     }
 }
 
-
 #[derive(SimpleObject)]
 pub struct ReportRunCreatePayload {
     pub job_id: String,
