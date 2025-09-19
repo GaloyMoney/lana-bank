@@ -167,31 +167,34 @@ test-cypress-in-ci:
 	cd apps/admin-panel && CI=true pnpm cypress:run-headless
 
 # Meltano
-bitfinex-run:
+meltano-bitfinex-run:
 	meltano run tap-bitfinexapi target-bigquery
 
-sumsub-run:
+meltano-sumsub-run:
 	meltano run tap-sumsubapi target-bigquery
 
-pg2bq-run:
+meltano-pg2bq-run:
 	meltano run tap-postgres target-bigquery
 
-bq-pipeline-seed:
+meltano-pipeline-seed:
 	meltano run dbt-bigquery:seed
 
-bq-pipeline-run:
+meltano-pipeline-run:
 	meltano run dbt-bigquery:run
 
-check-code-pipeline:
-	meltano invoke sqlfluff:lint
+meltano-pipeline-test:
+	meltano run dbt-bigquery:test
 
-lint-code-pipeline:
-	meltano invoke sqlfluff:fix
+meltano-check-code-pipeline:
+	cd meltano && meltano invoke sqlfluff:lint
 
-bq-drop-old-run:
+meltano-lint-code-pipeline:
+	cd meltano && meltano invoke sqlfluff:fix
+
+meltano-drop-old-run:
 	meltano run drop-old-relations
 
-bq-drop-all-run:
+meltano-drop-all-run:
 	meltano run drop-all-relations
 
 # Meltano EL writes into a different BQ dataset than dbt. This empties that dataset.
