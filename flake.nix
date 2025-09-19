@@ -249,7 +249,10 @@
           };
         };
 
-        apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
+        apps.default = flake-utils.lib.mkApp {
+          drv = lana-cli-debug;
+          name = "lana-cli";
+        };
 
         devShells.default = mkShell (devEnvVars
           // {
