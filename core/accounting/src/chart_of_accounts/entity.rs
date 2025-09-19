@@ -440,18 +440,18 @@ impl From<&NewChartNode> for ChartNodeDetails {
     }
 }
 
-#[derive(Debug, Default, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
 pub struct AccountingClosing {
-    pub monthly: Option<PeriodClosing>,
+    pub monthly: PeriodClosing,
 }
 
 impl AccountingClosing {
     fn monthly_from(effective: NaiveDate, recorded_at: DateTime<Utc>) -> Self {
         Self {
-            monthly: Some(PeriodClosing {
+            monthly: PeriodClosing {
                 closed_as_of: effective,
                 closed_at: recorded_at,
-            }),
+            },
         }
     }
 }
@@ -808,10 +808,7 @@ mod test {
             let expected_last_closed = "2024-01-14".parse::<NaiveDate>().unwrap();
 
             let chart = chart_from(initial_events_with_opened_date(starts_at));
-            assert_eq!(
-                chart.closing.monthly.unwrap().closed_as_of,
-                expected_last_closed
-            );
+            assert_eq!(chart.closing.monthly.closed_as_of, expected_last_closed);
         }
 
         #[test]
@@ -822,10 +819,7 @@ mod test {
 
             let closed_date = chart.close_last_monthly_period().unwrap().unwrap();
             assert_eq!(closed_date, expected_closed_date);
-            assert_eq!(
-                chart.closing.monthly.unwrap().closed_as_of,
-                expected_closed_date
-            );
+            assert_eq!(chart.closing.monthly.closed_as_of, expected_closed_date);
 
             let closing_event_date = chart
                 .events
@@ -850,7 +844,7 @@ mod test {
             let second_closing_date = chart.close_last_monthly_period().unwrap().unwrap();
             assert_eq!(second_closing_date, expected_second_closed_date);
             assert_eq!(
-                chart.closing.monthly.unwrap().closed_as_of,
+                chart.closing.monthly.closed_as_of,
                 expected_second_closed_date
             );
         }

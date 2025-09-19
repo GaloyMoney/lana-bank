@@ -64,13 +64,13 @@ impl From<lana_app::accounting::tree::TreeNode> for ChartNode {
 
 #[derive(SimpleObject, Clone)]
 pub struct AccountingClosing {
-    monthly: Option<PeriodClosing>,
+    monthly: PeriodClosing,
 }
 
 impl From<DomainAccountingClosing> for AccountingClosing {
     fn from(closing: DomainAccountingClosing) -> Self {
         Self {
-            monthly: closing.monthly.map(|c| c.into()),
+            monthly: closing.monthly.into(),
         }
     }
 }

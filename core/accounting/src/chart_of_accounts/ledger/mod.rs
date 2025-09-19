@@ -73,7 +73,7 @@ impl ChartLedger {
             .unwrap_or_else(|| serde_json::json!({}));
         AccountingClosingMetadata::update_metadata(
             &mut metadata,
-            chart.closing.monthly.expect("Exists").closed_as_of,
+            chart.closing.monthly.closed_as_of,
         );
 
         let mut update_values = AccountSetUpdate::default();
