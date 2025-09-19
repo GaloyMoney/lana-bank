@@ -185,10 +185,10 @@ meltano-pipeline-run:
 meltano-pipeline-test:
 	meltano run dbt-bigquery:test
 
-meltano-check-code-pipeline:
+meltano-sqlfluff-lint:
 	cd meltano && meltano invoke sqlfluff:lint
 
-meltano-lint-code-pipeline:
+meltano-sqlfluff-fix:
 	cd meltano && meltano invoke sqlfluff:fix
 
 meltano-drop-old-run:
