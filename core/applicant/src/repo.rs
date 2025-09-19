@@ -1,8 +1,18 @@
+use chrono::Utc;
 use core_customer::CustomerId;
+use serde::{Deserialize, Serialize};
 
 use sqlx::PgPool;
 
 use super::error::ApplicantError;
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct WebhookData {
+    pub(super) customer_id: CustomerId,
+    pub(super) webhook_data: serde_json::Value,
+    #[serde(with = "chrono::serde::ts_milliseconds")]
+    pub(super) timestamp: chrono::DateTime<Utc>,
+}
 
 #[derive(Clone)]
 pub struct ApplicantRepo {
