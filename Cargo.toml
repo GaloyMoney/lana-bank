@@ -65,7 +65,7 @@ cala-ledger = "0.11.4"
 
 
 aes = "0.8"
-anyhow = "1.0.99"
+anyhow = "1.0.100"
 async-graphql = { version = "7.0.17", default-features = false, features = [
   "dataloader",
   "chrono",
