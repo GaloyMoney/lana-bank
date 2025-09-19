@@ -26,3 +26,4 @@ keycloak-client = { workspace = true }
 chrono = { workspace = true }
 sim-time = { workspace = true, optional = true }
 lana-events = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }

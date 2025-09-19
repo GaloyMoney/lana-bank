@@ -51,6 +51,7 @@ dependencies = [
  "tracing",
  "tracing-utils",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -118,6 +119,7 @@ dependencies = [
  "thiserror 2.0.16",
  "tracing",
  "url",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -368,6 +370,7 @@ dependencies = [
  "serde",
  "sqlx",
  "thiserror 2.0.16",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -383,6 +386,7 @@ dependencies = [
  "thiserror 2.0.16",
  "tokio",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -671,6 +675,7 @@ dependencies = [
  "thiserror 2.0.16",
  "tracing",
  "url",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1114,6 +1119,7 @@ dependencies = [
  "tempfile",
  "thiserror 2.0.16",
  "tokio",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1187,6 +1193,7 @@ dependencies = [
  "thiserror 2.0.16",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1216,6 +1223,7 @@ dependencies = [
  "strum 0.27.2",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1249,6 +1257,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1272,6 +1281,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1313,6 +1323,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1344,6 +1355,7 @@ dependencies = [
  "thiserror 2.0.16",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1366,6 +1378,7 @@ dependencies = [
  "strum 0.27.2",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1405,6 +1418,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1433,6 +1447,7 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "thiserror 2.0.16",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1450,6 +1465,7 @@ dependencies = [
  "serde_json",
  "thiserror 2.0.16",
  "tokio",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1472,6 +1488,7 @@ dependencies = [
  "strum 0.27.2",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1601,6 +1618,7 @@ dependencies = [
  "tracing",
  "tracing-utils",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1623,6 +1641,7 @@ dependencies = [
  "sim-time",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1716,6 +1735,7 @@ dependencies = [
  "strum 0.27.2",
  "thiserror 2.0.16",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1743,6 +1763,7 @@ dependencies = [
  "sumsub",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -1892,6 +1913,7 @@ dependencies = [
  "sqlx",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -2507,6 +2529,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3075,6 +3098,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3136,6 +3160,7 @@ dependencies = [
  "serde",
  "thiserror 2.0.16",
  "tokio",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3176,6 +3201,7 @@ dependencies = [
  "tracing",
  "tracing-utils",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3197,6 +3223,7 @@ dependencies = [
  "tokio",
  "tracing",
  "url",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3278,6 +3305,7 @@ dependencies = [
  "tracing",
  "user-onboarding",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3300,6 +3328,7 @@ dependencies = [
  "sqlx",
  "tokio",
  "tracing-utils",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3315,6 +3344,7 @@ dependencies = [
  "governance",
  "outbox",
  "serde",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3328,6 +3358,7 @@ dependencies = [
  "schemars 1.0.4",
  "serde",
  "sqlx",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3677,6 +3708,7 @@ dependencies = [
  "serde",
  "serde_json",
  "thiserror 2.0.16",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -3900,6 +3932,7 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tracing-utils",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -4413,6 +4446,7 @@ dependencies = [
  "sqlx",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -4587,6 +4621,7 @@ dependencies = [
  "strum 0.27.2",
  "thiserror 2.0.16",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -4677,6 +4712,7 @@ dependencies = [
  "thiserror 2.0.16",
  "tokio",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -5397,6 +5433,7 @@ dependencies = [
  "sim-time",
  "tokio",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -5934,6 +5971,7 @@ dependencies = [
  "tokio",
  "tracing",
  "uuid",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -6535,6 +6573,7 @@ dependencies = [
  "tracing",
  "tracing-opentelemetry",
  "tracing-subscriber",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -6707,6 +6746,7 @@ dependencies = [
  "serde",
  "thiserror 2.0.16",
  "tracing",
+ "workspace-hack",
 ]
 
 [[package]]
@@ -7303,6 +7343,109 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "6f42320e61fe2cfd34354ecb597f86f413484a798ba44a8ca1165c58d42da6c1"
 dependencies = [
  "bitflags",
+]
+
+[[package]]
+name = "workspace-hack"
+version = "0.1.0"
+dependencies = [
+ "ahash 0.8.12",
+ "async-graphql",
+ "axum 0.8.4",
+ "axum-core 0.5.2",
+ "base16ct",
+ "base64 0.22.1",
+ "byteorder",
+ "bytes",
+ "cala-ledger",
+ "cala-ledger-core-types",
+ "chrono",
+ "cipher",
+ "clap",
+ "clap_builder",
+ "crypto-common",
+ "der",
+ "deranged",
+ "digest",
+ "ecdsa",
+ "either",
+ "elliptic-curve",
+ "es-entity",
+ "es-entity-macros",
+ "ff",
+ "fixedbitset 0.4.2",
+ "form_urlencoded",
+ "futures",
+ "futures-channel",
+ "futures-core",
+ "futures-io",
+ "futures-sink",
+ "futures-task",
+ "futures-util",
+ "generic-array",
+ "getrandom 0.2.16",
+ "group",
+ "hashbrown 0.14.5",
+ "hashbrown 0.15.3",
+ "hmac",
+ "hyper",
+ "hyper-util",
+ "idna",
+ "indexmap 2.9.0",
+ "inout",
+ "job 0.1.12",
+ "lalrpop-util",
+ "log",
+ "memchr",
+ "num-traits",
+ "once_cell",
+ "opentelemetry-http",
+ "opentelemetry-otlp",
+ "opentelemetry_sdk",
+ "percent-encoding",
+ "petgraph 0.6.5",
+ "pkcs8",
+ "prost",
+ "rand 0.9.2",
+ "rand_core 0.6.4",
+ "regex-automata",
+ "regex-syntax",
+ "reqwest",
+ "rust_decimal",
+ "rustls",
+ "schemars 1.0.4",
+ "sec1",
+ "serde",
+ "serde_core",
+ "serde_json",
+ "serde_with",
+ "sha2",
+ "signature",
+ "smallvec",
+ "spki",
+ "sqlx-core",
+ "sqlx-postgres",
+ "standback",
+ "subtle",
+ "syn 2.0.104",
+ "thiserror 2.0.16",
+ "time 0.3.41",
+ "time-macros 0.2.22",
+ "tiny-keccak",
+ "tokio",
+ "tokio-stream",
+ "tokio-util",
+ "toml_datetime",
+ "toml_edit",
+ "tonic",
+ "tower",
+ "tracing",
+ "tracing-core",
+ "tracing-opentelemetry",
+ "tracing-subscriber",
+ "url",
+ "uuid",
+ "zeroize",
 ]
 
 [[package]]
