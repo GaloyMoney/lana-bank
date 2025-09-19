@@ -3,7 +3,6 @@ extend-exclude = [
 	"CHANGELOG.md",
 	"jwks.json",
 	"/definitions/*/el-salvador-ssf/*",
-	"/meltano/transform/models/public_id_tests.yml",
 	"/meltano/transform/models/*/el-salvador-ssf/*",
 	"/meltano/transform/models/*/uif/*",
 	"/meltano/transform/macros/el-salvador-ssf/*",
