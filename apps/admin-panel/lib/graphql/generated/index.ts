@@ -40,7 +40,7 @@ export type Scalars = {
 
 export type AccountingClosing = {
   __typename?: 'AccountingClosing';
-  monthly?: Maybe<PeriodClosing>;
+  monthly: PeriodClosing;
 };
 
 export type AccountingCsvDocument = {

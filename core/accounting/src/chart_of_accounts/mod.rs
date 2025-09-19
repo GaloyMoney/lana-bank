@@ -201,8 +201,10 @@ where
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = id.into();
         let mut chart = self.repo.find_by_id(id).await?;
+
+        let now = crate::time::now();
         let closed_as_of_date =
-            if let Idempotent::Executed(date) = chart.close_last_monthly_period()? {
+            if let Idempotent::Executed(date) = chart.close_last_monthly_period(now)? {
                 date
             } else {
                 return Ok(chart);

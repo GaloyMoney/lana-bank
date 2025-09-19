@@ -271,6 +271,7 @@ impl Chart {
 
     pub fn close_last_monthly_period(
         &mut self,
+        now: DateTime<Utc>,
     ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError> {
         let last_recorded_date = self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
@@ -278,7 +279,7 @@ impl Chart {
         });
         let new_monthly_closing_date = match last_recorded_date {
             Some(last_effective) => {
-                let last_day_of_previous_month = crate::time::now()
+                let last_day_of_previous_month = now
                     .date_naive()
                     .with_day(1)
                     .and_then(|d| d.pred_opt())
@@ -310,12 +311,11 @@ impl Chart {
                 .expect("Failed to compute new monthly closing date"),
         };
 
-        let closed_at = crate::time::now();
         self.events.push(ChartEvent::AccountingPeriodClosed {
             closed_as_of: new_monthly_closing_date,
-            closed_at,
+            closed_at: now,
         });
-        self.closing = AccountingClosing::monthly_from(new_monthly_closing_date, closed_at);
+        self.closing = AccountingClosing::monthly_from(new_monthly_closing_date, now);
 
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
@@ -817,7 +817,10 @@ mod test {
             let expected_closed_date = "2024-01-31".parse::<NaiveDate>().unwrap();
             let mut chart = chart_from(initial_events_with_opened_date(period_start));
 
-            let closed_date = chart.close_last_monthly_period().unwrap().unwrap();
+            let closed_date = chart
+                .close_last_monthly_period(Utc::now())
+                .unwrap()
+                .unwrap();
             assert_eq!(closed_date, expected_closed_date);
             assert_eq!(chart.closing.monthly.closed_as_of, expected_closed_date);
 
@@ -839,9 +842,12 @@ mod test {
             let expected_second_closed_date = "2024-02-29".parse::<NaiveDate>().unwrap();
             let mut chart = chart_from(initial_events_with_opened_date(period_start));
 
-            let _ = chart.close_last_monthly_period().unwrap();
+            let _ = chart.close_last_monthly_period(Utc::now()).unwrap();
 
-            let second_closing_date = chart.close_last_monthly_period().unwrap().unwrap();
+            let second_closing_date = chart
+                .close_last_monthly_period(Utc::now())
+                .unwrap()
+                .unwrap();
             assert_eq!(second_closing_date, expected_second_closed_date);
             assert_eq!(
                 chart.closing.monthly.closed_as_of,
@@ -857,9 +863,9 @@ mod test {
                 .and_then(|d| d.with_day(1))
                 .unwrap();
             let mut chart = chart_from(initial_events_with_opened_date(first_day_of_last_month));
-            let _ = chart.close_last_monthly_period().unwrap();
+            let _ = chart.close_last_monthly_period(Utc::now()).unwrap();
 
-            let second_closing_date = chart.close_last_monthly_period().unwrap();
+            let second_closing_date = chart.close_last_monthly_period(Utc::now()).unwrap();
             assert!(second_closing_date.was_ignored());
         }
     }
