@@ -4,6 +4,7 @@ int_core_withdrawal_events_rollup as (select * from {{ ref("int_core_withdrawal_
 int_core_deposit_events_rollup_sequence as (select * from {{ ref("int_core_deposit_events_rollup_sequence") }}),
 int_core_deposit_events_rollup as (select * from {{ ref("int_core_deposit_events_rollup") }}),
 int_core_deposit_account_events_rollup as (select * from {{ ref("int_core_deposit_account_events_rollup") }}),
+stg_core_public_ids as (select * from {{ ref("stg_core_public_ids") }}),
 relevant_withdrawals as (
     select withdrawal_id
     from int_core_withdrawal_events_rollup_sequence
@@ -40,7 +41,7 @@ deposit_confirmation_timestamps as (
 ),
 withdrawal_transactions as (
 select
-    wer.withdrawal_id as numeroRegistroBancario, -- probably this should be a public id and not the private uuid
+    withdrawal_public_ids.id as numeroRegistroBancario,
     JSON_OBJECT(
         'direccionAgencia', bank_address.full_address,
         'idDepartamento', bank_address.region_id,
@@ -67,12 +68,14 @@ left join withdrawal_confirmation_timestamps wct
     on wer.withdrawal_id = wct.withdrawal_id
 left join int_core_deposit_account_events_rollup aer
     on wer.deposit_account_id = aer.deposit_account_id
+left join stg_core_public_ids as withdrawal_public_ids
+    on wer.withdrawal_id = withdrawal_public_ids.target_id
 cross join -- Note: this assumes there's only one address!
 seed_bank_address as bank_address
 ),
 deposit_transactions as (
 select
-    der.deposit_id as numeroRegistroBancario, -- probably this should be a public id and not the private uuid
+    deposit_public_ids.id as numeroRegistroBancario,
     JSON_OBJECT(
         'direccionAgencia', bank_address.full_address,
         'idDepartamento', bank_address.region_id,
@@ -99,6 +102,8 @@ left join deposit_confirmation_timestamps dct
     on der.deposit_id = dct.deposit_id
 left join int_core_deposit_account_events_rollup aer
     on der.deposit_account_id = aer.deposit_account_id
+left join stg_core_public_ids as deposit_public_ids
+    on der.deposit_id = deposit_public_ids.target_id
 cross join -- Note: this assumes there's only one address!
 seed_bank_address as bank_address
 )
