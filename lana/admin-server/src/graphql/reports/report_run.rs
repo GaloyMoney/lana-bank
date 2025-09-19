@@ -94,11 +94,6 @@ impl ReportRun {
     }
 }
 
-#[derive(InputObject)]
-pub struct ReportRunCreateInput {
-    pub external_id: String,
-}
-
 #[derive(SimpleObject)]
 pub struct ReportRunCreatePayload {
     pub job_id: String,
