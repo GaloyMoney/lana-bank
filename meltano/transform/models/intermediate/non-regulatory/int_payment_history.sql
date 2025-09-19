@@ -1,31 +1,30 @@
 with
 
-credit_facilities as(
+credit_facilities as (
     select
         credit_facility_id,
-        customer_id,
+        customer_id
     from {{ ref('int_core_credit_facility_events_rollup') }}
-)
+),
 
-, payments as(
+payments as (
     select *
     from {{ ref('int_core_payment_events_rollup') }}
-)
+),
 
-, obligation_installments as(
+obligation_installments as (
     select
         payment_id,
         max(effective) as effective,
-        array_agg(distinct obligation_type) as obligation_type,
+        array_agg(distinct obligation_type) as obligation_type
     from {{ ref('int_core_obligation_installment_events_rollup') }}
     group by payment_id
-)
+),
 
-, final as (
-    select
-        *
+final as (
+    select *
     from credit_facilities
-    right join payments using(credit_facility_id)
+    right join payments using (credit_facility_id)
 
 )
 

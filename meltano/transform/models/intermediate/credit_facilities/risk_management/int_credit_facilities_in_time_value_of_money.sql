@@ -4,7 +4,6 @@ with final as (
     select * from {{ ref("int_cf_agg_projected_cash_flows_tvm_risk") }}
 )
 
-
 select
     0 as order_by,
     'PV Disbursal Cash Flows (USD)' as kpi_title,

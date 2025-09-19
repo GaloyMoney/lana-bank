@@ -5,18 +5,16 @@
 
 
 with source as (
-    select
-        s.*
+    select s.*
     from {{ ref('stg_core_obligation_installment_events_rollup') }} as s
 
     {% if is_incremental() %}
         left join {{ this }} as t using (obligation_installment_id, version)
         where t.obligation_installment_id is null
     {% endif %}
-)
+),
 
-
-, transformed as (
+transformed as (
     select
         obligation_installment_id,
         payment_id,
@@ -31,7 +29,7 @@ with source as (
         created_at as obligation_installment_created_at,
         modified_at as obligation_installment_modified_at,
 
-        * except(
+        * except (
             obligation_installment_id,
             payment_id,
             credit_facility_id,
@@ -54,6 +52,5 @@ with source as (
         )
     from source
 )
-
 
 select * from transformed

@@ -14,7 +14,6 @@ total as (
     where completed_recorded_at is null
 )
 
-
 select
     1 as order_by,
     'Number Approved CF' as kpi_title,

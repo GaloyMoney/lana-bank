@@ -43,6 +43,7 @@ select
         as `Clasificación de Riesgo`,
     relationship_to_bank as `Tipo de relación`,
     cast(null as string) as `Agencia`,
-    least(sum_total_collateral_amount_usd, {{ var('deposits_coverage_limit') }}) as `Saldo garantizado`
+    least(sum_total_collateral_amount_usd, {{ var('deposits_coverage_limit') }})
+        as `Saldo garantizado`
 from
     customers

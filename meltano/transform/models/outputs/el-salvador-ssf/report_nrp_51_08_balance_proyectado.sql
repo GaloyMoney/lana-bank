@@ -1,8 +1,6 @@
 {{ config(materialized='table') }}
 
 select
-    left(`id_codigo_cuentaproy`, 10) as `id_codigo_cuentaproy`,
-    left(`nom_cuentaproy`, 80) as `nom_cuentaproy`,
     cast(round(`enero`, 2) as string) as `enero`,
     cast(round(`febrero`, 2) as string) as `febrero`,
     cast(round(`marzo`, 2) as string) as `marzo`,
@@ -14,6 +12,8 @@ select
     cast(round(`septiembre`, 2) as string) as `septiembre`,
     cast(round(`octubre`, 2) as string) as `octubre`,
     cast(round(`noviembre`, 2) as string) as `noviembre`,
-    cast(round(`diciembre`, 2) as string) as `diciembre`
+    cast(round(`diciembre`, 2) as string) as `diciembre`,
+    left(`id_codigo_cuentaproy`, 10) as `id_codigo_cuentaproy`,
+    left(`nom_cuentaproy`, 80) as `nom_cuentaproy`
 from
     {{ ref('int_nrp_51_08_balance_proyectado') }}

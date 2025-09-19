@@ -23,10 +23,12 @@ with loans_and_credit_facilities as (
 
 select
     left(replace(upper(reference_id), '-', ''), 20) as `num_referencia`,
-    '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}' as `cod_cartera`,
+    '{{ npb4_17_01_tipos_de_cartera("Cartera propia Ley Acceso al Crédito (19)") }}'
+        as `cod_cartera`,
     '{{ npb4_17_02_tipos_de_activos_de_riesgo("Préstamos") }}' as `cod_activo`,
     left(replace(upper(reference_id), '-', ''), 20) as `identificacion_garantia`,
     '{{ npb4_17_09_tipos_de_garantias("Pignorada - Depósito de dinero") }}' as `tipo_garantia`,
-    coalesce(safe_divide(collateral_amount_usd, loan_amount_usd) * 100, 1) as `valor_garantia_proporcional`
+    coalesce(safe_divide(collateral_amount_usd, loan_amount_usd) * 100, 1)
+        as `valor_garantia_proporcional`
 
 from loans_and_credit_facilities

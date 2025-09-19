@@ -1,6 +1,6 @@
 with
 
-final as(
+final as (
     select
         credit_facility_id as line_of_credit,
         disbursal_id as disbursement_number,
@@ -12,8 +12,8 @@ final as(
         risk_category_ref as category_b,
         net_risk,
         reserve_percentage,
-        reserve,
-    from {{ ref('int_nrp_41_02_referencia') }} as ref
+        reserve
+    from {{ ref('int_nrp_41_02_referencia') }}
 )
 
 select * from final

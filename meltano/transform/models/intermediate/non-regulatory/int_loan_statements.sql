@@ -1,23 +1,28 @@
 with
 
-customers as(
+customers as (
     select *
     from {{ ref('int_sumsub_applicants') }}
-)
+),
 
-, statuses as(
+statuses as (
     select
         ref.* except (customer_id, disbursal_id),
-        greatest(coalesce(dias_mora_k, 0), coalesce(dias_mora_i, 0)) as payment_overdue_days,
         estado,
         `explicación`,
         status,
         explanation,
+        greatest(coalesce(dias_mora_k, 0), coalesce(dias_mora_i, 0)) as payment_overdue_days
     from {{ ref('int_nrp_41_02_referencia') }} as ref
-    left join {{ ref('static_nrp_41_estados_del_préstamo') }} on greatest(coalesce(dias_mora_k, 0), coalesce(dias_mora_i, 0)) between consumer_calendar_ge_days and consumer_calendar_le_days
-)
+    left join
+        {{ ref('static_nrp_41_estados_del_préstamo') }}
+        on
+            greatest(
+                coalesce(dias_mora_k, 0), coalesce(dias_mora_i, 0)
+            ) between consumer_calendar_ge_days and consumer_calendar_le_days
+),
 
-, loans as(
+loans as (
     select
         credit_facility_id as line_of_credit,
         disbursal_id as disbursement_number,
@@ -33,18 +38,18 @@ customers as(
         explanation,
 
         disbursal_start_date as date_and_time,
-        "Disbursement" as transaction,
+        'Disbursement' as transaction,
         total_disbursed_usd as principal,
         null as interest,
         null as fee,
         null as vat,
-        total_disbursed_usd as total_transaction,
+        total_disbursed_usd as total_transaction
     from {{ ref('int_approved_credit_facility_loans') }}
-    left join customers using(customer_id)
-    left join statuses using(credit_facility_id)
-)
+    left join customers using (customer_id)
+    left join statuses using (credit_facility_id)
+),
 
-, payments as(
+payments as (
     select
         loans.line_of_credit,
         loans.disbursement_number,
@@ -60,17 +65,17 @@ customers as(
         loans.explanation,
 
         payment_created_at as date_and_time,
-        "Payment" as transaction,
+        'Payment' as transaction,
         disbursal_usd as principal,
         interest_usd as interest,
         null as fee,
         null as vat,
-        amount_usd as total_transaction,
+        amount_usd as total_transaction
     from {{ ref('int_payment_history') }} as ph
-    join loans on credit_facility_id = line_of_credit
-)
+    inner join loans on credit_facility_id = line_of_credit
+),
 
-, final as (
+final as (
     select * from loans
     union all
     select * from payments
@@ -78,5 +83,7 @@ customers as(
 
 select
     *,
-    sum(total_transaction) over (partition by line_of_credit order by date_and_time) as principal_balance,
+    sum(total_transaction)
+        over (partition by line_of_credit order by date_and_time)
+        as principal_balance
 from final

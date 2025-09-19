@@ -14,7 +14,7 @@ final as (
     select
         order_by,
         title,
-        sum(coalesce(balance, 0)) as balance,
+        sum(coalesce(balance, 0)) as balance
     from config
     left join chart on code in unnest(source_account_codes)
     group by order_by, title
@@ -22,6 +22,6 @@ final as (
 
 select
     title,
-    balance,
+    balance
 from final
 order by order_by

@@ -10,6 +10,5 @@ approved_withdrawals as (
     where approved
 )
 
-
 select *
 from approved_withdrawals

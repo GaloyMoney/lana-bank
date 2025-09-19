@@ -77,7 +77,6 @@ btc_price as (
 
 )
 
-
 select
     cu.* except (abs_diff, total_collateral),
 

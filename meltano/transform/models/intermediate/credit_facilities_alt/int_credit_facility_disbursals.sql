@@ -25,7 +25,6 @@ disbursal_concludes as (
 
 )
 
-
 select
     credit_facility_id,
     day,
