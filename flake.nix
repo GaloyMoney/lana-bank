@@ -27,6 +27,13 @@
           nodejs = super.nodejs_20;
         })
         (import rust-overlay)
+        # Disable tests on libsecret due to missing DBUS on gh
+        (self: super: {
+          libsecret = super.libsecret.overrideAttrs (oldAttrs: {
+            doCheck = false;
+            doInstallCheck = false;
+          });
+        })
         (self: super: {
           python311 = super.python311.override {
             packageOverrides = pySelf: pySuper: let
