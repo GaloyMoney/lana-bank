@@ -20,8 +20,8 @@ mod jobs;
 pub mod ledger;
 mod liquidation_process;
 mod obligation;
-mod payment_allocation;
 mod payment;
+mod payment_allocation;
 mod primitives;
 mod processes;
 mod publisher;
@@ -62,8 +62,8 @@ pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
-pub use payment_allocation::*;
 pub use payment::*;
+pub use payment_allocation::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
 pub use processes::{
@@ -81,7 +81,7 @@ pub mod event_schema {
         credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
         interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
-        payment_allocation::PaymentAllocationEvent, payment::PaymentEvent,
+        payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
     };
 }
 

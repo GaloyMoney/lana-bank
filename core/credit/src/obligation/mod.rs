@@ -286,9 +286,7 @@ where
             .create_all_in_op(&mut op, new_allocations)
             .await?;
 
-        let amount_allocated = allocations
-            .iter()
-            .fold(UsdCents::ZERO, |c, a| c + a.amount);
+        let amount_allocated = allocations.iter().fold(UsdCents::ZERO, |c, a| c + a.amount);
         tracing::Span::current().record(
             "amount_allocated",
             tracing::field::display(amount_allocated),
@@ -311,11 +309,7 @@ where
             .await?)
     }
 
-    #[instrument(
-        name = "core_credit.obligation.find_allocation_by_id",
-        skip(self),
-        err
-    )]
+    #[instrument(name = "core_credit.obligation.find_allocation_by_id", skip(self), err)]
     pub async fn find_allocation_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
