@@ -196,9 +196,6 @@
         };
 
         checks = {
-          # Build the crates as part of `nix flake check` for convenience
-          inherit lana-cli-debug;
-
           workspace-clippy = craneLib.cargoClippy (
             commonArgs
             // {
