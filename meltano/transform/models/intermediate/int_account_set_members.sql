@@ -9,6 +9,7 @@ where _sdc_batched_at >= (
     from {{ ref('stg_core_chart_node_events') }}
     where event_type = 'initialized'
 )
+
 union all
 
 select
