@@ -1,11 +1,11 @@
 import dagster as dg
 import dlt
 from dlt.sources.credentials import ConnectionStringCredentials
-from dagster_dbt import DbtCliResource, dbt_assets
+#from dagster_dbt import DbtCliResource, dbt_assets
 
 from lana_pipelines.resources import create_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
-from lana_pipelines.resources import dbt_manifest_path
+#from lana_pipelines.resources import dbt_manifest_path
 
 def build_lana_source_asset(table_name):
 
@@ -52,7 +52,8 @@ def build_lana_to_dw_el_asset(table_name):
             dataset_name="counterweight_dataset",
         )
 
-        destination_table_name = "public_" + table_name + "_view"
+        destination_table_name = f"lana__{table_name}"
+        
         load_info = pipeline.run(
             postgres_resource,
             write_disposition="replace",
@@ -66,10 +67,10 @@ def build_lana_to_dw_el_asset(table_name):
     return lana_to_dw_el_asset
 
 
-def build_dbt_assets():
+""" def build_dbt_assets():
 
     @dbt_assets(manifest=dbt_manifest_path)
     def dbt_models(context: dg.AssetExecutionContext, dbt: DbtCliResource):
         yield from dbt.cli(["build"], context=context).stream()
 
-    return dbt_models
+    return dbt_models """
