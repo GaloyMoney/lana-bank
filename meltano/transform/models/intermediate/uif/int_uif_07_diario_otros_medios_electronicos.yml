@@ -23,9 +23,9 @@ models:
     columns:
       - name: numeroRegistroBancario
         description: >
-          Bank transaction record identifier. For withdrawals, this is the withdrawal_id.
-          For deposits, this is the deposit_id. This serves as the primary transaction
-          reference in the UIF report.
+          Bank transaction record identifier. For withdrawals, this is the withdrawal's
+          public id. For deposits, this is the deposit's public id. This serves as the 
+          primary transaction reference in the UIF report.
         tests:
           - not_null
           
