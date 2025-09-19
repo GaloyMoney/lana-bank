@@ -320,7 +320,7 @@
           fontconfig
           dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
-        ++ lib.optionals pkgs.stdenv.isLinux [
+        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
           python313Packages.weasyprint
@@ -331,9 +331,7 @@
           util-linux
           psmisc
         ]
-        ++ lib.optionals pkgs.stdenv.isDarwin [
-          darwin.apple_sdk.frameworks.SystemConfiguration
-        ];
+        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
