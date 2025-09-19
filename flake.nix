@@ -242,7 +242,7 @@
             doInstallCargoArtifacts = false;
 
             buildPhaseCargoCommand = ''
-              cargo machete
+              cargo machete --with-metadata
             '';
 
             nativeBuildInputs = [
