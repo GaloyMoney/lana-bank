@@ -41,6 +41,7 @@ jobs:
           gcp_project = "$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
           gcp_region = "us-central1"
           git_token = "dummy_token"
+          force_destroy_bucket = true
           EOF
 
           nix develop -c tofu init
