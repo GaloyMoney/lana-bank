@@ -176,6 +176,9 @@ sumsub-run:
 pg2bq-run:
 	meltano run tap-postgres target-bigquery
 
+bq-pipeline-seed:
+	meltano run dbt-bigquery:seed
+
 bq-pipeline-run:
 	meltano run dbt-bigquery:run
 
