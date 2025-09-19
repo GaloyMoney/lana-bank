@@ -51,6 +51,8 @@ sources:
 
       - name: public_core_chart_events_view
 
+      - name: public_core_chart_node_events_view
+
       - name: public_core_collateral_events_view
         freshness:
           warn_after:
@@ -376,6 +378,15 @@ sources:
             period: day
 
       - name: public_core_chart_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_chart_node_events_rollup_view
         freshness:
           warn_after:
             count: 2
