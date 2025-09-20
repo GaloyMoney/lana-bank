@@ -26,6 +26,9 @@ jobs:
         run: nix develop -c make reset-deps
         env:
           ENGINE_DEFAULT: podman
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          TF_VAR_name_prefix: "gha"
 
       - name: Get cli derivation
         id: cli-derivation
