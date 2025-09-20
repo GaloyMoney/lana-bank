@@ -38,6 +38,11 @@ export type Scalars = {
   UsdCents: { input: UsdCents; output: UsdCents; }
 };
 
+export type AccountingClosing = {
+  __typename?: 'AccountingClosing';
+  monthly: PeriodClosing;
+};
+
 export type AccountingCsvDocument = {
   __typename?: 'AccountingCsvDocument';
   createdAt: Scalars['Timestamp']['output'];
@@ -265,6 +270,7 @@ export type ChartOfAccounts = {
   __typename?: 'ChartOfAccounts';
   chartId: Scalars['UUID']['output'];
   children: Array<ChartNode>;
+  closing: AccountingClosing;
   id: Scalars['ID']['output'];
   name: Scalars['String']['output'];
 };
@@ -290,6 +296,15 @@ export type ChartOfAccountsAddRootNodeInput = {
 
 export type ChartOfAccountsAddRootNodePayload = {
   __typename?: 'ChartOfAccountsAddRootNodePayload';
+  chartOfAccounts: ChartOfAccounts;
+};
+
+export type ChartOfAccountsCloseMonthlyInput = {
+  chartId: Scalars['UUID']['input'];
+};
+
+export type ChartOfAccountsCloseMonthlyPayload = {
+  __typename?: 'ChartOfAccountsCloseMonthlyPayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1476,6 +1491,7 @@ export type Mutation = {
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
+  chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
   committeeCreate: CommitteeCreatePayload;
@@ -1551,6 +1567,11 @@ export type MutationChartOfAccountsAddChildNodeArgs = {
 
 export type MutationChartOfAccountsAddRootNodeArgs = {
   input: ChartOfAccountsAddRootNodeInput;
+};
+
+
+export type MutationChartOfAccountsCloseMonthlyArgs = {
+  input: ChartOfAccountsCloseMonthlyInput;
 };
 
 
@@ -1796,6 +1817,12 @@ export enum Period {
   Days = 'DAYS',
   Months = 'MONTHS'
 }
+
+export type PeriodClosing = {
+  __typename?: 'PeriodClosing';
+  closedAsOf: Scalars['Date']['output'];
+  closedAt: Scalars['Timestamp']['output'];
+};
 
 export type PermissionSet = {
   __typename?: 'PermissionSet';

@@ -1,0 +1,12 @@
+query ChartOfAccountsClosing {
+  chartOfAccounts {
+    chartId
+    name
+    closing {
+      monthly {
+        closedAsOf
+      }
+    }
+  }
+}
+

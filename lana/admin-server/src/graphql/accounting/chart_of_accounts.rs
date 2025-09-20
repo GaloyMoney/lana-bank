@@ -2,7 +2,10 @@ use async_graphql::*;
 
 use crate::{graphql::accounting::AccountCode, primitives::*};
 
-use lana_app::accounting::Chart as DomainChart;
+use lana_app::accounting::{
+    AccountingClosing as DomainAccountingClosing, Chart as DomainChart,
+    PeriodClosing as DomainPeriodClosing,
+};
 use lana_app::primitives::DebitOrCredit;
 
 #[derive(SimpleObject, Clone)]
@@ -11,6 +14,7 @@ pub struct ChartOfAccounts {
     id: ID,
     chart_id: UUID,
     name: String,
+    closing: AccountingClosing,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainChart>,
@@ -22,6 +26,7 @@ impl From<DomainChart> for ChartOfAccounts {
             id: chart.id.to_global_id(),
             chart_id: UUID::from(chart.id),
             name: chart.name.to_string(),
+            closing: chart.closing.into(),
 
             entity: Arc::new(chart),
         }
@@ -57,12 +62,46 @@ impl From<lana_app::accounting::tree::TreeNode> for ChartNode {
     }
 }
 
+#[derive(SimpleObject, Clone)]
+pub struct AccountingClosing {
+    monthly: PeriodClosing,
+}
+
+impl From<DomainAccountingClosing> for AccountingClosing {
+    fn from(closing: DomainAccountingClosing) -> Self {
+        Self {
+            monthly: closing.monthly.into(),
+        }
+    }
+}
+
+#[derive(SimpleObject, Clone)]
+pub struct PeriodClosing {
+    closed_as_of: Date,
+    closed_at: Timestamp,
+}
+
+impl From<DomainPeriodClosing> for PeriodClosing {
+    fn from(period_closing: DomainPeriodClosing) -> Self {
+        Self {
+            closed_as_of: period_closing.closed_as_of.into(),
+            closed_at: period_closing.closed_at.into(),
+        }
+    }
+}
+
 #[derive(InputObject)]
 pub struct ChartOfAccountsCsvImportInput {
     pub chart_id: UUID,
     pub file: Upload,
 }
 crate::mutation_payload! { ChartOfAccountsCsvImportPayload, chart_of_accounts: ChartOfAccounts }
+
+#[derive(InputObject)]
+pub struct ChartOfAccountsCloseMonthlyInput {
+    pub chart_id: UUID,
+}
+crate::mutation_payload! { ChartOfAccountsCloseMonthlyPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
 pub struct ChartOfAccountsAddRootNodeInput {
