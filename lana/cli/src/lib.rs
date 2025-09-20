@@ -157,8 +157,6 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     // Setup GCP credentials from SA_CREDS_BASE64 environment variable
     setup_gcp_credentials()?;
 
-    println!("HELLO");
-
     #[cfg(feature = "sim-time")]
     {
         sim_time::init(config.time);
