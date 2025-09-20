@@ -1,0 +1,62 @@
+name: "Podman BATS Tests"
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+jobs:
+  bats-tests:
+    name: End to End BATS Tests (Podman)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: cachix/cachix-action@v15
+        with:
+          name: lana-bank-ci
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-podman
+
+      - name: Run BATS tests with podman
+        run: nix develop -c make reset-deps
+        env:
+          ENGINE_DEFAULT: podman
+
+      - name: Get cli derivation
+        id: cli-derivation
+        run: |
+          nix build .#lana-cli-debug --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
+          echo "Checks to wait for:"
+          cat nix-checks-paths.txt
+      - name: Wait for checks in Cachix
+        uses: ./.github/actions/wait-for-cachix-paths
+        with:
+          paths-file: ./nix-checks-paths.txt
+          cache-name: lana-bank-ci
+          max-attempts: 300
+          retry-delay: 10
+          
+      - name: Run BATS tests with podman
+        run: nix develop -c bats -t bats
+        env:
+          ENGINE_DEFAULT: podman
+          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+          
+      - name: Rename bats log
+        if: always()
+        run: mv .e2e-logs e2e-logs || true
+        
+      - name: Upload bats log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Podman BATS Logs
+          path: |
+            e2e-logs
+            *.e2e-logs 
