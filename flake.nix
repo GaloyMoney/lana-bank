@@ -4,6 +4,10 @@
   inputs = {
     nixpkgs.url = "github:NixOS/nixpkgs/nixos-unstable";
     flake-utils.url = "github:numtide/flake-utils";
+    advisory-db = {
+      url = "github:rustsec/advisory-db";
+      flake = false;
+    };
     rust-overlay = {
       url = "github:oxalica/rust-overlay";
       inputs = {
@@ -19,6 +23,7 @@
     flake-utils,
     rust-overlay,
     crane,
+    advisory-db,
   }:
     flake-utils.lib.eachDefaultSystem
     (system: let
@@ -59,6 +64,17 @@
         inherit system overlays;
       };
 
+      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
+      rustToolchain = rustVersion.override {
+        extensions = [
+          "rust-analyzer"
+          "rust-src"
+          "rustfmt"
+          "clippy"
+        ];
+        targets = ["x86_64-unknown-linux-musl"];
+      };
+
       craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
       #craneLib = crane.mkLib pkgs;
       # craneLib = craneLib.crateNameFromCargoToml {cargoToml = "./path/to/Cargo.toml";};
@@ -75,204 +91,31 @@
           || pkgs.lib.hasInfix "/lib/rendering/config/" path;
       };
 
-      # Function to build cargo artifacts for a specific profile
-      mkCargoArtifacts = profile:
-        craneLib.buildDepsOnly {
-          src = rustSource;
-          strictDeps = true;
-          cargoToml = ./Cargo.toml;
-          pname = "lana-workspace-deps-${profile}";
-          version = "0.0.0";
-          CARGO_PROFILE = profile;
-          SQLX_OFFLINE = true;
-          cargoExtraArgs = "--features sim-time,sumsub-testing";
-        };
+      commonArgs = {
+        src = rustSource;
+        strictDeps = true;
+        SQLX_OFFLINE = true;
+      };
 
-      # Function to build lana-cli for a specific profile
-      mkLanaCli = profile: let
-        cargoArtifacts = mkCargoArtifacts profile;
-      in
-        craneLib.buildPackage {
-          src = rustSource;
-          strictDeps = true;
-          cargoToml = ./lana/cli/Cargo.toml;
+      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+
+      individualCrateArgs =
+        commonArgs
+        // {
           inherit cargoArtifacts;
+          inherit (craneLib.crateNameFromCargoToml {src = rustSource;}) version;
+          # NB: we disable tests since we'll run them all via cargo-nextest
           doCheck = false;
-          pname = "lana-cli";
-          CARGO_PROFILE = profile;
-          SQLX_OFFLINE = true;
-          cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian,sumsub-testing";
         };
 
-      # Function to build static lana-cli (musl target for containers)
-      mkLanaCliStatic = profile: let
-        rustTarget = "x86_64-unknown-linux-musl";
-        # Build dependencies specifically for the musl target
-        cargoArtifactsStatic = craneLibMusl.buildDepsOnly {
+      lana-cli-debug = craneLib.buildPackage (
+        individualCrateArgs
+        // {
+          pname = "lana-cli-debug";
+          cargoExtraArgs = "-p lana-cli";
           src = rustSource;
-          strictDeps = true;
-          cargoToml = ./Cargo.toml;
-          pname = "lana-workspace-deps-${profile}-musl";
-          version = "0.0.0";
-          CARGO_PROFILE = profile;
-          SQLX_OFFLINE = true;
-          CARGO_BUILD_TARGET = rustTarget;
-          cargoExtraArgs = "--features sim-time,sim-bootstrap --target ${rustTarget}";
-
-          # Add musl target dependencies
-          depsBuildBuild = with pkgs; [
-            pkgsCross.musl64.stdenv.cc
-          ];
-
-          # Environment variables for static linking
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-        };
-      in
-        craneLibMusl.buildPackage {
-          src = rustSource;
-          strictDeps = true;
-          cargoToml = ./lana/cli/Cargo.toml;
-          cargoArtifacts = cargoArtifactsStatic;
-          doCheck = false;
-          pname = "lana-cli-static";
-          CARGO_PROFILE = profile;
-          SQLX_OFFLINE = true;
-          CARGO_BUILD_TARGET = rustTarget;
-          cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
-
-          # Add musl target for static linking
-          depsBuildBuild = with pkgs; [
-            pkgsCross.musl64.stdenv.cc
-          ];
-
-          # Environment variables for static linking
-          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
-        };
-
-      # Build artifacts and packages for both profiles
-      debugCargoArtifacts = mkCargoArtifacts "dev";
-      releaseCargoArtifacts = mkCargoArtifacts "release";
-
-      lana-cli-debug = mkLanaCli "dev";
-      lana-cli-release = mkLanaCli "release";
-      lana-cli-static = mkLanaCliStatic "release";
-
-      checkCode = craneLib.mkCargoDerivation {
-        pname = "check-code";
-        version = "0.0.0";
-        src = rustSource;
-        cargoToml = ./Cargo.toml;
-        cargoLock = ./Cargo.lock;
-        cargoArtifacts = debugCargoArtifacts;
-        SQLX_OFFLINE = true;
-        cargoExtraArgs = "--all-targets --all-features";
-
-        nativeBuildInputs = [
-          pkgs.protobuf
-          pkgs.cacert
-          pkgs.cargo-audit
-          pkgs.cargo-deny
-          pkgs.cargo-machete
-        ];
-
-        configurePhase = ''
-          export CARGO_NET_GIT_FETCH_WITH_CLI=true
-          export PROTOC="${pkgs.protobuf}/bin/protoc"
-          export PATH="${pkgs.protobuf}/bin:${pkgs.gitMinimal}/bin:${pkgs.coreutils}/bin:$PATH"
-          export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-          export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
-        '';
-
-        buildPhaseCargoCommand = "check";
-        buildPhase = ''
-          cargo fmt --check
-          cargo clippy --all-targets --all-features || true
-          cargo audit
-          cargo deny check
-          cargo machete
-        '';
-        installPhase = "touch $out";
-      };
-
-      testInCi = craneLib.mkCargoDerivation {
-        pname = "test-in-ci";
-        version = "0.0.0";
-        src = rustSource;
-        cargoToml = ./Cargo.toml;
-        cargoLock = ./Cargo.lock;
-        cargoArtifacts = debugCargoArtifacts;
-        SQLX_OFFLINE = true;
-
-        nativeBuildInputs = [
-          pkgs.cacert
-          pkgs.cargo-nextest
-          pkgs.protobuf
-          pkgs.gitMinimal
-          # Font packages for PDF generation tests
-          pkgs.fontconfig
-          pkgs.dejavu_fonts # Provides serif, sans-serif, and monospace
-        ];
-
-        configurePhase = ''
-          export CARGO_NET_GIT_FETCH_WITH_CLI=true
-          export PROTOC="${pkgs.protobuf}/bin/protoc"
-          export PATH="${pkgs.protobuf}/bin:$PATH"
-          export SSL_CERT_FILE="${pkgs.cacert}/etc/ssl/certs/ca-bundle.crt"
-          export CARGO_HTTP_CAINFO="$SSL_CERT_FILE"
-          # Font configuration for PDF generation tests
-          export FONTCONFIG_FILE=${pkgs.fontconfig.out}/etc/fonts/fonts.conf
-          export FONTCONFIG_PATH=${pkgs.fontconfig.out}/etc/fonts
-        '';
-
-        buildPhaseCargoCommand = "nextest run";
-        buildPhase = ''
-          # run whole workspace tests, verbose+locked to mirror Makefile
-          cargo nextest run --workspace --locked --verbose
-        '';
-
-        installPhase = "touch $out";
-      };
-
-      write_sdl = craneLib.buildPackage {
-        src = rustSource;
-        cargoToml = ./Cargo.toml;
-        cargoArtifacts = debugCargoArtifacts;
-        pname = "write_sdl";
-        version = "0.0.0";
-        doCheck = false;
-        SQLX_OFFLINE = true;
-        cargoExtraArgs = "--bin write_sdl";
-      };
-
-      write_customer_sdl = craneLib.buildPackage {
-        src = rustSource;
-        cargoToml = ./Cargo.toml;
-        cargoArtifacts = debugCargoArtifacts;
-        pname = "write_customer_sdl";
-        version = "0.0.0";
-        doCheck = false;
-        SQLX_OFFLINE = true;
-        cargoExtraArgs = "--bin write_customer_sdl";
-      };
-
-      meltanoPkgs = pkgs.callPackage ./meltano.nix {};
-
-      mkAlias = alias: command: pkgs.writeShellScriptBin alias command;
-
-      rustVersion = pkgs.pkgsBuildHost.rust-bin.fromRustupToolchainFile ./rust-toolchain.toml;
-      rustToolchain = rustVersion.override {
-        extensions = [
-          "rust-analyzer"
-          "rust-src"
-          "rustfmt"
-          "clippy"
-        ];
-        targets = ["x86_64-unknown-linux-musl"];
-      };
+        }
+      );
 
       # Separate toolchain for musl cross-compilation
       rustToolchainMusl = rustVersion.override {
@@ -297,6 +140,7 @@
           cargo-watch
           cargo-deny
           cargo-machete
+          cargo-hakari
           bacon
           typos
           postgresql
@@ -318,7 +162,6 @@
           curl
           tilt
           procps
-          meltanoPkgs.meltano
           poppler_utils
           keycloak
           # Documentation tools
@@ -349,19 +192,68 @@
     in
       with pkgs; {
         packages = {
-          default = lana-cli-debug; # Debug as default
-          debug = lana-cli-debug;
-          release = lana-cli-release;
-          static = lana-cli-static;
-          check-code = checkCode;
-          test-in-ci = testInCi;
-          write_sdl = write_sdl;
-          write_customer_sdl = write_customer_sdl;
-          meltano = meltanoPkgs.meltano;
-          meltano-image = meltanoPkgs.meltano-image;
+          default = lana-cli-debug;
+          lana-cli-debug = lana-cli-debug;
         };
 
-        apps.default = flake-utils.lib.mkApp {drv = lana-cli-debug;};
+        checks = {
+          workspace-clippy = craneLib.cargoClippy (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              cargoClippyExtraArgs = "--all-targets -- --deny warnings";
+            }
+          );
+          workspace-fmt = craneLib.cargoFmt {
+            src = rustSource;
+          };
+
+          workspace-audit = craneLib.cargoAudit {
+            inherit advisory-db;
+            src = rustSource;
+          };
+
+          workspace-deny = craneLib.cargoDeny {
+            src = rustSource;
+          };
+
+          workspace-hakari = craneLib.mkCargoDerivation {
+            src = rustSource;
+            pname = "workspace-hakari";
+            cargoArtifacts = null;
+            doInstallCargoArtifacts = false;
+
+            buildPhaseCargoCommand = ''
+              cargo hakari generate --diff
+              cargo hakari manage-deps --dry-run
+              cargo hakari verify
+            '';
+
+            nativeBuildInputs = [
+              pkgs.cargo-hakari
+            ];
+          };
+
+          workspace-machete = craneLib.mkCargoDerivation {
+            src = rustSource;
+            pname = "lana-bank-machete";
+            cargoArtifacts = null;
+            doInstallCargoArtifacts = false;
+
+            buildPhaseCargoCommand = ''
+              cargo machete
+            '';
+
+            nativeBuildInputs = [
+              pkgs.cargo-machete
+            ];
+          };
+        };
+
+        apps.default = flake-utils.lib.mkApp {
+          drv = lana-cli-debug;
+          name = "lana-cli";
+        };
 
         devShells.default = mkShell (devEnvVars
           // {

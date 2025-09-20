@@ -1,0 +1,88 @@
+name: Wait for Cachix Paths
+description: 'Waits for all nix paths in a file to be available in a Cachix cache'
+
+inputs:
+  paths-file:
+    description: 'Path to file containing nix store paths'
+    required: true
+  cache-name:
+    description: 'Name of the Cachix cache'
+    required: true
+  max-attempts:
+    description: 'Maximum number of retry attempts'
+    required: false
+    default: '60'
+  retry-delay:
+    description: 'Delay between retries in seconds'
+    required: false
+    default: '10'
+
+runs:
+  using: 'composite'
+  steps:
+    - name: Wait for paths in Cachix
+      shell: bash
+      run: |
+        set +e  # Don't exit on non-zero return codes
+
+        PATHS_FILE="${{ inputs.paths-file }}"
+        CACHE_NAME="${{ inputs.cache-name }}"
+        MAX_ATTEMPTS="${{ inputs.max-attempts }}"
+        RETRY_DELAY="${{ inputs.retry-delay }}"
+
+        if [ ! -f "$PATHS_FILE" ]; then
+          echo "Error: Paths file not found: $PATHS_FILE"
+          exit 1
+        fi
+
+        echo "Waiting for all paths to be available in cache: $CACHE_NAME"
+        echo "Max attempts: $MAX_ATTEMPTS, Retry delay: ${RETRY_DELAY}s"
+
+        attempt=1
+
+        while [ $attempt -le $MAX_ATTEMPTS ]; do
+          echo -e "\nAttempt $attempt of $MAX_ATTEMPTS"
+          all_found=true
+          missing_count=0
+
+          while IFS= read -r path; do
+            # Skip empty lines
+            [ -z "$path" ] && continue
+
+            # Extract hash from nix store path
+            hash=$(echo "$path" | sed -n 's|/nix/store/\([^-]*\).*|\1|p')
+
+            if [ -z "$hash" ]; then
+              echo "Warning: Could not extract hash from path: $path"
+              continue
+            fi
+
+            url="https://${CACHE_NAME}.cachix.org/${hash}.narinfo"
+
+            # Check if path exists in cache
+            if curl -s -f -o /dev/null "$url" 2>/dev/null; then
+              echo "✓ Found: $path"
+            else
+              echo "✗ Missing: $path"
+              all_found=false
+              missing_count=$((missing_count + 1))
+            fi
+          done < "$PATHS_FILE"
+
+          if [ "$all_found" = true ]; then
+            echo -e "\nSuccess! All paths are available in the cache."
+            exit 0
+          fi
+
+          echo -e "\nStill missing $missing_count paths..."
+
+          if [ $attempt -lt $MAX_ATTEMPTS ]; then
+            echo "Waiting ${RETRY_DELAY}s before next attempt..."
+            sleep "$RETRY_DELAY"
+          fi
+
+          ((attempt++))
+        done
+
+        echo -e "\nError: Maximum attempts reached. Some paths are still not available in the cache."
+        exit 1

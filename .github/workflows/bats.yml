@@ -12,24 +12,44 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: ./.github/actions/setup-podman
-      
-      - uses: ./.github/actions/setup-nix
+      - uses: DeterminateSystems/nix-installer-action@v16
+      - uses: cachix/cachix-action@v15
         with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
-          
+          name: lana-bank-ci
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-podman
+
       - name: Run BATS tests with podman
-        run: nix develop -c make e2e
+        run: nix develop -c make reset-deps
         env:
           ENGINE_DEFAULT: podman
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
           TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
           SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          TF_VAR_name_prefix: "gha"
+
+      - name: Get cli derivation
+        id: cli-derivation
+        run: |
+          nix build .#lana-cli-debug --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
+          echo "Checks to wait for:"
+          cat nix-checks-paths.txt
+      - name: Wait for checks in Cachix
+        uses: ./.github/actions/wait-for-cachix-paths
+        with:
+          paths-file: ./nix-checks-paths.txt
+          cache-name: lana-bank-ci
+          max-attempts: 300
+          retry-delay: 10
+          
+      - name: Run BATS tests with podman
+        run: nix develop -c bats -t bats
+        env:
+          ENGINE_DEFAULT: podman
           SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
           SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
-          TF_VAR_name_prefix: "gha"
           
       - name: Rename bats log
         if: always()

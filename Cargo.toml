@@ -3,13 +3,17 @@ resolver = "2"
 members = [
   "lana/*",
   "core/*",
-  "lib/*"
+  "lib/*",
+  "workspace-hack",
 ]
 exclude = [
   "dev/check-dependency-dag",
   "dev/entity-rollups",
   "lib/js",
 ]
+
+[workspace.package]
+version = "0.4.0"
 
 [workspace.dependencies]
 # Internal dependencies
@@ -163,3 +167,9 @@ keycloak = "26.3.202"
 
 [profile.release]
 lto = true 
+
+[workspace.metadata.crane]
+name = "lana-bank"
+
+[workspace.metadata.cargo-machete]
+ignored = ["workspace-hack"]
