@@ -16,5 +16,27 @@ jobs:
         with:
           name: lana-bank-ci
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - name: Get system and checks
+        id: get-checks
+        run: |
+          system=$(nix eval --impure --expr 'builtins.currentSystem' --raw)
+          echo "system=$system" >> "$GITHUB_OUTPUT"
+          
+          # Get all check derivations and save to file
+          nix eval --json .#checks.$system | jq -r '.[]' > nix-checks-paths.txt
+          
+          echo "Checks to wait for:"
+          cat nix-checks-paths.txt
+
+      - name: Wait for checks in Cachix
+        uses: ./.github/actions/wait-for-cachix-paths
+        with:
+          paths-file: ./nix-checks-paths.txt
+          cache-name: lana-bank-ci
+          max-attempts: 300
+          retry-delay: 10
+
       - run: nix flake check
         shell: bash
