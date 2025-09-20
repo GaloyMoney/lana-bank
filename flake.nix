@@ -192,6 +192,7 @@
       with pkgs; {
         packages = {
           default = lana-cli-debug;
+          lana-cli-debug = lana-cli-debug;
         };
 
         checks = {
