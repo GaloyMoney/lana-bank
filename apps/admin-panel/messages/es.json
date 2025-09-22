@@ -512,6 +512,21 @@
           "paid": "PAGADO"
         }
       },
+      "LedgerAccounts": {
+        "title": "Cuentas de Libro Mayor",
+        "description": "Cuentas de libro mayor asociadas con esta línea de crédito",
+        "table": {
+          "headers": {
+            "name": "Nombre de Cuenta",
+            "normalBalanceType": "Tipo de Balance",
+            "balance": "Balance"
+          }
+        },
+        "balanceTypes": {
+          "DEBIT": "Débito",
+          "CREDIT": "Crédito"
+        }
+      },
       "Disbursals": {
         "title": "Desembolsos",
         "description": "Desembolsos asociados con esta línea de crédito",
@@ -622,7 +637,8 @@
         "tabs": {
           "history": "Historial",
           "disbursals": "Desembolsos",
-          "repaymentPlan": "Plan de Pago"
+          "repaymentPlan": "Plan de Pago",
+          "ledgerAccounts": "Cuentas de Libro Mayor"
         },
         "errors": {
           "notFound": "No encontrado",

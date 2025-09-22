@@ -181,6 +181,7 @@ export default function CreditFacilityLayout({
     { id: "1", url: "/", tabLabel: t("tabs.history") },
     { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals") },
     { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
+    { id: "6", url: "/ledger-accounts", tabLabel: t("tabs.ledgerAccounts") },
   ]
 
   const { currentTab, handleTabChange } = useTabNavigation(TABS, publicId)

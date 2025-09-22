@@ -2884,6 +2884,57 @@ export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', credit
         | { __typename?: 'SystemApproval', autoApprove: boolean }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } | null };
 
+export type LedgerAccountInfoFragment = { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+    | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+    | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+   };
+
+export type CreditFacilityLedgerAccountsQueryVariables = Exact<{
+  publicId: Scalars['PublicId']['input'];
+}>;
+
+
+export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, ledgerAccounts: { __typename?: 'CreditFacilityLedgerAccounts', facilityAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, inLiquidationAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedReceivableDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedReceivableOverdueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedDefaultedAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, collateralAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestReceivableDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestReceivableOverdueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestDefaultedAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestIncomeAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, feeIncomeAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         } } } | null };
+
 export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<
     | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any }
     | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: Satoshis, recordedAt: any, action: CollateralAction, txId: string, effective: any }
@@ -4111,6 +4162,30 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
   userCanComplete
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
+export const LedgerAccountInfoFragmentDoc = gql`
+    fragment LedgerAccountInfo on LedgerAccount {
+  name
+  ledgerAccountId
+  normalBalanceType
+  balanceRange {
+    __typename
+    ... on UsdLedgerAccountBalanceRange {
+      close {
+        usdSettled: settled {
+          net
+        }
+      }
+    }
+    ... on BtcLedgerAccountBalanceRange {
+      close {
+        btcSettled: settled {
+          net
+        }
+      }
+    }
+  }
+}
+    `;
 export const CreditFacilityHistoryFragmentFragmentDoc = gql`
     fragment CreditFacilityHistoryFragment on CreditFacility {
   id
@@ -5189,6 +5264,87 @@ export type GetCreditFacilityLayoutDetailsQueryHookResult = ReturnType<typeof us
 export type GetCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsLazyQuery>;
 export type GetCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityLayoutDetailsQuery, GetCreditFacilityLayoutDetailsQueryVariables>;
+export const CreditFacilityLedgerAccountsDocument = gql`
+    query CreditFacilityLedgerAccounts($publicId: PublicId!) {
+  creditFacilityByPublicId(id: $publicId) {
+    id
+    ledgerAccounts {
+      facilityAccount {
+        ...LedgerAccountInfo
+      }
+      inLiquidationAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedReceivableNotYetDueAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedReceivableDueAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedReceivableOverdueAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedDefaultedAccount {
+        ...LedgerAccountInfo
+      }
+      collateralAccount {
+        ...LedgerAccountInfo
+      }
+      interestReceivableNotYetDueAccount {
+        ...LedgerAccountInfo
+      }
+      interestReceivableDueAccount {
+        ...LedgerAccountInfo
+      }
+      interestReceivableOverdueAccount {
+        ...LedgerAccountInfo
+      }
+      interestDefaultedAccount {
+        ...LedgerAccountInfo
+      }
+      interestIncomeAccount {
+        ...LedgerAccountInfo
+      }
+      feeIncomeAccount {
+        ...LedgerAccountInfo
+      }
+    }
+  }
+}
+    ${LedgerAccountInfoFragmentDoc}`;
+
+/**
+ * __useCreditFacilityLedgerAccountsQuery__
+ *
+ * To run a query within a React component, call `useCreditFacilityLedgerAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityLedgerAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditFacilityLedgerAccountsQuery({
+ *   variables: {
+ *      publicId: // value for 'publicId'
+ *   },
+ * });
+ */
+export function useCreditFacilityLedgerAccountsQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables> & ({ variables: CreditFacilityLedgerAccountsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>(CreditFacilityLedgerAccountsDocument, options);
+      }
+export function useCreditFacilityLedgerAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>(CreditFacilityLedgerAccountsDocument, options);
+        }
+export function useCreditFacilityLedgerAccountsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>(CreditFacilityLedgerAccountsDocument, options);
+        }
+export type CreditFacilityLedgerAccountsQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsQuery>;
+export type CreditFacilityLedgerAccountsLazyQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsLazyQuery>;
+export type CreditFacilityLedgerAccountsSuspenseQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsSuspenseQuery>;
+export type CreditFacilityLedgerAccountsQueryResult = Apollo.QueryResult<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>;
 export const GetCreditFacilityHistoryDocument = gql`
     query GetCreditFacilityHistory($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {

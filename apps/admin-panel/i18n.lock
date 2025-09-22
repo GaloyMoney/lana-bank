@@ -322,6 +322,13 @@ checksums:
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/due: f68d8596e02773955b31c98a23ecbd95
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/overdue: a63e7496e60dfa38beffe0b1d40d7b51
     CreditFacilities/CreditFacilityDetails/RepaymentPlan/status/paid: 57d83a58e2cfe732ed864f5155156033
+    CreditFacilities/CreditFacilityDetails/LedgerAccounts/title: da987c523a54fbda73beda300c3afc33
+    CreditFacilities/CreditFacilityDetails/LedgerAccounts/description: df5aa83d729e1a42c0bc77993e3e667d
+    CreditFacilities/CreditFacilityDetails/LedgerAccounts/table/headers/name: 5a4c82f1bc517348b64c107345f94f65
+    CreditFacilities/CreditFacilityDetails/LedgerAccounts/table/headers/normalBalanceType: 761bbcea35eee05f71ad54ec760d77be
+    CreditFacilities/CreditFacilityDetails/LedgerAccounts/table/headers/balance: f04637aac54ea31878fb253ecc55705d
+    CreditFacilities/CreditFacilityDetails/LedgerAccounts/balanceTypes/DEBIT: 1b35db901aa1aeed8ee79aec6d807731
+    CreditFacilities/CreditFacilityDetails/LedgerAccounts/balanceTypes/CREDIT: 2d447a71ec815a039f175e94fbb12a56
     CreditFacilities/CreditFacilityDetails/Disbursals/title: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Disbursals/description: df7b13aead3a8b21cf6abca7792937a7
     CreditFacilities/CreditFacilityDetails/Disbursals/columns/amount: a0ae9c6ff98b57475cdce56f66066aa4
@@ -395,6 +402,7 @@ checksums:
     CreditFacilities/CreditFacilityDetails/Layout/tabs/history: b0578d6d225f512e42f823fbca2e3c32
     CreditFacilities/CreditFacilityDetails/Layout/tabs/disbursals: a926d10544d2ae0fd17a6e5f19a97080
     CreditFacilities/CreditFacilityDetails/Layout/tabs/repaymentPlan: 416716dbfa4883b589c792610e827d74
+    CreditFacilities/CreditFacilityDetails/Layout/tabs/ledgerAccounts: da987c523a54fbda73beda300c3afc33
     CreditFacilities/CreditFacilityDetails/Layout/errors/notFound: 58efcf2ecdcf18f0cd0253acc60eb812
     CreditFacilities/CreditFacilityDetails/Layout/errors/loading: 82b4ea7ed1439094d7c4be13aaba9a66
     CreditFacilities/CreditFacilityDetails/CreateCreditFacility/dialog/customerInfo: 9d01a95693694439b5be41672913c23d

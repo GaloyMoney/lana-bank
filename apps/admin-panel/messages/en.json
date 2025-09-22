@@ -512,6 +512,21 @@
           "paid": "PAID"
         }
       },
+      "LedgerAccounts": {
+        "title": "Ledger Accounts",
+        "description": "Ledger accounts associated with this credit facility",
+        "table": {
+          "headers": {
+            "name": "Account Name",
+            "normalBalanceType": "Balance Type",
+            "balance": "Balance"
+          }
+        },
+        "balanceTypes": {
+          "DEBIT": "Debit",
+          "CREDIT": "Credit"
+        }
+      },
       "Disbursals": {
         "title": "Disbursals",
         "description": "Disbursals associated with this credit facility",
@@ -622,7 +637,8 @@
         "tabs": {
           "history": "History",
           "disbursals": "Disbursals",
-          "repaymentPlan": "Repayment Plan"
+          "repaymentPlan": "Repayment Plan",
+          "ledgerAccounts": "Ledger Accounts"
         },
         "errors": {
           "notFound": "Not found",
