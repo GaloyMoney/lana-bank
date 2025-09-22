@@ -1,5 +1,5 @@
-mod csv;
 mod entity;
+mod import;
 
 pub mod error;
 mod repo;
@@ -20,12 +20,15 @@ use crate::primitives::{
 pub use crate::chart_node::ChartNode;
 #[cfg(feature = "json-schema")]
 pub use crate::chart_node::ChartNodeEvent;
-pub(super) use csv::{CsvParseError, CsvParser};
 pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
 use error::*;
+use import::{
+    BulkAccountImport,
+    csv::{CsvParseError, CsvParser},
+};
 pub(super) use repo::*;
 
 pub struct ChartOfAccounts<Perms>
@@ -131,33 +134,8 @@ where
 
         let data = data.as_ref().to_string();
         let account_specs = CsvParser::new(data).account_specs()?;
-        let mut new_account_sets = Vec::new();
-        let mut new_connections = Vec::new();
-        //problems:
-        // 1. parent is not created before child
-        // 2. parent is created but it is a new entity and not persisted
-        // Solution:
-        // for 1.sort account_specs so that parents are created before children
-        //
-        for spec in account_specs {
-            // for 2. persist each iteration or consider both entity and new entity
-            // add find_new_mut to nested
-            if let es_entity::Idempotent::Executed(NewChartAccountDetails {
-                parent_account_set_id,
-                new_account_set,
-            }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
-            {
-                let account_set_id = new_account_set.id;
-                new_account_sets.push(new_account_set);
-                if let Some(parent) = parent_account_set_id {
-                    new_connections.push((parent, account_set_id));
-                }
-            }
-        }
-        let new_account_set_ids = new_account_sets.iter().map(|a| a.id).collect::<Vec<_>>();
-        if new_account_sets.is_empty() {
-            return Ok((chart, None));
-        }
+        let import_result =
+            BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
@@ -167,10 +145,10 @@ where
             .ledger_operation_from_db_op(op.with_db_time().await?);
         self.cala
             .account_sets()
-            .create_all_in_op(&mut op, new_account_sets)
+            .create_all_in_op(&mut op, import_result.new_account_sets)
             .await?;
 
-        for (parent, child) in new_connections {
+        for (parent, child) in import_result.new_connections {
             self.cala
                 .account_sets()
                 .add_member_in_op(&mut op, parent, child)
@@ -179,7 +157,7 @@ where
         op.commit().await?;
 
         let new_account_set_ids = &chart
-            .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
+            .trial_balance_account_ids_from_new_accounts(&import_result.new_account_set_ids)
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))

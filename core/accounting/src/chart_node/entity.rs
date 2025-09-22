@@ -152,9 +152,7 @@ impl IntoEvents<ChartNodeEvent> for NewChartNode {
 
         if let Some(children_node_ids) = self.children_node_ids {
             for child_node_id in children_node_ids {
-                events.push(ChartNodeEvent::ChildNodeAdded {
-                    child_node_id: child_node_id,
-                });
+                events.push(ChartNodeEvent::ChildNodeAdded { child_node_id });
             }
         }
 

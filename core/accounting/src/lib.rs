@@ -2,7 +2,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod balance_sheet;
-pub mod chart_node;
+pub mod chart_node; // belongs under chart_of_accounts
 pub mod chart_of_accounts;
 pub mod csv;
 pub mod error;
