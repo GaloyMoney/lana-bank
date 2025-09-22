@@ -43,7 +43,6 @@ disbursal_concluded as (
 
 )
 
-
 select
     di.* except (amount),
 

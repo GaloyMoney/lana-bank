@@ -24,7 +24,6 @@ final as (
     from customers
 )
 
-
 select
     'TODO' as `Código de la Agencia`,
     'TODO' as `Nombre de la Agencia`,

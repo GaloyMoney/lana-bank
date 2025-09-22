@@ -20,11 +20,9 @@ with aggregated as (
             sum(abs(collateral_change_btc))
         ) as initial_price_usd_per_btc
 
-
     from {{ ref('daily_credit_facility_states') }}
 
     group by day
-
 
 ),
 
@@ -74,7 +72,6 @@ select
         )
         as initial_collateral_value_usd,
     sum(collateral_change_btc) over (past) * close_price_usd_per_btc as total_collateral_value_usd
-
 
 from aggregated
 inner join avg_open_price using (day)

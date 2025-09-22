@@ -36,7 +36,6 @@ final as (
     where passport_number is not null
 )
 
-
 select
     customer_public_ids.id as `NIU`,
     `Código del Documento`,
@@ -44,4 +43,5 @@ select
 from
     final
 left join
-    {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id
+    {{ ref('stg_core_public_ids') }} as customer_public_ids
+    on customer_id = customer_public_ids.target_id

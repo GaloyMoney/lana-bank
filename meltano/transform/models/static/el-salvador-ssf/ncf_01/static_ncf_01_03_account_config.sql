@@ -51,15 +51,24 @@ column_10 as (
 ),
 
 final as (
-    select * from column_01 union all
-    select * from column_02 union all
-    select * from column_03 union all
-    select * from column_04 union all
-    select * from column_05 union all
-    select * from column_06 union all
-    select * from column_07 union all
-    select * from column_08 union all
-    select * from column_09 union all
+    select * from column_01
+    union all
+    select * from column_02
+    union all
+    select * from column_03
+    union all
+    select * from column_04
+    union all
+    select * from column_05
+    union all
+    select * from column_06
+    union all
+    select * from column_07
+    union all
+    select * from column_08
+    union all
+    select * from column_09
+    union all
     select * from column_10
 )
 

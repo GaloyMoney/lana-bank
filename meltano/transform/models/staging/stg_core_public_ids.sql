@@ -9,13 +9,13 @@ with ordered as (
         id,
         target_id,
         created_at,
+        _sdc_batched_at,
         row_number()
             over (
                 partition by target_id
                 order by _sdc_batched_at desc
             )
-            as order_received_desc,
-        _sdc_batched_at,
+            as order_received_desc
 
     from {{ source("lana", "public_core_public_ids_view") }}
 
@@ -26,8 +26,7 @@ with ordered as (
 
 )
 
-select
-    * except (order_received_desc)
+select * except (order_received_desc)
 
 from ordered
 

@@ -2,6 +2,10 @@
 
 select
     cast(`Correlativo` as string) as `Correlativo`,
+    cast(round(`Total de cuentas`, 2) as string) as `Total de cuentas`,
+    cast(`Saldo de capital` as string) as `Saldo de capital`,
+    cast(round(`Saldo de intereses`, 2) as string) as `Saldo de intereses`,
+    cast(`Saldo garantizado` as string) as `Saldo garantizado`,
     left(`NIU`, 25) as `NIU`,
     left(`Primer Nombre`, 30) as `Primer Nombre`,
     left(`Segundo Nombre`, 30) as `Segundo Nombre`,
@@ -11,10 +15,6 @@ select
     left(`Apellido de casada`, 30) as `Apellido de casada`,
     left(`Razón social`, 80) as `Razón social`,
     left(`Código del Documento`, 5) as `Código del Documento`,
-    left(`Número de documento`, 25) as `Número de documento`,
-    cast(round(`Total de cuentas`, 2) as string) as `Total de cuentas`,
-    cast(`Saldo de capital` as string) as `Saldo de capital`,
-    cast(round(`Saldo de intereses`, 2) as string) as `Saldo de intereses`,
-    cast(`Saldo garantizado` as string) as `Saldo garantizado`
+    left(`Número de documento`, 25) as `Número de documento`
 from
     {{ ref('int_nrsf_03_08_resumen_de_depósitos_garantizados') }}

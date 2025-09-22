@@ -29,13 +29,14 @@ final as (
     left join customers using (customer_id)
 )
 
-
 select
     customer_public_ids.id as `NIU`,
-    deposit_account_public_ids.id as `Número de cuenta`,
+    deposit_account_public_ids.id as `Número de cuenta`
 from
     final
 left join
-    {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id
+    {{ ref('stg_core_public_ids') }} as customer_public_ids
+    on customer_id = customer_public_ids.target_id
 left join
-    {{ ref('stg_core_public_ids') }} as deposit_account_public_ids on deposit_account_id = deposit_account_public_ids.target_id
+    {{ ref('stg_core_public_ids') }} as deposit_account_public_ids
+    on deposit_account_id = deposit_account_public_ids.target_id

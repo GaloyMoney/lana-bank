@@ -4,11 +4,10 @@ with loans as (
         disbursal_start_date as start_date,
         disbursal_end_date as end_date,
         'actual/360' as day_count_convention,
-        annual_rate / 100.0 as annual_interest_rate,
+        annual_rate / 100.0 as annual_interest_rate
 
     from {{ ref('int_approved_credit_facility_loans') }}
 ),
-
 
 projections as (
     select
@@ -116,9 +115,10 @@ projected_cash_flows as (
         *,
         case
             when cash_flow_type = 'projected_interest_cash_flow'
-                then total_disbursed_usd
-                     * daily_interest_rate
-                     * days_in_period
+                then
+                    total_disbursed_usd
+                    * daily_interest_rate
+                    * days_in_period
             when cash_flow_type = 'projected_principal_cash_flow'
                 then total_disbursed_usd
             else 0
@@ -126,7 +126,7 @@ projected_cash_flows as (
     from projected_time_data
 ),
 
-final as(
+final as (
 
     select
         credit_facility_id,
@@ -153,9 +153,8 @@ final as(
         period_end_date,
         days_in_period,
         cash_flow_type,
-        cash_flow_amount,
+        cash_flow_amount
     from projected_cash_flows
 )
-
 
 select * from final

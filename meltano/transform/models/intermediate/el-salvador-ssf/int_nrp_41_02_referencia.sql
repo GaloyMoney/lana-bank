@@ -15,16 +15,16 @@ with credit_facility_loans as (
         collateral_amount_usd,
         total_disbursed_usd as loan_amount_usd,
         total_disbursed_usd
-            + interest_incurred_usd
-            - interest_paid_usd
-            - disbursal_paid_usd
-                as remaining_balance_usd,
+        + interest_incurred_usd
+        - interest_paid_usd
+        - disbursal_paid_usd
+            as remaining_balance_usd,
         total_disbursed_usd
-            - disbursal_paid_usd
-                as remaining_capital_balance_usd,
+        - disbursal_paid_usd
+            as remaining_capital_balance_usd,
         interest_incurred_usd
-            - interest_paid_usd
-                as remaining_interest_balance_usd,
+        - interest_paid_usd
+            as remaining_interest_balance_usd
 
     from {{ ref('int_approved_credit_facility_loans') }}
 
@@ -35,7 +35,7 @@ capital_overdue as (
     select
         credit_facility_id,
         min(overdue_date) as capital_overdue_date,
-        max(overdue_days) as capital_overdue_days,
+        max(overdue_days) as capital_overdue_days
     from {{ ref('int_core_obligation_events_rollup') }}
     where overdue_days > 0 and obligation_type = 'Disbursal'
     group by credit_facility_id
@@ -45,7 +45,7 @@ interest_overdue as (
     select
         credit_facility_id,
         min(overdue_date) as interest_overdue_date,
-        max(overdue_days) as interest_overdue_days,
+        max(overdue_days) as interest_overdue_days
     from {{ ref('int_core_obligation_events_rollup') }}
     where overdue_days > 0 and obligation_type = 'Interest'
     group by credit_facility_id
@@ -64,24 +64,27 @@ loans_with_overdue_days as (
         ) as payment_overdue_days
 
     from credit_facility_loans as cfl
-    left join capital_overdue using(credit_facility_id)
-    left join interest_overdue using(credit_facility_id)
+    left join capital_overdue using (credit_facility_id)
+    left join interest_overdue using (credit_facility_id)
 ),
 
 risk_category as (
     select
         od.*,
-        remaining_balance_usd - collateral_amount_usd as net_risk,
         r.category as risk_category_ref,
         r.reserve_percentage,
+        remaining_balance_usd - collateral_amount_usd as net_risk
     from loans_with_overdue_days as od
-    left join {{ ref('static_ncb_022_porcentaje_reservas_saneamiento') }} as r on od.payment_overdue_days between r.consumer_calendar_ge_days and r.consumer_calendar_le_days
+    left join
+        {{ ref('static_ncb_022_porcentaje_reservas_saneamiento') }} as r
+        on
+            od.payment_overdue_days between r.consumer_calendar_ge_days and r.consumer_calendar_le_days
 ),
 
 final as (
     select
         *,
-        reserve_percentage * greatest(0, net_risk) as reserve,
+        reserve_percentage * greatest(0, net_risk) as reserve
     from risk_category
 )
 
@@ -91,7 +94,8 @@ select
     disbursement_public_ids.id as disbursal_id,
     disbursement_public_ids.id as reference_id,
     customer_public_ids.id as `nit_deudor`,
-    '{{ npb4_17_01_tipos_de_cartera('Cartera propia Ley Acceso al Crédito (19)') }}' as `cod_cartera`,
+    '{{ npb4_17_01_tipos_de_cartera('Cartera propia Ley Acceso al Crédito (19)') }}'
+        as `cod_cartera`,
     '{{ npb4_17_02_tipos_de_activos_de_riesgo('Préstamos') }}' as `cod_activo`,
     disbursement_public_ids.id as `num_referencia`,
     loan_amount_usd as `monto_referencia`,
@@ -221,6 +225,12 @@ select
     cast(null as date) as `fecha_cump_cafe`
 
 from final
-left join {{ ref('stg_core_public_ids') }} as credit_facility_public_ids on credit_facility_id = credit_facility_public_ids.target_id
-left join {{ ref('stg_core_public_ids') }} as disbursement_public_ids on reference_id = disbursement_public_ids.target_id
-left join {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id
+left join
+    {{ ref('stg_core_public_ids') }} as credit_facility_public_ids
+    on credit_facility_id = credit_facility_public_ids.target_id
+left join
+    {{ ref('stg_core_public_ids') }} as disbursement_public_ids
+    on reference_id = disbursement_public_ids.target_id
+left join
+    {{ ref('stg_core_public_ids') }} as customer_public_ids
+    on customer_id = customer_public_ids.target_id

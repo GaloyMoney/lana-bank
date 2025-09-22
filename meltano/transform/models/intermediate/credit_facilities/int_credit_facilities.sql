@@ -91,7 +91,6 @@ completed as (
 
 )
 
-
 select
     i.* except (facility),
 

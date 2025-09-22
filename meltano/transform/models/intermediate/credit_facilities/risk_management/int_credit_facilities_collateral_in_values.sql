@@ -141,7 +141,6 @@ agg_liquidation_cash_flows_tvm_risk as (
     from {{ ref('int_cf_agg_liquidation_cash_flows_tvm_risk') }}
 )
 
-
 select
     10 as order_by,
     'Collateral Quantity (BTC)' as kpi_title,

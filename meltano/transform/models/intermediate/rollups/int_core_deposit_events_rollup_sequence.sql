@@ -5,18 +5,16 @@
 
 
 with source as (
-    select
-        s.*
+    select s.*
     from {{ ref('stg_core_deposit_events_rollup') }} as s
 
     {% if is_incremental() %}
         left join {{ this }} as t using (deposit_id, version)
         where t.deposit_id is null
     {% endif %}
-)
+),
 
-
-, transformed as (
+transformed as (
     select
         deposit_id,
         deposit_account_id,
@@ -25,7 +23,7 @@ with source as (
         created_at as deposit_created_at,
         modified_at as deposit_modified_at,
 
-        * except(
+        * except (
             deposit_id,
             deposit_account_id,
             amount,
@@ -41,6 +39,5 @@ with source as (
         )
     from source
 )
-
 
 select * from transformed

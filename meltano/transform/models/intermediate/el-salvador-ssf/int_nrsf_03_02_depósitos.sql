@@ -45,7 +45,6 @@ final as (
     left join approved_credit_facilities using (customer_id)
 )
 
-
 select
     'BTCL' as `Código del Producto`,
     '1234567' as `Agencia`,
@@ -81,7 +80,8 @@ select
     left(replace(upper(deposit_account_id), '-', ''), 20) as `Número de cuenta`,
     last_day(current_date(), month) as `Día de corte`,
     safe_multiply(
-        safe_divide(deposit_account_balance_usd, 100000000.0), (select last_price_usd from btc_price)
+        safe_divide(deposit_account_balance_usd, 100000000.0),
+        (select last_price_usd from btc_price)
     ) as `Saldo de capital`
 from
     final

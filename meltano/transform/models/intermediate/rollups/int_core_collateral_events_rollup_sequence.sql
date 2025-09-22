@@ -5,17 +5,16 @@
 
 
 with source as (
-    select
-        s.*
+    select s.*
     from {{ ref('stg_core_collateral_events_rollup') }} as s
 
     {% if is_incremental() %}
         left join {{ this }} as t using (collateral_id, version)
         where t.collateral_id is null
     {% endif %}
-)
+),
 
-, transformed as (
+transformed as (
     select
         collateral_id,
         credit_facility_id,
@@ -29,7 +28,7 @@ with source as (
         created_at as collateral_created_at,
         modified_at as collateral_modified_at,
 
-        * except(
+        * except (
             collateral_id,
             credit_facility_id,
             action,
@@ -48,6 +47,5 @@ with source as (
         )
     from source
 )
-
 
 select * from transformed
