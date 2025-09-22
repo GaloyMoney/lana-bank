@@ -5,7 +5,7 @@ use crate::primitives::*;
 use super::{
     credit_facility::{
         disbursal::CreditFacilityDisbursal,
-        obligation_installment::CreditFacilityObligationInstallment,
+        payment_allocation::CreditFacilityObligationInstallment,
     },
     deposit::Deposit,
     withdrawal::Withdrawal,
