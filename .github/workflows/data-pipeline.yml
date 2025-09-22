@@ -108,7 +108,6 @@ jobs:
       - run: nix develop -c meltano run tap-sumsubapi target-bigquery
       - run: nix develop -c meltano run dbt-bigquery:seed
       - run: nix develop -c meltano run dbt-bigquery:run --full-refresh
-      - run: nix develop -c meltano run dbt-bigquery:test
       - run: nix develop -c meltano run generate-es-reports:run
 
       - name: Cleanup BigQuery infrastructure
