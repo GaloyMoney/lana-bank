@@ -97,7 +97,10 @@
         SQLX_OFFLINE = true;
       };
 
-      cargoArtifacts = craneLib.buildDepsOnly commonArgs;
+      cargoArtifacts = craneLib.buildDepsOnly (commonArgs //
+      {
+          cargoExtraArgs = "--features sim-time,mock-custodian,sumsub-testing";
+      });
 
       individualCrateArgs =
         commonArgs
@@ -112,7 +115,7 @@
         individualCrateArgs
         // {
           pname = "lana-cli-debug";
-          cargoExtraArgs = "-p lana-cli";
+          cargoExtraArgs = "-p lana-cli --features sim-time,mock-custodian,sumsub-testing";
           src = rustSource;
         }
       );
