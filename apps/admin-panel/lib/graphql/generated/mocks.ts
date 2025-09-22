@@ -888,7 +888,7 @@ export const mockCreditFacilityPaymentAllocation = (overrides?: Partial<CreditFa
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        obligationInstallmentId: overrides && overrides.hasOwnProperty('obligationInstallmentId') ? overrides.obligationInstallmentId! : generateMockValue.uuid(),
+        paymentAllocationId: overrides && overrides.hasOwnProperty('paymentAllocationId') ? overrides.paymentAllocationId! : generateMockValue.uuid(),
     };
 };
 

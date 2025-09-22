@@ -157,7 +157,7 @@ export type CreditFacilityPaymentAllocation = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
   id: Scalars['ID']['output'];
-  obligationInstallmentId: Scalars['UUID']['output'];
+  paymentAllocationId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityRepaymentPlanEntry = {
@@ -472,7 +472,7 @@ export type GetTransactionHistoryQuery = { __typename?: 'Query', me: { __typenam
               | { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } }
               | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: any, accountId: any, amount: any, createdAt: any, reference: string } }
               | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, createdAt: any, status: DisbursalStatus } }
-              | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, obligationInstallmentId: any, amount: any, createdAt: any } }
+              | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: any, amount: any, createdAt: any } }
               | { __typename?: 'UnknownEntry' }
               | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: any, accountId: any, amount: any, createdAt: any, reference: string, status: WithdrawalStatus } }
              }> } } } } };
@@ -831,7 +831,7 @@ export const GetTransactionHistoryDocument = gql`
                 recordedAt
                 payment {
                   id
-                  obligationInstallmentId
+                  paymentAllocationId
                   amount
                   createdAt
                 }

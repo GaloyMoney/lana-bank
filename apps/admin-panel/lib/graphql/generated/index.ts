@@ -655,7 +655,7 @@ export type CreditFacilityPaymentAllocation = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
   id: Scalars['ID']['output'];
-  obligationInstallmentId: Scalars['UUID']['output'];
+  paymentAllocationId: Scalars['UUID']['output'];
 };
 
 export type CreditFacilityRepaymentPlanEntry = {
@@ -3119,7 +3119,7 @@ export type GetCustomerTransactionHistoryQuery = { __typename?: 'Query', custome
             | { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
             | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
             | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
-            | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, obligationInstallmentId: string, amount: UsdCents, createdAt: any } }
+            | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityPaymentAllocation', id: string, paymentAllocationId: string, amount: UsdCents, createdAt: any } }
             | { __typename?: 'UnknownEntry' }
             | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
            }> } } | null } | null };
@@ -6040,7 +6040,7 @@ export const GetCustomerTransactionHistoryDocument = gql`
               recordedAt
               payment {
                 id
-                obligationInstallmentId
+                paymentAllocationId
                 amount
                 createdAt
               }
