@@ -2,8 +2,8 @@
 
 load "helpers"
 
-PERSISTED_LOG_FILE="accounting-csv-export.e2e-logs"
-RUN_LOG_FILE="accounting-csv-export.run.e2e-logs"
+PERSISTED_LOG_FILE="csv-export.e2e-logs"
+RUN_LOG_FILE="csv-export.run.e2e-logs"
 
 setup_file() {
   start_server
@@ -15,7 +15,7 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
-@test "accounting CSV export: can create and download CSV export" {
+@test "CSV export: can create and download CSV export" {
   exec_admin_graphql 'chart-of-accounts'
   ledger_account_code=$(graphql_output '.data.chartOfAccounts.children[0].accountCode')
   [[ "$ledger_account_code" != "null" ]] || exit 1
