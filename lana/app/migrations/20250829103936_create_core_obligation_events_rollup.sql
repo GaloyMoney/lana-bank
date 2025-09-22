@@ -58,7 +58,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'installment_applied', 'liquidation_process_started', 'liquidation_process_concluded', 'completed') THEN
+  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'allocation_applied', 'liquidation_process_started', 'liquidation_process_concluded', 'completed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
