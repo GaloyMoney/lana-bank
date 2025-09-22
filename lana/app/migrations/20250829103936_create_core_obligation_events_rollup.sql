@@ -58,7 +58,7 @@ BEGIN
   END IF;
 
   -- Validate event type is known
-  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'allocation_applied', 'liquidation_process_started', 'liquidation_process_concluded', 'completed') THEN
+  IF event_type NOT IN ('initialized', 'due_recorded', 'overdue_recorded', 'defaulted_recorded', 'payment_allocated', 'liquidation_process_started', 'liquidation_process_concluded', 'completed') THEN
     RAISE EXCEPTION 'Unknown event type: %', event_type;
   END IF;
 
@@ -168,7 +168,7 @@ BEGIN
       new_row.defaulted_amount := (NEW.event ->> 'defaulted_amount')::BIGINT;
       new_row.is_defaulted_recorded := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-    WHEN 'allocation_applied' THEN
+    WHEN 'payment_allocated' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
       new_row.payment_allocation_ids := array_append(COALESCE(current_row.payment_allocation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_allocation_id')::UUID);
