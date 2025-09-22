@@ -19,11 +19,11 @@ CREATE TABLE core_obligation_events_rollup (
   liquidation_date JSONB,
   liquidation_process_id UUID,
   not_yet_due_accounts JSONB,
-  payment_allocation_amount BIGINT,
   obligation_type VARCHAR,
   overdue_accounts JSONB,
   overdue_amount BIGINT,
   overdue_date JSONB,
+  payment_allocation_amount BIGINT,
   payment_id UUID,
   reference VARCHAR,
 
