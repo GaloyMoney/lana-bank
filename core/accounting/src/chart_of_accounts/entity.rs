@@ -61,13 +61,12 @@ impl Chart {
         self.chart_nodes.add_new(new_chart_node);
 
         let parent_account_set_id = if let Some(parent_code) = spec.parent.as_ref() {
-            let parent_node = self
-                .get_node_by_code_mut(parent_code)
-                .expect("Parent node should exist");
-            parent_node
-                .add_child_node(node_id)
-                .expect("child node should not exist");
-            Some(parent_node.account_set_id)
+            if let Some(parent_node) = self.get_node_by_code_mut(parent_code) {
+                parent_node.add_child_node(node_id).expect("child node should not exist");
+                Some(parent_node.account_set_id)
+            } else {
+                None
+            }
         } else {
             None
         };
@@ -169,20 +168,17 @@ impl Chart {
     /// No particular order of the children is guaranteed.
     pub fn children(
         &self,
-        _code: &AccountCode,
-    ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
-        vec![].into_iter()
-        // self.get_node_by_code(code)
-        //     .into_iter()
-        //     .flat_map(move |node| {
-        //         node.get_children().iter().map(move |child_node_id| {
-        //             let child_node = self
-        //                 .chart_nodes
-        //                 .get_persisted(child_node_id)
-        //                 .expect("Child node should exist");
-        //             (child_node.spec.code, child_node.account_set_id)
-        //         })
-        //     })
+        code: &AccountCode,
+    ) -> impl Iterator<Item = (AccountCode, CalaAccountSetId)> {
+        self.get_node_by_code(code)
+            .into_iter()
+            .flat_map(move |node| {
+                let children: Vec<_> = node.get_children().iter().cloned().collect();
+                children.into_iter().filter_map(move |child_node_id| {
+                    let child_node = self.chart_nodes.get_persisted(&child_node_id)?;
+                    Some((child_node.spec.code.clone(), child_node.account_set_id))
+                })
+            })
     }
 
     fn get_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
@@ -197,6 +193,12 @@ impl Chart {
     fn get_node_by_code_mut(&mut self, code: &AccountCode) -> Option<&mut ChartNode> {
         self.chart_nodes
             .iter_persisted_mut()
+            .find(|node| node.spec.code == *code)
+    }
+
+    fn get_node_by_code(&self, code: &AccountCode) -> Option<&ChartNode> {
+        self.chart_nodes
+            .iter_persisted()
             .find(|node| node.spec.code == *code)
     }
 
