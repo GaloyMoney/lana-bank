@@ -1864,6 +1864,7 @@
     "noEntries": "No entries",
     "viewDeposit": "View Deposit",
     "viewWithdrawal": "View Withdrawal",
+    "viewDisbursal": "View Disbursal",
     "details": {
       "description": "Description",
       "createdAt": "Created At",

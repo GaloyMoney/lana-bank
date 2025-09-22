@@ -63,6 +63,11 @@ gql`
       ... on CreditFacility {
         publicId
       }
+      ... on Collateral {
+        creditFacility {
+          publicId
+        }
+      }
     }
     ancestors {
       id
@@ -444,6 +449,11 @@ const getEntityforAccount = (
     case "CreditFacility":
       return {
         url: `/credit-facilities/${entity.publicId}`,
+        label: t("viewCreditFacility"),
+      }
+    case "Collateral":
+      return {
+        url: `/credit-facilities/${entity.creditFacility.publicId}`,
         label: t("viewCreditFacility"),
       }
   }

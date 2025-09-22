@@ -1864,6 +1864,7 @@
     "noEntries": "Sin asientos",
     "viewDeposit": "Ver depósito",
     "viewWithdrawal": "Ver retiro",
+    "viewDisbursal": "Ver Desembolso",
     "details": {
       "description": "Descripción",
       "createdAt": "Fecha de registro",

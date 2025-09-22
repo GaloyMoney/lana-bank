@@ -38,6 +38,9 @@ gql`
         ... on Withdrawal {
           publicId
         }
+        ... on CreditFacilityDisbursal {
+          publicId
+        }
       }
       entries {
         id
@@ -208,6 +211,8 @@ const getEntityforTransaction = (
       return { url: `/deposits/${entity.publicId}`, label: t("viewDeposit") }
     case "Withdrawal":
       return { url: `/withdrawals/${entity.publicId}`, label: t("viewWithdrawal") }
+    case "CreditFacilityDisbursal":
+      return { url: `/disbursals/${entity.publicId}`, label: t("viewDisbursal") }
   }
   const exhaustiveCheck: never = entity
   return exhaustiveCheck

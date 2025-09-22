@@ -1119,6 +1119,7 @@ checksums:
     LedgerTransaction/noEntries: 17c4758dd5718f652fe0a2b338098300
     LedgerTransaction/viewDeposit: dbf2d129615df467f01477450307d4d6
     LedgerTransaction/viewWithdrawal: 78d212f2007a5e565963255de4913e0a
+    LedgerTransaction/viewDisbursal: 4ddc830eeec7f18c4560c877fd2f82f7
     LedgerTransaction/details/description: e17686a22ffad04cc7bb70524ed4478b
     LedgerTransaction/details/createdAt: 9ce495d7fc74e1a2ae86c07206a3e531
     LedgerTransaction/details/effective: aab6741517742a24eb46f529ebb94bf6
