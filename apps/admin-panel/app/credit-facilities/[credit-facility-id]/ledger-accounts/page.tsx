@@ -112,26 +112,26 @@ export default function CreditFacilityLedgerAccountsPage({
   const { ledgerAccounts } = data.creditFacilityByPublicId
 
   const ledgerAccountsData: LedgerAccountInfoFragment[] = [
-    ledgerAccounts.facilityAccount,
-    ledgerAccounts.inLiquidationAccount,
-    ledgerAccounts.disbursedReceivableNotYetDueAccount,
-    ledgerAccounts.disbursedReceivableDueAccount,
-    ledgerAccounts.disbursedReceivableOverdueAccount,
-    ledgerAccounts.disbursedDefaultedAccount,
     ledgerAccounts.collateralAccount,
-    ledgerAccounts.interestReceivableNotYetDueAccount,
-    ledgerAccounts.interestReceivableDueAccount,
-    ledgerAccounts.interestReceivableOverdueAccount,
+    ledgerAccounts.disbursedDefaultedAccount,
+    ledgerAccounts.disbursedReceivableDueAccount,
+    ledgerAccounts.disbursedReceivableNotYetDueAccount,
+    ledgerAccounts.disbursedReceivableOverdueAccount,
+    ledgerAccounts.facilityAccount,
+    ledgerAccounts.feeIncomeAccount,
+    ledgerAccounts.inLiquidationAccount,
     ledgerAccounts.interestDefaultedAccount,
     ledgerAccounts.interestIncomeAccount,
-    ledgerAccounts.feeIncomeAccount,
+    ledgerAccounts.interestReceivableDueAccount,
+    ledgerAccounts.interestReceivableNotYetDueAccount,
+    ledgerAccounts.interestReceivableOverdueAccount,
   ]
 
   const columns: Column<LedgerAccountInfoFragment>[] = [
     {
       key: "name",
       header: t("table.headers.name"),
-      width: "40%",
+      width: "55%",
     },
     {
       key: "normalBalanceType",
