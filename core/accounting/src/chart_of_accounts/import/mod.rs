@@ -52,3 +52,11 @@ pub(super) struct BulkImportResult {
     pub new_account_set_ids: Vec<CalaAccountSetId>,
     pub new_connections: Vec<(CalaAccountSetId, CalaAccountSetId)>,
 }
+
+#[cfg(test)]
+mod tests {
+    #[test]
+    fn check() {
+        assert!(false);
+    }
+}
