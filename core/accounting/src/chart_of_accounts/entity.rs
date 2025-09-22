@@ -50,7 +50,7 @@ impl Chart {
         let node_id = ChartNodeId::new();
         let ledger_account_set_id = CalaAccountSetId::new();
 
-        let mut new_chart_node = NewChartNode {
+        let new_chart_node = NewChartNode {
             id: node_id,
             chart_id: self.id,
             spec: spec.clone(),
@@ -64,7 +64,9 @@ impl Chart {
             let parent_node = self
                 .get_node_by_code_mut(parent_code)
                 .expect("Parent node should exist");
-            parent_node.add_child_node(node_id);
+            parent_node
+                .add_child_node(node_id)
+                .expect("child node should not exist");
             Some(parent_node.account_set_id)
         } else {
             None
@@ -167,19 +169,20 @@ impl Chart {
     /// No particular order of the children is guaranteed.
     pub fn children(
         &self,
-        code: &AccountCode,
+        _code: &AccountCode,
     ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
-        self.get_node_by_code(code)
-            .into_iter()
-            .flat_map(move |node| {
-                node.get_children().iter().map(move |child_node_id| {
-                    let child_node = self
-                        .chart_nodes
-                        .get_persisted(child_node_id)
-                        .expect("Child node should exist");
-                    (child_node.spec.code, child_node.account_set_id)
-                })
-            })
+        vec![].into_iter()
+        // self.get_node_by_code(code)
+        //     .into_iter()
+        //     .flat_map(move |node| {
+        //         node.get_children().iter().map(move |child_node_id| {
+        //             let child_node = self
+        //                 .chart_nodes
+        //                 .get_persisted(child_node_id)
+        //                 .expect("Child node should exist");
+        //             (child_node.spec.code, child_node.account_set_id)
+        //         })
+        //     })
     }
 
     fn get_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
@@ -336,7 +339,7 @@ pub struct NewChartAccountDetails {
 pub struct ChartNodeDetails {
     account_set_id: CalaAccountSetId,
     spec: AccountSpec,
-    manual_transaction_account_id: Option<LedgerAccountId>,
+    _manual_transaction_account_id: Option<LedgerAccountId>,
 }
 
 impl From<&ChartNode> for ChartNodeDetails {
@@ -344,7 +347,7 @@ impl From<&ChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.account_set_id,
             spec: node.spec.clone(),
-            manual_transaction_account_id: node.manual_transaction_account_id,
+            _manual_transaction_account_id: node.manual_transaction_account_id,
         }
     }
 }
@@ -354,7 +357,7 @@ impl From<&NewChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.ledger_account_set_id,
             spec: node.spec.clone(),
-            manual_transaction_account_id: None,
+            _manual_transaction_account_id: None,
         }
     }
 }
