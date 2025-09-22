@@ -608,14 +608,6 @@ type CreditFacilityLiquidationAmountReserved {
 	txId: UUID!
 }
 
-type CreditFacilityObligationInstallment {
-	id: ID!
-	obligationInstallmentId: UUID!
-	amount: UsdCents!
-	createdAt: Timestamp!
-	creditFacility: CreditFacility!
-}
-
 input CreditFacilityPartialPaymentRecordInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
@@ -629,6 +621,14 @@ input CreditFacilityPartialPaymentWithDateRecordInput {
 	creditFacilityId: UUID!
 	amount: UsdCents!
 	effective: Date!
+}
+
+type CreditFacilityPaymentAllocation {
+	id: ID!
+	obligationInstallmentId: UUID!
+	amount: UsdCents!
+	createdAt: Timestamp!
+	creditFacility: CreditFacility!
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -1538,7 +1538,7 @@ type PageInfo {
 
 type PaymentEntry {
 	recordedAt: Timestamp!
-	payment: CreditFacilityObligationInstallment!
+	payment: CreditFacilityPaymentAllocation!
 }
 
 enum Period {
