@@ -88,7 +88,7 @@ impl From<RecordObligationInstallmentParams> for Params {
 }
 
 pub struct RecordObligationInstallment;
-
+/// TODO: is ledger.record_obligation_installment.init referring to cala's incoming adapter? Should this not be changed?
 impl RecordObligationInstallment {
     #[instrument(name = "ledger.record_obligation_installment.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
