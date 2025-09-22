@@ -285,7 +285,6 @@
 
       nativeBuildInputs = with pkgs;
         [
-          iptables
           wait4x
           rustToolchain
           opentofu
@@ -338,6 +337,7 @@
 
           util-linux
           psmisc
+          iptables
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
       devEnvVars = rec {
