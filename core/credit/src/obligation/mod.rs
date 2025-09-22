@@ -293,7 +293,7 @@ where
         );
 
         self.ledger
-            .record_obligation_installments(op, allocations)
+            .record_payment_allocations(op, allocations)
             .await?;
 
         Ok(())
