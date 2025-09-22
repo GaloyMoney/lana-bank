@@ -8,7 +8,7 @@ use es_entity::*;
 use crate::primitives::*;
 
 use crate::chart_of_accounts::error::ChartOfAccountsError;
-use cala_ledger::account::NewAccount;
+use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
 //fix errors
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -139,6 +139,24 @@ pub struct NewChartNode {
     pub ledger_account_set_id: CalaAccountSetId,
     #[builder(setter(strip_option), default)]
     pub children_node_ids: Option<Vec<ChartNodeId>>,
+}
+
+impl NewChartNode {
+    pub fn builder() -> NewChartNodeBuilder {
+        NewChartNodeBuilder::default()
+    }
+
+    pub fn new_account_set(&self, journal_id: CalaJournalId) -> NewAccountSet {
+        NewAccountSet::builder()
+            .id(self.ledger_account_set_id)
+            .journal_id(journal_id)
+            .name(self.spec.name.to_string())
+            .description(self.spec.name.to_string())
+            .external_id(self.spec.code.account_set_external_id(self.chart_id))
+            .normal_balance_type(self.spec.normal_balance_type)
+            .build()
+            .expect("Could not build NewAccountSet")
+    }
 }
 
 impl IntoEvents<ChartNodeEvent> for NewChartNode {

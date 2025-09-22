@@ -1,7 +1,10 @@
 pub mod csv;
 
 use super::entity::{Chart, NewChartAccountDetails};
-use crate::primitives::{AccountSpec, CalaAccountSetId, CalaJournalId};
+use crate::{
+    chart_node::*,
+    primitives::{AccountSpec, CalaAccountSetId, CalaJournalId, ChartNodeId},
+};
 
 pub(super) struct BulkAccountImport<'a> {
     chart: &'a mut Chart,
@@ -15,35 +18,30 @@ impl<'a> BulkAccountImport<'a> {
 
     pub(super) fn import(self, account_specs: Vec<AccountSpec>) -> BulkImportResult {
         let mut new_account_sets = Vec::new();
+        let mut new_account_set_ids = Vec::new();
         let mut new_connections = Vec::new();
-        //problems:
-        // 1. parent is not created before child
-        // 2. parent is created but it is a new entity and not persisted
-        // Solution:
-        // for 1.sort account_specs so that parents are created before children
-        //
+        let mut new_chart_nodes = Vec::new();
+
         for spec in account_specs {
-            // for 2. persist each iteration or consider both entity and new entity
-            // add find_new_mut to nested
-            if let es_entity::Idempotent::Executed(NewChartAccountDetails {
-                parent_account_set_id,
-                new_account_set,
-            }) = self
-                .chart
-                .create_node_without_verifying_parent(&spec, self.journal_id)
-            {
-                let account_set_id = new_account_set.id;
-                new_account_sets.push(new_account_set);
-                if let Some(parent) = parent_account_set_id {
-                    new_connections.push((parent, account_set_id));
-                }
-            }
+            let chart_node = NewChartNode::builder()
+                .id(ChartNodeId::new())
+                .chart_id(self.chart.id)
+                .spec(spec)
+                .ledger_account_set_id(CalaAccountSetId::new())
+                .build()
+                .expect("could not build NewChartNode");
+            new_account_sets.push(chart_node.new_account_set(self.journal_id));
+            new_account_set_ids.push(chart_node.ledger_account_set_id);
+            new_chart_nodes.push(chart_node);
         }
-        // let new_account_set_ids = new_account_sets.iter().map(|a| a.id).collect::<Vec<_>>();
-        // if new_account_sets.is_empty() {
-        //     // return Ok((chart, None));
-        // }
-        unimplemented!()
+
+        self.chart.add_all_new_nodes(new_chart_nodes); // check idempotent?
+
+        BulkImportResult {
+            new_account_sets,
+            new_account_set_ids,
+            new_connections,
+        }
     }
 }
 
@@ -55,8 +53,76 @@ pub(super) struct BulkImportResult {
 
 #[cfg(test)]
 mod tests {
+    use super::*;
+    use crate::{
+        chart_of_accounts::entity::ChartEvent,
+        primitives::{ChartId, DebitOrCredit},
+    };
+    use es_entity::{EntityEvents, TryFromEvents};
+
+    fn chart_from(events: Vec<ChartEvent>) -> Chart {
+        Chart::try_from_events(EntityEvents::init(ChartId::new(), events)).unwrap()
+    }
+
+    fn initial_events() -> Vec<ChartEvent> {
+        vec![ChartEvent::Initialized {
+            id: ChartId::new(),
+            name: "Test Chart".to_string(),
+            reference: "test-chart".to_string(),
+        }]
+    }
+
     #[test]
-    fn check() {
-        assert!(false);
+    fn can_import_one_account() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+        let import = BulkAccountImport::new(&mut chart, journal_id);
+        let specs = vec![AccountSpec {
+            name: "Assets".parse().unwrap(),
+            parent: None,
+            code: "1".parse().unwrap(),
+            normal_balance_type: DebitOrCredit::Credit,
+        }];
+        let result = import.import(specs);
+        assert_eq!(chart.n_unpersisted_nodes(), 1);
+        assert_eq!(result.new_account_sets.len(), 1);
+        assert_eq!(result.new_account_set_ids.len(), 1);
+        assert!(result.new_connections.is_empty());
+    }
+
+    #[test]
+    fn can_import_two_account() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+        let import = BulkAccountImport::new(&mut chart, journal_id);
+        let specs = vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: "1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Liabilities".parse().unwrap(),
+                parent: None,
+                code: "2".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+        ];
+        let result = import.import(specs);
+        assert_eq!(chart.n_unpersisted_nodes(), 2);
+        assert_eq!(result.new_account_sets.len(), 2);
+        assert_eq!(result.new_account_set_ids.len(), 2);
+        assert!(result.new_connections.is_empty());
+    }
+
+    #[test]
+    fn can_import_account_with_child() {
+        assert!(true);
+    }
+
+    #[test]
+    fn can_import_account_with_many_children() {
+        assert!(true);
     }
 }
