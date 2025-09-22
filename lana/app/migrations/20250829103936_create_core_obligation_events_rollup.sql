@@ -168,7 +168,7 @@ BEGIN
       new_row.defaulted_amount := (NEW.event ->> 'defaulted_amount')::BIGINT;
       new_row.is_defaulted_recorded := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
-    WHEN 'payment_allocated' THEN
+    WHEN 'allocation_applied' THEN
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.payment_allocation_amount := (NEW.event ->> 'payment_allocation_amount')::BIGINT;
       new_row.payment_allocation_ids := array_append(COALESCE(current_row.payment_allocation_ids, ARRAY[]::UUID[]), (NEW.event ->> 'payment_allocation_id')::UUID);
