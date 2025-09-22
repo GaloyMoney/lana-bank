@@ -49,12 +49,11 @@ pub enum ObligationEvent {
         ledger_tx_id: LedgerTxId,
         defaulted_amount: UsdCents,
     },
-    // PaymentAllocated
-    InstallmentApplied {
+    PaymentAllocated {
         ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
-        obligation_installment_id: PaymentAllocationId,
-        obligation_installment_amount: UsdCents,
+        payment_allocation_id: PaymentAllocationId,
+        payment_allocation_amount: UsdCents,
     },
     LiquidationProcessStarted {
         liquidation_process_id: LiquidationProcessId,
@@ -288,8 +287,8 @@ impl Obligation {
                     ObligationEvent::Initialized { amount, .. } => {
                         total_sum += *amount;
                     }
-                    ObligationEvent::InstallmentApplied {
-                        obligation_installment_amount: amount,
+                    ObligationEvent::PaymentAllocated {
+                        payment_allocation_amount: amount,
                         ..
                     } => {
                         total_sum -= *amount;
@@ -464,7 +463,7 @@ impl Obligation {
     ) -> Idempotent<NewPaymentAllocation> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ObligationEvent::InstallmentApplied {payment_id: id, .. }  if *id == payment_id
+            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
@@ -476,17 +475,17 @@ impl Obligation {
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
         let allocation_id = PaymentAllocationId::new();
-        self.events.push(ObligationEvent::InstallmentApplied {
+        self.events.push(ObligationEvent::PaymentAllocated {
             ledger_tx_id: allocation_id.into(),
             payment_id,
-            obligation_installment_id: allocation_id,
-            obligation_installment_amount: payment_amount,
+            payment_allocation_id: allocation_id,
+            payment_allocation_amount: payment_amount,
         });
 
         let payment_allocation_idx = self
             .events()
             .iter_all()
-            .filter(|e| matches!(e, ObligationEvent::InstallmentApplied { .. }))
+            .filter(|e| matches!(e, ObligationEvent::PaymentAllocated { .. }))
             .count();
         let allocation = NewPaymentAllocation::builder()
             .id(allocation_id)
@@ -543,7 +542,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
-                ObligationEvent::InstallmentApplied { .. } => (),
+                ObligationEvent::PaymentAllocated { .. } => (),
                 ObligationEvent::LiquidationProcessStarted { .. } => (),
                 ObligationEvent::LiquidationProcessConcluded { .. } => (),
                 ObligationEvent::Completed { .. } => (),
