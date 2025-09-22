@@ -116,7 +116,7 @@ type CreditFacilityLiquidationAmountReserved {
 
 type CreditFacilityPaymentAllocation {
 	id: ID!
-	obligationInstallmentId: UUID!
+	paymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
