@@ -183,6 +183,7 @@
           iptables
         ]
         ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
+
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";
@@ -194,6 +195,11 @@
         packages = {
           default = lana-cli-debug;
           lana-cli-debug = lana-cli-debug;
+          podman-up = let
+            podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
+          in pkgs.writeShellScriptBin "podman-up" ''
+            exec ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up "$@"
+          '';
         };
 
         checks = {
@@ -253,6 +259,11 @@
         apps.default = flake-utils.lib.mkApp {
           drv = lana-cli-debug;
           name = "lana-cli";
+        };
+
+        apps.podman-up = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.podman-up;
+          name = "podman-up";
         };
 
         devShells.default = mkShell (devEnvVars
