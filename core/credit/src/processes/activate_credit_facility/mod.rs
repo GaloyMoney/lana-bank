@@ -145,6 +145,39 @@ where
                         .await?;
                 }
 
+                if credit_facility.terms.is_single_disbursal_on_activation() {
+                    let principal_draw = credit_facility.amount - credit_facility.structuring_fee();
+                    if !principal_draw.is_zero() {
+                        let disbursal_id = DisbursalId::new();
+                        let public_id = self
+                            .public_ids
+                            .create_in_op(
+                                &mut op,
+                                crate::primitives::DISBURSAL_REF_TARGET,
+                                disbursal_id,
+                            )
+                            .await?;
+
+                        let new_disbursal = NewDisbursal::builder()
+                            .id(disbursal_id)
+                            .credit_facility_id(credit_facility.id)
+                            .approval_process_id(credit_facility.approval_process_id)
+                            .amount(principal_draw)
+                            .account_ids(credit_facility.account_ids)
+                            .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
+                            .due_date(due_date)
+                            .overdue_date(overdue_date)
+                            .liquidation_date(liquidation_date)
+                            .public_id(public_id.id)
+                            .build()
+                            .expect("could not build new disbursal");
+
+                        self.disbursals
+                            .create_first_disbursal_in_op(&mut op, new_disbursal)
+                            .await?;
+                    }
+                }
+
                 let accrual_id = credit_facility
                     .interest_accrual_cycle_in_progress()
                     .expect("First accrual not found")

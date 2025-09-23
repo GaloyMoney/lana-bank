@@ -326,13 +326,22 @@ impl CreditFacility {
             .start_interest_accrual_cycle()
             .expect("first accrual")
             .expect("first accrual");
+
+        let structuring_fee = self.structuring_fee();
+        let activation_principal_disbursal_amount = if self.terms.is_single_disbursal_on_activation() {
+            self.amount - structuring_fee
+        } else {
+            UsdCents::ZERO
+        };
+
         let activation = CreditFacilityActivation {
             tx_id,
             tx_ref: format!("{}-activate", self.id),
             credit_facility_account_ids: self.account_ids,
             debit_account_id: self.disbursal_credit_account_id,
             facility_amount: self.amount,
-            structuring_fee_amount: self.structuring_fee(),
+            structuring_fee_amount: structuring_fee,
+            activation_principal_disbursal_amount,
         };
 
         Ok(Idempotent::Executed((activation, periods.accrual)))
