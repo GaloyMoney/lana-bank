@@ -1,0 +1,33 @@
+name: SQLFluff
+
+on:
+  push:
+    paths:
+      - "meltano/transform/models/**/*.sql"
+  pull_request:
+    paths:
+      - "meltano/transform/models/**/*.sql"
+
+permissions:
+  contents: read
+
+jobs:
+  sqlfluff:
+    name: Lint SQL with SQLFluff
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - name: Install Meltano utilities
+        run: nix develop -c meltano install
+      - name: Run sqlfluff
+        # Run through bash to cd into meltano because sqlfluff does not respect $MELTANO_PROJECT_ROOT
+        run: |
+          nix develop -c bash -lc '
+            cd meltano
+            .meltano/utilities/sqlfluff/venv/bin/pip install --quiet --upgrade platformdirs
+            meltano invoke sqlfluff:lint
+          '
