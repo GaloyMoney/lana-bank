@@ -1,0 +1,2 @@
+[sqlfluff]
+exclude_rules = structure.using,references.qualification,references.from,references.special_chars
