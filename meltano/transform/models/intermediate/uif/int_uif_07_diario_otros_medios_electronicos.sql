@@ -50,19 +50,19 @@ select
         'idMunicipio', bank_address.town_id
     ) as estacionServicio,
     wct.withdrawal_confirmed_at as fechaTransaccion,
-    CAST(null AS INTEGER) as tipoPersonaA,
-    null as detallesPersonaA,
-    CAST(null AS INTEGER) as tipoPersonaB,
-    null as detallesPersonaB,
+    CAST(null AS INTEGER) as tipoPersonaA, -- Pending implementation
+    null as detallesPersonaA, -- Pending implementation
+    CAST(null AS INTEGER) as tipoPersonaB, -- Pending implementation
+    null as detallesPersonaB, -- Pending implementation
     aer.public_id as numeroCuentaPO,
     "Cuenta Corriente" as claseCuentaPO,
     wer.reference as conceptoTransaccionPO,
     wer.amount_usd as valorOtrosMediosElectronicosPO,
-    CAST(null AS STRING) as numeroProductoPB,
-    CAST(null AS STRING) as claseCuentaPB,
+    CAST(null AS STRING) as numeroProductoPB, -- Pending implementation
+    CAST(null AS STRING) as claseCuentaPB, -- Pending implementation
     wer.amount_usd as montoTransaccionPB,
     wer.amount_usd as valorMedioElectronicoPB,
-    CAST(null AS STRING) as bancoCuentaDestinatariaPB
+    CAST(null AS STRING) as bancoCuentaDestinatariaPB -- Pending implementation
 from int_core_withdrawal_events_rollup wer
 inner join relevant_withdrawals rw 
     on wer.withdrawal_id = rw.withdrawal_id
@@ -84,19 +84,19 @@ select
         'idMunicipio', bank_address.town_id
     ) as estacionServicio,
     dct.deposit_confirmed_at as fechaTransaccion,
-    CAST(null AS INTEGER) as tipoPersonaA,
-    null as detallesPersonaA,
-    CAST(null AS INTEGER) as tipoPersonaB,
-    null as detallesPersonaB,
-    CAST(null AS STRING) as numeroCuentaPO,
-    CAST(null AS STRING) as claseCuentaPO,
+    CAST(null AS INTEGER) as tipoPersonaA, -- Pending implementation
+    null as detallesPersonaA, -- Pending implementation
+    CAST(null AS INTEGER) as tipoPersonaB, -- Pending implementation
+    null as detallesPersonaB, -- Pending implementation
+    CAST(null AS STRING) as numeroCuentaPO, -- Pending implementation
+    CAST(null AS STRING) as claseCuentaPO, -- Pending implementation
     der.reference as conceptoTransaccionPO,
     der.amount_usd as valorOtrosMediosElectronicosPO,
     aer.public_id as numeroProductoPB,
     "Cuenta Corriente" as claseCuentaPB,
     der.amount_usd as montoTransaccionPB,
     der.amount_usd as valorMedioElectronicoPB,
-    CAST(null AS STRING) as bancoCuentaDestinatariaPB
+    CAST(null AS STRING) as bancoCuentaDestinatariaPB -- Pending implementation
 from int_core_deposit_events_rollup der
 inner join relevant_deposits rd 
     on der.deposit_id = rd.deposit_id

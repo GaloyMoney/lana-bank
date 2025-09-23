@@ -163,6 +163,16 @@ exposures:
       XML export of UIF 07 daily report for other electronic payment methods.
       This exposure generates an XML file on a scheduled basis following the 
       format specified by the UIF.
+
+      This report is UNFINISHED and not ready for production. Since we started
+      development without clear implementations on the collection of KYC 
+      details for both the bank customers as well as third-parties interacting 
+      through settlement layers (Swift, transfer365, etc), the report is 
+      specifically lacking those.
+
+      We intend to finish this report once those areas get executed so they 
+      stop being blockers for this.
+      
     type: application
     owner:
       name: Pablo
