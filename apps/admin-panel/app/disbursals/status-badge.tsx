@@ -22,10 +22,6 @@ const getVariant = (status: DisbursalStatus): BadgeProps["variant"] => {
   }
 }
 
-const capitalize = (string: string): string => {
-  return string.toUpperCase()
-}
-
 export const DisbursalStatusBadge: React.FC<StatusBadgeProps> = ({
   status,
   ...props
@@ -36,15 +32,15 @@ export const DisbursalStatusBadge: React.FC<StatusBadgeProps> = ({
   const getTranslatedStatus = (status: DisbursalStatus): string => {
     switch (status) {
       case DisbursalStatus.New:
-        return capitalize(t("new", { defaultMessage: "NEW" }))
+        return t("new", { defaultMessage: "NEW" })
       case DisbursalStatus.Approved:
-        return capitalize(t("approved", { defaultMessage: "APPROVED" }))
+        return t("approved", { defaultMessage: "APPROVED" })
       case DisbursalStatus.Confirmed:
-        return capitalize(t("confirmed", { defaultMessage: "CONFIRMED" }))
+        return t("confirmed", { defaultMessage: "CONFIRMED" })
       case DisbursalStatus.Denied:
-        return capitalize(t("denied", { defaultMessage: "DENIED" }))
+        return t("denied", { defaultMessage: "DENIED" })
       default:
-        return capitalize(String(status))
+        return String(status)
     }
   }
 

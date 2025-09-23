@@ -1,6 +1,6 @@
 "use client"
 
-import { gql, useApolloClient } from "@apollo/client"
+import { gql } from "@apollo/client"
 import { use, useEffect } from "react"
 import { useTranslations } from "next-intl"
 
@@ -16,16 +16,10 @@ import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { PublicIdBadge } from "@/components/public-id-badge"
 
 import {
-  ApprovalProcessStatus,
   CreditFacility,
-  CreditFacilityStatus,
-  GetCreditFacilityLayoutDetailsDocument,
-  GetCreditFacilityRepaymentPlanDocument,
-  GetCreditFacilityHistoryDocument,
   useGetCreditFacilityLayoutDetailsQuery,
 } from "@/lib/graphql/generated"
 import { useCreateContext } from "@/app/create"
-import { VotersCard } from "@/app/disbursals/[disbursal-id]/voters"
 
 gql`
   fragment CreditFacilityLayoutFragment on CreditFacility {
@@ -35,7 +29,7 @@ gql`
     facilityAmount
     maturesAt
     collateralizationState
-    createdAt
+    activatedAt
     currentCvl {
       __typename
       ... on FiniteCVLPct {
@@ -138,16 +132,6 @@ gql`
         name
       }
     }
-    approvalProcess {
-      id
-      deniedReason
-      status
-      userCanSubmitDecision
-      approvalProcessId
-      approvalProcessType
-      createdAt
-      ...ApprovalProcessFields
-    }
     userCanUpdateCollateral
     userCanInitiateDisbursal
     userCanRecordPayment
@@ -173,7 +157,6 @@ export default function CreditFacilityLayout({
   const navTranslations = useTranslations("Sidebar.navItems")
 
   const { "credit-facility-id": publicId } = use(params)
-  const client = useApolloClient()
   const { setFacility } = useCreateContext()
   const { setCustomLinks, resetToDefault } = useBreadcrumb()
 
@@ -181,6 +164,7 @@ export default function CreditFacilityLayout({
     { id: "1", url: "/", tabLabel: t("tabs.history") },
     { id: "4", url: "/disbursals", tabLabel: t("tabs.disbursals") },
     { id: "5", url: "/repayment-plan", tabLabel: t("tabs.repaymentPlan") },
+    { id: "6", url: "/ledger-accounts", tabLabel: t("tabs.ledgerAccounts") },
   ]
 
   const { currentTab, handleTabChange } = useTabNavigation(TABS, publicId)
@@ -216,38 +200,6 @@ export default function CreditFacilityLayout({
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [data?.creditFacilityByPublicId, currentTab])
 
-  useEffect(() => {
-    if (
-      data?.creditFacilityByPublicId?.status === CreditFacilityStatus.PendingApproval &&
-      data?.creditFacilityByPublicId?.approvalProcess?.status ===
-        ApprovalProcessStatus.Approved
-    ) {
-      const timer = setInterval(() => {
-        client.query({
-          query: GetCreditFacilityLayoutDetailsDocument,
-          variables: { publicId },
-          fetchPolicy: "network-only",
-        })
-        client.query({
-          query: GetCreditFacilityHistoryDocument,
-          variables: { publicId },
-          fetchPolicy: "network-only",
-        })
-        client.query({
-          query: GetCreditFacilityRepaymentPlanDocument,
-          variables: { publicId },
-          fetchPolicy: "network-only",
-        })
-      }, 3000)
-
-      return () => clearInterval(timer)
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [
-    data?.creditFacilityByPublicId?.status,
-    data?.creditFacilityByPublicId?.approvalProcess?.status,
-  ])
-
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={4} />
   if (error) return <div className="text-destructive">{error.message}</div>
   if (!data?.creditFacilityByPublicId) return <div>{t("errors.notFound")}</div>
@@ -262,7 +214,6 @@ export default function CreditFacilityLayout({
         <FacilityCard creditFacility={data.creditFacilityByPublicId} />
         <CreditFacilityCollateral creditFacility={data.creditFacilityByPublicId} />
       </div>
-      <VotersCard approvalProcess={data.creditFacilityByPublicId.approvalProcess} />
       <Tabs
         defaultValue={TABS[0].url}
         value={currentTab}

@@ -5,12 +5,16 @@ use cala_ledger::{
 use rust_decimal::Decimal;
 use tracing::instrument;
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, DISBURSAL_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const CONFIRM_DISBURSAL_CODE: &str = "CONFIRM_DISBURSAL";
 
 #[derive(Debug)]
 pub struct ConfirmDisbursalParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -63,6 +67,11 @@ impl ConfirmDisbursalParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -70,6 +79,7 @@ impl ConfirmDisbursalParams {
 impl From<ConfirmDisbursalParams> for Params {
     fn from(
         ConfirmDisbursalParams {
+            entity_id,
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -91,6 +101,9 @@ impl From<ConfirmDisbursalParams> for Params {
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref": entity_ref}));
         params
     }
 }
@@ -103,6 +116,7 @@ impl ConfirmDisbursal {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Settle a disbursal'")
             .build()
             .expect("Couldn't build TxInput");

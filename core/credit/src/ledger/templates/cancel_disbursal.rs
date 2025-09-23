@@ -5,12 +5,16 @@ use cala_ledger::{
 use rust_decimal::Decimal;
 use tracing::instrument;
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, DISBURSAL_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const CANCEL_DISBURSAL_CODE: &str = "CANCEL_DISBURSAL";
 
 #[derive(Debug)]
 pub struct CancelDisbursalParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -45,6 +49,11 @@ impl CancelDisbursalParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -52,6 +61,7 @@ impl CancelDisbursalParams {
 impl From<CancelDisbursalParams> for Params {
     fn from(
         CancelDisbursalParams {
+            entity_id,
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
@@ -64,6 +74,9 @@ impl From<CancelDisbursalParams> for Params {
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref":entity_ref}));
         params
     }
 }
@@ -76,6 +89,7 @@ impl CancelDisbursal {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Cancel a disbursal'")
             .build()
             .expect("Couldn't build TxInput");

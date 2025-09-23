@@ -25,7 +25,7 @@ import {
 import { CreateCustomerDialog } from "./customers/create"
 import { CreateDepositDialog } from "./deposits/create"
 import { WithdrawalInitiateDialog } from "./withdrawals/initiate"
-import { CreateCreditFacilityDialog } from "./credit-facilities/create"
+import { CreateCreditFacilityProposalDialog } from "./credit-facility-proposals/create"
 
 import { CreditFacilityPartialPaymentDialog } from "./credit-facilities/partial-payment"
 import { CreateUserDialog } from "./users/create"
@@ -390,9 +390,9 @@ const CreateButton = () => {
             depositAccountId={customer.depositAccount.depositAccountId}
           />
 
-          <CreateCreditFacilityDialog
-            openCreateCreditFacilityDialog={createFacility}
-            setOpenCreateCreditFacilityDialog={() => {
+          <CreateCreditFacilityProposalDialog
+            openCreateCreditFacilityProposalDialog={createFacility}
+            setOpenCreateCreditFacilityProposalDialog={() => {
               setCustomerToNullIfNotInCustomerDetails()
               setCreateFacility(false)
             }}
@@ -429,7 +429,7 @@ const CreateButton = () => {
 type ICustomer = Customer | null
 type IFacility = CreditFacility | null
 type ITermsTemplate = TermsTemplateQuery["termsTemplate"] | null
-type IWithdraw = GetWithdrawalDetailsQuery["withdrawal"] | null
+type IWithdraw = GetWithdrawalDetailsQuery["withdrawalByPublicId"] | null
 type IPolicy = GetPolicyDetailsQuery["policy"] | null
 type ICommittee = GetCommitteeDetailsQuery["committee"] | null
 type IDisbursal = GetDisbursalDetailsQuery["disbursalByPublicId"] | null

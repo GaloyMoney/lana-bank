@@ -8,8 +8,8 @@ use std::cmp::Ordering;
 use es_entity::*;
 
 use crate::primitives::{
-    CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CustodyWalletId, LedgerTxId,
-    Satoshis,
+    CalaAccountId, CollateralAction, CollateralId, CreditFacilityId, CreditFacilityProposalId,
+    CustodyWalletId, LedgerTxId, Satoshis,
 };
 
 use super::CollateralUpdate;
@@ -23,6 +23,7 @@ pub enum CollateralEvent {
         id: CollateralId,
         account_id: CalaAccountId,
         credit_facility_id: CreditFacilityId,
+        credit_facility_proposal_id: CreditFacilityProposalId,
         custody_wallet_id: Option<CustodyWalletId>,
     },
     UpdatedViaManualInput {
@@ -43,7 +44,9 @@ pub enum CollateralEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct Collateral {
     pub id: CollateralId,
+    pub account_id: CalaAccountId,
     pub credit_facility_id: CreditFacilityId,
+    pub credit_facility_proposal_id: CreditFacilityProposalId,
     pub custody_wallet_id: Option<CustodyWalletId>,
     pub amount: Satoshis,
 
@@ -130,6 +133,8 @@ pub struct NewCollateral {
     pub(super) account_id: CalaAccountId,
     #[builder(setter(into))]
     pub(super) credit_facility_id: CreditFacilityId,
+    #[builder(setter(into))]
+    pub(super) credit_facility_proposal_id: CreditFacilityProposalId,
     #[builder(default)]
     pub(super) custody_wallet_id: Option<CustodyWalletId>,
 }
@@ -148,14 +153,18 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                 CollateralEvent::Initialized {
                     id,
                     credit_facility_id,
+                    credit_facility_proposal_id,
                     custody_wallet_id,
+                    account_id,
                     ..
                 } => {
                     builder = builder
                         .id(*id)
+                        .account_id(*account_id)
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .credit_facility_id(*credit_facility_id)
+                        .credit_facility_proposal_id(*credit_facility_proposal_id)
                 }
                 CollateralEvent::UpdatedViaManualInput {
                     collateral_amount: new_value,
@@ -181,6 +190,7 @@ impl IntoEvents<CollateralEvent> for NewCollateral {
                 id: self.id,
                 account_id: self.account_id,
                 credit_facility_id: self.credit_facility_id,
+                credit_facility_proposal_id: self.credit_facility_proposal_id,
                 custody_wallet_id: self.custody_wallet_id,
             }],
         )

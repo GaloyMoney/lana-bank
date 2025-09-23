@@ -7,15 +7,15 @@ pub use lana_app::{
     accounting::LedgerAccountId,
     primitives::{
         AccountSpec, ApprovalProcessId, ChartId, CollateralId, CommitteeId, CreditFacilityId,
-        CustodianId, CustomerDocumentId, CustomerId, DepositAccountId, DepositId, DisbursalId,
-        DisbursalStatus, DocumentId, EntryId, LedgerTransactionId, ManualTransactionId,
-        PaymentAllocationId, PaymentId, PermissionSetId, PolicyId, ReportId, RoleId, Satoshis,
-        SignedSatoshis, SignedUsdCents, Subject, TermsTemplateId, UsdCents, UserId, WalletId,
-        WithdrawalId,
+        CreditFacilityProposalId, CreditFacilityProposalStatus, CustodianId, CustomerDocumentId,
+        CustomerId, DepositAccountId, DepositId, DisbursalId, DisbursalStatus, DocumentId, EntryId,
+        LedgerTransactionId, ManualTransactionId, PaymentAllocationId, PaymentId,
+        PermissionSetId, PolicyId, ReportId, RoleId, Satoshis, SignedSatoshis, SignedUsdCents,
+        Subject, TermsTemplateId, UsdCents, UserId, WalletId, WithdrawalId,
     },
     public_id::PublicId,
     report::ReportRunId,
-    terms::CollateralizationState,
+    terms::{CollateralizationState, CreditFacilityProposalCollateralizationState},
 };
 
 pub use std::sync::Arc;
@@ -106,6 +106,7 @@ impl_to_global_id! {
     ChartId,
     TermsTemplateId,
     CreditFacilityId,
+    CreditFacilityProposalId,
     CollateralId,
     WalletId,
     CustodianId,

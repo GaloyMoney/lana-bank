@@ -19,3 +19,46 @@ resource "google_project_iam_member" "bq_resourceviewer" {
   role    = "roles/bigquery.resourceViewer"
   member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
 }
+
+# Elevated permissions for provisioning infrastructure (e.g., GitHub Actions)
+resource "google_project_iam_member" "bq_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/bigquery.admin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_project_iam_member" "sa_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/iam.serviceAccountAdmin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_project_iam_member" "project_iam_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/resourcemanager.projectIamAdmin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_project_iam_member" "storage_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/storage.admin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_project_iam_member" "secret_manager_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/secretmanager.admin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}
+
+resource "google_project_iam_member" "sa_key_admin" {
+  count   = var.grant_provisioning_permissions ? 1 : 0
+  project = local.gcp_project
+  role    = "roles/iam.serviceAccountKeyAdmin"
+  member  = "serviceAccount:${google_service_account.bq_access_sa.email}"
+}

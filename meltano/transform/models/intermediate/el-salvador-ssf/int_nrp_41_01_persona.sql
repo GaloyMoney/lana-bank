@@ -3,7 +3,7 @@
 select
 
     -- use NIU type (`tipo_identificador` = 'N')
-    left(replace(customer_id, '-', ''), 14) as `nit_persona`,
+    customer_public_ids.id as `nit_persona`,
 
     dui,
 
@@ -46,7 +46,7 @@ select
     -- codified risk category assigned to the debtor depending of the status of the loan
     '{{ npb4_17_03_tipos_de_categorias_de_riesgo('Deudores normales') }}' as `categoria_riesgo`,
 
-    right(replace(customer_id, '-', ''), 17) as `numero_cliente`,
+    customer_public_ids.id as `numero_cliente`,
 
     -- passport number / social security number / driver's license number / id card number
     passport_number as `id_alterno`,
@@ -75,3 +75,4 @@ select
 
 from {{ ref('int_core_customer_events_rollup') }}
 inner join {{ ref('int_customer_identities') }} using (customer_id)
+left join {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id

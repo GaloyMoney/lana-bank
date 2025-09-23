@@ -9,9 +9,11 @@ import { formatDate } from "@lana/web/utils"
 
 import { toast } from "sonner"
 
-import { ExternalLinkIcon } from "lucide-react"
+import { ExternalLinkIcon, FileText, Download, RefreshCw, Eye } from "lucide-react"
 
 import { Label } from "@lana/web/ui/label"
+
+import Link from "next/link"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
@@ -20,14 +22,11 @@ import { CollateralizationStateLabel } from "../label"
 import { CreditFacilityTermsDialog } from "./terms-dialog"
 
 import {
-  ApprovalProcessStatus,
   CreditFacilityRepaymentType,
   GetCreditFacilityLayoutDetailsQuery,
   WalletNetwork,
 } from "@/lib/graphql/generated"
 import { LoanAndCreditFacilityStatusBadge } from "@/app/credit-facilities/status-badge"
-import ApprovalDialog from "@/app/actions/approve"
-import DenialDialog from "@/app/actions/deny"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import { removeUnderscore } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
@@ -49,8 +48,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
 
   const [openCollateralUpdateDialog, setOpenCollateralUpdateDialog] =
     React.useState(false)
-  const [openApprovalDialog, setOpenApprovalDialog] = React.useState(false)
-  const [openDenialDialog, setOpenDenialDialog] = React.useState(false)
   const [openTermsDialog, setOpenTermsDialog] = React.useState(false)
 
   const { generateLoanAgreementPdf, isGenerating } = useLoanAgreement()
@@ -70,19 +67,19 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
       href: `/customers/${creditFacilityDetails.customer.publicId}`,
     },
     {
-      label: t("details.collateralizationState"),
-      value: (
-        <CollateralizationStateLabel
-          state={creditFacilityDetails.collateralizationState}
-        />
-      ),
-    },
-    {
       label: t("details.status"),
       value: (
         <LoanAndCreditFacilityStatusBadge
           data-testid="credit-facility-status-badge"
           status={creditFacilityDetails.status}
+        />
+      ),
+    },
+    {
+      label: t("details.collateralizationState"),
+      value: (
+        <CollateralizationStateLabel
+          state={creditFacilityDetails.collateralizationState}
         />
       ),
     },
@@ -96,7 +93,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
     },
     {
       label: t("details.dateOfIssuance"),
-      value: formatDate(creditFacilityDetails.createdAt),
+      value: formatDate(creditFacilityDetails.activatedAt),
     },
     {
       label: t("details.maturityDate"),
@@ -147,6 +144,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         onClick={() => setOpenTermsDialog(true)}
         data-testid="loan-terms-button"
       >
+        <FileText className="h-4 w-4 mr-2" />
         {t("buttons.loanTerms")}
       </Button>
       <Button
@@ -155,6 +153,7 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         loading={isGenerating}
         data-testid="loan-agreement-button"
       >
+        <Download className="h-4 w-4 mr-2" />
         {t("buttons.loanAgreement")}
       </Button>
       {creditFacilityDetails.userCanUpdateCollateral && (
@@ -163,29 +162,16 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           data-testid="update-collateral-button"
           onClick={() => setOpenCollateralUpdateDialog(true)}
         >
+          <RefreshCw className="h-4 w-4 mr-2" />
           {t("buttons.updateCollateral")}
         </Button>
       )}
-      {creditFacilityDetails.approvalProcess.status ===
-        ApprovalProcessStatus.InProgress &&
-        creditFacilityDetails.approvalProcess.userCanSubmitDecision && (
-          <>
-            <Button
-              data-testid="credit-facility-approve-button"
-              variant="outline"
-              onClick={() => setOpenApprovalDialog(true)}
-            >
-              {t("buttons.approve")}
-            </Button>
-            <Button
-              data-testid="credit-facility-deny-button"
-              variant="outline"
-              onClick={() => setOpenDenialDialog(true)}
-            >
-              {t("buttons.deny")}
-            </Button>
-          </>
-        )}
+      <Link href={`/credit-facility-proposals/${creditFacilityDetails.creditFacilityId}`}>
+        <Button variant="outline">
+          <Eye className="h-4 w-4 mr-2" />
+          {t("buttons.viewProposal")}
+        </Button>
+      </Link>
     </>
   )
 
@@ -196,7 +182,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         details={details}
         columns={3}
         footerContent={footerContent}
-        errorMessage={creditFacilityDetails.approvalProcess.deniedReason}
       />
 
       <CreditFacilityTermsDialog
@@ -210,20 +195,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
         collateralToMatchInitialCvl={creditFacilityDetails.collateralToMatchInitialCvl}
         openDialog={openCollateralUpdateDialog}
         setOpenDialog={setOpenCollateralUpdateDialog}
-      />
-      <ApprovalDialog
-        approvalProcess={creditFacilityDetails?.approvalProcess}
-        openApprovalDialog={openApprovalDialog}
-        setOpenApprovalDialog={() => {
-          setOpenApprovalDialog(false)
-        }}
-      />
-      <DenialDialog
-        approvalProcess={creditFacilityDetails?.approvalProcess}
-        openDenialDialog={openDenialDialog}
-        setOpenDenialDialog={() => {
-          setOpenDenialDialog(false)
-        }}
       />
     </>
   )

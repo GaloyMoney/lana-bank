@@ -36,7 +36,7 @@ gql`
 type WithdrawalRevertDialogProps = {
   setOpenWithdrawalRevertDialog: (isOpen: boolean) => void
   openWithdrawalRevertDialog: boolean
-  withdrawalData: NonNullable<GetWithdrawalDetailsQuery["withdrawal"]>
+  withdrawalData: NonNullable<GetWithdrawalDetailsQuery["withdrawalByPublicId"]>
 }
 
 export const WithdrawalRevertDialog: React.FC<WithdrawalRevertDialogProps> = ({

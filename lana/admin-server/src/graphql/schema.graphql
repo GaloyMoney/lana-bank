@@ -95,11 +95,10 @@ enum ApprovalProcessStatus {
 	IN_PROGRESS
 }
 
-union ApprovalProcessTarget = Withdrawal | CreditFacility | CreditFacilityDisbursal
+union ApprovalProcessTarget = Withdrawal | CreditFacilityProposal | CreditFacilityDisbursal
 
 enum ApprovalProcessType {
 	WITHDRAWAL_APPROVAL
-	CREDIT_FACILITY_APPROVAL
 	DISBURSAL_APPROVAL
 	CREDIT_FACILITY_PROPOSAL_APPROVAL
 }
@@ -270,6 +269,15 @@ type ChartOfAccountsCsvImportPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
+type Collateral {
+	id: ID!
+	collateralId: UUID!
+	walletId: UUID
+	accountId: UUID!
+	account: LedgerAccount!
+	creditFacility: CreditFacility!
+}
+
 enum CollateralAction {
 	ADD
 	REMOVE
@@ -379,21 +387,18 @@ enum CreditFacilitiesSortBy {
 type CreditFacility {
 	id: ID!
 	creditFacilityId: UUID!
-	approvalProcessId: UUID!
-	activatedAt: Timestamp
-	maturesAt: Timestamp
-	createdAt: Timestamp!
+	maturesAt: Timestamp!
+	activatedAt: Timestamp!
 	collateralizationState: CollateralizationState!
+	status: CreditFacilityStatus!
 	facilityAmount: UsdCents!
 	publicId: PublicId!
 	canBeCompleted: Boolean!
 	creditFacilityTerms: TermValues!
-	status: CreditFacilityStatus!
 	currentCvl: Cvlpct!
 	history: [CreditFacilityHistoryEntry!]!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	disbursals: [CreditFacilityDisbursal!]!
-	approvalProcess: ApprovalProcess!
 	userCanUpdateCollateral: Boolean!
 	userCanInitiateDisbursal: Boolean!
 	userCanRecordPayment: Boolean!
@@ -471,18 +476,6 @@ type CreditFacilityConnection {
 	A list of nodes.
 	"""
 	nodes: [CreditFacility!]!
-}
-
-input CreditFacilityCreateInput {
-	customerId: UUID!
-	disbursalCreditAccountId: UUID!
-	facility: UsdCents!
-	terms: TermsInput!
-	custodianId: UUID
-}
-
-type CreditFacilityCreatePayload {
-	creditFacility: CreditFacility!
 }
 
 type CreditFacilityDisbursal {
@@ -623,12 +616,92 @@ input CreditFacilityPartialPaymentWithDateRecordInput {
 	effective: Date!
 }
 
+<<<<<<< HEAD
 type CreditFacilityPaymentAllocation {
 	id: ID!
 	paymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
+=======
+type CreditFacilityProposal {
+	id: ID!
+	creditFacilityProposalId: UUID!
+	approvalProcessId: UUID!
+	createdAt: Timestamp!
+	collateralizationState: CreditFacilityProposalCollateralizationState!
+	facilityAmount: UsdCents!
+	wallet: Wallet
+	collateral: CollateralBalance!
+	status: CreditFacilityProposalStatus!
+	customer: Customer!
+	creditFacilityTerms: TermValues!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	approvalProcess: ApprovalProcess!
+}
+
+input CreditFacilityProposalCollateralUpdateInput {
+	creditFacilityProposalId: UUID!
+	collateral: Satoshis!
+	effective: Date!
+}
+
+type CreditFacilityProposalCollateralUpdatePayload {
+	creditFacilityProposal: CreditFacilityProposal!
+}
+
+enum CreditFacilityProposalCollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_COLLATERALIZED
+}
+
+type CreditFacilityProposalConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CreditFacilityProposalEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [CreditFacilityProposal!]!
+}
+
+input CreditFacilityProposalCreateInput {
+	customerId: UUID!
+	disbursalCreditAccountId: UUID!
+	facility: UsdCents!
+	terms: TermsInput!
+	custodianId: UUID
+}
+
+type CreditFacilityProposalCreatePayload {
+	creditFacilityProposal: CreditFacilityProposal!
+}
+
+"""
+An edge in a connection.
+"""
+type CreditFacilityProposalEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacilityProposal!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
+}
+
+enum CreditFacilityProposalStatus {
+	PENDING_COLLATERALIZATION
+	PENDING_APPROVAL
+	COMPLETED
+	PENDING_COMPLETION
+>>>>>>> main
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -655,8 +728,6 @@ enum CreditFacilityRepaymentType {
 }
 
 enum CreditFacilityStatus {
-	PENDING_COLLATERALIZATION
-	PENDING_APPROVAL
 	ACTIVE
 	MATURED
 	CLOSED
@@ -832,6 +903,7 @@ type Customer {
 	applicantId: String
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
+	creditFacilityProposals: [CreditFacilityProposal!]!
 	documents: [CustomerDocument!]!
 	userCanCreateCreditFacility: Boolean!
 }
@@ -1356,7 +1428,7 @@ type LedgerAccountEdge {
 	cursor: String!
 }
 
-union LedgerAccountEntity = DepositAccount | CreditFacility
+union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
 type LedgerTransaction {
 	id: ID!
@@ -1397,7 +1469,7 @@ type LedgerTransactionEdge {
 	cursor: String!
 }
 
-union LedgerTransactionEntity = Deposit | Withdrawal
+union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 
 type LoanAgreement {
 	id: ID!
@@ -1478,8 +1550,9 @@ type Mutation {
 	termsTemplateCreate(input: TermsTemplateCreateInput!): TermsTemplateCreatePayload!
 	termsTemplateUpdate(input: TermsTemplateUpdateInput!): TermsTemplateUpdatePayload!
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
-	creditFacilityCreate(input: CreditFacilityCreateInput!): CreditFacilityCreatePayload!
+	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
+	creditFacilityProposalCollateralUpdate(input: CreditFacilityProposalCollateralUpdateInput!): CreditFacilityProposalCollateralUpdatePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
@@ -1700,6 +1773,8 @@ type Query {
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
+	creditFacilityProposal(id: UUID!): CreditFacilityProposal
+	creditFacilityProposals(first: Int!, after: String): CreditFacilityProposalConnection!
 	creditFacilityByPublicId(id: PublicId!): CreditFacility
 	creditFacilities(first: Int!, after: String, sort: CreditFacilitiesSort = {by: CREATED_AT, direction: ASC}, filter: CreditFacilitiesFilter): CreditFacilityConnection!
 	disbursal(id: UUID!): CreditFacilityDisbursal

@@ -1,0 +1,136 @@
+name: data pipeline
+
+on:
+  pull_request:
+    branches:
+      - main
+      - "feature/**"
+
+env:
+  ENGINE_DEFAULT: podman
+  SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+  SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+  TARGET_BIGQUERY_LOCATION: "US"
+
+jobs:
+  data-pipeline-tests:
+    name: 
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-podman
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+
+      - name: Provision BigQuery infrastructure
+        run: |
+          # Generate unique name prefix for this run (max 30 chars for GCP service accounts)
+          UNIQUE_PREFIX="gha-$(date +%s | tail -c 6)-$(head -c 2 /dev/urandom | xxd -p)"
+          echo "UNIQUE_PREFIX=$UNIQUE_PREFIX" >> $GITHUB_ENV
+
+          # Setup credentials
+          echo $TF_VAR_sa_creds | base64 -d > /tmp/creds.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds.json
+
+          # Create tfvars file
+          cd tf/bq-setup
+          cat > terraform.tfvars <<EOF
+          name_prefix = "$UNIQUE_PREFIX"
+          gcp_project = "$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
+          gcp_region = "us-central1"
+          git_token = "dummy_token"
+          force_destroy_bucket = true
+          EOF
+
+          nix develop -c tofu init
+          nix develop -c tofu apply -auto-approve
+
+          nix develop -c tofu output -raw service_account_key_base64 > sa_creds_base64.txt
+          SA_CREDS=$(tail -n 1 sa_creds_base64.txt)
+          rm sa_creds_base64.txt
+
+          echo "SA_CREDS=$SA_CREDS" >> $GITHUB_ENV
+          echo "NAME_PREFIX=$UNIQUE_PREFIX" >> $GITHUB_ENV
+        env:
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+
+      - name: Run BATS tests with podman
+        run: nix develop -c make e2e
+        env:
+          TF_VAR_sa_creds: ${{ env.SA_CREDS }}
+          SA_CREDS_BASE64: ${{ env.SA_CREDS }}
+          TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
+
+      - name: Configure Meltano environment variables
+        run: |
+          echo "TF_VAR_name_prefix=$TF_VAR_name_prefix" >> $GITHUB_ENV
+          echo $SA_CREDS_BASE64 | base64 --decode > meltano/keyfile.json
+
+          export TARGET_BIGQUERY_CREDENTIALS_JSON=$(cat meltano/keyfile.json)
+          export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
+          export DBT_BIGQUERY_PROJECT="$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
+          export DOCS_BUCKET_NAME="${TF_VAR_name_prefix}-lana-documents"
+
+          RAW_PREFIX="${TF_VAR_name_prefix}"
+          SAFE_PREFIX="$(printf '%s' "$RAW_PREFIX" | tr -c '[:alnum:]_' '_' )"
+          export TARGET_BIGQUERY_DATASET="${SAFE_PREFIX}_dataset"
+          export DBT_BIGQUERY_DATASET="dbt_${SAFE_PREFIX}"
+
+          echo "DBT_BIGQUERY_KEYFILE=$DBT_BIGQUERY_KEYFILE" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_PROJECT=$DBT_BIGQUERY_PROJECT" >> $GITHUB_ENV
+          echo "TARGET_BIGQUERY_DATASET=$TARGET_BIGQUERY_DATASET" >> $GITHUB_ENV
+          echo "DBT_BIGQUERY_DATASET=$DBT_BIGQUERY_DATASET" >> $GITHUB_ENV
+          echo "DOCS_BUCKET_NAME=$DOCS_BUCKET_NAME" >> $GITHUB_ENV
+
+          {
+            echo "TARGET_BIGQUERY_CREDENTIALS_JSON<<EOF"
+            cat meltano/keyfile.json
+            echo "EOF"
+          } >> "$GITHUB_ENV"
+        env:
+          TF_VAR_sa_creds: ${{ env.SA_CREDS }}
+          SA_CREDS_BASE64: ${{ env.SA_CREDS }}
+          TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
+
+      - run: nix develop -c meltano install
+      - run: nix develop -c meltano run tap-postgres target-bigquery
+      - run: nix develop -c meltano run tap-bitfinexapi target-bigquery
+      - run: nix develop -c meltano run tap-sumsubapi target-bigquery
+      - run: nix develop -c meltano run dbt-bigquery:seed
+      - run: nix develop -c meltano run dbt-bigquery:run --full-refresh
+      - run: nix develop -c meltano run generate-es-reports:run
+
+      - name: Cleanup BigQuery infrastructure
+        if: always()
+        run: |
+          echo $TF_VAR_sa_creds | base64 -d > /tmp/creds.json
+          export GOOGLE_APPLICATION_CREDENTIALS=/tmp/creds.json
+
+          cd tf/bq-setup
+
+          # First destroy IAM bindings to avoid dependency issues
+          nix develop -c tofu destroy -auto-approve \
+            -target=google_bigquery_dataset_iam_member.dbt_owner \
+            -target=google_bigquery_dataset_iam_member.dataset_owner_sa \
+            -target=google_bigquery_dataset_iam_member.dataset_additional_owners \
+            -target=google_bigquery_dataset_iam_member.dbt_additional_owners
+
+          # Then destroy everything else
+          nix develop -c tofu destroy -auto-approve
+        env:
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+
+      - name: Rename bats log
+        if: always()
+        run: mv .e2e-logs e2e-logs || true
+
+      - name: Upload bats log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: Podman BATS Logs
+          path: |
+            e2e-logs
+            *.e2e-logs 

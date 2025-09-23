@@ -43,7 +43,7 @@ impl Chart {
         spec: &AccountSpec,
         journal_id: CalaJournalId,
     ) -> Idempotent<NewChartAccountDetails> {
-        if self.get_node_by_code(&spec.code).is_some() {
+        if self.get_node_details_by_code(&spec.code).is_some() {
             return Idempotent::Ignored;
         }
 
@@ -60,8 +60,8 @@ impl Chart {
         self.chart_nodes.add_new(new_chart_node);
 
         let parent_account_set_id = if let Some(parent) = spec.parent.as_ref() {
-            self.get_node_by_code(parent)
-                .map(|node| node.account_set_id)
+            self.get_node_details_by_code(parent)
+                .map(|details| details.account_set_id)
         } else {
             None
         };
@@ -90,8 +90,8 @@ impl Chart {
         journal_id: CalaJournalId,
     ) -> Result<Idempotent<NewChartAccountDetails>, ChartOfAccountsError> {
         let parent_normal_balance_type = self
-            .get_node_by_code(&parent_code)
-            .map(|node| node.spec.normal_balance_type)
+            .get_node_details_by_code(&parent_code)
+            .map(|details| details.spec.normal_balance_type)
             .ok_or(ChartOfAccountsError::ParentAccountNotFound(
                 parent_code.to_string(),
             ))?;
@@ -137,10 +137,10 @@ impl Chart {
     /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
-        let mut current_code = code;
+        let mut current_code = code.clone();
 
-        if let Some(node) = self.get_node_by_code(current_code) {
-            current_code = match &node.spec.parent {
+        if let Some(node) = self.get_node_details_by_code(&current_code) {
+            current_code = match node.spec.parent {
                 Some(parent_code) => parent_code,
                 None => return result,
             };
@@ -148,9 +148,9 @@ impl Chart {
             return result;
         }
 
-        while let Some(node) = self.get_node_by_code(current_code) {
+        while let Some(node) = self.get_node_details_by_code(&current_code) {
             result.push(T::from(node.account_set_id));
-            match &node.spec.parent {
+            match node.spec.parent {
                 Some(parent_code) => current_code = parent_code,
                 None => break,
             }
@@ -174,10 +174,13 @@ impl Chart {
         })
     }
 
-    fn get_node_by_code(&self, code: &AccountCode) -> Option<&ChartNode> {
+    fn get_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
         self.chart_nodes
-            .iter_persisted()
-            .find(|node| node.spec.code == *code)
+            .find_map_persisted(|node| (node.spec.code == *code).then(|| node.into()))
+            .or_else(|| {
+                self.chart_nodes
+                    .find_map_new(|node| (node.spec.code == *code).then(|| node.into()))
+            })
     }
 
     fn get_node_by_code_mut(&mut self, code: &AccountCode) -> Option<&mut ChartNode> {
@@ -199,8 +202,8 @@ impl Chart {
         &self,
         code: &AccountCode,
     ) -> Result<CalaAccountSetId, ChartOfAccountsError> {
-        self.get_node_by_code(code)
-            .map(|node| node.account_set_id)
+        self.get_node_details_by_code(code)
+            .map(|details| details.account_set_id)
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
     }
 
@@ -230,7 +233,7 @@ impl Chart {
             }
             AccountIdOrCode::Code(code) => {
                 let node = self
-                    .get_node_by_code(&code)
+                    .get_node_details_by_code(&code)
                     .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
                 self.check_can_have_manual_transactions(&code)?;
@@ -321,6 +324,32 @@ pub enum ManualAccountFromChart {
 pub struct NewChartAccountDetails {
     pub new_account_set: NewAccountSet,
     pub parent_account_set_id: Option<CalaAccountSetId>,
+}
+
+pub struct ChartNodeDetails {
+    account_set_id: CalaAccountSetId,
+    spec: AccountSpec,
+    manual_transaction_account_id: Option<LedgerAccountId>,
+}
+
+impl From<&ChartNode> for ChartNodeDetails {
+    fn from(node: &ChartNode) -> Self {
+        Self {
+            account_set_id: node.account_set_id,
+            spec: node.spec.clone(),
+            manual_transaction_account_id: node.manual_transaction_account_id,
+        }
+    }
+}
+
+impl From<&NewChartNode> for ChartNodeDetails {
+    fn from(node: &NewChartNode) -> Self {
+        Self {
+            account_set_id: node.ledger_account_set_id,
+            spec: node.spec.clone(),
+            manual_transaction_account_id: None,
+        }
+    }
 }
 
 #[cfg(test)]

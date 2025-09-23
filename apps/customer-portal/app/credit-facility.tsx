@@ -22,8 +22,8 @@ export const CustomerCreditFacilitiesTable: React.FC<
 > = ({ creditFacilities }) => {
   const columns: Column<CreditFacility>[] = [
     {
-      key: "createdAt",
-      header: "Created At",
+      key: "activatedAt",
+      header: "Activated At",
       render: (date) => <DateWithTooltip value={date} />,
     },
     {
@@ -79,10 +79,10 @@ const getVariant = (status: CreditFacilityStatus) => {
   switch (status) {
     case CreditFacilityStatus.Active:
       return "success"
-    case CreditFacilityStatus.PendingApproval:
+    case CreditFacilityStatus.Matured:
       return "default"
-    case CreditFacilityStatus.PendingCollateralization:
-      return "warning"
+    case CreditFacilityStatus.Closed:
+      return "secondary"
     default:
       return "secondary"
   }

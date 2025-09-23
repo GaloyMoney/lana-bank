@@ -30,6 +30,7 @@ gql`
                 deposit {
                   id
                   depositId
+                  publicId
                   accountId
                   amount
                   createdAt
@@ -42,6 +43,7 @@ gql`
                 withdrawal {
                   id
                   withdrawalId
+                  publicId
                   accountId
                   amount
                   createdAt
@@ -54,6 +56,7 @@ gql`
                 withdrawal {
                   id
                   withdrawalId
+                  publicId
                   accountId
                   amount
                   createdAt

@@ -28,6 +28,13 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
 
   const columns: Column<Disbursal>[] = [
     {
+      key: "status",
+      header: t("columns.status"),
+      render: (_: Disbursal["status"], disbursal: Disbursal) => {
+        return <DisbursalStatusBadge status={disbursal.status} />
+      },
+    },
+    {
       key: "amount",
       header: t("columns.amount"),
       render: (amount: Disbursal["amount"]) => <Balance amount={amount} currency="usd" />,
@@ -36,14 +43,6 @@ export const CreditFacilityDisbursals: React.FC<CreditFacilityDisbursalsProps> =
       key: "createdAt",
       header: t("columns.createdAt"),
       render: (date: Disbursal["createdAt"]) => <DateWithTooltip value={date} />,
-    },
-    {
-      key: "status",
-      header: t("columns.status"),
-      align: "right",
-      render: (_: Disbursal["status"], disbursal: Disbursal) => {
-        return <DisbursalStatusBadge status={disbursal.status} />
-      },
     },
   ]
 

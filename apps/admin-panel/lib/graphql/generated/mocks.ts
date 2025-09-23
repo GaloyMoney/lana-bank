@@ -56,7 +56,11 @@ const mockEnums = {
 };
 
 import { fakerEN as faker } from '@faker-js/faker';
+<<<<<<< HEAD
 import { AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsAddRootNodeInput, ChartOfAccountsAddRootNodePayload, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, CollateralBalance, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityCreateInput, CreditFacilityCreatePayload, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityLiquidationAmountReserved, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityPaymentAllocation, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DisbursalEntry, Disbursed, Duration, DurationInput, FacilityRemaining, FiniteCvlPct, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, LoanAgreement, LoanAgreementDownloadLinksGenerateInput, LoanAgreementDownloadLinksGeneratePayload, LoanAgreementGenerateInput, LoanAgreementGeneratePayload, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, Outstanding, PageInfo, PaymentEntry, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunCreatePayload, ReportRunEdge, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositStatus, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, KycVerification, Layer, LoanAgreementStatus, Period, PermissionSetName, ReportRunState, ReportRunType, SortDirection, WalletNetwork, WithdrawalStatus } from './index';
+=======
+import { AccountingCsvDocument, AccountingCsvDownloadLink, AccountingCsvDownloadLinkGenerateInput, AccountingCsvDownloadLinkGeneratePayload, ApprovalProcess, ApprovalProcessApproveInput, ApprovalProcessApprovePayload, ApprovalProcessConnection, ApprovalProcessDenyInput, ApprovalProcessDenyPayload, ApprovalProcessEdge, ApprovalProcessVoter, AuditEntry, AuditEntryConnection, AuditEntryEdge, BalanceSheet, BalanceSheetModuleConfig, BalanceSheetModuleConfigureInput, BalanceSheetModuleConfigurePayload, BitgoConfig, BtcAmount, BtcBalanceDetails, BtcLedgerAccountBalance, BtcLedgerAccountBalanceRange, CancelledWithdrawalEntry, ChartNode, ChartOfAccounts, ChartOfAccountsAddChildNodeInput, ChartOfAccountsAddChildNodePayload, ChartOfAccountsAddRootNodeInput, ChartOfAccountsAddRootNodePayload, ChartOfAccountsCsvImportInput, ChartOfAccountsCsvImportPayload, Collateral, CollateralBalance, Committee, CommitteeAddUserInput, CommitteeAddUserPayload, CommitteeConnection, CommitteeCreateInput, CommitteeCreatePayload, CommitteeEdge, CommitteeRemoveUserInput, CommitteeRemoveUserPayload, CommitteeThreshold, CreditFacilitiesFilter, CreditFacilitiesSort, CreditFacility, CreditFacilityApproved, CreditFacilityBalance, CreditFacilityCollateralUpdateInput, CreditFacilityCollateralUpdatePayload, CreditFacilityCollateralUpdated, CreditFacilityCollateralizationUpdated, CreditFacilityCompleteInput, CreditFacilityCompletePayload, CreditFacilityConnection, CreditFacilityDisbursal, CreditFacilityDisbursalConnection, CreditFacilityDisbursalEdge, CreditFacilityDisbursalExecuted, CreditFacilityDisbursalInitiateInput, CreditFacilityDisbursalInitiatePayload, CreditFacilityEdge, CreditFacilityIncrementalPayment, CreditFacilityInterestAccrued, CreditFacilityLedgerAccounts, CreditFacilityLiquidationAmountReserved, CreditFacilityObligationInstallment, CreditFacilityPartialPaymentRecordInput, CreditFacilityPartialPaymentRecordPayload, CreditFacilityPartialPaymentWithDateRecordInput, CreditFacilityProposal, CreditFacilityProposalCollateralUpdateInput, CreditFacilityProposalCollateralUpdatePayload, CreditFacilityProposalConnection, CreditFacilityProposalCreateInput, CreditFacilityProposalCreatePayload, CreditFacilityProposalEdge, CreditFacilityRepaymentPlanEntry, CreditModuleConfig, CreditModuleConfigureInput, CreditModuleConfigurePayload, Custodian, CustodianConfigInput, CustodianConfigUpdateInput, CustodianConfigUpdatePayload, CustodianConnection, CustodianCreateInput, CustodianCreatePayload, CustodianEdge, Customer, CustomerConnection, CustomerCreateInput, CustomerCreatePayload, CustomerDocument, CustomerDocumentArchiveInput, CustomerDocumentArchivePayload, CustomerDocumentCreateInput, CustomerDocumentCreatePayload, CustomerDocumentDeleteInput, CustomerDocumentDeletePayload, CustomerDocumentDownloadLinksGenerateInput, CustomerDocumentDownloadLinksGeneratePayload, CustomerEdge, CustomerEmailUpdateInput, CustomerEmailUpdatePayload, CustomerTelegramIdUpdateInput, CustomerTelegramIdUpdatePayload, CustomersFilter, CustomersSort, Dashboard, Deposit, DepositAccount, DepositAccountBalance, DepositAccountFreezeInput, DepositAccountFreezePayload, DepositAccountHistoryEntryConnection, DepositAccountHistoryEntryEdge, DepositAccountLedgerAccounts, DepositConnection, DepositEdge, DepositEntry, DepositModuleConfig, DepositModuleConfigureInput, DepositModuleConfigurePayload, DepositRecordInput, DepositRecordPayload, DepositRevertInput, DepositRevertPayload, DisbursalEntry, Disbursed, Duration, DurationInput, FacilityRemaining, FiniteCvlPct, GovernanceNavigationItems, InfiniteCvlPct, Interest, JournalEntry, JournalEntryConnection, JournalEntryEdge, KomainuConfig, LedgerAccount, LedgerAccountBalanceRangeByCurrency, LedgerAccountConnection, LedgerAccountCsvCreateInput, LedgerAccountCsvCreatePayload, LedgerAccountEdge, LedgerTransaction, LedgerTransactionConnection, LedgerTransactionEdge, Loan, LoanAgreement, LoanAgreementDownloadLinksGenerateInput, LoanAgreementDownloadLinksGeneratePayload, LoanAgreementGenerateInput, LoanAgreementGeneratePayload, ManualTransactionEntryInput, ManualTransactionExecuteInput, ManualTransactionExecutePayload, Me, Mutation, Outstanding, PageInfo, PaymentEntry, PermissionSet, PermissionSetConnection, PermissionSetEdge, Policy, PolicyAssignCommitteeInput, PolicyAssignCommitteePayload, PolicyConnection, PolicyEdge, ProfitAndLossModuleConfigureInput, ProfitAndLossStatement, ProfitAndLossStatementModuleConfig, ProfitAndLossStatementModuleConfigurePayload, Query, RealtimePrice, Report, ReportFile, ReportFileGenerateDownloadLinkInput, ReportFileGenerateDownloadLinkPayload, ReportRun, ReportRunConnection, ReportRunCreatePayload, ReportRunEdge, Role, RoleAddPermissionSetsInput, RoleAddPermissionSetsPayload, RoleConnection, RoleCreateInput, RoleCreatePayload, RoleEdge, RoleRemovePermissionSetsInput, RoleRemovePermissionSetsPayload, SumsubPermalinkCreateInput, SumsubPermalinkCreatePayload, System, SystemApproval, TermValues, TermsInput, TermsTemplate, TermsTemplateCreateInput, TermsTemplateCreatePayload, TermsTemplateUpdateInput, TermsTemplateUpdatePayload, Total, TransactionTemplate, TransactionTemplateConnection, TransactionTemplateEdge, TrialBalance, UnknownEntry, UsdAmount, UsdBalanceDetails, UsdLedgerAccountBalance, UsdLedgerAccountBalanceRange, User, UserCreateInput, UserCreatePayload, UserUpdateRoleInput, UserUpdateRolePayload, VisibleNavigationItems, Wallet, Withdrawal, WithdrawalCancelInput, WithdrawalCancelPayload, WithdrawalConfirmInput, WithdrawalConfirmPayload, WithdrawalConnection, WithdrawalEdge, WithdrawalEntry, WithdrawalInitiateInput, WithdrawalInitiatePayload, WithdrawalRevertInput, WithdrawalRevertPayload, Activity, ApprovalProcessStatus, ApprovalProcessType, CollateralAction, CollateralizationState, CreditFacilitiesFilterBy, CreditFacilitiesSortBy, CreditFacilityProposalCollateralizationState, CreditFacilityProposalStatus, CreditFacilityRepaymentStatus, CreditFacilityRepaymentType, CreditFacilityStatus, CustomerType, CustomersFilterBy, CustomersSortBy, DebitOrCredit, DepositAccountStatus, DepositStatus, DisbursalStatus, DocumentStatus, InterestInterval, KycLevel, KycVerification, Layer, LoanAgreementStatus, Period, PermissionSetName, ReportRunState, ReportRunType, SortDirection, WalletNetwork, WithdrawalStatus } from './index';
+>>>>>>> main
 
 faker.seed(0);
 
@@ -114,7 +118,7 @@ export const mockApprovalProcess = (overrides?: Partial<ApprovalProcess>, _relat
         policy: overrides && overrides.hasOwnProperty('policy') ? overrides.policy! : relationshipsToOmit.has('Policy') ? {} as Policy : mockPolicy({}, relationshipsToOmit),
         rules: overrides && overrides.hasOwnProperty('rules') ? overrides.rules! : relationshipsToOmit.has('CommitteeThreshold') ? {} as CommitteeThreshold : mockCommitteeThreshold({}, relationshipsToOmit),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.approvalProcessStatus(),
-        target: overrides && overrides.hasOwnProperty('target') ? overrides.target! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        target: overrides && overrides.hasOwnProperty('target') ? overrides.target! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         userCanSubmitDecision: overrides && overrides.hasOwnProperty('userCanSubmitDecision') ? overrides.userCanSubmitDecision! : faker.datatype.boolean(),
         voters: overrides && overrides.hasOwnProperty('voters') ? overrides.voters! : [relationshipsToOmit.has('ApprovalProcessVoter') ? {} as ApprovalProcessVoter : mockApprovalProcessVoter({}, relationshipsToOmit)],
     };
@@ -420,6 +424,20 @@ export const mockChartOfAccountsCsvImportPayload = (overrides?: Partial<ChartOfA
     };
 };
 
+export const mockCollateral = (overrides?: Partial<Collateral>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'Collateral' } & Collateral => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('Collateral');
+    return {
+        __typename: 'Collateral',
+        account: overrides && overrides.hasOwnProperty('account') ? overrides.account! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
+        accountId: overrides && overrides.hasOwnProperty('accountId') ? overrides.accountId! : generateMockValue.uuid(),
+        collateralId: overrides && overrides.hasOwnProperty('collateralId') ? overrides.collateralId! : generateMockValue.uuid(),
+        creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        walletId: overrides && overrides.hasOwnProperty('walletId') ? overrides.walletId! : generateMockValue.uuid(),
+    };
+};
+
 export const mockCollateralBalance = (overrides?: Partial<CollateralBalance>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CollateralBalance' } & CollateralBalance => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CollateralBalance');
@@ -551,13 +569,10 @@ export const mockCreditFacility = (overrides?: Partial<CreditFacility>, _relatio
     return {
         __typename: 'CreditFacility',
         activatedAt: overrides && overrides.hasOwnProperty('activatedAt') ? overrides.activatedAt! : generateMockValue.timestamp(),
-        approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
-        approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
         balance: overrides && overrides.hasOwnProperty('balance') ? overrides.balance! : relationshipsToOmit.has('CreditFacilityBalance') ? {} as CreditFacilityBalance : mockCreditFacilityBalance({}, relationshipsToOmit),
         canBeCompleted: overrides && overrides.hasOwnProperty('canBeCompleted') ? overrides.canBeCompleted! : generateMockValue.boolean(),
         collateralToMatchInitialCvl: overrides && overrides.hasOwnProperty('collateralToMatchInitialCvl') ? overrides.collateralToMatchInitialCvl! : generateMockValue.satoshis(),
         collateralizationState: overrides && overrides.hasOwnProperty('collateralizationState') ? overrides.collateralizationState! : mockEnums.collateralizationState(),
-        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacilityId: overrides && overrides.hasOwnProperty('creditFacilityId') ? overrides.creditFacilityId! : generateMockValue.uuid(),
         creditFacilityTerms: overrides && overrides.hasOwnProperty('creditFacilityTerms') ? overrides.creditFacilityTerms! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
         currentCvl: overrides && overrides.hasOwnProperty('currentCvl') ? overrides.currentCvl! : relationshipsToOmit.has('FiniteCvlPct') ? {} as FiniteCvlPct : mockFiniteCvlPct({}, relationshipsToOmit),
@@ -679,27 +694,6 @@ export const mockCreditFacilityConnection = (overrides?: Partial<CreditFacilityC
         edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('CreditFacilityEdge') ? {} as CreditFacilityEdge : mockCreditFacilityEdge({}, relationshipsToOmit)],
         nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit)],
         pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
-    };
-};
-
-export const mockCreditFacilityCreateInput = (overrides?: Partial<CreditFacilityCreateInput>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityCreateInput => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('CreditFacilityCreateInput');
-    return {
-        custodianId: overrides && overrides.hasOwnProperty('custodianId') ? overrides.custodianId! : generateMockValue.uuid(),
-        customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
-        disbursalCreditAccountId: overrides && overrides.hasOwnProperty('disbursalCreditAccountId') ? overrides.disbursalCreditAccountId! : generateMockValue.uuid(),
-        facility: overrides && overrides.hasOwnProperty('facility') ? overrides.facility! : generateMockValue.usdCents(),
-        terms: overrides && overrides.hasOwnProperty('terms') ? overrides.terms! : relationshipsToOmit.has('TermsInput') ? {} as TermsInput : mockTermsInput({}, relationshipsToOmit),
-    };
-};
-
-export const mockCreditFacilityCreatePayload = (overrides?: Partial<CreditFacilityCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityCreatePayload' } & CreditFacilityCreatePayload => {
-    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
-    relationshipsToOmit.add('CreditFacilityCreatePayload');
-    return {
-        __typename: 'CreditFacilityCreatePayload',
-        creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
     };
 };
 
@@ -879,6 +873,7 @@ export const mockCreditFacilityPartialPaymentWithDateRecordInput = (overrides?: 
     };
 };
 
+<<<<<<< HEAD
 export const mockCreditFacilityPaymentAllocation = (overrides?: Partial<CreditFacilityPaymentAllocation>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityPaymentAllocation' } & CreditFacilityPaymentAllocation => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('CreditFacilityPaymentAllocation');
@@ -889,6 +884,88 @@ export const mockCreditFacilityPaymentAllocation = (overrides?: Partial<CreditFa
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         paymentAllocationId: overrides && overrides.hasOwnProperty('paymentAllocationId') ? overrides.paymentAllocationId! : generateMockValue.uuid(),
+=======
+export const mockCreditFacilityProposal = (overrides?: Partial<CreditFacilityProposal>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityProposal' } & CreditFacilityProposal => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityProposal');
+    return {
+        __typename: 'CreditFacilityProposal',
+        approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
+        approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
+        collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : relationshipsToOmit.has('CollateralBalance') ? {} as CollateralBalance : mockCollateralBalance({}, relationshipsToOmit),
+        collateralToMatchInitialCvl: overrides && overrides.hasOwnProperty('collateralToMatchInitialCvl') ? overrides.collateralToMatchInitialCvl! : generateMockValue.satoshis(),
+        collateralizationState: overrides && overrides.hasOwnProperty('collateralizationState') ? overrides.collateralizationState! : CreditFacilityProposalCollateralizationState.FullyCollateralized,
+        createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
+        creditFacilityProposalId: overrides && overrides.hasOwnProperty('creditFacilityProposalId') ? overrides.creditFacilityProposalId! : generateMockValue.uuid(),
+        creditFacilityTerms: overrides && overrides.hasOwnProperty('creditFacilityTerms') ? overrides.creditFacilityTerms! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
+        customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
+        facilityAmount: overrides && overrides.hasOwnProperty('facilityAmount') ? overrides.facilityAmount! : generateMockValue.usdCents(),
+        id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        repaymentPlan: overrides && overrides.hasOwnProperty('repaymentPlan') ? overrides.repaymentPlan! : [relationshipsToOmit.has('CreditFacilityRepaymentPlanEntry') ? {} as CreditFacilityRepaymentPlanEntry : mockCreditFacilityRepaymentPlanEntry({}, relationshipsToOmit)],
+        status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : CreditFacilityProposalStatus.Completed,
+        wallet: overrides && overrides.hasOwnProperty('wallet') ? overrides.wallet! : relationshipsToOmit.has('Wallet') ? {} as Wallet : mockWallet({}, relationshipsToOmit),
+    };
+};
+
+export const mockCreditFacilityProposalCollateralUpdateInput = (overrides?: Partial<CreditFacilityProposalCollateralUpdateInput>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityProposalCollateralUpdateInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityProposalCollateralUpdateInput');
+    return {
+        collateral: overrides && overrides.hasOwnProperty('collateral') ? overrides.collateral! : generateMockValue.satoshis(),
+        creditFacilityProposalId: overrides && overrides.hasOwnProperty('creditFacilityProposalId') ? overrides.creditFacilityProposalId! : generateMockValue.uuid(),
+        effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
+    };
+};
+
+export const mockCreditFacilityProposalCollateralUpdatePayload = (overrides?: Partial<CreditFacilityProposalCollateralUpdatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityProposalCollateralUpdatePayload' } & CreditFacilityProposalCollateralUpdatePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityProposalCollateralUpdatePayload');
+    return {
+        __typename: 'CreditFacilityProposalCollateralUpdatePayload',
+        creditFacilityProposal: overrides && overrides.hasOwnProperty('creditFacilityProposal') ? overrides.creditFacilityProposal! : relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit),
+    };
+};
+
+export const mockCreditFacilityProposalConnection = (overrides?: Partial<CreditFacilityProposalConnection>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityProposalConnection' } & CreditFacilityProposalConnection => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityProposalConnection');
+    return {
+        __typename: 'CreditFacilityProposalConnection',
+        edges: overrides && overrides.hasOwnProperty('edges') ? overrides.edges! : [relationshipsToOmit.has('CreditFacilityProposalEdge') ? {} as CreditFacilityProposalEdge : mockCreditFacilityProposalEdge({}, relationshipsToOmit)],
+        nodes: overrides && overrides.hasOwnProperty('nodes') ? overrides.nodes! : [relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit)],
+        pageInfo: overrides && overrides.hasOwnProperty('pageInfo') ? overrides.pageInfo! : relationshipsToOmit.has('PageInfo') ? {} as PageInfo : mockPageInfo({}, relationshipsToOmit),
+    };
+};
+
+export const mockCreditFacilityProposalCreateInput = (overrides?: Partial<CreditFacilityProposalCreateInput>, _relationshipsToOmit: Set<string> = new Set()): CreditFacilityProposalCreateInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityProposalCreateInput');
+    return {
+        custodianId: overrides && overrides.hasOwnProperty('custodianId') ? overrides.custodianId! : generateMockValue.uuid(),
+        customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
+        disbursalCreditAccountId: overrides && overrides.hasOwnProperty('disbursalCreditAccountId') ? overrides.disbursalCreditAccountId! : generateMockValue.uuid(),
+        facility: overrides && overrides.hasOwnProperty('facility') ? overrides.facility! : generateMockValue.usdCents(),
+        terms: overrides && overrides.hasOwnProperty('terms') ? overrides.terms! : relationshipsToOmit.has('TermsInput') ? {} as TermsInput : mockTermsInput({}, relationshipsToOmit),
+    };
+};
+
+export const mockCreditFacilityProposalCreatePayload = (overrides?: Partial<CreditFacilityProposalCreatePayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityProposalCreatePayload' } & CreditFacilityProposalCreatePayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityProposalCreatePayload');
+    return {
+        __typename: 'CreditFacilityProposalCreatePayload',
+        creditFacilityProposal: overrides && overrides.hasOwnProperty('creditFacilityProposal') ? overrides.creditFacilityProposal! : relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit),
+    };
+};
+
+export const mockCreditFacilityProposalEdge = (overrides?: Partial<CreditFacilityProposalEdge>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'CreditFacilityProposalEdge' } & CreditFacilityProposalEdge => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('CreditFacilityProposalEdge');
+    return {
+        __typename: 'CreditFacilityProposalEdge',
+        cursor: overrides && overrides.hasOwnProperty('cursor') ? overrides.cursor! : generateMockValue.cursor(),
+        node: overrides && overrides.hasOwnProperty('node') ? overrides.node! : relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit),
+>>>>>>> main
     };
 };
 
@@ -1102,6 +1179,7 @@ export const mockCustomer = (overrides?: Partial<Customer>, _relationshipsToOmit
         applicantId: overrides && overrides.hasOwnProperty('applicantId') ? overrides.applicantId! : generateMockValue.applicantId(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacilities: overrides && overrides.hasOwnProperty('creditFacilities') ? overrides.creditFacilities! : [relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit)],
+        creditFacilityProposals: overrides && overrides.hasOwnProperty('creditFacilityProposals') ? overrides.creditFacilityProposals! : [relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit)],
         customerId: overrides && overrides.hasOwnProperty('customerId') ? overrides.customerId! : generateMockValue.uuid(),
         customerType: overrides && overrides.hasOwnProperty('customerType') ? overrides.customerType! : CustomerType.Bank,
         depositAccount: overrides && overrides.hasOwnProperty('depositAccount') ? overrides.depositAccount! : relationshipsToOmit.has('DepositAccount') ? {} as DepositAccount : mockDepositAccount({}, relationshipsToOmit),
@@ -1673,7 +1751,7 @@ export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relations
         children: overrides && overrides.hasOwnProperty('children') ? overrides.children! : [relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit)],
         closestAccountWithCode: overrides && overrides.hasOwnProperty('closestAccountWithCode') ? overrides.closestAccountWithCode! : relationshipsToOmit.has('LedgerAccount') ? {} as LedgerAccount : mockLedgerAccount({}, relationshipsToOmit),
         code: overrides && overrides.hasOwnProperty('code') ? overrides.code! : faker.lorem.word(),
-        entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('Collateral') ? {} as Collateral : mockCollateral({}, relationshipsToOmit),
         history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
@@ -1738,7 +1816,7 @@ export const mockLedgerTransaction = (overrides?: Partial<LedgerTransaction>, _r
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         description: overrides && overrides.hasOwnProperty('description') ? overrides.description! : generateMockValue.description(),
         effective: overrides && overrides.hasOwnProperty('effective') ? overrides.effective! : faker.date.past({ years: 1, refDate: new Date(2022, 0) }).toISOString(),
-        entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('Deposit') ? {} as Deposit : mockDeposit({}, relationshipsToOmit),
+        entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('CreditFacilityDisbursal') ? {} as CreditFacilityDisbursal : mockCreditFacilityDisbursal({}, relationshipsToOmit),
         entries: overrides && overrides.hasOwnProperty('entries') ? overrides.entries! : [relationshipsToOmit.has('JournalEntry') ? {} as JournalEntry : mockJournalEntry({}, relationshipsToOmit)],
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         ledgerTransactionId: overrides && overrides.hasOwnProperty('ledgerTransactionId') ? overrides.ledgerTransactionId! : generateMockValue.uuid(),
@@ -1883,10 +1961,11 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         committeeRemoveUser: overrides && overrides.hasOwnProperty('committeeRemoveUser') ? overrides.committeeRemoveUser! : relationshipsToOmit.has('CommitteeRemoveUserPayload') ? {} as CommitteeRemoveUserPayload : mockCommitteeRemoveUserPayload({}, relationshipsToOmit),
         creditFacilityCollateralUpdate: overrides && overrides.hasOwnProperty('creditFacilityCollateralUpdate') ? overrides.creditFacilityCollateralUpdate! : relationshipsToOmit.has('CreditFacilityCollateralUpdatePayload') ? {} as CreditFacilityCollateralUpdatePayload : mockCreditFacilityCollateralUpdatePayload({}, relationshipsToOmit),
         creditFacilityComplete: overrides && overrides.hasOwnProperty('creditFacilityComplete') ? overrides.creditFacilityComplete! : relationshipsToOmit.has('CreditFacilityCompletePayload') ? {} as CreditFacilityCompletePayload : mockCreditFacilityCompletePayload({}, relationshipsToOmit),
-        creditFacilityCreate: overrides && overrides.hasOwnProperty('creditFacilityCreate') ? overrides.creditFacilityCreate! : relationshipsToOmit.has('CreditFacilityCreatePayload') ? {} as CreditFacilityCreatePayload : mockCreditFacilityCreatePayload({}, relationshipsToOmit),
         creditFacilityDisbursalInitiate: overrides && overrides.hasOwnProperty('creditFacilityDisbursalInitiate') ? overrides.creditFacilityDisbursalInitiate! : relationshipsToOmit.has('CreditFacilityDisbursalInitiatePayload') ? {} as CreditFacilityDisbursalInitiatePayload : mockCreditFacilityDisbursalInitiatePayload({}, relationshipsToOmit),
         creditFacilityPartialPaymentRecord: overrides && overrides.hasOwnProperty('creditFacilityPartialPaymentRecord') ? overrides.creditFacilityPartialPaymentRecord! : relationshipsToOmit.has('CreditFacilityPartialPaymentRecordPayload') ? {} as CreditFacilityPartialPaymentRecordPayload : mockCreditFacilityPartialPaymentRecordPayload({}, relationshipsToOmit),
         creditFacilityPartialPaymentWithDateRecord: overrides && overrides.hasOwnProperty('creditFacilityPartialPaymentWithDateRecord') ? overrides.creditFacilityPartialPaymentWithDateRecord! : relationshipsToOmit.has('CreditFacilityPartialPaymentRecordPayload') ? {} as CreditFacilityPartialPaymentRecordPayload : mockCreditFacilityPartialPaymentRecordPayload({}, relationshipsToOmit),
+        creditFacilityProposalCollateralUpdate: overrides && overrides.hasOwnProperty('creditFacilityProposalCollateralUpdate') ? overrides.creditFacilityProposalCollateralUpdate! : relationshipsToOmit.has('CreditFacilityProposalCollateralUpdatePayload') ? {} as CreditFacilityProposalCollateralUpdatePayload : mockCreditFacilityProposalCollateralUpdatePayload({}, relationshipsToOmit),
+        creditFacilityProposalCreate: overrides && overrides.hasOwnProperty('creditFacilityProposalCreate') ? overrides.creditFacilityProposalCreate! : relationshipsToOmit.has('CreditFacilityProposalCreatePayload') ? {} as CreditFacilityProposalCreatePayload : mockCreditFacilityProposalCreatePayload({}, relationshipsToOmit),
         creditModuleConfigure: overrides && overrides.hasOwnProperty('creditModuleConfigure') ? overrides.creditModuleConfigure! : relationshipsToOmit.has('CreditModuleConfigurePayload') ? {} as CreditModuleConfigurePayload : mockCreditModuleConfigurePayload({}, relationshipsToOmit),
         custodianConfigUpdate: overrides && overrides.hasOwnProperty('custodianConfigUpdate') ? overrides.custodianConfigUpdate! : relationshipsToOmit.has('CustodianConfigUpdatePayload') ? {} as CustodianConfigUpdatePayload : mockCustodianConfigUpdatePayload({}, relationshipsToOmit),
         custodianCreate: overrides && overrides.hasOwnProperty('custodianCreate') ? overrides.custodianCreate! : relationshipsToOmit.has('CustodianCreatePayload') ? {} as CustodianCreatePayload : mockCustodianCreatePayload({}, relationshipsToOmit),
@@ -1992,7 +2071,7 @@ export const mockPolicy = (overrides?: Partial<Policy>, _relationshipsToOmit: Se
     relationshipsToOmit.add('Policy');
     return {
         __typename: 'Policy',
-        approvalProcessType: overrides && overrides.hasOwnProperty('approvalProcessType') ? overrides.approvalProcessType! : ApprovalProcessType.CreditFacilityApproval,
+        approvalProcessType: overrides && overrides.hasOwnProperty('approvalProcessType') ? overrides.approvalProcessType! : ApprovalProcessType.CreditFacilityProposalApproval,
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         policyId: overrides && overrides.hasOwnProperty('policyId') ? overrides.policyId! : generateMockValue.uuid(),
         rules: overrides && overrides.hasOwnProperty('rules') ? overrides.rules! : relationshipsToOmit.has('CommitteeThreshold') ? {} as CommitteeThreshold : mockCommitteeThreshold({}, relationshipsToOmit),
@@ -2099,6 +2178,8 @@ export const mockQuery = (overrides?: Partial<Query>, _relationshipsToOmit: Set<
         creditFacilities: overrides && overrides.hasOwnProperty('creditFacilities') ? overrides.creditFacilities! : relationshipsToOmit.has('CreditFacilityConnection') ? {} as CreditFacilityConnection : mockCreditFacilityConnection({}, relationshipsToOmit),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         creditFacilityByPublicId: overrides && overrides.hasOwnProperty('creditFacilityByPublicId') ? overrides.creditFacilityByPublicId! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
+        creditFacilityProposal: overrides && overrides.hasOwnProperty('creditFacilityProposal') ? overrides.creditFacilityProposal! : relationshipsToOmit.has('CreditFacilityProposal') ? {} as CreditFacilityProposal : mockCreditFacilityProposal({}, relationshipsToOmit),
+        creditFacilityProposals: overrides && overrides.hasOwnProperty('creditFacilityProposals') ? overrides.creditFacilityProposals! : relationshipsToOmit.has('CreditFacilityProposalConnection') ? {} as CreditFacilityProposalConnection : mockCreditFacilityProposalConnection({}, relationshipsToOmit),
         custodians: overrides && overrides.hasOwnProperty('custodians') ? overrides.custodians! : relationshipsToOmit.has('CustodianConnection') ? {} as CustodianConnection : mockCustodianConnection({}, relationshipsToOmit),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         customerByEmail: overrides && overrides.hasOwnProperty('customerByEmail') ? overrides.customerByEmail! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),

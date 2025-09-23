@@ -103,69 +103,79 @@ describe("Transactions Deposit and Withdraw", () => {
     console.log("should show newly created Withdraw in list page")
 
     cy.createDeposit(depositAmount, depositAccountId).then(() => {
-      cy.initiateWithdrawal(withdrawAmount, depositAccountId).then((withdrawalId) => {
-        cy.visit(`/withdrawals/${withdrawalId}`)
-        cy.wait(1000)
-        cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (
-            badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()
-          ) {
-            // case when we have policy attached for withdrawal no ss needed here
-            cy.get('[data-testid="approval-process-deny-button"]').click()
-            cy.get('[data-testid="approval-process-dialog-deny-reason"]').type("testing")
-            cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
-          } else {
-            // expected flow
-            cy.get('[data-testid="withdraw-cancel-button"]').should("be.visible").click()
-            cy.takeScreenshot("14_withdrawal_cancel_button")
+      cy.initiateWithdrawal(withdrawAmount, depositAccountId).then(
+        (withdrawalPublicId) => {
+          cy.visit(`/withdrawals/${withdrawalPublicId}`)
+          cy.wait(1000)
+          cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
+            if (
+              badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()
+            ) {
+              // case when we have policy attached for withdrawal no ss needed here
+              cy.get('[data-testid="approval-process-deny-button"]').click()
+              cy.get('[data-testid="approval-process-dialog-deny-reason"]').type(
+                "testing",
+              )
+              cy.get('[data-testid="approval-process-dialog-deny-button"]').click()
+            } else {
+              // expected flow
+              cy.get('[data-testid="withdraw-cancel-button"]')
+                .should("be.visible")
+                .click()
+              cy.takeScreenshot("14_withdrawal_cancel_button")
 
-            cy.get('[data-testid="withdrawal-cancel-dialog-button"]')
-              .should("be.visible")
-              .click()
-            cy.takeScreenshot("15_withdrawal_cancel_confirm")
+              cy.get('[data-testid="withdrawal-cancel-dialog-button"]')
+                .should("be.visible")
+                .click()
+              cy.takeScreenshot("15_withdrawal_cancel_confirm")
 
-            cy.get("[data-testid=withdrawal-status-badge]")
-              .should("be.visible")
-              .invoke("text")
-              .should("eq", t(W + ".WithdrawalStatus.cancelled").toUpperCase())
-            cy.takeScreenshot("16_withdrawal_cancelled_status")
-          }
-        })
-      })
+              cy.get("[data-testid=withdrawal-status-badge]")
+                .should("be.visible")
+                .invoke("text")
+                .should("eq", t(W + ".WithdrawalStatus.cancelled").toUpperCase())
+              cy.takeScreenshot("16_withdrawal_cancelled_status")
+            }
+          })
+        },
+      )
     })
   })
 
   it("should approve Withdraw", () => {
     cy.createDeposit(depositAmount, depositAccountId).then(() => {
-      cy.initiateWithdrawal(withdrawAmount, depositAccountId).then((withdrawalId) => {
-        cy.visit(`/withdrawals/${withdrawalId}`)
-        cy.wait(1000)
-        cy.get("[data-testid=withdrawal-status-badge]")
-          .then((badge) => {
-            // case when we have policy attached for withdrawal no ss needed here
-            if (
-              badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()
-            ) {
-              cy.get('[data-testid="approval-process-approve-button"]').click()
-              cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
-            }
-          })
-          .then(() => {
-            cy.get('[data-testid="withdraw-confirm-button"]').should("be.visible").click()
-            cy.takeScreenshot("17_withdrawal_approve_button")
+      cy.initiateWithdrawal(withdrawAmount, depositAccountId).then(
+        (withdrawalPublicId) => {
+          cy.visit(`/withdrawals/${withdrawalPublicId}`)
+          cy.wait(1000)
+          cy.get("[data-testid=withdrawal-status-badge]")
+            .then((badge) => {
+              // case when we have policy attached for withdrawal no ss needed here
+              if (
+                badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()
+              ) {
+                cy.get('[data-testid="approval-process-approve-button"]').click()
+                cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
+              }
+            })
+            .then(() => {
+              cy.get('[data-testid="withdraw-confirm-button"]')
+                .should("be.visible")
+                .click()
+              cy.takeScreenshot("17_withdrawal_approve_button")
 
-            cy.get('[data-testid="withdrawal-confirm-dialog-button"]')
-              .should("be.visible")
-              .click()
-            cy.takeScreenshot("18_withdrawal_approve_confirm")
+              cy.get('[data-testid="withdrawal-confirm-dialog-button"]')
+                .should("be.visible")
+                .click()
+              cy.takeScreenshot("18_withdrawal_approve_confirm")
 
-            cy.get("[data-testid=withdrawal-status-badge]")
-              .should("be.visible")
-              .invoke("text")
-              .should("eq", t(W + ".WithdrawalStatus.confirmed").toUpperCase())
-            cy.takeScreenshot("19_withdrawal_approved_status")
-          })
-      })
+              cy.get("[data-testid=withdrawal-status-badge]")
+                .should("be.visible")
+                .invoke("text")
+                .should("eq", t(W + ".WithdrawalStatus.confirmed").toUpperCase())
+              cy.takeScreenshot("19_withdrawal_approved_status")
+            })
+        },
+      )
     })
   })
 })

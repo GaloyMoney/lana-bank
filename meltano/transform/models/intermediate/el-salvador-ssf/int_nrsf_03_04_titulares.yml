@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: int_nrsf_03_04_titulares
+    columns:
+      - name: "NIU"
+        tests:
+          - not_null_quoted
+      - name: "Número de cuenta"
+        tests:
+          - not_null_quoted

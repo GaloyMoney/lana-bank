@@ -27,6 +27,13 @@
           nodejs = super.nodejs_20;
         })
         (import rust-overlay)
+        # Disable tests on libsecret due to missing DBUS on gh
+        (self: super: {
+          libsecret = super.libsecret.overrideAttrs (oldAttrs: {
+            doCheck = false;
+            doInstallCheck = false;
+          });
+        })
         (self: super: {
           python311 = super.python311.override {
             packageOverrides = pySelf: pySuper: let
@@ -320,7 +327,7 @@
           fontconfig
           dejavu_fonts # Provides serif, sans-serif, and monospace
         ]
-        ++ lib.optionals pkgs.stdenv.isLinux [
+        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
           xvfb-run
           cypress
           python313Packages.weasyprint
@@ -330,10 +337,9 @@
 
           util-linux
           psmisc
+          iptables
         ]
-        ++ lib.optionals pkgs.stdenv.isDarwin [
-          darwin.apple_sdk.frameworks.SystemConfiguration
-        ];
+        ++ pkgs.lib.optionals pkgs.stdenv.isDarwin [];
       devEnvVars = rec {
         OTEL_EXPORTER_OTLP_ENDPOINT = http://localhost:4317;
         DATABASE_URL = "postgres://user:password@127.0.0.1:5433/pg?sslmode=disable";

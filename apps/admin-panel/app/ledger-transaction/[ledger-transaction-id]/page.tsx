@@ -33,10 +33,13 @@ gql`
       entity {
         __typename
         ... on Deposit {
-          depositId
+          publicId
         }
         ... on Withdrawal {
-          withdrawalId
+          publicId
+        }
+        ... on CreditFacilityDisbursal {
+          publicId
         }
       }
       entries {
@@ -205,9 +208,11 @@ const getEntityforTransaction = (
   if (!entity) return null
   switch (entity.__typename) {
     case "Deposit":
-      return { url: `/deposits/${entity.depositId}`, label: t("viewDeposit") }
+      return { url: `/deposits/${entity.publicId}`, label: t("viewDeposit") }
     case "Withdrawal":
-      return { url: `/withdrawals/${entity.withdrawalId}`, label: t("viewWithdrawal") }
+      return { url: `/withdrawals/${entity.publicId}`, label: t("viewWithdrawal") }
+    case "CreditFacilityDisbursal":
+      return { url: `/disbursals/${entity.publicId}`, label: t("viewDisbursal") }
   }
   const exhaustiveCheck: never = entity
   return exhaustiveCheck

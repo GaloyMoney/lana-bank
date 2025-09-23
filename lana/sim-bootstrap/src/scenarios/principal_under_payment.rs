@@ -28,9 +28,9 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
 
     let cf_terms = helpers::std_terms_with_liquidation();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
-    let cf = app
+    let cf_proposal = app
         .credit()
-        .create_facility(
+        .create_facility_proposal(
             &sub,
             customer_id,
             deposit_account_id,
@@ -43,21 +43,23 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
     let mut stream = app.outbox().listen_persisted(None).await?;
     while let Some(msg) = stream.next().await {
         match &msg.payload {
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
+            Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalApproved { id, .. }))
+                if *id == cf_proposal.id =>
+            {
                 app.credit()
-                    .update_collateral(
+                    .update_proposal_collateral(
                         &sub,
-                        cf.id,
+                        *id,
                         Satoshis::try_from_btc(dec!(230))?,
                         sim_time::now().date_naive(),
                     )
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
-                if cf.id == *id =>
+                if *id == cf_proposal.id.into() =>
             {
                 app.credit()
-                    .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                    .initiate_disbursal(&sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
 
                 break;
@@ -69,7 +71,7 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
     let (tx, rx) = mpsc::channel::<(ObligationType, UsdCents)>(32);
     let sim_app = app.clone();
     tokio::spawn(async move {
-        do_principal_under_payment(sub, sim_app, cf.id, rx)
+        do_principal_under_payment(sub, sim_app, cf_proposal.id.into(), rx)
             .await
             .expect("principal under payment failed");
     });
@@ -81,13 +83,13 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
                 amount,
                 obligation_type,
                 ..
-            })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
+            })) if { *id == cf_proposal.id.into() && amount > &UsdCents::ZERO } => {
                 if tx.send((*obligation_type, *amount)).await.is_err() {
                     break;
                 };
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
-                if cf.id == *id {
+                if *id == cf_proposal.id.into() {
                     break;
                 }
             }

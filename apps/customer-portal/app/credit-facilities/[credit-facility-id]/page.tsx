@@ -35,7 +35,6 @@ gql`
       facilityAmount
       collateralizationState
       status
-      createdAt
       activatedAt
       maturesAt
       disbursals {
@@ -168,8 +167,8 @@ async function page({ params }: { params: Promise<{ "credit-facility-id": string
 
   const details: DetailItemProps[] = [
     {
-      label: "Created At",
-      value: formatDate(data.creditFacility.createdAt),
+      label: "Activated At",
+      value: formatDate(data.creditFacility.activatedAt),
     },
     {
       label: "Collateralization State",

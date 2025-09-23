@@ -9,7 +9,7 @@ use outbox::{Outbox, OutboxEventMarker};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
-use crate::{Collaterals, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilities};
+use crate::{Collaterals, CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 #[derive(serde::Serialize)]
 pub(crate) struct WalletCollateralSyncJobConfig<Perms, E> {
@@ -59,7 +59,6 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    facilities: CreditFacilities<Perms, E>,
     collaterals: Collaterals<Perms, E>,
     outbox: Outbox<E>,
 }
@@ -93,11 +92,9 @@ where
                 changed_at,
             }) = message.as_ref().as_event()
             {
-                let credit_facility = self.facilities.find_by_custody_wallet(*id).await?;
-
                 self.collaterals
                     .record_collateral_update_via_custodian_sync(
-                        &credit_facility,
+                        *id,
                         *new_balance,
                         changed_at.date_naive(),
                     )
@@ -122,7 +119,6 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     outbox: Outbox<E>,
-    facilities: CreditFacilities<Perms, E>,
     collaterals: Collaterals<Perms, E>,
 }
 
@@ -137,14 +133,9 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        facilities: &CreditFacilities<Perms, E>,
-        collaterals: &Collaterals<Perms, E>,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, collaterals: &Collaterals<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
-            facilities: facilities.clone(),
             collaterals: collaterals.clone(),
         }
     }
@@ -172,7 +163,6 @@ where
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(WalletCollateralSyncJobRunner {
             outbox: self.outbox.clone(),
-            facilities: self.facilities.clone(),
             collaterals: self.collaterals.clone(),
         }))
     }

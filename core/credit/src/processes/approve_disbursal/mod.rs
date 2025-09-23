@@ -127,6 +127,7 @@ where
                     .await?;
                 self.ledger
                     .settle_disbursal(
+                        disbursal.id,
                         op,
                         obligation,
                         credit_facility.account_ids.facility_account_id,
@@ -142,6 +143,7 @@ where
                     .await?;
                 self.ledger
                     .cancel_disbursal(
+                        disbursal.id,
                         op,
                         tx_id,
                         disbursal.amount,

@@ -19,8 +19,8 @@ use super::{entity::*, error::CreditFacilityError};
     err = "CreditFacilityError",
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
-        approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateral_id(ty = "CollateralId", update(persist = false)),
+        credit_facility_proposal_id(ty = "CreditFacilityProposalId", update(persist = false)),
         collateralization_ratio(
             ty = "CollateralizationRatio",
             list_by,
@@ -288,12 +288,6 @@ impl From<(CreditFacilitiesSortBy, &CreditFacility)>
             CreditFacilitiesSortBy::CreatedAt => {
                 credit_facility_cursor::CreditFacilitiesByCreatedAtCursor::from(credit_facility)
                     .into()
-            }
-            CreditFacilitiesSortBy::ApprovalProcessId => {
-                credit_facility_cursor::CreditFacilitiesByApprovalProcessIdCursor::from(
-                    credit_facility,
-                )
-                .into()
             }
             CreditFacilitiesSortBy::CollateralizationRatio => {
                 credit_facility_cursor::CreditFacilitiesByCollateralizationRatioCursor::from(

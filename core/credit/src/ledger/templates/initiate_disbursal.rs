@@ -5,12 +5,16 @@ use cala_ledger::{
 use rust_decimal::Decimal;
 use tracing::instrument;
 
-use crate::{ledger::error::*, primitives::CalaAccountId};
+use crate::{
+    ledger::error::*,
+    primitives::{CalaAccountId, DISBURSAL_TRANSACTION_ENTITY_TYPE},
+};
 
 pub const INITIATE_DISBURSAL_CODE: &str = "INITIATE_CREDIT_FACILITY_DISBURSAL";
 
 #[derive(Debug)]
 pub struct InitiateDisbursalParams {
+    pub entity_id: uuid::Uuid,
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
@@ -46,6 +50,11 @@ impl InitiateDisbursalParams {
                 .description("Effective date for transaction.")
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("meta")
+                .r#type(ParamDataType::Json)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -53,6 +62,7 @@ impl InitiateDisbursalParams {
 impl From<InitiateDisbursalParams> for Params {
     fn from(
         InitiateDisbursalParams {
+            entity_id,
             journal_id,
             credit_facility_account,
             disbursed_amount,
@@ -65,6 +75,9 @@ impl From<InitiateDisbursalParams> for Params {
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("disbursed_amount", disbursed_amount);
         params.insert("effective", crate::time::now().date_naive());
+        let entity_ref =
+            core_accounting::EntityRef::new(DISBURSAL_TRANSACTION_ENTITY_TYPE, entity_id);
+        params.insert("meta", serde_json::json!({"entity_ref":entity_ref}));
         params
     }
 }
@@ -77,6 +90,7 @@ impl InitiateDisbursal {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Initiate credit facility disbursal.'")
             .build()
             .expect("Couldn't build TxInput");
