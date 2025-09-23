@@ -2742,6 +2742,7 @@ export const mockWithdrawal = (overrides?: Partial<Withdrawal>, _relationshipsTo
         approvalProcessId: overrides && overrides.hasOwnProperty('approvalProcessId') ? overrides.approvalProcessId! : generateMockValue.uuid(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        ledgerTransactions: overrides && overrides.hasOwnProperty('ledgerTransactions') ? overrides.ledgerTransactions! : [relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit)],
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
         reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : mockEnums.withdrawalStatus(),

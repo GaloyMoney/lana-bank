@@ -2202,6 +2202,7 @@ type Withdrawal {
 	status: WithdrawalStatus!
 	approvalProcess: ApprovalProcess!
 	account: DepositAccount!
+	ledgerTransactions: [LedgerTransaction!]!
 }
 
 input WithdrawalCancelInput {

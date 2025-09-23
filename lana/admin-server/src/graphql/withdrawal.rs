@@ -3,7 +3,8 @@ use async_graphql::*;
 use crate::primitives::*;
 
 use super::{
-    approval_process::ApprovalProcess, deposit_account::DepositAccount, loader::LanaDataLoader,
+    accounting::LedgerTransaction, approval_process::ApprovalProcess,
+    deposit_account::DepositAccount, loader::LanaDataLoader,
 };
 
 pub use lana_app::{
@@ -75,6 +76,20 @@ impl Withdrawal {
             .await?
             .expect("account not found");
         Ok(account)
+    }
+
+    async fn ledger_transactions(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<LedgerTransaction>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        let transactions = loader
+            .load_many(self.entity.ledger_tx_ids())
+            .await?
+            .into_values()
+            .collect();
+
+        Ok(transactions)
     }
 }
 

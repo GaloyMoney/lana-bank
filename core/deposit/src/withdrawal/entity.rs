@@ -202,6 +202,19 @@ impl Withdrawal {
             .expect("status should always exist")
     }
 
+    pub fn ledger_tx_ids(&self) -> Vec<CalaTransactionId> {
+        self.events
+            .iter_all()
+            .filter_map(|e| match e {
+                WithdrawalEvent::Initialized { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                WithdrawalEvent::Confirmed { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                WithdrawalEvent::Cancelled { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                WithdrawalEvent::Reverted { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                WithdrawalEvent::ApprovalProcessConcluded { .. } => None,
+            })
+            .collect()
+    }
+
     pub fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
         idempotency_guard!(
             self.events.iter_all(),

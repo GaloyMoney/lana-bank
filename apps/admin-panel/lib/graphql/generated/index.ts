@@ -2688,6 +2688,7 @@ export type Withdrawal = {
   approvalProcessId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
