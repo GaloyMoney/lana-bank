@@ -652,6 +652,9 @@ export type CreditFacilityPaymentAllocation = {
 };
 
 <<<<<<< HEAD
+<<<<<<< HEAD
+=======
+>>>>>>> 8929a118a (chore: regenerate schema and frontend code post merge conflicts)
 export type CreditFacilityProposal = {
   __typename?: 'CreditFacilityProposal';
   approvalProcess: ApprovalProcess;
@@ -725,8 +728,11 @@ export enum CreditFacilityProposalStatus {
   PendingCompletion = 'PENDING_COMPLETION'
 }
 
+<<<<<<< HEAD
 =======
 >>>>>>> f60ee6d1b (chore: up-to trying to auto-generate /dev/entity-rollups/schemas (obligation_event) and meltano transform rollups if that is possible via a make command (otherwise will do manually))
+=======
+>>>>>>> 8929a118a (chore: regenerate schema and frontend code post merge conflicts)
 export type CreditFacilityRepaymentPlanEntry = {
   __typename?: 'CreditFacilityRepaymentPlanEntry';
   accrualAt: Scalars['Timestamp']['output'];
