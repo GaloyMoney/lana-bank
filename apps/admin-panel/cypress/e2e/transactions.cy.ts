@@ -108,9 +108,7 @@ describe("Transactions Deposit and Withdraw", () => {
           cy.visit(`/withdrawals/${withdrawalPublicId}`)
           cy.wait(1000)
           cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-            if (
-              badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()
-            ) {
+            if (badge.text() === t(W + ".WithdrawalStatus.pending_approval")) {
               // case when we have policy attached for withdrawal no ss needed here
               cy.get('[data-testid="approval-process-deny-button"]').click()
               cy.get('[data-testid="approval-process-dialog-deny-reason"]').type(
@@ -132,7 +130,7 @@ describe("Transactions Deposit and Withdraw", () => {
               cy.get("[data-testid=withdrawal-status-badge]")
                 .should("be.visible")
                 .invoke("text")
-                .should("eq", t(W + ".WithdrawalStatus.cancelled").toUpperCase())
+                .should("eq", t(W + ".WithdrawalStatus.cancelled"))
               cy.takeScreenshot("16_withdrawal_cancelled_status")
             }
           })
@@ -150,9 +148,7 @@ describe("Transactions Deposit and Withdraw", () => {
           cy.get("[data-testid=withdrawal-status-badge]")
             .then((badge) => {
               // case when we have policy attached for withdrawal no ss needed here
-              if (
-                badge.text() === t(W + ".WithdrawalStatus.pending_approval").toUpperCase()
-              ) {
+              if (badge.text() === t(W + ".WithdrawalStatus.pending_approval")) {
                 cy.get('[data-testid="approval-process-approve-button"]').click()
                 cy.get('[data-testid="approval-process-dialog-approve-button"]').click()
               }
@@ -171,7 +167,7 @@ describe("Transactions Deposit and Withdraw", () => {
               cy.get("[data-testid=withdrawal-status-badge]")
                 .should("be.visible")
                 .invoke("text")
-                .should("eq", t(W + ".WithdrawalStatus.confirmed").toUpperCase())
+                .should("eq", t(W + ".WithdrawalStatus.confirmed"))
               cy.takeScreenshot("19_withdrawal_approved_status")
             })
         },

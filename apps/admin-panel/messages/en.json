@@ -327,13 +327,19 @@
         "title": "Deposit Account",
         "labels": {
           "checkingSettled": "Checking Settled Balance (USD)",
-          "pendingWithdrawals": "Pending Withdrawals (USD)"
+          "pendingWithdrawals": "Pending Withdrawals (USD)",
+          "status": "Status"
         },
         "status": {
           "active": "Active",
           "frozen": "Frozen",
           "inactive": "Inactive"
-        }
+        },
+        "buttons": {
+          "viewLedgerAccount": "View Ledger Account",
+          "freezeDepositAccount": "Freeze Deposit Account"
+        },
+        "noAccount": "No deposit account available"
       },
       "updateTelegram": {
         "title": "Update Telegram ID",
@@ -365,8 +371,7 @@
           "pendingBalance": "Pending Withdrawals"
         },
         "buttons": {
-          "freeze": "Freeze Account",
-          "freezeDepositAccount": "Freeze Deposit Account"
+          "freeze": "Freeze Account"
         },
         "success": "Deposit account frozen successfully",
         "errors": {
@@ -1914,7 +1919,7 @@
     },
     "addChildNode": "Add Sub Account",
     "addAccount": "Add Account",
-    "viewCustomer": "View Customer",
+    "viewDepositAccount": "View Deposit Account",
     "viewCreditFacility": "View Credit Facility",
     "table": {
       "noData": "No transactions present in this account",

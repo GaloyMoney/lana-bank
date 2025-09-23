@@ -43,6 +43,10 @@ gql`
           settled
           pending
         }
+        ledgerAccounts {
+          depositAccountId
+          frozenDepositAccountId
+        }
       }
     }
   }
@@ -57,6 +61,7 @@ export default function CustomerLayout({
 }) {
   const t = useTranslations("Customers.CustomerDetails.layout")
   const navTranslations = useTranslations("Sidebar.navItems")
+  const tDepositAccount = useTranslations("Customers.CustomerDetails.depositAccount")
 
   const TABS = [
     { id: "1", url: "/", tabLabel: t("tabs.transactions") },
@@ -113,12 +118,18 @@ export default function CustomerLayout({
       <CustomerDetailsCard customer={data.customerByPublicId} />
       <div className="flex flex-col md:flex-row w-full gap-2 my-2">
         <KycStatus customerId={data.customerByPublicId.customerId} />
-        {data.customerByPublicId.depositAccount && (
+        {data.customerByPublicId.depositAccount ? (
           <DepositAccount
             balance={data.customerByPublicId.depositAccount.balance}
             publicId={data.customerByPublicId.depositAccount.publicId}
             status={data.customerByPublicId.depositAccount.status}
+            depositAccountId={data.customerByPublicId.depositAccount.depositAccountId}
+            ledgerAccounts={data.customerByPublicId.depositAccount.ledgerAccounts}
           />
+        ) : (
+          <span className="rounded-md bg-muted px-2 py-1 text-sm font-medium text-muted-foreground md:w-full w-1/4 text-center flex items-center justify-center">
+            {tDepositAccount("noAccount")}
+          </span>
         )}
       </div>
       <Tabs
