@@ -389,7 +389,7 @@ mod test {
     use chrono::{Datelike, TimeZone, Utc};
     use rust_decimal_macros::dec;
 
-    use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct};
+    use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct, DisbursalPolicy};
 
     use super::*;
 
@@ -403,6 +403,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::ZERO)
+            .disbursal_policy(DisbursalPolicy::Multiple)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
