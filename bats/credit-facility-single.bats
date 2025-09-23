@@ -61,6 +61,7 @@ wait_for_active() {
           accrualCycleInterval: "END_OF_MONTH",
           accrualInterval: "END_OF_DAY",
           oneTimeFeeRate: "5",
+          disbursalPolicy: "SINGLE_FULL_ON_ACTIVATION",
           duration: { period: "MONTHS", units: 3 },
           interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
           obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
@@ -68,7 +69,6 @@ wait_for_active() {
           liquidationCvl: "105",
           marginCallCvl: "125",
           initialCvl: "140",
-          disbursalPolicy: "SINGLE_FULL_ON_ACTIVATION"
         }
       }
     }'
