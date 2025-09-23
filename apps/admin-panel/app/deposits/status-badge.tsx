@@ -29,7 +29,7 @@ export const DepositStatusBadge: React.FC<DepositStatusBadgeProps> = ({
 
   return (
     <Badge variant={getVariant(status)} data-testid={testId}>
-      {t(status.toLowerCase()).toUpperCase()}
+      {t(status.toLowerCase())}
     </Badge>
   )
 }
