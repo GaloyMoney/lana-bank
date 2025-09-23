@@ -1191,6 +1191,11 @@ export type DisbursalEntry = {
   recordedAt: Scalars['Timestamp']['output'];
 };
 
+export enum DisbursalPolicy {
+  Multiple = 'MULTIPLE',
+  SingleFullOnActivation = 'SINGLE_FULL_ON_ACTIVATION'
+}
+
 export enum DisbursalStatus {
   Approved = 'APPROVED',
   Confirmed = 'CONFIRMED',
@@ -2399,6 +2404,7 @@ export type TermValues = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['output'];
+  disbursalPolicy: DisbursalPolicy;
   duration: Duration;
   initialCvl: Cvlpct;
   liquidationCvl: Cvlpct;
@@ -2410,6 +2416,7 @@ export type TermsInput = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
+  disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
@@ -2434,6 +2441,7 @@ export type TermsTemplateCreateInput = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
+  disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
@@ -2454,6 +2462,7 @@ export type TermsTemplateUpdateInput = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
+  disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
   id: Scalars['UUID']['input'];
   initialCvl: Scalars['CVLPctValue']['input'];

@@ -4,8 +4,33 @@ use serde::{Deserialize, Serialize};
 pub use lana_app::terms::{
     AnnualRatePct, CVLPct as DomainCVLPct, FacilityDuration as DomainDuration, InterestInterval,
     ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
-    TermValues as DomainTermValues,
+    TermValues as DomainTermValues, DisbursalPolicy as DomainDisbursalPolicy
 };
+
+#[derive(Enum, Copy, Clone, Eq, PartialEq)]
+pub enum DisbursalPolicy {
+    Multiple,
+    SingleFullOnActivation,
+}
+
+impl From<DomainDisbursalPolicy> for DisbursalPolicy {
+    fn from(policy: DomainDisbursalPolicy) -> Self {
+        match policy {
+            DomainDisbursalPolicy::Multiple => DisbursalPolicy::Multiple,
+            DomainDisbursalPolicy::SingleFullOnActivation => DisbursalPolicy::SingleFullOnActivation,
+        }
+    }
+}
+
+impl From<DisbursalPolicy> for DomainDisbursalPolicy {
+    fn from(v: DisbursalPolicy) -> Self {
+        match v {
+            DisbursalPolicy::Multiple => DomainDisbursalPolicy::Multiple,
+            DisbursalPolicy::SingleFullOnActivation =>
+                DomainDisbursalPolicy::SingleFullOnActivation,
+        }
+    }
+}
 
 #[derive(SimpleObject, Clone)]
 pub struct TermValues {
@@ -13,6 +38,7 @@ pub struct TermValues {
     accrual_interval: InterestInterval,
     accrual_cycle_interval: InterestInterval,
     one_time_fee_rate: OneTimeFeeRatePct,
+    disbursal_policy: DisbursalPolicy,
     duration: Duration,
     liquidation_cvl: CVLPct,
     margin_call_cvl: CVLPct,
@@ -26,6 +52,7 @@ impl From<DomainTermValues> for TermValues {
             accrual_interval: values.accrual_interval,
             accrual_cycle_interval: values.accrual_cycle_interval,
             one_time_fee_rate: values.one_time_fee_rate,
+            disbursal_policy: values.disbursal_policy.into(),
             duration: values.duration.into(),
             liquidation_cvl: values.liquidation_cvl.into(),
             margin_call_cvl: values.margin_call_cvl.into(),
@@ -39,6 +66,7 @@ pub struct TermsInput {
     pub accrual_interval: InterestInterval,
     pub accrual_cycle_interval: InterestInterval,
     pub one_time_fee_rate: OneTimeFeeRatePct,
+    pub disbursal_policy: DisbursalPolicy,
     pub duration: DurationInput,
     pub interest_due_duration_from_accrual: DurationInput,
     pub obligation_overdue_duration_from_due: DurationInput,
