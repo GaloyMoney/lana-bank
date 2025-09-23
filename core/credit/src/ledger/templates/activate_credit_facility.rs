@@ -20,6 +20,7 @@ pub struct ActivateCreditFacilityParams {
     pub debit_account_id: CalaAccountId,
     pub facility_amount: Decimal,
     pub structuring_fee_amount: Decimal,
+    pub activation_principal_disbursal_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
 }
@@ -82,6 +83,11 @@ impl ActivateCreditFacilityParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
+            NewParamDefinition::builder()
+                .name("activation_principal_disbursal_amount")
+                .r#type(ParamDataType::Decimal)
+                .build()
+                .unwrap(),
         ]
     }
 }
@@ -97,6 +103,7 @@ impl From<ActivateCreditFacilityParams> for Params {
             debit_account_id,
             facility_amount,
             structuring_fee_amount,
+            activation_principal_disbursal_amount,
             currency,
             external_id,
         }: ActivateCreditFacilityParams,
@@ -113,6 +120,7 @@ impl From<ActivateCreditFacilityParams> for Params {
         params.insert("debit_account_id", debit_account_id);
         params.insert("facility_amount", facility_amount);
         params.insert("structuring_fee_amount", structuring_fee_amount);
+        params.insert("activation_principal_disbursal_amount", activation_principal_disbursal_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
@@ -224,7 +232,44 @@ impl ActivateCreditFacility {
                 .layer("SETTLED")
                 .build()
                 .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.credit_facility_account")
+                .units("params.activation_principal_disbursal_amount")
+                .currency("params.currency")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_DR'")
+                .direction("DEBIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.credit_omnibus_account")
+                .units("params.activation_principal_disbursal_amount")
+                .currency("params.currency")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_CR'")
+                .direction("CREDIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.facility_disbursed_receivable_account")
+                .units("params.activation_principal_disbursal_amount")
+                .currency("params.currency")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_DR'")
+                .direction("DEBIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
+            NewTxTemplateEntry::builder()
+                .account_id("params.debit_account_id")
+                .units("params.activation_principal_disbursal_amount")
+                .currency("params.currency")
+                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_CR'")
+                .direction("CREDIT")
+                .layer("SETTLED")
+                .build()
+                .expect("Couldn't build entry"),
         ];
+        
         let params = ActivateCreditFacilityParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())

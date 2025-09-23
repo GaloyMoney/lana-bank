@@ -1485,6 +1485,7 @@ impl CreditLedger {
             debit_account_id,
             facility_amount,
             structuring_fee_amount,
+            activation_principal_disbursal_amount,
         }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
@@ -1503,6 +1504,7 @@ impl CreditLedger {
                     debit_account_id,
                     facility_amount: facility_amount.to_usd(),
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
+                    activation_principal_disbursal_amount: activation_principal_disbursal_amount.to_usd(),
                     currency: self.usd,
                     external_id: tx_ref,
                 },
