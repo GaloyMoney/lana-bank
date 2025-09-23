@@ -7,7 +7,7 @@
 with source as (
     select
         s.*
-    from {{ ref('stg_core_obligation_installment_events_rollup') }} as s
+    from {{ ref('stg_core_payment_allocation_events_rollup') }} as s
 
     {% if is_incremental() %}
         left join {{ this }} as t using (payment_allocation_id, version)

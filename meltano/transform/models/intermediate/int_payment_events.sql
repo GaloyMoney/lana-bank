@@ -20,7 +20,7 @@ credit_facilities as(
         max(payment_allocation_created_at) as payment_allocation_created_at,
         max(payment_allocation_modified_at) as payment_allocation_modified_at,
         array_agg(distinct obligation_type) as obligation_type,
-    from {{ ref('int_core_obligation_installment_events_rollup') }}
+    from {{ ref('int_core_payment_allocation_events_rollup') }}
     group by payment_id
 )
 
