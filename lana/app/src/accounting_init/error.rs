@@ -28,4 +28,6 @@ pub enum AccountingInitError {
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
     #[error("AccountingInitError - SeedFileError: {0}")]
     SeedFileError(#[from] std::io::Error),
+    #[error("AccountingInitError - MissingConfig: {0}")]
+    MissingConfig(String),
 }
