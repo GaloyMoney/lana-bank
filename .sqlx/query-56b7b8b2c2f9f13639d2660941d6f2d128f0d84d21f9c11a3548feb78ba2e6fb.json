@@ -1,0 +1,17 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE core_disbursals SET obligation_id = $2, concluded_tx_id = $3, public_id = $4 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Uuid",
+        "Uuid",
+        "Varchar"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "56b7b8b2c2f9f13639d2660941d6f2d128f0d84d21f9c11a3548feb78ba2e6fb"
+}
