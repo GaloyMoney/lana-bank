@@ -1136,7 +1136,7 @@ checksums:
     ChartOfAccountsLedgerAccount/details/children: f09021b02811dd9c354e8da8525ddf9f
     ChartOfAccountsLedgerAccount/addChildNode: aee0a7b3cd53ce03d00724d4ab56ccbb
     ChartOfAccountsLedgerAccount/addAccount: 180a55852a8b0f21e53512e344808a0a
-    ChartOfAccountsLedgerAccount/viewCustomer: 232903fb7e397b92489b7a3c62edb67f
+    ChartOfAccountsLedgerAccount/viewDepositAccount: ec760c8120ec2d099ad62eecadb15fa7
     ChartOfAccountsLedgerAccount/viewCreditFacility: f02e316eba6ca5ad813099ca29b5c8f1
     ChartOfAccountsLedgerAccount/table/noData: 65d8d992387f1b0dc757c22a4de109dc
     ChartOfAccountsLedgerAccount/table/columns/recordedAt: 318586aae7b8deb15df7c2cc4abf172b

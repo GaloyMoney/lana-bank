@@ -445,7 +445,10 @@ const getEntityforAccount = (
   if (!entity) return null
   switch (entity.__typename) {
     case "DepositAccount":
-      return { url: `/customers/${entity.customer.publicId}`, label: t("viewCustomer") }
+      return {
+        url: `/customers/${entity.customer.publicId}`,
+        label: t("viewDepositAccount"),
+      }
     case "CreditFacility":
       return {
         url: `/credit-facilities/${entity.publicId}`,

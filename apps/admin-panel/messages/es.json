@@ -1919,7 +1919,7 @@
     },
     "addChildNode": "Agregar subcuenta",
     "addAccount": "Agregar cuenta",
-    "viewCustomer": "Ver Cliente",
+    "viewDepositAccount": "Ver cuenta de depósito",
     "viewCreditFacility": "Ver Línea de Crédito",
     "table": {
       "noData": "No hay transacciones presentes en esta cuenta",
