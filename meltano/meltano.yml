@@ -93,7 +93,7 @@ plugins:
         - public-core_disbursal_events.*
         - public-core_interest_accrual_cycle_events.*
         - public-core_obligation_events.*
-        - public-core_obligation_installment_events.*
+        - public-core_payment_allocation_events.*
         - public-core_payment_events.*
         - public-core_withdrawal_events.*
         - public-core_withdrawals.*
@@ -114,7 +114,7 @@ plugins:
         - public-core_disbursal_events_rollup.*
         - public-core_interest_accrual_cycle_events_rollup.*
         - public-core_obligation_events_rollup.*
-        - public-core_obligation_installment_events_rollup.*
+        - public-core_payment_allocation_events_rollup.*
         - public-core_payment_events_rollup.*
         - public-core_terms_template_events_rollup.*
         - public-core_chart_events_rollup.*
