@@ -483,6 +483,9 @@ type CreditFacilityDisbursal {
 	disbursalId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	initializedTxId: UUID!
+	settledTxId: UUID
+	cancelledTxId: UUID
 	publicId: PublicId!
 	creditFacility: CreditFacility!
 	status: DisbursalStatus!
@@ -1060,6 +1063,8 @@ type Deposit {
 	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	initializedTxId: UUID!
+	revertedTxId: UUID
 	publicId: PublicId!
 	reference: String!
 	status: DepositStatus!
@@ -2197,6 +2202,10 @@ type Withdrawal {
 	approvalProcessId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	initializedTxId: UUID!
+	confirmedTxId: UUID
+	cancelledTxId: UUID
+	revertedTxId: UUID
 	publicId: PublicId!
 	reference: String!
 	status: WithdrawalStatus!

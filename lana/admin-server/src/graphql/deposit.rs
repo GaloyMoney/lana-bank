@@ -19,6 +19,8 @@ pub struct Deposit {
     account_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
+    initialized_tx_id: UUID,
+    reverted_tx_id: Option<UUID>,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainDeposit>,
@@ -32,6 +34,8 @@ impl From<DomainDeposit> for Deposit {
             account_id: UUID::from(deposit.deposit_account_id),
             amount: deposit.amount,
             created_at: deposit.created_at().into(),
+            initialized_tx_id: UUID::from(deposit.initialized_tx_id),
+            reverted_tx_id: deposit.reverted_tx_id.map(UUID::from),
 
             entity: Arc::new(deposit),
         }

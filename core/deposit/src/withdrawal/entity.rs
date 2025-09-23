@@ -66,8 +66,13 @@ pub struct Withdrawal {
     pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
     pub public_id: PublicId,
+    pub initialized_tx_id: CalaTransactionId,
     #[builder(setter(strip_option), default)]
     pub cancelled_tx_id: Option<CalaTransactionId>,
+    #[builder(setter(strip_option), default)]
+    pub confirmed_tx_id: Option<CalaTransactionId>,
+    #[builder(setter(strip_option), default)]
+    pub reverted_tx_id: Option<CalaTransactionId>,
 
     events: EntityEvents<WithdrawalEvent>,
 }
@@ -233,6 +238,7 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                     amount,
                     approval_process_id,
                     public_id,
+                    ledger_tx_id,
                     ..
                 } => {
                     builder = builder
@@ -242,9 +248,16 @@ impl TryFromEvents<WithdrawalEvent> for Withdrawal {
                         .reference(reference.clone())
                         .approval_process_id(*approval_process_id)
                         .public_id(public_id.clone())
+                        .initialized_tx_id(*ledger_tx_id)
                 }
                 WithdrawalEvent::Cancelled { ledger_tx_id, .. } => {
                     builder = builder.cancelled_tx_id(*ledger_tx_id)
+                }
+                WithdrawalEvent::Confirmed { ledger_tx_id, .. } => {
+                    builder = builder.confirmed_tx_id(*ledger_tx_id)
+                }
+                WithdrawalEvent::Reverted { ledger_tx_id, .. } => {
+                    builder = builder.reverted_tx_id(*ledger_tx_id)
                 }
                 _ => (),
             }

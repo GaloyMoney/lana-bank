@@ -515,11 +515,14 @@ export type CreditFacilityDisbursal = {
   __typename?: 'CreditFacilityDisbursal';
   amount: Scalars['UsdCents']['output'];
   approvalProcess: ApprovalProcess;
+  cancelledTxId?: Maybe<Scalars['UUID']['output']>;
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
   disbursalId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  initializedTxId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
+  settledTxId?: Maybe<Scalars['UUID']['output']>;
   status: DisbursalStatus;
 };
 
@@ -1074,8 +1077,10 @@ export type Deposit = {
   createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  initializedTxId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
+  revertedTxId?: Maybe<Scalars['UUID']['output']>;
   status: DepositStatus;
 };
 
@@ -2686,10 +2691,14 @@ export type Withdrawal = {
   amount: Scalars['UsdCents']['output'];
   approvalProcess: ApprovalProcess;
   approvalProcessId: Scalars['UUID']['output'];
+  cancelledTxId?: Maybe<Scalars['UUID']['output']>;
+  confirmedTxId?: Maybe<Scalars['UUID']['output']>;
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  initializedTxId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
+  revertedTxId?: Maybe<Scalars['UUID']['output']>;
   status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
 };

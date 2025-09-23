@@ -45,6 +45,9 @@ pub struct Deposit {
     pub amount: UsdCents,
     pub reference: String,
     pub public_id: PublicId,
+    pub initialized_tx_id: CalaTransactionId,
+    #[builder(setter(strip_option), default)]
+    pub reverted_tx_id: Option<CalaTransactionId>,
     events: EntityEvents<DepositEvent>,
 }
 
@@ -101,6 +104,7 @@ impl TryFromEvents<DepositEvent> for Deposit {
                     deposit_account_id,
                     amount,
                     public_id,
+                    ledger_tx_id,
                     ..
                 } => {
                     builder = builder
@@ -108,9 +112,12 @@ impl TryFromEvents<DepositEvent> for Deposit {
                         .deposit_account_id(*deposit_account_id)
                         .amount(*amount)
                         .reference(reference.clone())
-                        .public_id(public_id.clone());
+                        .public_id(public_id.clone())
+                        .initialized_tx_id(*ledger_tx_id);
                 }
-                DepositEvent::Reverted { .. } => {}
+                DepositEvent::Reverted { ledger_tx_id, .. } => {
+                    builder = builder.reverted_tx_id(*ledger_tx_id)
+                }
             }
         }
         builder.events(events).build()

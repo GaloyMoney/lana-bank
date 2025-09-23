@@ -20,6 +20,10 @@ pub struct Withdrawal {
     approval_process_id: UUID,
     amount: UsdCents,
     created_at: Timestamp,
+    initialized_tx_id: UUID,
+    confirmed_tx_id: Option<UUID>,
+    cancelled_tx_id: Option<UUID>,
+    reverted_tx_id: Option<UUID>,
 
     #[graphql(skip)]
     pub(super) entity: Arc<DomainWithdrawal>,
@@ -34,6 +38,10 @@ impl From<lana_app::deposit::Withdrawal> for Withdrawal {
             withdrawal_id: UUID::from(withdraw.id),
             approval_process_id: UUID::from(withdraw.approval_process_id),
             amount: withdraw.amount,
+            initialized_tx_id: UUID::from(withdraw.initialized_tx_id),
+            confirmed_tx_id: withdraw.confirmed_tx_id.map(UUID::from),
+            cancelled_tx_id: withdraw.cancelled_tx_id.map(UUID::from),
+            reverted_tx_id: withdraw.reverted_tx_id.map(UUID::from),
             entity: Arc::new(withdraw),
         }
     }
