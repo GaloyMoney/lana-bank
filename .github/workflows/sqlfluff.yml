@@ -27,26 +27,30 @@ jobs:
           cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
           google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
 
-      - name: Configure Meltano environment variables
+      - name: Configure Meltano environment variables (credentials only)
         run: |
-          echo "TF_VAR_name_prefix=$TF_VAR_name_prefix" >> $GITHUB_ENV
-          echo $SA_CREDS_BASE64 | base64 --decode > meltano/keyfile.json
+          mkdir -p meltano
+          echo "${GOOGLE_SA_BASE64}" | base64 -d > meltano/keyfile.json
+          test -s meltano/keyfile.json
 
-          export TARGET_BIGQUERY_CREDENTIALS_JSON=$(cat meltano/keyfile.json)
+          PROJECT_ID="$(jq -r '.project_id' meltano/keyfile.json)"
+
           export DBT_BIGQUERY_KEYFILE="$(pwd)/meltano/keyfile.json"
-          export DBT_BIGQUERY_PROJECT="$(echo $TF_VAR_sa_creds | base64 -d | jq -r '.project_id')"
-          export DOCS_BUCKET_NAME="${TF_VAR_name_prefix}-lana-documents"
+          export DBT_BIGQUERY_PROJECT="${PROJECT_ID}"
+          export GOOGLE_APPLICATION_CREDENTIALS="$(pwd)/meltano/keyfile.json"
 
-          RAW_PREFIX="${TF_VAR_name_prefix}"
-          SAFE_PREFIX="$(printf '%s' "$RAW_PREFIX" | tr -c '[:alnum:]_' '_' )"
+          SAFE_PREFIX="sqlfluff_${GITHUB_RUN_ID}_${GITHUB_RUN_ATTEMPT}"
+          SAFE_PREFIX="$(printf '%s' "$SAFE_PREFIX" | tr -c '[:alnum:]_' '_' )"
           export TARGET_BIGQUERY_DATASET="${SAFE_PREFIX}_dataset"
           export DBT_BIGQUERY_DATASET="dbt_${SAFE_PREFIX}"
+          export DOCS_BUCKET_NAME="${SAFE_PREFIX}-lana-documents"
 
           echo "DBT_BIGQUERY_KEYFILE=$DBT_BIGQUERY_KEYFILE" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_PROJECT=$DBT_BIGQUERY_PROJECT" >> $GITHUB_ENV
           echo "TARGET_BIGQUERY_DATASET=$TARGET_BIGQUERY_DATASET" >> $GITHUB_ENV
           echo "DBT_BIGQUERY_DATASET=$DBT_BIGQUERY_DATASET" >> $GITHUB_ENV
           echo "DOCS_BUCKET_NAME=$DOCS_BUCKET_NAME" >> $GITHUB_ENV
+          echo "GOOGLE_APPLICATION_CREDENTIALS=$GOOGLE_APPLICATION_CREDENTIALS" >> $GITHUB_ENV
 
           {
             echo "TARGET_BIGQUERY_CREDENTIALS_JSON<<EOF"
@@ -54,9 +58,7 @@ jobs:
             echo "EOF"
           } >> "$GITHUB_ENV"
         env:
-          TF_VAR_sa_creds: ${{ env.SA_CREDS }}
-          SA_CREDS_BASE64: ${{ env.SA_CREDS }}
-          TF_VAR_name_prefix: ${{ env.NAME_PREFIX }}
+          GOOGLE_SA_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
 
       - name: Install Meltano utilities
         run: nix develop -c meltano install utility sqlfluff
