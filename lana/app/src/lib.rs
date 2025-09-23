@@ -167,8 +167,8 @@ pub mod credit {
         CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
         DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, ListDirection,
-        PaymentAllocation, ObligationMovedToLiquidation, Payment, RepaymentStatus,
-        RepaymentType, Sort, TermsTemplate, error, terms_template_error,
+        ObligationMovedToLiquidation, Payment, PaymentAllocation, RepaymentStatus, RepaymentType,
+        Sort, TermsTemplate, error, terms_template_error,
     };
 
     pub type Credit =
