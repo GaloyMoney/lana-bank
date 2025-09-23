@@ -66,6 +66,8 @@ pub struct Withdrawal {
     pub amount: UsdCents,
     pub approval_process_id: ApprovalProcessId,
     pub public_id: PublicId,
+    // pub ledger_tx_ids: WithdrawalLegderTransactionIds,
+    // can probably wrap all in a ledger_tx_ids struct
     pub initialized_tx_id: CalaTransactionId,
     #[builder(setter(strip_option), default)]
     pub cancelled_tx_id: Option<CalaTransactionId>,
