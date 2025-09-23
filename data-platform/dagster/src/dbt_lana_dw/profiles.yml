@@ -14,7 +14,7 @@ dbt_lana_dw:
       client_id: "{{ env_var('DBT_BIGQUERY_CLIENT_ID', '') }}"
       client_secret: "{{ env_var('DBT_BIGQUERY_CLIENT_SECRET', '') }}"
       token_uri: "{{ env_var('DBT_BIGQUERY_TOKEN_URI', '') }}"
-      keyfile: "/opt/dagster/dagster_home/keyfile.json"
+      keyfile: "/opt/dagster/secrets/keyfile.json"
     staging:
       type: bigquery
       method: "{{ env_var('DBT_BIGQUERY_METHOD') }}"

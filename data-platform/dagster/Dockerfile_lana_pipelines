@@ -13,6 +13,12 @@ WORKDIR /opt/dagster/app
 
 COPY src/ /opt/dagster/app
 
+ENV SECRETS_FOLDER=/opt/dagster/secrets/
+
+RUN mkdir -p $SECRETS_FOLDER
+
+COPY keyfile.json $SECRETS_FOLDER
+
 EXPOSE 4000
 
 CMD ["dagster", "api", "grpc", "-h", "0.0.0.0", "-p", "4000", "-f", "lana_pipelines/definitions.py"]

@@ -17,7 +17,7 @@ with ordered as (
             as order_received_desc,
         _sdc_batched_at,
 
-    from {{ source("lana", "public_core_public_ids_view") }}
+    from {{ source("lana", "core_public_ids") }}
 
     {% if is_incremental() %}
         where

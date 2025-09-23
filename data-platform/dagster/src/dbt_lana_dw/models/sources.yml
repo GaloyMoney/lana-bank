@@ -4,7 +4,7 @@ sources:
   - name: lana
     dataset: "{{ env_var('TARGET_BIGQUERY_DATASET', '') }}"
     tables:
-      - name: public_core_withdrawal_events_rollup_view
+      - name: core_withdrawal_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -13,7 +13,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_deposit_events_rollup_view
+      - name: core_deposit_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -22,7 +22,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_deposit_account_events_rollup_view
+      - name: core_deposit_account_events_rollup
         freshness:
           warn_after:
             count: 2
@@ -31,7 +31,7 @@ sources:
             count: 7
             period: day
 
-      - name: public_core_public_ids_view
+      - name: core_public_ids
         freshness:
           warn_after:
             count: 2

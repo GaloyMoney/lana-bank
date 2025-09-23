@@ -19,7 +19,7 @@ def build_lana_source_asset(table_name):
 
 def build_lana_to_dw_el_asset(table_name):
 
-    name = f"public_{table_name}_view"
+    name = f"{table_name}"
     
     @dg.asset(
         key_prefix=["lana"],
@@ -53,7 +53,7 @@ def build_lana_to_dw_el_asset(table_name):
             dataset_name="counterweight_dataset",
         )
 
-        destination_table_name = f"lana__{table_name}"
+        destination_table_name = f"{table_name}"
         
         load_info = pipeline.run(
             postgres_resource,

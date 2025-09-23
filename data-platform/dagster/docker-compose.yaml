@@ -20,7 +20,7 @@ services:
       DBT_BIGQUERY_CLIENT_ID: ${DBT_BIGQUERY_CLIENT_ID}
       DBT_BIGQUERY_CLIENT_SECRET: ${DBT_BIGQUERY_CLIENT_SECRET}
       DBT_BIGQUERY_TOKEN_URI: ${DBT_BIGQUERY_TOKEN_URI}
-      DBT_BIGQUERY_KEYFILE: ${DBT_BIGQUERY_KEYFILE}
+      DBT_BIGQUERY_KEYFILE: /opt/dagster/secrets/keyfile.json
     networks:
       - dagster_network
 
@@ -75,6 +75,7 @@ services:
       DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
       DAGSTER_POSTGRES_DB: 'postgres_db'
       TF_VAR_sa_creds: ${TF_VAR_sa_creds}
+      TARGET_BIGQUERY_DATASET: ${TARGET_BIGQUERY_DATASET}
       DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
@@ -82,7 +83,7 @@ services:
       DBT_BIGQUERY_CLIENT_ID: ${DBT_BIGQUERY_CLIENT_ID}
       DBT_BIGQUERY_CLIENT_SECRET: ${DBT_BIGQUERY_CLIENT_SECRET}
       DBT_BIGQUERY_TOKEN_URI: ${DBT_BIGQUERY_TOKEN_URI}
-      DBT_BIGQUERY_KEYFILE: ${DBT_BIGQUERY_KEYFILE}
+      DBT_BIGQUERY_KEYFILE: /opt/dagster/secrets/keyfile.json
     volumes: # Make docker client accessible so we can launch containers using host docker
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage
