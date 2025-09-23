@@ -33,7 +33,7 @@ gql`
 type DepositRevertDialogProps = {
   setOpenDepositRevertDialog: (isOpen: boolean) => void
   openDepositRevertDialog: boolean
-  depositData: NonNullable<GetDepositDetailsQuery["deposit"]>
+  depositData: NonNullable<GetDepositDetailsQuery["depositByPublicId"]>
 }
 
 export const DepositRevertDialog: React.FC<DepositRevertDialogProps> = ({

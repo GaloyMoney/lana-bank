@@ -302,6 +302,16 @@ export type ChartOfAccountsCsvImportPayload = {
   chartOfAccounts: ChartOfAccounts;
 };
 
+export type Collateral = {
+  __typename?: 'Collateral';
+  account: LedgerAccount;
+  accountId: Scalars['UUID']['output'];
+  collateralId: Scalars['UUID']['output'];
+  creditFacility: CreditFacility;
+  id: Scalars['ID']['output'];
+  walletId?: Maybe<Scalars['UUID']['output']>;
+};
+
 export enum CollateralAction {
   Add = 'ADD',
   Remove = 'REMOVE'
@@ -1064,6 +1074,7 @@ export type Deposit = {
   createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: DepositStatus;
 };
@@ -1422,7 +1433,7 @@ export type LedgerAccountEdge = {
   node: LedgerAccount;
 };
 
-export type LedgerAccountEntity = CreditFacility | DepositAccount;
+export type LedgerAccountEntity = Collateral | CreditFacility | DepositAccount;
 
 export type LedgerTransaction = {
   __typename?: 'LedgerTransaction';
@@ -1454,7 +1465,7 @@ export type LedgerTransactionEdge = {
   node: LedgerTransaction;
 };
 
-export type LedgerTransactionEntity = Deposit | Withdrawal;
+export type LedgerTransactionEntity = CreditFacilityDisbursal | Deposit | Withdrawal;
 
 export type Loan = {
   __typename?: 'Loan';
@@ -1971,7 +1982,7 @@ export type ProfitAndLossStatementModuleConfigurePayload = {
   profitAndLossConfig: ProfitAndLossStatementModuleConfig;
 };
 
-export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | DepositAccount;
+export type PublicIdTarget = CreditFacility | CreditFacilityDisbursal | Customer | Deposit | DepositAccount | Withdrawal;
 
 export type Query = {
   __typename?: 'Query';
@@ -1999,6 +2010,7 @@ export type Query = {
   dashboard: Dashboard;
   deposit?: Maybe<Deposit>;
   depositAccount?: Maybe<DepositAccount>;
+  depositByPublicId?: Maybe<Deposit>;
   depositConfig?: Maybe<DepositModuleConfig>;
   deposits: DepositConnection;
   disbursal?: Maybe<CreditFacilityDisbursal>;
@@ -2029,6 +2041,7 @@ export type Query = {
   user?: Maybe<User>;
   users: Array<User>;
   withdrawal?: Maybe<Withdrawal>;
+  withdrawalByPublicId?: Maybe<Withdrawal>;
   withdrawals: WithdrawalConnection;
 };
 
@@ -2142,6 +2155,11 @@ export type QueryDepositArgs = {
 
 export type QueryDepositAccountArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryDepositByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
 };
 
 
@@ -2274,6 +2292,11 @@ export type QueryUserArgs = {
 
 export type QueryWithdrawalArgs = {
   id: Scalars['UUID']['input'];
+};
+
+
+export type QueryWithdrawalByPublicIdArgs = {
+  id: Scalars['PublicId']['input'];
 };
 
 
@@ -2665,6 +2688,7 @@ export type Withdrawal = {
   approvalProcessId: Scalars['UUID']['output'];
   createdAt: Scalars['Timestamp']['output'];
   id: Scalars['ID']['output'];
+  publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: WithdrawalStatus;
   withdrawalId: Scalars['UUID']['output'];
@@ -2774,7 +2798,7 @@ export type AllActionsQueryVariables = Exact<{ [key: string]: never; }>;
 export type AllActionsQuery = { __typename?: 'Query', approvalProcesses: { __typename?: 'ApprovalProcessConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, hasPreviousPage: boolean }, edges: Array<{ __typename?: 'ApprovalProcessEdge', cursor: string, node: { __typename?: 'ApprovalProcess', id: string, approvalProcessType: ApprovalProcessType, status: ApprovalProcessStatus, userCanSubmitDecision: boolean, createdAt: any, target:
           | { __typename: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, creditFacility: { __typename?: 'CreditFacility', publicId: any, customer: { __typename?: 'Customer', email: string } } }
           | { __typename: 'CreditFacilityProposal', creditFacilityProposalId: string, customer: { __typename?: 'Customer', email: string } }
-          | { __typename: 'Withdrawal', withdrawalId: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', email: string } } }
+          | { __typename: 'Withdrawal', withdrawalId: string, publicId: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', email: string } } }
          } }> } };
 
 export type AuditLogsQueryVariables = Exact<{
@@ -2927,6 +2951,57 @@ export type GetCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', credit
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null } | null };
+
+export type LedgerAccountInfoFragment = { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+    | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+    | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+   };
+
+export type CreditFacilityLedgerAccountsQueryVariables = Exact<{
+  publicId: Scalars['PublicId']['input'];
+}>;
+
+
+export type CreditFacilityLedgerAccountsQuery = { __typename?: 'Query', creditFacilityByPublicId?: { __typename?: 'CreditFacility', id: string, ledgerAccounts: { __typename?: 'CreditFacilityLedgerAccounts', facilityAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, inLiquidationAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedReceivableDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedReceivableOverdueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, disbursedDefaultedAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, collateralAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestReceivableNotYetDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestReceivableDueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestReceivableOverdueAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestDefaultedAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, interestIncomeAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         }, feeIncomeAccount: { __typename?: 'LedgerAccount', name: string, ledgerAccountId: string, normalBalanceType: DebitOrCredit, balanceRange:
+          | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', net: SignedSatoshis } } }
+          | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', net: SignedUsdCents } } }
+         } } } | null };
 
 export type CreditFacilityHistoryFragmentFragment = { __typename?: 'CreditFacility', id: string, creditFacilityId: string, history: Array<
     | { __typename?: 'CreditFacilityApproved', cents: UsdCents, recordedAt: any, txId: string, effective: any }
@@ -3235,12 +3310,12 @@ export type GetCustomerTransactionHistoryQueryVariables = Exact<{
 
 
 export type GetCustomerTransactionHistoryQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, customerType: CustomerType, depositAccount?: { __typename?: 'DepositAccount', depositAccountId: string, history: { __typename?: 'DepositAccountHistoryEntryConnection', pageInfo: { __typename?: 'PageInfo', hasNextPage: boolean, endCursor?: string | null, hasPreviousPage: boolean, startCursor?: string | null }, edges: Array<{ __typename?: 'DepositAccountHistoryEntryEdge', cursor: string, node:
-            | { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
-            | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
+            | { __typename?: 'CancelledWithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
+            | { __typename?: 'DepositEntry', recordedAt: any, deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus } }
             | { __typename?: 'DisbursalEntry', recordedAt: any, disbursal: { __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: string, publicId: any, amount: UsdCents, createdAt: any, status: DisbursalStatus } }
             | { __typename?: 'PaymentEntry', recordedAt: any, payment: { __typename?: 'CreditFacilityObligationInstallment', id: string, obligationInstallmentId: string, amount: UsdCents, createdAt: any } }
             | { __typename?: 'UnknownEntry' }
-            | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
+            | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
            }> } } | null } | null };
 
 export type CustomerEmailUpdateMutationVariables = Exact<{
@@ -3279,30 +3354,30 @@ export type DashboardQueryVariables = Exact<{ [key: string]: never; }>;
 
 export type DashboardQuery = { __typename?: 'Query', dashboard: { __typename?: 'Dashboard', activeFacilities: number, pendingFacilities: number, totalDisbursed: UsdCents, totalCollateral: Satoshis } };
 
-export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
+export type DepositDetailsPageFragmentFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } };
 
 export type GetDepositDetailsQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetDepositDetailsQuery = { __typename?: 'Query', deposit?: { __typename?: 'Deposit', id: string, depositId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
+export type GetDepositDetailsQuery = { __typename?: 'Query', depositByPublicId?: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } | null };
 
 export type DepositRevertMutationVariables = Exact<{
   input: DepositRevertInput;
 }>;
 
 
-export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type DepositRevertMutation = { __typename?: 'Mutation', depositRevert: { __typename?: 'DepositRevertPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, amount: UsdCents, createdAt: any, reference: string, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
 export type CreateDepositMutationVariables = Exact<{
   input: DepositRecordInput;
 }>;
 
 
-export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: string, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type CreateDepositMutation = { __typename?: 'Mutation', depositRecord: { __typename?: 'DepositRecordPayload', deposit: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', id: string, deposits: Array<{ __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
-export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, depositId: string, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
+export type DepositFieldsFragment = { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
 export type DepositsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3310,7 +3385,7 @@ export type DepositsQueryVariables = Exact<{
 }>;
 
 
-export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', id: string, depositId: string, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
+export type DepositsQuery = { __typename?: 'Query', deposits: { __typename?: 'DepositConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'DepositEdge', cursor: string, node: { __typename?: 'Deposit', id: string, depositId: string, publicId: any, reference: string, createdAt: any, amount: UsdCents, status: DepositStatus, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
 
 export type GetDisbursalDetailsQueryVariables = Exact<{
   publicId: Scalars['PublicId']['input'];
@@ -3396,7 +3471,11 @@ export type AccountingCsvDownloadLinkGenerateMutationVariables = Exact<{
 
 export type AccountingCsvDownloadLinkGenerateMutation = { __typename?: 'Mutation', accountingCsvDownloadLinkGenerate: { __typename?: 'AccountingCsvDownloadLinkGeneratePayload', link: { __typename?: 'AccountingCsvDownloadLink', url: string, csvId: string } } };
 
-export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange:
+export type LedgerAccountDetailsFragment = { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+    | { __typename: 'Collateral', creditFacility: { __typename?: 'CreditFacility', publicId: any } }
+    | { __typename: 'CreditFacility', publicId: any }
+    | { __typename: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', publicId: any } }
+   | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
     | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
     | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
   , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
@@ -3411,7 +3490,11 @@ export type LedgerAccountByCodeQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange:
+export type LedgerAccountByCodeQuery = { __typename?: 'Query', ledgerAccountByCode?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+      | { __typename: 'Collateral', creditFacility: { __typename?: 'CreditFacility', publicId: any } }
+      | { __typename: 'CreditFacility', publicId: any }
+      | { __typename: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', publicId: any } }
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
     , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
@@ -3426,7 +3509,11 @@ export type LedgerAccountQueryVariables = Exact<{
 }>;
 
 
-export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, name: string, code?: any | null }>, balanceRange:
+export type LedgerAccountQuery = { __typename?: 'Query', ledgerAccount?: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null, entity?:
+      | { __typename: 'Collateral', creditFacility: { __typename?: 'CreditFacility', publicId: any } }
+      | { __typename: 'CreditFacility', publicId: any }
+      | { __typename: 'DepositAccount', depositAccountId: string, customer: { __typename?: 'Customer', publicId: any } }
+     | null, ancestors: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, children: Array<{ __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, name: string, code?: any | null }>, balanceRange:
       | { __typename: 'BtcLedgerAccountBalanceRange', close: { __typename?: 'BtcLedgerAccountBalance', btcSettled: { __typename?: 'BtcBalanceDetails', debit: Satoshis, credit: Satoshis, net: SignedSatoshis } } }
       | { __typename: 'UsdLedgerAccountBalanceRange', close: { __typename?: 'UsdLedgerAccountBalance', usdSettled: { __typename?: 'UsdBalanceDetails', debit: UsdCents, credit: UsdCents, net: SignedUsdCents } } }
     , history: { __typename?: 'JournalEntryConnection', edges: Array<{ __typename?: 'JournalEntryEdge', cursor: string, node: { __typename?: 'JournalEntry', id: string, entryId: string, txId: string, entryType: string, description?: string | null, direction: DebitOrCredit, layer: Layer, createdAt: any, amount:
@@ -3453,7 +3540,11 @@ export type LedgerTransactionQueryVariables = Exact<{
 }>;
 
 
-export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, entries: Array<{ __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
+export type LedgerTransactionQuery = { __typename?: 'Query', ledgerTransaction?: { __typename?: 'LedgerTransaction', id: string, ledgerTransactionId: string, createdAt: any, description?: string | null, effective: any, entity?:
+      | { __typename: 'CreditFacilityDisbursal', publicId: any }
+      | { __typename: 'Deposit', publicId: any }
+      | { __typename: 'Withdrawal', publicId: any }
+     | null, entries: Array<{ __typename?: 'JournalEntry', id: string, entryId: string, entryType: string, direction: DebitOrCredit, layer: Layer, amount:
         | { __typename: 'BtcAmount', btc: Satoshis }
         | { __typename: 'UsdAmount', usd: UsdCents }
       , ledgerAccount: { __typename?: 'LedgerAccount', id: string, ledgerAccountId: string, code?: any | null, name: string, closestAccountWithCode?: { __typename?: 'LedgerAccount', code?: any | null } | null } }> } | null };
@@ -3765,7 +3856,7 @@ export type WithdrawalCancelMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalCancelMutation = { __typename?: 'Mutation', withdrawalCancel: { __typename?: 'WithdrawalCancelPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
@@ -3775,22 +3866,22 @@ export type WithdrawalConfirmMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalConfirmMutation = { __typename?: 'Mutation', withdrawalConfirm: { __typename?: 'WithdrawalConfirmPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
 
-export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawDetailsPageFragmentFragment = { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
       | { __typename?: 'SystemApproval', autoApprove: boolean }
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } };
 
 export type GetWithdrawalDetailsQueryVariables = Exact<{
-  id: Scalars['UUID']['input'];
+  publicId: Scalars['PublicId']['input'];
 }>;
 
 
-export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawal?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type GetWithdrawalDetailsQuery = { __typename?: 'Query', withdrawalByPublicId?: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
         | { __typename?: 'SystemApproval', autoApprove: boolean }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } | null };
@@ -3800,7 +3891,7 @@ export type WithdrawalRevertMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, amount: UsdCents, status: WithdrawalStatus, reference: string, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+export type WithdrawalRevertMutation = { __typename?: 'Mutation', withdrawalRevert: { __typename?: 'WithdrawalRevertPayload', withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, amount: UsdCents, status: WithdrawalStatus, reference: string, createdAt: any, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, applicantId?: string | null, email: string, depositAccount?: { __typename?: 'DepositAccount', balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
           | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
           | { __typename?: 'SystemApproval', autoApprove: boolean }
         , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
@@ -3810,9 +3901,9 @@ export type WithdrawalInitiateMutationVariables = Exact<{
 }>;
 
 
-export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', withdrawals: Array<{ __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
+export type WithdrawalInitiateMutation = { __typename?: 'Mutation', withdrawalInitiate: { __typename?: 'WithdrawalInitiatePayload', withdrawal: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', id: string, customerId: string, email: string, depositAccount?: { __typename?: 'DepositAccount', withdrawals: Array<{ __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } }>, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } } } } };
 
-export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
+export type WithdrawalFieldsFragment = { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } };
 
 export type WithdrawalsQueryVariables = Exact<{
   first: Scalars['Int']['input'];
@@ -3820,7 +3911,7 @@ export type WithdrawalsQueryVariables = Exact<{
 }>;
 
 
-export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
+export type WithdrawalsQuery = { __typename?: 'Query', withdrawals: { __typename?: 'WithdrawalConnection', pageInfo: { __typename?: 'PageInfo', hasPreviousPage: boolean, hasNextPage: boolean, startCursor?: string | null, endCursor?: string | null }, edges: Array<{ __typename?: 'WithdrawalEdge', cursor: string, node: { __typename?: 'Withdrawal', id: string, status: WithdrawalStatus, reference: string, withdrawalId: string, publicId: any, createdAt: any, amount: UsdCents, account: { __typename?: 'DepositAccount', customer: { __typename?: 'Customer', customerId: string, email: string } } } }> } };
 
 export type AvatarQueryVariables = Exact<{ [key: string]: never; }>;
 
@@ -3862,7 +3953,9 @@ export type SearchPublicIdTargetQuery = { __typename?: 'Query', publicIdTarget?:
     | { __typename: 'CreditFacility', id: string, publicId: any, facilityAmount: UsdCents }
     | { __typename: 'CreditFacilityDisbursal', id: string, amount: UsdCents, publicId: any }
     | { __typename: 'Customer', id: string, customerId: string, publicId: any, email: string }
+    | { __typename: 'Deposit', id: string, amount: UsdCents, publicId: any, depositId: string }
     | { __typename: 'DepositAccount', id: string, customer: { __typename?: 'Customer', id: string, customerId: string, publicId: any, email: string } }
+    | { __typename: 'Withdrawal', id: string, amount: UsdCents, publicId: any, withdrawalId: string }
    | null };
 
 export type GetCreditFacilityPublicIdQueryVariables = Exact<{
@@ -4153,6 +4246,30 @@ export const CreditFacilityLayoutFragmentFragmentDoc = gql`
   userCanComplete
 }
     `;
+export const LedgerAccountInfoFragmentDoc = gql`
+    fragment LedgerAccountInfo on LedgerAccount {
+  name
+  ledgerAccountId
+  normalBalanceType
+  balanceRange {
+    __typename
+    ... on UsdLedgerAccountBalanceRange {
+      close {
+        usdSettled: settled {
+          net
+        }
+      }
+    }
+    ... on BtcLedgerAccountBalanceRange {
+      close {
+        btcSettled: settled {
+          net
+        }
+      }
+    }
+  }
+}
+    `;
 export const CreditFacilityHistoryFragmentFragmentDoc = gql`
     fragment CreditFacilityHistoryFragment on CreditFacility {
   id
@@ -4354,6 +4471,7 @@ export const DepositDetailsPageFragmentFragmentDoc = gql`
     fragment DepositDetailsPageFragment on Deposit {
   id
   depositId
+  publicId
   amount
   createdAt
   reference
@@ -4379,6 +4497,7 @@ export const DepositFieldsFragmentDoc = gql`
     fragment DepositFields on Deposit {
   id
   depositId
+  publicId
   reference
   createdAt
   amount
@@ -4397,13 +4516,32 @@ export const LedgerAccountDetailsFragmentDoc = gql`
   ledgerAccountId
   name
   code
+  entity {
+    __typename
+    ... on DepositAccount {
+      depositAccountId
+      customer {
+        publicId
+      }
+    }
+    ... on CreditFacility {
+      publicId
+    }
+    ... on Collateral {
+      creditFacility {
+        publicId
+      }
+    }
+  }
   ancestors {
     id
+    ledgerAccountId
     name
     code
   }
   children {
     id
+    ledgerAccountId
     name
     code
   }
@@ -4525,9 +4663,11 @@ export const WithdrawDetailsPageFragmentFragmentDoc = gql`
     fragment WithdrawDetailsPageFragment on Withdrawal {
   id
   withdrawalId
+  publicId
   amount
   status
   reference
+  createdAt
   account {
     customer {
       id
@@ -4554,6 +4694,7 @@ export const WithdrawalFieldsFragmentDoc = gql`
   status
   reference
   withdrawalId
+  publicId
   createdAt
   amount
   account {
@@ -4653,6 +4794,7 @@ export const AllActionsDocument = gql`
           __typename
           ... on Withdrawal {
             withdrawalId
+            publicId
             account {
               customer {
                 email
@@ -5318,6 +5460,87 @@ export type GetCreditFacilityLayoutDetailsQueryHookResult = ReturnType<typeof us
 export type GetCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsLazyQuery>;
 export type GetCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityLayoutDetailsSuspenseQuery>;
 export type GetCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetCreditFacilityLayoutDetailsQuery, GetCreditFacilityLayoutDetailsQueryVariables>;
+export const CreditFacilityLedgerAccountsDocument = gql`
+    query CreditFacilityLedgerAccounts($publicId: PublicId!) {
+  creditFacilityByPublicId(id: $publicId) {
+    id
+    ledgerAccounts {
+      facilityAccount {
+        ...LedgerAccountInfo
+      }
+      inLiquidationAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedReceivableNotYetDueAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedReceivableDueAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedReceivableOverdueAccount {
+        ...LedgerAccountInfo
+      }
+      disbursedDefaultedAccount {
+        ...LedgerAccountInfo
+      }
+      collateralAccount {
+        ...LedgerAccountInfo
+      }
+      interestReceivableNotYetDueAccount {
+        ...LedgerAccountInfo
+      }
+      interestReceivableDueAccount {
+        ...LedgerAccountInfo
+      }
+      interestReceivableOverdueAccount {
+        ...LedgerAccountInfo
+      }
+      interestDefaultedAccount {
+        ...LedgerAccountInfo
+      }
+      interestIncomeAccount {
+        ...LedgerAccountInfo
+      }
+      feeIncomeAccount {
+        ...LedgerAccountInfo
+      }
+    }
+  }
+}
+    ${LedgerAccountInfoFragmentDoc}`;
+
+/**
+ * __useCreditFacilityLedgerAccountsQuery__
+ *
+ * To run a query within a React component, call `useCreditFacilityLedgerAccountsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useCreditFacilityLedgerAccountsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useCreditFacilityLedgerAccountsQuery({
+ *   variables: {
+ *      publicId: // value for 'publicId'
+ *   },
+ * });
+ */
+export function useCreditFacilityLedgerAccountsQuery(baseOptions: Apollo.QueryHookOptions<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables> & ({ variables: CreditFacilityLedgerAccountsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>(CreditFacilityLedgerAccountsDocument, options);
+      }
+export function useCreditFacilityLedgerAccountsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>(CreditFacilityLedgerAccountsDocument, options);
+        }
+export function useCreditFacilityLedgerAccountsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>(CreditFacilityLedgerAccountsDocument, options);
+        }
+export type CreditFacilityLedgerAccountsQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsQuery>;
+export type CreditFacilityLedgerAccountsLazyQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsLazyQuery>;
+export type CreditFacilityLedgerAccountsSuspenseQueryHookResult = ReturnType<typeof useCreditFacilityLedgerAccountsSuspenseQuery>;
+export type CreditFacilityLedgerAccountsQueryResult = Apollo.QueryResult<CreditFacilityLedgerAccountsQuery, CreditFacilityLedgerAccountsQueryVariables>;
 export const GetCreditFacilityHistoryDocument = gql`
     query GetCreditFacilityHistory($publicId: PublicId!) {
   creditFacilityByPublicId(id: $publicId) {
@@ -6376,6 +6599,7 @@ export const GetCustomerTransactionHistoryDocument = gql`
               deposit {
                 id
                 depositId
+                publicId
                 accountId
                 amount
                 createdAt
@@ -6388,6 +6612,7 @@ export const GetCustomerTransactionHistoryDocument = gql`
               withdrawal {
                 id
                 withdrawalId
+                publicId
                 accountId
                 amount
                 createdAt
@@ -6400,6 +6625,7 @@ export const GetCustomerTransactionHistoryDocument = gql`
               withdrawal {
                 id
                 withdrawalId
+                publicId
                 accountId
                 amount
                 createdAt
@@ -6693,8 +6919,8 @@ export type DashboardLazyQueryHookResult = ReturnType<typeof useDashboardLazyQue
 export type DashboardSuspenseQueryHookResult = ReturnType<typeof useDashboardSuspenseQuery>;
 export type DashboardQueryResult = Apollo.QueryResult<DashboardQuery, DashboardQueryVariables>;
 export const GetDepositDetailsDocument = gql`
-    query GetDepositDetails($id: UUID!) {
-  deposit(id: $id) {
+    query GetDepositDetails($publicId: PublicId!) {
+  depositByPublicId(id: $publicId) {
     ...DepositDetailsPageFragment
   }
 }
@@ -6712,7 +6938,7 @@ export const GetDepositDetailsDocument = gql`
  * @example
  * const { data, loading, error } = useGetDepositDetailsQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      publicId: // value for 'publicId'
  *   },
  * });
  */
@@ -7455,6 +7681,18 @@ export const LedgerTransactionDocument = gql`
     createdAt
     description
     effective
+    entity {
+      __typename
+      ... on Deposit {
+        publicId
+      }
+      ... on Withdrawal {
+        publicId
+      }
+      ... on CreditFacilityDisbursal {
+        publicId
+      }
+    }
     entries {
       id
       entryId
@@ -9113,8 +9351,8 @@ export type WithdrawalConfirmMutationHookResult = ReturnType<typeof useWithdrawa
 export type WithdrawalConfirmMutationResult = Apollo.MutationResult<WithdrawalConfirmMutation>;
 export type WithdrawalConfirmMutationOptions = Apollo.BaseMutationOptions<WithdrawalConfirmMutation, WithdrawalConfirmMutationVariables>;
 export const GetWithdrawalDetailsDocument = gql`
-    query GetWithdrawalDetails($id: UUID!) {
-  withdrawal(id: $id) {
+    query GetWithdrawalDetails($publicId: PublicId!) {
+  withdrawalByPublicId(id: $publicId) {
     ...WithdrawDetailsPageFragment
   }
 }
@@ -9132,7 +9370,7 @@ export const GetWithdrawalDetailsDocument = gql`
  * @example
  * const { data, loading, error } = useGetWithdrawalDetailsQuery({
  *   variables: {
- *      id: // value for 'id'
+ *      publicId: // value for 'publicId'
  *   },
  * });
  */
@@ -9514,6 +9752,18 @@ export const SearchPublicIdTargetDocument = gql`
       id
       amount
       publicId
+    }
+    ... on Deposit {
+      id
+      amount
+      publicId
+      depositId
+    }
+    ... on Withdrawal {
+      id
+      amount
+      publicId
+      withdrawalId
     }
   }
 }

@@ -210,6 +210,8 @@
       "depositAccount": "Cuenta de depósito",
       "creditFacility": "Línea de crédito",
       "disbursal": "Desembolso",
+      "deposit": "Depósito",
+      "withdrawal": "Retiro",
       "amount": "Monto",
       "facilityAmount": "Monto de línea"
     }
@@ -667,6 +669,21 @@
           "paid": "Pagado"
         }
       },
+      "LedgerAccounts": {
+        "title": "Cuentas de Libro Mayor",
+        "description": "Cuentas de libro mayor asociadas con esta línea de crédito",
+        "table": {
+          "headers": {
+            "name": "Nombre de Cuenta",
+            "normalBalanceType": "Tipo de Balance",
+            "balance": "Balance"
+          }
+        },
+        "balanceTypes": {
+          "DEBIT": "Débito",
+          "CREDIT": "Crédito"
+        }
+      },
       "Disbursals": {
         "title": "Desembolsos",
         "description": "Desembolsos asociados con esta línea de crédito",
@@ -778,7 +795,8 @@
         "tabs": {
           "history": "Historial",
           "disbursals": "Desembolsos",
-          "repaymentPlan": "Plan de Pago"
+          "repaymentPlan": "Plan de Pago",
+          "ledgerAccounts": "Cuentas de Libro Mayor"
         },
         "errors": {
           "notFound": "No encontrado",
@@ -1207,11 +1225,11 @@
     "description": "Sumas de dinero añadidas desde líneas de crédito a las cuentas del cliente",
     "table": {
       "headers": {
-        "depositId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
         "amount": "Monto",
-        "status": "Estado"
+        "status": "Estado",
+        "depositId": "ID"
       },
       "errors": {
         "general": "Ocurrió un error al obtener los depósitos."
@@ -1267,7 +1285,6 @@
         "title": "Depósito",
         "fields": {
           "customerEmail": "Correo Electrónico del Cliente",
-          "depositId": "ID",
           "depositAmount": "Monto del Depósito",
           "depositReference": "Referencia del Depósito",
           "createdAt": "Fecha de Creación",
@@ -1277,7 +1294,8 @@
           "na": "N/A"
         },
         "buttons": {
-          "revert": "Revertir"
+          "revert": "Revertir",
+          "viewOnSumsub": "Ver en Sumsub"
         }
       }
     }
@@ -1287,11 +1305,11 @@
     "description": "Dinero retirado de las cuentas del cliente",
     "table": {
       "headers": {
-        "withdrawalId": "ID",
         "customer": "Cliente",
         "reference": "Referencia",
         "amount": "Monto",
-        "status": "Estado"
+        "status": "Estado",
+        "withdrawalId": "ID"
       },
       "errors": {
         "general": "Ocurrió un error al obtener los retiros."
@@ -1371,9 +1389,9 @@
         "title": "Retiro",
         "fields": {
           "customerEmail": "Correo Electrónico del Cliente",
-          "withdrawalId": "ID",
           "withdrawalAmount": "Monto del Retiro",
           "withdrawalReference": "Referencia del Retiro",
+          "createdAt": "Fecha de registro",
           "status": "Estado"
         },
         "values": {
@@ -1384,7 +1402,8 @@
           "cancel": "Cancelar",
           "approve": "Aprobar",
           "deny": "Rechazar",
-          "revert": "Revertir"
+          "revert": "Revertir",
+          "viewOnSumsub": "Ver en Sumsub"
         }
       }
     },
@@ -1895,6 +1914,8 @@
     },
     "addChildNode": "Agregar subcuenta",
     "addAccount": "Agregar cuenta",
+    "viewCustomer": "Ver Cliente",
+    "viewCreditFacility": "Ver Línea de Crédito",
     "table": {
       "noData": "No hay transacciones presentes en esta cuenta",
       "columns": {
@@ -1970,6 +1991,9 @@
     "title": "Partida contable",
     "description": "Un registro de una partida contable en el libro mayor",
     "noEntries": "Sin asientos",
+    "viewDeposit": "Ver depósito",
+    "viewWithdrawal": "Ver retiro",
+    "viewDisbursal": "Ver Desembolso",
     "details": {
       "description": "Descripción",
       "createdAt": "Fecha de registro",

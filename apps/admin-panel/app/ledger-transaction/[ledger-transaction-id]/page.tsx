@@ -9,8 +9,14 @@ import Link from "next/link"
 import { formatDate } from "@lana/web/utils"
 
 import { Card, CardContent, CardHeader, CardTitle } from "@lana/web/ui/card"
+import { Button } from "@lana/web/ui/button"
+import { ArrowRight } from "lucide-react"
 
-import { useLedgerTransactionQuery, DebitOrCredit } from "@/lib/graphql/generated"
+import {
+  useLedgerTransactionQuery,
+  DebitOrCredit,
+  LedgerTransactionQuery,
+} from "@/lib/graphql/generated"
 import { DetailsCard } from "@/components/details"
 import Balance from "@/components/balance/balance"
 import DataTable from "@/components/data-table"
@@ -24,6 +30,18 @@ gql`
       createdAt
       description
       effective
+      entity {
+        __typename
+        ... on Deposit {
+          publicId
+        }
+        ... on Withdrawal {
+          publicId
+        }
+        ... on CreditFacilityDisbursal {
+          publicId
+        }
+      }
       entries {
         id
         entryId
@@ -67,6 +85,16 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
     variables: { id },
   })
 
+  const entityUrl = getEntityforTransaction(data?.ledgerTransaction?.entity, t)
+  const footerContent = entityUrl ? (
+    <Button asChild variant="outline">
+      <Link href={entityUrl.url} className="flex items-center gap-1">
+        {entityUrl.label}
+        <ArrowRight className="h-4 w-4" />
+      </Link>
+    </Button>
+  ) : undefined
+
   return (
     <>
       <DetailsCard
@@ -89,6 +117,7 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
             }),
           },
         ]}
+        footerContent={footerContent}
         errorMessage={error?.message}
       />
       <Card className="mt-2">
@@ -171,3 +200,20 @@ const LedgerTransactionPage: React.FC<LedgerTransactionPageProps> = ({ params })
 }
 
 export default LedgerTransactionPage
+
+const getEntityforTransaction = (
+  entity: NonNullable<LedgerTransactionQuery["ledgerTransaction"]>["entity"],
+  t: (key: string) => string,
+): { url: string; label: string } | null => {
+  if (!entity) return null
+  switch (entity.__typename) {
+    case "Deposit":
+      return { url: `/deposits/${entity.publicId}`, label: t("viewDeposit") }
+    case "Withdrawal":
+      return { url: `/withdrawals/${entity.publicId}`, label: t("viewWithdrawal") }
+    case "CreditFacilityDisbursal":
+      return { url: `/disbursals/${entity.publicId}`, label: t("viewDisbursal") }
+  }
+  const exhaustiveCheck: never = entity
+  return exhaustiveCheck
+}

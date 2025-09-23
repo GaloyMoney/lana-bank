@@ -1,0 +1,11 @@
+version: 2
+
+models:
+  - name: int_nrp_41_03_referencia_garantia
+    columns:
+      - name: num_referencia
+        tests:
+          - not_null_quoted
+      - name: identificacion_garantia
+        tests:
+          - not_null_quoted

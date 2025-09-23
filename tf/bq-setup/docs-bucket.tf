@@ -3,6 +3,7 @@ resource "google_storage_bucket" "docs" {
   project                     = local.gcp_project
   location                    = local.gcp_region
   uniform_bucket_level_access = true
+  force_destroy               = local.force_destroy_bucket
   versioning {
     enabled = true
   }

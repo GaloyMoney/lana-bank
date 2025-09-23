@@ -1,0 +1,128 @@
+{
+  "$defs": {
+    "AccountCode": {
+      "properties": {
+        "sections": {
+          "items": {
+            "$ref": "#/$defs/AccountCodeSection"
+          },
+          "type": "array"
+        }
+      },
+      "required": [
+        "sections"
+      ],
+      "type": "object"
+    },
+    "AccountCodeSection": {
+      "properties": {
+        "code": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "code"
+      ],
+      "type": "object"
+    },
+    "AccountName": {
+      "properties": {
+        "name": {
+          "type": "string"
+        }
+      },
+      "required": [
+        "name"
+      ],
+      "type": "object"
+    },
+    "AccountSpec": {
+      "properties": {
+        "code": {
+          "$ref": "#/$defs/AccountCode"
+        },
+        "name": {
+          "$ref": "#/$defs/AccountName"
+        },
+        "normal_balance_type": {
+          "$ref": "#/$defs/DebitOrCredit"
+        },
+        "parent": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/AccountCode"
+            },
+            {
+              "type": "null"
+            }
+          ]
+        }
+      },
+      "required": [
+        "code",
+        "name",
+        "normal_balance_type"
+      ],
+      "type": "object"
+    },
+    "DebitOrCredit": {
+      "enum": [
+        "debit",
+        "credit"
+      ],
+      "type": "string"
+    }
+  },
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "oneOf": [
+    {
+      "properties": {
+        "chart_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "ledger_account_set_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "spec": {
+          "$ref": "#/$defs/AccountSpec"
+        },
+        "type": {
+          "const": "initialized",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "id",
+        "chart_id",
+        "spec",
+        "ledger_account_set_id"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "ledger_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "manual_transaction_account_assigned",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "ledger_account_id"
+      ],
+      "type": "object"
+    }
+  ],
+  "title": "ChartNodeEvent"
+}

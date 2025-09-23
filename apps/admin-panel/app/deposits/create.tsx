@@ -107,7 +107,7 @@ export const CreateDepositDialog: React.FC<CreateDepositDialogProps> = ({
         })
         toast.success(t("success"))
         handleCloseDialog()
-        router.push(`/deposits/${result.data.depositRecord.deposit.depositId}`)
+        router.push(`/deposits/${result.data.depositRecord.deposit.publicId}`)
       } else {
         throw new Error(t("errors.noData"))
       }

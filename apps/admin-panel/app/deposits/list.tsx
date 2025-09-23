@@ -13,11 +13,13 @@ import PaginatedTable, {
   PaginatedData,
 } from "@/components/paginated-table"
 import Balance from "@/components/balance/balance"
+import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
   fragment DepositFields on Deposit {
     id
     depositId
+    publicId
     reference
     createdAt
     amount
@@ -65,7 +67,7 @@ const Deposits = () => {
         loading={loading}
         fetchMore={async (cursor) => fetchMore({ variables: { after: cursor } })}
         pageSize={DEFAULT_PAGESIZE}
-        navigateTo={(deposit) => `/deposits/${deposit.depositId}`}
+        navigateTo={(deposit) => `/deposits/${deposit.publicId}`}
       />
     </div>
   )
@@ -75,24 +77,9 @@ export default Deposits
 
 const columns = (t: ReturnType<typeof useTranslations>): Column<Deposit>[] => [
   {
-    key: "depositId",
-    label: t("headers.depositId") || "ID",
-    render: (depositId) => {
-      // Format the deposit ID to show only the first 4 and last 4 characters
-      const shortId = `${depositId.substring(0, 4)}...${depositId.substring(depositId.length - 4)}`
-
-      return (
-        <a
-          href={`https://cockpit.sumsub.com/checkus#/kyt/txns?search=${depositId}`}
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-primary hover:underline"
-          title={`Full ID: ${depositId}`}
-        >
-          {shortId}
-        </a>
-      )
-    },
+    key: "publicId",
+    label: t("headers.depositId"),
+    render: (publicId) => <PublicIdBadge publicId={publicId} />,
   },
   {
     key: "account",

@@ -3,8 +3,27 @@ use sqlx::PgPool;
 use es_entity::*;
 
 use crate::primitives::ChartId;
+use crate::primitives::ChartNodeId;
 
 use super::{entity::*, error::ChartOfAccountsError};
+use crate::chart_node::*;
+
+#[derive(EsRepo, Clone)]
+#[es_repo(
+    entity = "ChartNode",
+    err = "ChartOfAccountsError",
+    columns(chart_id(ty = "ChartId", update(persist = false), parent)),
+    tbl_prefix = "core"
+)]
+struct ChartNodeRepo {
+    #[allow(dead_code)]
+    pool: PgPool,
+}
+impl ChartNodeRepo {
+    pub fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
+    }
+}
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -15,10 +34,17 @@ use super::{entity::*, error::ChartOfAccountsError};
 )]
 pub struct ChartRepo {
     pool: PgPool,
+
+    #[es_repo(nested)]
+    chart_nodes: ChartNodeRepo,
 }
 
 impl ChartRepo {
     pub fn new(pool: &PgPool) -> Self {
-        Self { pool: pool.clone() }
+        let chart_nodes = ChartNodeRepo::new(pool);
+        Self {
+            pool: pool.clone(),
+            chart_nodes,
+        }
     }
 }

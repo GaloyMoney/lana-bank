@@ -16,7 +16,7 @@ customers as (
 )
 
 select
-    left(replace(customer_id, '-', ''), 14) as `NIU`,
+    customer_public_ids.id as `NIU`,
     split(first_name, ' ')[safe_offset(0)] as `Primer Nombre`,
     split(first_name, ' ')[safe_offset(1)] as `Segundo Nombre`,
     cast(null as string) as `Tercer Nombre`,
@@ -46,3 +46,5 @@ select
     least(sum_total_collateral_amount_usd, {{ var('deposits_coverage_limit') }}) as `Saldo garantizado`
 from
     customers
+left join
+    {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id

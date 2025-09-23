@@ -365,6 +365,27 @@ where
         Ok(())
     }
 
+    #[instrument(name = "credit.credit_facility.find_by_public_id", skip(self), err)]
+    pub async fn find_by_public_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
+    ) -> Result<Option<CreditFacility>, CreditFacilityError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+
+        match self.repo.find_by_public_id(public_id.into()).await {
+            Ok(credit_facility) => Ok(Some(credit_facility)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
     pub(super) async fn update_collateralization_from_price(
         &self,
         upgrade_buffer_cvl_pct: CVLPct,

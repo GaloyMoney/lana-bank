@@ -429,7 +429,7 @@ const CreateButton = () => {
 type ICustomer = Customer | null
 type IFacility = CreditFacility | null
 type ITermsTemplate = TermsTemplateQuery["termsTemplate"] | null
-type IWithdraw = GetWithdrawalDetailsQuery["withdrawal"] | null
+type IWithdraw = GetWithdrawalDetailsQuery["withdrawalByPublicId"] | null
 type IPolicy = GetPolicyDetailsQuery["policy"] | null
 type ICommittee = GetCommitteeDetailsQuery["committee"] | null
 type IDisbursal = GetDisbursalDetailsQuery["disbursalByPublicId"] | null

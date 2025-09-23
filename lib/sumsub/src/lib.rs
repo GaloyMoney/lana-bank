@@ -10,8 +10,8 @@ pub mod testing_utils;
 
 use hmac::{Hmac, Mac};
 use reqwest::{
-    header::{HeaderMap, HeaderValue},
     Client as ReqwestClient, Url,
+    header::{HeaderMap, HeaderValue},
 };
 use serde_json::json;
 use sha2::Sha256;

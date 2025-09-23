@@ -115,10 +115,10 @@ export const CustomerTransactionsTable: React.FC<CustomerTransactionsTableProps>
   const getNavigateUrl = (entry: HistoryNode): string | null => {
     switch (entry.__typename) {
       case "DepositEntry":
-        return `/deposits/${entry.deposit.depositId}`
+        return `/deposits/${entry.deposit.publicId}`
       case "WithdrawalEntry":
       case "CancelledWithdrawalEntry":
-        return `/withdrawals/${entry.withdrawal.withdrawalId}`
+        return `/withdrawals/${entry.withdrawal.publicId}`
       case "DisbursalEntry":
         return `/disbursals/${entry.disbursal.publicId}`
       default:

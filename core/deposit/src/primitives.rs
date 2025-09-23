@@ -26,8 +26,10 @@ es_entity::entity_id! {
     DepositAccountHolderId => core_customer::CustomerId,
     DepositAccountId => CalaAccountId,
     DepositAccountId => public_id::PublicIdTargetId,
+    DepositId => public_id::PublicIdTargetId,
     DepositId => CalaTransactionId,
     WithdrawalId => CalaTransactionId,
+    WithdrawalId => public_id::PublicIdTargetId,
     WithdrawalId => ApprovalProcessId
 }
 
@@ -52,6 +54,10 @@ pub const PERMISSION_SET_DEPOSIT_FREEZE: &str = "deposit_freeze";
 
 pub const DEPOSIT_ACCOUNT_REF_TARGET: public_id::PublicIdTargetType =
     public_id::PublicIdTargetType::new("deposit_account");
+pub const DEPOSIT_REF_TARGET: public_id::PublicIdTargetType =
+    public_id::PublicIdTargetType::new("deposit");
+pub const WITHDRAWAL_REF_TARGET: public_id::PublicIdTargetType =
+    public_id::PublicIdTargetType::new("withdrawal");
 
 #[derive(Debug, Clone)]
 pub struct LedgerOmnibusAccountIds {

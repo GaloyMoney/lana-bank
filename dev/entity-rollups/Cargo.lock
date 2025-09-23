@@ -727,9 +727,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.11.3"
+version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "0cbe0f6feec69eae8d198cb801b3c08bbbec523a4c22487403e8c2cb22001106"
+checksum = "da1e323297bb61ea6f51eb2701bae54b6324ca3a07a88a13fedf7cf29c114448"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -743,9 +743,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.11.3"
+version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "bba48735739112b7c10c410305cf53f6d22b9abb73b90c22c64ac03ecd04ba79"
+checksum = "550a1cbc23eabab6f1638aaedbda9e17e966a2da1372f4de9bf197aaa6d560a5"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -753,9 +753,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.11.3"
+version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3c4c5f4b97be4e62a533da6e3da62522a67b41870cb75feac29aee059bbd8183"
+checksum = "e319d9670d8740a58e0bcc6a0d405467026d253ed31e42ef6afcf0095a42baa3"
 dependencies = [
  "cached",
  "cala-cel-interpreter",
@@ -765,7 +765,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "futures",
- "job 0.1.10",
+ "job 0.1.12",
  "opentelemetry",
  "prost",
  "prost-wkt-types",
@@ -788,9 +788,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.11.3"
+version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "8032c8ac332017e0bd29c48641a4266da060f9eab52dd250cfbf56f56406d892"
+checksum = "70c4fad1837909a56ee1d5caaed3c399a0e056cbb55d02bc231bfc00f342a8e7"
 dependencies = [
  "cala-cel-interpreter",
  "chrono",
@@ -809,9 +809,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.11.3"
+version = "0.11.4"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d8899aa1baa90bad491b969737131a7426b2c5f2b5f4878f724c621e205ca901"
+checksum = "f889d41ee2a36bf2b75737c0bd26a9a8f9789f26a4f527b42efbd1d76ead8be2"
 dependencies = [
  "anyhow",
  "axum-extra 0.9.6",
@@ -1667,9 +1667,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity"
-version = "0.8.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "47970e7cc632e2a420852e0289aae275987e13b7d2e08a94a6fb2ac36140238b"
+checksum = "fb76113b128c5973fbc1190e7e7f137745a5e520138efeec7b32206d8a55af5f"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -1691,9 +1691,9 @@ dependencies = [
 
 [[package]]
 name = "es-entity-macros"
-version = "0.8.0"
+version = "0.9.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "51dfcc0cfbaf6ca3851689c5375efee192e525a474f40b23af4e6c57bfe1af55"
+checksum = "772caf6c35edc483f2168d75ac1967615e04079b2c7d644ad0344a6e24130a4e"
 dependencies = [
  "convert_case",
  "darling 0.21.3",
@@ -2606,9 +2606,9 @@ dependencies = [
 
 [[package]]
 name = "job"
-version = "0.1.10"
+version = "0.1.12"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "dc2311577b1a4e6dbc351e172d74b5b94ca4194b12a4c858fdd543fd41a98302"
+checksum = "fbc97547bab9416fb9e5490474afef9f452611dbff8a478cf9dc3cf5bb093bdb"
 dependencies = [
  "async-trait",
  "chrono",
@@ -4211,9 +4211,9 @@ dependencies = [
 
 [[package]]
 name = "serde"
-version = "1.0.223"
+version = "1.0.225"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a505d71960adde88e293da5cb5eda57093379f64e61cf77bf0e6a63af07a7bac"
+checksum = "fd6c24dee235d0da097043389623fb913daddf92c76e9f5a1db88607a0bcbd1d"
 dependencies = [
  "serde_core",
  "serde_derive",
@@ -4221,18 +4221,18 @@ dependencies = [
 
 [[package]]
 name = "serde_core"
-version = "1.0.223"
+version = "1.0.225"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "20f57cbd357666aa7b3ac84a90b4ea328f1d4ddb6772b430caa5d9e1309bb9e9"
+checksum = "659356f9a0cb1e529b24c01e43ad2bdf520ec4ceaf83047b83ddcc2251f96383"
 dependencies = [
  "serde_derive",
 ]
 
 [[package]]
 name = "serde_derive"
-version = "1.0.223"
+version = "1.0.225"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "3d428d07faf17e306e699ec1e91996e5a165ba5d6bce5b5155173e91a8a01a56"
+checksum = "0ea936adf78b1f766949a4977b91d2f5595825bd6ec079aa9543ad2685fc4516"
 dependencies = [
  "proc-macro2",
  "quote",

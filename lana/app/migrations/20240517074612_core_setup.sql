@@ -65,6 +65,22 @@ CREATE TABLE core_chart_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_chart_nodes (
+    id UUID PRIMARY KEY,
+    chart_id UUID NOT NULL REFERENCES core_charts(id),
+    created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_chart_node_events (
+    id UUID NOT NULL REFERENCES core_chart_nodes(id),
+    sequence INT NOT NULL,
+    event_type VARCHAR NOT NULL,
+    event JSONB NOT NULL,
+    context JSONB DEFAULT NULL,
+    recorded_at TIMESTAMPTZ NOT NULL,
+    UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_public_ids (
   id VARCHAR PRIMARY KEY,
   target_id UUID NOT NULL,
@@ -131,6 +147,7 @@ CREATE TABLE core_deposits (
   id UUID PRIMARY KEY,
   deposit_account_id UUID NOT NULL REFERENCES core_deposit_accounts(id),
   reference VARCHAR NOT NULL UNIQUE,
+  public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -150,6 +167,7 @@ CREATE TABLE core_withdrawals (
   approval_process_id UUID REFERENCES core_approval_processes(id),
   cancelled_tx_id UUID DEFAULT NULL,
   reference VARCHAR NOT NULL UNIQUE,
+  public_id VARCHAR NOT NULL REFERENCES core_public_ids(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

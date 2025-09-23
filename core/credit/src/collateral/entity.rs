@@ -164,7 +164,7 @@ impl TryFromEvents<CollateralEvent> for Collateral {
                         .amount(Satoshis::ZERO)
                         .custody_wallet_id(*custody_wallet_id)
                         .credit_facility_id(*credit_facility_id)
-                        .credit_facility_proposal_id(*credit_facility_proposal_id);
+                        .credit_facility_proposal_id(*credit_facility_proposal_id)
                 }
                 CollateralEvent::UpdatedViaManualInput {
                     collateral_amount: new_value,

@@ -269,6 +269,15 @@ type ChartOfAccountsCsvImportPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
+type Collateral {
+	id: ID!
+	collateralId: UUID!
+	walletId: UUID
+	accountId: UUID!
+	account: LedgerAccount!
+	creditFacility: CreditFacility!
+}
+
 enum CollateralAction {
 	ADD
 	REMOVE
@@ -1051,6 +1060,7 @@ type Deposit {
 	accountId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	publicId: PublicId!
 	reference: String!
 	status: DepositStatus!
 	account: DepositAccount!
@@ -1417,7 +1427,7 @@ type LedgerAccountEdge {
 	cursor: String!
 }
 
-union LedgerAccountEntity = DepositAccount | CreditFacility
+union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
 
 type LedgerTransaction {
 	id: ID!
@@ -1458,7 +1468,7 @@ type LedgerTransactionEdge {
 	cursor: String!
 }
 
-union LedgerTransactionEntity = Deposit | Withdrawal
+union LedgerTransactionEntity = Deposit | Withdrawal | CreditFacilityDisbursal
 
 type LoanAgreement {
 	id: ID!
@@ -1738,7 +1748,7 @@ type ProfitAndLossStatementModuleConfigurePayload {
 
 scalar PublicId
 
-union PublicIdTarget = Customer | DepositAccount | CreditFacility | CreditFacilityDisbursal
+union PublicIdTarget = Customer | DepositAccount | Deposit | Withdrawal | CreditFacility | CreditFacilityDisbursal
 
 type Query {
 	me: Me!
@@ -1753,8 +1763,10 @@ type Query {
 	customerByPublicId(id: PublicId!): Customer
 	customers(first: Int!, after: String, sort: CustomersSort = {by: EMAIL, direction: ASC}, filter: CustomersFilter): CustomerConnection!
 	withdrawal(id: UUID!): Withdrawal
+	withdrawalByPublicId(id: PublicId!): Withdrawal
 	withdrawals(first: Int!, after: String): WithdrawalConnection!
 	deposit(id: UUID!): Deposit
+	depositByPublicId(id: PublicId!): Deposit
 	depositAccount(id: UUID!): DepositAccount
 	deposits(first: Int!, after: String): DepositConnection!
 	termsTemplate(id: UUID!): TermsTemplate
@@ -2185,6 +2197,7 @@ type Withdrawal {
 	approvalProcessId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
+	publicId: PublicId!
 	reference: String!
 	status: WithdrawalStatus!
 	approvalProcess: ApprovalProcess!

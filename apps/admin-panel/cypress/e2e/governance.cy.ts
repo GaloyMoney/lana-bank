@@ -131,8 +131,8 @@ describe("Governance Test", () => {
   it("Committee member should be able to approve a withdraw", () => {
     const amount = 1000
     cy.createDeposit(amount, depositAccountId).then(() => {
-      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalId) => {
-        cy.visit(`/withdrawals/${withdrawalId}`)
+      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalPublicId) => {
+        cy.visit(`/withdrawals/${withdrawalPublicId}`)
         cy.get("[data-testid=withdrawal-status-badge]").should("be.visible")
         cy.takeScreenshot("18_step-visit-withdrawal-details")
 
@@ -171,8 +171,8 @@ describe("Governance Test", () => {
   it("Committee member should be able to deny a withdraw", () => {
     const amount = 1000
     cy.createDeposit(amount, depositAccountId).then(() => {
-      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalId) => {
-        cy.visit(`/withdrawals/${withdrawalId}`)
+      cy.initiateWithdrawal(amount, depositAccountId).then((withdrawalPublicId) => {
+        cy.visit(`/withdrawals/${withdrawalPublicId}`)
         cy.get("[data-testid=withdrawal-status-badge]").should("be.visible")
         cy.takeScreenshot("21_step-visit-withdrawal-for-denial")
 

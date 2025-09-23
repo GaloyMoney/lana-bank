@@ -32,6 +32,9 @@
           "format": "uuid",
           "type": "string"
         },
+        "public_id": {
+          "type": "string"
+        },
         "reference": {
           "type": "string"
         },
@@ -50,7 +53,8 @@
         "deposit_account_id",
         "amount",
         "reference",
-        "status"
+        "status",
+        "public_id"
       ],
       "type": "object"
     },

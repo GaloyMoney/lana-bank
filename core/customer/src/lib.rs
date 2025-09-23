@@ -220,7 +220,7 @@ where
     pub async fn find_by_public_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        public_id: impl Into<String> + std::fmt::Debug,
+        public_id: impl Into<public_id::PublicId> + std::fmt::Debug,
     ) -> Result<Option<Customer>, CustomerError> {
         self.authz
             .enforce_permission(
@@ -230,11 +230,7 @@ where
             )
             .await?;
 
-        match self
-            .repo
-            .find_by_public_id(public_id::PublicId::new(public_id.into()))
-            .await
-        {
+        match self.repo.find_by_public_id(public_id.into()).await {
             Ok(customer) => Ok(Some(customer)),
             Err(e) if e.was_not_found() => Ok(None),
             Err(e) => Err(e),

@@ -45,8 +45,8 @@ use public_id::PublicIds;
 use tracing::instrument;
 
 pub use chart_of_accounts_integration::{
-    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrationConfigBuilderError,
-    ChartOfAccountsIntegrations, error::ChartOfAccountsIntegrationError,
+    ChartOfAccountsIntegrationConfig, ChartOfAccountsIntegrations,
+    error::ChartOfAccountsIntegrationError,
 };
 pub use collateral::*;
 pub use config::*;
