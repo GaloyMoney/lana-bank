@@ -1,5 +1,6 @@
 import {
   InterestInterval,
+  DisbursalPolicy,
   Period,
   CreateCommitteeMutationResult,
 } from "../../lib/graphql/generated/index"
@@ -24,6 +25,7 @@ describe("credit facility", () => {
       accrualCycleInterval: InterestInterval.EndOfMonth,
       accrualInterval: InterestInterval.EndOfDay,
       oneTimeFeeRate: "5",
+      disbursalPolicy: DisbursalPolicy.Multiple,
       liquidationCvl: "110",
       marginCallCvl: "120",
       initialCvl: "140",
@@ -92,10 +94,8 @@ describe("credit facility", () => {
         })
 
       cy.visit(`/policies`)
-      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').should(
-        "be.visible",
-      )
-      cy.get('[data-testid="table-row-1"] > :nth-child(3) > a > .gap-2').click()
+      cy.get('[data-testid="table-row-1"]').should("be.visible")
+      cy.get('[data-testid="table-row-1"]').find("a:has(button)").first().click()
       cy.get('[data-testid="policy-assign-committee"]').click()
       cy.get('[data-testid="policy-select-committee-selector"]').click()
       cy.get('[role="option"]').contains(committeeName).click()
@@ -107,10 +107,8 @@ describe("credit facility", () => {
       cy.contains(committeeName).should("be.visible")
 
       cy.visit(`/policies`)
-      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').should(
-        "be.visible",
-      )
-      cy.get('[data-testid="table-row-0"] > :nth-child(3) > a > .gap-2').click()
+      cy.get('[data-testid="table-row-0"]').should("be.visible")
+      cy.get('[data-testid="table-row-0"]').find("a:has(button)").first().click()
       cy.get('[data-testid="policy-assign-committee"]').click()
       cy.get('[data-testid="policy-select-committee-selector"]').click()
       cy.get('[role="option"]').contains(committeeName).click()

@@ -60,6 +60,10 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
       label: t("fields.oneTimeFeeRate"),
       value: `${termsTemplate.values.oneTimeFeeRate}%`,
     },
+    {
+      label: t("fields.disbursalPolicy"),
+      value: termsTemplate.values.disbursalPolicy,
+    },
   ]
 
   const footerContent = (

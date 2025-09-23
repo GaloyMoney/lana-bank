@@ -21,6 +21,7 @@ import { Label } from "@lana/web/ui/label"
 import {
   useUpdateTermsTemplateMutation,
   TermsTemplateFieldsFragment,
+  DisbursalPolicy,
 } from "@/lib/graphql/generated"
 import { DEFAULT_TERMS } from "@/lib/constants/terms"
 import { getCvlValue } from "@/lib/utils"
@@ -59,6 +60,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
     initialCvl: termsTemplate.values.initialCvl.toString(),
     oneTimeFeeRate: termsTemplate.values.oneTimeFeeRate.toString(),
+    disbursalPolicy: termsTemplate.values.disbursalPolicy,
   })
 
   const [error, setError] = useState<string | null>(null)
@@ -73,6 +75,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
         marginCallCvl: getCvlValue(termsTemplate.values.marginCallCvl).toString(),
         initialCvl: getCvlValue(termsTemplate.values.initialCvl).toString(),
         oneTimeFeeRate: termsTemplate.values.oneTimeFeeRate.toString(),
+        disbursalPolicy: termsTemplate.values.disbursalPolicy,
       })
     }
   }, [openUpdateTermsTemplateDialog, termsTemplate])
@@ -81,7 +84,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
     const { name, value } = e.target
     setFormValues((prevValues) => ({
       ...prevValues,
-      [name]: value,
+      [name]: name === "disbursalPolicy" ? (value as unknown as DisbursalPolicy) : value,
     }))
   }
 
@@ -117,6 +120,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
             oneTimeFeeRate: formValues.oneTimeFeeRate,
+            disbursalPolicy: formValues.disbursalPolicy,
           },
         },
       })
@@ -148,6 +152,7 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
       marginCallCvl: termsTemplate.values.marginCallCvl.toString(),
       initialCvl: termsTemplate.values.initialCvl.toString(),
       oneTimeFeeRate: termsTemplate.values.oneTimeFeeRate.toString(),
+      disbursalPolicy: termsTemplate.values.disbursalPolicy,
     })
     setError(null)
   }
@@ -182,6 +187,24 @@ export const UpdateTermsTemplateDialog: React.FC<UpdateTermsTemplateDialogProps>
                   value={formValues.annualRate}
                   onChange={handleChange}
                 />
+              </div>
+              <div>
+                <Label htmlFor="disbursalPolicy">{t("fields.disbursalPolicy")}</Label>
+                <select
+                  id="disbursalPolicy"
+                  name="disbursalPolicy"
+                  value={formValues.disbursalPolicy}
+                  onChange={handleChange}
+                  className="w-full h-9 border rounded-md px-3 text-sm bg-background"
+                  data-testid="terms-template-disbursal-policy-input"
+                >
+                  <option value={DisbursalPolicy.Multiple}>
+                    {DisbursalPolicy.Multiple}
+                  </option>
+                  <option value={DisbursalPolicy.SingleFullOnActivation}>
+                    {DisbursalPolicy.SingleFullOnActivation}
+                  </option>
+                </select>
               </div>
               <div>
                 <Label>{t("fields.duration")}</Label>

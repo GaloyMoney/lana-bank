@@ -58,8 +58,13 @@ describe("Terms Template", () => {
       .should("have.value", "5")
     cy.takeScreenshot("9_enter_fee_rate")
 
+    cy.get('[data-testid="terms-template-disbursal-policy-input"]')
+      .select("MULTIPLE")
+      .should("have.value", "MULTIPLE")
+    cy.takeScreenshot("10_enter_disbursal_policy")
+
     cy.get('[data-testid="terms-template-submit-button"]').click()
-    cy.takeScreenshot("10_submit_terms_template")
+    cy.takeScreenshot("11_submit_terms_template")
 
     cy.url().should(
       "match",
@@ -67,7 +72,7 @@ describe("Terms Template", () => {
     )
     cy.contains(templateName).should("be.visible")
     cy.contains(t(TTDetails + ".CreateTermsTemplate.title")).should("not.exist")
-    cy.takeScreenshot("11_verify_terms_template_creation")
+    cy.takeScreenshot("12_verify_terms_template_creation")
 
     cy.getIdFromUrl("/terms-templates/").then((id) => {
       templateId = id
@@ -79,28 +84,28 @@ describe("Terms Template", () => {
     cy.visit("/terms-templates")
     cy.wait(1000)
     cy.contains(templateName).should("be.visible")
-    cy.takeScreenshot("12_terms_template_in_list")
+    cy.takeScreenshot("13_terms_template_in_list")
   })
 
   it("should update the terms template", () => {
     cy.visit(`/terms-templates/${templateId}`)
     cy.wait(1000)
-    cy.takeScreenshot("13_terms_template_details")
+    cy.takeScreenshot("14_terms_template_details")
 
     cy.get('[data-testid="terms-template-update-button"]').click()
-    cy.takeScreenshot("14_click_update_button")
+    cy.takeScreenshot("15_click_update_button")
 
     cy.get('[data-testid="terms-template-annual-rate-input"]')
       .type("6")
       .should("have.value", "6")
-    cy.takeScreenshot("15_update_annual_rate")
+    cy.takeScreenshot("16_update_annual_rate")
 
     cy.get('[data-testid="terms-template-update-submit-button"]').click()
-    cy.takeScreenshot("16_submit_update")
+    cy.takeScreenshot("17_submit_update")
 
     cy.contains(t(TTDetails + ".UpdateTermsTemplate.success.updated")).should(
       "be.visible",
     )
-    cy.takeScreenshot("17_update_success")
+    cy.takeScreenshot("18_update_success")
   })
 })

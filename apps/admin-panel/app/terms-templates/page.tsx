@@ -32,6 +32,7 @@ gql`
     userCanUpdateTermsTemplate
     values {
       annualRate
+      disbursalPolicy
       liquidationCvl {
         __typename
         ... on FiniteCVLPct {
