@@ -287,9 +287,9 @@ impl CoreCreditAction {
     pub const OBLIGATION_UPDATE_STATUS: Self =
         CoreCreditAction::Obligation(ObligationAction::UpdateStatus);
     pub const OBLIGATION_RECORD_PAYMENT: Self =
-        CoreCreditAction::Obligation(ObligationAction::RecordInstallment);
+        CoreCreditAction::Obligation(ObligationAction::RecordAllocation);
     pub const OBLIGATION_RECORD_PAYMENT_WITH_DATE: Self =
-        CoreCreditAction::Obligation(ObligationAction::RecordInstallmentWithDate);
+        CoreCreditAction::Obligation(ObligationAction::RecordAllocationWithDate);
 
     pub const TERMS_TEMPLATE_CREATE: Self =
         CoreCreditAction::TermsTemplate(TermsTemplateAction::Create);
@@ -442,16 +442,16 @@ impl From<ChartOfAccountsIntegrationConfigAction> for CoreCreditAction {
 pub enum ObligationAction {
     Read,
     UpdateStatus,
-    RecordInstallment,
-    RecordInstallmentWithDate,
+    RecordAllocation,
+    RecordAllocationWithDate,
 }
 
 impl ActionPermission for ObligationAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::Read => PERMISSION_SET_CREDIT_VIEWER,
-            Self::UpdateStatus | Self::RecordInstallment => PERMISSION_SET_CREDIT_WRITER,
-            Self::RecordInstallmentWithDate => PERMISSION_SET_CREDIT_PAYMENT_DATE,
+            Self::UpdateStatus | Self::RecordAllocation => PERMISSION_SET_CREDIT_WRITER,
+            Self::RecordAllocationWithDate => PERMISSION_SET_CREDIT_PAYMENT_DATE,
         }
     }
 }
