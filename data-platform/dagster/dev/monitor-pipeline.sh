@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Dagster Pipeline Monitor Script
-# Triggers a job and monitors its execution
+# Triggers an EL job, monitors its execution, and then triggers a dbt job if successful
 
 set -e
 
@@ -13,6 +13,7 @@ STATUS_GQL="$SCRIPT_DIR/dagster-lana-pipeline-status.gql"
 
 # Pipeline configuration - easily changeable
 PIPELINE_JOB_NAME="lana_to_dw_el_job"
+DBT_JOB_NAME="build_dbt_job"
 
 # Colors for output
 RED='\033[0;31m'
@@ -25,9 +26,13 @@ NC='\033[0m' # No Color
 make_graphql_request() {
     local query_file="$1"
     local variables="$2"
+    local job_name="$3"
+    
+    # Use provided job name or default to PIPELINE_JOB_NAME
+    local target_job_name="${job_name:-$PIPELINE_JOB_NAME}"
     
     # Replace PIPELINE_JOB_NAME placeholder in the query
-    local query_content=$(cat "$query_file" | sed "s/PIPELINE_JOB_NAME_PLACEHOLDER/$PIPELINE_JOB_NAME/g")
+    local query_content=$(cat "$query_file" | sed "s/PIPELINE_JOB_NAME_PLACEHOLDER/$target_job_name/g")
     
     if [ -n "$variables" ]; then
         curl -s -X POST "$DAGSTER_URL" \
@@ -51,6 +56,114 @@ extract_json_value() {
 has_error() {
     local json="$1"
     echo "$json" | grep -q '"errors"'
+}
+
+# Function to trigger and monitor dbt job
+trigger_and_monitor_dbt_job() {
+    echo -e "${YELLOW}🔄 Triggering dbt job...${NC}"
+    dbt_trigger_response=$(make_graphql_request "$TRIGGER_GQL" "" "$DBT_JOB_NAME")
+    
+    if has_error "$dbt_trigger_response"; then
+        echo -e "${RED}❌ Error triggering dbt job:${NC}"
+        echo "$dbt_trigger_response" | jq '.errors' 2>/dev/null || echo "$dbt_trigger_response"
+        return 1
+    fi
+    
+    # Extract dbt run ID from trigger response
+    dbt_run_id=$(extract_json_value "$dbt_trigger_response" "runId")
+    if [ -z "$dbt_run_id" ]; then
+        echo -e "${RED}❌ Error: Could not extract dbt run ID from trigger response${NC}"
+        echo "$dbt_trigger_response"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✅ DBT job triggered successfully!${NC}"
+    echo -e "${BLUE}📋 DBT Run ID: $dbt_run_id${NC}"
+    
+    # Monitor the dbt job
+    echo -e "${YELLOW}👀 Monitoring dbt job execution...${NC}"
+    echo -e "${BLUE}=====================================${NC}"
+    
+    max_attempts=60  # 5 minutes with 5-second intervals
+    attempt=0
+    last_status=""
+    
+    while [ $attempt -lt $max_attempts ]; do
+        attempt=$((attempt + 1))
+        
+        # Get current dbt status
+        dbt_status_response=$(make_graphql_request "$STATUS_GQL" "" "$DBT_JOB_NAME")
+        
+        if has_error "$dbt_status_response"; then
+            echo -e "${RED}❌ Error getting dbt status:${NC}"
+            echo "$dbt_status_response" | jq '.errors' 2>/dev/null || echo "$dbt_status_response"
+            return 1
+        fi
+        
+        # Extract status from response
+        current_status=$(extract_json_value "$dbt_status_response" "status")
+        
+        if [ -z "$current_status" ]; then
+            echo -e "${RED}❌ Error: Could not extract dbt status from response${NC}"
+            echo "$dbt_status_response"
+            return 1
+        fi
+        
+        # Show status change
+        if [ "$current_status" != "$last_status" ]; then
+            case "$current_status" in
+                "QUEUED")
+                    echo -e "${YELLOW}⏳ DBT Status: QUEUED (waiting to start)${NC}"
+                    ;;
+                "STARTED")
+                    echo -e "${BLUE}🏃 DBT Status: STARTED (running)${NC}"
+                    ;;
+                "SUCCESS")
+                    echo -e "${GREEN}🎉 DBT Status: SUCCESS (completed successfully)${NC}"
+                    echo -e "${GREEN}=====================================${NC}"
+                    echo -e "${GREEN}🎊 DBT job completed successfully! 🎊${NC}"
+                    echo -e "${GREEN}✅ Your $DBT_JOB_NAME has finished successfully${NC}"
+                    echo -e "${GREEN}📊 Data has been transformed and loaded to BigQuery${NC}"
+                    echo -e "${GREEN}=====================================${NC}"
+                    return 0
+                    ;;
+                "FAILURE")
+                    echo -e "${RED}💥 DBT Status: FAILURE (job failed)${NC}"
+                    echo -e "${RED}=====================================${NC}"
+                    echo -e "${RED}❌ DBT job execution failed! ❌${NC}"
+                    echo -e "${RED}🔍 Check the Dagster UI for detailed error logs${NC}"
+                    echo -e "${RED}📋 DBT Run ID: $dbt_run_id${NC}"
+                    echo -e "${RED}=====================================${NC}"
+                    return 1
+                    ;;
+                "CANCELED")
+                    echo -e "${YELLOW}🛑 DBT Status: CANCELED (job was canceled)${NC}"
+                    echo -e "${YELLOW}=====================================${NC}"
+                    echo -e "${YELLOW}⚠️  DBT job execution was canceled${NC}"
+                    echo -e "${YELLOW}📋 DBT Run ID: $dbt_run_id${NC}"
+                    echo -e "${YELLOW}=====================================${NC}"
+                    return 1
+                    ;;
+                *)
+                    echo -e "${BLUE}📊 DBT Status: $current_status${NC}"
+                    ;;
+            esac
+            last_status="$current_status"
+        else
+            # Show progress dots
+            printf "."
+        fi
+        
+        # Wait before next check
+        sleep 5
+    done
+    
+    # Timeout reached
+    echo -e "\n${RED}⏰ DBT job timeout reached after $((max_attempts * 5)) seconds${NC}"
+    echo -e "${RED}❌ DBT job monitoring timed out${NC}"
+    echo -e "${YELLOW}📋 DBT Run ID: $dbt_run_id${NC}"
+    echo -e "${YELLOW}🔍 Check the Dagster UI for current status${NC}"
+    return 1
 }
 
 echo -e "${BLUE}🚀 Starting Dagster Pipeline Monitor${NC}"
@@ -133,11 +246,20 @@ while [ $attempt -lt $max_attempts ]; do
             "SUCCESS")
                 echo -e "${GREEN}🎉 Status: SUCCESS (completed successfully)${NC}"
                 echo -e "${GREEN}=====================================${NC}"
-                echo -e "${GREEN}🎊 Pipeline completed successfully! 🎊${NC}"
+                echo -e "${GREEN}🎊 EL Pipeline completed successfully! 🎊${NC}"
                 echo -e "${GREEN}✅ Your $PIPELINE_JOB_NAME has finished successfully${NC}"
                 echo -e "${GREEN}📊 Data has been processed and loaded to BigQuery${NC}"
                 echo -e "${GREEN}=====================================${NC}"
-                exit 0
+                
+                # Trigger dbt job after EL job success
+                echo -e "${YELLOW}🔄 EL job completed successfully. Now triggering dbt job...${NC}"
+                if trigger_and_monitor_dbt_job; then
+                    echo -e "${GREEN}🎉 All jobs completed successfully! 🎉${NC}"
+                    exit 0
+                else
+                    echo -e "${RED}❌ DBT job failed. Check logs above for details.${NC}"
+                    exit 1
+                fi
                 ;;
             "FAILURE")
                 echo -e "${RED}💥 Status: FAILURE (job failed)${NC}"
