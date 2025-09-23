@@ -12,7 +12,7 @@ credit_facilities as(
     from {{ ref('int_core_payment_events_rollup') }}
 )
 
-, obligation_installments as(
+, payment_allocations as(
     select
         payment_id,
         max(effective) as effective,
