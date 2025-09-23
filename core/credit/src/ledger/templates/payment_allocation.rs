@@ -88,9 +88,8 @@ impl From<RecordPaymentAllocationParams> for Params {
 }
 
 pub struct RecordPaymentAllocation;
-/// TODO: is ledger.record_obligation_installment.init referring to cala's incoming adapter? Should this not be changed?
 impl RecordPaymentAllocation {
-    #[instrument(name = "ledger.record_obligation_installment.init", skip_all)]
+    #[instrument(name = "ledger.record_payment_allocation.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
