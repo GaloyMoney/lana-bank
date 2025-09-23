@@ -15,7 +15,7 @@ select
     interest_balance                      as `Saldo de Interés`,
     days_past_due_on_principal            as `Días mora de capital`,
     days_past_due_on_interest             as `Días mora de intereses`,
-    number_of_past_due_installments       as `Número de cuotas con atraso`,
+    number_of_past_due_allocations        as `Número de asignaciones con atraso`,
     type_of_credit                        as `Tipo de crédito`,
     risk_rating                           as `Calificación de riesgo`,
     category_assignment_type              as `Tipo de asignación de categoria`,

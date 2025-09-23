@@ -78,7 +78,7 @@ select
     0 as interest_balance,
     days_past_due_on_principal,
     days_past_due_on_interest,
-    payment_overdue_days / 30 as number_of_past_due_installments,
+    payment_overdue_days / 30 as number_of_past_due_allocations,
     'Privado' as type_of_credit,
     category_b as risk_rating,
     'Automática' as category_assignment_type,
