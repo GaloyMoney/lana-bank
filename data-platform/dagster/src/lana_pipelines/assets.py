@@ -19,10 +19,11 @@ def build_lana_source_asset(table_name):
 
 def build_lana_to_dw_el_asset(table_name):
 
-    asset_key = f"el_target_asset__lana__{table_name}"
-
+    name = f"public_{table_name}_view"
+    
     @dg.asset(
-        name=asset_key,
+        key_prefix=["lana"],
+        name=name, 
         deps=[f"el_source_asset__lana__{table_name}"],
         tags={"asset_type": "el_target__asset", "system": "lana"},
     )
@@ -47,7 +48,7 @@ def build_lana_to_dw_el_asset(table_name):
         bigquery_dest = create_bigquery_destination(base64_credentials)
 
         pipeline = dlt.pipeline(
-            pipeline_name=asset_key,
+            pipeline_name=name,
             destination=bigquery_dest,
             dataset_name="counterweight_dataset",
         )
