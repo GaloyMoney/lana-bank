@@ -1842,7 +1842,6 @@ impl CreditLedger {
     pub(super) async fn handle_facility_create(
         &self,
         op: es_entity::DbOp<'_>,
-        collateral_id: CollateralId,
         credit_facility: &crate::CreditFacility,
         customer_type: CustomerType,
         duration_type: FacilityDurationType,
@@ -1854,7 +1853,7 @@ impl CreditLedger {
         self.create_accounts_for_credit_facility(
             &mut op,
             credit_facility.id,
-            collateral_id,
+            credit_facility.collateral_id,
             credit_facility.account_ids,
             customer_type,
             duration_type,
