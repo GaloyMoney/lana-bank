@@ -5,18 +5,16 @@
 
 
 with source as (
-    select
-        s.*
+    select s.*
     from {{ ref('stg_core_payment_events_rollup') }} as s
 
     {% if is_incremental() %}
         left join {{ this }} as t using (payment_id, version)
         where t.payment_id is null
     {% endif %}
-)
+),
 
-
-, transformed as (
+transformed as (
     select
         payment_id,
         credit_facility_id,
@@ -26,7 +24,7 @@ with source as (
         created_at as payment_created_at,
         modified_at as payment_modified_at,
 
-        * except(
+        * except (
             payment_id,
             credit_facility_id,
             amount,
@@ -42,6 +40,5 @@ with source as (
         )
     from source
 )
-
 
 select * from transformed

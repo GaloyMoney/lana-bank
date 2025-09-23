@@ -14,7 +14,6 @@ with approvals as (
 
     where event_type = "approval_process_concluded"
 
-
 ),
 
 payments as (

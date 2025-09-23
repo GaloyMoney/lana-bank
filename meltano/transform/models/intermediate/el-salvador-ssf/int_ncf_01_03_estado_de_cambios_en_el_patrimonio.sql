@@ -15,7 +15,7 @@ joined as (
         order_by,
         title,
         column_title,
-        sum(coalesce(balance, 0)) as balance,
+        sum(coalesce(balance, 0)) as balance
     from config
     left join chart on code in unnest(source_account_codes)
     group by order_by, title, column_title
@@ -23,8 +23,13 @@ joined as (
 ,
 
 final as (
-    select * from (select order_by, title, column_title, balance from joined)
-    pivot(
+    select * from (select
+        order_by,
+        title,
+        column_title,
+        balance
+    from joined)
+    pivot (
         sum(balance)
         for column_title in (
             'Capital Social',
@@ -41,7 +46,6 @@ final as (
     )
 )
 
-select
-    * except (order_by)
+select * except (order_by)
 from final
 order by order_by

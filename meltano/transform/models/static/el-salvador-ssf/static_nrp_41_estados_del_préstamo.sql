@@ -23,7 +23,7 @@ select
     'Current - current' as status,
     'Loan with no delays' as explanation,
     -50000 as consumer_calendar_ge_days,
-    0 as consumer_calendar_le_days,
+    0 as consumer_calendar_le_days
 union all
 select
     'Vigente - en mora',
@@ -31,7 +31,7 @@ select
     'Current - past due',
     'Loan up to 90 days past due',
     1,
-    90,
+    90
 union all
 select
     'Vencido',
@@ -39,4 +39,4 @@ select
     'Passed',
     'Loan 91 days or more past due',
     91,
-    50000,
+    50000

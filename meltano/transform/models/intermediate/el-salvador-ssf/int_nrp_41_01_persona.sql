@@ -75,4 +75,6 @@ select
 
 from {{ ref('int_core_customer_events_rollup') }}
 inner join {{ ref('int_customer_identities') }} using (customer_id)
-left join {{ ref('stg_core_public_ids') }} as customer_public_ids on customer_id = customer_public_ids.target_id
+left join
+    {{ ref('stg_core_public_ids') }} as customer_public_ids
+    on customer_id = customer_public_ids.target_id

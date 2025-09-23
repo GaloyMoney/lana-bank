@@ -27,7 +27,6 @@ disbursed_cf as (
         and completed_recorded_at is null
 )
 
-
 select
     1 as order_by,
     'Number Customers' as kpi_title,

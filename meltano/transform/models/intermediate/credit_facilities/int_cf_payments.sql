@@ -34,6 +34,5 @@ with payment_recorded as (
 
 )
 
-
 select *
 from payment_recorded

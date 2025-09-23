@@ -8,10 +8,10 @@ config as (
         eng_title,
         account_name,
         eng_account_name,
-        coalesce(coefficient, 1) as coefficient,
+        coalesce(coefficient, 1) as coefficient
     from {{ ref('static_nrp_28_01_account_config') }}
     left join unnest(sum_account_codes) as account_code
-    left join {{ ref('static_nrp_28_01_liquidity_coefficients') }} using(account_code)
+    left join {{ ref('static_nrp_28_01_liquidity_coefficients') }} using (account_code)
 
     union all
 
@@ -22,10 +22,10 @@ config as (
         eng_title,
         account_name,
         eng_account_name,
-        -1 * coalesce(coefficient, 1) as coefficient,
+        -1 * coalesce(coefficient, 1) as coefficient
     from {{ ref('static_nrp_28_01_account_config') }}
     left join unnest(diff_account_codes) as account_code
-    left join {{ ref('static_nrp_28_01_liquidity_coefficients') }} using(account_code)
+    left join {{ ref('static_nrp_28_01_liquidity_coefficients') }} using (account_code)
 ),
 
 chart as (
@@ -36,8 +36,8 @@ chart as (
 final as (
     select
         config.*,
-        coalesce(balance, 0) as balance,
-        chart.* except(balance)
+        chart.* except (balance),
+        coalesce(balance, 0) as balance
     from config
     left join chart on code = account_code
 )
