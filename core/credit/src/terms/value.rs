@@ -222,6 +222,20 @@ impl InterestInterval {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum DisbursalPolicy {
+    Multiple,
+    SingleFullOnActivation,
+}
+
+impl Default for DisbursalPolicy {
+    fn default() -> Self {
+        DisbursalPolicy::Multiple
+    }
+}
+
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
@@ -248,9 +262,15 @@ pub struct TermValues {
     pub margin_call_cvl: CVLPct,
     #[builder(setter(into))]
     pub initial_cvl: CVLPct,
+    #[builder(setter(into))]
+    pub disbursal_policy: DisbursalPolicy,
 }
 
 impl TermValues {
+    pub fn is_single_disbursal_on_activation(&self) -> bool {
+        self.disbursal_policy == DisbursalPolicy::SingleFullOnActivation
+    }
+
     pub fn is_disbursal_allowed(
         &self,
         balance: CreditFacilityBalanceSummary,
