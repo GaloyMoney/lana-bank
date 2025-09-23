@@ -222,9 +222,12 @@ checksums:
     Customers/CustomerDetails/depositAccount/title: 23d240412c0bf14efcff84a2325587be
     Customers/CustomerDetails/depositAccount/labels/checkingSettled: 08322f64253c1bfbc8fe14cb3c1a2174
     Customers/CustomerDetails/depositAccount/labels/pendingWithdrawals: 790c83ce094081b2db9e0064dec0ad41
+    Customers/CustomerDetails/depositAccount/labels/status: 4e1fcce15854d824919b4a582c697c90
     Customers/CustomerDetails/depositAccount/status/active: 3e1ec025c4a50830bbb9ad57a176630a
     Customers/CustomerDetails/depositAccount/status/frozen: 8bde74d6d5222cf63bb08a7f5044b86d
     Customers/CustomerDetails/depositAccount/status/inactive: 239e3b722db75bbafc6c628a2685eed2
+    Customers/CustomerDetails/depositAccount/buttons/viewLedgerAccount: bd9a15bb007af68c59fb173afbf20212
+    Customers/CustomerDetails/depositAccount/buttons/freezeDepositAccount: f8e442ca95d1150995ae8e5a0e22b2b0
     Customers/CustomerDetails/updateTelegram/title: eae68442cc96d8e9715e82d49633eb65
     Customers/CustomerDetails/updateTelegram/description: 6a3e0dee99c56a34368e8fef03646670
     Customers/CustomerDetails/updateTelegram/labels/newTelegramId: aff61550ac71d9a4edcd78d5fe719ed9
@@ -240,7 +243,6 @@ checksums:
     Customers/CustomerDetails/freezeDepositAccount/fields/settledBalance: b39b68260cbe38adb075c0b138b71620
     Customers/CustomerDetails/freezeDepositAccount/fields/pendingBalance: 81789161c85185aaeb4b49a58cde8484
     Customers/CustomerDetails/freezeDepositAccount/buttons/freeze: 21fbbd763d20c0e6833e6a314fd2431b
-    Customers/CustomerDetails/freezeDepositAccount/buttons/freezeDepositAccount: f8e442ca95d1150995ae8e5a0e22b2b0
     Customers/CustomerDetails/freezeDepositAccount/success: 21fa05fa431f934fe861788e526f1620
     Customers/CustomerDetails/freezeDepositAccount/errors/noData: 6df07e609a0b9cd35e54346070fdd455
     Customers/CustomerDetails/freezeDepositAccount/errors/unknown: fe07b9cdb1fc3f7397f6d89c102c60af

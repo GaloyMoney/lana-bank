@@ -3300,7 +3300,7 @@ export type GetCustomerBasicDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents } } | null } | null };
+export type GetCustomerBasicDetailsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, customerId: string, email: string, telegramId: string, kycVerification: KycVerification, activity: Activity, level: KycLevel, customerType: CustomerType, createdAt: any, publicId: any, depositAccount?: { __typename?: 'DepositAccount', id: string, status: DepositAccountStatus, publicId: any, depositAccountId: string, balance: { __typename?: 'DepositAccountBalance', settled: UsdCents, pending: UsdCents }, ledgerAccounts: { __typename?: 'DepositAccountLedgerAccounts', depositAccountId: string, frozenDepositAccountId: string } } | null } | null };
 
 export type GetCustomerTransactionHistoryQueryVariables = Exact<{
   id: Scalars['PublicId']['input'];
@@ -6538,6 +6538,10 @@ export const GetCustomerBasicDetailsDocument = gql`
       balance {
         settled
         pending
+      }
+      ledgerAccounts {
+        depositAccountId
+        frozenDepositAccountId
       }
     }
   }

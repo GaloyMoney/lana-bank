@@ -327,13 +327,19 @@
         "title": "Cuenta de Depósito",
         "labels": {
           "checkingSettled": "Saldo Liquidado de Cuenta Corriente (USD)",
-          "pendingWithdrawals": "Retiros Pendientes (USD)"
+          "pendingWithdrawals": "Retiros Pendientes (USD)",
+          "status": "Estado"
         },
         "status": {
           "active": "Activo",
           "frozen": "Congelado",
           "inactive": "Inactivo"
-        }
+        },
+        "buttons": {
+          "viewLedgerAccount": "Ver Cuenta del Libro Mayor",
+          "freezeDepositAccount": "Congelar Cuenta de Depósito"
+        },
+        "noAccount": "No hay cuenta de depósito disponible"
       },
       "updateTelegram": {
         "title": "Actualizar ID de Telegram",
@@ -365,8 +371,7 @@
           "pendingBalance": "Retiros pendientes"
         },
         "buttons": {
-          "freeze": "Congelar Cuenta",
-          "freezeDepositAccount": "Congelar Cuenta de Depósito"
+          "freeze": "Congelar Cuenta"
         },
         "success": "Cuenta de depósito congelada exitosamente",
         "errors": {
