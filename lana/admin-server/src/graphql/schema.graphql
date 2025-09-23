@@ -484,7 +484,8 @@ type CreditFacilityDisbursal {
 	amount: UsdCents!
 	createdAt: Timestamp!
 	initializedTxId: UUID!
-	concludedTxId: UUID
+	settledTxId: UUID
+	cancelledTxId: UUID
 	publicId: PublicId!
 	creditFacility: CreditFacility!
 	status: DisbursalStatus!

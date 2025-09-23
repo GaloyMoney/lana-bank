@@ -515,13 +515,14 @@ export type CreditFacilityDisbursal = {
   __typename?: 'CreditFacilityDisbursal';
   amount: Scalars['UsdCents']['output'];
   approvalProcess: ApprovalProcess;
-  concludedTxId?: Maybe<Scalars['UUID']['output']>;
+  cancelledTxId?: Maybe<Scalars['UUID']['output']>;
   createdAt: Scalars['Timestamp']['output'];
   creditFacility: CreditFacility;
   disbursalId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
   initializedTxId: Scalars['UUID']['output'];
   publicId: Scalars['PublicId']['output'];
+  settledTxId?: Maybe<Scalars['UUID']['output']>;
   status: DisbursalStatus;
 };
 

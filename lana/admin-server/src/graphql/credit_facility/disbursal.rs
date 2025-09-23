@@ -18,7 +18,8 @@ pub struct CreditFacilityDisbursal {
     amount: UsdCents,
     created_at: Timestamp,
     initialized_tx_id: UUID,
-    concluded_tx_id: Option<UUID>,
+    settled_tx_id: Option<UUID>,
+    cancelled_tx_id: Option<UUID>,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainDisbursal>,
@@ -32,7 +33,8 @@ impl From<DomainDisbursal> for CreditFacilityDisbursal {
             amount: disbursal.amount,
             created_at: disbursal.created_at().into(),
             initialized_tx_id: disbursal.id.into(),
-            concluded_tx_id: disbursal.concluded_tx_id.map(UUID::from),
+            settled_tx_id: disbursal.settled_tx_id.map(UUID::from),
+            cancelled_tx_id: disbursal.cancelled_tx_id.map(UUID::from),
             entity: Arc::new(disbursal),
         }
     }

@@ -58,6 +58,10 @@ pub struct Disbursal {
     pub liquidation_date: Option<EffectiveDate>,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
+    #[builder(setter(strip_option), default)]
+    pub settled_tx_id: Option<LedgerTxId>,
+    #[builder(setter(strip_option), default)]
+    pub cancelled_tx_id: Option<LedgerTxId>,
     pub public_id: PublicId,
     events: EntityEvents<DisbursalEvent>,
 }
@@ -93,10 +97,14 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                         .public_id(public_id.clone())
                 }
                 DisbursalEvent::Settled { ledger_tx_id, .. } => {
-                    builder = builder.concluded_tx_id(*ledger_tx_id)
+                    builder = builder
+                        .concluded_tx_id(*ledger_tx_id)
+                        .settled_tx_id(*ledger_tx_id)
                 }
                 DisbursalEvent::Cancelled { ledger_tx_id, .. } => {
-                    builder = builder.concluded_tx_id(*ledger_tx_id)
+                    builder = builder
+                        .concluded_tx_id(*ledger_tx_id)
+                        .cancelled_tx_id(*ledger_tx_id)
                 }
                 DisbursalEvent::ApprovalProcessConcluded { .. } => (),
             }
