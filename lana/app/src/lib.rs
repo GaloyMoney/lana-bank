@@ -124,7 +124,7 @@ pub mod accounting {
         AccountCode, AccountCodeSection, AccountingCsvId, CalaAccountBalance, CalaAccountId,
         ChartId, LedgerAccountId, TransactionTemplateId, chart_of_accounts, csv, error, journal,
         ledger_account, ledger_transaction, manual_transaction, transaction_templates,
-        {Chart, tree},
+        {Chart, PeriodClosing, tree},
     };
 
     pub type Accounting = core_accounting::CoreAccounting<crate::authorization::Authorization>;

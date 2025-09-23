@@ -3,6 +3,18 @@
   "oneOf": [
     {
       "properties": {
+        "account_set_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "first_period_opened_as_of": {
+          "format": "date",
+          "type": "string"
+        },
+        "first_period_opened_at": {
+          "format": "date-time",
+          "type": "string"
+        },
         "id": {
           "format": "uuid",
           "type": "string"
@@ -21,8 +33,33 @@
       "required": [
         "type",
         "id",
+        "account_set_id",
         "name",
-        "reference"
+        "reference",
+        "first_period_opened_as_of",
+        "first_period_opened_at"
+      ],
+      "type": "object"
+    },
+    {
+      "properties": {
+        "closed_as_of": {
+          "format": "date",
+          "type": "string"
+        },
+        "closed_at": {
+          "format": "date-time",
+          "type": "string"
+        },
+        "type": {
+          "const": "accounting_period_closed",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "closed_as_of",
+        "closed_at"
       ],
       "type": "object"
     }

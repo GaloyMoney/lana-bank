@@ -2,9 +2,11 @@ mod csv;
 mod entity;
 
 pub mod error;
+pub mod ledger;
 mod repo;
 pub mod tree;
 
+use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -21,11 +23,12 @@ pub use crate::chart_node::ChartNode;
 #[cfg(feature = "json-schema")]
 pub use crate::chart_node::ChartNodeEvent;
 pub(super) use csv::{CsvParseError, CsvParser};
-pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
+pub use entity::{Chart, PeriodClosing};
 use error::*;
+use ledger::*;
 pub(super) use repo::*;
 
 pub struct ChartOfAccounts<Perms>
@@ -33,7 +36,8 @@ where
     Perms: PermissionCheck,
 {
     repo: ChartRepo,
-    cala: CalaLedger,
+    chart_ledger: ChartLedger,
+    cala: CalaLedger, // TODO: move calls into chart ledger
     authz: Perms,
     journal_id: CalaJournalId,
 }
@@ -45,6 +49,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            chart_ledger: self.chart_ledger.clone(),
             cala: self.cala.clone(),
             authz: self.authz.clone(),
             journal_id: self.journal_id,
@@ -65,8 +70,11 @@ where
         journal_id: CalaJournalId,
     ) -> Self {
         let chart_of_account = ChartRepo::new(pool);
+        let chart_ledger = ChartLedger::new(cala, journal_id);
+
         Self {
             repo: chart_of_account,
+            chart_ledger,
             cala: cala.clone(),
             authz: authz.clone(),
             journal_id,
@@ -83,6 +91,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         name: String,
         reference: String,
+        first_period_opened_as_of: chrono::NaiveDate,
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = ChartId::new();
 
@@ -97,13 +106,18 @@ where
 
         let new_chart = NewChart::builder()
             .id(id)
+            .account_set_id(id)
             .name(name)
             .reference(reference)
+            .first_period_opened_as_of(first_period_opened_as_of)
             .build()
             .expect("Could not build new chart of accounts");
 
         let chart = self.repo.create_in_op(&mut op, new_chart).await?;
-        op.commit().await?;
+
+        self.chart_ledger
+            .create_chart_root_account_set_in_op(op, &chart)
+            .await?;
 
         Ok(chart)
     }
@@ -137,13 +151,11 @@ where
             if let es_entity::Idempotent::Executed(NewChartAccountDetails {
                 parent_account_set_id,
                 new_account_set,
-            }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
+            }) = chart.create_node(&spec, self.journal_id)
             {
                 let account_set_id = new_account_set.id;
                 new_account_sets.push(new_account_set);
-                if let Some(parent) = parent_account_set_id {
-                    new_connections.push((parent, account_set_id));
-                }
+                new_connections.push((parent_account_set_id, account_set_id));
             }
         }
         let new_account_set_ids = new_account_sets.iter().map(|a| a.id).collect::<Vec<_>>();
@@ -178,6 +190,37 @@ where
     }
 
     #[instrument(
+        name = "core_accounting.chart_of_accounts.close_monthly",
+        skip(self,),
+        err
+    )]
+    pub async fn close_monthly(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Chart, ChartOfAccountsError> {
+        let id = id.into();
+        let mut chart = self.repo.find_by_id(id).await?;
+
+        let now = crate::time::now();
+        let closed_as_of_date =
+            if let Idempotent::Executed(date) = chart.close_last_monthly_period(now)? {
+                date
+            } else {
+                return Ok(chart);
+            };
+
+        let mut op = self.repo.begin_op().await?;
+        self.repo.update_in_op(&mut op, &mut chart).await?;
+
+        self.chart_ledger
+            .monthly_close_chart_as_of(op, chart.id, closed_as_of_date)
+            .await?;
+
+        Ok(chart)
+    }
+
+    #[instrument(
         name = "core_accounting.chart_of_accounts.add_root_node",
         skip(self,),
         err
@@ -200,9 +243,9 @@ where
         let mut chart = self.repo.find_by_id(id).await?;
 
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
-            parent_account_set_id: _,
+            parent_account_set_id,
             new_account_set,
-        }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
+        }) = chart.create_node(&spec, self.journal_id)
         else {
             return Ok((chart, None));
         };
@@ -217,6 +260,10 @@ where
         self.cala
             .account_sets()
             .create_in_op(&mut op, new_account_set)
+            .await?;
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, parent_account_set_id, account_set_id)
             .await?;
 
         op.commit().await?;
@@ -267,12 +314,10 @@ where
             .account_sets()
             .create_in_op(&mut op, new_account_set)
             .await?;
-        if let Some(parent) = parent_account_set_id {
-            self.cala
-                .account_sets()
-                .add_member_in_op(&mut op, parent, account_set_id)
-                .await?;
-        }
+        self.cala
+            .account_sets()
+            .add_member_in_op(&mut op, parent_account_set_id, account_set_id)
+            .await?;
 
         op.commit().await?;
 

@@ -42,6 +42,8 @@ pub struct AccountingInitConfig {
     #[serde(default)]
     pub chart_of_accounts_seed_path: Option<PathBuf>,
     #[serde(default)]
+    pub chart_of_accounts_opening_date: Option<chrono::NaiveDate>,
+    #[serde(default)]
     pub deposit_config_path: Option<PathBuf>,
     #[serde(default)]
     pub credit_config_path: Option<PathBuf>,

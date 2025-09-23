@@ -46,6 +46,7 @@ app:
     sumsub_export_enabled: true
   accounting_init:
     chart_of_accounts_seed_path: null
+    chart_of_accounts_opening_date: null
     deposit_config_path: null
     credit_config_path: null
     balance_sheet_config_path: null
