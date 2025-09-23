@@ -616,14 +616,14 @@ input CreditFacilityPartialPaymentWithDateRecordInput {
 	effective: Date!
 }
 
-<<<<<<< HEAD
 type CreditFacilityPaymentAllocation {
 	id: ID!
 	paymentAllocationId: UUID!
 	amount: UsdCents!
 	createdAt: Timestamp!
 	creditFacility: CreditFacility!
-=======
+}
+
 type CreditFacilityProposal {
 	id: ID!
 	creditFacilityProposalId: UUID!
@@ -701,7 +701,6 @@ enum CreditFacilityProposalStatus {
 	PENDING_APPROVAL
 	COMPLETED
 	PENDING_COMPLETION
->>>>>>> main
 }
 
 type CreditFacilityRepaymentPlanEntry {

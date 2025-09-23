@@ -642,7 +642,6 @@ export type CreditFacilityPartialPaymentWithDateRecordInput = {
   effective: Scalars['Date']['input'];
 };
 
-<<<<<<< HEAD
 export type CreditFacilityPaymentAllocation = {
   __typename?: 'CreditFacilityPaymentAllocation';
   amount: Scalars['UsdCents']['output'];
@@ -652,7 +651,6 @@ export type CreditFacilityPaymentAllocation = {
   paymentAllocationId: Scalars['UUID']['output'];
 };
 
-=======
 export type CreditFacilityProposal = {
   __typename?: 'CreditFacilityProposal';
   approvalProcess: ApprovalProcess;
@@ -726,7 +724,6 @@ export enum CreditFacilityProposalStatus {
   PendingCompletion = 'PENDING_COMPLETION'
 }
 
->>>>>>> main
 export type CreditFacilityRepaymentPlanEntry = {
   __typename?: 'CreditFacilityRepaymentPlanEntry';
   accrualAt: Scalars['Timestamp']['output'];
