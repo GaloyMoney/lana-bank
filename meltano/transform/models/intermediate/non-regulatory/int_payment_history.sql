@@ -12,19 +12,12 @@ payments as (
     from {{ ref('int_core_payment_events_rollup') }}
 ),
 
-obligation_installments as (
-    select
-        payment_id,
-        max(effective) as effective,
-        array_agg(distinct obligation_type) as obligation_type
-    from {{ ref('int_core_obligation_installment_events_rollup') }}
-    group by payment_id
-),
-
 final as (
     select *
     from credit_facilities
+    -- sqlfluff: disable=convention.left_join
     right join payments using (credit_facility_id)
+    -- sqlfluff: enable=convention.left_join
 
 )
 

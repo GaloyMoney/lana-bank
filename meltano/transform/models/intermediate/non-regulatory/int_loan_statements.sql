@@ -34,11 +34,11 @@ loans as (
         disbursal_end_date as maturity_date,
         coalesce(estado, 'Cancelado') as estado,
         `explicación`,
-        coalesce(status, 'Canceled') as status,
+        coalesce(status, 'Canceled') as `status`,
         explanation,
 
         disbursal_start_date as date_and_time,
-        'Disbursement' as transaction,
+        'Disbursement' as `transaction`,
         total_disbursed_usd as principal,
         null as interest,
         null as fee,
@@ -65,7 +65,7 @@ payments as (
         loans.explanation,
 
         payment_created_at as date_and_time,
-        'Payment' as transaction,
+        'Payment' as `transaction`,
         disbursal_usd as principal,
         interest_usd as interest,
         null as fee,

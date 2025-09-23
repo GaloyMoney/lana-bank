@@ -49,7 +49,7 @@ loans as (
         total_disbursed_usd as total_transaction,
         first_name || ' ' || last_name as customer_name,
         coalesce(estado, 'Cancelado') as estado,
-        coalesce(status, 'Canceled') as status
+        coalesce(status, 'Canceled') as `status`
     from {{ ref('int_approved_credit_facility_loans') }}
     left join customers using (customer_id)
     left join statuses using (credit_facility_id)

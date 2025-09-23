@@ -1,11 +1,5 @@
 with
 
-credit_facilities as (
-    select
-        credit_facility_id,
-        customer_id
-    from {{ ref('int_core_credit_facility_events_rollup') }}
-),
 
 payments as (
     select *

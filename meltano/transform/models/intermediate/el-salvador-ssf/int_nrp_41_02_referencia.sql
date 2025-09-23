@@ -78,7 +78,8 @@ risk_category as (
     left join
         {{ ref('static_ncb_022_porcentaje_reservas_saneamiento') }} as r
         on
-            od.payment_overdue_days between r.consumer_calendar_ge_days and r.consumer_calendar_le_days
+            od.payment_overdue_days between r.consumer_calendar_ge_days
+            and r.consumer_calendar_le_days
 ),
 
 final as (
