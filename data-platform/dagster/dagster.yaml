@@ -21,6 +21,7 @@ run_launcher:
       - DAGSTER_POSTGRES_PASSWORD
       - DAGSTER_POSTGRES_DB
       - TF_VAR_sa_creds
+      - DBT_BIGQUERY_AUTH_METHOD
     network: dagster_network
     container_kwargs:
       volumes: # Make docker client accessible to any launched containers as well

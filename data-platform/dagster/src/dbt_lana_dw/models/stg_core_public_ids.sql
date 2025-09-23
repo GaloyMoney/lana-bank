@@ -1,24 +1,23 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['id'],
+    unique_key = ['target_id'],
 ) }}
 
 with ordered as (
 
     select
         id,
-        journal_id,
-        name as set_name,
+        target_id,
         created_at,
-        _sdc_batched_at,
         row_number()
             over (
-                partition by id
-                order by _sdc_received_at desc
+                partition by target_id
+                order by _sdc_batched_at desc
             )
-            as order_received_desc
+            as order_received_desc,
+        _sdc_batched_at,
 
-    from {{ source("lana", "public_cala_account_sets_view") }}
+    from {{ source("lana", "public_core_public_ids_view") }}
 
     {% if is_incremental() %}
         where
@@ -27,7 +26,8 @@ with ordered as (
 
 )
 
-select * except (order_received_desc)
+select
+    * except (order_received_desc)
 
 from ordered
 

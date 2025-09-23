@@ -17,6 +17,6 @@ If you need to add another for some reason:
 
 ## How to add environment variables within dagster context
 
-- Use dagster's `EnvVar`.
+- Use dagster's `EnvVar` in the `.py` files as needed.
 - In `dagster.yml`, add the name of the var under: `run_launcher > config > env_vars`.
 - Finally, pass it to the service `dagster_daemon` defined in the docker compose file, either as a explicit env var or as part of an `.env` file.

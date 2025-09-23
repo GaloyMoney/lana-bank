@@ -15,5 +15,5 @@ def create_postgres_resource(connection_string_details, table_name):
     return postgres_resource
 
 dbt_resource = DbtCliResource(project_dir=Path("dbt_lana_dw/"))
-#dbt_parse_invocation = dbt_resource.cli(["parse"], manifest={}).wait()
-#dbt_manifest_path = dbt_parse_invocation.target_path.joinpath("manifest.json")
+dbt_parse_invocation = dbt_resource.cli(["parse"], manifest={}).wait()
+dbt_manifest_path = dbt_parse_invocation.target_path.joinpath("manifest.json")
