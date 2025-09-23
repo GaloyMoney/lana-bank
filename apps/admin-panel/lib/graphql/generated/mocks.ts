@@ -700,14 +700,13 @@ export const mockCreditFacilityDisbursal = (overrides?: Partial<CreditFacilityDi
         __typename: 'CreditFacilityDisbursal',
         amount: overrides && overrides.hasOwnProperty('amount') ? overrides.amount! : generateMockValue.usdCents(),
         approvalProcess: overrides && overrides.hasOwnProperty('approvalProcess') ? overrides.approvalProcess! : relationshipsToOmit.has('ApprovalProcess') ? {} as ApprovalProcess : mockApprovalProcess({}, relationshipsToOmit),
-        cancelledTxId: overrides && overrides.hasOwnProperty('cancelledTxId') ? overrides.cancelledTxId! : generateMockValue.uuid(),
+        concludedTxId: overrides && overrides.hasOwnProperty('concludedTxId') ? overrides.concludedTxId! : generateMockValue.uuid(),
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacility: overrides && overrides.hasOwnProperty('creditFacility') ? overrides.creditFacility! : relationshipsToOmit.has('CreditFacility') ? {} as CreditFacility : mockCreditFacility({}, relationshipsToOmit),
         disbursalId: overrides && overrides.hasOwnProperty('disbursalId') ? overrides.disbursalId! : generateMockValue.uuid(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
         initializedTxId: overrides && overrides.hasOwnProperty('initializedTxId') ? overrides.initializedTxId! : generateMockValue.uuid(),
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
-        settledTxId: overrides && overrides.hasOwnProperty('settledTxId') ? overrides.settledTxId! : generateMockValue.uuid(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : DisbursalStatus.Approved,
     };
 };
