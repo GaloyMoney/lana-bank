@@ -1,6 +1,5 @@
 with
 
-
 payments as (
     select *
     from {{ ref('int_core_payment_events_rollup') }}

@@ -61,73 +61,73 @@ deposit_confirmation_timestamps as (
 ),
 
 withdrawal_transactions as (
-select
-    withdrawal_public_ids.id as numeroRegistroBancario,
-    JSON_OBJECT(
-        'direccionAgencia', bank_address.full_address,
-        'idDepartamento', bank_address.region_id,
-        'idMunicipio', bank_address.town_id
-    ) as estacionServicio,
-    wct.withdrawal_confirmed_at as fechaTransaccion,
-    CAST(null AS INTEGER) as tipoPersonaA, -- Pending implementation
-    null as detallesPersonaA, -- Pending implementation
-    CAST(null AS INTEGER) as tipoPersonaB, -- Pending implementation
-    null as detallesPersonaB, -- Pending implementation
-    aer.public_id as numeroCuentaPO,
-    "Cuenta Corriente" as claseCuentaPO,
-    wer.reference as conceptoTransaccionPO,
-    wer.amount_usd as valorOtrosMediosElectronicosPO,
-    CAST(null AS STRING) as numeroProductoPB, -- Pending implementation
-    CAST(null AS STRING) as claseCuentaPB, -- Pending implementation
-    wer.amount_usd as montoTransaccionPB,
-    wer.amount_usd as valorMedioElectronicoPB,
-    CAST(null AS STRING) as bancoCuentaDestinatariaPB -- Pending implementation
-from int_core_withdrawal_events_rollup wer
-inner join relevant_withdrawals rw 
-    on wer.withdrawal_id = rw.withdrawal_id
-left join withdrawal_confirmation_timestamps wct
-    on wer.withdrawal_id = wct.withdrawal_id
-left join int_core_deposit_account_events_rollup aer
-    on wer.deposit_account_id = aer.deposit_account_id
-left join stg_core_public_ids as withdrawal_public_ids
-    on wer.withdrawal_id = withdrawal_public_ids.target_id
-cross join -- Note: this assumes there's only one address!
-seed_bank_address as bank_address
+    select
+        withdrawal_public_ids.id as numeroregistrobancario,
+        wct.withdrawal_confirmed_at as fechatransaccion,
+        cast(null as integer) as tipopersonaa,
+        null as detallespersonaa, -- Pending implementation
+        cast(null as integer) as tipopersonab, -- Pending implementation
+        null as detallespersonab, -- Pending implementation
+        aer.public_id as numerocuentapo, -- Pending implementation
+        'Cuenta Corriente' as clasecuentapo,
+        wer.reference as conceptotransaccionpo,
+        wer.amount_usd as valorotrosmedioselectronicospo,
+        cast(null as string) as numeroproductopb,
+        cast(null as string) as clasecuentapb, -- Pending implementation
+        wer.amount_usd as montotransaccionpb, -- Pending implementation
+        wer.amount_usd as valormedioelectronicopb,
+        cast(null as string) as bancocuentadestinatariapb,
+        json_object(
+            'direccionAgencia', bank_address.full_address,
+            'idDepartamento', bank_address.region_id,
+            'idMunicipio', bank_address.town_id
+        ) as estacionservicio -- Pending implementation
+    from int_core_withdrawal_events_rollup as wer
+    inner join relevant_withdrawals as rw
+        on wer.withdrawal_id = rw.withdrawal_id
+    left join withdrawal_confirmation_timestamps as wct
+        on wer.withdrawal_id = wct.withdrawal_id
+    left join int_core_deposit_account_events_rollup as aer
+        on wer.deposit_account_id = aer.deposit_account_id
+    left join stg_core_public_ids as withdrawal_public_ids
+        on wer.withdrawal_id = withdrawal_public_ids.target_id
+    cross join -- Note: this assumes there's only one address!
+        seed_bank_address as bank_address
 ),
 
 deposit_transactions as (
-select
-    deposit_public_ids.id as numeroRegistroBancario,
-    JSON_OBJECT(
-        'direccionAgencia', bank_address.full_address,
-        'idDepartamento', bank_address.region_id,
-        'idMunicipio', bank_address.town_id
-    ) as estacionServicio,
-    dct.deposit_confirmed_at as fechaTransaccion,
-    CAST(null AS INTEGER) as tipoPersonaA, -- Pending implementation
-    null as detallesPersonaA, -- Pending implementation
-    CAST(null AS INTEGER) as tipoPersonaB, -- Pending implementation
-    null as detallesPersonaB, -- Pending implementation
-    CAST(null AS STRING) as numeroCuentaPO, -- Pending implementation
-    CAST(null AS STRING) as claseCuentaPO, -- Pending implementation
-    der.reference as conceptoTransaccionPO,
-    der.amount_usd as valorOtrosMediosElectronicosPO,
-    aer.public_id as numeroProductoPB,
-    "Cuenta Corriente" as claseCuentaPB,
-    der.amount_usd as montoTransaccionPB,
-    der.amount_usd as valorMedioElectronicoPB,
-    CAST(null AS STRING) as bancoCuentaDestinatariaPB -- Pending implementation
-from int_core_deposit_events_rollup der
-inner join relevant_deposits rd 
-    on der.deposit_id = rd.deposit_id
-left join deposit_confirmation_timestamps dct
-    on der.deposit_id = dct.deposit_id
-left join int_core_deposit_account_events_rollup aer
-    on der.deposit_account_id = aer.deposit_account_id
-left join stg_core_public_ids as deposit_public_ids
-    on der.deposit_id = deposit_public_ids.target_id
-cross join -- Note: this assumes there's only one address!
-seed_bank_address as bank_address
+    select
+        deposit_public_ids.id as numeroregistrobancario,
+        dct.deposit_confirmed_at as fechatransaccion,
+        cast(null as integer) as tipopersonaa,
+        null as detallespersonaa, -- Pending implementation
+        cast(null as integer) as tipopersonab, -- Pending implementation
+        null as detallespersonab, -- Pending implementation
+        cast(null as string) as numerocuentapo, -- Pending implementation
+        cast(null as string) as clasecuentapo, -- Pending implementation
+        der.reference as conceptotransaccionpo, -- Pending implementation
+        der.amount_usd as valorotrosmedioselectronicospo,
+        aer.public_id as numeroproductopb,
+        'Cuenta Corriente' as clasecuentapb,
+        der.amount_usd as montotransaccionpb,
+        der.amount_usd as valormedioelectronicopb,
+        cast(null as string) as bancocuentadestinatariapb,
+        json_object(
+            'direccionAgencia', bank_address.full_address,
+            'idDepartamento', bank_address.region_id,
+            'idMunicipio', bank_address.town_id
+        ) as estacionservicio -- Pending implementation
+    from int_core_deposit_events_rollup as der
+    inner join relevant_deposits as rd
+        on der.deposit_id = rd.deposit_id
+    left join deposit_confirmation_timestamps as dct
+        on der.deposit_id = dct.deposit_id
+    left join int_core_deposit_account_events_rollup as aer
+        on der.deposit_account_id = aer.deposit_account_id
+    left join stg_core_public_ids as deposit_public_ids
+        on der.deposit_id = deposit_public_ids.target_id
+    cross join -- Note: this assumes there's only one address!
+        seed_bank_address as bank_address
 )
 
 select
