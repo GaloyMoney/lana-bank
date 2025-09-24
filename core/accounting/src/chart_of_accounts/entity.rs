@@ -366,7 +366,7 @@ pub struct NewAccountSetWithNodeId {
 pub struct ChartNodeDetails {
     account_set_id: CalaAccountSetId,
     spec: AccountSpec,
-    _manual_transaction_account_id: Option<LedgerAccountId>,
+    manual_transaction_account_id: Option<LedgerAccountId>,
 }
 
 impl From<&ChartNode> for ChartNodeDetails {
@@ -374,7 +374,7 @@ impl From<&ChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.account_set_id,
             spec: node.spec.clone(),
-            _manual_transaction_account_id: node.manual_transaction_account_id,
+            manual_transaction_account_id: node.manual_transaction_account_id,
         }
     }
 }
@@ -384,7 +384,7 @@ impl From<&NewChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.ledger_account_set_id,
             spec: node.spec.clone(),
-            _manual_transaction_account_id: None,
+            manual_transaction_account_id: None,
         }
     }
 }
@@ -672,7 +672,7 @@ mod test {
     }
 
     #[test]
-    fn _manual_transaction_non_leaf_code() {
+    fn manual_transaction_non_leaf_code() {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1");
 
@@ -681,7 +681,7 @@ mod test {
     }
 
     #[test]
-    fn _manual_transaction_non_leaf_account_id_in_chart() {
+    fn manual_transaction_non_leaf_account_id_in_chart() {
         let (mut chart, _) = default_chart();
         let random_id = LedgerAccountId::new();
         chart
