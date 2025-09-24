@@ -30,9 +30,8 @@ type CreditFacility {
 	facilityAmount: UsdCents!
 	collateralizationState: CollateralizationState!
 	status: CreditFacilityStatus!
-	createdAt: Timestamp!
-	activatedAt: Timestamp
-	maturesAt: Timestamp
+	activatedAt: Timestamp!
+	maturesAt: Timestamp!
 	creditFacilityTerms: TermValues!
 	balance: CreditFacilityBalance!
 	currentCvl: CVLPct!
@@ -146,8 +145,6 @@ enum CreditFacilityRepaymentType {
 }
 
 enum CreditFacilityStatus {
-	PENDING_COLLATERALIZATION
-	PENDING_APPROVAL
 	ACTIVE
 	MATURED
 	CLOSED

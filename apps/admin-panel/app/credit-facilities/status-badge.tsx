@@ -12,14 +12,14 @@ const getVariant = (status: CreditFacilityStatus): BadgeProps["variant"] => {
   switch (status) {
     case CreditFacilityStatus.Active:
       return "success"
-    case CreditFacilityStatus.PendingApproval:
-      return "default"
-    case CreditFacilityStatus.PendingCollateralization:
-      return "warning"
     case CreditFacilityStatus.Closed:
       return "secondary"
     case CreditFacilityStatus.Matured:
       return "secondary"
+    default: {
+      const exhaustiveCheck: never = status
+      return exhaustiveCheck
+    }
   }
 }
 
@@ -34,17 +34,15 @@ export const LoanAndCreditFacilityStatusBadge = ({
   const getTranslatedStatus = (status: CreditFacilityStatus): string => {
     switch (status) {
       case CreditFacilityStatus.Active:
-        return t("active", { defaultMessage: "ACTIVE" }).toUpperCase()
-      case CreditFacilityStatus.PendingApproval:
-        return t("pendingApproval", { defaultMessage: "PENDING APPROVAL" }).toUpperCase()
-      case CreditFacilityStatus.PendingCollateralization:
-        return t("pendingCollateralization", {
-          defaultMessage: "PENDING COLLATERALIZATION",
-        }).toUpperCase()
+        return t("active")
       case CreditFacilityStatus.Closed:
-        return t("closed", { defaultMessage: "CLOSED" }).toUpperCase()
+        return t("closed")
       case CreditFacilityStatus.Matured:
-        return t("matured", { defaultMessage: "MATURED" }).toUpperCase()
+        return t("matured")
+      default: {
+        const exhaustiveCheck: never = status
+        return exhaustiveCheck
+      }
     }
   }
 

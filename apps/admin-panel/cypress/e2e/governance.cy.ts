@@ -84,12 +84,12 @@ describe("Governance Test", () => {
 
   it("attach a committee to a policy", () => {
     cy.visit(`/policies`)
-    cy.get('[data-testid="table-row-3"] > :nth-child(3) > a > .gap-2').should(
+    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a > .gap-2').should(
       "be.visible",
     )
     cy.takeScreenshot("12_step-visit-policies-page")
 
-    cy.get('[data-testid="table-row-3"] > :nth-child(3) > a > .gap-2').click()
+    cy.get('[data-testid="table-row-2"] > :nth-child(3) > a > .gap-2').click()
     cy.takeScreenshot("13_step-select-policy")
 
     cy.get('[data-testid="policy-assign-committee"]').click()
@@ -119,10 +119,7 @@ describe("Governance Test", () => {
 
         cy.get("[data-testid=withdrawal-status-badge]")
           .should("be.visible")
-          .should(
-            "have.text",
-            t("Withdrawals.WithdrawalStatus.pending_approval").toUpperCase(),
-          )
+          .should("have.text", t("Withdrawals.WithdrawalStatus.pending_approval"))
         cy.takeScreenshot("17_step-verify-pending-withdrawal")
       })
     })
@@ -137,10 +134,7 @@ describe("Governance Test", () => {
         cy.takeScreenshot("18_step-visit-withdrawal-details")
 
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (
-            badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pending_approval").toUpperCase()
-          ) {
+          if (badge.text() === t("Withdrawals.WithdrawalStatus.pending_approval")) {
             cy.get('[data-testid="approval-process-approve-button"]').click()
             cy.takeScreenshot("19_step-click-approve-button")
 
@@ -151,13 +145,9 @@ describe("Governance Test", () => {
             cy.get("[data-testid=withdrawal-status-badge]")
               .should("be.visible")
               .invoke("text")
-              .should(
-                "eq",
-                t("Withdrawals.WithdrawalStatus.pending_confirmation").toUpperCase(),
-              )
+              .should("eq", t("Withdrawals.WithdrawalStatus.pending_confirmation"))
           } else if (
-            badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pending_confirmation").toUpperCase()
+            badge.text() === t("Withdrawals.WithdrawalStatus.pending_confirmation")
           ) {
             throw new Error("State is Pending Confirmation")
           } else {
@@ -177,10 +167,7 @@ describe("Governance Test", () => {
         cy.takeScreenshot("21_step-visit-withdrawal-for-denial")
 
         cy.get("[data-testid=withdrawal-status-badge]").then((badge) => {
-          if (
-            badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pending_approval").toUpperCase()
-          ) {
+          if (badge.text() === t("Withdrawals.WithdrawalStatus.pending_approval")) {
             cy.get('[data-testid="approval-process-deny-button"]').click()
             cy.takeScreenshot("22_step-click-deny-button")
 
@@ -192,10 +179,9 @@ describe("Governance Test", () => {
             cy.get("[data-testid=withdrawal-status-badge]")
               .should("be.visible")
               .invoke("text")
-              .should("eq", t("Withdrawals.WithdrawalStatus.denied").toUpperCase())
+              .should("eq", t("Withdrawals.WithdrawalStatus.denied"))
           } else if (
-            badge.text() ===
-            t("Withdrawals.WithdrawalStatus.pending_confirmation").toUpperCase()
+            badge.text() === t("Withdrawals.WithdrawalStatus.pending_confirmation")
           ) {
             throw new Error("State is Pending Confirmation")
           } else {

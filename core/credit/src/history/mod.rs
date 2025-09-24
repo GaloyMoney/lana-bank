@@ -16,8 +16,8 @@ impl CreditFacilityHistory {
         use CoreCreditEvent::*;
 
         match event {
-            FacilityCreated { .. } => {}
-            FacilityApproved { .. } => {}
+            FacilityProposalCreated { .. } => {}
+            FacilityProposalApproved { .. } => {}
             FacilityActivated {
                 activation_tx_id,
                 activated_at,

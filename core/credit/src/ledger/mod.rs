@@ -979,6 +979,22 @@ impl CreditLedger {
         ))
     }
 
+    pub(crate) async fn get_proposal_collateral(
+        &self,
+        collateral_account_id: CalaAccountId,
+    ) -> Result<Satoshis, CreditLedgerError> {
+        let collateral_id = (self.journal_id, collateral_account_id, self.btc);
+        let balances = self.cala.balances().find_all(&[collateral_id]).await?;
+
+        let collateral = if let Some(b) = balances.get(&collateral_id) {
+            Satoshis::try_from_btc(b.settled())?
+        } else {
+            Satoshis::ZERO
+        };
+
+        Ok(collateral)
+    }
+
     pub async fn get_credit_facility_balance(
         &self,
         CreditFacilityLedgerAccountIds {
@@ -1141,7 +1157,7 @@ impl CreditLedger {
         })
     }
 
-    pub async fn update_credit_facility_collateral(
+    pub async fn update_credit_facility_proposal_collateral(
         &self,
         op: es_entity::DbOp<'_>,
         CollateralUpdate {
@@ -1150,7 +1166,7 @@ impl CreditLedger {
             action,
             effective,
         }: CollateralUpdate,
-        credit_facility_account_ids: CreditFacilityLedgerAccountIds,
+        credit_facility_proposal_account_ids: CreditFacilityProposalAccountIds,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self
             .cala
@@ -1166,7 +1182,7 @@ impl CreditLedger {
                             journal_id: self.journal_id,
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
-                            collateral_account_id: credit_facility_account_ids
+                            collateral_account_id: credit_facility_proposal_account_ids
                                 .collateral_account_id,
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
@@ -1186,8 +1202,66 @@ impl CreditLedger {
                             journal_id: self.journal_id,
                             currency: self.btc,
                             amount: abs_diff.to_btc(),
-                            collateral_account_id: credit_facility_account_ids
+                            collateral_account_id: credit_facility_proposal_account_ids
                                 .collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
+                            effective,
+                        },
+                    )
+                    .await
+            }
+        }?;
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn update_credit_facility_collateral(
+        &self,
+        op: es_entity::DbOp<'_>,
+        CollateralUpdate {
+            tx_id,
+            abs_diff,
+            action,
+            effective,
+        }: CollateralUpdate,
+        collateral_account_id: CalaAccountId,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+        match action {
+            CollateralAction::Add => {
+                self.cala
+                    .post_transaction_in_op(
+                        &mut op,
+                        tx_id,
+                        templates::ADD_COLLATERAL_CODE,
+                        templates::AddCollateralParams {
+                            journal_id: self.journal_id,
+                            currency: self.btc,
+                            amount: abs_diff.to_btc(),
+                            collateral_account_id,
+                            bank_collateral_account_id: self
+                                .collateral_omnibus_account_ids
+                                .account_id,
+                            effective,
+                        },
+                    )
+                    .await
+            }
+            CollateralAction::Remove => {
+                self.cala
+                    .post_transaction_in_op(
+                        &mut op,
+                        tx_id,
+                        templates::REMOVE_COLLATERAL_CODE,
+                        templates::RemoveCollateralParams {
+                            journal_id: self.journal_id,
+                            currency: self.btc,
+                            amount: abs_diff.to_btc(),
+                            collateral_account_id,
                             bank_collateral_account_id: self
                                 .collateral_omnibus_account_ids
                                 .account_id,
@@ -1416,35 +1490,6 @@ impl CreditLedger {
         Ok(())
     }
 
-    async fn create_credit_facility(
-        &self,
-        mut op: cala_ledger::LedgerOperation<'_>,
-        CreditFacilityCreation {
-            tx_id,
-            tx_ref,
-            credit_facility_account_ids,
-            facility_amount,
-        }: CreditFacilityCreation,
-    ) -> Result<(), CreditLedgerError> {
-        self.cala
-            .post_transaction_in_op(
-                &mut op,
-                tx_id,
-                templates::CREATE_CREDIT_FACILITY_CODE,
-                templates::CreateCreditFacilityParams {
-                    journal_id: self.journal_id,
-                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: credit_facility_account_ids.facility_account_id,
-                    facility_amount: facility_amount.to_usd(),
-                    currency: self.usd,
-                    external_id: tx_ref,
-                },
-            )
-            .await?;
-        op.commit().await?;
-        Ok(())
-    }
-
     async fn create_credit_facility_proposal(
         &self,
         mut op: cala_ledger::LedgerOperation<'_>,
@@ -1475,20 +1520,41 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn activate_credit_facility(
+    pub async fn handle_facility_activation(
         &self,
         op: es_entity::DbOpWithTime<'_>,
+        activation_data: CreditFacilityActivation,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        self.create_accounts_for_credit_facility(
+            &mut op,
+            activation_data.credit_facility_id,
+            activation_data.account_ids,
+            activation_data.customer_type,
+            activation_data.duration_type,
+        )
+        .await?;
+
+        self.activate_credit_facility(op, activation_data).await?;
+
+        Ok(())
+    }
+
+    async fn activate_credit_facility(
+        &self,
+        mut op: cala_ledger::LedgerOperation<'_>,
         CreditFacilityActivation {
             tx_id,
             tx_ref,
-            credit_facility_account_ids,
-            debit_account_id,
+            account_ids,
             facility_amount,
+            debit_account_id,
             structuring_fee_amount,
             activation_principal_disbursal_amount,
+            ..
         }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
         self.cala
             .post_transaction_in_op(
                 &mut op,
@@ -1497,10 +1563,10 @@ impl CreditLedger {
                 templates::ActivateCreditFacilityParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: credit_facility_account_ids.facility_account_id,
-                    facility_disbursed_receivable_account: credit_facility_account_ids
+                    credit_facility_account: account_ids.facility_account_id,
+                    facility_disbursed_receivable_account: account_ids
                         .disbursed_receivable_not_yet_due_account_id,
-                    facility_fee_income_account: credit_facility_account_ids.fee_income_account_id,
+                    facility_fee_income_account: account_ids.fee_income_account_id,
                     debit_account_id,
                     facility_amount: facility_amount.to_usd(),
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
@@ -1825,6 +1891,7 @@ impl CreditLedger {
         self.create_accounts_for_credit_facility_proposal(
             &mut op,
             credit_facility_proposal.id,
+            credit_facility_proposal.collateral_id,
             credit_facility_proposal.account_ids,
         )
         .await?;
@@ -1841,43 +1908,11 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub(super) async fn handle_facility_create(
-        &self,
-        op: es_entity::DbOp<'_>,
-        collateral_id: CollateralId,
-        credit_facility: &crate::CreditFacility,
-        customer_type: CustomerType,
-        duration_type: FacilityDurationType,
-    ) -> Result<(), CreditLedgerError> {
-        let mut op = self
-            .cala
-            .ledger_operation_from_db_op(op.with_db_time().await?);
-
-        self.create_accounts_for_credit_facility(
-            &mut op,
-            credit_facility.id,
-            collateral_id,
-            credit_facility.account_ids,
-            customer_type,
-            duration_type,
-        )
-        .await?;
-
-        self.add_credit_facility_control_to_account(
-            &mut op,
-            credit_facility.account_ids.facility_account_id,
-        )
-        .await?;
-
-        self.create_credit_facility(op, credit_facility.creation_data())
-            .await?;
-
-        Ok(())
-    }
     async fn create_accounts_for_credit_facility_proposal(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         credit_facility_id: CreditFacilityProposalId,
+        collateral_id: CollateralId,
         account_ids: CreditFacilityProposalAccountIds,
     ) -> Result<(), CreditLedgerError> {
         let CreditFacilityProposalAccountIds {
@@ -1886,63 +1921,6 @@ impl CreditLedger {
         } = account_ids;
 
         let entity_ref = EntityRef::new(CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, credit_facility_id);
-        let collateral_reference = &format!("credit-facility-collateral:{credit_facility_id}");
-        let collateral_name =
-            &format!("Credit Facility Collateral Account for {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            collateral_account_id,
-            self.internal_account_sets.collateral,
-            collateral_reference,
-            collateral_name,
-            collateral_name,
-            entity_ref.clone(),
-        )
-        .await?;
-
-        let facility_reference = &format!("credit-facility-obs-facility:{credit_facility_id}");
-        let facility_name =
-            &format!("Off-Balance-Sheet Facility Account for Credit Facility {credit_facility_id}");
-        self.create_account_in_op(
-            op,
-            facility_account_id,
-            self.internal_account_sets.facility,
-            facility_reference,
-            facility_name,
-            facility_name,
-            entity_ref,
-        )
-        .await?;
-
-        Ok(())
-    }
-
-    async fn create_accounts_for_credit_facility(
-        &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
-        credit_facility_id: CreditFacilityId,
-        collateral_id: CollateralId,
-        account_ids: CreditFacilityLedgerAccountIds,
-        customer_type: CustomerType,
-        duration_type: FacilityDurationType,
-    ) -> Result<(), CreditLedgerError> {
-        let CreditFacilityLedgerAccountIds {
-            facility_account_id,
-            in_liquidation_account_id,
-            disbursed_receivable_not_yet_due_account_id,
-            disbursed_receivable_due_account_id,
-            disbursed_receivable_overdue_account_id,
-            disbursed_defaulted_account_id,
-            collateral_account_id,
-            interest_receivable_not_yet_due_account_id,
-            interest_receivable_due_account_id,
-            interest_receivable_overdue_account_id,
-            interest_defaulted_account_id,
-            interest_income_account_id,
-            fee_income_account_id,
-        } = account_ids;
-
-        let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
         let collateral_reference = &format!("credit-facility-collateral:{credit_facility_id}");
         let collateral_name =
             &format!("Credit Facility Collateral Account for {credit_facility_id}");
@@ -1967,10 +1945,40 @@ impl CreditLedger {
             facility_reference,
             facility_name,
             facility_name,
-            entity_ref.clone(),
+            entity_ref,
         )
         .await?;
 
+        Ok(())
+    }
+
+    async fn create_accounts_for_credit_facility(
+        &self,
+        op: &mut cala_ledger::LedgerOperation<'_>,
+        credit_facility_id: CreditFacilityId,
+        account_ids: CreditFacilityLedgerAccountIds,
+        customer_type: CustomerType,
+        duration_type: FacilityDurationType,
+    ) -> Result<(), CreditLedgerError> {
+        let CreditFacilityLedgerAccountIds {
+            in_liquidation_account_id,
+            disbursed_receivable_not_yet_due_account_id,
+            disbursed_receivable_due_account_id,
+            disbursed_receivable_overdue_account_id,
+            disbursed_defaulted_account_id,
+            interest_receivable_not_yet_due_account_id,
+            interest_receivable_due_account_id,
+            interest_receivable_overdue_account_id,
+            interest_defaulted_account_id,
+            interest_income_account_id,
+            fee_income_account_id,
+
+            // these accounts are created during proposal creation
+            collateral_account_id: _collateral_account_id,
+            facility_account_id: _facility_account_id,
+        } = account_ids;
+
+        let entity_ref = EntityRef::new(CREDIT_FACILITY_ENTITY_TYPE, credit_facility_id);
         let in_liquidation_reference =
             &format!("credit-facility-obs-in-liquidation:{credit_facility_id}");
         let in_liquidation_name = &format!(

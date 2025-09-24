@@ -24,9 +24,9 @@ pub async fn disbursal_different_months_scenario(
 
     let cf_terms = helpers::std_terms_12m();
     let cf_amount = UsdCents::try_from_usd(dec!(10_000_000))?;
-    let cf = app
+    let cf_proposal = app
         .credit()
-        .create_facility(
+        .create_facility_proposal(
             &sub,
             customer_id,
             deposit_account_id,
@@ -39,21 +39,23 @@ pub async fn disbursal_different_months_scenario(
     let mut stream = app.outbox().listen_persisted(None).await?;
     while let Some(msg) = stream.next().await {
         match &msg.payload {
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
+            Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalApproved { id, .. }))
+                if cf_proposal.id == *id =>
+            {
                 app.credit()
-                    .update_collateral(
+                    .update_proposal_collateral(
                         &sub,
-                        cf.id,
+                        cf_proposal.id,
                         Satoshis::try_from_btc(dec!(230))?,
                         sim_time::now().date_naive(),
                     )
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
-                if cf.id == *id =>
+                if *id == cf_proposal.id.into() =>
             {
                 app.credit()
-                    .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                    .initiate_disbursal(&sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
 
                 break;
@@ -64,7 +66,7 @@ pub async fn disbursal_different_months_scenario(
 
     let sim_app = app.clone();
     tokio::spawn(async move {
-        do_disbursal_in_different_months(sub, sim_app, cf.id)
+        do_disbursal_in_different_months(sub, sim_app, cf_proposal.id.into())
             .await
             .expect("disbursal different months failed");
     });
@@ -72,7 +74,7 @@ pub async fn disbursal_different_months_scenario(
     let (tx, rx) = mpsc::channel::<UsdCents>(32);
     let sim_app = app.clone();
     tokio::spawn(async move {
-        do_timely_payments(sub, sim_app, cf.id, rx)
+        do_timely_payments(sub, sim_app, cf_proposal.id.into(), rx)
             .await
             .expect("disbursal different months timely payments failed");
     });
@@ -83,11 +85,11 @@ pub async fn disbursal_different_months_scenario(
                 credit_facility_id: id,
                 amount,
                 ..
-            })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
+            })) if { *id == cf_proposal.id.into() && amount > &UsdCents::ZERO } => {
                 tx.send(*amount).await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
-                if cf.id == *id {
+                if *id == cf_proposal.id.into() {
                     break;
                 }
             }
@@ -98,7 +100,7 @@ pub async fn disbursal_different_months_scenario(
     let cf = app
         .credit()
         .facilities()
-        .find_by_id(&sub, cf.id)
+        .find_by_id(&sub, cf_proposal.id)
         .await?
         .expect("cf exists");
     assert_eq!(cf.status(), CreditFacilityStatus::Closed);

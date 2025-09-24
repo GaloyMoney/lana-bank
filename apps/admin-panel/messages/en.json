@@ -134,6 +134,7 @@
       "dashboard": "Dashboard",
       "actions": "Actions",
       "creditFacilities": "Credit Facilities",
+      "creditFacilityProposals": "Credit Facility Proposals",
       "disbursals": "Disbursals",
       "termTemplates": "Term Templates",
       "customers": "Customers",
@@ -183,7 +184,7 @@
       "createDeposit": "Create Deposit",
       "createWithdrawal": "Create Withdrawal",
       "createCustomer": "Create Customer",
-      "createCreditFacility": "Create Credit Facility",
+      "createCreditFacility": "Create Credit Facility Proposal",
       "updateCollateral": "Update Collateral",
       "createDisbursal": "Create Disbursal",
       "makePayment": "Make Payment",
@@ -264,6 +265,7 @@
         "tabs": {
           "transactions": "Transactions",
           "creditFacilities": "Credit Facilities",
+          "creditFacilityProposals": "Credit Facility Proposals",
           "documents": "Documents"
         },
         "errors": {
@@ -325,13 +327,19 @@
         "title": "Deposit Account",
         "labels": {
           "checkingSettled": "Checking Settled Balance (USD)",
-          "pendingWithdrawals": "Pending Withdrawals (USD)"
+          "pendingWithdrawals": "Pending Withdrawals (USD)",
+          "status": "Status"
         },
         "status": {
           "active": "Active",
           "frozen": "Frozen",
           "inactive": "Inactive"
-        }
+        },
+        "buttons": {
+          "viewLedgerAccount": "View Ledger Account",
+          "freezeDepositAccount": "Freeze Deposit Account"
+        },
+        "noAccount": "No deposit account available"
       },
       "updateTelegram": {
         "title": "Update Telegram ID",
@@ -363,8 +371,7 @@
           "pendingBalance": "Pending Withdrawals"
         },
         "buttons": {
-          "freeze": "Freeze Account",
-          "freezeDepositAccount": "Freeze Deposit Account"
+          "freeze": "Freeze Account"
         },
         "success": "Deposit account frozen successfully",
         "errors": {
@@ -423,7 +430,7 @@
             "outstandingBalance": "Outstanding Balance",
             "collateralBtc": "Collateral (BTC)",
             "collateralizationState": "Collateralization State",
-            "createdAt": "Created At"
+            "activatedAt": "Activated At"
           }
         }
       },
@@ -452,6 +459,163 @@
           "uploadFailed": "Upload failed: {message}",
           "unexpectedError": "An unexpected error occurred during file upload."
         }
+      },
+      "creditFacilityProposals": {
+        "title": "Credit Facility Proposals",
+        "description": "Credit Facility Proposals for this Customer",
+        "loading": "Loading...",
+        "error": "An error occurred",
+        "notFound": "Customer not found",
+        "table": {
+          "headers": {
+            "status": "Status",
+            "facilityAmount": "Facility Amount",
+            "collateral": "Collateral",
+            "collateralizationState": "Collateralization State",
+            "createdAt": "Created At"
+          }
+        }
+      }
+    }
+  },
+  "CreditFacilityProposals": {
+    "title": "Credit Facility Proposals",
+    "description": "Proposals for new credit facilities awaiting approval and collateral",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "status": "Status",
+        "facilityAmount": "Facility Amount",
+        "collateral": "Collateral",
+        "collateralizationState": "Collateralization State",
+        "createdAt": "Created At"
+      }
+    },
+    "status": {
+      "pending_collateralization": "Pending Collateralization",
+      "pending_approval": "Pending Approval",
+      "pending_completion": "Pending Completion",
+      "completed": "Completed"
+    },
+    "collateralizationState": {
+      "fullycollateralized": "Fully Collateralized",
+      "undercollateralized": "Under Collateralized"
+    },
+    "CreateCreditFacilityProposal": {
+      "dialog": {
+        "customerInfo": "Creating credit facility proposal for {email}",
+        "title": "Create Credit Facility Proposal",
+        "description": "Fill in the details to create a credit facility proposal."
+      },
+      "form": {
+        "labels": {
+          "facilityAmount": "Facility Amount",
+          "custodian": "Custodian",
+          "manualCustodian": "Manual",
+          "termsTemplate": "Terms Template",
+          "creditFacilityTerms": "Credit Facility Terms",
+          "interestRate": "Nominal Interest Rate",
+          "initialCvl": "Initial CVL (%)",
+          "duration": "Duration",
+          "months": "months",
+          "marginCallCvl": "Margin Call CVL (%)",
+          "liquidationCvl": "Liquidation CVL (%)",
+          "structuringFeeRate": "Structuring Fee Rate (%)"
+        },
+        "placeholders": {
+          "facilityAmount": "Enter the facility amount",
+          "custodian": "Select a custodian",
+          "termsTemplate": "Select from predefined terms template",
+          "annualRate": "Enter the annual rate",
+          "initialCvl": "Enter the initial CVL",
+          "duration": "Enter duration in months",
+          "marginCallCvl": "Enter the margin call CVL",
+          "liquidationCvl": "Enter the liquidation CVL",
+          "structuringFeeRate": "Enter the Structuring Fee Rate"
+        },
+        "buttons": {
+          "create": "Create Credit Facility Proposal"
+        },
+        "messages": {
+          "collateralRequired": "collateral required",
+          "btcUsdRate": "BTC/USD:",
+          "noTemplates": "No terms templates available please create one or manually specify the terms below.",
+          "fillAllFields": "Please fill in all the fields.",
+          "success": "Credit Facility Proposal created successfully"
+        }
+      }
+    },
+    "CreditFacilityProposalCollateralUpdate": {
+      "dialog": {
+        "title": "Update Credit Facility Proposal Collateral",
+        "description": "Enter the new collateral amount for this credit facility proposal.",
+        "confirmTitle": "Confirm Update",
+        "confirmDescription": "Are you sure you want to update the collateral for this credit facility proposal?"
+      },
+      "form": {
+        "labels": {
+          "currentCollateral": "Current Collateral",
+          "expectedCollateral": "Expected Collateral",
+          "newCollateral": "New Collateral"
+        },
+        "placeholders": {
+          "newCollateral": "Enter new collateral amount"
+        },
+        "errors": {
+          "emptyCollateral": "Please enter a valid collateral amount.",
+          "noData": "No data returned from mutation"
+        },
+        "buttons": {
+          "proceedToConfirm": "Proceed to Confirm",
+          "confirm": "Confirm"
+        }
+      },
+      "messages": {
+        "success": "Credit facility proposal collateral updated successfully"
+      },
+      "units": {
+        "btc": "BTC"
+      }
+    },
+    "ProposalDetails": {
+      "CollateralCard": {
+        "title": "Collateral",
+        "details": {
+          "collateralBalance": "Collateral balance (BTC)",
+          "currentPrice": "Current BTC/USD Price",
+          "collateralValue": "Collateral value (USD)",
+          "collateralToReachTarget": "Collateral to reach target ({percentage})"
+        }
+      },
+      "DetailsCard": {
+        "title": "Credit Facility Proposal",
+        "details": {
+          "customer": "Customer",
+          "status": "Status",
+          "facilityAmount": "Facility Amount",
+          "collateralizationState": "Collateralization State",
+          "collateral": "Collateral",
+          "createdAt": "Created At",
+          "custodian": "Custodian",
+          "manual": "Manual",
+          "walletAddress": "Wallet Address",
+          "viewOnMempool": "View on mempool"
+        },
+        "buttons": {
+          "updateCollateral": "Update Collateral",
+          "approve": "Approve",
+          "deny": "Deny",
+          "viewFacility": "View Credit Facility"
+        },
+        "alerts": {
+          "completedTitle": "Proposal completed",
+          "completedDescription": "This proposal has been approved and completed.",
+          "viewAssociatedFacility": "View associated credit facility"
+        }
+      },
+      "TermsCard": {
+        "title": "Terms",
+        "description": "Details about the terms for this proposal"
       }
     }
   },
@@ -465,13 +629,11 @@
         "outstanding": "Outstanding",
         "collateralizationState": "State",
         "cvl": "CVL",
-        "createdAt": "Created At"
+        "activatedAt": "Activated At"
       }
     },
     "CreditFacilityStatus": {
       "active": "Active",
-      "pendingApproval": "Pending Approval",
-      "pendingCollateralization": "Pending Collateralization",
       "closed": "Closed",
       "matured": "Matured"
     },
@@ -483,7 +645,6 @@
       "noExposure": "No Exposure"
     },
     "errors": {
-      "fetchError": "An error occurred while fetching data.",
       "general": "An error occurred"
     },
     "CreditFacilityDetails": {
@@ -505,11 +666,27 @@
           "interest": "Interest"
         },
         "status": {
-          "upcoming": "UPCOMING",
-          "not_yet_due": "NOT YET DUE",
-          "due": "DUE",
-          "overdue": "OVERDUE",
-          "paid": "PAID"
+          "upcoming": "Upcoming",
+          "notyetdue": "Not Yet Due",
+          "due": "Due",
+          "overdue": "Overdue",
+          "defaulted": "Defaulted",
+          "paid": "Paid"
+        }
+      },
+      "LedgerAccounts": {
+        "title": "Ledger Accounts",
+        "description": "Ledger accounts associated with this credit facility",
+        "table": {
+          "headers": {
+            "name": "Account Name",
+            "normalBalanceType": "Balance Type",
+            "balance": "Balance"
+          }
+        },
+        "balanceTypes": {
+          "DEBIT": "Debit",
+          "CREDIT": "Credit"
         }
       },
       "Disbursals": {
@@ -611,7 +788,8 @@
           "loanAgreement": "Loan Agreement",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
-          "deny": "Deny"
+          "deny": "Deny",
+          "viewProposal": "View Proposal"
         },
         "loanAgreement": {
           "success": "Loan agreement generated successfully",
@@ -622,56 +800,12 @@
         "tabs": {
           "history": "History",
           "disbursals": "Disbursals",
-          "repaymentPlan": "Repayment Plan"
+          "repaymentPlan": "Repayment Plan",
+          "ledgerAccounts": "Ledger Accounts"
         },
         "errors": {
           "notFound": "Not found",
           "loading": "Loading..."
-        }
-      },
-      "CreateCreditFacility": {
-        "dialog": {
-          "customerInfo": "Creating credit facility for {email}",
-          "title": "Create Credit Facility",
-          "description": "Fill in the details to create a credit facility."
-        },
-        "form": {
-          "labels": {
-            "facilityAmount": "Facility Amount",
-            "custodian": "Custodian",
-            "manualCustodian": "Manual",
-            "termsTemplate": "Terms Template",
-            "creditFacilityTerms": "Credit Facility Terms",
-            "interestRate": "Nominal Interest Rate",
-            "initialCvl": "Initial CVL (%)",
-            "duration": "Duration",
-            "months": "months",
-            "marginCallCvl": "Margin Call CVL (%)",
-            "liquidationCvl": "Liquidation CVL (%)",
-            "structuringFeeRate": "Structuring Fee Rate (%)"
-          },
-          "placeholders": {
-            "facilityAmount": "Enter the facility amount",
-            "custodian": "Select a custodian",
-            "termsTemplate": "Select from predefined terms template",
-            "annualRate": "Enter the annual rate",
-            "initialCvl": "Enter the initial CVL",
-            "duration": "Enter duration in months",
-            "marginCallCvl": "Enter the margin call CVL",
-            "liquidationCvl": "Enter the liquidation CVL",
-            "structuringFeeRate": "Enter the Structuring Fee Rate"
-          },
-          "buttons": {
-            "back": "Back",
-            "create": "Create Credit Facility"
-          },
-          "messages": {
-            "collateralRequired": "collateral required",
-            "btcUsdRate": "BTC/USD:",
-            "noTemplates": "No terms templates available please create one or manually specify the terms below.",
-            "fillAllFields": "Please fill in all the fields.",
-            "success": "Credit Facility created successfully"
-          }
         }
       },
       "CreditFacilityPartialPayment": {
@@ -1647,7 +1781,7 @@
       "deposit": "Deposit",
       "withdrawal": "Withdrawal",
       "customer": "Customer",
-      "creditFacility": "Credit Facility",
+      "creditFacility": "Credit Facility Proposal",
       "disbursal": "Disbursal",
       "payment": "Payment",
       "user": "User",
@@ -1785,7 +1919,7 @@
     },
     "addChildNode": "Add Sub Account",
     "addAccount": "Add Account",
-    "viewCustomer": "View Customer",
+    "viewDepositAccount": "View Deposit Account",
     "viewCreditFacility": "View Credit Facility",
     "table": {
       "noData": "No transactions present in this account",

@@ -50,9 +50,8 @@ gql`
                 }
               }
             }
-            ... on CreditFacility {
-              creditFacilityId
-              publicId
+            ... on CreditFacilityProposal {
+              creditFacilityProposalId
               customer {
                 email
               }
@@ -108,10 +107,10 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
 
   const getVisitUrl = (data: ActionNode) => {
     if (
-      data.approvalProcessType === ApprovalProcessType.CreditFacilityApproval &&
-      data.target.__typename === "CreditFacility"
+      data.approvalProcessType === ApprovalProcessType.CreditFacilityProposalApproval &&
+      data.target.__typename === "CreditFacilityProposal"
     ) {
-      return `/credit-facilities/${data.target.publicId}`
+      return `/credit-facility-proposals/${data.target.creditFacilityProposalId}`
     } else if (
       data.approvalProcessType === ApprovalProcessType.WithdrawalApproval &&
       data.target.__typename === "Withdrawal"
@@ -134,7 +133,7 @@ const List: React.FC<ListProps> = ({ dashboard = false }) => {
         switch (target.__typename) {
           case "CreditFacilityDisbursal":
             return target.creditFacility.customer.email
-          case "CreditFacility":
+          case "CreditFacilityProposal":
             return target.customer.email
           case "Withdrawal":
             return target.account.customer.email

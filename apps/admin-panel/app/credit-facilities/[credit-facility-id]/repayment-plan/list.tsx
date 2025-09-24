@@ -9,7 +9,12 @@ import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import DataTable, { Column } from "@/components/data-table"
 
-import { GetCreditFacilityRepaymentPlanQuery } from "@/lib/graphql/generated"
+import {
+  GetCreditFacilityRepaymentPlanQuery,
+  GetCreditFacilityProposalRepaymentPlanQuery,
+  CreditFacilityRepaymentStatus,
+  CreditFacilityRepaymentType,
+} from "@/lib/graphql/generated"
 
 import Balance from "@/components/balance/balance"
 import CardWrapper from "@/components/card-wrapper"
@@ -22,7 +27,8 @@ type RepaymentPlan = NonNullable<
 
 type CreditFacilityRepaymentPlanProps = {
   creditFacility: NonNullable<
-    GetCreditFacilityRepaymentPlanQuery["creditFacilityByPublicId"]
+    | GetCreditFacilityRepaymentPlanQuery["creditFacilityByPublicId"]
+    | GetCreditFacilityProposalRepaymentPlanQuery["creditFacilityProposal"]
   >
 }
 
@@ -33,16 +39,25 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
 
   const getRepaymentTypeDisplay = (type: RepaymentPlan["repaymentType"]) => {
     switch (type) {
-      case "DISBURSAL":
+      case CreditFacilityRepaymentType.Disbursal:
         return t("repaymentTypes.principal")
-      case "INTEREST":
+      case CreditFacilityRepaymentType.Interest:
         return t("repaymentTypes.interest")
-      default:
-        return type
+      default: {
+        const exhaustiveCheck: never = type
+        return exhaustiveCheck
+      }
     }
   }
 
   const columns: Column<RepaymentPlan>[] = [
+    {
+      key: "status",
+      header: t("columns.status"),
+      render: (_, repayment) => {
+        return <RepaymentStatusBadge status={repayment.status} t={t} />
+      },
+    },
     {
       key: "repaymentType",
       header: t("columns.type"),
@@ -62,14 +77,6 @@ export const CreditFacilityRepaymentPlan: React.FC<CreditFacilityRepaymentPlanPr
       key: "dueAt",
       header: t("columns.dueDate"),
       render: (date) => <DateWithTooltip value={date} />,
-    },
-    {
-      key: "status",
-      header: t("columns.status"),
-      align: "right",
-      render: (_, repayment) => {
-        return <RepaymentStatusBadge status={repayment.status} t={t} />
-      },
     },
   ]
 
@@ -93,28 +100,52 @@ interface StatusBadgeProps extends BadgeProps {
 
 const getStatusVariant = (status: RepaymentPlan["status"]): BadgeProps["variant"] => {
   switch (status) {
-    case "UPCOMING":
+    case CreditFacilityRepaymentStatus.Upcoming:
       return "default"
-    case "NOT_YET_DUE":
+    case CreditFacilityRepaymentStatus.NotYetDue:
       return "outline"
-    case "DUE":
+    case CreditFacilityRepaymentStatus.Due:
       return "warning"
-    case "OVERDUE":
+    case CreditFacilityRepaymentStatus.Overdue:
       return "destructive"
-    case "PAID":
+    case CreditFacilityRepaymentStatus.Defaulted:
+      return "destructive"
+    case CreditFacilityRepaymentStatus.Paid:
       return "success"
-    default:
-      return "default"
+    default: {
+      const exhaustiveCheck: never = status
+      return exhaustiveCheck
+    }
   }
 }
 
 const RepaymentStatusBadge: React.FC<StatusBadgeProps> = ({ status, t, ...props }) => {
   const variant = getStatusVariant(status)
-  const statusKey = status.toLowerCase()
+
+  const getStatusKey = (status: RepaymentPlan["status"]): string => {
+    switch (status) {
+      case CreditFacilityRepaymentStatus.Upcoming:
+        return "upcoming"
+      case CreditFacilityRepaymentStatus.NotYetDue:
+        return "notyetdue"
+      case CreditFacilityRepaymentStatus.Due:
+        return "due"
+      case CreditFacilityRepaymentStatus.Overdue:
+        return "overdue"
+      case CreditFacilityRepaymentStatus.Defaulted:
+        return "defaulted"
+      case CreditFacilityRepaymentStatus.Paid:
+        return "paid"
+      default: {
+        const exhaustiveCheck: never = status
+        return exhaustiveCheck
+      }
+    }
+  }
 
   return (
     <Badge variant={variant} {...props}>
-      {t(`status.${statusKey}`)}
+      {t(`status.${getStatusKey(status)}`)}
     </Badge>
   )
 }

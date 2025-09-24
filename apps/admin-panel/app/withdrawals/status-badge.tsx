@@ -37,7 +37,7 @@ export const WithdrawalStatusBadge: React.FC<StatusBadgeProps> = ({
 
   return (
     <Badge variant={variant} {...props}>
-      {t(status.toLowerCase()).toUpperCase()}
+      {t(status.toLowerCase())}
     </Badge>
   )
 }

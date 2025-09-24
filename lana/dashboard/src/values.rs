@@ -17,7 +17,7 @@ impl DashboardValues {
     pub(crate) fn process_event(&mut self, recorded_at: DateTime<Utc>, event: &LanaEvent) -> bool {
         self.last_updated = recorded_at;
         match event {
-            LanaEvent::Credit(CoreCreditEvent::FacilityCreated { .. }) => {
+            LanaEvent::Credit(CoreCreditEvent::FacilityProposalCreated { .. }) => {
                 self.pending_facilities += 1;
                 true
             }

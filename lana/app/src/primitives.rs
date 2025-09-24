@@ -3,7 +3,8 @@ pub use core_accounting::{
     AccountSpec, BalanceRange, Chart, ChartId, LedgerTransactionId, ManualTransactionId,
 };
 pub use core_credit::{
-    CollateralAction, CollateralId, CreditFacilityId, CreditFacilityStatus, DisbursalId,
+    CollateralAction, CollateralId, CreditFacilityId, CreditFacilityProposalCollateralizationState,
+    CreditFacilityProposalId, CreditFacilityProposalStatus, CreditFacilityStatus, DisbursalId,
     DisbursalStatus, ObligationInstallmentId, PaymentId, TermsTemplateId,
 };
 pub use core_custody::{CustodianId, WalletId};

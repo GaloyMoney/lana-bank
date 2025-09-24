@@ -66,22 +66,26 @@ where
 
     pub async fn execute_from_svc(
         &self,
-        credit_facility: &CreditFacilityProposal,
+        credit_facility_proposal: &CreditFacilityProposal,
     ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
-        if credit_facility.is_approval_process_concluded() {
+        if credit_facility_proposal.is_approval_process_concluded() {
             return Ok(None);
         }
 
         let process: ApprovalProcess = self
             .governance
-            .find_all_approval_processes(&[credit_facility.approval_process_id])
+            .find_all_approval_processes(&[credit_facility_proposal.approval_process_id])
             .await?
-            .remove(&credit_facility.approval_process_id)
+            .remove(&credit_facility_proposal.approval_process_id)
             .expect("approval process not found");
 
         let res = match process.status() {
-            ApprovalProcessStatus::Approved => Some(self.execute(credit_facility.id, true).await?),
-            ApprovalProcessStatus::Denied => Some(self.execute(credit_facility.id, false).await?),
+            ApprovalProcessStatus::Approved => {
+                Some(self.execute(credit_facility_proposal.id, true).await?)
+            }
+            ApprovalProcessStatus::Denied => {
+                Some(self.execute(credit_facility_proposal.id, false).await?)
+            }
             _ => None,
         };
         Ok(res)

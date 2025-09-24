@@ -70,9 +70,9 @@ async fn create_and_process_facility(
 
     let mut stream = app.outbox().listen_persisted(None).await?;
 
-    let cf = app
+    let cf_proposal = app
         .credit()
-        .create_facility(
+        .create_facility_proposal(
             &sub,
             customer_id,
             deposit_account_id,
@@ -84,28 +84,30 @@ async fn create_and_process_facility(
 
     while let Some(msg) = stream.next().await {
         match &msg.payload {
-            Some(LanaEvent::Credit(CoreCreditEvent::FacilityApproved { id })) if cf.id == *id => {
+            Some(LanaEvent::Credit(CoreCreditEvent::FacilityProposalApproved { id, .. }))
+                if cf_proposal.id == *id =>
+            {
                 app.credit()
-                    .update_collateral(
+                    .update_proposal_collateral(
                         &sub,
-                        cf.id,
+                        cf_proposal.id,
                         Satoshis::try_from_btc(dec!(230))?,
                         sim_time::now().date_naive(),
                     )
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityActivated { id, .. }))
-                if cf.id == *id =>
+                if *id == cf_proposal.id.into() =>
             {
                 app.credit()
-                    .initiate_disbursal(&sub, cf.id, UsdCents::try_from_usd(dec!(1_000_000))?)
+                    .initiate_disbursal(&sub, *id, UsdCents::try_from_usd(dec!(1_000_000))?)
                     .await?;
             }
             Some(LanaEvent::Credit(CoreCreditEvent::ObligationDue {
                 credit_facility_id: id,
                 amount,
                 ..
-            })) if { cf.id == *id && amount > &UsdCents::ZERO } => {
+            })) if { *id == cf_proposal.id.into() && amount > &UsdCents::ZERO } => {
                 let _ = app
                     .credit()
                     .record_payment_with_date(&sub, *id, *amount, sim_time::now().date_naive())
@@ -130,7 +132,7 @@ async fn create_and_process_facility(
                 }
             }
             Some(LanaEvent::Credit(CoreCreditEvent::FacilityCompleted { id, .. })) => {
-                if cf.id == *id {
+                if *id == cf_proposal.id.into() {
                     break;
                 }
             }

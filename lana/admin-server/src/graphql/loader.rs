@@ -309,6 +309,23 @@ impl Loader<TermsTemplateId> for LanaLoader {
     }
 }
 
+impl Loader<CreditFacilityProposalId> for LanaLoader {
+    type Value = CreditFacilityProposal;
+    type Error = Arc<lana_app::credit::error::CoreCreditError>;
+
+    async fn load(
+        &self,
+        keys: &[CreditFacilityProposalId],
+    ) -> Result<HashMap<CreditFacilityProposalId, CreditFacilityProposal>, Self::Error> {
+        self.app
+            .credit()
+            .credit_facility_proposals()
+            .find_all(keys)
+            .await
+            .map_err(|e| Arc::new(e.into()))
+    }
+}
+
 impl Loader<CreditFacilityId> for LanaLoader {
     type Value = CreditFacility;
     type Error = Arc<lana_app::credit::error::CoreCreditError>;

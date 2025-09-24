@@ -17,15 +17,15 @@ teardown_file() {
 }
 
 wait_for_collateral() {
-  credit_facility_id=$1
+  credit_facility_proposal_id=$1
 
   variables=$(
     jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
+      --arg creditFacilityProposalId "$credit_facility_proposal_id" \
+    '{ id: $creditFacilityProposalId }'
   )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  exec_admin_graphql 'find-credit-facility-proposal' "$variables"
+  collateral=$(graphql_output '.data.creditFacilityProposal.collateral.btcBalance')
   [[ "$collateral" -eq 1000 ]] || exit 1
 }
 
@@ -77,44 +77,44 @@ wait_for_collateral() {
     }'
   )
 
-  exec_admin_graphql 'credit-facility-create' "$variables"
+  exec_admin_graphql 'credit-facility-proposal-create' "$variables"
 
-  credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
-  [[ "$credit_facility_id" != "null" ]] || exit 1
+  credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
+  [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
-  cache_value 'credit_facility_id' "$credit_facility_id"
+  cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
 
-  address=$(graphql_output '.data.creditFacilityCreate.creditFacility.wallet.address')
+  address=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.wallet.address')
   [[ "$address" == "bt1qaddressmock" ]] || exit 1
 }
 
 @test "credit-facility-custody: cannot update manually collateral with a custodian" {
-  credit_facility_id=$(read_value 'credit_facility_id')
+  credit_facility_proposal_id=$(read_value 'credit_facility_proposal_id')
 
   variables=$(
     jq -n \
-      --arg credit_facility_id "$credit_facility_id" \
+      --arg credit_facility_proposal_id "$credit_facility_proposal_id" \
       --arg effective "$(naive_now)" \
     '{
       input: {
-        creditFacilityId: $credit_facility_id,
+        creditFacilityProposalId: $credit_facility_proposal_id,
         collateral: 50000000,
         effective: $effective,
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-collateral-update' "$variables"
+  exec_admin_graphql 'credit-facility-proposal-collateral-update' "$variables"
   errors=$(graphql_output '.errors')
   [[ "$errors" =~ "ManualUpdateError" ]] || exit 1
 }
 
 @test "credit-facility-custody: can update collateral by a custodian" {
-  credit_facility_id=$(read_value 'credit_facility_id')
+  credit_facility_proposal_id=$(read_value 'credit_facility_proposal_id')
 
   variables=$(
     jq -n \
-      --arg creditFacilityId "$credit_facility_id" \
-    '{ id: $creditFacilityId }'
+      --arg credit_facility_proposal_id "$credit_facility_proposal_id" \
+    '{ id: $credit_facility_proposal_id }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
   collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
@@ -123,5 +123,5 @@ wait_for_collateral() {
   # external wallet ID 123 is hard coded in mock custodian
   curl -s -X POST --json '{"wallet": "123", "balance": 1000}' http://localhost:5253/webhook/custodian/mock
 
-  retry 10 1 wait_for_collateral "$credit_facility_id"
+  retry 10 1 wait_for_collateral "$credit_facility_proposal_id"
 }

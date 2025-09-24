@@ -17,7 +17,7 @@ gql`
         publicId
         collateralizationState
         status
-        createdAt
+        activatedAt
         balance {
           collateral {
             btcBalance

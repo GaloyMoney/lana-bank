@@ -34,7 +34,6 @@ gql`
           }
         }
         ...CreditFacilityHistoryFragment
-
         ...CreditFacilityLayoutFragment
       }
     }

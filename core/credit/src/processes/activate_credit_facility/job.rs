@@ -7,7 +7,7 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
 
-use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
+use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId};
 
 use super::ActivateCreditFacility;
 
@@ -60,7 +60,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_ACTIVATE_JOB: JobType = JobType::new("credit-facility-activation");
+const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("credit-facility-activation");
 impl<Perms, E> JobInitializer for CreditFacilityActivationInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -74,7 +74,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_ACTIVATE_JOB
+        CREDIT_FACILITY_ACTIVATE
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
@@ -129,17 +129,18 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            match message.as_ref().as_event() {
-                Some(CoreCreditEvent::FacilityCollateralUpdated {
-                    credit_facility_id: id,
-                    ..
-                })
-                | Some(CoreCreditEvent::FacilityApproved { id, .. }) => {
-                    self.process.execute(*id).await?;
-                    state.sequence = message.sequence;
-                    current_job.update_execution_state(state).await?;
-                }
-                _ => (),
+            if let Some(event) = message.as_ref().as_event() {
+                let id: CreditFacilityId = match event {
+                    CoreCreditEvent::FacilityCollateralUpdated {
+                        credit_facility_id, ..
+                    } => *credit_facility_id,
+                    CoreCreditEvent::FacilityProposalApproved { id, .. } => (*id).into(),
+                    _ => continue,
+                };
+
+                self.process.execute(id).await?;
+                state.sequence = message.sequence;
+                current_job.update_execution_state(state).await?;
             }
         }
 

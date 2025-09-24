@@ -14,6 +14,12 @@ pub enum CreditFacilityProposalError {
     LedgerError(#[from] crate::ledger::error::CreditLedgerError),
     #[error("CreditFacilityProposalError - PriceError: {0}")]
     PriceError(#[from] core_price::error::PriceError),
+    #[error("CreditFacilityProposalError - ApprovalInProgress")]
+    ApprovalInProgress,
+    #[error("CreditFacilityProposalError - BelowMarginLimit")]
+    BelowMarginLimit,
+    #[error("CreditFacilityProposalError - AuthorizationError: {0}")]
+    AuthorizationError(#[from] authz::error::AuthorizationError),
 }
 
 es_entity::from_es_entity_error!(CreditFacilityProposalError);
