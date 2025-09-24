@@ -40,7 +40,7 @@ loans as (
         `explicación`,
         explanation,
         disbursal_start_date as date_and_time,
-        'Disbursement' as transaction,
+        'Disbursement' as disbursement_transaction,
         total_disbursed_usd as principal,
 
         null as interest,
