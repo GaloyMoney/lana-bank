@@ -15,7 +15,7 @@ SERVER_PID_FILE="${LANA_HOME}/server-pid"
 LOG_FILE=".e2e-logs"
 
 server_cmd() {
-  nix run . -- --config ./bats/lana.yml
+  nix run .
 }
 wait_for_keycloak_user_ready() {
   local email="admin@galoy.io"
