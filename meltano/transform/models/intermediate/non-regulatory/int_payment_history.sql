@@ -14,11 +14,8 @@ payments as (
 
 final as (
     select *
-    from credit_facilities
-    -- sqlfluff: disable=convention.left_join
-    right join payments using (credit_facility_id)
-    -- sqlfluff: enable=convention.left_join
-
+    from payments
+    left join credit_facilities using (credit_facility_id)
 )
 
 select *
