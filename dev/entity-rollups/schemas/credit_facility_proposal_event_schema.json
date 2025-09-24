@@ -88,6 +88,13 @@
       ],
       "type": "string"
     },
+    "DisbursalPolicy": {
+      "enum": [
+        "MULTIPLE",
+        "SINGLE_FULL_ON_ACTIVATION"
+      ],
+      "type": "string"
+    },
     "FacilityDuration": {
       "oneOf": [
         {

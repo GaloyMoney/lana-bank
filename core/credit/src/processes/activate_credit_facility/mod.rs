@@ -164,7 +164,7 @@ where
                         let new_disbursal = NewDisbursal::builder()
                             .id(disbursal_id)
                             .credit_facility_id(credit_facility.id)
-                            .approval_process_id(credit_facility.approval_process_id)
+                            .approval_process_id(approval_process_id)
                             .amount(principal_draw)
                             .account_ids(credit_facility.account_ids)
                             .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)

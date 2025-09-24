@@ -74,9 +74,9 @@ wait_for_active() {
     }'
   )
 
-  exec_admin_graphql 'credit-facility-create' "$variables"
+  exec_admin_graphql 'credit-facility-proposal-create' "$variables"
 
-  credit_facility_id=$(graphql_output '.data.creditFacilityCreate.creditFacility.creditFacilityId')
+  credit_facility_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
   [[ "$credit_facility_id" != "null" ]] || exit 1
 
   variables=$(
@@ -85,13 +85,13 @@ wait_for_active() {
       --arg effective "$(naive_now)" \
     '{
       input: {
-        creditFacilityId: $credit_facility_id,
+        creditFacilityProposalId: $credit_facility_id,
         collateral: 50000000,
         effective: $effective,
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-collateral-update' "$variables"
+  exec_admin_graphql 'credit-facility-proposal-collateral-update' "$variables"
   retry 20 1 wait_for_active "$credit_facility_id"
 
   variables=$(
