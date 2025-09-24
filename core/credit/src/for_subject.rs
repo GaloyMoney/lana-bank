@@ -209,13 +209,13 @@ where
         Ok(disbursal)
     }
 
-    pub async fn find_obligation_installment_by_id(
+    pub async fn find_payment_allocation_by_id(
         &self,
-        payment_id: impl Into<ObligationInstallmentId> + std::fmt::Debug,
-    ) -> Result<ObligationInstallment, CoreCreditError> {
+        payment_id: impl Into<PaymentAllocationId> + std::fmt::Debug,
+    ) -> Result<PaymentAllocation, CoreCreditError> {
         let allocation = self
             .obligations
-            .find_installment_by_id_without_audit(payment_id.into())
+            .find_allocation_by_id_without_audit(payment_id.into())
             .await?;
 
         let credit_facility = self

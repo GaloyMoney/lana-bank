@@ -44,7 +44,7 @@
           "format": "uuid",
           "type": "string"
         },
-        "obligation_installment_idx": {
+        "payment_allocation_idx": {
           "format": "uint",
           "minimum": 0,
           "type": "integer"
@@ -71,7 +71,7 @@
         "ledger_tx_id",
         "payment_id",
         "obligation_id",
-        "obligation_installment_idx",
+        "payment_allocation_idx",
         "obligation_type",
         "credit_facility_id",
         "amount",
@@ -82,5 +82,5 @@
       "type": "object"
     }
   ],
-  "title": "ObligationInstallmentEvent"
+  "title": "PaymentAllocationEvent"
 }

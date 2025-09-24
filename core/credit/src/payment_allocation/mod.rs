@@ -2,9 +2,9 @@ mod entity;
 pub mod error;
 mod repo;
 
-pub use entity::ObligationInstallment;
+pub use entity::PaymentAllocation;
 
 #[cfg(feature = "json-schema")]
-pub use entity::ObligationInstallmentEvent;
+pub use entity::PaymentAllocationEvent;
 pub(super) use entity::*;
 pub(super) use repo::*;

@@ -8,10 +8,10 @@ use cala_ledger::{
 
 use crate::{ledger::error::*, primitives::CalaAccountId};
 
-pub const RECORD_OBLIGATION_INSTALLMENT_CODE: &str = "RECORD_OBLIGATION_INSTALLMENT";
+pub const RECORD_PAYMENT_ALLOCATION_CODE: &str = "RECORD_PAYMENT_ALLOCATION";
 
 #[derive(Debug)]
-pub struct RecordObligationInstallmentParams {
+pub struct RecordPaymentAllocationParams {
     pub journal_id: JournalId,
     pub currency: Currency,
     pub amount: Decimal,
@@ -21,7 +21,7 @@ pub struct RecordObligationInstallmentParams {
     pub effective: chrono::NaiveDate,
 }
 
-impl RecordObligationInstallmentParams {
+impl RecordPaymentAllocationParams {
     pub fn defs() -> Vec<NewParamDefinition> {
         vec![
             NewParamDefinition::builder()
@@ -62,9 +62,9 @@ impl RecordObligationInstallmentParams {
         ]
     }
 }
-impl From<RecordObligationInstallmentParams> for Params {
+impl From<RecordPaymentAllocationParams> for Params {
     fn from(
-        RecordObligationInstallmentParams {
+        RecordPaymentAllocationParams {
             journal_id,
             currency,
             amount,
@@ -72,7 +72,7 @@ impl From<RecordObligationInstallmentParams> for Params {
             receivable_account_id,
             tx_ref,
             effective,
-        }: RecordObligationInstallmentParams,
+        }: RecordPaymentAllocationParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("external_id", tx_ref);
@@ -87,10 +87,10 @@ impl From<RecordObligationInstallmentParams> for Params {
     }
 }
 
-pub struct RecordObligationInstallment;
+pub struct RecordPaymentAllocation;
 
-impl RecordObligationInstallment {
-    #[instrument(name = "ledger.record_obligation_installment.init", skip_all)]
+impl RecordPaymentAllocation {
+    #[instrument(name = "ledger.record_payment_allocation.init", skip_all)]
     pub async fn init(ledger: &CalaLedger) -> Result<(), CreditLedgerError> {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
@@ -101,7 +101,7 @@ impl RecordObligationInstallment {
             .expect("Couldn't build TxInput");
         let entries = vec![
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_OBLIGATION_INSTALLMENT_DR'")
+                .entry_type("'RECORD_PAYMENT_ALLOCATION_DR'")
                 .currency("params.currency")
                 .account_id("params.account_to_be_debited_id")
                 .direction("DEBIT")
@@ -110,7 +110,7 @@ impl RecordObligationInstallment {
                 .build()
                 .expect("Couldn't build entry"),
             NewTxTemplateEntry::builder()
-                .entry_type("'RECORD_OBLIGATION_INSTALLMENT_CR'")
+                .entry_type("'RECORD_PAYMENT_ALLOCATION_CR'")
                 .currency("params.currency")
                 .account_id("params.receivable_account_id")
                 .direction("CREDIT")
@@ -120,10 +120,10 @@ impl RecordObligationInstallment {
                 .expect("Couldn't build entry"),
         ];
 
-        let params = RecordObligationInstallmentParams::defs();
+        let params = RecordPaymentAllocationParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
-            .code(RECORD_OBLIGATION_INSTALLMENT_CODE)
+            .code(RECORD_PAYMENT_ALLOCATION_CODE)
             .transaction(tx_input)
             .entries(entries)
             .params(params)

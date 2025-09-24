@@ -9,7 +9,7 @@ use es_entity::*;
 
 use crate::{
     CreditFacilityId, liquidation_process::NewLiquidationProcess,
-    obligation_installment::NewObligationInstallment, primitives::*,
+    payment_allocation::NewPaymentAllocation, primitives::*,
 };
 
 use super::{error::ObligationError, primitives::*};
@@ -49,11 +49,11 @@ pub enum ObligationEvent {
         ledger_tx_id: LedgerTxId,
         defaulted_amount: UsdCents,
     },
-    InstallmentApplied {
+    PaymentAllocated {
         ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
-        obligation_installment_id: ObligationInstallmentId,
-        obligation_installment_amount: UsdCents,
+        payment_allocation_id: PaymentAllocationId,
+        payment_allocation_amount: UsdCents,
     },
     LiquidationProcessStarted {
         liquidation_process_id: LiquidationProcessId,
@@ -287,8 +287,8 @@ impl Obligation {
                     ObligationEvent::Initialized { amount, .. } => {
                         total_sum += *amount;
                     }
-                    ObligationEvent::InstallmentApplied {
-                        obligation_installment_amount: amount,
+                    ObligationEvent::PaymentApplied {
+                        payment_allocation_amount: amount,
                         ..
                     } => {
                         total_sum -= *amount;
@@ -455,15 +455,15 @@ impl Obligation {
         Idempotent::Executed(new_liquidation_process)
     }
 
-    pub(crate) fn apply_installment(
+    pub(crate) fn apply_allocation(
         &mut self,
         amount: UsdCents,
         payment_id: PaymentId,
         effective: chrono::NaiveDate,
-    ) -> Idempotent<NewObligationInstallment> {
+    ) -> Idempotent<NewPaymentAllocation> {
         idempotency_guard!(
             self.events.iter_all().rev(),
-            ObligationEvent::InstallmentApplied {payment_id: id, .. }  if *id == payment_id
+            ObligationEvent::PaymentAllocated {payment_id: id, .. }  if *id == payment_id
         );
         let pre_payment_outstanding = self.outstanding();
         if pre_payment_outstanding.is_zero() {
@@ -474,25 +474,25 @@ impl Obligation {
         }
 
         let payment_amount = std::cmp::min(pre_payment_outstanding, amount);
-        let installment_id = ObligationInstallmentId::new();
-        self.events.push(ObligationEvent::InstallmentApplied {
-            ledger_tx_id: installment_id.into(),
+        let allocation_id = PaymentAllocationId::new();
+        self.events.push(ObligationEvent::PaymentAllocated {
+            ledger_tx_id: allocation_id.into(),
             payment_id,
-            obligation_installment_id: installment_id,
-            obligation_installment_amount: payment_amount,
+            payment_allocation_id: allocation_id,
+            payment_allocation_amount: payment_amount,
         });
 
         let payment_allocation_idx = self
             .events()
             .iter_all()
-            .filter(|e| matches!(e, ObligationEvent::InstallmentApplied { .. }))
+            .filter(|e| matches!(e, ObligationEvent::PaymentAllocated { .. }))
             .count();
-        let installment = NewObligationInstallment::builder()
-            .id(installment_id)
+        let allocation = NewPaymentAllocation::builder()
+            .id(allocation_id)
             .payment_id(payment_id)
             .credit_facility_id(self.credit_facility_id)
             .obligation_id(self.id)
-            .obligation_installment_idx(payment_allocation_idx)
+            .payment_allocation_idx(payment_allocation_idx)
             .obligation_type(self.obligation_type)
             .receivable_account_id(
                 self.receivable_account_id()
@@ -505,13 +505,13 @@ impl Obligation {
             .effective(effective)
             .amount(payment_amount)
             .build()
-            .expect("could not build new payment installment");
+            .expect("could not build new payment allocation");
 
         if self.outstanding().is_zero() {
             self.events.push(ObligationEvent::Completed { effective });
         }
 
-        Idempotent::Executed(installment)
+        Idempotent::Executed(allocation)
     }
 }
 
@@ -542,7 +542,7 @@ impl TryFromEvents<ObligationEvent> for Obligation {
                 ObligationEvent::DueRecorded { .. } => (),
                 ObligationEvent::OverdueRecorded { .. } => (),
                 ObligationEvent::DefaultedRecorded { .. } => (),
-                ObligationEvent::InstallmentApplied { .. } => (),
+                ObligationEvent::PaymentAllocated { .. } => (),
                 ObligationEvent::LiquidationProcessStarted { .. } => (),
                 ObligationEvent::LiquidationProcessConcluded { .. } => (),
                 ObligationEvent::Completed { .. } => (),
@@ -852,12 +852,12 @@ mod test {
     fn completes_on_final_obligation_installment() {
         let mut obligation = obligation_from(initial_events());
         obligation
-            .apply_installment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive())
+            .apply_allocation(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive())
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
 
         obligation
-            .apply_installment(
+            .apply_allocation(
                 obligation.outstanding(),
                 PaymentId::new(),
                 Utc::now().date_naive(),
@@ -872,7 +872,7 @@ mod test {
         let _ = obligation.start_liquidation(Utc::now().date_naive());
         assert!(
             obligation
-                .apply_installment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive(),)
+                .apply_allocation(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive(),)
                 .was_ignored()
         );
     }

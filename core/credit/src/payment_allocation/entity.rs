@@ -11,14 +11,14 @@ use crate::primitives::*;
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "ObligationInstallmentId")]
-pub enum ObligationInstallmentEvent {
+#[es_event(id = "PaymentAllocationId")]
+pub enum PaymentAllocationEvent {
     Initialized {
-        id: ObligationInstallmentId,
+        id: PaymentAllocationId,
         ledger_tx_id: LedgerTxId,
         payment_id: PaymentId,
         obligation_id: ObligationId,
-        obligation_installment_idx: usize,
+        payment_allocation_idx: usize,
         obligation_type: ObligationType,
         credit_facility_id: CreditFacilityId,
         amount: UsdCents,
@@ -30,10 +30,10 @@ pub enum ObligationInstallmentEvent {
 
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
-pub struct ObligationInstallment {
-    pub id: ObligationInstallmentId,
+pub struct PaymentAllocation {
+    pub id: PaymentAllocationId,
     pub obligation_id: ObligationId,
-    pub obligation_installment_idx: usize,
+    pub payment_allocation_idx: usize,
     pub obligation_type: ObligationType,
     pub credit_facility_id: CreditFacilityId,
     pub ledger_tx_id: LedgerTxId,
@@ -42,29 +42,29 @@ pub struct ObligationInstallment {
     pub receivable_account_id: CalaAccountId,
     pub effective: chrono::NaiveDate,
 
-    events: EntityEvents<ObligationInstallmentEvent>,
+    events: EntityEvents<PaymentAllocationEvent>,
 }
 
-impl ObligationInstallment {
+impl PaymentAllocation {
     pub(crate) fn tx_ref(&self) -> String {
         format!(
             "obligation-{}-idx-{}",
-            self.obligation_id, self.obligation_installment_idx,
+            self.obligation_id, self.obligation_allocation_idx,
         )
     }
 }
 
-impl TryFromEvents<ObligationInstallmentEvent> for ObligationInstallment {
+impl TryFromEvents<PaymentAllocationEvent> for PaymentAllocation {
     fn try_from_events(
-        events: EntityEvents<ObligationInstallmentEvent>,
+        events: EntityEvents<PaymentAllocationEvent>,
     ) -> Result<Self, EsEntityError> {
-        let mut builder = ObligationInstallmentBuilder::default();
+        let mut builder = PaymentAllocationBuilder::default();
         for event in events.iter_all() {
             match event {
-                ObligationInstallmentEvent::Initialized {
+                PaymentAllocationEvent::Initialized {
                     id,
                     obligation_id,
-                    obligation_installment_idx,
+                    payment_allocation_idx,
                     obligation_type,
                     credit_facility_id,
                     ledger_tx_id,
@@ -77,7 +77,7 @@ impl TryFromEvents<ObligationInstallmentEvent> for ObligationInstallment {
                     builder = builder
                         .id(*id)
                         .obligation_id(*obligation_id)
-                        .obligation_installment_idx(*obligation_installment_idx)
+                        .payment_allocation_idx(*payment_allocation_idx)
                         .obligation_type(*obligation_type)
                         .credit_facility_id(*credit_facility_id)
                         .ledger_tx_id(*ledger_tx_id)
@@ -92,7 +92,7 @@ impl TryFromEvents<ObligationInstallmentEvent> for ObligationInstallment {
     }
 }
 
-impl ObligationInstallment {
+impl PaymentAllocation {
     pub fn created_at(&self) -> DateTime<Utc> {
         self.events
             .entity_first_persisted_at()
@@ -101,13 +101,13 @@ impl ObligationInstallment {
 }
 
 #[derive(Debug, Builder, Clone)]
-pub struct NewObligationInstallment {
+pub struct NewPaymentAllocation {
     #[builder(setter(into))]
-    pub(crate) id: ObligationInstallmentId,
+    pub(crate) id: PaymentAllocationId,
     pub(crate) payment_id: PaymentId,
     pub(crate) obligation_id: ObligationId,
     pub(crate) obligation_type: ObligationType,
-    pub(crate) obligation_installment_idx: usize,
+    pub(crate) payment_allocation_idx: usize,
     pub(crate) credit_facility_id: CreditFacilityId,
     pub(crate) receivable_account_id: CalaAccountId,
     pub(crate) account_to_be_debited_id: CalaAccountId,
@@ -116,21 +116,21 @@ pub struct NewObligationInstallment {
     pub(crate) amount: UsdCents,
 }
 
-impl NewObligationInstallment {
-    pub fn builder() -> NewObligationInstallmentBuilder {
-        NewObligationInstallmentBuilder::default()
+impl NewPaymentAllocation {
+    pub fn builder() -> NewPaymentAllocationBuilder {
+        NewPaymentAllocationBuilder::default()
     }
 }
-impl IntoEvents<ObligationInstallmentEvent> for NewObligationInstallment {
-    fn into_events(self) -> EntityEvents<ObligationInstallmentEvent> {
+impl IntoEvents<PaymentAllocationEvent> for NewPaymentAllocation {
+    fn into_events(self) -> EntityEvents<PaymentAllocationEvent> {
         EntityEvents::init(
             self.id,
-            [ObligationInstallmentEvent::Initialized {
+            [PaymentAllocationEvent::Initialized {
                 id: self.id,
                 ledger_tx_id: self.id.into(),
                 payment_id: self.payment_id,
                 obligation_id: self.obligation_id,
-                obligation_installment_idx: self.obligation_installment_idx,
+                payment_allocation_idx: self.payment_allocation_idx,
                 obligation_type: self.obligation_type,
                 credit_facility_id: self.credit_facility_id,
                 amount: self.amount,
