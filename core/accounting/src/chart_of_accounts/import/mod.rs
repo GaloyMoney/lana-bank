@@ -1,10 +1,8 @@
 pub mod csv;
 
-use super::entity::{Chart, NewChartAccountDetails};
-use crate::{
-    chart_node::*,
-    primitives::{AccountSpec, CalaAccountSetId, CalaJournalId, ChartNodeId},
-};
+use super::entity::{Chart, NewAccountSetWithNodeId};
+use crate::primitives::{AccountCode, AccountSpec, CalaAccountSetId, CalaJournalId, ChartNodeId};
+use std::collections::HashMap;
 
 pub(super) struct BulkAccountImport<'a> {
     chart: &'a mut Chart,
@@ -20,22 +18,51 @@ impl<'a> BulkAccountImport<'a> {
         let mut new_account_sets = Vec::new();
         let mut new_account_set_ids = Vec::new();
         let mut new_connections = Vec::new();
-        let mut new_chart_nodes = Vec::new();
 
-        for spec in account_specs {
-            let chart_node = NewChartNode::builder()
-                .id(ChartNodeId::new())
-                .chart_id(self.chart.id)
-                .spec(spec)
-                .ledger_account_set_id(CalaAccountSetId::new())
-                .build()
-                .expect("could not build NewChartNode");
-            new_account_sets.push(chart_node.new_account_set(self.journal_id));
-            new_account_set_ids.push(chart_node.ledger_account_set_id);
-            new_chart_nodes.push(chart_node);
+        let mut parent_code_to_children_ids: HashMap<AccountCode, Vec<ChartNodeId>> =
+            HashMap::new();
+        let mut node_id_to_account_set_id: HashMap<ChartNodeId, CalaAccountSetId> = HashMap::new();
+
+        let mut sorted_specs = account_specs.clone();
+        sorted_specs.sort_by_key(|spec| spec.code.clone());
+
+        // Sort specs in reverse order to ensure all children are created before parents
+        sorted_specs.reverse();
+
+        for spec in sorted_specs {
+            let children_node_ids = parent_code_to_children_ids.get(&spec.code);
+
+            if let es_entity::Idempotent::Executed(NewAccountSetWithNodeId {
+                new_account_set,
+                node_id,
+            }) = self.chart.create_node_with_existing_children(
+                &spec,
+                self.journal_id,
+                children_node_ids.cloned(),
+            ) {
+                if let Some(children_node_ids) = children_node_ids {
+                    for child_node_id in children_node_ids {
+                        new_connections.push((
+                            new_account_set.id,
+                            *node_id_to_account_set_id
+                                .get(child_node_id)
+                                .expect("Child node should exist"),
+                        ));
+                    }
+                }
+
+                if let Some(parent_code) = spec.parent {
+                    parent_code_to_children_ids
+                        .entry(parent_code)
+                        .or_insert_with(Vec::new)
+                        .push(node_id);
+                }
+                node_id_to_account_set_id.insert(node_id, new_account_set.id);
+
+                new_account_set_ids.push(new_account_set.id);
+                new_account_sets.push(new_account_set);
+            }
         }
-
-        self.chart.add_all_new_nodes(new_chart_nodes); // check idempotent?
 
         BulkImportResult {
             new_account_sets,
@@ -73,25 +100,7 @@ mod tests {
     }
 
     #[test]
-    fn can_import_one_account() {
-        let mut chart = chart_from(initial_events());
-        let journal_id = CalaJournalId::new();
-        let import = BulkAccountImport::new(&mut chart, journal_id);
-        let specs = vec![AccountSpec {
-            name: "Assets".parse().unwrap(),
-            parent: None,
-            code: "1".parse().unwrap(),
-            normal_balance_type: DebitOrCredit::Credit,
-        }];
-        let result = import.import(specs);
-        assert_eq!(chart.n_unpersisted_nodes(), 1);
-        assert_eq!(result.new_account_sets.len(), 1);
-        assert_eq!(result.new_account_set_ids.len(), 1);
-        assert!(result.new_connections.is_empty());
-    }
-
-    #[test]
-    fn can_import_two_account() {
+    fn can_import_multiple_accounts() {
         let mut chart = chart_from(initial_events());
         let journal_id = CalaJournalId::new();
         let import = BulkAccountImport::new(&mut chart, journal_id);
@@ -110,19 +119,52 @@ mod tests {
             },
         ];
         let result = import.import(specs);
-        assert_eq!(chart.n_unpersisted_nodes(), 2);
         assert_eq!(result.new_account_sets.len(), 2);
         assert_eq!(result.new_account_set_ids.len(), 2);
         assert!(result.new_connections.is_empty());
     }
 
     #[test]
-    fn can_import_account_with_child() {
-        assert!(true);
-    }
+    fn can_import_multiple_accounts_with_children() {
+        let mut chart = chart_from(initial_events());
+        let journal_id = CalaJournalId::new();
+        let import = BulkAccountImport::new(&mut chart, journal_id);
 
-    #[test]
-    fn can_import_account_with_many_children() {
-        assert!(true);
+        let specs = vec![
+            AccountSpec {
+                name: "Assets".parse().unwrap(),
+                parent: None,
+                code: "1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Current Assets".parse().unwrap(),
+                parent: Some("1".parse().unwrap()),
+                code: "1.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Cash".parse().unwrap(),
+                parent: Some("1.1".parse().unwrap()),
+                code: "1.1.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Liabilities".parse().unwrap(),
+                parent: None,
+                code: "2".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+            AccountSpec {
+                name: "Current Liabilities".parse().unwrap(),
+                parent: Some("2".parse().unwrap()),
+                code: "2.1".parse().unwrap(),
+                normal_balance_type: DebitOrCredit::Credit,
+            },
+        ];
+        let result = import.import(specs);
+        assert_eq!(result.new_account_sets.len(), 5);
+        assert_eq!(result.new_account_set_ids.len(), 5);
+        assert_eq!(result.new_connections.len(), 3);
     }
 }

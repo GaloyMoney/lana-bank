@@ -4,7 +4,7 @@ use std::{
     rc::{Rc, Weak},
 };
 
-use crate::chart_node::ChartNode;
+use super::chart_node::ChartNode;
 use crate::primitives::{AccountCode, AccountName, AccountSpec, CalaAccountSetId, ChartId};
 
 #[derive(Debug)]

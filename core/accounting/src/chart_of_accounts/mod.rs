@@ -1,3 +1,4 @@
+pub mod chart_node;
 mod entity;
 mod import;
 
@@ -17,9 +18,9 @@ use crate::primitives::{
     ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
-pub use crate::chart_node::ChartNode;
+pub use chart_node::ChartNode;
 #[cfg(feature = "json-schema")]
-pub use crate::chart_node::ChartNodeEvent;
+pub use chart_node::ChartNodeEvent;
 pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
@@ -134,6 +135,7 @@ where
 
         let data = data.as_ref().to_string();
         let account_specs = CsvParser::new(data).account_specs()?;
+
         let import_result =
             BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
 

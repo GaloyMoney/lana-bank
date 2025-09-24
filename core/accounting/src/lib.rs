@@ -2,7 +2,6 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
 pub mod balance_sheet;
-pub mod chart_node; // belongs under chart_of_accounts
 pub mod chart_of_accounts;
 pub mod csv;
 pub mod error;
@@ -40,8 +39,8 @@ pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
-    pub use crate::chart_node::ChartNodeEvent;
     pub use crate::chart_of_accounts::ChartEvent;
+    pub use crate::chart_of_accounts::chart_node::ChartNodeEvent;
     pub use crate::manual_transaction::ManualTransactionEvent;
 }
 
