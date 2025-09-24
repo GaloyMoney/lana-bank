@@ -176,10 +176,11 @@ teardown_file() {
   variables=$(
     jq -n \
     --arg amount "$amount" \
+    --arg effective "2025-01-01" \
     '{
       input: {
         description: "Manual transaction - test",
-        effective: "2025-01-01",
+        effective: $effective,
         entries: [
           {
              "accountRef": "201",
@@ -218,4 +219,44 @@ teardown_file() {
   [[ $amount1 == $amount2 ]] || exit 1
   [[ "$direction1" != "$direction2" ]] || exit 1
   [[ "$entryType1" != "$entryType2" ]] || exit 1
+}
+
+@test "accounting: cannot execute transaction before last closing date" {
+  exec_admin_graphql 'chart-of-accounts-closing'
+  graphql_output
+  closing_date=$(graphql_output '.data.chartOfAccounts.monthlyClosing.closedAsOf')
+  [[ "$closing_date" != "null" ]] || exit 1
+
+  amount=$((RANDOM % 1000))
+  variables=$(
+    jq -n \
+    --arg amount "$amount" \
+    --arg effective "$closing_date" \
+    '{
+      input: {
+        description: "Manual transaction - test",
+        effective: $effective,
+        entries: [
+          {
+             "accountRef": "201",
+             "amount": $amount,
+             "currency": "USD",
+             "direction": "CREDIT",
+             "description": "Entry 1 description"
+          },
+          {
+             "accountRef": "202",
+             "amount": $amount,
+             "currency": "USD",
+             "direction": "DEBIT",
+             "description": "Entry 2 description"
+          }]
+        }
+      }'
+  )
+
+  exec_admin_graphql 'manual-transaction-execute' "$variables"
+  graphql_output
+  errors=$(graphql_output '.errors')
+  [[ "$errors" =~ "VelocityError" ]] || exit 1
 }
