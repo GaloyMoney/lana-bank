@@ -173,6 +173,7 @@ impl Disbursal {
             });
             None
         };
+        self.concluded_tx_id = Some(tx_id);
 
         Idempotent::Executed(new_obligation)
     }
