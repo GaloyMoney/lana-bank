@@ -122,6 +122,23 @@
         "ledger_account_id"
       ],
       "type": "object"
+    },
+    {
+      "properties": {
+        "child_node_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "type": {
+          "const": "child_node_added",
+          "type": "string"
+        }
+      },
+      "required": [
+        "type",
+        "child_node_id"
+      ],
+      "type": "object"
     }
   ],
   "title": "ChartNodeEvent"

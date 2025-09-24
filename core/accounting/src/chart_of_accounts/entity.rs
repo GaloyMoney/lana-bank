@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::chart_node::entity::*;
+use super::chart_node::*;
 use crate::primitives::*;
 
 use super::{error::*, tree};
@@ -38,6 +38,40 @@ pub struct Chart {
 }
 
 impl Chart {
+    pub(super) fn create_node_with_existing_children(
+        &mut self,
+        spec: &AccountSpec,
+        journal_id: CalaJournalId,
+        children_node_ids: Option<Vec<ChartNodeId>>,
+    ) -> Idempotent<NewAccountSetWithNodeId> {
+        if self.get_node_details_by_code(&spec.code).is_some() {
+            return Idempotent::Ignored;
+        }
+
+        let new_node_id = ChartNodeId::new();
+        let mut chart_node_builder = NewChartNode::builder();
+        chart_node_builder
+            .id(new_node_id)
+            .chart_id(self.id)
+            .spec(spec.clone())
+            .ledger_account_set_id(CalaAccountSetId::new());
+
+        if let Some(children) = children_node_ids {
+            chart_node_builder.children_node_ids(children.to_vec());
+        }
+        let chart_node = chart_node_builder
+            .build()
+            .expect("could not build NewChartNode");
+
+        let new_account_set = chart_node.new_account_set(journal_id);
+        self.chart_nodes.add_new(chart_node);
+
+        Idempotent::Executed(NewAccountSetWithNodeId {
+            new_account_set,
+            node_id: new_node_id,
+        })
+    }
+
     pub(super) fn create_node_without_verifying_parent(
         &mut self,
         spec: &AccountSpec,
@@ -47,53 +81,30 @@ impl Chart {
             return Idempotent::Ignored;
         }
 
-        let node_id = ChartNodeId::new();
-        let ledger_account_set_id = CalaAccountSetId::new();
-
-        let new_chart_node = NewChartNode {
-            id: node_id,
-            chart_id: self.id,
-            spec: spec.clone(),
-            ledger_account_set_id,
-            children_node_ids: None,
-        };
-
-        self.chart_nodes.add_new(new_chart_node);
-
-        let parent_account_set_id = if let Some(parent_code) = spec.parent.as_ref() {
-            if let Some(parent_node) = self.get_node_by_code_mut(parent_code) {
-                parent_node
-                    .add_child_node(node_id)
-                    .expect("child node should not exist");
-                Some(parent_node.account_set_id)
-            } else {
-                None
-            }
-        } else {
-            None
-        };
-
-        let new_account_set = NewAccountSet::builder()
-            .id(ledger_account_set_id)
-            .journal_id(journal_id)
-            .name(spec.name.to_string())
-            .description(spec.name.to_string())
-            .external_id(spec.code.account_set_external_id(self.id))
-            .normal_balance_type(spec.normal_balance_type)
+        let chart_node = NewChartNode::builder()
+            .id(ChartNodeId::new())
+            .chart_id(self.id)
+            .spec(spec.clone())
+            .ledger_account_set_id(CalaAccountSetId::new())
             .build()
-            .expect("Could not build new account set");
+            .expect("could not build NewChartNode");
+
+        let parent_account_set_id = spec
+            .parent
+            .as_ref()
+            .and_then(|parent_code| self.get_node_by_code_mut(parent_code))
+            .map(|parent_node| {
+                let _ = parent_node.add_child_node(chart_node.id);
+                parent_node.account_set_id
+            });
+
+        let new_account_set = chart_node.new_account_set(journal_id);
+        self.chart_nodes.add_new(chart_node);
 
         Idempotent::Executed(NewChartAccountDetails {
             new_account_set,
             parent_account_set_id,
         })
-    }
-
-    pub(super) fn add_all_new_nodes(&mut self, new_nodes: Vec<NewChartNode>) {
-        if self.chart_nodes.len_persisted() + self.chart_nodes.len_new() != 0 {
-            panic!("can only import one time");
-        }
-        // for
     }
 
     pub(super) fn create_child_node(
@@ -279,11 +290,6 @@ impl Chart {
         }
     }
 
-    #[cfg(test)]
-    pub(super) fn n_unpersisted_nodes(&self) -> usize {
-        self.chart_nodes.len_new()
-    }
-
     pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
@@ -352,6 +358,11 @@ pub struct NewChartAccountDetails {
     pub parent_account_set_id: Option<CalaAccountSetId>,
 }
 
+pub struct NewAccountSetWithNodeId {
+    pub new_account_set: NewAccountSet,
+    pub node_id: ChartNodeId,
+}
+
 pub struct ChartNodeDetails {
     account_set_id: CalaAccountSetId,
     spec: AccountSpec,
@@ -415,6 +426,7 @@ mod test {
                 CalaJournalId::new(),
             )
             .expect("Already executed");
+        hydrate_chart_of_accounts(&mut chart);
         let NewChartAccountDetails {
             new_account_set: level_2_new_account_set,
             ..
@@ -430,6 +442,7 @@ mod test {
                 CalaJournalId::new(),
             )
             .expect("Already executed");
+        hydrate_chart_of_accounts(&mut chart);
         let NewChartAccountDetails {
             new_account_set: level_3_new_account_set,
             ..
@@ -658,7 +671,7 @@ mod test {
         }
     }
 
-    // #[test]
+    #[test]
     fn _manual_transaction_non_leaf_code() {
         let (mut chart, _) = default_chart();
         let acct_code = code("1.1");
@@ -667,7 +680,7 @@ mod test {
         assert!(matches!(res, Err(ChartOfAccountsError::NonLeafAccount(_))));
     }
 
-    // #[test]
+    #[test]
     fn _manual_transaction_non_leaf_account_id_in_chart() {
         let (mut chart, _) = default_chart();
         let random_id = LedgerAccountId::new();

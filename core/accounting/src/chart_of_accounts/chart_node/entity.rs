@@ -9,7 +9,7 @@ use crate::primitives::*;
 
 use crate::chart_of_accounts::error::ChartOfAccountsError;
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
-//fix errors
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -50,12 +50,9 @@ impl ChartNode {
             self.events.iter_all().rev(),
             ChartNodeEvent::ManualTransactionAccountAssigned { .. }
         );
-
         let ledger_account_id = LedgerAccountId::new();
-
         self.events
             .push(ChartNodeEvent::ManualTransactionAccountAssigned { ledger_account_id });
-
         self.manual_transaction_account_id = Some(ledger_account_id);
 
         let new_account = NewAccount::builder()
@@ -95,6 +92,7 @@ impl ChartNode {
     }
 
     pub fn is_trial_balance_account(&self) -> bool {
+        // TODO: Remove magic number with some meaningful constant
         self.spec.code.len_sections() == 2
     }
 }
@@ -186,21 +184,11 @@ mod tests {
         s.parse::<AccountCodeSection>().unwrap()
     }
 
-    fn default_spec() -> AccountSpec {
-        AccountSpec::try_new(
-            None,
-            vec![section("1")],
-            "Assets".parse::<AccountName>().unwrap(),
-            DebitOrCredit::Debit,
-        )
-        .unwrap()
-    }
-
-    fn new_chart_node() -> NewChartNode {
+    fn new_chart_node(spec: AccountSpec) -> NewChartNode {
         NewChartNode {
             id: ChartNodeId::new(),
             chart_id: ChartId::new(),
-            spec: default_spec(),
+            spec: spec,
             ledger_account_set_id: CalaAccountSetId::new(),
             children_node_ids: None,
         }
@@ -208,7 +196,15 @@ mod tests {
 
     #[test]
     fn assign_manual_transaction_account_is_idempotent() {
-        let new_node = new_chart_node();
+        let new_node = new_chart_node(
+            AccountSpec::try_new(
+                None,
+                vec![section("1")],
+                "Assets".parse::<AccountName>().unwrap(),
+                DebitOrCredit::Debit,
+            )
+            .unwrap(),
+        );
         let events = new_node.into_events();
         let mut node = ChartNode::try_from_events(events).unwrap();
 
@@ -216,6 +212,26 @@ mod tests {
         assert!(node.manual_transaction_account_id.is_some());
 
         let result = node.assign_manual_transaction_account();
+        matches!(result, Idempotent::Ignored);
+    }
+
+    #[test]
+    fn add_child_node_is_idempotent() {
+        let new_node = new_chart_node(
+            AccountSpec::try_new(
+                None,
+                vec![section("1")],
+                "Assets".parse::<AccountName>().unwrap(),
+                DebitOrCredit::Debit,
+            )
+            .unwrap(),
+        );
+        let events = new_node.into_events();
+        let mut node = ChartNode::try_from_events(events).unwrap();
+        let child_node_id = ChartNodeId::new();
+        let _ = node.add_child_node(child_node_id);
+
+        let result = node.add_child_node(child_node_id);
         matches!(result, Idempotent::Ignored);
     }
 }
