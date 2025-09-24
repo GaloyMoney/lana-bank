@@ -151,7 +151,7 @@ from withdrawal_transactions
 union all
 select
     numeroregistrobancario,
-    estacionservicio,main
+    estacionservicio,
     fechatransaccion,
     tipopersonaa,
     detallespersonaa,
