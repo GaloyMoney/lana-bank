@@ -54,7 +54,7 @@ impl<'a> BulkAccountImport<'a> {
                 if let Some(parent_code) = spec.parent {
                     parent_code_to_children_ids
                         .entry(parent_code)
-                        .or_insert_with(Vec::new)
+                        .or_default()
                         .push(node_id);
                 }
                 node_id_to_account_set_id.insert(node_id, new_account_set.id);

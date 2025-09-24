@@ -193,7 +193,7 @@ impl Chart {
         self.get_node_by_code(code)
             .into_iter()
             .flat_map(move |node| {
-                let children: Vec<_> = node.get_children().iter().cloned().collect();
+                let children: Vec<_> = node.get_children().to_vec();
                 children.into_iter().filter_map(move |child_node_id| {
                     let child_node = self.chart_nodes.get_persisted(&child_node_id)?;
                     Some((child_node.spec.code.clone(), child_node.account_set_id))

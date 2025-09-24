@@ -188,7 +188,7 @@ mod tests {
         NewChartNode {
             id: ChartNodeId::new(),
             chart_id: ChartId::new(),
-            spec: spec,
+            spec,
             ledger_account_set_id: CalaAccountSetId::new(),
             children_node_ids: None,
         }
