@@ -2,9 +2,9 @@ use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
 pub use lana_app::terms::{
-    AnnualRatePct, CVLPct as DomainCVLPct, FacilityDuration as DomainDuration, InterestInterval,
-    ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
-    TermValues as DomainTermValues, DisbursalPolicy
+    AnnualRatePct, CVLPct as DomainCVLPct, DisbursalPolicy, FacilityDuration as DomainDuration,
+    InterestInterval, ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
+    TermValues as DomainTermValues,
 };
 
 #[derive(SimpleObject, Clone)]

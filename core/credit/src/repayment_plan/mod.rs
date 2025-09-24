@@ -280,7 +280,9 @@ impl CreditFacilityRepaymentPlan {
 mod tests {
     use rust_decimal_macros::dec;
 
-    use crate::terms::{FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct, DisbursalPolicy};
+    use crate::terms::{
+        DisbursalPolicy, FacilityDuration, InterestInterval, ObligationDuration, OneTimeFeeRatePct,
+    };
 
     use super::*;
 

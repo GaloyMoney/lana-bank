@@ -120,7 +120,10 @@ impl From<ActivateCreditFacilityParams> for Params {
         params.insert("debit_account_id", debit_account_id);
         params.insert("facility_amount", facility_amount);
         params.insert("structuring_fee_amount", structuring_fee_amount);
-        params.insert("activation_principal_disbursal_amount", activation_principal_disbursal_amount);
+        params.insert(
+            "activation_principal_disbursal_amount",
+            activation_principal_disbursal_amount,
+        );
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
@@ -269,7 +272,7 @@ impl ActivateCreditFacility {
                 .build()
                 .expect("Couldn't build entry"),
         ];
-        
+
         let params = ActivateCreditFacilityParams::defs();
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())

@@ -331,7 +331,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
-        ObligationDuration, DisbursalPolicy,
+        DisbursalPolicy, ObligationDuration,
         terms::{FacilityDuration, InterestInterval, OneTimeFeeRatePct},
     };
 

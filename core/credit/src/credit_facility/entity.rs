@@ -191,7 +191,10 @@ impl CreditFacility {
                     debit_account_id: *disbursal_credit_account_id,
                     facility_amount: *amount,
                     structuring_fee_amount: self.structuring_fee(),
-                    activation_principal_disbursal_amount: if self.terms.is_single_disbursal_on_activation() {
+                    activation_principal_disbursal_amount: if self
+                        .terms
+                        .is_single_disbursal_on_activation()
+                    {
                         self.amount - self.structuring_fee()
                     } else {
                         UsdCents::ZERO
