@@ -13,7 +13,6 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     CreditLedger, PaymentAllocation, PaymentAllocationId, PaymentAllocationRepo,
-    PaymentAllocationRepo,
     event::CoreCreditEvent,
     jobs::obligation_due,
     liquidation_process::{LiquidationProcess, LiquidationProcessRepo},
@@ -318,7 +317,7 @@ where
     ) -> Result<PaymentAllocation, ObligationError> {
         let allocation = self
             .payment_allocation_repo
-            .find_by_id(PaymentAllocationRepo_id.into())
+            .find_by_id(allocation_id.into())
             .await?;
 
         self.authz

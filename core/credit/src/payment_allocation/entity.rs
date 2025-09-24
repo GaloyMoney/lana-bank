@@ -49,7 +49,7 @@ impl PaymentAllocation {
     pub(crate) fn tx_ref(&self) -> String {
         format!(
             "obligation-{}-idx-{}",
-            self.obligation_id, self.obligation_allocation_idx,
+            self.obligation_id, self.payment_allocation_idx,
         )
     }
 }

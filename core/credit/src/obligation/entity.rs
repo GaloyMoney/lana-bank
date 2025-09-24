@@ -287,7 +287,7 @@ impl Obligation {
                     ObligationEvent::Initialized { amount, .. } => {
                         total_sum += *amount;
                     }
-                    ObligationEvent::PaymentApplied {
+                    ObligationEvent::PaymentAllocated {
                         payment_allocation_amount: amount,
                         ..
                     } => {
