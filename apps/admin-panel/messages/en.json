@@ -1410,6 +1410,18 @@
           "revert": "Revert",
           "viewOnSumsub": "View on Sumsub"
         }
+      },
+      "LedgerTransactions": {
+        "title": "Ledger Transactions",
+        "noTransactions": "No ledger transactions available",
+        "table": {
+          "headers": {
+            "transactionId": "Transaction ID",
+            "description": "Description",
+            "effectiveDate": "Effective Date",
+            "createdAt": "Created At"
+          }
+        }
       }
     },
     "WithdrawalInitiateDialog": {

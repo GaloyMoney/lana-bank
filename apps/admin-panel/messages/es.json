@@ -1410,6 +1410,18 @@
           "revert": "Revertir",
           "viewOnSumsub": "Ver en Sumsub"
         }
+      },
+      "LedgerTransactions": {
+        "title": "Partidas contables",
+        "noTransactions": "No hay partidas contables disponibles",
+        "table": {
+          "headers": {
+            "transactionId": "ID de transacción",
+            "description": "Descripción",
+            "effectiveDate": "Fecha valor",
+            "createdAt": "Fecha de registro"
+          }
+        }
       }
     },
     "WithdrawalInitiateDialog": {
