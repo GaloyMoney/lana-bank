@@ -245,6 +245,44 @@
 
               echo "Tests completed successfully!"
             '';
+
+          nextest = let
+            podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
+          in
+            pkgs.writeShellScriptBin "nextest" ''
+              set -e
+
+              # Set environment variables needed by tests
+              export DATABASE_URL="${devEnvVars.DATABASE_URL}"
+              export PG_CON="${devEnvVars.PG_CON}"
+
+              # Function to cleanup on exit
+              cleanup() {
+                echo "Stopping core-pg..."
+                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner stop core-pg || true
+                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner rm -f core-pg || true
+              }
+
+              # Register cleanup function
+              trap cleanup EXIT
+
+              echo "Starting core-pg database..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg
+
+              # Wait for PostgreSQL to be ready
+              echo "Waiting for PostgreSQL to be ready..."
+              ${pkgs.wait4x}/bin/wait4x postgresql "$DATABASE_URL" --timeout 120s
+
+              # Run migrations
+              echo "Running database migrations..."
+              ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
+
+              # Run nextest
+              echo "Running cargo nextest..."
+              ${pkgs.cargo-nextest}/bin/cargo-nextest nextest run --workspace --all-features
+
+              echo "Tests completed successfully!"
+            '';
         };
 
         checks = {
@@ -314,6 +352,11 @@
         apps.bats = flake-utils.lib.mkApp {
           drv = self.packages.${system}.bats;
           name = "bats";
+        };
+
+        apps.nextest = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.nextest;
+          name = "nextest";
         };
 
         devShells.default = mkShell (devEnvVars

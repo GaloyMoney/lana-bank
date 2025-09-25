@@ -51,38 +51,40 @@ jobs:
     - get: lana-prs
       trigger: true
       version: every
-    - put: lana-prs
-      params:
-        path: lana-prs
-        status: pending
-        context: populate-nix-cache
-    - task: cache-lana-deps
-      config:
-        platform: linux
-        image_resource: #@ nix_flake_cachix_image_config()
-        inputs:
-        - name: lana-prs
-          path: repo
-        params:
-          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-          CACHIX_CACHE_NAME: lana-bank-ci
-        run:
-          path: sh
-          args:
-            - -exc
-            - |
-              set -euo pipefail
-              cd repo
-              cachix use $CACHIX_CACHE_NAME
-              cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-deps
     - in_parallel:
-      - task: nix-flake-check
+      - put: lana-prs
+        params:
+          path: lana-prs
+          status: pending
+          context: populate-nix-cache
+      - task: cache-lana-deps
         config:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
           inputs:
           - name: lana-prs
             path: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          outputs:
+          - name: repo
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-deps
+    - in_parallel:
+      - task: nix-flake-check
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
           params:
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
             CACHIX_CACHE_NAME: lana-bank-ci
@@ -101,8 +103,7 @@ jobs:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
           inputs:
-          - name: lana-prs
-            path: repo
+          - name: repo
           params:
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
             CACHIX_CACHE_NAME: lana-bank-ci
@@ -121,8 +122,7 @@ jobs:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
           inputs:
-          - name: lana-prs
-            path: repo
+          - name: repo
           params:
             CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
             CACHIX_CACHE_NAME: lana-bank-ci
@@ -136,6 +136,7 @@ jobs:
                 cachix use $CACHIX_CACHE_NAME
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-debug
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#bats
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#nextest
       on_failure:
         put: lana-prs
         params:
