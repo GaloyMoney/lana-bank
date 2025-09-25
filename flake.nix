@@ -120,13 +120,33 @@
         }
       );
 
-      # Pre-built test binaries
-      lana-test-binaries = craneLib.buildPackage (
-        individualCrateArgs
+      # Pre-built test binaries with nextest archive
+      lana-test-archive = craneLib.mkCargoDerivation (
+        commonArgs
         // {
-          pname = "lana-test-binaries";
-          cargoExtraArgs = "--tests --all-features";
-          doCheck = false;
+          inherit cargoArtifacts;
+          pname = "lana-test-archive";
+
+          buildPhaseCargoCommand = ''
+            # Build all test binaries
+            cargo test --workspace --all-features --no-run
+
+            # Create nextest archive
+            cargo nextest archive \
+              --workspace \
+              --all-features \
+              --archive-file test-archive.tar.zst
+          '';
+
+          installPhase = ''
+            mkdir -p $out
+            cp test-archive.tar.zst $out/
+
+            # Also save the binaries list for reference
+            cargo nextest list --workspace --all-features > $out/test-list.txt
+          '';
+
+          nativeBuildInputs = [pkgs.cargo-nextest];
         }
       );
 
@@ -212,7 +232,7 @@
 
           lana-deps = cargoArtifacts;
 
-          lana-test-binaries = lana-test-binaries;
+          lana-test-archive = lana-test-archive;
 
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
@@ -236,96 +256,83 @@
               pkgs.gnused
               pkgs.gawk
             ];
-          in pkgs.symlinkJoin {
-            name = "bats-runner";
-            paths = [
-              podman-runner.podman-compose-runner
-              pkgs.wait4x
-              pkgs.bats
-              pkgs.gnugrep
-              pkgs.procps
-              pkgs.coreutils
-              pkgs.findutils
-              pkgs.jq
-              pkgs.curl
-              pkgs.gnused
-              pkgs.gawk
-              lana-cli-debug
-            ];
-            postBuild = ''
-              mkdir -p $out/bin
-              cat > $out/bin/bats-runner << 'EOF'
-              #!${pkgs.bash}/bin/bash
-              set -e
+          in
+            pkgs.symlinkJoin {
+              name = "bats-runner";
+              paths = [
+                podman-runner.podman-compose-runner
+                pkgs.wait4x
+                pkgs.bats
+                pkgs.gnugrep
+                pkgs.procps
+                pkgs.coreutils
+                pkgs.findutils
+                pkgs.jq
+                pkgs.curl
+                pkgs.gnused
+                pkgs.gawk
+                lana-cli-debug
+              ];
+              postBuild = ''
+                mkdir -p $out/bin
+                cat > $out/bin/bats-runner << 'EOF'
+                #!${pkgs.bash}/bin/bash
+                set -e
 
-              # Add all tools to PATH
-              export PATH="${binPath}:$PATH"
+                # Add all tools to PATH
+                export PATH="${binPath}:$PATH"
 
-              # Set environment variables needed by bats tests
-              export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
-              export PG_CON="${devEnvVars.PG_CON}"
-              export DATABASE_URL="${devEnvVars.DATABASE_URL}"
-              export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
+                # Set environment variables needed by bats tests
+                export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
+                export PG_CON="${devEnvVars.PG_CON}"
+                export DATABASE_URL="${devEnvVars.DATABASE_URL}"
+                export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
 
-              # Function to cleanup on exit
-              cleanup() {
-                echo "Stopping podman-compose..."
-                podman-compose-runner down || true
-              }
+                # Function to cleanup on exit
+                cleanup() {
+                  echo "Stopping podman-compose..."
+                  podman-compose-runner down || true
+                }
 
-              # Register cleanup function
-              trap cleanup EXIT
+                # Register cleanup function
+                trap cleanup EXIT
 
-              echo "Starting podman-compose in detached mode..."
-              podman-compose-runner up -d
+                echo "Starting podman-compose in detached mode..."
+                podman-compose-runner up -d
 
-              # Wait for PostgreSQL to be ready
-              echo "Waiting for PostgreSQL to be ready..."
-              wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
+                # Wait for PostgreSQL to be ready
+                echo "Waiting for PostgreSQL to be ready..."
+                wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
 
-              echo "Running bats tests with LANA_BIN=$LANA_BIN..."
-              bats bats/*.bats
+                echo "Running bats tests with LANA_BIN=$LANA_BIN..."
+                bats bats/*.bats
 
-              echo "Tests completed successfully!"
-              EOF
-              chmod +x $out/bin/bats-runner
-            '';
-          };
+                echo "Tests completed successfully!"
+                EOF
+                chmod +x $out/bin/bats-runner
+              '';
+            };
 
           # Legacy wrapper for backward compatibility
           bats = pkgs.writeShellScriptBin "bats" ''
             exec ${self.packages.${system}.bats-runner}/bin/bats-runner "$@"
           '';
 
+          # Simple nextest runner that runs pre-built test archive
           nextest-runner = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
-            binPath = pkgs.lib.makeBinPath [
-              podman-runner.podman-compose-runner
-              pkgs.wait4x
-              pkgs.sqlx-cli
-              rustToolchain
-              pkgs.cargo-nextest
-              pkgs.coreutils
-            ];
-          in pkgs.symlinkJoin {
-            name = "nextest-runner";
-            paths = [
-              podman-runner.podman-compose-runner
-              pkgs.wait4x
-              pkgs.sqlx-cli
-              rustToolchain
-              pkgs.cargo-nextest
-              pkgs.coreutils
-              lana-test-binaries
-            ];
-            postBuild = ''
-              mkdir -p $out/bin
-              cat > $out/bin/nextest-runner << 'EOF'
-              #!${pkgs.bash}/bin/bash
+          in
+            pkgs.writeShellScriptBin "nextest-runner" ''
               set -e
 
               # Add all tools to PATH
-              export PATH="${binPath}:$PATH"
+              export PATH="${pkgs.lib.makeBinPath [
+                podman-runner.podman-compose-runner
+                pkgs.wait4x
+                pkgs.sqlx-cli
+                pkgs.cargo-nextest
+                pkgs.coreutils
+              ]}:$PATH"
 
               # Set environment variables needed by tests
               export DATABASE_URL="${devEnvVars.DATABASE_URL}"
@@ -334,36 +341,31 @@
               # Function to cleanup on exit
               cleanup() {
                 echo "Stopping core-pg..."
-                podman-compose-runner down || true
+                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner down || true
               }
 
               # Register cleanup function
               trap cleanup EXIT
 
-              echo "Starting deps..."
-              podman-compose-runner up -d core-pg keycloak
+              echo "Starting core-pg database..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg
 
               # Wait for PostgreSQL to be ready
               echo "Waiting for PostgreSQL to be ready..."
-              wait4x postgresql "$DATABASE_URL" --timeout 120s
+              ${pkgs.wait4x}/bin/wait4x postgresql "$DATABASE_URL" --timeout 120s
 
               # Run migrations
               echo "Running database migrations..."
-              sqlx migrate run --source lana/app/migrations
+              ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
 
-              # Run nextest
-              echo "Running cargo nextest..."
-              export KC_URL="http://localhost:8081"
-              export REALM="master"
-              export ADMIN_USER="admin"
-              export ADMIN_PASS="admin"
-              cargo-nextest nextest run --workspace --all-features
+              # Run nextest using pre-built archive
+              echo "Running cargo nextest from pre-built archive..."
+              ${pkgs.cargo-nextest}/bin/cargo-nextest nextest run \
+                --archive-file ${lana-test-archive}/test-archive.tar.zst \
+                --workspace-remap .
 
               echo "Tests completed successfully!"
-              EOF
-              chmod +x $out/bin/nextest-runner
             '';
-          };
 
           # Legacy wrapper for backward compatibility
           nextest = pkgs.writeShellScriptBin "nextest" ''
