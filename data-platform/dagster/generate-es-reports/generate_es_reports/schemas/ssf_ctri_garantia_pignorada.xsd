@@ -1,0 +1,118 @@
+<?xml version="1.0" encoding="UTF-8" ?>
+<xs:schema 
+   elementFormDefault="qualified"
+   targetNamespace="http://validador.ssf.gob.sv/ctri/garantia_pignorada"
+   xmlns:xs="http://www.w3.org/2001/XMLSchema"
+   xmlns:tns="http://validador.ssf.gob.sv/ctri/garantia_pignorada">
+   <xs:element name="ctri">
+      <xs:complexType>
+         <xs:sequence maxOccurs="unbounded" minOccurs="1">
+            <xs:element name="garantia_pignorada">
+               <xs:complexType>
+                  <xs:all maxOccurs="1" minOccurs="1">
+                     <xs:element name="identificacion_garantia">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Identificacion de la Garantía
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="20"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="nit_depositante">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Nit Propietario del Deposito
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="14"/>
+                             <xs:minLength value="1"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_deposito" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha Depósito
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:date">
+                             <xs:minInclusive value="1800-01-01"/>
+                             <xs:maxInclusive value="9999-12-31"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="fecha_vencimiento" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Fecha Vencimiento
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:date">
+                             <xs:minInclusive value="1800-01-01"/>
+                             <xs:maxInclusive value="9999-12-31"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="valor_deposito">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Valor del Depósito
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:decimal">
+                             <xs:totalDigits value="12"/>
+                             <xs:fractionDigits value="2"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="tipo_deposito">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Tipo Depósito
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:length value="2"/>
+                             <xs:whiteSpace value="collapse"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                     <xs:element name="cod_banco" nillable="true">
+                        <xs:annotation>
+                           <xs:documentation><![CDATA[
+Código de Banco
+]]>
+</xs:documentation>
+                        </xs:annotation>
+                        <xs:simpleType>
+                          <xs:restriction base="xs:string">
+                             <xs:maxLength value="4"/>
+                          </xs:restriction>
+                        </xs:simpleType>
+                     </xs:element>
+                  </xs:all>
+               </xs:complexType>
+            </xs:element>
+         </xs:sequence>
+      </xs:complexType>
+   </xs:element>
+</xs:schema>

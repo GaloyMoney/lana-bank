@@ -9,6 +9,11 @@ RUN pip install \
     dagster-dbt \
     dbt-bigquery
 
+
+COPY generate-es-reports/ /opt/generate-es-reports
+
+RUN pip install /opt/generate-es-reports
+
 WORKDIR /opt/dagster/app
 
 COPY src/ /opt/dagster/app

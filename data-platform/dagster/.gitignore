@@ -1,1 +1,6 @@
 keyfile.json
+
+/venv
+/.meltano
+.env
+**/__pycache__/
