@@ -16,6 +16,7 @@ LOG_FILE=".e2e-logs"
 
 server_cmd() {
   if [[ -n "${LANA_BIN:-}" ]]; then
+    export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
     "${LANA_BIN}"
   else
     nix run .
