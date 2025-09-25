@@ -160,7 +160,7 @@ plugins:
   utilities:
     - name: sqlfluff
       variant: sqlfluff
-      pip_url: sqlfluff==3.4.2 sqlfluff-templater-dbt==3.4.2 dbt-core dbt-bigquery
+      pip_url: sqlfluff==3.4.2 sqlfluff-templater-dbt==3.4.2 dbt-core~=1.8.0 dbt-bigquery~=1.8.0
       settings:
         - name: dataset
           env: DBT_BIGQUERY_DATASET
