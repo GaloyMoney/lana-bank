@@ -469,7 +469,7 @@ titles as (
     'Prést. Adeudados a Bancos Ext. A 5 años y más (212308, excluye 2123080401 y 2123080402)',
     'Loans owed to foreign banks for 5 years or more (212308, excluding 2123080401 and 2123080402)',
     ['212308'],
-    ['2123080401,' '2123080402']
+    ['2123080401', '2123080402']
     union all
   select
     6800,
