@@ -20,7 +20,7 @@ let
             cat > $out/bin/podman-compose-runner << 'EOF'
             #!/usr/bin/env bash
             set -e
-            
+
             # On macOS, check if podman machine exists and start it if needed
             if [[ "$OSTYPE" == "darwin"* ]]; then
               if podman machine list --format json | jq -e '.[] | select(.Name == "podman-machine-default")' >/dev/null 2>&1; then
@@ -34,8 +34,51 @@ let
                 podman machine init
                 podman machine start
               fi
+            else
+              # On Linux, ensure podman service is running
+              echo "Setting up podman on Linux..."
+
+              # Set up runtime directory
+              export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/tmp/podman-runtime-$(id -u)}"
+              mkdir -p "$XDG_RUNTIME_DIR"
+
+              # Check if podman socket already exists and is responsive
+              if [[ -S "$XDG_RUNTIME_DIR/podman.sock" ]]; then
+                if podman --url unix://$XDG_RUNTIME_DIR/podman.sock version >/dev/null 2>&1; then
+                  echo "Existing podman socket is responsive"
+                  export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman.sock"
+                else
+                  echo "Existing socket not responsive, cleaning up..."
+                  rm -f "$XDG_RUNTIME_DIR/podman.sock"
+                fi
+              fi
+
+              # Start service if socket doesn't exist
+              if [[ ! -S "$XDG_RUNTIME_DIR/podman.sock" ]]; then
+                echo "Starting podman system service..."
+                podman system service --time=0 unix://$XDG_RUNTIME_DIR/podman.sock &
+                PODMAN_SERVICE_PID=$!
+
+                # Wait for socket to be ready
+                for i in {1..30}; do
+                  if [[ -S "$XDG_RUNTIME_DIR/podman.sock" ]] && podman --url unix://$XDG_RUNTIME_DIR/podman.sock version >/dev/null 2>&1; then
+                    echo "Podman socket ready"
+                    break
+                  fi
+                  sleep 1
+                done
+
+                # Ensure we actually got a working socket
+                if ! podman --url unix://$XDG_RUNTIME_DIR/podman.sock version >/dev/null 2>&1; then
+                  echo "Failed to start podman service"
+                  exit 1
+                fi
+              fi
+
+              # Export socket for podman-compose
+              export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman.sock"
             fi
-            
+
             # Use podman-compose directly (it handles the socket connection internally)
             exec podman-compose "$@"
             EOF
