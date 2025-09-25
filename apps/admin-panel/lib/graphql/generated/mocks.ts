@@ -1392,7 +1392,7 @@ export const mockDeposit = (overrides?: Partial<Deposit>, _relationshipsToOmit: 
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         depositId: overrides && overrides.hasOwnProperty('depositId') ? overrides.depositId! : generateMockValue.uuid(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
-        ledgerTxIds: overrides && overrides.hasOwnProperty('ledgerTxIds') ? overrides.ledgerTxIds! : [relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit)],
+        ledgerTransactions: overrides && overrides.hasOwnProperty('ledgerTransactions') ? overrides.ledgerTransactions! : [relationshipsToOmit.has('LedgerTransaction') ? {} as LedgerTransaction : mockLedgerTransaction({}, relationshipsToOmit)],
         publicId: overrides && overrides.hasOwnProperty('publicId') ? overrides.publicId! : faker.lorem.word(),
         reference: overrides && overrides.hasOwnProperty('reference') ? overrides.reference! : generateMockValue.reference(),
         status: overrides && overrides.hasOwnProperty('status') ? overrides.status! : DepositStatus.Confirmed,

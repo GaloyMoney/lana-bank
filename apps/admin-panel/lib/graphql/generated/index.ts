@@ -1075,7 +1075,7 @@ export type Deposit = {
   createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
-  ledgerTxIds: Array<LedgerTransaction>;
+  ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: DepositStatus;

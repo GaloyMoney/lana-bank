@@ -61,7 +61,7 @@ impl Deposit {
         Ok(account)
     }
 
-    async fn ledger_tx_ids(&self, ctx: &Context<'_>) -> Result<Vec<LedgerTransaction>> {
+    async fn ledger_transactions(&self, ctx: &Context<'_>) -> Result<Vec<LedgerTransaction>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let transactions = loader
             .load_many(self.entity.ledger_tx_ids())
