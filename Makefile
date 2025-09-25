@@ -191,6 +191,9 @@ meltano-sqlfluff-lint:
 meltano-sqlfluff-fix:
 	cd meltano && meltano invoke sqlfluff:fix
 
+meltano-sqlfluff-install:
+	cd meltano && rm -rf .meltano/utilities/sqlfluff && meltano install utility sqlfluff && .meltano/utilities/sqlfluff/venv/bin/pip install --quiet --upgrade platformdirs
+
 meltano-drop-old-run:
 	meltano run drop-old-relations
 
