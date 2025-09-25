@@ -303,6 +303,7 @@
               podman-runner.podman-compose-runner
               pkgs.wait4x
               pkgs.sqlx-cli
+              rustToolchain
               pkgs.cargo-nextest
               pkgs.coreutils
             ];
@@ -312,6 +313,7 @@
               podman-runner.podman-compose-runner
               pkgs.wait4x
               pkgs.sqlx-cli
+              rustToolchain
               pkgs.cargo-nextest
               pkgs.coreutils
               lana-test-binaries
@@ -332,15 +334,14 @@
               # Function to cleanup on exit
               cleanup() {
                 echo "Stopping core-pg..."
-                podman-compose-runner stop core-pg || true
-                podman-compose-runner rm -f core-pg || true
+                podman-compose-runner down || true
               }
 
               # Register cleanup function
               trap cleanup EXIT
 
-              echo "Starting core-pg database..."
-              podman-compose-runner up -d core-pg
+              echo "Starting deps..."
+              podman-compose-runner up -d core-pg keycloak
 
               # Wait for PostgreSQL to be ready
               echo "Waiting for PostgreSQL to be ready..."
@@ -352,6 +353,10 @@
 
               # Run nextest
               echo "Running cargo nextest..."
+              export KC_URL="http://localhost:8081"
+              export REALM="master"
+              export ADMIN_USER="admin"
+              export ADMIN_PASS="admin"
               cargo-nextest nextest run --workspace --all-features
 
               echo "Tests completed successfully!"
