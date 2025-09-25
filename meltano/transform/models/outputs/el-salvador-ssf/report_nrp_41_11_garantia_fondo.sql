@@ -9,6 +9,7 @@ with dummy as (
         null as `tipo_fondo`,
         null as `estado`
 
+
 )
 
 select *
