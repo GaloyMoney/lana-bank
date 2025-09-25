@@ -11,7 +11,6 @@ with dummy as (
         null as `clasificación`,
         null as `nombre_clasificadora`
 
-
 )
 
 select *
