@@ -42,6 +42,21 @@ let
               export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/tmp/podman-runtime-$(id -u)}"
               mkdir -p "$XDG_RUNTIME_DIR"
 
+              # Set storage location to avoid permission issues
+              export TMPDIR="''${TMPDIR:-/tmp}"
+              export PODMAN_TMPDIR="$TMPDIR"
+
+              # Create podman config directory
+              mkdir -p "$HOME/.config/containers"
+
+              # Configure storage to use user-writable location
+              cat > "$HOME/.config/containers/storage.conf" <<STORAGE_EOF
+            [storage]
+            driver = "vfs"
+            runroot = "$XDG_RUNTIME_DIR/containers"
+            graphroot = "$HOME/.local/share/containers/storage"
+            STORAGE_EOF
+
               # Check if podman socket already exists and is responsive
               if [[ -S "$XDG_RUNTIME_DIR/podman.sock" ]]; then
                 if podman --url unix://$XDG_RUNTIME_DIR/podman.sock version >/dev/null 2>&1; then
@@ -56,7 +71,8 @@ let
               # Start service if socket doesn't exist
               if [[ ! -S "$XDG_RUNTIME_DIR/podman.sock" ]]; then
                 echo "Starting podman system service..."
-                podman system service --time=0 unix://$XDG_RUNTIME_DIR/podman.sock &
+                # Use --log-level=debug to get more info if it fails
+                podman --log-level=warn system service --time=0 unix://$XDG_RUNTIME_DIR/podman.sock 2>&1 &
                 PODMAN_SERVICE_PID=$!
 
                 # Wait for socket to be ready
@@ -77,6 +93,9 @@ let
 
               # Export socket for podman-compose
               export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman.sock"
+
+              # Also export for podman commands
+              export CONTAINER_HOST="unix://$XDG_RUNTIME_DIR/podman.sock"
             fi
 
             # Use podman-compose directly (it handles the socket connection internally)

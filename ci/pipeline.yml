@@ -126,6 +126,26 @@ jobs:
           path: lana-prs
           status: failure
           context: populate-nix-cache
+    - task: execute-bats
+      config:
+        platform: linux
+        image_resource: #@ nix_flake_cachix_image_config()
+        inputs:
+        - name: lana-prs
+          path: repo
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          CACHIX_CACHE_NAME: lana-bank-ci
+          CI: true
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              set -euo pipefail
+              cd repo
+              cachix use $CACHIX_CACHE_NAME
+              nix run .#bats
     - put: lana-prs
       params:
         path: lana-prs
