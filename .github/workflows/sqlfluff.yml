@@ -1,9 +1,6 @@
 name: SQLFluff
 
 on:
-  push:
-    paths:
-      - "meltano/transform/models/**/*.sql"
   pull_request:
     paths:
       - "meltano/transform/models/**/*.sql"
