@@ -236,6 +236,18 @@ impl Disbursal {
         }
         false
     }
+
+    pub fn ledger_tx_ids(&self) -> Vec<LedgerTxId> {
+        self.events
+            .iter_all()
+            .filter_map(|e| match e {
+                DisbursalEvent::Initialized { id, .. } => Some((*id).into()),
+                DisbursalEvent::Settled { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                DisbursalEvent::Cancelled { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                _ => None,
+            })
+            .collect()
+    }
 }
 
 #[derive(Debug, Builder)]

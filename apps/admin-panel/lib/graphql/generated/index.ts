@@ -519,6 +519,7 @@ export type CreditFacilityDisbursal = {
   creditFacility: CreditFacility;
   disbursalId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  ledgerTransactions: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   status: DisbursalStatus;
 };
@@ -1074,6 +1075,7 @@ export type Deposit = {
   createdAt: Scalars['Timestamp']['output'];
   depositId: Scalars['UUID']['output'];
   id: Scalars['ID']['output'];
+  ledgerTxIds: Array<LedgerTransaction>;
   publicId: Scalars['PublicId']['output'];
   reference: Scalars['String']['output'];
   status: DepositStatus;

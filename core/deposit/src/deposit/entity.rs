@@ -88,6 +88,16 @@ impl Deposit {
             external_id: format!("lana:deposit:{}:reverted", self.id),
         })
     }
+
+    pub fn ledger_tx_ids(&self) -> Vec<CalaTransactionId> {
+        self.events
+            .iter_all()
+            .filter_map(|e| match e {
+                DepositEvent::Initialized { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                DepositEvent::Reverted { ledger_tx_id, .. } => Some(*ledger_tx_id),
+            })
+            .collect()
+    }
 }
 
 impl TryFromEvents<DepositEvent> for Deposit {
