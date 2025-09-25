@@ -2,6 +2,7 @@ import dagster as dg
 import dlt
 from dlt.sources.credentials import ConnectionStringCredentials
 from dagster_dbt import DbtCliResource, dbt_assets, DagsterDbtTranslator
+from generate_es_reports.service import run_report_batch
 
 from lana_pipelines.resources import create_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
@@ -81,3 +82,13 @@ def build_dbt_assets():
         yield from dbt.cli(["build"], context=context).stream()
 
     return dbt_models
+
+def build_generate_es_report_asset():
+
+    @dg.asset(
+            deps=["report_uif_07_diario_otros_medios_electronicos"]
+    )
+    def generate_es_report_asset():
+        run_report_batch()
+    
+    return generate_es_report_asset

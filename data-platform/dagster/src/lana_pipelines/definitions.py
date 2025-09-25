@@ -1,6 +1,6 @@
 import dagster as dg
 
-from lana_pipelines.assets import build_lana_source_asset, build_lana_to_dw_el_asset, build_dbt_assets
+from lana_pipelines.assets import build_lana_source_asset, build_lana_to_dw_el_asset, build_dbt_assets, build_generate_es_report_asset
 from lana_pipelines.resources import dbt_resource
 
 
@@ -64,13 +64,18 @@ def build_definitions():
 
     dbt_assets = [build_dbt_assets()]
 
+    generate_es_report_asset = [build_generate_es_report_asset()]
+
     lana_to_dw_el_job = dg.define_asset_job(
         name="lana_to_dw_el_job",
         selection=lana_to_dw_el_assets,
+        # Below is a silly hardcode to prevent running into rate limiting with
+        # BQ: we should research how to avoid it because it gets triggered 
+        # with rather low volumes.
         config={
             "execution": {
                 "config": {
-                    "multiprocess": {"max_concurrent": 4},
+                    "multiprocess": {"max_concurrent": 4}, 
                 }
             }
         },
@@ -81,7 +86,7 @@ def build_definitions():
         selection=dbt_assets,
     )
 
-    all_assets = lana_source_assets + lana_to_dw_el_assets + dbt_assets
+    all_assets = lana_source_assets + lana_to_dw_el_assets + dbt_assets + generate_es_report_asset
     all_jobs = [lana_to_dw_el_job, build_dbt_job]
     all_resources = {
         "dbt": dbt_resource

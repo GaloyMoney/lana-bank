@@ -10,7 +10,7 @@ RUN pip install \
     dbt-bigquery
 
 
-COPY generate-es-reports/ /opt/generate-es-reports
+COPY src/generate-es-reports/ /opt/generate-es-reports
 
 RUN pip install /opt/generate-es-reports
 
