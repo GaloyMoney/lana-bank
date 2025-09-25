@@ -8,7 +8,7 @@ chart as (
 final as (
     select
         dotted_code as id_codigo_cuenta,
-        name as nom_cuenta,
+        node_name as nom_cuenta,
         balance as valor
 
     from chart
