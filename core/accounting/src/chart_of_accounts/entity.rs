@@ -221,6 +221,22 @@ impl Chart {
             .find(|node| node.manual_transaction_account_id == Some(*id))
     }
 
+    fn validate_can_have_manual_transactions(
+        &self,
+        code: &AccountCode,
+    ) -> Result<(), ChartOfAccountsError> {
+        let node = self
+            .get_node_by_code(code)
+            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
+        if node.can_have_manual_transactions() {
+            Ok(())
+        } else {
+            Err(ChartOfAccountsError::NonLeafAccount(
+                node.spec.code.to_string(),
+            ))
+        }
+    }
+
     pub fn account_set_id_from_code(
         &self,
         code: &AccountCode,
@@ -238,18 +254,15 @@ impl Chart {
             AccountIdOrCode::Id(id) => {
                 Ok(match self.get_node_by_manual_transaction_account_id(&id) {
                     Some(node) => {
-                        node.check_can_have_manual_transactions()?;
+                        self.validate_can_have_manual_transactions(&node.spec.code)?;
                         ManualAccountFromChart::IdInChart(id)
                     }
                     None => ManualAccountFromChart::NonChartId(id),
                 })
             }
             AccountIdOrCode::Code(code) => {
-                let node_mut = self
-                    .get_node_by_code_mut(&code)
-                    .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
-
-                node_mut.check_can_have_manual_transactions()?;
+                self.validate_can_have_manual_transactions(&code)?;
+                let node_mut = self.get_node_by_code_mut(&code).expect("Node should exist");
 
                 if let Some(existing_id) = node_mut.manual_transaction_account_id {
                     return Ok(ManualAccountFromChart::IdInChart(existing_id));
