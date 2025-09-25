@@ -10,7 +10,9 @@ with ordered as (
         code,
         name,
         normal_balance_type,
-        null as latest_values,  -- TODO: need fixing, where did old latest_values go which held "$.config.is_account_set" flag
+        -- TODO: need fixing: where did old latest_values go?
+        -- It held "$.config.is_account_set" flag
+        null as latest_values,
         created_at,
         _sdc_batched_at,
         row_number()
@@ -24,7 +26,10 @@ with ordered as (
 
     {% if is_incremental() %}
         where
-            _sdc_batched_at >= (select coalesce(max(_sdc_batched_at), '1900-01-01') from {{ this }})
+            _sdc_batched_at >= (
+                select coalesce(max(_sdc_batched_at), '1900-01-01')
+                from {{ this }}
+            )
     {% endif %}
 
 )
