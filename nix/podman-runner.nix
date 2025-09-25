@@ -1,147 +1,141 @@
-{ pkgs, lib, stdenv }:
-
-let
+{
+  pkgs,
+  lib,
+  stdenv,
+}: let
   # Build the podman-compose runner as a derivation
   podman-compose-runner = pkgs.stdenv.mkDerivation {
-          pname = "podman-compose-runner";
-          version = "1.0.0";
-          
-          # No source needed for a wrapper script
-          dontUnpack = true;
-          
-          buildInputs = with pkgs; [
-            makeWrapper
-          ];
-          
-          installPhase = ''
-            mkdir -p $out/bin
-            
-            # Create the runner script that uses podman-compose directly
-            cat > $out/bin/podman-compose-runner << 'EOF'
-            #!/usr/bin/env bash
-            set -e
+    pname = "podman-compose-runner";
+    version = "1.0.0";
 
-            # On macOS, check if podman machine exists and start it if needed
-            if [[ "$OSTYPE" == "darwin"* ]]; then
-              if podman machine list --format json | jq -e '.[] | select(.Name == "podman-machine-default")' >/dev/null 2>&1; then
-                # Machine exists, check if it's running
-                if ! podman machine list --format json | jq -e '.[] | select(.Name == "podman-machine-default" and .Running == true)' >/dev/null 2>&1; then
-                  echo "Starting podman machine..."
-                  podman machine start
-                fi
-              else
-                echo "No podman machine found. Creating and starting podman-machine-default..."
-                podman machine init
-                podman machine start
-              fi
-            else
-              # On Linux, ensure podman service is running
-              echo "Setting up podman on Linux..."
+    # No source needed for a wrapper script
+    dontUnpack = true;
 
-              # Set up runtime directory
-              export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/tmp/podman-runtime-$(id -u)}"
-              mkdir -p "$XDG_RUNTIME_DIR"
+    buildInputs = with pkgs; [
+      makeWrapper
+    ];
 
-              # Set storage location to avoid permission issues
-              export TMPDIR="''${TMPDIR:-/tmp}"
-              export PODMAN_TMPDIR="$TMPDIR"
+    installPhase = ''
+      mkdir -p $out/bin
 
-              # Create podman config directory
-              mkdir -p "$HOME/.config/containers"
+      # Create the runner script that uses podman-compose directly
+      cat > $out/bin/podman-compose-runner << 'EOF'
+      #!/usr/bin/env bash
+      set -e
 
-              # Configure storage to use user-writable location
-              cat > "$HOME/.config/containers/storage.conf" <<STORAGE_EOF
-            [storage]
-            driver = "vfs"
-            runroot = "$XDG_RUNTIME_DIR/containers"
-            graphroot = "$HOME/.local/share/containers/storage"
-            STORAGE_EOF
+      # On macOS, check if podman machine exists and start it if needed
+      if [[ "$OSTYPE" == "darwin"* ]]; then
+        if podman machine list --format json | jq -e '.[] | select(.Name == "podman-machine-default")' >/dev/null 2>&1; then
+          # Machine exists, check if it's running
+          if ! podman machine list --format json | jq -e '.[] | select(.Name == "podman-machine-default" and .Running == true)' >/dev/null 2>&1; then
+            echo "Starting podman machine..."
+            podman machine start
+          fi
+        else
+          echo "No podman machine found. Creating and starting podman-machine-default..."
+          podman machine init
+          podman machine start
+        fi
 
-              # Check if podman socket already exists and is responsive
-              if [[ -S "$XDG_RUNTIME_DIR/podman.sock" ]]; then
-                if podman --url unix://$XDG_RUNTIME_DIR/podman.sock version >/dev/null 2>&1; then
-                  echo "Existing podman socket is responsive"
-                  export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman.sock"
-                else
-                  echo "Existing socket not responsive, cleaning up..."
-                  rm -f "$XDG_RUNTIME_DIR/podman.sock"
-                fi
-              fi
+        # Set up minimal container configs for macOS
+        mkdir -p ~/.config/containers
+        echo 'unqualified-search-registries = ["docker.io"]' > ~/.config/containers/registries.conf
+        echo '{"default":[{"type":"insecureAcceptAnything"}]}' > ~/.config/containers/policy.json
+      else
+        # On Linux, setup container configs for rootless operation
+        echo "Using podman on Linux..."
 
-              # Start service if socket doesn't exist
-              if [[ ! -S "$XDG_RUNTIME_DIR/podman.sock" ]]; then
-                echo "Starting podman system service..."
-                # Use --log-level=debug to get more info if it fails
-                podman --log-level=warn system service --time=0 unix://$XDG_RUNTIME_DIR/podman.sock 2>&1 &
-                PODMAN_SERVICE_PID=$!
+        # Set up runtime directory for rootless containers
+        export XDG_RUNTIME_DIR="''${XDG_RUNTIME_DIR:-/tmp/podman-runtime-$(id -u)}"
+        mkdir -p "$XDG_RUNTIME_DIR"
 
-                # Wait for socket to be ready
-                for i in {1..30}; do
-                  if [[ -S "$XDG_RUNTIME_DIR/podman.sock" ]] && podman --url unix://$XDG_RUNTIME_DIR/podman.sock version >/dev/null 2>&1; then
-                    echo "Podman socket ready"
-                    break
-                  fi
-                  sleep 1
-                done
+        # Create necessary temp directories
+        mkdir -p /var/tmp
+        mkdir -p /tmp
+        export TMPDIR=/tmp
 
-                # Ensure we actually got a working socket
-                if ! podman --url unix://$XDG_RUNTIME_DIR/podman.sock version >/dev/null 2>&1; then
-                  echo "Failed to start podman service"
-                  exit 1
-                fi
-              fi
+        # Set up minimal container configs
+        mkdir -p ~/.config/containers
+        echo 'unqualified-search-registries = ["docker.io"]' > ~/.config/containers/registries.conf
+        echo '{"default":[{"type":"insecureAcceptAnything"}]}' > ~/.config/containers/policy.json
 
-              # Export socket for podman-compose
-              export DOCKER_HOST="unix://$XDG_RUNTIME_DIR/podman.sock"
+        # Don't specify network backend - let podman use its default (netavark)
+        # But ensure iptables is available in PATH
 
-              # Also export for podman commands
-              export CONTAINER_HOST="unix://$XDG_RUNTIME_DIR/podman.sock"
-            fi
+        # Debug: Check podman version and info
+        echo "Checking podman installation..."
+        if ! podman version >/dev/null 2>&1; then
+          echo "ERROR: podman version failed. Output:"
+          podman version 2>&1 || true
+        fi
 
-            # Use podman-compose directly (it handles the socket connection internally)
-            exec podman-compose "$@"
-            EOF
-            
-            chmod +x $out/bin/podman-compose-runner
-            
-            # Wrap the script with the required dependencies
-            wrapProgram $out/bin/podman-compose-runner \
-              --prefix PATH : ${pkgs.lib.makeBinPath [
-                pkgs.podman
-                pkgs.podman-compose
-                pkgs.coreutils
-                pkgs.bash
-                pkgs.jq
-              ]}
-          '';
-          
-          meta = with pkgs.lib; {
-            description = "Podman-compose runner that auto-manages podman machine on macOS";
-            license = licenses.mit;
-            platforms = platforms.all;
-          };
-        };
-        
+        # Try to get podman info for debugging
+        echo "Getting podman info..."
+        podman info 2>&1 || true
+
+        # Check if we're in a container environment (CI)
+        if [[ -f /.dockerenv ]] || [[ -n "''${container:-}" ]]; then
+          echo "Running in container environment"
+        fi
+
+        # Final check
+        if podman ps >/dev/null 2>&1; then
+          echo "Podman is working correctly"
+        else
+          echo "WARNING: podman ps test failed, but continuing anyway..."
+        fi
+      fi
+
+      # Use podman-compose directly (it handles the socket connection internally)
+      exec podman-compose "$@"
+      EOF
+
+      chmod +x $out/bin/podman-compose-runner
+
+      # Wrap the script with the required dependencies
+      wrapProgram $out/bin/podman-compose-runner \
+        --prefix PATH : ${pkgs.lib.makeBinPath (
+        [
+          pkgs.podman
+          pkgs.podman-compose
+          pkgs.coreutils
+          pkgs.bash
+          pkgs.jq
+        ]
+        ++ pkgs.lib.optionals pkgs.stdenv.isLinux [
+          pkgs.fuse-overlayfs
+          pkgs.iptables
+          pkgs.netavark
+          pkgs.aardvark-dns
+        ]
+      )}
+    '';
+
+    meta = with pkgs.lib; {
+      description = "Podman-compose runner that auto-manages podman machine on macOS";
+      license = licenses.mit;
+      platforms = platforms.all;
+    };
+  };
+
   # Alternative: Pure podman-compose without auto-start
   podman-compose-simple = pkgs.stdenv.mkDerivation {
     pname = "podman-compose-simple";
     version = "1.0.0";
-    
+
     dontUnpack = true;
-    
-    buildInputs = with pkgs; [ makeWrapper ];
-    
+
+    buildInputs = with pkgs; [makeWrapper];
+
     installPhase = ''
       mkdir -p $out/bin
       ln -s ${pkgs.podman-compose}/bin/podman-compose $out/bin/podman-compose-runner
     '';
   };
-
-in
-{
+in {
   # Default package is the full runner with machine management
   podman-compose-runner = podman-compose-runner;
-  
-  # Simple package without machine management  
+
+  # Simple package without machine management
   podman-compose-simple = podman-compose-simple;
 }

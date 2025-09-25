@@ -97,10 +97,10 @@
         SQLX_OFFLINE = true;
       };
 
-      cargoArtifacts = craneLib.buildDepsOnly (commonArgs //
-      {
+      cargoArtifacts = craneLib.buildDepsOnly (commonArgs
+        // {
           cargoExtraArgs = "--features sim-time,mock-custodian,sumsub-testing";
-      });
+        });
 
       individualCrateArgs =
         commonArgs
@@ -202,39 +202,47 @@
 
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
-          in pkgs.writeShellScriptBin "podman-up" ''
-            exec ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up "$@"
-          '';
+          in
+            pkgs.writeShellScriptBin "podman-up" ''
+              exec ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up "$@"
+            '';
 
           bats = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
-          in pkgs.writeShellScriptBin "bats" ''
-            set -e
+          in
+            pkgs.writeShellScriptBin "bats" ''
+              set -e
 
-            # Set LANA_BIN to use the nix-built lana-cli-debug binary
-            export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
+              # Set environment variables needed by bats tests
+              export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
+              export PG_CON="${devEnvVars.PG_CON}"
+              export DATABASE_URL="${devEnvVars.DATABASE_URL}"
+              export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
 
-            # Function to cleanup on exit
-            cleanup() {
-              echo "Stopping podman-compose..."
-              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner down || true
-            }
+              # Add necessary utilities to PATH
+              export PATH="${pkgs.gnugrep}/bin:${pkgs.procps}/bin:${pkgs.coreutils}/bin:${pkgs.findutils}/bin:${pkgs.wait4x}/bin:${pkgs.jq}/bin:${pkgs.curl}/bin:${pkgs.gnused}/bin:${pkgs.gawk}/bin:$PATH"
 
-            # Register cleanup function
-            trap cleanup EXIT
+              # Function to cleanup on exit
+              cleanup() {
+                echo "Stopping podman-compose..."
+                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner down || true
+              }
 
-            echo "Starting podman-compose in detached mode..."
-            ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
+              # Register cleanup function
+              trap cleanup EXIT
 
-            # Wait for PostgreSQL to be ready
-            echo "Waiting for PostgreSQL to be ready..."
-            ${pkgs.wait4x}/bin/wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
+              echo "Starting podman-compose in detached mode..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
 
-            echo "Running bats tests with LANA_BIN=$LANA_BIN..."
-            ${pkgs.bats}/bin/bats bats/*.bats
+              # Wait for PostgreSQL to be ready
+              echo "Waiting for PostgreSQL to be ready..."
+              ${pkgs.wait4x}/bin/wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
 
-            echo "Tests completed successfully!"
-          '';
+              echo "Running bats tests with LANA_BIN=$LANA_BIN..."
+              ${pkgs.bats}/bin/bats bats/*.bats
+
+              echo "Tests completed successfully!"
+            '';
         };
 
         checks = {

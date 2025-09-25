@@ -58,6 +58,7 @@ jobs:
         context: populate-nix-cache
     - in_parallel:
       - task: nix-flake-check
+        privileged: true
         config:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
@@ -79,6 +80,7 @@ jobs:
                 
                 cachix watch-exec $CACHIX_CACHE_NAME -- nix flake check
       - task: cache-dev-profile
+        privileged: true
         config:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
@@ -127,6 +129,7 @@ jobs:
           status: failure
           context: populate-nix-cache
     - task: execute-bats
+      privileged: true
       config:
         platform: linux
         image_resource: #@ nix_flake_cachix_image_config()
