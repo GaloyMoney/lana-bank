@@ -13,14 +13,16 @@ with source as (
         where t.credit_facility_id is null
     {% endif %}
 ),
-, proposal as (
+
+proposal as (
     select
         credit_facility_proposal_id,
         approval_process_id,
         approved
     from {{ ref('stg_core_credit_facility_proposal_events_rollup') }}
-)
-, transformed as (
+),
+
+transformed as (
     select
         credit_facility_id,
         version,
@@ -141,6 +143,7 @@ with source as (
     from source
     left join proposal using (credit_facility_proposal_id)
 ),
+
 final as (
     select
         *,
