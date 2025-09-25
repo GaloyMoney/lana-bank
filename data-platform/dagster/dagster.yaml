@@ -30,6 +30,8 @@ run_launcher:
       - DBT_BIGQUERY_CLIENT_SECRET
       - DBT_BIGQUERY_TOKEN_URI
       - DBT_BIGQUERY_KEYFILE
+      - DOCS_BUCKET_NAME
+      - GOOGLE_APPLICATION_CREDENTIALS
     network: dagster_network
     container_kwargs:
       volumes: # Make docker client accessible to any launched containers as well

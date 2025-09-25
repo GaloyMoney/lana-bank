@@ -9,18 +9,11 @@ services:
     image: lana_pipelines_image
     restart: always
     environment:
-      DAGSTER_POSTGRES_USER: 'postgres_user'
-      DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
-      DAGSTER_POSTGRES_DB: 'postgres_db'
       DAGSTER_CURRENT_IMAGE: 'lana_pipelines_image'
       DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
-      DBT_BIGQUERY_REFRESH_TOKEN: ${DBT_BIGQUERY_REFRESH_TOKEN}
-      DBT_BIGQUERY_CLIENT_ID: ${DBT_BIGQUERY_CLIENT_ID}
-      DBT_BIGQUERY_CLIENT_SECRET: ${DBT_BIGQUERY_CLIENT_SECRET}
-      DBT_BIGQUERY_TOKEN_URI: ${DBT_BIGQUERY_TOKEN_URI}
-      DBT_BIGQUERY_KEYFILE: /opt/dagster/secrets/keyfile.json
+
     networks:
       - dagster_network
 
@@ -84,6 +77,8 @@ services:
       DBT_BIGQUERY_CLIENT_SECRET: ${DBT_BIGQUERY_CLIENT_SECRET}
       DBT_BIGQUERY_TOKEN_URI: ${DBT_BIGQUERY_TOKEN_URI}
       DBT_BIGQUERY_KEYFILE: /opt/dagster/secrets/keyfile.json
+      GOOGLE_APPLICATION_CREDENTIALS: /opt/dagster/secrets/keyfile.json
+      DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
     volumes: # Make docker client accessible so we can launch containers using host docker
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage

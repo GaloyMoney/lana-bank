@@ -1,7 +1,8 @@
 #!/bin/bash
 
 # Dagster Pipeline Monitor Script
-# Triggers an EL job, monitors its execution, and then triggers a dbt job if successful
+# Triggers an EL job, monitors its execution, then triggers a dbt job if successful,
+# and finally triggers an ES report job if dbt job succeeds
 
 set -e
 
@@ -14,6 +15,7 @@ STATUS_GQL="$SCRIPT_DIR/dagster-lana-pipeline-status.gql"
 # Pipeline configuration - easily changeable
 PIPELINE_JOB_NAME="lana_to_dw_el_job"
 DBT_JOB_NAME="build_dbt_job"
+ES_REPORT_JOB_NAME="generate_es_report_job"
 
 # Colors for output
 RED='\033[0;31m'
@@ -125,7 +127,16 @@ trigger_and_monitor_dbt_job() {
                     echo -e "${GREEN}✅ Your $DBT_JOB_NAME has finished successfully${NC}"
                     echo -e "${GREEN}📊 Data has been transformed and loaded to BigQuery${NC}"
                     echo -e "${GREEN}=====================================${NC}"
-                    return 0
+                    
+                    # Trigger ES report job after dbt job success
+                    echo -e "${YELLOW}🔄 DBT job completed successfully. Now triggering ES report job...${NC}"
+                    if trigger_and_monitor_es_report_job; then
+                        echo -e "${GREEN}🎉 All jobs completed successfully! 🎉${NC}"
+                        return 0
+                    else
+                        echo -e "${RED}❌ ES report job failed. Check logs above for details.${NC}"
+                        return 1
+                    fi
                     ;;
                 "FAILURE")
                     echo -e "${RED}💥 DBT Status: FAILURE (job failed)${NC}"
@@ -162,6 +173,114 @@ trigger_and_monitor_dbt_job() {
     echo -e "\n${RED}⏰ DBT job timeout reached after $((max_attempts * 5)) seconds${NC}"
     echo -e "${RED}❌ DBT job monitoring timed out${NC}"
     echo -e "${YELLOW}📋 DBT Run ID: $dbt_run_id${NC}"
+    echo -e "${YELLOW}🔍 Check the Dagster UI for current status${NC}"
+    return 1
+}
+
+# Function to trigger and monitor ES report job
+trigger_and_monitor_es_report_job() {
+    echo -e "${YELLOW}📊 Triggering ES report job...${NC}"
+    es_trigger_response=$(make_graphql_request "$TRIGGER_GQL" "" "$ES_REPORT_JOB_NAME")
+    
+    if has_error "$es_trigger_response"; then
+        echo -e "${RED}❌ Error triggering ES report job:${NC}"
+        echo "$es_trigger_response" | jq '.errors' 2>/dev/null || echo "$es_trigger_response"
+        return 1
+    fi
+    
+    # Extract ES report run ID from trigger response
+    es_run_id=$(extract_json_value "$es_trigger_response" "runId")
+    if [ -z "$es_run_id" ]; then
+        echo -e "${RED}❌ Error: Could not extract ES report run ID from trigger response${NC}"
+        echo "$es_trigger_response"
+        return 1
+    fi
+    
+    echo -e "${GREEN}✅ ES report job triggered successfully!${NC}"
+    echo -e "${BLUE}📋 ES Report Run ID: $es_run_id${NC}"
+    
+    # Monitor the ES report job
+    echo -e "${YELLOW}👀 Monitoring ES report job execution...${NC}"
+    echo -e "${BLUE}=====================================${NC}"
+    
+    max_attempts=60  # 5 minutes with 5-second intervals
+    attempt=0
+    last_status=""
+    
+    while [ $attempt -lt $max_attempts ]; do
+        attempt=$((attempt + 1))
+        
+        # Get current ES report status
+        es_status_response=$(make_graphql_request "$STATUS_GQL" "" "$ES_REPORT_JOB_NAME")
+        
+        if has_error "$es_status_response"; then
+            echo -e "${RED}❌ Error getting ES report status:${NC}"
+            echo "$es_status_response" | jq '.errors' 2>/dev/null || echo "$es_status_response"
+            return 1
+        fi
+        
+        # Extract status from response
+        current_status=$(extract_json_value "$es_status_response" "status")
+        
+        if [ -z "$current_status" ]; then
+            echo -e "${RED}❌ Error: Could not extract ES report status from response${NC}"
+            echo "$es_status_response"
+            return 1
+        fi
+        
+        # Show status change
+        if [ "$current_status" != "$last_status" ]; then
+            case "$current_status" in
+                "QUEUED")
+                    echo -e "${YELLOW}⏳ ES Report Status: QUEUED (waiting to start)${NC}"
+                    ;;
+                "STARTED")
+                    echo -e "${BLUE}🏃 ES Report Status: STARTED (running)${NC}"
+                    ;;
+                "SUCCESS")
+                    echo -e "${GREEN}🎉 ES Report Status: SUCCESS (completed successfully)${NC}"
+                    echo -e "${GREEN}=====================================${NC}"
+                    echo -e "${GREEN}🎊 ES report job completed successfully! 🎊${NC}"
+                    echo -e "${GREEN}✅ Your $ES_REPORT_JOB_NAME has finished successfully${NC}"
+                    echo -e "${GREEN}📊 ES reports have been generated${NC}"
+                    echo -e "${GREEN}=====================================${NC}"
+                    return 0
+                    ;;
+                "FAILURE")
+                    echo -e "${RED}💥 ES Report Status: FAILURE (job failed)${NC}"
+                    echo -e "${RED}=====================================${NC}"
+                    echo -e "${RED}❌ ES report job execution failed! ❌${NC}"
+                    echo -e "${RED}🔍 Check the Dagster UI for detailed error logs${NC}"
+                    echo -e "${RED}📋 ES Report Run ID: $es_run_id${NC}"
+                    echo -e "${RED}=====================================${NC}"
+                    return 1
+                    ;;
+                "CANCELED")
+                    echo -e "${YELLOW}🛑 ES Report Status: CANCELED (job was canceled)${NC}"
+                    echo -e "${YELLOW}=====================================${NC}"
+                    echo -e "${YELLOW}⚠️  ES report job execution was canceled${NC}"
+                    echo -e "${YELLOW}📋 ES Report Run ID: $es_run_id${NC}"
+                    echo -e "${YELLOW}=====================================${NC}"
+                    return 1
+                    ;;
+                *)
+                    echo -e "${BLUE}📊 ES Report Status: $current_status${NC}"
+                    ;;
+            esac
+            last_status="$current_status"
+        else
+            # Show progress dots
+            printf "."
+        fi
+        
+        # Wait before next check
+        sleep 5
+    done
+    
+    # Timeout reached
+    echo -e "\n${RED}⏰ ES report job timeout reached after $((max_attempts * 5)) seconds${NC}"
+    echo -e "${RED}❌ ES report job monitoring timed out${NC}"
+    echo -e "${YELLOW}📋 ES Report Run ID: $es_run_id${NC}"
     echo -e "${YELLOW}🔍 Check the Dagster UI for current status${NC}"
     return 1
 }

@@ -86,8 +86,13 @@ def build_definitions():
         selection=dbt_assets,
     )
 
+    build_generate_es_report_job = dg.define_asset_job(
+        name="generate_es_report_job",
+        selection=generate_es_report_asset,
+    )
+
     all_assets = lana_source_assets + lana_to_dw_el_assets + dbt_assets + generate_es_report_asset
-    all_jobs = [lana_to_dw_el_job, build_dbt_job]
+    all_jobs = [lana_to_dw_el_job, build_dbt_job, build_generate_es_report_job]
     all_resources = {
         "dbt": dbt_resource
     }
