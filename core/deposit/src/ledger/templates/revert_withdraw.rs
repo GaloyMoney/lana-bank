@@ -115,6 +115,7 @@ impl RevertWithdraw {
         let tx_input = NewTxTemplateTransaction::builder()
             .journal_id("params.journal_id")
             .effective("params.effective")
+            .metadata("params.meta")
             .description("'Revert a withdraw'")
             .build()
             .expect("Couldn't build TxInput");
