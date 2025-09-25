@@ -33,7 +33,10 @@ impl<'a> BulkAccountImport<'a> {
         sorted_specs.reverse();
 
         for spec in sorted_specs {
-            let children_node_ids = parent_code_to_children_ids.get(&spec.code);
+            let children_node_ids = parent_code_to_children_ids
+                .get(&spec.code)
+                .cloned()
+                .unwrap_or_default();
 
             if let es_entity::Idempotent::Executed(NewAccountSetWithNodeId {
                 new_account_set,
@@ -41,17 +44,15 @@ impl<'a> BulkAccountImport<'a> {
             }) = self.chart.create_node_with_existing_children(
                 &spec,
                 self.journal_id,
-                children_node_ids.cloned(),
+                children_node_ids.clone(),
             ) {
-                if let Some(children_node_ids) = children_node_ids {
-                    for child_node_id in children_node_ids {
-                        new_connections.push((
-                            new_account_set.id,
-                            *node_id_to_account_set_id
-                                .get(child_node_id)
-                                .expect("Child node should exist"),
-                        ));
-                    }
+                for child_node_id in children_node_ids {
+                    new_connections.push((
+                        new_account_set.id,
+                        *node_id_to_account_set_id
+                            .get(&child_node_id)
+                            .expect("Child node should exist"),
+                    ));
                 }
 
                 if let Some(parent_code) = spec.parent {

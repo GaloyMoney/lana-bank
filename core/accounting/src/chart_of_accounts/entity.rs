@@ -42,24 +42,19 @@ impl Chart {
         &mut self,
         spec: &AccountSpec,
         journal_id: CalaJournalId,
-        children_node_ids: Option<Vec<ChartNodeId>>,
+        children_node_ids: Vec<ChartNodeId>,
     ) -> Idempotent<NewAccountSetWithNodeId> {
         if self.get_node_details_by_code(&spec.code).is_some() {
             return Idempotent::Ignored;
         }
 
         let new_node_id = ChartNodeId::new();
-        let mut chart_node_builder = NewChartNode::builder();
-        chart_node_builder
+        let chart_node = NewChartNode::builder()
             .id(new_node_id)
             .chart_id(self.id)
             .spec(spec.clone())
-            .ledger_account_set_id(CalaAccountSetId::new());
-
-        if let Some(children) = children_node_ids {
-            chart_node_builder.children_node_ids(children.to_vec());
-        }
-        let chart_node = chart_node_builder
+            .ledger_account_set_id(CalaAccountSetId::new())
+            .children_node_ids(children_node_ids)
             .build()
             .expect("could not build NewChartNode");
 
@@ -188,7 +183,7 @@ impl Chart {
         self.get_node_by_code(code)
             .into_iter()
             .flat_map(move |node| {
-                node.iter_children().filter_map(move |child_node_id| {
+                node.children().filter_map(move |child_node_id| {
                     let child_node = self.chart_nodes.get_persisted(child_node_id)?;
                     Some((child_node.spec.code.clone(), child_node.account_set_id))
                 })

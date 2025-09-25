@@ -78,7 +78,7 @@ impl ChartNode {
         Idempotent::Executed(())
     }
 
-    pub fn iter_children(&self) -> impl Iterator<Item = &ChartNodeId> {
+    pub fn children(&self) -> impl Iterator<Item = &ChartNodeId> {
         self.children.iter()
     }
 
@@ -166,10 +166,8 @@ impl IntoEvents<ChartNodeEvent> for NewChartNode {
             ledger_account_set_id: self.ledger_account_set_id,
         }];
 
-        if !self.children_node_ids.is_empty() {
-            for child_node_id in self.children_node_ids {
-                events.push(ChartNodeEvent::ChildNodeAdded { child_node_id });
-            }
+        for child_node_id in self.children_node_ids {
+            events.push(ChartNodeEvent::ChildNodeAdded { child_node_id });
         }
 
         EntityEvents::init(self.id, events)
