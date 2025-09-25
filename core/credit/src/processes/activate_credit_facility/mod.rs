@@ -144,7 +144,7 @@ where
                 .expect("could not build new disbursal");
 
             self.disbursals
-                .create_first_disbursal_in_op(&mut op, new_disbursal)
+                .create_preapproved_disbursal_in_op(&mut op, new_disbursal)
                 .await?;
         }
 
@@ -176,7 +176,7 @@ where
                     .expect("could not build new disbursal");
 
                 self.disbursals
-                    .create_first_disbursal_in_op(&mut op, new_disbursal)
+                    .create_preapproved_disbursal_in_op(&mut op, new_disbursal)
                     .await?;
             }
         }
