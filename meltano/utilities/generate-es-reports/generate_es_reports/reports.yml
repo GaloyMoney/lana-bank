@@ -135,6 +135,13 @@ report_jobs:
         validation_schema_id: ssf_ctri_garantia_prendaria
       - type: csv
 
+  - norm: nrp_28
+    id: "01_reserva_de_liquidez"
+    friendly_name: "reserva_de_liquidez"
+    outputs:
+      - type: xml
+      - type: csv
+
   - norm: nrp_51
     id: "01_saldo_cuenta"
     friendly_name: "saldo_cuenta"
