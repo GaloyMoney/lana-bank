@@ -1,7 +1,7 @@
 import dagster as dg
 import dlt
 from dlt.sources.credentials import ConnectionStringCredentials
-from dagster_dbt import DbtCliResource, dbt_assets
+from dagster_dbt import DbtCliResource, dbt_assets, DagsterDbtTranslator
 
 from lana_pipelines.resources import create_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
@@ -70,7 +70,13 @@ def build_lana_to_dw_el_asset(table_name):
 
 def build_dbt_assets():
 
-    @dbt_assets(manifest=dbt_manifest_path)
+    class CustomDagsterDbtTranslator(DagsterDbtTranslator):
+        pass
+
+    @dbt_assets(
+        manifest=dbt_manifest_path,
+        dagster_dbt_translator=CustomDagsterDbtTranslator()
+    )
     def dbt_models(context: dg.AssetExecutionContext, dbt: DbtCliResource):
         yield from dbt.cli(["build"], context=context).stream()
 
