@@ -23,10 +23,13 @@ impl<'a> BulkAccountImport<'a> {
             HashMap::new();
         let mut node_id_to_account_set_id: HashMap<ChartNodeId, CalaAccountSetId> = HashMap::new();
 
-        let mut sorted_specs = account_specs.clone();
+        let mut sorted_specs = account_specs;
         sorted_specs.sort_by_key(|spec| spec.code.clone());
 
-        // Sort specs in reverse order to ensure all children are created before parents
+        // Sort in reverse so that children appear before parents.
+        // This relies on the hierarchical structure being encoded in the account codes:
+        // e.g., "1", "1.1", "1.1.1". In this scheme "1.1" is a child of "1",
+        // and reverse lexical ordering ensures all parents come after their descendants.
         sorted_specs.reverse();
 
         for spec in sorted_specs {

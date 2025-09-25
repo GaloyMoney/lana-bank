@@ -6,10 +6,10 @@ CREATE TABLE core_chart_node_events_rollup (
   modified_at TIMESTAMPTZ NOT NULL,
   -- Flattened fields from the event JSON
   chart_id UUID,
-  child_node_id UUID,
   spec JSONB,
 
   -- Collection rollups
+  child_node_ids UUID[],
   ledger_account_set_ids UUID[],
   manual_ledger_account_ids UUID[]
 ,
@@ -47,7 +47,12 @@ BEGIN
   -- Initialize fields with default values if this is a new record
   IF current_row.id IS NULL THEN
     new_row.chart_id := (NEW.event ->> 'chart_id')::UUID;
-    new_row.child_node_id := (NEW.event ->> 'child_node_id')::UUID;
+    new_row.child_node_ids := CASE
+       WHEN NEW.event ? 'child_node_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'child_node_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
     new_row.ledger_account_set_ids := CASE
        WHEN NEW.event ? 'ledger_account_set_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_account_set_ids'))
@@ -64,7 +69,7 @@ BEGIN
   ELSE
     -- Default all fields to current values
     new_row.chart_id := current_row.chart_id;
-    new_row.child_node_id := current_row.child_node_id;
+    new_row.child_node_ids := current_row.child_node_ids;
     new_row.ledger_account_set_ids := current_row.ledger_account_set_ids;
     new_row.manual_ledger_account_ids := current_row.manual_ledger_account_ids;
     new_row.spec := current_row.spec;
@@ -79,7 +84,7 @@ BEGIN
     WHEN 'manual_transaction_account_assigned' THEN
       new_row.manual_ledger_account_ids := array_append(COALESCE(current_row.manual_ledger_account_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_account_id')::UUID);
     WHEN 'child_node_added' THEN
-      new_row.child_node_id := (NEW.event ->> 'child_node_id')::UUID;
+      new_row.child_node_ids := array_append(COALESCE(current_row.child_node_ids, ARRAY[]::UUID[]), (NEW.event ->> 'child_node_id')::UUID);
   END CASE;
 
   INSERT INTO core_chart_node_events_rollup (
@@ -88,7 +93,7 @@ BEGIN
     created_at,
     modified_at,
     chart_id,
-    child_node_id,
+    child_node_ids,
     ledger_account_set_ids,
     manual_ledger_account_ids,
     spec
@@ -99,7 +104,7 @@ BEGIN
     new_row.created_at,
     new_row.modified_at,
     new_row.chart_id,
-    new_row.child_node_id,
+    new_row.child_node_ids,
     new_row.ledger_account_set_ids,
     new_row.manual_ledger_account_ids,
     new_row.spec

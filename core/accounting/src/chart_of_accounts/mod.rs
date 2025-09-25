@@ -18,7 +18,6 @@ use crate::primitives::{
     ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
-pub use chart_node::ChartNode;
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
 pub use entity::Chart;

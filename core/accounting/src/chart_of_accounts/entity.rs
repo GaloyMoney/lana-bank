@@ -162,22 +162,17 @@ impl Chart {
     /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
-        let mut current_code = code.clone();
+        let mut current = match self.get_node_details_by_code(code) {
+            Some(node) => node.spec.parent.clone(),
+            None => return result,
+        };
 
-        if let Some(node) = self.get_node_details_by_code(&current_code) {
-            current_code = match node.spec.parent {
-                Some(parent_code) => parent_code,
-                None => return result,
-            };
-        } else {
-            return result;
-        }
-
-        while let Some(node) = self.get_node_details_by_code(&current_code) {
-            result.push(T::from(node.account_set_id));
-            match node.spec.parent {
-                Some(parent_code) => current_code = parent_code,
-                None => break,
+        while let Some(code) = current {
+            if let Some(node) = self.get_node_details_by_code(&code) {
+                result.push(T::from(node.account_set_id));
+                current = node.spec.parent.clone();
+            } else {
+                break;
             }
         }
 
@@ -193,9 +188,8 @@ impl Chart {
         self.get_node_by_code(code)
             .into_iter()
             .flat_map(move |node| {
-                let children: Vec<_> = node.get_children().to_vec();
-                children.into_iter().filter_map(move |child_node_id| {
-                    let child_node = self.chart_nodes.get_persisted(&child_node_id)?;
+                node.iter_children().filter_map(move |child_node_id| {
+                    let child_node = self.chart_nodes.get_persisted(child_node_id)?;
                     Some((child_node.spec.code.clone(), child_node.account_set_id))
                 })
             })
@@ -238,16 +232,6 @@ impl Chart {
         self.get_node_details_by_code(code)
             .map(|details| details.account_set_id)
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
-    }
-
-    pub fn check_can_have_manual_transactions(
-        &self,
-        code: &AccountCode,
-    ) -> Result<(), ChartOfAccountsError> {
-        match self.children(code).next() {
-            None => Ok(()),
-            _ => Err(ChartOfAccountsError::NonLeafAccount(code.to_string())),
-        }
     }
 
     pub fn manual_transaction_account(
@@ -366,7 +350,6 @@ pub struct NewAccountSetWithNodeId {
 pub struct ChartNodeDetails {
     account_set_id: CalaAccountSetId,
     spec: AccountSpec,
-    manual_transaction_account_id: Option<LedgerAccountId>,
 }
 
 impl From<&ChartNode> for ChartNodeDetails {
@@ -374,7 +357,6 @@ impl From<&ChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.account_set_id,
             spec: node.spec.clone(),
-            manual_transaction_account_id: node.manual_transaction_account_id,
         }
     }
 }
@@ -384,7 +366,6 @@ impl From<&NewChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.ledger_account_set_id,
             spec: node.spec.clone(),
-            manual_transaction_account_id: None,
         }
     }
 }

@@ -78,8 +78,8 @@ impl ChartNode {
         Idempotent::Executed(())
     }
 
-    pub fn get_children(&self) -> Vec<ChartNodeId> {
-        self.children.clone()
+    pub fn iter_children(&self) -> impl Iterator<Item = &ChartNodeId> {
+        self.children.iter()
     }
 
     pub fn check_can_have_manual_transactions(&self) -> Result<(), ChartOfAccountsError> {
@@ -135,8 +135,8 @@ pub struct NewChartNode {
     pub chart_id: ChartId,
     pub spec: AccountSpec,
     pub ledger_account_set_id: CalaAccountSetId,
-    #[builder(setter(strip_option), default)]
-    pub children_node_ids: Option<Vec<ChartNodeId>>,
+    #[builder(default)]
+    pub children_node_ids: Vec<ChartNodeId>,
 }
 
 impl NewChartNode {
@@ -166,8 +166,8 @@ impl IntoEvents<ChartNodeEvent> for NewChartNode {
             ledger_account_set_id: self.ledger_account_set_id,
         }];
 
-        if let Some(children_node_ids) = self.children_node_ids {
-            for child_node_id in children_node_ids {
+        if !self.children_node_ids.is_empty() {
+            for child_node_id in self.children_node_ids {
                 events.push(ChartNodeEvent::ChildNodeAdded { child_node_id });
             }
         }
@@ -190,7 +190,7 @@ mod tests {
             chart_id: ChartId::new(),
             spec,
             ledger_account_set_id: CalaAccountSetId::new(),
-            children_node_ids: None,
+            children_node_ids: Vec::new(),
         }
     }
 
