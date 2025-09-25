@@ -1,4 +1,4 @@
-name: "Podman BATS Tests"
+name: "BATS Tests"
 
 on:
   pull_request:
@@ -8,7 +8,7 @@ on:
 
 jobs:
   bats-tests:
-    name: End to End BATS Tests (Podman)
+    name: End to End BATS Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -33,7 +33,7 @@ jobs:
           max-attempts: 300
           retry-delay: 10
           
-      - name: Run BATS tests with podman
+      - name: Run BATS tests
         run: nix run .#bats
           
       - name: Rename bats log
@@ -44,7 +44,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Podman BATS Logs
+          name: BATS Logs
           path: |
             e2e-logs
             *.e2e-logs 
