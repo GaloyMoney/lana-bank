@@ -223,6 +223,19 @@
 
           bats-runner = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
+            binPath = pkgs.lib.makeBinPath [
+              podman-runner.podman-compose-runner
+              pkgs.wait4x
+              pkgs.bats
+              pkgs.gnugrep
+              pkgs.procps
+              pkgs.coreutils
+              pkgs.findutils
+              pkgs.jq
+              pkgs.curl
+              pkgs.gnused
+              pkgs.gawk
+            ];
           in pkgs.symlinkJoin {
             name = "bats-runner";
             paths = [
@@ -244,6 +257,9 @@
               cat > $out/bin/bats-runner << 'EOF'
               #!${pkgs.bash}/bin/bash
               set -e
+
+              # Add all tools to PATH
+              export PATH="${binPath}:$PATH"
 
               # Set environment variables needed by bats tests
               export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
@@ -283,6 +299,13 @@
 
           nextest-runner = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
+            binPath = pkgs.lib.makeBinPath [
+              podman-runner.podman-compose-runner
+              pkgs.wait4x
+              pkgs.sqlx-cli
+              pkgs.cargo-nextest
+              pkgs.coreutils
+            ];
           in pkgs.symlinkJoin {
             name = "nextest-runner";
             paths = [
@@ -298,6 +321,9 @@
               cat > $out/bin/nextest-runner << 'EOF'
               #!${pkgs.bash}/bin/bash
               set -e
+
+              # Add all tools to PATH
+              export PATH="${binPath}:$PATH"
 
               # Set environment variables needed by tests
               export DATABASE_URL="${devEnvVars.DATABASE_URL}"
