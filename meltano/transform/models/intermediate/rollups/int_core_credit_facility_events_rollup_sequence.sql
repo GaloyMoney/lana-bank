@@ -140,7 +140,7 @@ with source as (
         )
     from source
     left join proposal using (credit_facility_proposal_id)
-
+),
 final as (
     select
         *,
