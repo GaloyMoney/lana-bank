@@ -63,11 +63,15 @@ impl Deposit {
 
     async fn ledger_transactions(&self, ctx: &Context<'_>) -> Result<Vec<LedgerTransaction>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let transactions = loader
-            .load_many(self.entity.ledger_tx_ids())
-            .await?
-            .into_values()
-            .collect();
+        let tx_ids = self.entity.ledger_tx_ids();
+        let mut loaded_transactions = loader.load_many(tx_ids.clone()).await?;
+
+        let mut transactions = Vec::with_capacity(tx_ids.len());
+        for id in tx_ids {
+            if let Some(transaction) = loaded_transactions.remove(&id) {
+                transactions.push(transaction);
+            }
+        }
 
         Ok(transactions)
     }
