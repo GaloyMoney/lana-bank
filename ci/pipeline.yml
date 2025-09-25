@@ -119,6 +119,7 @@ jobs:
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-debug
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#bats
       on_failure:
         put: lana-prs
         params:

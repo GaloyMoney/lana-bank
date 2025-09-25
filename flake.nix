@@ -197,11 +197,43 @@
       with pkgs; {
         packages = {
           default = lana-cli-debug;
+
           lana-cli-debug = lana-cli-debug;
+
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
           in pkgs.writeShellScriptBin "podman-up" ''
             exec ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up "$@"
+          '';
+
+          bats = let
+            podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
+          in pkgs.writeShellScriptBin "bats" ''
+            set -e
+
+            # Set LANA_BIN to use the nix-built lana-cli-debug binary
+            export LANA_BIN="${lana-cli-debug}/bin/lana-cli"
+
+            # Function to cleanup on exit
+            cleanup() {
+              echo "Stopping podman-compose..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner down || true
+            }
+
+            # Register cleanup function
+            trap cleanup EXIT
+
+            echo "Starting podman-compose in detached mode..."
+            ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
+
+            # Wait for PostgreSQL to be ready
+            echo "Waiting for PostgreSQL to be ready..."
+            ${pkgs.wait4x}/bin/wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
+
+            echo "Running bats tests with LANA_BIN=$LANA_BIN..."
+            ${pkgs.bats}/bin/bats bats/*.bats
+
+            echo "Tests completed successfully!"
           '';
         };
 
@@ -267,6 +299,11 @@
         apps.podman-up = flake-utils.lib.mkApp {
           drv = self.packages.${system}.podman-up;
           name = "podman-up";
+        };
+
+        apps.bats = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.bats;
+          name = "bats";
         };
 
         devShells.default = mkShell (devEnvVars
