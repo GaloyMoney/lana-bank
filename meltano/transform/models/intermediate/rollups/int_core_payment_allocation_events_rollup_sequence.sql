@@ -29,7 +29,7 @@ transformed as (
         created_at as payment_allocation_created_at,
         modified_at as payment_allocation_modified_at,
 
-        * except(
+        * except (
             payment_allocation_id,
             payment_id,
             credit_facility_id,
