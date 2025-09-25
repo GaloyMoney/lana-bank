@@ -3,6 +3,8 @@ import React, { useEffect, use } from "react"
 import { gql } from "@apollo/client"
 import { useTranslations } from "next-intl"
 
+import LedgerTransactions from "../../../components/ledger-transactions"
+
 import { DisbursalDetailsCard } from "./details"
 
 import { VotersCard } from "./voters"
@@ -22,6 +24,9 @@ gql`
       createdAt
       status
       publicId
+      ledgerTransactions {
+        ...LedgerTransactionFields
+      }
       creditFacility {
         id
         creditFacilityId
@@ -91,11 +96,14 @@ function DisbursalPage({
   if (!data?.disbursalByPublicId) return <div>Not found</div>
 
   return (
-    <main className="max-w-7xl m-auto">
+    <main className="max-w-7xl m-auto space-y-2">
       <DisbursalDetailsCard disbursal={data.disbursalByPublicId} />
       {data.disbursalByPublicId.approvalProcess && (
         <VotersCard approvalProcess={data.disbursalByPublicId.approvalProcess} />
       )}
+      <LedgerTransactions
+        ledgerTransactions={data.disbursalByPublicId.ledgerTransactions}
+      />
     </main>
   )
 }

@@ -4,8 +4,9 @@ import { gql } from "@apollo/client"
 import { useEffect, use } from "react"
 import { useTranslations } from "next-intl"
 
+import LedgerTransactions from "../../../components/ledger-transactions"
+
 import WithdrawalDetailsCard from "./details"
-import LedgerTransactions from "./ledger-transactions"
 
 import { useGetWithdrawalDetailsQuery } from "@/lib/graphql/generated"
 
@@ -17,6 +18,14 @@ import { useBreadcrumb } from "@/app/breadcrumb-provider"
 import { PublicIdBadge } from "@/components/public-id-badge"
 
 gql`
+  fragment LedgerTransactionFields on LedgerTransaction {
+    id
+    ledgerTransactionId
+    createdAt
+    effective
+    description
+  }
+
   fragment WithdrawDetailsPageFragment on Withdrawal {
     id
     withdrawalId
@@ -26,11 +35,7 @@ gql`
     reference
     createdAt
     ledgerTransactions {
-      id
-      ledgerTransactionId
-      createdAt
-      effective
-      description
+      ...LedgerTransactionFields
     }
     account {
       customer {
