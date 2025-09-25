@@ -120,6 +120,16 @@
         }
       );
 
+      # Pre-built test binaries
+      lana-test-binaries = craneLib.buildPackage (
+        individualCrateArgs
+        // {
+          pname = "lana-test-binaries";
+          cargoExtraArgs = "--tests --all-features";
+          doCheck = false;
+        }
+      );
+
       # Separate toolchain for musl cross-compilation
       rustToolchainMusl = rustVersion.override {
         extensions = ["rust-src"];
@@ -202,6 +212,8 @@
 
           lana-deps = cargoArtifacts;
 
+          lana-test-binaries = lana-test-binaries;
+
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
           in
@@ -209,10 +221,28 @@
               exec ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up "$@"
             '';
 
-          bats = let
+          bats-runner = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
-          in
-            pkgs.writeShellScriptBin "bats" ''
+          in pkgs.symlinkJoin {
+            name = "bats-runner";
+            paths = [
+              podman-runner.podman-compose-runner
+              pkgs.wait4x
+              pkgs.bats
+              pkgs.gnugrep
+              pkgs.procps
+              pkgs.coreutils
+              pkgs.findutils
+              pkgs.jq
+              pkgs.curl
+              pkgs.gnused
+              pkgs.gawk
+              lana-cli-debug
+            ];
+            postBuild = ''
+              mkdir -p $out/bin
+              cat > $out/bin/bats-runner << 'EOF'
+              #!${pkgs.bash}/bin/bash
               set -e
 
               # Set environment variables needed by bats tests
@@ -221,35 +251,52 @@
               export DATABASE_URL="${devEnvVars.DATABASE_URL}"
               export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
 
-              # Add necessary utilities to PATH
-              export PATH="${pkgs.gnugrep}/bin:${pkgs.procps}/bin:${pkgs.coreutils}/bin:${pkgs.findutils}/bin:${pkgs.wait4x}/bin:${pkgs.jq}/bin:${pkgs.curl}/bin:${pkgs.gnused}/bin:${pkgs.gawk}/bin:$PATH"
-
               # Function to cleanup on exit
               cleanup() {
                 echo "Stopping podman-compose..."
-                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner down || true
+                podman-compose-runner down || true
               }
 
               # Register cleanup function
               trap cleanup EXIT
 
               echo "Starting podman-compose in detached mode..."
-              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d
+              podman-compose-runner up -d
 
               # Wait for PostgreSQL to be ready
               echo "Waiting for PostgreSQL to be ready..."
-              ${pkgs.wait4x}/bin/wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
+              wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
 
               echo "Running bats tests with LANA_BIN=$LANA_BIN..."
-              ${pkgs.bats}/bin/bats bats/*.bats
+              bats bats/*.bats
 
               echo "Tests completed successfully!"
+              EOF
+              chmod +x $out/bin/bats-runner
             '';
+          };
 
-          nextest = let
+          # Legacy wrapper for backward compatibility
+          bats = pkgs.writeShellScriptBin "bats" ''
+            exec ${self.packages.${system}.bats-runner}/bin/bats-runner "$@"
+          '';
+
+          nextest-runner = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
-          in
-            pkgs.writeShellScriptBin "nextest" ''
+          in pkgs.symlinkJoin {
+            name = "nextest-runner";
+            paths = [
+              podman-runner.podman-compose-runner
+              pkgs.wait4x
+              pkgs.sqlx-cli
+              pkgs.cargo-nextest
+              pkgs.coreutils
+              lana-test-binaries
+            ];
+            postBuild = ''
+              mkdir -p $out/bin
+              cat > $out/bin/nextest-runner << 'EOF'
+              #!${pkgs.bash}/bin/bash
               set -e
 
               # Set environment variables needed by tests
@@ -259,30 +306,38 @@
               # Function to cleanup on exit
               cleanup() {
                 echo "Stopping core-pg..."
-                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner stop core-pg || true
-                ${podman-runner.podman-compose-runner}/bin/podman-compose-runner rm -f core-pg || true
+                podman-compose-runner stop core-pg || true
+                podman-compose-runner rm -f core-pg || true
               }
 
               # Register cleanup function
               trap cleanup EXIT
 
               echo "Starting core-pg database..."
-              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg
+              podman-compose-runner up -d core-pg
 
               # Wait for PostgreSQL to be ready
               echo "Waiting for PostgreSQL to be ready..."
-              ${pkgs.wait4x}/bin/wait4x postgresql "$DATABASE_URL" --timeout 120s
+              wait4x postgresql "$DATABASE_URL" --timeout 120s
 
               # Run migrations
               echo "Running database migrations..."
-              ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
+              sqlx migrate run --source lana/app/migrations
 
               # Run nextest
               echo "Running cargo nextest..."
-              ${pkgs.cargo-nextest}/bin/cargo-nextest nextest run --workspace --all-features
+              cargo-nextest nextest run --workspace --all-features
 
               echo "Tests completed successfully!"
+              EOF
+              chmod +x $out/bin/nextest-runner
             '';
+          };
+
+          # Legacy wrapper for backward compatibility
+          nextest = pkgs.writeShellScriptBin "nextest" ''
+            exec ${self.packages.${system}.nextest-runner}/bin/nextest-runner "$@"
+          '';
         };
 
         checks = {
@@ -350,13 +405,13 @@
         };
 
         apps.bats = flake-utils.lib.mkApp {
-          drv = self.packages.${system}.bats;
-          name = "bats";
+          drv = self.packages.${system}.bats-runner;
+          name = "bats-runner";
         };
 
         apps.nextest = flake-utils.lib.mkApp {
-          drv = self.packages.${system}.nextest;
-          name = "nextest";
+          drv = self.packages.${system}.nextest-runner;
+          name = "nextest-runner";
         };
 
         devShells.default = mkShell (devEnvVars
