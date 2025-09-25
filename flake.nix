@@ -200,6 +200,8 @@
 
           lana-cli-debug = lana-cli-debug;
 
+          lana-deps = cargoArtifacts;
+
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
           in
