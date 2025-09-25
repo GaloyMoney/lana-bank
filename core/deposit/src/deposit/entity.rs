@@ -93,8 +93,8 @@ impl Deposit {
         self.events
             .iter_all()
             .map(|e| match e {
-                DepositEvent::Initialized { ledger_tx_id, .. } => Some(*ledger_tx_id),
-                DepositEvent::Reverted { ledger_tx_id, .. } => Some(*ledger_tx_id),
+                DepositEvent::Initialized { ledger_tx_id, .. } => *ledger_tx_id,
+                DepositEvent::Reverted { ledger_tx_id, .. } => *ledger_tx_id,
             })
             .collect()
     }
