@@ -157,20 +157,21 @@ impl Chart {
     /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
-        let mut current = match self.get_node_details_by_code(code) {
-            Some(node) => node.spec.parent.clone(),
-            None => return result,
-        };
+        let mut current = self.get_node_details_by_code(code);
 
-        while let Some(code) = current {
-            if let Some(node) = self.get_node_details_by_code(&code) {
-                result.push(T::from(node.account_set_id));
-                current = node.spec.parent.clone();
+        while let Some(node) = current {
+            if let Some(parent_node) = node
+                .spec
+                .parent
+                .as_ref()
+                .and_then(|p| self.get_node_details_by_code(p))
+            {
+                result.push(T::from(parent_node.account_set_id));
+                current = Some(parent_node);
             } else {
                 break;
             }
         }
-
         result
     }
 

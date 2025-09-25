@@ -26,7 +26,7 @@ pub use entity::ChartEvent;
 pub(super) use entity::*;
 use error::*;
 use import::{
-    BulkAccountImport,
+    BulkAccountImport, BulkImportResult,
     csv::{CsvParseError, CsvParser},
 };
 pub(super) use repo::*;
@@ -135,8 +135,11 @@ where
         let data = data.as_ref().to_string();
         let account_specs = CsvParser::new(data).account_specs()?;
 
-        let import_result =
-            BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
+        let BulkImportResult {
+            new_account_sets,
+            new_account_set_ids,
+            new_connections,
+        } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;
@@ -146,10 +149,10 @@ where
             .ledger_operation_from_db_op(op.with_db_time().await?);
         self.cala
             .account_sets()
-            .create_all_in_op(&mut op, import_result.new_account_sets)
+            .create_all_in_op(&mut op, new_account_sets)
             .await?;
 
-        for (parent, child) in import_result.new_connections {
+        for (parent, child) in new_connections {
             self.cala
                 .account_sets()
                 .add_member_in_op(&mut op, parent, child)
@@ -158,7 +161,7 @@ where
         op.commit().await?;
 
         let new_account_set_ids = &chart
-            .trial_balance_account_ids_from_new_accounts(&import_result.new_account_set_ids)
+            .trial_balance_account_ids_from_new_accounts(&new_account_set_ids)
             .collect::<Vec<_>>();
 
         Ok((chart, Some(new_account_set_ids.clone())))

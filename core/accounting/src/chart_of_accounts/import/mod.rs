@@ -34,8 +34,7 @@ impl<'a> BulkAccountImport<'a> {
 
         for spec in sorted_specs {
             let children_node_ids = parent_code_to_children_ids
-                .get(&spec.code)
-                .cloned()
+                .remove(&spec.code)
                 .unwrap_or_default();
 
             if let es_entity::Idempotent::Executed(NewAccountSetWithNodeId {
