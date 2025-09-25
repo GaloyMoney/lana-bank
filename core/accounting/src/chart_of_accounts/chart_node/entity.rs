@@ -7,7 +7,6 @@ use es_entity::*;
 
 use crate::primitives::*;
 
-use crate::chart_of_accounts::error::ChartOfAccountsError;
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
@@ -82,13 +81,8 @@ impl ChartNode {
         self.children.iter()
     }
 
-    pub fn check_can_have_manual_transactions(&self) -> Result<(), ChartOfAccountsError> {
-        match self.children.is_empty() {
-            true => Ok(()),
-            false => Err(ChartOfAccountsError::NonLeafAccount(
-                self.spec.code.to_string(),
-            )),
-        }
+    pub fn can_have_manual_transactions(&self) -> bool {
+        self.children.is_empty()
     }
 
     pub fn is_trial_balance_account(&self) -> bool {
