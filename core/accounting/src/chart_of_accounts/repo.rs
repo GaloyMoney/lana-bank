@@ -5,8 +5,8 @@ use es_entity::*;
 use crate::primitives::ChartId;
 use crate::primitives::ChartNodeId;
 
+use super::chart_node::*;
 use super::{entity::*, error::ChartOfAccountsError};
-use crate::chart_node::*;
 
 #[derive(EsRepo, Clone)]
 #[es_repo(

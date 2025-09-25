@@ -1,5 +1,6 @@
-mod csv;
+pub mod chart_node;
 mod entity;
+mod import;
 
 pub mod error;
 mod repo;
@@ -17,15 +18,17 @@ use crate::primitives::{
     ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
-pub use crate::chart_node::ChartNode;
 #[cfg(feature = "json-schema")]
-pub use crate::chart_node::ChartNodeEvent;
-pub(super) use csv::{CsvParseError, CsvParser};
+pub use chart_node::ChartNodeEvent;
 pub use entity::Chart;
 #[cfg(feature = "json-schema")]
 pub use entity::ChartEvent;
 pub(super) use entity::*;
 use error::*;
+use import::{
+    BulkAccountImport, BulkImportResult,
+    csv::{CsvParseError, CsvParser},
+};
 pub(super) use repo::*;
 
 pub struct ChartOfAccounts<Perms>
@@ -131,25 +134,12 @@ where
 
         let data = data.as_ref().to_string();
         let account_specs = CsvParser::new(data).account_specs()?;
-        let mut new_account_sets = Vec::new();
-        let mut new_connections = Vec::new();
-        for spec in account_specs {
-            if let es_entity::Idempotent::Executed(NewChartAccountDetails {
-                parent_account_set_id,
-                new_account_set,
-            }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
-            {
-                let account_set_id = new_account_set.id;
-                new_account_sets.push(new_account_set);
-                if let Some(parent) = parent_account_set_id {
-                    new_connections.push((parent, account_set_id));
-                }
-            }
-        }
-        let new_account_set_ids = new_account_sets.iter().map(|a| a.id).collect::<Vec<_>>();
-        if new_account_sets.is_empty() {
-            return Ok((chart, None));
-        }
+
+        let BulkImportResult {
+            new_account_sets,
+            new_account_set_ids,
+            new_connections,
+        } = BulkAccountImport::new(&mut chart, self.journal_id).import(account_specs);
 
         let mut op = self.repo.begin_op().await?;
         self.repo.update_in_op(&mut op, &mut chart).await?;

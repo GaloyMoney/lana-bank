@@ -389,6 +389,12 @@ pub fn update_schemas(
                     add_events: vec!["ManualTransactionAccountAssigned".to_string()],
                     remove_events: vec![],
                 },
+                CollectionRollup {
+                    column_name: "child_node_ids",
+                    values: "child_node_id",
+                    add_events: vec!["ChildNodeAdded".to_string()],
+                    remove_events: vec![],
+                },
             ],
             generate_schema: || serde_json::to_value(schema_for!(ChartNodeEvent)).unwrap(),
             ..Default::default()

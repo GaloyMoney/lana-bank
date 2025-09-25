@@ -13,8 +13,14 @@ with source as (
         where t.credit_facility_id is null
     {% endif %}
 ),
-
-transformed as (
+, proposal as (
+    select
+        credit_facility_proposal_id,
+        approval_process_id,
+        approved
+    from {{ ref('stg_core_credit_facility_proposal_events_rollup') }}
+)
+, transformed as (
     select
         credit_facility_id,
         version,
@@ -44,6 +50,7 @@ transformed as (
         -- cast(collateralization_ratio as numeric) as collateralization_ratio,
         collateralization_state,
 
+        approval_process_id,
         approved,
 
         is_approval_process_concluded,
@@ -112,6 +119,7 @@ transformed as (
             price,
             -- collateralization_ratio,
             collateralization_state,
+            approval_process_id,
             approved,
             is_approval_process_concluded,
             is_activated,
@@ -131,7 +139,7 @@ transformed as (
             _sdc_table_version
         )
     from source
-),
+    left join proposal using (credit_facility_proposal_id)
 
 final as (
     select

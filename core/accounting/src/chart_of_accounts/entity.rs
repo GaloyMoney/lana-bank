@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::chart_node::entity::*;
+use super::chart_node::*;
 use crate::primitives::*;
 
 use super::{error::*, tree};
@@ -38,6 +38,35 @@ pub struct Chart {
 }
 
 impl Chart {
+    pub(super) fn create_node_with_existing_children(
+        &mut self,
+        spec: &AccountSpec,
+        journal_id: CalaJournalId,
+        children_node_ids: Vec<ChartNodeId>,
+    ) -> Idempotent<NewAccountSetWithNodeId> {
+        if self.get_node_details_by_code(&spec.code).is_some() {
+            return Idempotent::Ignored;
+        }
+
+        let new_node_id = ChartNodeId::new();
+        let chart_node = NewChartNode::builder()
+            .id(new_node_id)
+            .chart_id(self.id)
+            .spec(spec.clone())
+            .ledger_account_set_id(CalaAccountSetId::new())
+            .children_node_ids(children_node_ids)
+            .build()
+            .expect("could not build NewChartNode");
+
+        let new_account_set = chart_node.new_account_set(journal_id);
+        self.chart_nodes.add_new(chart_node);
+
+        Idempotent::Executed(NewAccountSetWithNodeId {
+            new_account_set,
+            node_id: new_node_id,
+        })
+    }
+
     pub(super) fn create_node_without_verifying_parent(
         &mut self,
         spec: &AccountSpec,
@@ -47,34 +76,25 @@ impl Chart {
             return Idempotent::Ignored;
         }
 
-        let node_id = ChartNodeId::new();
-        let ledger_account_set_id = CalaAccountSetId::new();
-
-        let new_chart_node = NewChartNode {
-            id: node_id,
-            chart_id: self.id,
-            spec: spec.clone(),
-            ledger_account_set_id,
-        };
-
-        self.chart_nodes.add_new(new_chart_node);
-
-        let parent_account_set_id = if let Some(parent) = spec.parent.as_ref() {
-            self.get_node_details_by_code(parent)
-                .map(|details| details.account_set_id)
-        } else {
-            None
-        };
-
-        let new_account_set = NewAccountSet::builder()
-            .id(ledger_account_set_id)
-            .journal_id(journal_id)
-            .name(spec.name.to_string())
-            .description(spec.name.to_string())
-            .external_id(spec.code.account_set_external_id(self.id))
-            .normal_balance_type(spec.normal_balance_type)
+        let chart_node = NewChartNode::builder()
+            .id(ChartNodeId::new())
+            .chart_id(self.id)
+            .spec(spec.clone())
+            .ledger_account_set_id(CalaAccountSetId::new())
             .build()
-            .expect("Could not build new account set");
+            .expect("could not build NewChartNode");
+
+        let parent_account_set_id = spec
+            .parent
+            .as_ref()
+            .and_then(|parent_code| self.get_node_by_code_mut(parent_code))
+            .map(|parent_node| {
+                let _ = parent_node.add_child_node(chart_node.id);
+                parent_node.account_set_id
+            });
+
+        let new_account_set = chart_node.new_account_set(journal_id);
+        self.chart_nodes.add_new(chart_node);
 
         Idempotent::Executed(NewChartAccountDetails {
             new_account_set,
@@ -113,7 +133,7 @@ impl Chart {
         self.chart_nodes
             .iter_persisted()
             .filter(move |node| {
-                node.spec.code.len_sections() == 2
+                node.is_trial_balance_account()
                     && new_account_set_ids.contains(&node.account_set_id)
             })
             .map(move |node| node.account_set_id)
@@ -123,8 +143,8 @@ impl Chart {
         &self,
         new_account_set_id: CalaAccountSetId,
     ) -> Option<CalaAccountSetId> {
-        self.chart_nodes.iter_persisted().find_map(|node| {
-            if node.spec.code.len_sections() == 2 && new_account_set_id == node.account_set_id {
+        self.chart_nodes.find_map_persisted(|node| {
+            if node.is_trial_balance_account() && new_account_set_id == node.account_set_id {
                 Some(node.account_set_id)
             } else {
                 None
@@ -137,25 +157,21 @@ impl Chart {
     /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
-        let mut current_code = code.clone();
+        let mut current = self.get_node_details_by_code(code);
 
-        if let Some(node) = self.get_node_details_by_code(&current_code) {
-            current_code = match node.spec.parent {
-                Some(parent_code) => parent_code,
-                None => return result,
-            };
-        } else {
-            return result;
-        }
-
-        while let Some(node) = self.get_node_details_by_code(&current_code) {
-            result.push(T::from(node.account_set_id));
-            match node.spec.parent {
-                Some(parent_code) => current_code = parent_code,
-                None => break,
+        while let Some(node) = current {
+            if let Some(parent_node) = node
+                .spec
+                .parent
+                .as_ref()
+                .and_then(|p| self.get_node_details_by_code(p))
+            {
+                result.push(T::from(parent_node.account_set_id));
+                current = Some(parent_node);
+            } else {
+                break;
             }
         }
-
         result
     }
 
@@ -164,14 +180,15 @@ impl Chart {
     pub fn children(
         &self,
         code: &AccountCode,
-    ) -> impl Iterator<Item = (&AccountCode, CalaAccountSetId)> {
-        self.chart_nodes.iter_persisted().filter_map(move |node| {
-            if node.spec.parent.as_ref() == Some(code) {
-                Some((&node.spec.code, node.account_set_id))
-            } else {
-                None
-            }
-        })
+    ) -> impl Iterator<Item = (AccountCode, CalaAccountSetId)> {
+        self.get_node_by_code(code)
+            .into_iter()
+            .flat_map(move |node| {
+                node.children().filter_map(move |child_node_id| {
+                    let child_node = self.chart_nodes.get_persisted(child_node_id)?;
+                    Some((child_node.spec.code.clone(), child_node.account_set_id))
+                })
+            })
     }
 
     fn get_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
@@ -186,6 +203,12 @@ impl Chart {
     fn get_node_by_code_mut(&mut self, code: &AccountCode) -> Option<&mut ChartNode> {
         self.chart_nodes
             .iter_persisted_mut()
+            .find(|node| node.spec.code == *code)
+    }
+
+    fn get_node_by_code(&self, code: &AccountCode) -> Option<&ChartNode> {
+        self.chart_nodes
+            .iter_persisted()
             .find(|node| node.spec.code == *code)
     }
 
@@ -207,16 +230,6 @@ impl Chart {
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
     }
 
-    pub fn check_can_have_manual_transactions(
-        &self,
-        code: &AccountCode,
-    ) -> Result<(), ChartOfAccountsError> {
-        match self.children(code).next() {
-            None => Ok(()),
-            _ => Err(ChartOfAccountsError::NonLeafAccount(code.to_string())),
-        }
-    }
-
     pub fn manual_transaction_account(
         &mut self,
         account_id_or_code: AccountIdOrCode,
@@ -225,24 +238,23 @@ impl Chart {
             AccountIdOrCode::Id(id) => {
                 Ok(match self.get_node_by_manual_transaction_account_id(&id) {
                     Some(node) => {
-                        self.check_can_have_manual_transactions(&node.spec.code)?;
+                        node.check_can_have_manual_transactions()?;
                         ManualAccountFromChart::IdInChart(id)
                     }
                     None => ManualAccountFromChart::NonChartId(id),
                 })
             }
             AccountIdOrCode::Code(code) => {
-                let node = self
-                    .get_node_details_by_code(&code)
+                let node_mut = self
+                    .get_node_by_code_mut(&code)
                     .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
-                self.check_can_have_manual_transactions(&code)?;
+                node_mut.check_can_have_manual_transactions()?;
 
-                if let Some(existing_id) = node.manual_transaction_account_id {
+                if let Some(existing_id) = node_mut.manual_transaction_account_id {
                     return Ok(ManualAccountFromChart::IdInChart(existing_id));
                 }
 
-                let node_mut = self.get_node_by_code_mut(&code).expect("Node should exist");
                 match node_mut.assign_manual_transaction_account() {
                     Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
                         node_mut.account_set_id,
@@ -326,10 +338,14 @@ pub struct NewChartAccountDetails {
     pub parent_account_set_id: Option<CalaAccountSetId>,
 }
 
+pub struct NewAccountSetWithNodeId {
+    pub new_account_set: NewAccountSet,
+    pub node_id: ChartNodeId,
+}
+
 pub struct ChartNodeDetails {
     account_set_id: CalaAccountSetId,
     spec: AccountSpec,
-    manual_transaction_account_id: Option<LedgerAccountId>,
 }
 
 impl From<&ChartNode> for ChartNodeDetails {
@@ -337,7 +353,6 @@ impl From<&ChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.account_set_id,
             spec: node.spec.clone(),
-            manual_transaction_account_id: node.manual_transaction_account_id,
         }
     }
 }
@@ -347,7 +362,6 @@ impl From<&NewChartNode> for ChartNodeDetails {
         Self {
             account_set_id: node.ledger_account_set_id,
             spec: node.spec.clone(),
-            manual_transaction_account_id: None,
         }
     }
 }
@@ -389,6 +403,7 @@ mod test {
                 CalaJournalId::new(),
             )
             .expect("Already executed");
+        hydrate_chart_of_accounts(&mut chart);
         let NewChartAccountDetails {
             new_account_set: level_2_new_account_set,
             ..
@@ -404,6 +419,7 @@ mod test {
                 CalaJournalId::new(),
             )
             .expect("Already executed");
+        hydrate_chart_of_accounts(&mut chart);
         let NewChartAccountDetails {
             new_account_set: level_3_new_account_set,
             ..
