@@ -601,7 +601,9 @@ where
         if self.config.customer_active_check_enabled && !customer.kyc_verification.is_verified() {
             return Err(CoreCreditError::CustomerNotVerified);
         }
-
+        if facility.terms.is_single_disbursal_on_activation() {
+            return Err(CreditFacilityError::DisbursalNotAllowedForTerms.into());
+        }
         let now = crate::time::now();
         if !facility.check_disbursal_date(now) {
             return Err(CreditFacilityError::DisbursalPastMaturityDate.into());

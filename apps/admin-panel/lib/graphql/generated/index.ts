@@ -1248,6 +1248,11 @@ export type DisbursalEntry = {
   recordedAt: Scalars['Timestamp']['output'];
 };
 
+export enum DisbursalPolicy {
+  Multiple = 'MULTIPLE',
+  SingleFullOnActivation = 'SINGLE_FULL_ON_ACTIVATION'
+}
+
 export enum DisbursalStatus {
   Approved = 'APPROVED',
   Confirmed = 'CONFIRMED',
@@ -2475,6 +2480,7 @@ export type TermValues = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['output'];
+  disbursalPolicy: DisbursalPolicy;
   duration: Duration;
   initialCvl: Cvlpct;
   liquidationCvl: Cvlpct;
@@ -2486,6 +2492,7 @@ export type TermsInput = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
+  disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
@@ -2510,6 +2517,7 @@ export type TermsTemplateCreateInput = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
+  disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
   initialCvl: Scalars['CVLPctValue']['input'];
   interestDueDurationFromAccrual: DurationInput;
@@ -2530,6 +2538,7 @@ export type TermsTemplateUpdateInput = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['input'];
+  disbursalPolicy: DisbursalPolicy;
   duration: DurationInput;
   id: Scalars['UUID']['input'];
   initialCvl: Scalars['CVLPctValue']['input'];
@@ -3725,7 +3734,7 @@ export type TermsTemplateQueryVariables = Exact<{
 }>;
 
 
-export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl:
+export type TermsTemplateQuery = { __typename?: 'Query', termsTemplate?: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, disbursalPolicy: DisbursalPolicy, oneTimeFeeRate: any, liquidationCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , marginCallCvl:
@@ -3741,7 +3750,7 @@ export type UpdateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl:
+export type UpdateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateUpdate: { __typename?: 'TermsTemplateUpdatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, disbursalPolicy: DisbursalPolicy, oneTimeFeeRate: any, liquidationCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , marginCallCvl:
@@ -3757,7 +3766,7 @@ export type CreateTermsTemplateMutationVariables = Exact<{
 }>;
 
 
-export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl:
+export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTemplateCreate: { __typename?: 'TermsTemplateCreatePayload', termsTemplate: { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, disbursalPolicy: DisbursalPolicy, oneTimeFeeRate: any, liquidationCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , marginCallCvl:
@@ -3768,7 +3777,7 @@ export type CreateTermsTemplateMutation = { __typename?: 'Mutation', termsTempla
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } } } } };
 
-export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl:
+export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, disbursalPolicy: DisbursalPolicy, oneTimeFeeRate: any, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
       | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
     , marginCallCvl:
@@ -3782,7 +3791,7 @@ export type TermsTemplateFieldsFragment = { __typename?: 'TermsTemplate', id: st
 export type TermsTemplatesQueryVariables = Exact<{ [key: string]: never; }>;
 
 
-export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, oneTimeFeeRate: any, liquidationCvl:
+export type TermsTemplatesQuery = { __typename?: 'Query', termsTemplates: Array<{ __typename?: 'TermsTemplate', id: string, name: string, termsId: string, createdAt: any, userCanUpdateTermsTemplate: boolean, values: { __typename?: 'TermValues', annualRate: any, disbursalPolicy: DisbursalPolicy, oneTimeFeeRate: any, liquidationCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , marginCallCvl:
@@ -4630,6 +4639,7 @@ export const TermsTemplateFieldsFragmentDoc = gql`
   userCanUpdateTermsTemplate
   values {
     annualRate
+    disbursalPolicy
     liquidationCvl {
       __typename
       ... on FiniteCVLPct {

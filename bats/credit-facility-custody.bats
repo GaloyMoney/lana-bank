@@ -64,6 +64,7 @@ wait_for_collateral() {
           accrualCycleInterval: "END_OF_MONTH",
           accrualInterval: "END_OF_DAY",
           oneTimeFeeRate: "5",
+          disbursalPolicy: "MULTIPLE",
           duration: { period: "MONTHS", units: 3 },
           interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
           obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },

@@ -1239,6 +1239,11 @@ type DisbursalEntry {
 	disbursal: CreditFacilityDisbursal!
 }
 
+enum DisbursalPolicy {
+	MULTIPLE
+	SINGLE_FULL_ON_ACTIVATION
+}
+
 enum DisbursalStatus {
 	NEW
 	APPROVED
@@ -1993,6 +1998,7 @@ type TermValues {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	disbursalPolicy: DisbursalPolicy!
 	duration: Duration!
 	liquidationCvl: Cvlpct!
 	marginCallCvl: Cvlpct!
@@ -2004,6 +2010,7 @@ input TermsInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	disbursalPolicy: DisbursalPolicy!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
@@ -2028,6 +2035,7 @@ input TermsTemplateCreateInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	disbursalPolicy: DisbursalPolicy!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!
 	obligationOverdueDurationFromDue: DurationInput!
@@ -2047,6 +2055,7 @@ input TermsTemplateUpdateInput {
 	accrualInterval: InterestInterval!
 	accrualCycleInterval: InterestInterval!
 	oneTimeFeeRate: OneTimeFeeRatePct!
+	disbursalPolicy: DisbursalPolicy!
 	liquidationCvl: CVLPctValue!
 	duration: DurationInput!
 	interestDueDurationFromAccrual: DurationInput!

@@ -110,8 +110,8 @@ where
         Ok(disbursal)
     }
 
-    #[instrument(name = "disbursals.create_first_disbursal_in_op", skip(self, db))]
-    pub(super) async fn create_first_disbursal_in_op(
+    #[instrument(name = "disbursals.create_preapproved_disbursal_in_op", skip(self, db))]
+    pub(super) async fn create_preapproved_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         new_disbursal: NewDisbursal,
@@ -121,7 +121,7 @@ where
         let new_obligation = disbursal
             .approval_process_concluded(LedgerTxId::new(), true, db.now().date_naive())
             .expect("First instance of idempotent action ignored")
-            .expect("First disbursal obligation was already created");
+            .expect("Disbursal obligation was already created");
 
         self.obligations
             .create_with_jobs_in_op(db, new_obligation)

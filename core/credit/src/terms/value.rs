@@ -222,6 +222,16 @@ impl InterestInterval {
     }
 }
 
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq, Default)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(schemars::JsonSchema))]
+#[serde(rename_all = "SCREAMING_SNAKE_CASE")]
+pub enum DisbursalPolicy {
+    #[default]
+    Multiple,
+    SingleFullOnActivation,
+}
+
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
@@ -248,11 +258,17 @@ pub struct TermValues {
     pub margin_call_cvl: CVLPct,
     #[builder(setter(into))]
     pub initial_cvl: CVLPct,
+    #[builder(setter(into))]
+    pub disbursal_policy: DisbursalPolicy,
 }
 
 impl TermValues {
     pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
         self.duration.maturity_date(start_date)
+    }
+
+    pub fn is_single_disbursal_on_activation(&self) -> bool {
+        self.disbursal_policy == DisbursalPolicy::SingleFullOnActivation
     }
 
     pub fn is_disbursal_allowed(
@@ -416,6 +432,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .disbursal_policy(DisbursalPolicy::Multiple)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
@@ -643,6 +660,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .disbursal_policy(DisbursalPolicy::Multiple)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))

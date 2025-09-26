@@ -191,6 +191,14 @@ impl CreditFacility {
                     debit_account_id: *disbursal_credit_account_id,
                     facility_amount: *amount,
                     structuring_fee_amount: self.structuring_fee(),
+                    activation_principal_disbursal_amount: if self
+                        .terms
+                        .is_single_disbursal_on_activation()
+                    {
+                        self.amount - self.structuring_fee()
+                    } else {
+                        UsdCents::ZERO
+                    },
                     customer_type: *customer_type,
                     duration_type: terms.duration.duration_type(),
                 }),
@@ -642,6 +650,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))
+            .disbursal_policy(DisbursalPolicy::Multiple)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
