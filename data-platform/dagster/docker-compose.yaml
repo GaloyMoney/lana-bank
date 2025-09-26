@@ -9,6 +9,9 @@ services:
     image: lana_pipelines_image
     restart: always
     environment:
+      DAGSTER_POSTGRES_USER: 'postgres_user'
+      DAGSTER_POSTGRES_PASSWORD: 'postgres_password'
+      DAGSTER_POSTGRES_DB: 'postgres_db'
       DAGSTER_CURRENT_IMAGE: 'lana_pipelines_image'
       DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
