@@ -234,6 +234,22 @@
 
           lana-test-archive = lana-test-archive;
 
+          write_sdl = craneLib.buildPackage (
+            individualCrateArgs
+            // {
+              pname = "write_sdl";
+              cargoExtraArgs = "-p admin-server --bin write_sdl";
+            }
+          );
+
+          write_customer_sdl = craneLib.buildPackage (
+            individualCrateArgs
+            // {
+              pname = "write_customer_sdl";
+              cargoExtraArgs = "-p customer-server --bin write_customer_sdl";
+            }
+          );
+
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
           in
@@ -426,6 +442,51 @@
             nativeBuildInputs = [
               pkgs.cargo-machete
             ];
+          };
+
+          check-sdl = pkgs.stdenv.mkDerivation {
+            name = "check-sdl";
+            src = rustSource;
+
+            nativeBuildInputs = with pkgs; [
+              diffutils
+            ];
+
+            buildInputs = [
+              self.packages.${system}.write_sdl
+              self.packages.${system}.write_customer_sdl
+            ];
+
+            buildPhase = ''
+              # Generate SDL schemas using the pre-built binaries
+              echo "Generating admin SDL..."
+              ${self.packages.${system}.write_sdl}/bin/write_sdl > admin-schema-generated.graphql
+
+              echo "Generating customer SDL..."
+              ${self.packages.${system}.write_customer_sdl}/bin/write_customer_sdl > customer-schema-generated.graphql
+
+              # Compare with committed schemas
+              echo "Comparing admin SDL..."
+              if ! diff -u lana/admin-server/src/graphql/schema.graphql admin-schema-generated.graphql; then
+                echo "ERROR: Admin GraphQL schema is out of date!"
+                echo "Run 'make sdl-rust-cargo' to update the schema"
+                exit 1
+              fi
+
+              echo "Comparing customer SDL..."
+              if ! diff -u lana/customer-server/src/graphql/schema.graphql customer-schema-generated.graphql; then
+                echo "ERROR: Customer GraphQL schema is out of date!"
+                echo "Run 'make sdl-rust-cargo' to update the schema"
+                exit 1
+              fi
+
+              echo "SDL schemas are up to date ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "SDL check passed" > $out/result.txt
+            '';
           };
         };
 
