@@ -22,8 +22,8 @@ transformed as (
         cast(effective as timestamp) as effective,
         obligation_type,
         cast(amount as numeric) / {{ var('cents_per_usd') }} as amount_usd,
-        cast(obligation_installment_amount as numeric)
-        / {{ var('cents_per_usd') }} as obligation_installment_amount_usd,
+        cast(payment_allocation_amount as numeric)
+        / {{ var('cents_per_usd') }} as payment_allocation_amount_usd,
         cast(due_amount as numeric) / {{ var('cents_per_usd') }} as due_amount_usd,
         cast(overdue_amount as numeric) / {{ var('cents_per_usd') }} as overdue_amount_usd,
         cast(defaulted_amount as numeric) / {{ var('cents_per_usd') }} as defaulted_amount_usd,
@@ -63,7 +63,7 @@ transformed as (
             effective,
             obligation_type,
             amount,
-            obligation_installment_amount,
+            payment_allocation_amount,
             due_amount,
             overdue_amount,
             defaulted_amount,

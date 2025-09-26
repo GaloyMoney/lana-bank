@@ -4,7 +4,7 @@ pub(super) mod disbursal;
 mod error;
 mod history;
 mod ledger_accounts;
-pub(super) mod obligation_installment;
+pub(super) mod payment_allocation;
 mod proposal;
 mod repayment;
 

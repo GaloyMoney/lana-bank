@@ -205,10 +205,10 @@
           "format": "uuid",
           "type": "string"
         },
-        "obligation_installment_amount": {
+        "payment_allocation_amount": {
           "$ref": "#/$defs/UsdCents"
         },
-        "obligation_installment_id": {
+        "payment_allocation_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -217,7 +217,7 @@
           "type": "string"
         },
         "type": {
-          "const": "installment_applied",
+          "const": "payment_allocated",
           "type": "string"
         }
       },
@@ -225,8 +225,8 @@
         "type",
         "ledger_tx_id",
         "payment_id",
-        "obligation_installment_id",
-        "obligation_installment_amount"
+        "payment_allocation_id",
+        "payment_allocation_amount"
       ],
       "type": "object"
     },

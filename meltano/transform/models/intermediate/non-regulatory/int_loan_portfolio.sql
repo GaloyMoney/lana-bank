@@ -90,6 +90,6 @@ select
     reserve as reserve_amount,
     '1141030101' as capital_account,
     '1141039901' as interest_account,
-    payment_overdue_days / 30 as number_of_past_due_installments,
+    payment_overdue_days / 30 as number_of_past_due_allocations,
     100 * guarantee_amount / coalesce(principal_balance, 1) as percentage_guaranteed
 from final

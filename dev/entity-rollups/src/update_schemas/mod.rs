@@ -8,7 +8,7 @@ use core_accounting::event_schema::{ChartEvent, ChartNodeEvent, ManualTransactio
 use core_credit::event_schema::{
     CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
     InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent,
-    ObligationInstallmentEvent, PaymentEvent, TermsTemplateEvent,
+    PaymentAllocationEvent, PaymentEvent, TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
@@ -326,14 +326,14 @@ pub fn update_schemas(
                         "DueRecorded".to_string(),
                         "OverdueRecorded".to_string(),
                         "DefaultedRecorded".to_string(),
-                        "InstallmentApplied".to_string(),
+                        "PaymentAllocated".to_string(),
                     ],
                     remove_events: vec![],
                 },
                 CollectionRollup {
-                    column_name: "obligation_installment_ids",
-                    values: "obligation_installment_id",
-                    add_events: vec!["InstallmentApplied".to_string()],
+                    column_name: "payment_allocation_ids",
+                    values: "payment_allocation_id",
+                    add_events: vec!["PaymentAllocated".to_string()],
                     remove_events: vec![],
                 },
             ],
@@ -354,10 +354,10 @@ pub fn update_schemas(
             ..Default::default()
         },
         SchemaInfo {
-            name: "ObligationInstallmentEvent",
-            filename: "obligation_installment_event_schema.json",
+            name: "PaymentAllocationEvent",
+            filename: "payment_allocation_event_schema.json",
             generate_schema: || {
-                serde_json::to_value(schema_for!(ObligationInstallmentEvent)).unwrap()
+                serde_json::to_value(schema_for!(PaymentAllocationEvent)).unwrap()
             },
             ..Default::default()
         },
