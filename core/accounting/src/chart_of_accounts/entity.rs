@@ -220,31 +220,6 @@ impl Chart {
             .find(|node| node.spec.code == *code)
     }
 
-    fn get_node_by_manual_transaction_account_id(
-        &self,
-        id: &LedgerAccountId,
-    ) -> Option<&ChartNode> {
-        self.chart_nodes
-            .iter_persisted()
-            .find(|node| node.manual_transaction_account_id == Some(*id))
-    }
-
-    fn check_can_have_manual_transactions(
-        &self,
-        code: &AccountCode,
-    ) -> Result<(), ChartOfAccountsError> {
-        let node = self
-            .get_node_by_code(code)
-            .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
-        if node.check_can_have_manual_transactions() {
-            Ok(())
-        } else {
-            Err(ChartOfAccountsError::NonLeafAccount(
-                node.spec.code.to_string(),
-            ))
-        }
-    }
-
     pub fn account_set_id_from_code(
         &self,
         code: &AccountCode,
@@ -260,30 +235,37 @@ impl Chart {
     ) -> Result<ManualAccountFromChart, ChartOfAccountsError> {
         match account_id_or_code {
             AccountIdOrCode::Id(id) => {
-                Ok(match self.get_node_by_manual_transaction_account_id(&id) {
+                let res = match self
+                    .chart_nodes
+                    .find_persisted(|node| node.manual_transaction_account_id == Some(id))
+                {
                     Some(node) => {
-                        self.check_can_have_manual_transactions(&node.spec.code)?;
-                        ManualAccountFromChart::IdInChart(id)
+                        if node.can_have_manual_transactions() {
+                            ManualAccountFromChart::IdInChart(id)
+                        } else {
+                            return Err(ChartOfAccountsError::NonLeafAccount(
+                                node.spec.code.to_string(),
+                            ));
+                        }
                     }
                     None => ManualAccountFromChart::NonChartId(id),
-                })
+                };
+
+                Ok(res)
             }
             AccountIdOrCode::Code(code) => {
-                self.check_can_have_manual_transactions(&code)?;
-                let node_mut = self.get_node_by_code_mut(&code).expect("Node should exist");
+                let node = self
+                    .chart_nodes
+                    .find_persisted_mut(|node| node.spec.code == code)
+                    .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
 
-                if let Some(existing_id) = node_mut.manual_transaction_account_id {
-                    return Ok(ManualAccountFromChart::IdInChart(existing_id));
-                }
-
-                match node_mut.assign_manual_transaction_account() {
+                match node.assign_manual_transaction_account()? {
                     Idempotent::Executed(new_account) => Ok(ManualAccountFromChart::NewAccount((
-                        node_mut.account_set_id,
+                        node.account_set_id,
                         new_account,
                     ))),
                     Idempotent::Ignored => Ok(ManualAccountFromChart::IdInChart(
-                        node_mut
-                            .manual_transaction_account_id
+                        node.manual_transaction_account_id
                             .expect("Manual transaction account id should be set"),
                     )),
                 }
@@ -592,16 +574,13 @@ mod test {
         };
 
         assert_eq!(account_set_id, level_3_set_id);
-        assert!(
-            chart
-                .get_node_by_manual_transaction_account_id(&new_account.id.into())
-                .is_some()
-        );
 
         let node = chart
-            .get_node_by_manual_transaction_account_id(&new_account.id.into())
+            .chart_nodes
+            .find_persisted(|node| {
+                node.manual_transaction_account_id == Some(new_account.id.into())
+            })
             .unwrap();
-
         assert_eq!(node.spec.code, acct_code);
         assert_eq!(
             node.manual_transaction_account_id.unwrap(),
