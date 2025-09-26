@@ -76,8 +76,6 @@
       };
 
       craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
-      #craneLib = crane.mkLib pkgs;
-      # craneLib = craneLib.crateNameFromCargoToml {cargoToml = "./path/to/Cargo.toml";};
 
       rustSource = pkgs.lib.cleanSourceWith {
         src = ./.;
