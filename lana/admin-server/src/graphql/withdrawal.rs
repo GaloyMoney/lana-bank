@@ -88,7 +88,7 @@ impl Withdrawal {
 
         let transactions = tx_ids
             .iter()
-            .filter_map(|id| loaded_transactions.remove(&id))
+            .filter_map(|id| loaded_transactions.remove(id))
             .collect();
 
         Ok(transactions)
