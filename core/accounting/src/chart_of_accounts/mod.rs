@@ -192,7 +192,7 @@ where
         let es_entity::Idempotent::Executed(NewChartAccountDetails {
             parent_account_set_id: _,
             new_account_set,
-        }) = chart.create_node_without_verifying_parent(&spec, self.journal_id)
+        }) = chart.create_root_node(&spec, self.journal_id)
         else {
             return Ok((chart, None));
         };

@@ -67,7 +67,7 @@ impl Chart {
         })
     }
 
-    pub(super) fn create_node_without_verifying_parent(
+    fn create_node_without_verifying_parent(
         &mut self,
         spec: &AccountSpec,
         journal_id: CalaJournalId,
@@ -100,6 +100,14 @@ impl Chart {
             new_account_set,
             parent_account_set_id,
         })
+    }
+
+    pub(super) fn create_root_node(
+        &mut self,
+        spec: &AccountSpec,
+        journal_id: CalaJournalId,
+    ) -> Idempotent<NewChartAccountDetails> {
+        self.create_node_without_verifying_parent(spec, journal_id)
     }
 
     pub(super) fn create_child_node(
@@ -221,14 +229,14 @@ impl Chart {
             .find(|node| node.manual_transaction_account_id == Some(*id))
     }
 
-    fn validate_can_have_manual_transactions(
+    fn check_can_have_manual_transactions(
         &self,
         code: &AccountCode,
     ) -> Result<(), ChartOfAccountsError> {
         let node = self
             .get_node_by_code(code)
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))?;
-        if node.can_have_manual_transactions() {
+        if node.check_can_have_manual_transactions() {
             Ok(())
         } else {
             Err(ChartOfAccountsError::NonLeafAccount(
@@ -254,14 +262,14 @@ impl Chart {
             AccountIdOrCode::Id(id) => {
                 Ok(match self.get_node_by_manual_transaction_account_id(&id) {
                     Some(node) => {
-                        self.validate_can_have_manual_transactions(&node.spec.code)?;
+                        self.check_can_have_manual_transactions(&node.spec.code)?;
                         ManualAccountFromChart::IdInChart(id)
                     }
                     None => ManualAccountFromChart::NonChartId(id),
                 })
             }
             AccountIdOrCode::Code(code) => {
-                self.validate_can_have_manual_transactions(&code)?;
+                self.check_can_have_manual_transactions(&code)?;
                 let node_mut = self.get_node_by_code_mut(&code).expect("Node should exist");
 
                 if let Some(existing_id) = node_mut.manual_transaction_account_id {

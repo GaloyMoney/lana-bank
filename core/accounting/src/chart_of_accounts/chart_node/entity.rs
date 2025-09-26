@@ -81,7 +81,7 @@ impl ChartNode {
         self.children.iter()
     }
 
-    pub fn can_have_manual_transactions(&self) -> bool {
+    pub fn check_can_have_manual_transactions(&self) -> bool {
         self.children.is_empty()
     }
 
