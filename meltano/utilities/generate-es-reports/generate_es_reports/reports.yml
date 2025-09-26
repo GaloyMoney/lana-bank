@@ -139,7 +139,6 @@ report_jobs:
     id: "01_reserva_de_liquidez"
     friendly_name: "reserva_de_liquidez"
     outputs:
-      - type: xml
       - type: csv
 
   - norm: nrp_51
