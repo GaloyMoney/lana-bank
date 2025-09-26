@@ -44,7 +44,7 @@ impl Chart {
         journal_id: CalaJournalId,
         children_node_ids: Vec<ChartNodeId>,
     ) -> Idempotent<NewAccountSetWithNodeId> {
-        if self.get_node_details_by_code(&spec.code).is_some() {
+        if self.find_node_details_by_code(&spec.code).is_some() {
             return Idempotent::Ignored;
         }
 
@@ -72,7 +72,7 @@ impl Chart {
         spec: &AccountSpec,
         journal_id: CalaJournalId,
     ) -> Idempotent<NewChartAccountDetails> {
-        if self.get_node_details_by_code(&spec.code).is_some() {
+        if self.find_node_details_by_code(&spec.code).is_some() {
             return Idempotent::Ignored;
         }
 
@@ -87,7 +87,10 @@ impl Chart {
         let parent_account_set_id = spec
             .parent
             .as_ref()
-            .and_then(|parent_code| self.get_node_by_code_mut(parent_code))
+            .and_then(|parent_code| {
+                self.chart_nodes
+                    .find_persisted_mut(|node| node.spec.code == *parent_code)
+            })
             .map(|parent_node| {
                 let _ = parent_node.add_child_node(chart_node.id);
                 parent_node.account_set_id
@@ -118,7 +121,7 @@ impl Chart {
         journal_id: CalaJournalId,
     ) -> Result<Idempotent<NewChartAccountDetails>, ChartOfAccountsError> {
         let parent_normal_balance_type = self
-            .get_node_details_by_code(&parent_code)
+            .find_node_details_by_code(&parent_code)
             .map(|details| details.spec.normal_balance_type)
             .ok_or(ChartOfAccountsError::ParentAccountNotFound(
                 parent_code.to_string(),
@@ -165,14 +168,14 @@ impl Chart {
     /// the root of the chart of accounts will be last.
     pub fn ancestors<T: From<CalaAccountSetId>>(&self, code: &AccountCode) -> Vec<T> {
         let mut result = Vec::new();
-        let mut current = self.get_node_details_by_code(code);
+        let mut current = self.find_node_details_by_code(code);
 
         while let Some(node) = current {
             if let Some(parent_node) = node
                 .spec
                 .parent
                 .as_ref()
-                .and_then(|p| self.get_node_details_by_code(p))
+                .and_then(|p| self.find_node_details_by_code(p))
             {
                 result.push(T::from(parent_node.account_set_id));
                 current = Some(parent_node);
@@ -189,7 +192,8 @@ impl Chart {
         &self,
         code: &AccountCode,
     ) -> impl Iterator<Item = (AccountCode, CalaAccountSetId)> {
-        self.get_node_by_code(code)
+        self.chart_nodes
+            .find_persisted(|node| node.spec.code == *code)
             .into_iter()
             .flat_map(move |node| {
                 node.children().filter_map(move |child_node_id| {
@@ -199,7 +203,7 @@ impl Chart {
             })
     }
 
-    fn get_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
+    fn find_node_details_by_code(&self, code: &AccountCode) -> Option<ChartNodeDetails> {
         self.chart_nodes
             .find_map_persisted(|node| (node.spec.code == *code).then(|| node.into()))
             .or_else(|| {
@@ -208,23 +212,11 @@ impl Chart {
             })
     }
 
-    fn get_node_by_code_mut(&mut self, code: &AccountCode) -> Option<&mut ChartNode> {
-        self.chart_nodes
-            .iter_persisted_mut()
-            .find(|node| node.spec.code == *code)
-    }
-
-    fn get_node_by_code(&self, code: &AccountCode) -> Option<&ChartNode> {
-        self.chart_nodes
-            .iter_persisted()
-            .find(|node| node.spec.code == *code)
-    }
-
     pub fn account_set_id_from_code(
         &self,
         code: &AccountCode,
     ) -> Result<CalaAccountSetId, ChartOfAccountsError> {
-        self.get_node_details_by_code(code)
+        self.find_node_details_by_code(code)
             .map(|details| details.account_set_id)
             .ok_or_else(|| ChartOfAccountsError::CodeNotFoundInChart(code.clone()))
     }
@@ -664,7 +656,8 @@ mod test {
         let (mut chart, _) = default_chart();
         let random_id = LedgerAccountId::new();
         chart
-            .get_node_by_code_mut(&code("1.1"))
+            .chart_nodes
+            .find_persisted_mut(|node| node.spec.code == code("1.1"))
             .unwrap()
             .manual_transaction_account_id = Some(random_id);
 
