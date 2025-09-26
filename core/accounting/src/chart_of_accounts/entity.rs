@@ -240,6 +240,8 @@ impl Chart {
                     .find_persisted(|node| node.manual_transaction_account_id == Some(id))
                 {
                     Some(node) => {
+                        // Need to re-check eligibility because
+                        // incase it now has children but didn't previously
                         if node.can_have_manual_transactions() {
                             ManualAccountFromChart::IdInChart(id)
                         } else {
