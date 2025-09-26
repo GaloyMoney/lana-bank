@@ -849,7 +849,7 @@ mod test {
     }
 
     #[test]
-    fn completes_on_final_obligation_installment() {
+    fn completes_on_final_payment_allocation() {
         let mut obligation = obligation_from(initial_events());
         obligation
             .allocate_payment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive())
@@ -867,7 +867,7 @@ mod test {
     }
 
     #[test]
-    fn obligation_installment_ignored_in_liquidation() {
+    fn payment_allocation_ignored_in_liquidation() {
         let mut obligation = obligation_from(initial_events());
         let _ = obligation.start_liquidation(Utc::now().date_naive());
         assert!(
