@@ -340,23 +340,25 @@
 
               # Function to cleanup on exit
               cleanup() {
-                echo "Stopping core-pg..."
+                echo "Stopping deps..."
                 ${podman-runner.podman-compose-runner}/bin/podman-compose-runner down || true
               }
 
               # Register cleanup function
               trap cleanup EXIT
 
-              echo "Starting core-pg database..."
-              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg
+              echo "Starting deps..."
+              ${podman-runner.podman-compose-runner}/bin/podman-compose-runner up -d core-pg keycloak
 
               # Wait for PostgreSQL to be ready
               echo "Waiting for PostgreSQL to be ready..."
               ${pkgs.wait4x}/bin/wait4x postgresql "$DATABASE_URL" --timeout 120s
 
-              # Run migrations
               echo "Running database migrations..."
               ${pkgs.sqlx-cli}/bin/sqlx migrate run --source lana/app/migrations
+
+              echo "Waiting for Keycloak..."
+              ${pkgs.wait4x}/bin/wait4x http http://localhost:8081 --timeout 120s
 
               # Run nextest using pre-built archive
               echo "Running cargo nextest from pre-built archive..."
