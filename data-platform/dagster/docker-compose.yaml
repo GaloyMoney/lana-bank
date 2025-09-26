@@ -16,6 +16,7 @@ services:
       DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
+      AUTOMATION_STYLE: "mixed" # "scheduled", "mixed", "no_automation"
 
     networks:
       - dagster_network
@@ -54,6 +55,8 @@ services:
         condition: service_healthy
       lana_pipelines:
         condition: service_started
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
 
   # This service runs the dagster-daemon process, which is responsible for taking runs
   # off of the queue and launching them, as well as creating runs from schedules or sensors.
@@ -82,6 +85,7 @@ services:
       DBT_BIGQUERY_KEYFILE: /opt/dagster/secrets/keyfile.json
       GOOGLE_APPLICATION_CREDENTIALS: /opt/dagster/secrets/keyfile.json
       DOCS_BUCKET_NAME: ${DOCS_BUCKET_NAME}
+
     volumes: # Make docker client accessible so we can launch containers using host docker
       - /var/run/docker.sock:/var/run/docker.sock
       - /tmp/io_manager_storage:/tmp/io_manager_storage
