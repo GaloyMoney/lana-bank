@@ -35,3 +35,6 @@ jobs:
 
       - name: Run Nextest tests
         run: nix run .#nextest
+        env:
+          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
