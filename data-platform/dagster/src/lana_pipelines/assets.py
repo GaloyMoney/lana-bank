@@ -17,7 +17,6 @@ def build_lana_source_asset(table_name):
 
     return lana_source_asset
 
-
 def build_lana_to_dw_el_asset(table_name):
 
     name = f"{table_name}"
@@ -67,7 +66,6 @@ def build_lana_to_dw_el_asset(table_name):
         return load_info
 
     return lana_to_dw_el_asset
-
 
 def build_dbt_assets():
 
