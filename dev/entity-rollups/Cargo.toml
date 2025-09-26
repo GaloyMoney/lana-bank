@@ -1,10 +1,8 @@
 [package]
 name = "entity-rollups"
-
+version = "0.1.0"
 license = "FSL-1.1-ALv2"
 edition = "2024"
-
-[workspace]
 
 [features]
 fail-on-warnings = []
@@ -42,6 +40,7 @@ similar = { version = "2.6", features = ["inline"] }
 handlebars = "6.3.2"
 chrono = { version = "0.4.42", features = ["clock", "serde"], default-features = false }
 serde = { version = "1.0.214", features = ["derive"] }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]
 tempfile = "3.22.0"

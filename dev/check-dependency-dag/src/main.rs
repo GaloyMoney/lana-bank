@@ -3,7 +3,7 @@ use cargo_metadata::{CargoOpt, MetadataCommand};
 
 fn main() -> Result<()> {
     let metadata = MetadataCommand::new()
-        .manifest_path("../../Cargo.toml")
+        .manifest_path("./Cargo.toml")
         .features(CargoOpt::AllFeatures)
         .exec()?;
 

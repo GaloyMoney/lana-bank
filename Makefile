@@ -56,7 +56,7 @@ check-code-nix:
 # Dependency DAG validation targets
 check-dag:
 	@echo "🔍 Checking dependency DAG..."
-	@cd dev/check-dependency-dag && cargo run --quiet
+	@cargo run --package check-dependency-dag --quiet
 
 # Default (nix-based) code checking
 check-code-rust: sdl-rust update-schemas
@@ -83,10 +83,10 @@ check-code-rust-cargo: sdl-rust-cargo update-schemas-cargo generate-default-conf
 
 # Default (nix-based) schema update
 update-schemas:
-	exit 1
+	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
 update-schemas-cargo:
-	cd dev/entity-rollups && SQLX_OFFLINE=true cargo run --bin entity-rollups --all-features -- update-schemas --force-recreate
+	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
 clippy:
 	SQLX_OFFLINE=true cargo clippy --all-features

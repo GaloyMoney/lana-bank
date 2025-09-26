@@ -4,11 +4,11 @@ members = [
   "lana/*",
   "core/*",
   "lib/*",
+  "dev/entity-rollups",
+  "dev/check-dependency-dag",
   "workspace-hack",
 ]
 exclude = [
-  "dev/check-dependency-dag",
-  "dev/entity-rollups",
   "lib/js",
 ]
 
