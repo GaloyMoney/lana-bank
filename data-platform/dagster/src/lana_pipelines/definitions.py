@@ -133,6 +133,9 @@ def build_definitions():
 
         all_schedules = [build_generate_es_report_job_schedule]
 
+    if dg.EnvVar("AUTOMATION_STYLE").get_value() == "no_automation":
+         # We do nothing and let all_schedules and all_sensors go in empty
+         pass
 
     return dg.Definitions(
         assets=all_assets,
