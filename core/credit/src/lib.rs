@@ -828,7 +828,7 @@ where
             .await?;
 
         self.obligations
-            .apply_allocation_in_op(
+            .allocate_payment_in_op(
                 db,
                 credit_facility_id,
                 payment.id,
@@ -884,7 +884,7 @@ where
             .await?;
 
         self.obligations
-            .apply_allocation_in_op(db, credit_facility_id, payment.id, amount, effective.into())
+            .allocate_payment_in_op(db, credit_facility_id, payment.id, amount, effective.into())
             .await?;
 
         Ok(credit_facility)

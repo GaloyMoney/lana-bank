@@ -455,7 +455,7 @@ impl Obligation {
         Idempotent::Executed(new_liquidation_process)
     }
 
-    pub(crate) fn apply_allocation(
+    pub(crate) fn allocate_payment(
         &mut self,
         amount: UsdCents,
         payment_id: PaymentId,
@@ -852,12 +852,12 @@ mod test {
     fn completes_on_final_obligation_installment() {
         let mut obligation = obligation_from(initial_events());
         obligation
-            .apply_allocation(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive())
+            .allocate_payment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive())
             .unwrap();
         assert_eq!(obligation.status(), ObligationStatus::NotYetDue);
 
         obligation
-            .apply_allocation(
+            .allocate_payment(
                 obligation.outstanding(),
                 PaymentId::new(),
                 Utc::now().date_naive(),
@@ -872,7 +872,7 @@ mod test {
         let _ = obligation.start_liquidation(Utc::now().date_naive());
         assert!(
             obligation
-                .apply_allocation(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive(),)
+                .allocate_payment(UsdCents::ONE, PaymentId::new(), Utc::now().date_naive(),)
                 .was_ignored()
         );
     }

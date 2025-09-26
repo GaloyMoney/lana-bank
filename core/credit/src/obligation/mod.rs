@@ -246,11 +246,11 @@ where
     }
 
     #[instrument(
-        name = "credit.obligation.allocate_in_op",
+        name = "credit.obligation.allocate_payment_in_op",
         skip(self, op),
         fields(n_new_allocations, n_facility_obligations, amount_allocated)
     )]
-    pub async fn apply_allocation_in_op(
+    pub async fn allocate_payment_in_op(
         &self,
         mut op: es_entity::DbOp<'_>,
         credit_facility_id: CreditFacilityId,
@@ -268,7 +268,7 @@ where
         let mut new_allocations = Vec::new();
         for obligation in obligations.iter_mut() {
             if let es_entity::Idempotent::Executed(new_allocation) =
-                obligation.apply_allocation(remaining, payment_id, effective)
+                obligation.allocate_payment(remaining, payment_id, effective)
             {
                 self.repo.update_in_op(&mut op, obligation).await?;
                 remaining -= new_allocation.amount;
