@@ -573,6 +573,77 @@
               echo "Entity rollup schemas check passed" > $out/result.txt
             '';
           };
+
+          check-fmt = pkgs.stdenv.mkDerivation {
+            name = "check-fmt";
+            src = ./.;
+
+            nativeBuildInputs = with pkgs; [
+              alejandra
+              opentofu
+              git
+              findutils
+            ];
+
+            buildPhase = ''
+              # Create a temporary directory and copy all files
+              export HOME=$(mktemp -d)
+              cp -r . $HOME/repo
+              cd $HOME/repo
+
+              # Initialize git repo for diff checking
+              git init
+              git config user.email "test@example.com"
+              git config user.name "Test"
+              git add -A
+              git commit -m "Initial commit" > /dev/null 2>&1
+
+              # Check Nix formatting
+              echo "Checking Nix file formatting..."
+              alejandra .
+
+              # Check for any Nix files and verify formatting
+              if find . -name "*.nix" -type f | head -1 | grep -q .; then
+                if ! git diff --exit-code '*.nix' 2>/dev/null; then
+                  echo "ERROR: Nix files are not formatted!"
+                  echo "Run 'nix fmt .' to format all Nix files"
+                  exit 1
+                fi
+                echo "✓ Nix files are properly formatted"
+              else
+                echo "✓ No Nix files found to check"
+              fi
+
+              # Reset for next check
+              git add -A
+              git commit -m "After nix format" > /dev/null 2>&1 || true
+
+              # Check Terraform/OpenTofu formatting
+              echo "Checking Terraform file formatting..."
+
+              # Check if there are any .tf files
+              if find . -name "*.tf" -type f | head -1 | grep -q .; then
+                tofu fmt -recursive .
+
+                if ! git diff --exit-code '*.tf' 2>/dev/null; then
+                  echo "ERROR: Terraform files are not formatted!"
+                  echo "Run 'tofu fmt -recursive .' to format all Terraform files"
+                  exit 1
+                fi
+                echo "✓ Terraform files are properly formatted"
+              else
+                echo "✓ No Terraform files found to check"
+              fi
+
+              echo ""
+              echo "All formatting checks passed ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Formatting checks passed" > $out/result.txt
+            '';
+          };
         };
 
         apps.default = flake-utils.lib.mkApp {
