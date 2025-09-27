@@ -1,4 +1,4 @@
-name: "BATS Tests"
+name: "Nextest Tests"
 
 on:
   pull_request:
@@ -7,20 +7,20 @@ on:
       - "feature/**"
 
 jobs:
-  bats-tests:
-    name: End to End BATS Tests
+  nextest-tests:
+    name: Cargo Nextest Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
 
-      - name: Get bats derivation
-        id: bats-derivation
+      - name: Get nextest derivation
+        id: nextest-derivation
         run: |
-          nix build .#bats --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
+          nix build .#nextest --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
           echo "Checks to wait for:"
           cat nix-checks-paths.txt
-      - name: Wait for .#bats in Cachix
+      - name: Wait for .#nextest in Cachix
         uses: ./.github/actions/wait-for-cachix-paths
         with:
           paths-file: ./nix-checks-paths.txt
@@ -34,18 +34,8 @@ jobs:
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
           skipPush: true
 
-      - name: Run BATS tests
-        run: nix run .#bats
-          
-      - name: Rename bats log
-        if: always()
-        run: mv .e2e-logs e2e-logs || true
-        
-      - name: Upload bats log
-        if: always()
-        uses: actions/upload-artifact@v4
-        with:
-          name: BATS Logs
-          path: |
-            e2e-logs
-            *.e2e-logs 
+      - name: Run Nextest tests
+        run: nix run .#nextest
+        env:
+          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
