@@ -83,6 +83,8 @@
           craneLib.filterCargoSources path type
           || pkgs.lib.hasInfix "/lib/authz/src/rbac.conf" path
           || pkgs.lib.hasInfix "/.sqlx/" path
+          || pkgs.lib.hasInfix "/dev/entity-rollups/src/templates" path
+          || pkgs.lib.hasInfix "/dev/entity-rollups/schemas" path
           || pkgs.lib.hasInfix "/lana/app/migrations/" path
           || pkgs.lib.hasInfix "/lana/notification/src/email/templates/" path
           || pkgs.lib.hasInfix "/lana/contract-creation/src/templates/" path
@@ -247,6 +249,14 @@
             // {
               pname = "write_customer_sdl";
               cargoExtraArgs = "-p customer-server --bin write_customer_sdl";
+            }
+          );
+
+          entity-rollups = craneLib.buildPackage (
+            individualCrateArgs
+            // {
+              pname = "entity-rollups";
+              cargoExtraArgs = "-p entity-rollups --all-features";
             }
           );
 
@@ -486,6 +496,81 @@
             installPhase = ''
               mkdir -p $out
               echo "SDL check passed" > $out/result.txt
+            '';
+          };
+
+          check-dependency-dag = craneLib.mkCargoDerivation (
+            commonArgs
+            // {
+              inherit cargoArtifacts;
+              pname = "check-dependency-dag";
+              doInstallCargoArtifacts = false;
+
+              buildPhaseCargoCommand = ''
+                echo "Checking dependency DAG..."
+                cargo run --package check-dependency-dag --offline --quiet
+                echo "Dependency DAG check passed ✓"
+              '';
+
+              installPhase = ''
+                mkdir -p $out
+                echo "Dependency DAG check passed" > $out/result.txt
+              '';
+            }
+          );
+
+          check-entity-rollups = pkgs.stdenv.mkDerivation {
+            name = "check-entity-rollups";
+            src = rustSource;
+
+            nativeBuildInputs = with pkgs; [
+              diffutils
+              findutils
+              coreutils
+            ];
+
+            buildInputs = [
+              self.packages.${system}.entity-rollups
+            ];
+
+            buildPhase = ''
+              # Create a temporary directory for generated schemas
+              TEMP_SCHEMAS=$(mktemp -d)
+
+              echo "Generating entity rollup schemas..."
+              SQLX_OFFLINE=true ${self.packages.${system}.entity-rollups}/bin/entity-rollups update-schemas --force-recreate --schemas-out-dir "$TEMP_SCHEMAS"
+
+              # Compare with committed schemas
+              echo "Comparing entity rollup schemas..."
+
+              # Check for differences
+              if ! diff -r dev/entity-rollups/schemas "$TEMP_SCHEMAS"; then
+                echo "ERROR: Entity rollup schemas are out of date!"
+                echo "Run 'make update-schemas' to update the schemas"
+                exit 1
+              fi
+
+              # Check for extra files in committed schemas
+              committed_files=$(find dev/entity-rollups/schemas -type f -name "*.json" | sort)
+              generated_files=$(find "$TEMP_SCHEMAS" -type f -name "*.json" | sort)
+
+              committed_count=$(echo "$committed_files" | wc -l)
+              generated_count=$(echo "$generated_files" | wc -l)
+
+              if [ "$committed_count" -ne "$generated_count" ]; then
+                echo "ERROR: Schema file count mismatch!"
+                echo "Committed schemas: $committed_count files"
+                echo "Generated schemas: $generated_count files"
+                echo "Run 'make update-schemas' to update the schemas"
+                exit 1
+              fi
+
+              echo "Entity rollup schemas are up to date ✓"
+            '';
+
+            installPhase = ''
+              mkdir -p $out
+              echo "Entity rollup schemas check passed" > $out/result.txt
             '';
           };
         };
