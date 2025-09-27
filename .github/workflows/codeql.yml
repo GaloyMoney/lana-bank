@@ -1,0 +1,48 @@
+name: "CodeQL"
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  analyze-javascript:
+    name: Analyze JavaScript/TypeScript
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    steps:
+    - uses: actions/checkout@v4
+    - uses: github/codeql-action/init@v3
+      with:
+        languages: javascript-typescript
+    - uses: github/codeql-action/autobuild@v3
+    - uses: github/codeql-action/analyze@v3
+
+  analyze-rust:
+    name: Analyze Rust
+    runs-on: ubuntu-latest
+    permissions:
+      actions: read
+      contents: read
+      security-events: write
+    env:
+      CODEQL_ENABLE_EXPERIMENTAL_FEATURES: true
+      SQLX_OFFLINE: true
+
+    steps:
+    - uses: actions/checkout@v4
+    - uses: DeterminateSystems/nix-installer-action@v16
+    - uses: cachix/cachix-action@v15
+      with:
+        name: lana-bank-ci
+        authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+        skipPush: true
+    - uses: github/codeql-action/init@v3
+      with:
+        languages: rust
+    - run: nix develop -c cargo build --locked
+    - uses: github/codeql-action/analyze@v3
