@@ -1,7 +1,6 @@
 import datetime
 
 import dagster as dg
-from dagster_dbt import get_asset_key_for_model
 
 from lana_pipelines.assets import build_lana_source_asset, build_lana_to_dw_el_asset, build_dbt_assets, build_generate_es_report_asset
 from lana_pipelines.resources import dbt_resource, poll_max_value_in_table_col
