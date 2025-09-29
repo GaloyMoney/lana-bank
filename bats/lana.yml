@@ -18,17 +18,9 @@ app:
       relay: "localhost"
       port: 1025
       insecure: true
-  keycloak:
-    url: "http://localhost:8081"
-    client_id: "admin-cli"
   customer_sync:
     customer_status_sync_active: false
     create_deposit_account_on_customer_create: true
-    keycloak_realm: "customer"
-  user_onboarding:
-    keycloak_realm: "internal"
-  deposit_sync:
-    sumsub_export_enabled: false
   accounting_init:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
     chart_of_accounts_opening_date: "2021-01-01"
@@ -38,7 +30,3 @@ app:
     profit_and_loss_config_path: "./bats/accounting-init/profit-and-loss-module-config.json"
 time:
   realtime: false
-  simulation:
-    start_at: "2021-01-01T00:00:00Z"
-    tick_interval_ms: 1
-    tick_duration_secs: 1000

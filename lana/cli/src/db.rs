@@ -1,10 +1,12 @@
 use serde::{Deserialize, Serialize};
 
+/// Database connection configuration for PostgreSQL
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DbConfig {
     /// PostgreSQL connection string (provided via PG_CON env var)
     #[serde(skip)]
     pub pg_con: String,
+    /// Maximum number of connections in the connection pool
     #[serde(default = "default_pool_size")]
     pub pool_size: u32,
 }

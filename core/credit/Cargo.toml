@@ -53,3 +53,4 @@ authz = { workspace = true, features = ["test-dummy"] }
 tokio = { workspace = true }
 anyhow = { workspace = true }
 rand = { workspace = true }
+serde_yaml = { workspace = true }

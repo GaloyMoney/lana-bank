@@ -16,23 +16,31 @@ use admin_server::AdminServerConfig;
 use customer_server::CustomerServerConfig;
 use lana_app::{app::AppConfig, storage::config::StorageConfig};
 
+/// Main configuration structure for the Lana banking application
 #[derive(Clone, Default, Serialize, Deserialize)]
 pub struct Config {
+    /// Database configuration for PostgreSQL connection
     #[serde(default)]
     pub db: DbConfig,
+    /// Admin GraphQL API server configuration
     #[serde(default)]
     pub admin_server: AdminServerConfig,
+    /// Customer-facing GraphQL API server configuration
     #[serde(default)]
     pub customer_server: CustomerServerConfig,
+    /// Application-level configuration including jobs, KYC, custody, etc.
     #[serde(default)]
     pub app: AppConfig,
+    /// OpenTelemetry tracing configuration for observability
     #[serde(default)]
     pub tracing: TracingConfig,
 
+    /// Simulated time configuration (only available in sim-time feature)
     #[cfg(feature = "sim-time")]
     #[serde(default)]
     pub time: TimeConfig,
 
+    /// Bootstrap configuration for simulation setup (only available in sim-bootstrap feature)
     #[cfg(feature = "sim-bootstrap")]
     #[serde(default)]
     pub bootstrap: BootstrapConfig,
