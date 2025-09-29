@@ -108,45 +108,28 @@ where
             }
         };
 
-        let due_date = credit_facility.maturity_date;
-        let overdue_date = credit_facility
-            .terms
-            .obligation_overdue_duration_from_due
-            .map(|d| d.end_date(due_date));
-        let liquidation_date = credit_facility
-            .terms
-            .obligation_liquidation_duration_from_due
-            .map(|d| d.end_date(due_date));
+        let disbursal_id = DisbursalId::new();
+        let public_id = self
+            .public_ids
+            .create_in_op(
+                &mut op,
+                crate::primitives::DISBURSAL_REF_TARGET,
+                disbursal_id,
+            )
+            .await?;
 
-        if !structuring_fee.is_zero() {
-            let disbursal_id = DisbursalId::new();
-            let public_id = self
-                .public_ids
-                .create_in_op(
-                    &mut op,
-                    crate::primitives::DISBURSAL_REF_TARGET,
+        self.disbursals
+            .create_first_disbursal_in_op(
+                &mut op,
+                self.disbursals.create_fee_disbursal(
+                    structuring_fee,
                     disbursal_id,
-                )
-                .await?;
-
-            let new_disbursal = NewDisbursal::builder()
-                .id(disbursal_id)
-                .credit_facility_id(credit_facility.id)
-                .approval_process_id(approval_process_id)
-                .amount(structuring_fee)
-                .account_ids(credit_facility.account_ids)
-                .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
-                .due_date(due_date)
-                .overdue_date(overdue_date)
-                .liquidation_date(liquidation_date)
-                .public_id(public_id.id)
-                .build()
-                .expect("could not build new disbursal");
-
-            self.disbursals
-                .create_first_disbursal_in_op(&mut op, new_disbursal)
-                .await?;
-        }
+                    public_id.id,
+                    approval_process_id,
+                    &credit_facility,
+                ),
+            )
+            .await?;
 
         let accrual_id = credit_facility
             .interest_accrual_cycle_in_progress()
