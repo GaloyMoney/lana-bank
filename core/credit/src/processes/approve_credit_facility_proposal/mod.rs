@@ -11,8 +11,8 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityProposal,
-    CreditFacilityProposalId, CreditFacilityProposals, error::CoreCreditError,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityProposalId,
+    PendingCreditFacilities, PendingCreditFacility, error::CoreCreditError,
 };
 
 pub use job::*;
@@ -24,7 +24,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
 }
@@ -53,7 +53,7 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        repo: &CreditFacilityProposals<Perms, E>,
+        repo: &PendingCreditFacilities<Perms, E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
     ) -> Self {
@@ -66,8 +66,8 @@ where
 
     pub async fn execute_from_svc(
         &self,
-        credit_facility_proposal: &CreditFacilityProposal,
-    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
+        credit_facility_proposal: &PendingCreditFacility,
+    ) -> Result<Option<PendingCreditFacility>, CoreCreditError> {
         if credit_facility_proposal.is_approval_process_concluded() {
             return Ok(None);
         }
@@ -97,7 +97,7 @@ where
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityProposalId>,
         approved: bool,
-    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+    ) -> Result<PendingCreditFacility, CoreCreditError> {
         let credit_facility = self
             .credit_facility_proposals
             .approve(id.into(), approved)

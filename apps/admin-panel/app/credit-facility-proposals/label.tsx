@@ -1,10 +1,10 @@
 import { useTranslations } from "next-intl"
 import { Badge } from "@lana/web/ui/badge"
 
-import { CreditFacilityProposalCollateralizationState } from "@/lib/graphql/generated"
+import { PendingCreditFacilityCollateralizationState } from "@/lib/graphql/generated"
 
 interface CreditFacilityProposalCollateralizationStateLabelProps {
-  state: CreditFacilityProposalCollateralizationState
+  state: PendingCreditFacilityCollateralizationState
 }
 
 export const CreditFacilityProposalCollateralizationStateLabel: React.FC<
@@ -14,9 +14,9 @@ export const CreditFacilityProposalCollateralizationStateLabel: React.FC<
 
   const variant = () => {
     switch (state) {
-      case CreditFacilityProposalCollateralizationState.FullyCollateralized:
+      case PendingCreditFacilityCollateralizationState.FullyCollateralized:
         return "success"
-      case CreditFacilityProposalCollateralizationState.UnderCollateralized:
+      case PendingCreditFacilityCollateralizationState.UnderCollateralized:
         return "warning"
       default: {
         const exhaustiveCheck: never = state
