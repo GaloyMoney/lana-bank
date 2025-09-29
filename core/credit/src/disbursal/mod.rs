@@ -8,6 +8,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
+use public_id::PublicIds;
 
 use crate::CreditFacility;
 use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
@@ -110,12 +111,28 @@ where
         Ok(disbursal)
     }
 
-    #[instrument(name = "disbursals.create_first_disbursal_in_op", skip(self, db))]
+    #[instrument(
+        name = "disbursals.create_first_disbursal_in_op",
+        skip(self, db, public_ids, credit_facility)
+    )]
     pub(super) async fn create_first_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
-        new_disbursal: Option<NewDisbursal>,
+        structuring_fee: UsdCents,
+        public_ids: &PublicIds,
+        approval_process_id: ApprovalProcessId,
+        credit_facility: &CreditFacility,
     ) -> Result<(), DisbursalError> {
+        let new_disbursal = self
+            .create_fee_disbursal(
+                structuring_fee,
+                public_ids,
+                approval_process_id,
+                credit_facility,
+                db,
+            )
+            .await?;
+
         if let Some(new_disbursal) = new_disbursal {
             let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
@@ -298,17 +315,22 @@ where
         self.repo.find_all(ids).await
     }
 
-    pub(super) fn create_fee_disbursal(
+    async fn create_fee_disbursal(
         &self,
         structuring_fee: UsdCents,
-        disbursal_id: DisbursalId,
-        public_id: PublicId,
+        public_ids: &PublicIds,
         approval_process_id: ApprovalProcessId,
         credit_facility: &CreditFacility,
-    ) -> Option<NewDisbursal> {
+        db: &mut es_entity::DbOpWithTime<'_>,
+    ) -> Result<Option<NewDisbursal>, DisbursalError> {
         if structuring_fee.is_zero() {
-            return None;
+            return Ok(None);
         }
+
+        let disbursal_id = DisbursalId::new();
+        let public_id = public_ids
+            .create_in_op(db, DISBURSAL_REF_TARGET, disbursal_id)
+            .await?;
 
         let due_date = credit_facility.maturity_date;
         let overdue_date = credit_facility
@@ -320,7 +342,7 @@ where
             .obligation_liquidation_duration_from_due
             .map(|d| d.end_date(due_date));
 
-        Some(
+        Ok(Some(
             NewDisbursal::builder()
                 .id(disbursal_id)
                 .credit_facility_id(credit_facility.id)
@@ -331,9 +353,9 @@ where
                 .due_date(due_date)
                 .overdue_date(overdue_date)
                 .liquidation_date(liquidation_date)
-                .public_id(public_id)
+                .public_id(public_id.id)
                 .build()
                 .expect("could not build new disbursal"),
-        )
+        ))
     }
 }

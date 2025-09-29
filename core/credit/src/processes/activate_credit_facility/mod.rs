@@ -12,12 +12,12 @@ use public_id::PublicIds;
 use crate::{
     Jobs,
     credit_facility::{ActivationData, ActivationOutcome, CreditFacilities},
-    disbursal::{Disbursals, NewDisbursal},
+    disbursal::Disbursals,
     error::CoreCreditError,
     event::CoreCreditEvent,
     jobs::interest_accruals,
     ledger::CreditLedger,
-    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId, DisbursalId},
+    primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId},
 };
 
 pub use job::*;
@@ -108,26 +108,13 @@ where
             }
         };
 
-        let disbursal_id = DisbursalId::new();
-        let public_id = self
-            .public_ids
-            .create_in_op(
-                &mut op,
-                crate::primitives::DISBURSAL_REF_TARGET,
-                disbursal_id,
-            )
-            .await?;
-
         self.disbursals
             .create_first_disbursal_in_op(
                 &mut op,
-                self.disbursals.create_fee_disbursal(
-                    structuring_fee,
-                    disbursal_id,
-                    public_id.id,
-                    approval_process_id,
-                    &credit_facility,
-                ),
+                structuring_fee,
+                &self.public_ids,
+                approval_process_id,
+                &credit_facility,
             )
             .await?;
 
