@@ -1,11 +1,9 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-pub mod config;
 pub mod error;
 mod job;
 
-use config::*;
 use error::*;
 use job::*;
 
@@ -67,15 +65,12 @@ where
         outbox: &Outbox<E>,
         deposits: &CoreDeposit<Perms, E>,
         sumsub_client: SumsubClient,
-        config: DepositSyncConfig,
     ) -> Result<Self, DepositSyncError> {
-        if config.sumsub_export_enabled {
-            jobs.add_initializer_and_spawn_unique(
-                SumsubExportInit::new(outbox, sumsub_client, deposits),
-                SumsubExportJobConfig::<Perms, E>::new(),
-            )
-            .await?;
-        }
+        jobs.add_initializer_and_spawn_unique(
+            SumsubExportInit::new(outbox, sumsub_client, deposits),
+            SumsubExportJobConfig::<Perms, E>::new(),
+        )
+        .await?;
 
         Ok(Self {
             _phantom: std::marker::PhantomData,

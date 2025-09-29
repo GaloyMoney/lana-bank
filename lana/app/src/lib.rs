@@ -69,7 +69,6 @@ pub mod customer_sync {
 }
 
 pub mod deposit_sync {
-    pub use deposit_sync::config::DepositSyncConfig;
     pub type DepositSync =
         deposit_sync::DepositSync<crate::authorization::Authorization, lana_events::LanaEvent>;
 }
