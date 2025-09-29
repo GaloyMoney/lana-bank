@@ -90,7 +90,45 @@ class DefinitionBuilder():
 
             self.sensor_definitions.append(lana_el_sensor)
          
+    def build_dbt_layer(self):
+        dbt_assets = [build_dbt_assets()]
+        self.asset_definitions.extend(dbt_assets)
 
+        build_dbt_job = dg.define_asset_job(
+            name="build_dbt_job",
+            selection=dbt_assets,
+        )
+        build_seed_bank_address_job = dg.define_asset_job(
+        name="build_seed_bank_address_job",
+        selection="seed_bank_address",
+    )
+        self.job_definitions.extend([build_dbt_job, build_seed_bank_address_job])
+
+        if self.automation_style == "scheduled":
+            build_dbt_job_schedule = dg.ScheduleDefinition(
+                name="build_dbt_job_schedule",
+                cron_schedule="*/2 * * * *",
+                job=build_dbt_job,
+                default_status=dg.DefaultScheduleStatus.RUNNING
+            )
+
+            build_seed_bank_address_job_schedule = dg.ScheduleDefinition(
+                name="build_seed_bank_address_job_schedule",
+                cron_schedule="*/2 * * * *",
+                job=build_seed_bank_address_job,
+                default_status=dg.DefaultScheduleStatus.RUNNING
+            )
+
+            self.schedule_definitions.extend([build_dbt_job_schedule, build_seed_bank_address_job_schedule])
+
+        if self.automation_style == "mixed":
+            build_seed_bank_address_job_schedule = dg.ScheduleDefinition(
+                name="build_seed_bank_address_job_schedule",
+                cron_schedule="* * * * *",
+                job=build_seed_bank_address_job,
+                default_status=dg.DefaultScheduleStatus.RUNNING
+            )
+            self.schedule_definitions.append(build_seed_bank_address_job_schedule)
              
 
 def build_definitions():
@@ -101,30 +139,19 @@ def build_definitions():
 
     definition_builder.build_lana_source_layer()
     definition_builder.build_lana_to_dw_el_layer()
-
-    dbt_assets = [build_dbt_assets()]
+    definition_builder.build_dbt_layer()
 
     generate_es_report_asset = [build_generate_es_report_asset()]
-
-    
-
-    build_dbt_job = dg.define_asset_job(
-        name="build_dbt_job",
-        selection=dbt_assets,
-    )
 
     build_generate_es_report_job = dg.define_asset_job(
         name="generate_es_report_job",
         selection=generate_es_report_asset,
     )
 
-    build_seed_bank_address_job = dg.define_asset_job(
-        name="build_seed_bank_address_job",
-        selection="seed_bank_address",
-    )
+    
 
-    all_assets = definition_builder.asset_definitions + dbt_assets + generate_es_report_asset
-    all_jobs = definition_builder.job_definitions + [build_dbt_job, build_generate_es_report_job, build_seed_bank_address_job]
+    all_assets = definition_builder.asset_definitions + generate_es_report_asset
+    all_jobs = definition_builder.job_definitions + [build_generate_es_report_job]
     all_resources = {
         "dbt": dbt_resource
     }
@@ -134,22 +161,6 @@ def build_definitions():
 
     if dg.EnvVar("AUTOMATION_STYLE").get_value() == "scheduled":
 
-        
-
-        build_dbt_job_schedule = dg.ScheduleDefinition(
-            name="build_dbt_job_schedule",
-            cron_schedule="*/2 * * * *",
-            job=build_dbt_job,
-            default_status=dg.DefaultScheduleStatus.RUNNING
-        )
-
-        build_seed_bank_address_job_schedule = dg.ScheduleDefinition(
-            name="build_seed_bank_address_job_schedule",
-            cron_schedule="*/2 * * * *",
-            job=build_seed_bank_address_job,
-            default_status=dg.DefaultScheduleStatus.RUNNING
-        )
-
         build_generate_es_report_job_schedule = dg.ScheduleDefinition(
             name="build_generate_es_report_job_schedule",
             cron_schedule="*/3 * * * *",
@@ -158,8 +169,6 @@ def build_definitions():
         )
 
         all_schedules = definition_builder.schedule_definitions + [
-            build_dbt_job_schedule,
-            build_seed_bank_address_job_schedule,
             build_generate_es_report_job_schedule
         ]
 
@@ -173,14 +182,9 @@ def build_definitions():
             default_status=dg.DefaultScheduleStatus.RUNNING
         )
 
-        build_seed_bank_address_job_schedule = dg.ScheduleDefinition(
-            name="build_seed_bank_address_job_schedule",
-            cron_schedule="* * * * *",
-            job=build_seed_bank_address_job,
-            default_status=dg.DefaultScheduleStatus.RUNNING
-        )
+        
 
-        all_schedules = definition_builder.schedule_definitions + [build_generate_es_report_job_schedule, build_seed_bank_address_job_schedule]
+        all_schedules = definition_builder.schedule_definitions + [build_generate_es_report_job_schedule]
 
     if dg.EnvVar("AUTOMATION_STYLE").get_value() == "no_automation":
          # We do nothing and let all_schedules and all_sensors go in empty
