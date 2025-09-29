@@ -1954,7 +1954,7 @@ impl CreditLedger {
     pub(super) async fn handle_facility_proposal_create(
         &self,
         op: es_entity::DbOp<'_>,
-        credit_facility_proposal: &crate::CreditFacilityProposal,
+        credit_facility_proposal: &crate::PendingCreditFacility,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self
             .cala

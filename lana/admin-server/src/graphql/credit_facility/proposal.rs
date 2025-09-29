@@ -13,8 +13,7 @@ use crate::{
 use super::{ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry};
 
 pub use lana_app::credit::{
-    CreditFacilityProposal as DomainCreditFacilityProposal,
-    CreditFacilityProposalsByCreatedAtCursor,
+    PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility as DomainCreditFacilityProposal,
 };
 
 #[derive(SimpleObject, Clone)]
@@ -24,7 +23,7 @@ pub struct CreditFacilityProposal {
     credit_facility_proposal_id: UUID,
     approval_process_id: UUID,
     created_at: Timestamp,
-    collateralization_state: CreditFacilityProposalCollateralizationState,
+    collateralization_state: PendingCreditFacilityCollateralizationState,
     facility_amount: UsdCents,
 
     #[graphql(skip)]

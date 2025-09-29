@@ -617,7 +617,7 @@ pub enum CollateralizationState {
 )]
 #[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub enum CreditFacilityProposalCollateralizationState {
+pub enum PendingCreditFacilityCollateralizationState {
     FullyCollateralized,
     #[default]
     UnderCollateralized,

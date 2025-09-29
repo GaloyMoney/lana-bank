@@ -644,7 +644,7 @@ type CreditFacilityProposal {
 	creditFacilityProposalId: UUID!
 	approvalProcessId: UUID!
 	createdAt: Timestamp!
-	collateralizationState: CreditFacilityProposalCollateralizationState!
+	collateralizationState: PendingCreditFacilityCollateralizationState!
 	facilityAmount: UsdCents!
 	wallet: Wallet
 	collateral: CollateralBalance!
@@ -663,11 +663,6 @@ input CreditFacilityProposalCollateralUpdateInput {
 
 type CreditFacilityProposalCollateralUpdatePayload {
 	creditFacilityProposal: CreditFacilityProposal!
-}
-
-enum CreditFacilityProposalCollateralizationState {
-	FULLY_COLLATERALIZED
-	UNDER_COLLATERALIZED
 }
 
 type CreditFacilityProposalConnection {
@@ -1600,6 +1595,11 @@ type PageInfo {
 type PaymentEntry {
 	recordedAt: Timestamp!
 	payment: CreditFacilityPaymentAllocation!
+}
+
+enum PendingCreditFacilityCollateralizationState {
+	FULLY_COLLATERALIZED
+	UNDER_COLLATERALIZED
 }
 
 enum Period {

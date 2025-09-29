@@ -6,9 +6,9 @@ use colored::*;
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{ChartEvent, ChartNodeEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
-    CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
-    InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent,
-    PaymentEvent, TermsTemplateEvent,
+    CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
+    LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent, PaymentEvent,
+    PendingCreditFacilityEvent, TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
@@ -275,8 +275,8 @@ pub fn update_schemas(
             ..Default::default()
         },
         SchemaInfo {
-            name: "CreditFacilityProposalEvent",
-            filename: "credit_facility_proposal_event_schema.json",
+            name: "PendingCreditFacilityEvent",
+            filename: "pending_credit_facility_schema.json",
             collections: vec![CollectionRollup {
                 column_name: "ledger_tx_ids",
                 values: "ledger_tx_id",
@@ -285,7 +285,7 @@ pub fn update_schemas(
             }],
             toggle_events: vec!["ApprovalProcessConcluded", "Completed"],
             generate_schema: || {
-                serde_json::to_value(schema_for!(CreditFacilityProposalEvent)).unwrap()
+                serde_json::to_value(schema_for!(PendingCreditFacilityEvent)).unwrap()
             },
             ..Default::default()
         },

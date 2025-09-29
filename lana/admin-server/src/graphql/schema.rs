@@ -314,7 +314,7 @@ impl Query {
         after: Option<String>,
     ) -> async_graphql::Result<
         Connection<
-            CreditFacilityProposalsByCreatedAtCursor,
+            PendingCreditFacilitiesByCreatedAtCursor,
             CreditFacilityProposal,
             EmptyFields,
             EmptyFields,
@@ -322,7 +322,7 @@ impl Query {
     > {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
-            CreditFacilityProposalsByCreatedAtCursor,
+            PendingCreditFacilitiesByCreatedAtCursor,
             CreditFacilityProposal,
             ctx,
             after,

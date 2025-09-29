@@ -5,7 +5,6 @@ mod chart_of_accounts_integration;
 mod collateral;
 mod config;
 mod credit_facility;
-mod credit_facility_proposal;
 mod disbursal;
 pub mod error;
 mod event;
@@ -18,6 +17,7 @@ mod liquidation_process;
 mod obligation;
 mod payment;
 mod payment_allocation;
+mod pending_credit_facility;
 mod primitives;
 mod processes;
 mod publisher;
@@ -48,7 +48,6 @@ pub use collateral::*;
 pub use config::*;
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
-pub use credit_facility_proposal::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 pub use event::*;
@@ -60,6 +59,7 @@ pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
 pub use payment::*;
 pub use payment_allocation::*;
+pub use pending_credit_faciljty::*;
 pub use primitives::*;
 use processes::activate_credit_facility::*;
 pub use processes::{approve_credit_facility_proposal::*, approve_disbursal::*};
@@ -72,10 +72,10 @@ pub use terms_template::{error as terms_template_error, *};
 pub mod event_schema {
     pub use crate::{
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
-        credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
-        interest_accrual_cycle::InterestAccrualCycleEvent,
+        disbursal::DisbursalEvent, interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
         payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
+        pending_credit_facility::PendingCreditFacilityEvent,
     };
 }
 
@@ -89,7 +89,7 @@ where
 {
     authz: Perms,
     facilities: CreditFacilities<Perms, E>,
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
     disbursals: Disbursals<Perms, E>,
     payments: Payments<Perms>,
     history_repo: HistoryRepo,
@@ -123,7 +123,7 @@ where
         Self {
             authz: self.authz.clone(),
             facilities: self.facilities.clone(),
-            credit_facility_proposals: self.credit_facility_proposals.clone(),
+            pending_credit_facilities: self.pending_credit_facilities.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
             custody: self.custody.clone(),
@@ -180,7 +180,7 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
-        let credit_facility_proposals = CreditFacilityProposals::init(
+        let credit_facility_proposals = PendingCreditFacilities::init(
             pool, authz, jobs, &ledger, price, &publisher, governance,
         )
         .await?;
@@ -356,7 +356,7 @@ where
             authz: authz.clone(),
             customer: customer.clone(),
             facilities: credit_facilities,
-            credit_facility_proposals,
+            pending_credit_facilities: credit_facility_proposals,
             obligations,
             collaterals,
             custody: custody.clone(),
@@ -394,8 +394,8 @@ where
         &self.facilities
     }
 
-    pub fn credit_facility_proposals(&self) -> &CreditFacilityProposals<Perms, E> {
-        &self.credit_facility_proposals
+    pub fn credit_facility_proposals(&self) -> &PendingCreditFacilities<Perms, E> {
+        &self.pending_credit_facilities
     }
 
     pub fn payments(&self) -> &Payments<Perms> {
@@ -457,7 +457,7 @@ where
         amount: UsdCents,
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
-    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+    ) -> Result<PendingCreditFacility, CoreCreditError> {
         self.subject_can_create(sub, true)
             .await?
             .expect("audit info missing");
@@ -471,7 +471,7 @@ where
         let account_ids = CreditFacilityProposalAccountIds::new();
         let collateral_id = CollateralId::new();
 
-        let mut db = self.credit_facility_proposals.begin_op().await?;
+        let mut db = self.pending_credit_facilities.begin_op().await?;
 
         let wallet_id = if let Some(custodian_id) = custodian_id {
             let custodian_id = custodian_id.into();
@@ -493,7 +493,7 @@ where
             None
         };
 
-        let new_facility_proposal = NewCreditFacilityProposal::builder()
+        let new_facility_proposal = NewPendingCreditFacility::builder()
             .id(proposal_id)
             .ledger_tx_id(LedgerTxId::new())
             .approval_process_id(proposal_id)
@@ -518,7 +518,7 @@ where
             .await?;
 
         let credit_facility_proposal = self
-            .credit_facility_proposals
+            .pending_credit_facilities
             .create_in_op(&mut db, new_facility_proposal)
             .await?;
 
@@ -670,8 +670,8 @@ where
 
     pub async fn ensure_up_to_date_proposal_status(
         &self,
-        proposal: &CreditFacilityProposal,
-    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
+        proposal: &PendingCreditFacility,
+    ) -> Result<Option<PendingCreditFacility>, CoreCreditError> {
         self.approve_proposal.execute_from_svc(proposal).await
     }
 
@@ -698,7 +698,7 @@ where
         credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
-    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+    ) -> Result<PendingCreditFacility, CoreCreditError> {
         let credit_facility_proposal_id = credit_facility_proposal_id.into();
         let effective = effective.into();
 
