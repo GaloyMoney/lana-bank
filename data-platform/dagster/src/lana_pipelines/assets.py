@@ -1,3 +1,5 @@
+from typing import Any, Optional, Mapping
+
 import dagster as dg
 import dlt
 from dlt.sources.credentials import ConnectionStringCredentials
@@ -70,7 +72,11 @@ def build_lana_to_dw_el_asset(table_name):
 def build_dbt_assets():
 
     class CustomDagsterDbtTranslator(DagsterDbtTranslator):
-        pass
+        def get_automation_condition(
+            self, dbt_resource_props: Mapping[str, Any]
+        ) -> Optional[dg.AutomationCondition]:
+            return dg.AutomationCondition.eager()
+    
 
     @dbt_assets(
         manifest=dbt_manifest_path,

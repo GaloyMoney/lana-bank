@@ -10,19 +10,18 @@ RUN pip install \
     dbt-bigquery
 
 
+# Import and install `generate-es-reports`
 COPY src/generate-es-reports/ /opt/generate-es-reports
-
 RUN pip install /opt/generate-es-reports
 
-WORKDIR /opt/dagster/app
-
-COPY src/ /opt/dagster/app
-
+# Add GCP secrets file
 ENV SECRETS_FOLDER=/opt/dagster/secrets/
-
 RUN mkdir -p $SECRETS_FOLDER
-
 COPY keyfile.json $SECRETS_FOLDER
+
+# Import dagster project
+WORKDIR /opt/dagster/app
+COPY src/ /opt/dagster/app
 
 EXPOSE 4000
 
