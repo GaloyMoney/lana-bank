@@ -674,7 +674,7 @@ export type CreditFacilityProposal = {
   approvalProcessId: Scalars['UUID']['output'];
   collateral: CollateralBalance;
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
-  collateralizationState: CreditFacilityProposalCollateralizationState;
+  collateralizationState: PendingCreditFacilityCollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityProposalId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
@@ -696,11 +696,6 @@ export type CreditFacilityProposalCollateralUpdatePayload = {
   __typename?: 'CreditFacilityProposalCollateralUpdatePayload';
   creditFacilityProposal: CreditFacilityProposal;
 };
-
-export enum CreditFacilityProposalCollateralizationState {
-  FullyCollateralized = 'FULLY_COLLATERALIZED',
-  UnderCollateralized = 'UNDER_COLLATERALIZED'
-}
 
 export type CreditFacilityProposalConnection = {
   __typename?: 'CreditFacilityProposalConnection';
@@ -1868,6 +1863,11 @@ export type PaymentEntry = {
   payment: CreditFacilityPaymentAllocation;
   recordedAt: Scalars['Timestamp']['output'];
 };
+
+export enum PendingCreditFacilityCollateralizationState {
+  FullyCollateralized = 'FULLY_COLLATERALIZED',
+  UnderCollateralized = 'UNDER_COLLATERALIZED'
+}
 
 export enum Period {
   Days = 'DAYS',
@@ -3141,7 +3141,7 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null } } };
 
-export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: CreditFacilityProposalCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
       | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
     , marginCallCvl:
@@ -3160,7 +3160,7 @@ export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: CreditFacilityProposalCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , marginCallCvl:
@@ -3186,7 +3186,7 @@ export type CreditFacilityProposalCollateralUpdateMutationVariables = Exact<{
 }>;
 
 
-export type CreditFacilityProposalCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityProposalCollateralUpdate: { __typename?: 'CreditFacilityProposalCollateralUpdatePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: CreditFacilityProposalCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityProposalCollateralUpdate: { __typename?: 'CreditFacilityProposalCollateralUpdatePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
           | { __typename: 'FiniteCVLPct', value: any }
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , marginCallCvl:
@@ -3213,7 +3213,7 @@ export type CreditFacilityProposalsQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilityProposalsQuery = { __typename?: 'Query', creditFacilityProposals: { __typename?: 'CreditFacilityProposalConnection', edges: Array<{ __typename?: 'CreditFacilityProposalEdge', cursor: string, node: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, collateralizationState: CreditFacilityProposalCollateralizationState, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilityProposalsQuery = { __typename?: 'Query', creditFacilityProposals: { __typename?: 'CreditFacilityProposalConnection', edges: Array<{ __typename?: 'CreditFacilityProposalEdge', cursor: string, node: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CustodianCreateMutationVariables = Exact<{
   input: CustodianCreateInput;
@@ -3244,7 +3244,7 @@ export type GetCustomerCreditFacilityProposalsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerCreditFacilityProposalsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, collateralizationState: CreditFacilityProposalCollateralizationState, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
+export type GetCustomerCreditFacilityProposalsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
 
 export type CustomerDocumentDownloadLinkGenerateMutationVariables = Exact<{
   input: CustomerDocumentDownloadLinksGenerateInput;

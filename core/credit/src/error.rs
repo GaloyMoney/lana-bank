@@ -20,7 +20,7 @@ pub enum CoreCreditError {
     CreditFacilityError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - CreditFacilityProposalError: {0}")]
     CreditFacilityProposalError(
-        #[from] super::credit_facility_proposal::error::CreditFacilityProposalError,
+        #[from] super::pending_credit_facility::error::PendingCreditFacilityError,
     ),
     #[error("CoreCreditError - HistoryError: {0}")]
     HistoryError(#[from] super::history::error::CreditFacilityHistoryError),

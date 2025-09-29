@@ -11,7 +11,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    credit_facility_proposal::CreditFacilityProposals,
+    pending_credit_facility::PendingCreditFacilities,
 };
 
 #[serde_with::serde_as]
@@ -37,7 +37,7 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
 }
 
 impl<Perms, E> CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>
@@ -49,7 +49,7 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(credit_facility_proposals: CreditFacilityProposals<Perms, E>) -> Self {
+    pub fn new(credit_facility_proposals: PendingCreditFacilities<Perms, E>) -> Self {
         Self {
             credit_facility_proposals,
         }
@@ -90,7 +90,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     config: CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E>,
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
 }
 
 #[async_trait]

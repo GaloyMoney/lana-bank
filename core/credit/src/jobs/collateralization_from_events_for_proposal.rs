@@ -8,7 +8,7 @@ use job::*;
 use outbox::{EventSequence, Outbox, OutboxEventMarker};
 
 use crate::{
-    credit_facility_proposal::CreditFacilityProposals, event::CoreCreditEvent, primitives::*,
+    event::CoreCreditEvent, pending_credit_facility::PendingCreditFacilities, primitives::*,
 };
 
 #[derive(Serialize, Deserialize)]
@@ -37,7 +37,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     outbox: Outbox<E>,
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
 }
 
 impl<Perms, E> CreditFacilityProposalCollateralizationFromEventsInit<Perms, E>
@@ -51,7 +51,7 @@ where
 {
     pub fn new(
         outbox: &Outbox<E>,
-        credit_facility_proposals: &CreditFacilityProposals<Perms, E>,
+        credit_facility_proposals: &PendingCreditFacilities<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
@@ -101,7 +101,7 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     outbox: Outbox<E>,
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
 }
 
 #[async_trait::async_trait]

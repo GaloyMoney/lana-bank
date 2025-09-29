@@ -361,10 +361,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "credit_facility_proposal_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "customer_id": {
           "format": "uuid",
           "type": "string"
@@ -387,6 +383,10 @@
         "maturity_date": {
           "$ref": "#/$defs/EffectiveDate"
         },
+        "pending_credit_facility_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "public_id": {
           "type": "string"
         },
@@ -401,7 +401,7 @@
       "required": [
         "type",
         "id",
-        "credit_facility_proposal_id",
+        "pending_credit_facility_id",
         "customer_id",
         "customer_type",
         "collateral_id",

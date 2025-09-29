@@ -13,12 +13,12 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     PublicIds,
-    credit_facility_proposal::{CreditFacilityProposalCompletionOutcome, CreditFacilityProposals},
     event::CoreCreditEvent,
     interest_accrual_cycle::NewInterestAccrualCycleData,
     jobs::credit_facility_maturity,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
+    pending_credit_facility::{CreditFacilityProposalCompletionOutcome, PendingCreditFacilities},
     primitives::*,
     terms::InterestPeriod,
 };
@@ -41,7 +41,7 @@ where
 {
     repo: CreditFacilityRepo<E>,
     obligations: Obligations<Perms, E>,
-    proposals: CreditFacilityProposals<Perms, E>,
+    proposals: PendingCreditFacilities<Perms, E>,
     authz: Perms,
     ledger: CreditLedger,
     price: Price,
@@ -106,7 +106,7 @@ where
         pool: &sqlx::PgPool,
         authz: &Perms,
         obligations: &Obligations<Perms, E>,
-        proposals: &CreditFacilityProposals<Perms, E>,
+        proposals: &PendingCreditFacilities<Perms, E>,
         ledger: &CreditLedger,
         price: &Price,
         jobs: &Jobs,
@@ -162,7 +162,7 @@ where
 
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
-            .credit_facility_proposal_id(proposal.id)
+            .pending_credit_facility_id(proposal.id)
             .ledger_tx_id(LedgerTxId::new())
             .customer_id(proposal.customer_id)
             .customer_type(proposal.customer_type)

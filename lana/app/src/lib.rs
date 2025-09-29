@@ -162,12 +162,12 @@ pub mod credit {
         Collateral, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditConfig,
         CreditFacilitiesCursor, CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacility,
         CreditFacilityApproved, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityProposal, CreditFacilityProposalsByCreatedAtCursor,
         CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
         Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
         DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, ListDirection,
-        ObligationMovedToLiquidation, Payment, PaymentAllocation, RepaymentStatus, RepaymentType,
-        Sort, TermsTemplate, error, terms_template_error,
+        ObligationMovedToLiquidation, Payment, PaymentAllocation,
+        PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility, RepaymentStatus,
+        RepaymentType, Sort, TermsTemplate, error, terms_template_error,
     };
 
     pub type Credit =
@@ -176,9 +176,9 @@ pub mod credit {
 
 pub mod terms {
     pub use core_credit::{
-        AnnualRatePct, CVLPct, CollateralizationState,
-        CreditFacilityProposalCollateralizationState, FacilityDuration, InterestInterval,
-        ObligationDuration, OneTimeFeeRatePct, TermValues,
+        AnnualRatePct, CVLPct, CollateralizationState, FacilityDuration, InterestInterval,
+        ObligationDuration, OneTimeFeeRatePct, PendingCreditFacilityCollateralizationState,
+        TermValues,
     };
 }
 
