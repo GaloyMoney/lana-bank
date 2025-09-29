@@ -7,7 +7,7 @@ from generate_es_reports.service import run_report_batch
 
 from lana_pipelines.resources import create_dlt_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
-from lana_pipelines.resources import dbt_manifest_path, PostgresResource
+from lana_pipelines.resources import dbt_manifest_path, PostgresResource, BigQueryResource
 from lana_pipelines import constants
 
 def build_all_lana_source_assets(table_names):
@@ -41,21 +41,24 @@ def build_lana_to_dw_el_asset(table_name):
         deps=[f"el_source_asset__lana__{table_name}"],
         tags={"asset_type": "el_target__asset", "system": "lana"},
     )
-    def lana_to_dw_el_asset(context: dg.AssetExecutionContext, lana_core_pg: PostgresResource):
+    def lana_to_dw_el_asset(
+        context: dg.AssetExecutionContext, 
+        lana_core_pg: PostgresResource,
+        dw_bq: BigQueryResource
+    ):
         context.log.info(
             f"Running lana_to_dw_el_asset pipeline for table {table_name}."
         )
-
-        base64_credentials = dg.EnvVar("TF_VAR_sa_creds").get_value()
-        dw_bigquery = create_bigquery_destination(base64_credentials)
 
         dlt_postgres_resource = create_dlt_postgres_resource(
             lana_core_pg.get_credentials(), table_name=table_name
         )
 
+        dlt_bq_destination = dw_bq.get_dlt_destination()
+
         pipeline = dlt.pipeline(
             pipeline_name=table_name,
-            destination=dw_bigquery,
+            destination=dlt_bq_destination,
             dataset_name="counterweight_dataset",
         )
         load_info = pipeline.run(

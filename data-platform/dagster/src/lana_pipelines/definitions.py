@@ -3,7 +3,7 @@ import datetime
 import dagster as dg
 
 from lana_pipelines.assets import build_all_lana_source_assets, build_all_lana_to_dw_el_assets, build_dbt_assets, build_generate_es_report_asset
-from lana_pipelines.resources import dbt_resource, poll_max_value_in_table_col, PostgresResource
+from lana_pipelines.resources import BigQueryResource, dbt_resource, poll_max_value_in_table_col, PostgresResource
 from lana_pipelines import constants
 
 class DefinitionBuilder():
@@ -21,14 +21,9 @@ class DefinitionBuilder():
         self.EL_TABLES = constants.LANA_EL_TABLE_NAMES
 
     def build_resources(self):
-        self.resource_definitions["lana_core_pg"] = PostgresResource
+        self.resource_definitions["lana_core_pg"] = PostgresResource()
+        self.resource_definitions["dw_bq"] = BigQueryResource(base64_credentials=dg.EnvVar("TF_VAR_sa_creds").get_value())
         self.resource_definitions["dbt"] = dbt_resource
-
-        @dg.definitions
-        def defs() -> dg.Definitions:
-            return dg.Definitions(
-                resources=self.resource_definitions,
-            )
     
     def build_lana_source_layer(self):
         assets = build_all_lana_source_assets(
