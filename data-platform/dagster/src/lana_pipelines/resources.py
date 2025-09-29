@@ -1,10 +1,26 @@
 from pathlib import Path
 
+import dagster as dg
 from dagster_dbt import DbtCliResource
 
+from dlt.sources.credentials import ConnectionStringCredentials
 from dlt.sources.sql_database import sql_table, sql_database
 
-def create_postgres_resource(connection_string_details, table_name):
+class PostgresResource(dg.ConfigurableResource):
+        
+        def get_credentials(self):
+            credentials = ConnectionStringCredentials()
+            credentials.drivername = "postgresql"
+            credentials.database = "pg"
+            credentials.username = "user"
+            credentials.password = "password"
+            credentials.host = "172.17.0.1"
+            credentials.port = 5433
+
+            return credentials
+
+
+def create_dlt_postgres_resource(connection_string_details, table_name):
     postgres_resource = sql_table(
         credentials=connection_string_details,
         schema="public",

@@ -2,65 +2,66 @@ from typing import Any, Optional, Mapping
 
 import dagster as dg
 import dlt
-from dlt.sources.credentials import ConnectionStringCredentials
 from dagster_dbt import DbtCliResource, dbt_assets, DagsterDbtTranslator
 from generate_es_reports.service import run_report_batch
 
-from lana_pipelines.resources import create_postgres_resource
+from lana_pipelines.resources import create_dlt_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
-from lana_pipelines.resources import dbt_manifest_path
+from lana_pipelines.resources import dbt_manifest_path, PostgresResource
+from lana_pipelines import constants
 
-def build_lana_source_asset(table_name):
+def build_all_lana_source_assets(table_names):
+    lana_source_assets = []
+    for table_name in table_names:
+        lana_source_assets.append(
+            dg.AssetSpec(
+                key=f"el_source_asset__lana__{table_name}",
+                tags={"asset_type": "el_source__asset", "system": "lana"},
+            )
+        )
+    return lana_source_assets
 
-    lana_source_asset = dg.AssetSpec(
-        key=f"el_source_asset__lana__{table_name}",
-        tags={"asset_type": "el_source__asset", "system": "lana"},
-    )
+def build_all_lana_to_dw_el_assets():
 
-    return lana_source_asset
+    lana_el_assets = []
+    for table_name in constants.LANA_EL_TABLE_NAMES:
+        lana_el_assets.append(
+            build_lana_to_dw_el_asset(
+                table_name=table_name,
+            )
+        )
+
+    return lana_el_assets
 
 def build_lana_to_dw_el_asset(table_name):
 
-    name = f"{table_name}"
-    
     @dg.asset(
         key_prefix=["lana"],
-        name=name, 
+        name=table_name, 
         deps=[f"el_source_asset__lana__{table_name}"],
         tags={"asset_type": "el_target__asset", "system": "lana"},
     )
-    def lana_to_dw_el_asset(context: dg.AssetExecutionContext):
+    def lana_to_dw_el_asset(context: dg.AssetExecutionContext, lana_core_pg: PostgresResource):
         context.log.info(
             f"Running lana_to_dw_el_asset pipeline for table {table_name}."
         )
 
-        postgres_credentials = ConnectionStringCredentials()
-        postgres_credentials.drivername = "postgresql"
-        postgres_credentials.database = "pg"
-        postgres_credentials.username = "user"
-        postgres_credentials.password = "password"
-        postgres_credentials.host = "172.17.0.1"
-        postgres_credentials.port = 5433
-
-        postgres_resource = create_postgres_resource(
-            postgres_credentials, table_name=table_name
-        )
-
         base64_credentials = dg.EnvVar("TF_VAR_sa_creds").get_value()
-        bigquery_dest = create_bigquery_destination(base64_credentials)
+        dw_bigquery = create_bigquery_destination(base64_credentials)
+
+        dlt_postgres_resource = create_dlt_postgres_resource(
+            lana_core_pg.get_credentials(), table_name=table_name
+        )
 
         pipeline = dlt.pipeline(
-            pipeline_name=name,
-            destination=bigquery_dest,
+            pipeline_name=table_name,
+            destination=dw_bigquery,
             dataset_name="counterweight_dataset",
         )
-
-        destination_table_name = f"{table_name}"
-        
         load_info = pipeline.run(
-            postgres_resource,
+            dlt_postgres_resource,
             write_disposition="replace",
-            table_name=destination_table_name,
+            table_name=table_name,
         )
 
         context.log.info(f"Pipeline completed.")

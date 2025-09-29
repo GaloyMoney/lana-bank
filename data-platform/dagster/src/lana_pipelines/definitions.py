@@ -2,9 +2,9 @@ import datetime
 
 import dagster as dg
 
-from lana_pipelines.assets import build_lana_source_asset, build_lana_to_dw_el_asset, build_dbt_assets, build_generate_es_report_asset
-from lana_pipelines.resources import dbt_resource, poll_max_value_in_table_col
-
+from lana_pipelines.assets import build_all_lana_source_assets, build_all_lana_to_dw_el_assets, build_dbt_assets, build_generate_es_report_asset
+from lana_pipelines.resources import dbt_resource, poll_max_value_in_table_col, PostgresResource
+from lana_pipelines import constants
 
 class DefinitionBuilder():
      
@@ -18,19 +18,26 @@ class DefinitionBuilder():
         self.schedule_definitions = []
         self.sensor_definitions = []
 
-        self.EL_TABLES = (
-            "core_deposit_account_events_rollup",
-            "core_deposit_events_rollup",
-            "core_withdrawal_events_rollup",
-            "core_public_ids",
-        )
+        self.EL_TABLES = constants.LANA_EL_TABLE_NAMES
+
+    def build_resources(self):
+        self.resource_definitions["lana_core_pg"] = PostgresResource
+        self.resource_definitions["dbt"] = dbt_resource
+
+        @dg.definitions
+        def defs() -> dg.Definitions:
+            return dg.Definitions(
+                resources=self.resource_definitions,
+            )
     
     def build_lana_source_layer(self):
-        assets = [build_lana_source_asset(table_name=table_name) for table_name in self.EL_TABLES]
+        assets = build_all_lana_source_assets(
+            table_names=constants.LANA_EL_TABLE_NAMES
+        )
         self.asset_definitions.extend(assets)
 
     def build_lana_to_dw_el_layer(self):
-        assets = [build_lana_to_dw_el_asset(table_name=table_name) for table_name in self.EL_TABLES]
+        assets = build_all_lana_to_dw_el_assets()
         self.asset_definitions.extend(assets)
         
         lana_to_dw_el_job = dg.define_asset_job(
@@ -91,7 +98,7 @@ class DefinitionBuilder():
             self.sensor_definitions.append(lana_el_sensor)
          
     def build_dbt_layer(self):
-        self.resource_definitions["dbt"] = dbt_resource
+        
 
         dbt_assets = [build_dbt_assets()]
         self.asset_definitions.extend(dbt_assets)
@@ -167,6 +174,7 @@ def build_definitions():
         automation_style=dg.EnvVar("AUTOMATION_STYLE").get_value()
     )
 
+    definition_builder.build_resources()
     definition_builder.build_lana_source_layer()
     definition_builder.build_lana_to_dw_el_layer()
     definition_builder.build_dbt_layer()
