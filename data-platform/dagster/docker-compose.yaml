@@ -16,7 +16,7 @@ services:
       DBT_BIGQUERY_AUTH_METHOD: ${DBT_BIGQUERY_AUTH_METHOD}
       DBT_BIGQUERY_PROJECT: ${DBT_BIGQUERY_PROJECT}
       DBT_BIGQUERY_DATASET: ${DBT_BIGQUERY_DATASET}
-      AUTOMATION_STYLE: "no_automation" # "scheduled", "mixed", "no_automation"
+      AUTOMATION_STYLE: "mixed" # "scheduled", "mixed", "no_automation"
 
     networks:
       - dagster_network

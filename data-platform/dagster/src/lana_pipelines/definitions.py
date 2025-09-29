@@ -14,7 +14,7 @@ class DefinitionBuilder():
 
         self.asset_definitions = []
         self.job_definitions = []
-        self.resource_definitions = []
+        self.resource_definitions = {}
         self.schedule_definitions = []
         self.sensor_definitions = []
 
@@ -91,6 +91,8 @@ class DefinitionBuilder():
             self.sensor_definitions.append(lana_el_sensor)
          
     def build_dbt_layer(self):
+        self.resource_definitions["dbt"] = dbt_resource
+
         dbt_assets = [build_dbt_assets()]
         self.asset_definitions.extend(dbt_assets)
 
@@ -130,6 +132,34 @@ class DefinitionBuilder():
             )
             self.schedule_definitions.append(build_seed_bank_address_job_schedule)
              
+    def build_generate_es_reports_layer(self):
+        generate_es_report_asset = [build_generate_es_report_asset()]
+        self.asset_definitions.extend(generate_es_report_asset)
+
+        build_generate_es_report_job = dg.define_asset_job(
+            name="generate_es_report_job",
+            selection=generate_es_report_asset,
+        )
+        self.job_definitions.append(build_generate_es_report_job)
+
+        if self.automation_style == "scheduled":
+            build_generate_es_report_job_schedule = dg.ScheduleDefinition(
+                name="build_generate_es_report_job_schedule",
+                cron_schedule="*/3 * * * *",
+                job=build_generate_es_report_job,
+                default_status=dg.DefaultScheduleStatus.RUNNING
+            )
+            self.schedule_definitions.append(build_generate_es_report_job_schedule)
+
+        if self.automation_style == "mixed":
+            build_generate_es_report_job_schedule = dg.ScheduleDefinition(
+                name="build_generate_es_report_job_schedule",
+                cron_schedule="*/3 * * * *",
+                job=build_generate_es_report_job,
+                default_status=dg.DefaultScheduleStatus.RUNNING
+            )
+            self.schedule_definitions.append(build_generate_es_report_job_schedule)
+
 
 def build_definitions():
 
@@ -140,62 +170,14 @@ def build_definitions():
     definition_builder.build_lana_source_layer()
     definition_builder.build_lana_to_dw_el_layer()
     definition_builder.build_dbt_layer()
-
-    generate_es_report_asset = [build_generate_es_report_asset()]
-
-    build_generate_es_report_job = dg.define_asset_job(
-        name="generate_es_report_job",
-        selection=generate_es_report_asset,
-    )
-
-    
-
-    all_assets = definition_builder.asset_definitions + generate_es_report_asset
-    all_jobs = definition_builder.job_definitions + [build_generate_es_report_job]
-    all_resources = {
-        "dbt": dbt_resource
-    }
-
-    all_schedules = []
-    all_sensors = []
-
-    if dg.EnvVar("AUTOMATION_STYLE").get_value() == "scheduled":
-
-        build_generate_es_report_job_schedule = dg.ScheduleDefinition(
-            name="build_generate_es_report_job_schedule",
-            cron_schedule="*/3 * * * *",
-            job=build_generate_es_report_job,
-            default_status=dg.DefaultScheduleStatus.RUNNING
-        )
-
-        all_schedules = definition_builder.schedule_definitions + [
-            build_generate_es_report_job_schedule
-        ]
-
-    if dg.EnvVar("AUTOMATION_STYLE").get_value() == "mixed":
-        all_sensors = definition_builder.sensor_definitions
-        
-        build_generate_es_report_job_schedule = dg.ScheduleDefinition(
-            name="build_generate_es_report_job_schedule",
-            cron_schedule="*/3 * * * *",
-            job=build_generate_es_report_job,
-            default_status=dg.DefaultScheduleStatus.RUNNING
-        )
-
-        
-
-        all_schedules = definition_builder.schedule_definitions + [build_generate_es_report_job_schedule]
-
-    if dg.EnvVar("AUTOMATION_STYLE").get_value() == "no_automation":
-         # We do nothing and let all_schedules and all_sensors go in empty
-         pass
+    definition_builder.build_generate_es_reports_layer()
 
     return dg.Definitions(
-        assets=all_assets,
-        jobs=all_jobs, 
-        resources=all_resources,
-        schedules=all_schedules,
-        sensors=all_sensors
+        assets=definition_builder.asset_definitions,
+        jobs=definition_builder.job_definitions, 
+        resources=definition_builder.resource_definitions,
+        schedules=definition_builder.schedule_definitions,
+        sensors=definition_builder.sensor_definitions
     )
 
 
