@@ -10,6 +10,7 @@ import psycopg2
 
 from lana_pipelines.destinations import create_bigquery_destination
 
+
 class PostgresResource(dg.ConfigurableResource):
 
     def get_credentials(self):
@@ -32,7 +33,7 @@ class PostgresResource(dg.ConfigurableResource):
         )
 
         return dlt_postgres_resource
-    
+
     def poll_max_value_in_table_col(self, table_name, fieldname):
         credentials = self.get_credentials()
         dsn = (
@@ -46,19 +47,16 @@ class PostgresResource(dg.ConfigurableResource):
         with conn, conn.cursor() as cur:
             cur.execute(f"SELECT MAX({fieldname}) FROM {table_name}")
             max_created_at = cur.fetchone()[0]
-        
+
         return max_created_at
 
-class BigQueryResource (dg.ConfigurableResource):
+
+class BigQueryResource(dg.ConfigurableResource):
     base64_credentials: Any
 
     def get_dlt_destination(self):
         dlt_destination = create_bigquery_destination(self.base64_credentials)
         return dlt_destination
-
-
-
-
 
 
 dbt_resource = DbtCliResource(project_dir=Path("dbt_lana_dw/"))
