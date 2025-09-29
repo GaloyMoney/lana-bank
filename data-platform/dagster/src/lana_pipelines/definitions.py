@@ -55,8 +55,13 @@ def build_definitions():
         selection=generate_es_report_asset,
     )
 
+    build_seed_bank_address_job = dg.define_asset_job(
+        name="build_seed_bank_address_job",
+        selection="seed_bank_address",
+    )
+
     all_assets = lana_source_assets + lana_to_dw_el_assets + dbt_assets + generate_es_report_asset
-    all_jobs = [lana_to_dw_el_job, build_dbt_job, build_generate_es_report_job]
+    all_jobs = [lana_to_dw_el_job, build_dbt_job, build_generate_es_report_job, build_seed_bank_address_job]
     all_resources = {
         "dbt": dbt_resource
     }
@@ -80,6 +85,13 @@ def build_definitions():
             default_status=dg.DefaultScheduleStatus.RUNNING
         )
 
+        build_seed_bank_address_job_schedule = dg.ScheduleDefinition(
+            name="build_seed_bank_address_job_schedule",
+            cron_schedule="*/2 * * * *",
+            job=build_seed_bank_address_job,
+            default_status=dg.DefaultScheduleStatus.RUNNING
+        )
+
         build_generate_es_report_job_schedule = dg.ScheduleDefinition(
             name="build_generate_es_report_job_schedule",
             cron_schedule="*/3 * * * *",
@@ -90,6 +102,7 @@ def build_definitions():
         all_schedules = [
             flana_to_dw_el_job_schedule,
             build_dbt_job_schedule,
+            build_seed_bank_address_job_schedule,
             build_generate_es_report_job_schedule
         ]
 
@@ -131,7 +144,14 @@ def build_definitions():
             default_status=dg.DefaultScheduleStatus.RUNNING
         )
 
-        all_schedules = [build_generate_es_report_job_schedule]
+        build_seed_bank_address_job_schedule = dg.ScheduleDefinition(
+            name="build_seed_bank_address_job_schedule",
+            cron_schedule="* * * * *",
+            job=build_seed_bank_address_job,
+            default_status=dg.DefaultScheduleStatus.RUNNING
+        )
+
+        all_schedules = [build_generate_es_report_job_schedule, build_seed_bank_address_job_schedule]
 
     if dg.EnvVar("AUTOMATION_STYLE").get_value() == "no_automation":
          # We do nothing and let all_schedules and all_sensors go in empty
