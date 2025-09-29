@@ -5,6 +5,7 @@ mod chart_of_accounts_integration;
 mod collateral;
 mod config;
 mod credit_facility;
+mod credit_facility_proposal;
 mod disbursal;
 pub mod error;
 mod event;

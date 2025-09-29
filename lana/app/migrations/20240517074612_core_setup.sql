@@ -277,6 +277,24 @@ CREATE TABLE core_collateral_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_credit_facility_proposals (
+  id UUID PRIMARY KEY,
+  customer_id UUID NOT NULL REFERENCES core_customers(id),
+  approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
+  collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_credit_facility_proposal_events (
+  id UUID NOT NULL REFERENCES core_credit_facility_proposals(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_pending_credit_facilities (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
