@@ -3,7 +3,7 @@ import datetime
 import dagster as dg
 
 from lana_pipelines.assets import build_all_lana_source_assets, build_all_lana_to_dw_el_assets, build_dbt_assets, build_generate_es_report_asset
-from lana_pipelines.resources import BigQueryResource, dbt_resource, poll_max_value_in_table_col, PostgresResource
+from lana_pipelines.resources import BigQueryResource, PostgresResource, dbt_resource
 from lana_pipelines import constants
 
 class DefinitionBuilder():
@@ -68,11 +68,8 @@ class DefinitionBuilder():
             minimum_interval_seconds=10,
             default_status=dg.DefaultSensorStatus.RUNNING,
             )
-            def lana_el_sensor(context):
-                connection_string = "postgresql://user:password@172.17.0.1:5433/pg"
-
-                current_highest_timestamp = poll_max_value_in_table_col(
-                    connection_string_details=connection_string,
+            def lana_el_sensor(context, lana_core_pg: PostgresResource):
+                current_highest_timestamp = lana_core_pg.poll_max_value_in_table_col(
                     table_name="core_deposit_events_rollup",
                     fieldname="created_at",
                     

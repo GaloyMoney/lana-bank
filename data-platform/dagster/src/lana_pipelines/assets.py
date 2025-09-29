@@ -5,7 +5,6 @@ import dlt
 from dagster_dbt import DbtCliResource, dbt_assets, DagsterDbtTranslator
 from generate_es_reports.service import run_report_batch
 
-from lana_pipelines.resources import create_dlt_postgres_resource
 from lana_pipelines.destinations import create_bigquery_destination
 from lana_pipelines.resources import dbt_manifest_path, PostgresResource, BigQueryResource
 from lana_pipelines import constants
@@ -50,10 +49,7 @@ def build_lana_to_dw_el_asset(table_name):
             f"Running lana_to_dw_el_asset pipeline for table {table_name}."
         )
 
-        dlt_postgres_resource = create_dlt_postgres_resource(
-            lana_core_pg.get_credentials(), table_name=table_name
-        )
-
+        dlt_postgres_resource = lana_core_pg.create_dlt_postgres_resource(table_name=table_name)
         dlt_bq_destination = dw_bq.get_dlt_destination()
 
         pipeline = dlt.pipeline(
