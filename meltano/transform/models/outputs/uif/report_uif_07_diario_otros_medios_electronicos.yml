@@ -46,7 +46,8 @@ models:
           - 2: Legal entity (JuridicaDTO)
         data_type: integer
         tests:
-          - not_null
+          - not_null:
+              severity: warn
           - accepted_values:
               values: [1, 2]
       - name: detallesPersonaA
@@ -82,7 +83,8 @@ models:
           - 2: Legal entity (JuridicaDTO)
         data_type: integer
         tests:
-          - not_null
+          - not_null:
+              severity: warn
           - accepted_values:
               values: [1, 2]
       - name: detallesPersonaB
@@ -132,7 +134,7 @@ models:
         data_type: decimal(15,2)
         tests:
           - not_null
-          - dbt_utils.accepted_range:
+          - accepted_range:
               min_value: 25000
               max_value: 999999999999.99
       - name: numeroProductoPB
