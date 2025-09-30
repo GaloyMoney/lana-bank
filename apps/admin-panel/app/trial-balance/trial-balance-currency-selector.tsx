@@ -19,18 +19,18 @@ export const TrialBalanceCurrencySelection: React.FC<CurrencySelectionProps> = (
 }) => {
   const t = useTranslations("CurrencyLayerSelection")
   return (
-    <div className="flex items-center py-3 mt-2">
-      <div className="w-28">{t("currency.label")}:</div>
+    <div>
+      <Label>{t("currency.label")}</Label>
       <RadioGroup
-        className="flex items-center space-x-4"
+        className="flex items-center py-2.5 bg-muted p-2 rounded-md"
         value={currency}
         onValueChange={(v: Currency) => setCurrency(v)}
       >
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 mr-4">
           <RadioGroupItem value="usd" id="currency-usd" />
           <Label htmlFor="currency-usd">{t("currency.options.usd")}</Label>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <RadioGroupItem value="btc" id="currency-btc" />
           <Label htmlFor="currency-btc">{t("currency.options.btc")}</Label>
         </div>
@@ -49,20 +49,19 @@ export const TrialBalanceLayerSelection: React.FC<LayerSelectionProps> = ({
   setLayer,
 }) => {
   const t = useTranslations("CurrencyLayerSelection")
-
   return (
-    <div className="flex items-center py-3">
-      <div className="w-28">{t("layer.label")}:</div>
+    <div>
+      <Label>{t("layer.label")}</Label>
       <RadioGroup
-        className="flex items-center space-x-4"
+        className="flex items-center py-2.5 bg-muted p-2 rounded-md"
         value={layer}
         onValueChange={(v: TrialBalanceLayers) => setLayer(v)}
       >
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1 mr-4">
           <RadioGroupItem value="settled" id="layer-settled" />
           <Label htmlFor="layer-settled">{t("layer.options.settled")}</Label>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-1">
           <RadioGroupItem value="pending" id="layer-pending" />
           <Label htmlFor="layer-pending">{t("layer.options.pending")}</Label>
         </div>

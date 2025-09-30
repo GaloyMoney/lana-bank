@@ -23,9 +23,8 @@ describe(t(TB + ".title"), () => {
     cy.graphqlRequest<{ data: GetTrialBalanceQuery }>(print(GetTrialBalanceDocument), {
       from: lastMonthDate.toISOString().split("T")[0],
       until: currentDate.toISOString().split("T")[0],
-      first: 10,
     }).then((response) => {
-      response.data.trialBalance?.accounts.edges.forEach(({ node: account }) => {
+      response.data.trialBalance?.accounts.forEach((account) => {
         cy.get("main")
           .contains(new RegExp(`^${account.name}$`))
           .should("exist")

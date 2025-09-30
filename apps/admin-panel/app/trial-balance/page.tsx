@@ -1,7 +1,7 @@
 "use client"
+
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
-
 import {
   Table,
   TableBody,
@@ -11,7 +11,6 @@ import {
   TableHeader,
   TableRow,
 } from "@lana/web/ui/table"
-
 import {
   Card,
   CardContent,
@@ -19,11 +18,12 @@ import {
   CardHeader,
   CardTitle,
 } from "@lana/web/ui/card"
-
-import { Skeleton } from "@lana/web/ui/skeleton"
-
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
+
+import { Label } from "@lana/web/ui/label"
+
+import { Separator } from "@lana/web/ui/separator"
 
 import {
   TrialBalanceCurrencySelection,
@@ -38,12 +38,9 @@ import {
   DateRangeSelector,
   getInitialDateRange,
 } from "@/components/date-range-picker"
-import PaginatedTable, { Column, PaginatedData } from "@/components/paginated-table"
-
-const DEFAULT_PAGESIZE = 15
 
 gql`
-  query GetTrialBalance($from: Date!, $until: Date!, $first: Int!, $after: String) {
+  query GetTrialBalance($from: Date!, $until: Date!) {
     trialBalance(from: $from, until: $until) {
       name
       total {
@@ -54,37 +51,53 @@ gql`
           ...BtcLedgerBalanceRangeFragment
         }
       }
-      accounts(first: $first, after: $after) {
-        edges {
-          cursor
-          node {
-            id
-            code
-            name
-            balanceRange {
-              __typename
-              ...UsdLedgerBalanceRangeFragment
-              ...BtcLedgerBalanceRangeFragment
-            }
+      accounts {
+        ...TrialBalanceAccountBase
+        children {
+          ...TrialBalanceAccountBase
+          children {
+            ...TrialBalanceAccountBase
             children {
-              id
-              code
-              name
-              balanceRange {
-                __typename
-                ...UsdLedgerBalanceRangeFragment
-                ...BtcLedgerBalanceRangeFragment
+              ...TrialBalanceAccountBase
+              children {
+                ...TrialBalanceAccountBase
+                children {
+                  ...TrialBalanceAccountBase
+                  children {
+                    ...TrialBalanceAccountBase
+                    children {
+                      ...TrialBalanceAccountBase
+                      children {
+                        ...TrialBalanceAccountBase
+                        children {
+                          ...TrialBalanceAccountBase
+                          children {
+                            ...TrialBalanceAccountBase
+                            children {
+                              ...TrialBalanceAccountBase
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                }
               }
             }
           }
         }
-        pageInfo {
-          endCursor
-          startCursor
-          hasNextPage
-          hasPreviousPage
-        }
       }
+    }
+  }
+
+  fragment TrialBalanceAccountBase on LedgerAccount {
+    id
+    code
+    name
+    balanceRange {
+      __typename
+      ...UsdLedgerBalanceRangeFragment
+      ...BtcLedgerBalanceRangeFragment
     }
   }
 
@@ -149,325 +162,148 @@ gql`
   }
 `
 
-const LoadingSkeleton = () => {
-  return (
-    <div className="space-y-4" data-testid="loading-skeleton">
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-72" />
-        <Skeleton className="h-10 w-96" />
-      </div>
-      <Table>
-        <TableHeader>
-          <TableRow>
-            <TableHead>
-              <Skeleton className="h-5 w-32" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-24 ml-auto" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-24 ml-auto" />
-            </TableHead>
-            <TableHead>
-              <Skeleton className="h-5 w-24 ml-auto" />
-            </TableHead>
-          </TableRow>
-        </TableHeader>
-        <TableBody>
-          {[1, 2, 3, 4, 5].map((i) => (
-            <TableRow key={i}>
-              <TableCell>
-                <Skeleton className="h-5 w-full" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-5 w-24 ml-auto" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-5 w-24 ml-auto" />
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-5 w-24 ml-auto" />
-              </TableCell>
-            </TableRow>
-          ))}
-        </TableBody>
-      </Table>
-    </div>
-  )
-}
-
-type TrialBalanceAccountNode = NonNullable<
+type Account = NonNullable<
   NonNullable<GetTrialBalanceQuery["trialBalance"]>["accounts"]
->["edges"][0]["node"]
+>[0]
 
-type BalanceRange = NonNullable<TrialBalanceAccountNode["balanceRange"]>
-
-function isUsdLedgerBalanceRange(balanceRange: BalanceRange | null | undefined) {
-  return !!balanceRange && balanceRange.__typename === "UsdLedgerAccountBalanceRange"
-}
-
-function isBtcLedgerBalanceRange(balanceRange: BalanceRange | null | undefined) {
-  return !!balanceRange && balanceRange.__typename === "BtcLedgerAccountBalanceRange"
-}
-
-const hasNonZeroBalanceRangeData = (balanceRange: BalanceRange) => {
-  if (
-    balanceRange.__typename === "UsdLedgerAccountBalanceRange" &&
-    (balanceRange.usdStart.pending.debit ||
-      balanceRange.usdStart.pending.credit ||
-      balanceRange.usdStart.pending.net ||
-      balanceRange.usdStart.settled.debit ||
-      balanceRange.usdStart.settled.credit ||
-      balanceRange.usdStart.settled.net ||
-      balanceRange.usdStart.encumbrance.debit ||
-      balanceRange.usdStart.encumbrance.credit ||
-      balanceRange.usdStart.encumbrance.net ||
-      balanceRange.usdDiff.pending.debit ||
-      balanceRange.usdDiff.pending.credit ||
-      balanceRange.usdDiff.pending.net ||
-      balanceRange.usdDiff.settled.debit ||
-      balanceRange.usdDiff.settled.credit ||
-      balanceRange.usdDiff.settled.net ||
-      balanceRange.usdDiff.encumbrance.debit ||
-      balanceRange.usdDiff.encumbrance.credit ||
-      balanceRange.usdDiff.encumbrance.net ||
-      balanceRange.usdEnd.pending.debit ||
-      balanceRange.usdEnd.pending.credit ||
-      balanceRange.usdEnd.pending.net ||
-      balanceRange.usdEnd.settled.debit ||
-      balanceRange.usdEnd.settled.credit ||
-      balanceRange.usdEnd.settled.net ||
-      balanceRange.usdEnd.encumbrance.debit ||
-      balanceRange.usdEnd.encumbrance.credit ||
-      balanceRange.usdEnd.encumbrance.net)
-  )
-    return true
-  if (
-    balanceRange.__typename === "BtcLedgerAccountBalanceRange" &&
-    (balanceRange.btcStart.pending.debit ||
-      balanceRange.btcStart.pending.credit ||
-      balanceRange.btcStart.pending.net ||
-      balanceRange.btcStart.settled.debit ||
-      balanceRange.btcStart.settled.credit ||
-      balanceRange.btcStart.settled.net ||
-      balanceRange.btcStart.encumbrance.debit ||
-      balanceRange.btcStart.encumbrance.credit ||
-      balanceRange.btcStart.encumbrance.net ||
-      balanceRange.btcDiff.pending.debit ||
-      balanceRange.btcDiff.pending.credit ||
-      balanceRange.btcDiff.pending.net ||
-      balanceRange.btcDiff.settled.debit ||
-      balanceRange.btcDiff.settled.credit ||
-      balanceRange.btcDiff.settled.net ||
-      balanceRange.btcDiff.encumbrance.debit ||
-      balanceRange.btcDiff.encumbrance.credit ||
-      balanceRange.btcDiff.encumbrance.net ||
-      balanceRange.btcEnd.pending.debit ||
-      balanceRange.btcEnd.pending.credit ||
-      balanceRange.btcEnd.pending.net ||
-      balanceRange.btcEnd.settled.debit ||
-      balanceRange.btcEnd.settled.credit ||
-      balanceRange.btcEnd.settled.net ||
-      balanceRange.btcEnd.encumbrance.debit ||
-      balanceRange.btcEnd.encumbrance.credit ||
-      balanceRange.btcEnd.encumbrance.net)
-  )
-    return true
-  return false
-}
-
-function TrialBalancePage() {
-  const t = useTranslations("TrialBalance")
-  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange())
-
-  const { data, loading, error, fetchMore } = useGetTrialBalanceQuery({
-    variables: {
-      from: dateRange.from,
-      until: dateRange.until,
-      first: DEFAULT_PAGESIZE,
-    },
-  })
-
-  const [currency, setCurrency] = React.useState<Currency>("usd")
-  const [layer, setLayer] = React.useState<TrialBalanceLayers>("settled")
-
-  const router = useRouter()
-
-  const total = data?.trialBalance.total
-  const accounts = data?.trialBalance.accounts
-
-  if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading && !data) {
-    return <LoadingSkeleton />
-  }
-  if (!total) return <div>{t("noAccountsPresent")}</div>
-
-  const columns: Column<TrialBalanceAccountNode>[] = [
-    {
-      key: "code",
-      label: t("table.headers.accountCode"),
-      render: (code: string) => (
-        <div className="font-mono text-xs text-gray-500">{code}</div>
-      ),
-    },
-    {
-      key: "name",
-      label: t("table.headers.accountName"),
-    },
-    {
-      key: "balanceRange",
-      label: t("table.headers.beginningBalance"),
-      labelClassName: "!justify-end",
-      render: (_, node) => {
-        if (currency === "usd" && isUsdLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.usdStart[layer].net}
-            />
-          )
-        } else if (currency === "btc" && isBtcLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.btcStart[layer].net}
-            />
-          )
+const TrialBalanceFooter = ({
+  total,
+  currency,
+  layer,
+  t,
+}: {
+  total: NonNullable<GetTrialBalanceQuery["trialBalance"]>["total"]
+  currency: Currency
+  layer: TrialBalanceLayers
+  t: (key: string) => string
+}) => {
+  const totalData =
+    currency === "usd"
+      ? {
+          start: total.usd.usdStart[layer],
+          diff: total.usd.usdDiff[layer],
+          end: total.usd.usdEnd[layer],
         }
-        return null
-      },
-    },
-    {
-      key: "balanceRange",
-      label: t("table.headers.debits"),
-      labelClassName: "!justify-end",
-      render: (_, node) => {
-        if (currency === "usd" && isUsdLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.usdDiff[layer].debit}
-            />
-          )
-        } else if (currency === "btc" && isBtcLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.btcDiff[layer].debit}
-            />
-          )
+      : {
+          start: total.btc.btcStart[layer],
+          diff: total.btc.btcDiff[layer],
+          end: total.btc.btcEnd[layer],
         }
-        return null
-      },
-    },
-    {
-      key: "balanceRange",
-      label: t("table.headers.credits"),
-      labelClassName: "!justify-end",
-      render: (_, node) => {
-        if (currency === "usd" && isUsdLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.usdDiff[layer].credit}
-            />
-          )
-        } else if (currency === "btc" && isBtcLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.btcDiff[layer].credit}
-            />
-          )
-        }
-        return null
-      },
-    },
-    {
-      key: "balanceRange",
-      label: t("table.headers.endingBalance"),
-      labelClassName: "!justify-end",
-      render: (_, node) => {
-        if (currency === "usd" && isUsdLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.usdEnd[layer].net}
-            />
-          )
-        } else if (currency === "btc" && isBtcLedgerBalanceRange(node.balanceRange)) {
-          return (
-            <Balance
-              align="end"
-              currency={currency}
-              amount={node.balanceRange.btcEnd[layer].net}
-            />
-          )
-        }
-        return null
-      },
-    },
-  ]
 
-  const Footer = (
+  return (
     <TableFooter className="border-t-4">
       <TableRow>
-        <TableCell className="font-bold">{t("totals")}</TableCell>
+        <TableCell className="font-bold text-sm">{t("totals")}</TableCell>
         <TableCell />
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={
-              currency === "usd"
-                ? total.usd.usdStart[layer].net
-                : total.btc.btcStart[layer].net
-            }
-          />
+        <TableCell className="text-right">
+          <Balance align="end" currency={currency} amount={totalData.start.net} />
         </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={
-              currency === "usd"
-                ? total.usd.usdDiff[layer].debit
-                : total.btc.btcDiff[layer].debit
-            }
-          />
+        <TableCell className="text-right">
+          <Balance align="end" currency={currency} amount={totalData.diff.debit} />
         </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={
-              currency === "usd"
-                ? total.usd.usdDiff[layer].credit
-                : total.btc.btcDiff[layer].credit
-            }
-          />
+        <TableCell className="text-right">
+          <Balance align="start" currency={currency} amount={totalData.diff.credit} />
         </TableCell>
-        <TableCell className="w-48">
-          <Balance
-            align="end"
-            currency={currency}
-            amount={
-              currency === "usd"
-                ? total.usd.usdEnd[layer].net
-                : total.btc.btcEnd[layer].net
-            }
-          />
+        <TableCell className="text-right">
+          <Balance align="end" currency={currency} amount={totalData.end.net} />
         </TableCell>
       </TableRow>
     </TableFooter>
   )
+}
+
+function TrialBalancePage() {
+  const t = useTranslations("TrialBalance")
+
+  const router = useRouter()
+
+  const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange())
+  const [currency, setCurrency] = useState<Currency>("usd")
+  const [layer, setLayer] = useState<TrialBalanceLayers>("settled")
+
+  const { data, loading, error } = useGetTrialBalanceQuery({
+    variables: {
+      from: dateRange.from,
+      until: dateRange.until,
+    },
+  })
+  const total = data?.trialBalance?.total
+  const accounts = data?.trialBalance?.accounts
+
+  const renderAccount = (account: Account, isRoot = false): React.ReactElement | null => {
+    if (!shouldShowAccount(account)) return null
+    const balanceData = getBalanceData(account.balanceRange, currency, layer)
+    return (
+      <React.Fragment key={account.id}>
+        <TableRow
+          className="cursor-pointer hover:bg-muted/50"
+          onClick={() => router.push(`/ledger-accounts/${account.code}`)}
+        >
+          <TableCell>
+            <div
+              className={`font-mono text-xs  ${isRoot ? "font-bold" : "text-gray-500"}`}
+            >
+              {account.code}
+            </div>
+          </TableCell>
+          <TableCell className={isRoot ? "font-bold" : ""}>{account.name}</TableCell>
+          <TableCell className="text-right">
+            {balanceData?.start ? (
+              <Balance
+                align="end"
+                currency={currency}
+                className={isRoot ? "font-bold" : ""}
+                amount={balanceData.start.net}
+              />
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
+          </TableCell>
+          <TableCell className="text-right">
+            {balanceData?.diff ? (
+              <Balance
+                align="end"
+                currency={currency}
+                className={isRoot ? "font-bold" : ""}
+                amount={balanceData.diff.debit}
+              />
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
+          </TableCell>
+          <TableCell className="text-left">
+            {balanceData?.diff ? (
+              <Balance
+                align="start"
+                currency={currency}
+                className={isRoot ? "font-bold" : ""}
+                amount={balanceData.diff.credit}
+              />
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
+          </TableCell>
+          <TableCell className="text-right">
+            {balanceData?.end ? (
+              <Balance
+                align="end"
+                currency={currency}
+                className={isRoot ? "font-bold" : ""}
+                amount={balanceData.end.net}
+              />
+            ) : (
+              <span className="text-muted-foreground">-</span>
+            )}
+          </TableCell>
+        </TableRow>
+        {account.children?.map((child) => renderAccount(child as Account, false))}
+      </React.Fragment>
+    )
+  }
+
+  if (error) return <div className="text-destructive">{error.message}</div>
+  if (loading && !data) return null
+  if (!total) return <div>{t("noAccountsPresent")}</div>
 
   return (
     <Card>
@@ -476,45 +312,115 @@ function TrialBalancePage() {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-6 items-center">
-          <div>{t("dateRange")}:</div>
-          <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
+        <div className="mb-4 flex items-center">
+          <div className="mr-8">
+            <Label>{t("dateRange")}</Label>
+            <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
+          </div>
+          <Separator orientation="vertical" className="h-14" />
+          <div className="ml-2 mr-8">
+            <TrialBalanceCurrencySelection
+              currency={currency}
+              setCurrency={setCurrency}
+            />
+          </div>
+          <Separator orientation="vertical" className="h-14" />
+          <div className="ml-2">
+            <TrialBalanceLayerSelection layer={layer} setLayer={setLayer} />
+          </div>
         </div>
-        <div>
-          <TrialBalanceCurrencySelection currency={currency} setCurrency={setCurrency} />
-          <TrialBalanceLayerSelection layer={layer} setLayer={setLayer} />
+        <div className="overflow-x-auto rounded-md border">
+          <Table>
+            <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+              <TableRow>
+                <TableHead className="w-36 ">{t("table.headers.accountCode")}</TableHead>
+                <TableHead className="w-40">{t("table.headers.accountName")}</TableHead>
+                <TableHead className="text-right w-40">
+                  {t("table.headers.beginningBalance")}
+                </TableHead>
+                <TableHead className="text-right w-48">
+                  {t("table.headers.debits")}
+                </TableHead>
+                <TableHead className="text-left w-32">
+                  {t("table.headers.credits")}
+                </TableHead>
+                <TableHead className="text-right w-32">
+                  {t("table.headers.endingBalance")}
+                </TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
+              {accounts?.map((account) => renderAccount(account, true))}
+            </TableBody>
+            <TrialBalanceFooter total={total} currency={currency} layer={layer} t={t} />
+          </Table>
         </div>
-        <PaginatedTable<TrialBalanceAccountNode>
-          columns={columns}
-          data={accounts as PaginatedData<TrialBalanceAccountNode>}
-          loading={loading}
-          pageSize={DEFAULT_PAGESIZE}
-          fetchMore={async (cursor) =>
-            fetchMore({
-              variables: {
-                after: cursor,
-                from: dateRange.from,
-                until: dateRange.until,
-                first: DEFAULT_PAGESIZE,
-              },
-            })
-          }
-          customFooter={Footer}
-          style="compact"
-          onClick={(account) =>
-            router.push(`/ledger-accounts/${account.code || account.id}`)
-          }
-          noDataText={t("noAccountsPresent")}
-          subRows={(account) =>
-            account.children.filter((child) =>
-              hasNonZeroBalanceRangeData(child.balanceRange),
-            ) as TrialBalanceAccountNode[]
-          }
-        />
-        <div className="mt-4" />
       </CardContent>
     </Card>
   )
 }
 
 export default TrialBalancePage
+
+const getBalanceData = (
+  balanceRange: Account["balanceRange"],
+  currency: Currency,
+  layer: TrialBalanceLayers,
+) => {
+  if (!balanceRange) return null
+  if (currency === "usd" && isUsdLedgerBalanceRange(balanceRange)) {
+    return {
+      start: balanceRange.usdStart?.[layer],
+      diff: balanceRange.usdDiff?.[layer],
+      end: balanceRange.usdEnd?.[layer],
+    }
+  }
+  if (currency === "btc" && isBtcLedgerBalanceRange(balanceRange)) {
+    return {
+      start: balanceRange.btcStart?.[layer],
+      diff: balanceRange.btcDiff?.[layer],
+      end: balanceRange.btcEnd?.[layer],
+    }
+  }
+
+  return null
+}
+
+const hasInEitherSettledOrPending = (balanceRange: Account["balanceRange"]): boolean => {
+  if (!balanceRange) return false
+  if (isUsdLedgerBalanceRange(balanceRange)) {
+    return !!(
+      balanceRange.usdStart?.settled?.net ||
+      balanceRange.usdStart?.pending?.net ||
+      balanceRange.usdDiff?.settled?.debit ||
+      balanceRange.usdDiff?.settled?.credit ||
+      balanceRange.usdDiff?.pending?.debit ||
+      balanceRange.usdDiff?.pending?.credit ||
+      balanceRange.usdEnd?.settled?.net ||
+      balanceRange.usdEnd?.pending?.net
+    )
+  }
+  if (isBtcLedgerBalanceRange(balanceRange)) {
+    return !!(
+      balanceRange.btcStart?.settled?.net ||
+      balanceRange.btcStart?.pending?.net ||
+      balanceRange.btcDiff?.settled?.debit ||
+      balanceRange.btcDiff?.settled?.credit ||
+      balanceRange.btcDiff?.pending?.debit ||
+      balanceRange.btcDiff?.pending?.credit ||
+      balanceRange.btcEnd?.settled?.net ||
+      balanceRange.btcEnd?.pending?.net
+    )
+  }
+
+  return false
+}
+
+const isUsdLedgerBalanceRange = (balanceRange: Account["balanceRange"]) =>
+  balanceRange?.__typename === "UsdLedgerAccountBalanceRange"
+
+const isBtcLedgerBalanceRange = (balanceRange: Account["balanceRange"]) =>
+  balanceRange?.__typename === "BtcLedgerAccountBalanceRange"
+
+const shouldShowAccount = (account: Account): boolean =>
+  Boolean(account.code && hasInEitherSettledOrPending(account.balanceRange))

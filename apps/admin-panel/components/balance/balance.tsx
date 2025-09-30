@@ -31,10 +31,10 @@ type BalanceProps = {
 const balanceVariants = cva("", {
   variants: {
     align: {
-      end: "flex justify-end space-x-1",
-      start: "flex justify-start space-x-1",
-      center: "flex justify-center space-x-1",
-      right: "flex justify-right space-x-1",
+      end: "flex justify-end space-x-0.5",
+      start: "flex justify-start space-x-0.5",
+      center: "flex justify-center space-x-0.5",
+      right: "flex justify-right space-x-0.5",
     },
   },
 })
