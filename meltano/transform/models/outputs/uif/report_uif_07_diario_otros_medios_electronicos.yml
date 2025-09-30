@@ -47,7 +47,8 @@ models:
         data_type: integer
         tests:
           - not_null:
-              severity: warn
+              config:
+                severity: warn
           - accepted_values:
               values: [1, 2]
               quote: false
@@ -86,7 +87,8 @@ models:
         data_type: integer
         tests:
           - not_null:
-              severity: warn
+              config:
+                severity: warn
           - accepted_values:
               values: [1, 2]
               quote: false
