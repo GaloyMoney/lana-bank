@@ -8,7 +8,7 @@ models:
       - unique
       - not_null
     - name: created_at
-      tests:
+      data_tests:
       - not_null
     - name: normal_balance_type
       data_tests:
@@ -16,6 +16,10 @@ models:
       - accepted_values:
           values: ['credit', 'debit']
     - name: latest_values
+      data_tests:
+      - not_null:
+          config:
+            severity: warn
     - name: name
       data_tests:
       - not_null
