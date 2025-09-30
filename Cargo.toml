@@ -59,7 +59,7 @@ sim-bootstrap = { path = "lana/sim-bootstrap" }
 user-onboarding = { path = "lana/user-onboarding" }
 
 # External dependencies
-es-entity = { version = "0.9.2", features = ["event-context", "tracing-context"] }
+es-entity = { version = "0.9.3", features = ["event-context", "tracing-context"] }
 sim-time = "0.9"
 cala-ledger = "0.11.5"
 cala-cel-interpreter = "0.11"
@@ -75,8 +75,8 @@ async-graphql = { version = "7.0.17", default-features = false, features = [
 ] }
 async-graphql-axum = "7.0.17"
 async-trait = "0.1.89"
-axum = { version = "0.8.5", features = ["macros"] }
-axum-extra = { version = "0.10.2", default-features = false, features = [
+axum = { version = "0.8.6", features = ["macros"] }
+axum-extra = { version = "0.10.3", default-features = false, features = [
   "tracing",
   "typed-header",
 ] }
