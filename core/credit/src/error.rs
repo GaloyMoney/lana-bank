@@ -16,12 +16,16 @@ pub enum CoreCreditError {
     ChartOfAccountsIntegrationError(
         #[from] super::chart_of_accounts_integration::error::ChartOfAccountsIntegrationError,
     ),
-    #[error("CoreCreditError - CreditFacilityError: {0}")]
-    CreditFacilityError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - CreditFacilityProposalError: {0}")]
     CreditFacilityProposalError(
+        #[from] super::credit_facility_proposal::error::CreditFacilityProposalError,
+    ),
+    #[error("CoreCreditError - PendingCreditFacilityError: {0}")]
+    PendingCreditFacilityError(
         #[from] super::pending_credit_facility::error::PendingCreditFacilityError,
     ),
+    #[error("CoreCreditError - CreditFacilityError: {0}")]
+    CreditFacilityError(#[from] super::credit_facility::error::CreditFacilityError),
     #[error("CoreCreditError - HistoryError: {0}")]
     HistoryError(#[from] super::history::error::CreditFacilityHistoryError),
     #[error("CoreCreditError - RepaymentPlanError: {0}")]

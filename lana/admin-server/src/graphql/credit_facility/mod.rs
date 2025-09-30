@@ -5,6 +5,7 @@ mod error;
 mod history;
 mod ledger_accounts;
 pub(super) mod payment_allocation;
+mod pending_facility;
 mod proposal;
 mod repayment;
 
@@ -34,6 +35,7 @@ pub use disbursal::*;
 pub use error::*;
 pub use history::*;
 use ledger_accounts::*;
+pub use pending_facility::*;
 pub use proposal::*;
 pub use repayment::*;
 

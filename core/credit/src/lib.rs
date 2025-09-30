@@ -49,6 +49,7 @@ pub use collateral::*;
 pub use config::*;
 pub use credit_facility::error::CreditFacilityError;
 pub use credit_facility::*;
+pub use credit_facility_proposal::*;
 pub use disbursal::{disbursal_cursor::*, *};
 use error::*;
 pub use event::*;
@@ -89,8 +90,9 @@ where
         + OutboxEventMarker<CoreCustomerEvent>,
 {
     authz: Perms,
-    facilities: CreditFacilities<Perms, E>,
+    proposals: CreditFacilityProposals<Perms, E>,
     pending_credit_facilities: PendingCreditFacilities<Perms, E>,
+    facilities: CreditFacilities<Perms, E>,
     disbursals: Disbursals<Perms, E>,
     payments: Payments<Perms>,
     history_repo: HistoryRepo,
@@ -106,7 +108,6 @@ where
     activate_credit_facility: ActivateCreditFacility<Perms, E>,
     obligations: Obligations<Perms, E>,
     collaterals: Collaterals<Perms, E>,
-    custody: CoreCustody<Perms, E>,
     chart_of_accounts_integrations: ChartOfAccountsIntegrations<Perms>,
     terms_templates: TermsTemplates<Perms>,
     public_ids: PublicIds,
@@ -123,11 +124,11 @@ where
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            facilities: self.facilities.clone(),
+            proposals: self.proposals.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
+            facilities: self.facilities.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
-            custody: self.custody.clone(),
             disbursals: self.disbursals.clone(),
             payments: self.payments.clone(),
             history_repo: self.history_repo.clone(),
@@ -181,15 +182,26 @@ where
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
         let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
-        let credit_facility_proposals = PendingCreditFacilities::init(
-            pool, authz, jobs, &ledger, price, &publisher, governance,
+        let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
+        let proposals =
+            CreditFacilityProposals::init(pool, authz, jobs, &publisher, governance).await?;
+        let pending_credit_facilities = PendingCreditFacilities::init(
+            pool,
+            custody,
+            &collaterals,
+            authz,
+            jobs,
+            &ledger,
+            price,
+            &publisher,
+            governance,
         )
         .await?;
         let credit_facilities = CreditFacilities::init(
             pool,
             authz,
             &obligations,
-            &credit_facility_proposals,
+            &pending_credit_facilities,
             &ledger,
             price,
             jobs,
@@ -198,7 +210,6 @@ where
             public_ids,
         )
         .await?;
-        let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
         let disbursals = Disbursals::init(
             pool,
             authz,
@@ -215,7 +226,8 @@ where
             ApproveDisbursal::new(&disbursals, &credit_facilities, jobs, governance, &ledger);
 
         let approve_proposal = ApproveCreditFacilityProposal::new(
-            &credit_facility_proposals,
+            &proposals,
+            &pending_credit_facilities,
             authz.audit(),
             governance,
         );
@@ -235,7 +247,7 @@ where
             collateralization_from_price_for_proposal::CreditFacilityProposalCollateralizationFromPriceInit::<
                 Perms,
                 E,
-            >::new(credit_facility_proposals.clone()),
+            >::new(pending_credit_facilities.clone()),
             collateralization_from_price_for_proposal::CreditFacilityProposalCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 _phantom: std::marker::PhantomData,
@@ -259,7 +271,7 @@ where
                 collateralization_from_events_for_proposal::CreditFacilityProposalCollateralizationFromEventsInit::<
                     Perms,
                     E,
-                >::new(outbox, &credit_facility_proposals),
+                >::new(outbox, &pending_credit_facilities),
                 collateralization_from_events_for_proposal::CreditFacilityProposalCollateralizationFromEventsJobConfig {
                     _phantom: std::marker::PhantomData,
                 },
@@ -356,11 +368,11 @@ where
         Ok(Self {
             authz: authz.clone(),
             customer: customer.clone(),
+            proposals,
+            pending_credit_facilities,
             facilities: credit_facilities,
-            pending_credit_facilities: credit_facility_proposals,
             obligations,
             collaterals,
-            custody: custody.clone(),
             disbursals,
             payments,
             history_repo,
@@ -391,12 +403,16 @@ where
         &self.disbursals
     }
 
-    pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
-        &self.facilities
+    pub fn proposals(&self) -> &CreditFacilityProposals<Perms, E> {
+        &self.proposals
     }
 
-    pub fn credit_facility_proposals(&self) -> &PendingCreditFacilities<Perms, E> {
+    pub fn pending_credit_facilities(&self) -> &PendingCreditFacilities<Perms, E> {
         &self.pending_credit_facilities
+    }
+
+    pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
+        &self.facilities
     }
 
     pub fn payments(&self) -> &Payments<Perms> {
@@ -458,7 +474,7 @@ where
         amount: UsdCents,
         terms: TermValues,
         custodian_id: Option<impl Into<CustodianId> + std::fmt::Debug + Copy>,
-    ) -> Result<PendingCreditFacility, CoreCreditError> {
+    ) -> Result<CreditFacilityProposal, CoreCreditError> {
         self.subject_can_create(sub, true)
             .await?
             .expect("audit info missing");
@@ -468,63 +484,24 @@ where
             return Err(CoreCreditError::CustomerNotVerified);
         }
 
-        let proposal_id = CreditFacilityProposalId::new();
-        let account_ids = CreditFacilityProposalAccountIds::new();
-        let collateral_id = CollateralId::new();
+        let proposal_id = CreditFacilityId::new();
 
         let mut db = self.pending_credit_facilities.begin_op().await?;
 
-        let wallet_id = if let Some(custodian_id) = custodian_id {
-            let custodian_id = custodian_id.into();
-
-            #[cfg(feature = "mock-custodian")]
-            if custodian_id.is_mock_custodian() {
-                self.custody
-                    .ensure_mock_custodian_in_op(&mut db, sub)
-                    .await?;
-            }
-
-            let wallet = self
-                .custody
-                .create_wallet_in_op(&mut db, custodian_id, &format!("CF {proposal_id}"))
-                .await?;
-
-            Some(wallet.id)
-        } else {
-            None
-        };
-
-        let new_facility_proposal = NewPendingCreditFacility::builder()
+        let new_facility_proposal = NewCreditFacilityProposal::builder()
             .id(proposal_id)
-            .ledger_tx_id(LedgerTxId::new())
-            .approval_process_id(proposal_id)
-            .collateral_id(collateral_id)
             .customer_id(customer_id)
             .customer_type(customer.customer_type)
+            .approval_process_id(proposal_id)
+            .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .terms(terms)
             .amount(amount)
-            .account_ids(account_ids)
-            .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .build()
             .expect("could not build new credit facility");
 
-        self.collaterals
-            .create_in_op(
-                &mut db,
-                collateral_id,
-                proposal_id,
-                wallet_id,
-                account_ids.collateral_account_id,
-            )
-            .await?;
-
         let credit_facility_proposal = self
-            .pending_credit_facilities
+            .proposals
             .create_in_op(&mut db, new_facility_proposal)
-            .await?;
-
-        self.ledger
-            .handle_facility_proposal_create(db, &credit_facility_proposal)
             .await?;
 
         Ok(credit_facility_proposal)
@@ -673,7 +650,8 @@ where
         &self,
         proposal: &PendingCreditFacility,
     ) -> Result<Option<PendingCreditFacility>, CoreCreditError> {
-        self.approve_proposal.execute_from_svc(proposal).await
+        unimplemented!();
+        // self.approve_proposal.execute_from_svc(proposal).await
     }
 
     pub async fn subject_can_update_collateral(
@@ -696,7 +674,7 @@ where
     pub async fn update_proposal_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_proposal_id: impl Into<CreditFacilityProposalId> + std::fmt::Debug + Copy,
+        credit_facility_proposal_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<PendingCreditFacility, CoreCreditError> {
@@ -708,7 +686,7 @@ where
             .expect("audit info missing");
 
         let credit_facility_proposal = self
-            .credit_facility_proposals()
+            .pending_credit_facilities()
             .find_by_id_without_audit(credit_facility_proposal_id)
             .await?;
 

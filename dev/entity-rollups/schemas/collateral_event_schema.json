@@ -25,10 +25,6 @@
           "format": "uuid",
           "type": "string"
         },
-        "credit_facility_proposal_id": {
-          "format": "uuid",
-          "type": "string"
-        },
         "custody_wallet_id": {
           "format": "uuid",
           "type": [
@@ -37,6 +33,10 @@
           ]
         },
         "id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "pending_credit_facility_id": {
           "format": "uuid",
           "type": "string"
         },
@@ -50,7 +50,7 @@
         "id",
         "account_id",
         "credit_facility_id",
-        "credit_facility_proposal_id"
+        "pending_credit_facility_id"
       ],
       "type": "object"
     },

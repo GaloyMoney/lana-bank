@@ -4,6 +4,9 @@ use crate::{
     EffectiveDate,
     collateral::{Collateral, CollateralEvent, error::CollateralError},
     credit_facility::{CreditFacility, CreditFacilityEvent, error::CreditFacilityError},
+    credit_facility_proposal::{
+        CreditFacilityProposal, CreditFacilityProposalEvent, error::CreditFacilityProposalError,
+    },
     disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
     interest_accrual_cycle::{
@@ -15,9 +18,6 @@ use crate::{
     obligation::{Obligation, ObligationEvent, error::ObligationError},
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
-    },
-    pending_credit_facility::{
-        PendingCreditFacility, PendingCreditFacilityEvent, error::PendingCreditFacilityError,
     },
 };
 
@@ -100,10 +100,10 @@ where
     pub async fn publish_proposal(
         &self,
         op: &mut impl es_entity::AtomicOperation,
-        entity: &PendingCreditFacility,
-        new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
-    ) -> Result<(), PendingCreditFacilityError> {
-        use PendingCreditFacilityEvent::*;
+        entity: &CreditFacilityProposal,
+        new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
+    ) -> Result<(), CreditFacilityProposalError> {
+        use CreditFacilityProposalEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
                 Initialized { amount, terms, .. } => {
@@ -155,7 +155,7 @@ where
                     effective: event.recorded_at.date_naive(),
                     new_amount: entity.amount,
                     credit_facility_id: entity.credit_facility_id,
-                    credit_facility_proposal_id: entity.credit_facility_proposal_id,
+                    pending_credit_facility_id: entity.pending_credit_facility_id,
                 }),
                 _ => None,
             })

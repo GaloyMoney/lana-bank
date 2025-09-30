@@ -23,7 +23,7 @@ use super::error::CreditFacilityError;
 pub enum CreditFacilityEvent {
     Initialized {
         id: CreditFacilityId,
-        pending_credit_facility_id: CreditFacilityProposalId,
+        pending_credit_facility_id: PendingCreditFacilityId,
         customer_id: CustomerId,
         customer_type: CustomerType,
         collateral_id: CollateralId,
@@ -152,7 +152,7 @@ impl From<(InterestAccrualCycleData, CreditFacilityLedgerAccountIds)>
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct CreditFacility {
     pub id: CreditFacilityId,
-    pub pending_credit_facility_id: CreditFacilityProposalId,
+    pub pending_credit_facility_id: PendingCreditFacilityId,
     pub customer_id: CustomerId,
     pub collateral_id: CollateralId,
     pub amount: UsdCents,
@@ -570,7 +570,7 @@ pub struct NewCreditFacility {
     #[builder(setter(into))]
     pub(super) id: CreditFacilityId,
     #[builder(setter(into))]
-    pub(super) pending_credit_facility_id: CreditFacilityProposalId,
+    pub(super) pending_credit_facility_id: PendingCreditFacilityId,
     #[builder(setter(into))]
     pub(super) ledger_tx_id: LedgerTxId,
     #[builder(setter(into))]

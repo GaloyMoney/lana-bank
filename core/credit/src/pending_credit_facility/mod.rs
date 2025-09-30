@@ -4,13 +4,18 @@ mod repo;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_custody::{
+    CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
+};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::OutboxEventMarker;
 use tracing::instrument;
 
-use crate::{event::CoreCreditEvent, ledger::CreditLedger, primitives::*};
+use crate::{
+    Collaterals, CreditFacilityProposal, event::CoreCreditEvent, ledger::*, primitives::*,
+};
 
 pub use entity::{NewPendingCreditFacility, PendingCreditFacility, PendingCreditFacilityEvent};
 use error::*;
@@ -25,9 +30,13 @@ pub enum CreditFacilityProposalCompletionOutcome {
 pub struct PendingCreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: PendingCreditFacilityRepo<E>,
+    custody: CoreCustody<Perms, E>,
+    collaterals: Collaterals<Perms, E>,
     authz: Perms,
     jobs: Jobs,
     price: Price,
@@ -37,11 +46,15 @@ where
 impl<Perms, E> Clone for PendingCreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            custody: self.custody.clone(),
+            collaterals: self.collaterals.clone(),
             authz: self.authz.clone(),
             jobs: self.jobs.clone(),
             price: self.price.clone(),
@@ -55,13 +68,17 @@ impl<Perms, E> PendingCreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
+        custody: &CoreCustody<Perms, E>,
+        collaterals: &Collaterals<Perms, E>,
         authz: &Perms,
         jobs: &Jobs,
         ledger: &CreditLedger,
@@ -83,6 +100,8 @@ where
 
         Ok(Self {
             repo,
+            custody: custody.clone(),
+            collaterals: collaterals.clone(),
             ledger: ledger.clone(),
             jobs: jobs.clone(),
             authz: authz.clone(),
@@ -95,53 +114,66 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[instrument(
-        name = "credit.credit_facility_proposals.create_in_op",
-        skip(self, db, new_proposal)
-    )]
-    pub(super) async fn create_in_op(
+    pub async fn create_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
-        new_proposal: NewPendingCreditFacility,
-    ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
-        self.governance
-            .start_process(
-                db,
-                new_proposal.id,
-                new_proposal.id.to_string(),
-                crate::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS,
+        mut db: es_entity::DbOp<'_>,
+        proposal: &CreditFacilityProposal,
+    ) -> Result<(), PendingCreditFacilityError> {
+        let account_ids = CreditFacilityProposalAccountIds::new();
+        let collateral_id = CollateralId::new();
+        let id = proposal.id;
+
+        let wallet_id = if let Some(custodian_id) = proposal.custodian_id {
+            let custodian_id: CustodianId = custodian_id;
+
+            #[cfg(feature = "mock-custodian")]
+            if custodian_id.is_mock_custodian() {
+                self.custody.ensure_mock_custodian_in_op(&mut db).await?;
+            }
+
+            let wallet = self
+                .custody
+                .create_wallet_in_op(&mut db, custodian_id, &format!("CF {id}"))
+                .await?;
+
+            Some(wallet.id)
+        } else {
+            None
+        };
+
+        let new_pending_facility = NewPendingCreditFacility::builder()
+            .id(id)
+            .customer_id(proposal.customer_id)
+            .customer_type(proposal.customer_type)
+            .ledger_tx_id(LedgerTxId::new())
+            .account_ids(account_ids)
+            .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
+            .collateral_id(collateral_id)
+            .terms(proposal.terms)
+            .amount(proposal.amount)
+            .build()
+            .expect("could not build new pending credit facility");
+
+        self.collaterals
+            .create_in_op(
+                &mut db,
+                collateral_id,
+                id.into(),
+                wallet_id,
+                account_ids.collateral_account_id,
             )
             .await?;
-        self.repo.create_in_op(db, new_proposal).await
-    }
 
-    #[instrument(name = "credit.credit_facility_proposals.approve", skip(self))]
-    pub(super) async fn approve(
-        &self,
-        id: CreditFacilityProposalId,
-        approved: bool,
-    ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
-        let mut facility_proposal = self.repo.find_by_id(id).await?;
-
-        if facility_proposal.is_approval_process_concluded() {
-            return Ok(facility_proposal);
-        }
-
-        let mut op = self.repo.begin_op().await?;
-
-        if facility_proposal
-            .approval_process_concluded(approved)
-            .was_ignored()
-        {
-            return Ok(facility_proposal);
-        }
-
-        self.repo
-            .update_in_op(&mut op, &mut facility_proposal)
+        let pending_credit_facility = self
+            .repo
+            .create_in_op(&mut db, new_pending_facility)
             .await?;
-        op.commit().await?;
 
-        Ok(facility_proposal)
+        self.ledger
+            .handle_facility_proposal_create(db, &pending_credit_facility)
+            .await?;
+
+        Ok(())
     }
 
     #[instrument(
@@ -151,7 +183,7 @@ where
     pub(crate) async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
-        id: CreditFacilityProposalId,
+        id: PendingCreditFacilityId,
     ) -> Result<CreditFacilityProposalCompletionOutcome, PendingCreditFacilityError> {
         let mut proposal = self.repo.find_by_id(id).await?;
 
@@ -174,7 +206,7 @@ where
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
     pub(super) async fn update_collateralization_from_events(
         &self,
-        id: CreditFacilityProposalId,
+        id: PendingCreditFacilityId,
     ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
         let mut op = self.repo.begin_op().await?;
         let mut facility_proposal = self.repo.find_by_id_in_op(&mut op, id).await?;
@@ -292,15 +324,15 @@ where
     #[instrument(name = "credit.credit_facility_proposals.find_all", skip(self, ids))]
     pub async fn find_all<T: From<PendingCreditFacility>>(
         &self,
-        ids: &[CreditFacilityProposalId],
-    ) -> Result<std::collections::HashMap<CreditFacilityProposalId, T>, PendingCreditFacilityError>
+        ids: &[PendingCreditFacilityId],
+    ) -> Result<std::collections::HashMap<PendingCreditFacilityId, T>, PendingCreditFacilityError>
     {
         self.repo.find_all(ids).await
     }
 
     pub(crate) async fn find_by_id_without_audit(
         &self,
-        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug,
     ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
         self.repo.find_by_id(id.into()).await
     }
@@ -309,7 +341,7 @@ where
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug,
     ) -> Result<Option<PendingCreditFacility>, PendingCreditFacilityError> {
         let id = id.into();
         self.authz
@@ -330,7 +362,7 @@ where
     pub async fn collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug,
     ) -> Result<Satoshis, PendingCreditFacilityError> {
         let id = id.into();
         self.authz
@@ -341,11 +373,13 @@ where
             )
             .await?;
 
-        let credit_facility_proposal = self.repo.find_by_id(id).await?;
+        let pending_credit_facility = self.repo.find_by_id(id).await?;
 
         let collateral = self
             .ledger
-            .get_proposal_collateral(credit_facility_proposal.account_ids.collateral_account_id)
+            .get_collateral_for_pending_facility(
+                pending_credit_facility.account_ids.collateral_account_id,
+            )
             .await?;
 
         Ok(collateral)

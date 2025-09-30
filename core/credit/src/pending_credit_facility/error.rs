@@ -20,6 +20,10 @@ pub enum PendingCreditFacilityError {
     BelowMarginLimit,
     #[error("PendingCreditFacilityError - AuthorizationError: {0}")]
     AuthorizationError(#[from] authz::error::AuthorizationError),
+    #[error("PendingCreditFacilityError - CoreCustodyError: {0}")]
+    CoreCustodyError(#[from] core_custody::error::CoreCustodyError),
+    #[error("PendingCreditFacilityError - CollateralError: {0}")]
+    CollateralError(#[from] crate::collateral::error::CollateralError),
 }
 
 es_entity::from_es_entity_error!(PendingCreditFacilityError);

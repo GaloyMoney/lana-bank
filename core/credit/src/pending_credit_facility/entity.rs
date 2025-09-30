@@ -20,11 +20,12 @@ use super::error::PendingCreditFacilityError;
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
-#[es_event(id = "CreditFacilityProposalId")]
+#[es_event(id = "PendingCreditFacilityId")]
 pub enum PendingCreditFacilityEvent {
     Initialized {
-        id: CreditFacilityProposalId,
+        id: PendingCreditFacilityId,
         ledger_tx_id: LedgerTxId,
+        approval_process_id: ApprovalProcessId,
         customer_id: CustomerId,
         customer_type: CustomerType,
         collateral_id: CollateralId,
@@ -32,11 +33,6 @@ pub enum PendingCreditFacilityEvent {
         amount: UsdCents,
         account_ids: CreditFacilityProposalAccountIds,
         disbursal_credit_account_id: CalaAccountId,
-        approval_process_id: ApprovalProcessId,
-    },
-    ApprovalProcessConcluded {
-        approval_process_id: ApprovalProcessId,
-        approved: bool,
     },
     CollateralizationStateChanged {
         collateralization_state: PendingCreditFacilityCollateralizationState,
@@ -52,7 +48,7 @@ pub enum PendingCreditFacilityEvent {
 #[derive(EsEntity, Builder)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct PendingCreditFacility {
-    pub id: CreditFacilityProposalId,
+    pub id: PendingCreditFacilityId,
     pub ledger_tx_id: LedgerTxId,
     pub approval_process_id: ApprovalProcessId,
     pub account_ids: CreditFacilityProposalAccountIds,
@@ -98,8 +94,6 @@ impl PendingCreditFacility {
             PendingCreditFacilityCollateralizationState::FullyCollateralized
         ) {
             CreditFacilityProposalStatus::PendingCollateralization
-        } else if !self.is_approval_process_concluded() {
-            CreditFacilityProposalStatus::PendingApproval
         } else {
             CreditFacilityProposalStatus::PendingCompletion
         }
@@ -185,28 +179,6 @@ impl PendingCreditFacility {
             .unwrap_or(PendingCreditFacilityCollateralizationState::UnderCollateralized)
     }
 
-    pub(crate) fn is_approval_process_concluded(&self) -> bool {
-        self.events.iter_all().any(|event| {
-            matches!(
-                event,
-                PendingCreditFacilityEvent::ApprovalProcessConcluded { .. }
-            )
-        })
-    }
-
-    pub(crate) fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
-        idempotency_guard!(
-            self.events.iter_all(),
-            PendingCreditFacilityEvent::ApprovalProcessConcluded { .. }
-        );
-        self.events
-            .push(PendingCreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: self.id.into(),
-                approved,
-            });
-        Idempotent::Executed(())
-    }
-
     pub(super) fn complete(
         &mut self,
         balances: CreditFacilityProposalBalanceSummary,
@@ -216,10 +188,6 @@ impl PendingCreditFacility {
             self.events.iter_all(),
             PendingCreditFacilityEvent::Completed { .. }
         );
-
-        if !self.is_approval_process_concluded() {
-            return Err(PendingCreditFacilityError::ApprovalInProgress);
-        }
 
         if !self.terms.is_proposal_completion_allowed(balances, price) {
             return Err(PendingCreditFacilityError::BelowMarginLimit);
@@ -247,11 +215,11 @@ impl TryFromEvents<PendingCreditFacilityEvent> for PendingCreditFacility {
                 PendingCreditFacilityEvent::Initialized {
                     id,
                     ledger_tx_id,
+                    approval_process_id,
                     customer_id,
                     customer_type,
                     collateral_id,
                     amount,
-                    approval_process_id,
                     account_ids,
                     disbursal_credit_account_id,
                     terms,
@@ -259,6 +227,7 @@ impl TryFromEvents<PendingCreditFacilityEvent> for PendingCreditFacility {
                 } => {
                     builder = builder
                         .id(*id)
+                        .approval_process_id(*approval_process_id)
                         .customer_id(*customer_id)
                         .customer_type(*customer_type)
                         .ledger_tx_id(*ledger_tx_id)
@@ -267,9 +236,7 @@ impl TryFromEvents<PendingCreditFacilityEvent> for PendingCreditFacility {
                         .terms(*terms)
                         .account_ids(*account_ids)
                         .disbursal_credit_account_id(*disbursal_credit_account_id)
-                        .approval_process_id(*approval_process_id);
                 }
-                PendingCreditFacilityEvent::ApprovalProcessConcluded { .. } => {}
                 PendingCreditFacilityEvent::CollateralizationStateChanged { .. } => {}
                 PendingCreditFacilityEvent::CollateralizationRatioChanged { .. } => {}
                 PendingCreditFacilityEvent::Completed { .. } => {}
@@ -282,7 +249,7 @@ impl TryFromEvents<PendingCreditFacilityEvent> for PendingCreditFacility {
 #[derive(Debug, Builder)]
 pub struct NewPendingCreditFacility {
     #[builder(setter(into))]
-    pub(super) id: CreditFacilityProposalId,
+    pub(super) id: PendingCreditFacilityId,
     #[builder(setter(into))]
     pub(super) ledger_tx_id: LedgerTxId,
     #[builder(setter(into))]
@@ -313,6 +280,7 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
             [PendingCreditFacilityEvent::Initialized {
                 id: self.id,
                 ledger_tx_id: self.ledger_tx_id,
+                approval_process_id: self.approval_process_id,
                 customer_id: self.customer_id,
                 customer_type: self.customer_type,
                 collateral_id: self.collateral_id,
@@ -320,7 +288,6 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
                 amount: self.amount,
                 account_ids: self.account_ids,
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
-                approval_process_id: self.approval_process_id,
             }],
         )
     }
@@ -367,8 +334,9 @@ mod test {
 
     fn initial_events() -> Vec<PendingCreditFacilityEvent> {
         vec![PendingCreditFacilityEvent::Initialized {
-            id: CreditFacilityProposalId::new(),
+            id: PendingCreditFacilityId::new(),
             ledger_tx_id: LedgerTxId::new(),
+            approval_process_id: ApprovalProcessId::new(),
             customer_id: CustomerId::new(),
             customer_type: CustomerType::Individual,
             collateral_id: CollateralId::new(),
@@ -376,13 +344,12 @@ mod test {
             terms: default_terms(),
             account_ids: CreditFacilityProposalAccountIds::new(),
             disbursal_credit_account_id: CalaAccountId::new(),
-            approval_process_id: ApprovalProcessId::new(),
         }]
     }
 
     fn proposal_from(events: Vec<PendingCreditFacilityEvent>) -> PendingCreditFacility {
         PendingCreditFacility::try_from_events(EntityEvents::init(
-            CreditFacilityProposalId::new(),
+            PendingCreditFacilityId::new(),
             events,
         ))
         .unwrap()
@@ -390,22 +357,10 @@ mod test {
 
     mod complete {
         use super::*;
-        #[test]
-        fn errors_when_not_approved_yet() {
-            let mut facility_proposal = proposal_from(initial_events());
-            assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price()),
-                Err(PendingCreditFacilityError::ApprovalInProgress)
-            ));
-        }
 
         #[test]
         fn errors_if_no_collateral() {
-            let mut events = initial_events();
-            events.extend([PendingCreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-            }]);
+            let events = initial_events();
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
@@ -416,11 +371,7 @@ mod test {
 
         #[test]
         fn errors_if_collateral_below_margin() {
-            let mut events = initial_events();
-            events.extend([PendingCreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-            }]);
+            let events = initial_events();
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
@@ -438,13 +389,7 @@ mod test {
         #[test]
         fn ignored_if_already_completed() {
             let mut events = initial_events();
-            events.extend([
-                PendingCreditFacilityEvent::ApprovalProcessConcluded {
-                    approval_process_id: ApprovalProcessId::new(),
-                    approved: true,
-                },
-                PendingCreditFacilityEvent::Completed {},
-            ]);
+            events.extend([PendingCreditFacilityEvent::Completed {}]);
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
@@ -455,11 +400,7 @@ mod test {
 
         #[test]
         fn can_activate() {
-            let mut events = initial_events();
-            events.extend([PendingCreditFacilityEvent::ApprovalProcessConcluded {
-                approval_process_id: ApprovalProcessId::new(),
-                approved: true,
-            }]);
+            let events = initial_events();
             let mut facility_proposal = proposal_from(events);
 
             assert!(
