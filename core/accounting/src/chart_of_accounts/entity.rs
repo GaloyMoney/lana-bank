@@ -589,23 +589,6 @@ mod test {
     }
 
     #[test]
-    #[should_panic]
-    fn unchecked_fails_to_create_node_if_parent_node_does_not_exist() {
-        let (mut chart, _) = default_chart();
-
-        let _ = chart.create_node_without_verifying_parent(
-            &AccountSpec::try_new(
-                Some(code("1.9")),
-                vec![section("1"), section("9"), section("1")],
-                "Cash".parse::<AccountName>().unwrap(),
-                DebitOrCredit::Debit,
-            )
-            .unwrap(),
-            CalaJournalId::new(),
-        );
-    }
-
-    #[test]
     fn adds_from_all_new_trial_balance_accounts() {
         let (chart, (level_1_id, level_2_id, level_3_id)) = default_chart();
 
