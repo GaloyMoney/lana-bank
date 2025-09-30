@@ -39,3 +39,5 @@ select * except (order_received_desc)
 from ordered
 
 where order_received_desc = 1
+
+qualify _sdc_batched_at = max(_sdc_batched_at) over ()

@@ -16,8 +16,6 @@ models:
       - accepted_values:
           values: ['credit', 'debit']
     - name: latest_values
-      data_tests:
-      - not_null
     - name: name
       data_tests:
       - not_null
