@@ -293,21 +293,21 @@ impl Query {
         )
     }
 
-    async fn credit_facility_proposal(
+    async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,
         id: UUID,
-    ) -> async_graphql::Result<Option<CreditFacilityProposal>> {
+    ) -> async_graphql::Result<Option<PendingCreditFacility>> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
 
         maybe_fetch_one!(
-            CreditFacilityProposal,
+            PendingCreditFacility,
             ctx,
-            app.credit().credit_facility_proposals().find_by_id(sub, id)
+            app.credit().pending_credit_facilities().find_by_id(sub, id)
         )
     }
 
-    async fn credit_facility_proposals(
+    async fn pending_credit_facilities(
         &self,
         ctx: &Context<'_>,
         first: i32,
@@ -315,7 +315,7 @@ impl Query {
     ) -> async_graphql::Result<
         Connection<
             PendingCreditFacilitiesByCreatedAtCursor,
-            CreditFacilityProposal,
+            PendingCreditFacility,
             EmptyFields,
             EmptyFields,
         >,
@@ -323,11 +323,11 @@ impl Query {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         list_with_cursor!(
             PendingCreditFacilitiesByCreatedAtCursor,
-            CreditFacilityProposal,
+            PendingCreditFacility,
             ctx,
             after,
             first,
-            |query| app.credit().credit_facility_proposals().list(sub, query)
+            |query| app.credit().pending_credit_facilities().list(sub, query)
         )
     }
 
@@ -1675,21 +1675,21 @@ impl Mutation {
     pub async fn credit_facility_proposal_collateral_update(
         &self,
         ctx: &Context<'_>,
-        input: CreditFacilityProposalCollateralUpdateInput,
-    ) -> async_graphql::Result<CreditFacilityProposalCollateralUpdatePayload> {
+        input: PendingCreditFacilityCollateralUpdateInput,
+    ) -> async_graphql::Result<PendingCreditFacilityCollateralUpdatePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        let CreditFacilityProposalCollateralUpdateInput {
-            credit_facility_proposal_id,
+        let PendingCreditFacilityCollateralUpdateInput {
+            pending_credit_facility_id,
             collateral,
             effective,
         } = input;
         exec_mutation!(
-            CreditFacilityProposalCollateralUpdatePayload,
-            CreditFacilityProposal,
+            PendingCreditFacilityCollateralUpdatePayload,
+            PendingCreditFacility,
             ctx,
             app.credit().update_proposal_collateral(
                 sub,
-                credit_facility_proposal_id,
+                pending_credit_facility_id,
                 collateral,
                 effective
             )

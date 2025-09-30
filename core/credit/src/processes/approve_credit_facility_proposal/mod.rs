@@ -11,9 +11,12 @@ use governance::{
 use outbox::OutboxEventMarker;
 
 use crate::{
-    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityProposalId,
-    PendingCreditFacilities, PendingCreditFacility, error::CoreCreditError,
+    CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityProposal,
+    CreditFacilityProposalId, CreditFacilityProposals, PendingCreditFacilities,
+    error::CoreCreditError,
 };
+
+use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 pub use job::*;
 pub const APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS: ApprovalProcessType =
@@ -22,9 +25,12 @@ pub const APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS: ApprovalProcessType =
 pub struct ApproveCreditFacilityProposal<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
-    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
+    proposals: CreditFacilityProposals<Perms, E>,
+    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
     audit: Perms::Audit,
     governance: Governance<Perms, E>,
 }
@@ -32,11 +38,14 @@ where
 impl<Perms, E> Clone for ApproveCreditFacilityProposal<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn clone(&self) -> Self {
         Self {
-            credit_facility_proposals: self.credit_facility_proposals.clone(),
+            proposals: self.proposals.clone(),
+            pending_credit_facilities: self.pending_credit_facilities.clone(),
             audit: self.audit.clone(),
             governance: self.governance.clone(),
         }
@@ -47,18 +56,22 @@ impl<Perms, E> ApproveCreditFacilityProposal<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
-        repo: &PendingCreditFacilities<Perms, E>,
+        proposals: &CreditFacilityProposals<Perms, E>,
+        pending_credit_facilities: &PendingCreditFacilities<Perms, E>,
         audit: &Perms::Audit,
         governance: &Governance<Perms, E>,
     ) -> Self {
         Self {
-            credit_facility_proposals: repo.clone(),
+            proposals: proposals.clone(),
+            pending_credit_facilities: pending_credit_facilities.clone(),
             audit: audit.clone(),
             governance: governance.clone(),
         }
@@ -66,8 +79,8 @@ where
 
     pub async fn execute_from_svc(
         &self,
-        credit_facility_proposal: &PendingCreditFacility,
-    ) -> Result<Option<PendingCreditFacility>, CoreCreditError> {
+        credit_facility_proposal: &CreditFacilityProposal,
+    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
         if credit_facility_proposal.is_approval_process_concluded() {
             return Ok(None);
         }
@@ -97,11 +110,18 @@ where
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityProposalId>,
         approved: bool,
-    ) -> Result<PendingCreditFacility, CoreCreditError> {
-        let credit_facility = self
-            .credit_facility_proposals
-            .approve(id.into(), approved)
-            .await?;
-        Ok(credit_facility)
+    ) -> Result<CreditFacilityProposal, CoreCreditError> {
+        let mut db = self.proposals.begin_op().await?;
+        let proposal = self.proposals.approve(&mut db, id.into(), approved).await?;
+
+        if approved {
+            self.pending_credit_facilities
+                .create_in_op(db, &proposal)
+                .await?;
+        } else {
+            db.commit().await?;
+        }
+
+        Ok(proposal)
     }
 }

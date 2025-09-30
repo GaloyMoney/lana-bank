@@ -9,16 +9,14 @@ use super::{entity::*, error::CreditFacilityProposalError};
 
 #[derive(EsRepo)]
 #[es_repo(
-    id = "CreditFacilityId",
     entity = "CreditFacilityProposal",
     err = "CreditFacilityProposalError",
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
-        collateral_id(ty = "CollateralId", update(persist = false)),
     ),
     tbl_prefix = "core",
-    // post_persist_hook = "publish"
+    post_persist_hook = "publish"
 )]
 pub struct CreditFacilityProposalRepo<E>
 where
@@ -51,14 +49,14 @@ where
         }
     }
 
-    // async fn publish(
-    //     &self,
-    //     op: &mut impl es_entity::AtomicOperation,
-    //     entity: &CreditFacilityProposal,
-    //     new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
-    // ) -> Result<(), CreditFacilityProposalError> {
-    //     self.publisher
-    //         .publish_proposal(op, entity, new_events)
-    //         .await
-    // }
+    async fn publish(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        entity: &CreditFacilityProposal,
+        new_events: es_entity::LastPersisted<'_, CreditFacilityProposalEvent>,
+    ) -> Result<(), CreditFacilityProposalError> {
+        self.publisher
+            .publish_proposal(op, entity, new_events)
+            .await
+    }
 }

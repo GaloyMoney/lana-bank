@@ -23,6 +23,8 @@ use crate::{
     terms::InterestPeriod,
 };
 
+use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+
 pub use entity::CreditFacility;
 pub(crate) use entity::*;
 
@@ -37,11 +39,13 @@ pub use repo::{
 pub struct CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: CreditFacilityRepo<E>,
     obligations: Obligations<Perms, E>,
-    proposals: PendingCreditFacilities<Perms, E>,
+    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
     authz: Perms,
     ledger: CreditLedger,
     price: Price,
@@ -53,13 +57,15 @@ where
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
             obligations: self.obligations.clone(),
-            proposals: self.proposals.clone(),
+            pending_credit_facilities: self.pending_credit_facilities.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
@@ -97,10 +103,12 @@ impl<Perms, E> CreditFacilities<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub async fn init(
         pool: &sqlx::PgPool,
@@ -119,7 +127,7 @@ where
         Ok(Self {
             repo,
             obligations: obligations.clone(),
-            proposals: proposals.clone(),
+            pending_credit_facilities: proposals.clone(),
             authz: authz.clone(),
             ledger: ledger.clone(),
             price: price.clone(),
@@ -148,7 +156,11 @@ where
             )
             .await?;
 
-        let proposal = match self.proposals.complete_in_op(db, id.into()).await? {
+        let pending_credit_facility = match self
+            .pending_credit_facilities
+            .complete_in_op(db, id.into())
+            .await?
+        {
             CreditFacilityProposalCompletionOutcome::Completed(proposal) => proposal,
             CreditFacilityProposalCompletionOutcome::Ignored => {
                 return Ok(ActivationOutcome::Ignored);
@@ -162,19 +174,23 @@ where
 
         let new_credit_facility = NewCreditFacility::builder()
             .id(id)
-            .pending_credit_facility_id(proposal.id)
+            .pending_credit_facility_id(pending_credit_facility.id)
             .ledger_tx_id(LedgerTxId::new())
-            .customer_id(proposal.customer_id)
-            .customer_type(proposal.customer_type)
+            .customer_id(pending_credit_facility.customer_id)
+            .customer_type(pending_credit_facility.customer_type)
             .account_ids(crate::CreditFacilityLedgerAccountIds::from(
-                proposal.account_ids,
+                pending_credit_facility.account_ids,
             ))
-            .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
-            .collateral_id(proposal.collateral_id)
-            .terms(proposal.terms)
-            .amount(proposal.amount)
+            .disbursal_credit_account_id(pending_credit_facility.disbursal_credit_account_id)
+            .collateral_id(pending_credit_facility.collateral_id)
+            .terms(pending_credit_facility.terms)
+            .amount(pending_credit_facility.amount)
             .activated_at(crate::time::now())
-            .maturity_date(proposal.terms.maturity_date(crate::time::now()))
+            .maturity_date(
+                pending_credit_facility
+                    .terms
+                    .maturity_date(crate::time::now()),
+            )
             .public_id(public_id.id)
             .build()
             .expect("could not build new credit facility");

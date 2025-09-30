@@ -3,13 +3,15 @@ use authz::PermissionCheck;
 use es_entity::{PaginatedQueryArgs, PaginatedQueryRet};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 
+use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+
 use super::*;
 use crate::history::CreditFacilityHistoryEntry;
 
 pub struct CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     customer_id: CustomerId,
     subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -26,10 +28,10 @@ impl<'a, Perms, E> CreditFacilitiesForSubject<'a, Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub(super) fn new(
         subject: &'a <<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

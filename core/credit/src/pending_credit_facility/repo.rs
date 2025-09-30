@@ -9,7 +9,6 @@ use super::{entity::*, error::PendingCreditFacilityError};
 
 #[derive(EsRepo)]
 #[es_repo(
-    id = "CreditFacilityProposalId",
     entity = "PendingCreditFacility",
     err = "PendingCreditFacilityError",
     columns(
@@ -28,8 +27,7 @@ use super::{entity::*, error::PendingCreditFacilityError};
             update(accessor = "last_collateralization_state()")
         ),
     ),
-    tbl_prefix = "core",
-    post_persist_hook = "publish"
+    tbl_prefix = "core"
 )]
 pub struct PendingCreditFacilityRepo<E>
 where
@@ -60,17 +58,6 @@ where
             pool: pool.clone(),
             publisher: publisher.clone(),
         }
-    }
-
-    async fn publish(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        entity: &PendingCreditFacility,
-        new_events: es_entity::LastPersisted<'_, PendingCreditFacilityEvent>,
-    ) -> Result<(), PendingCreditFacilityError> {
-        self.publisher
-            .publish_proposal(op, entity, new_events)
-            .await
     }
 }
 

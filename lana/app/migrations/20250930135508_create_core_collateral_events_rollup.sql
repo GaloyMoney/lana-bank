@@ -10,8 +10,8 @@ CREATE TABLE core_collateral_events_rollup (
   action VARCHAR,
   collateral_amount BIGINT,
   credit_facility_id UUID,
-  credit_facility_proposal_id UUID,
   custody_wallet_id UUID,
+  pending_credit_facility_id UUID,
 
   -- Collection rollups
   ledger_tx_ids UUID[]
@@ -54,7 +54,6 @@ BEGIN
     new_row.action := (NEW.event ->> 'action');
     new_row.collateral_amount := (NEW.event ->> 'collateral_amount')::BIGINT;
     new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-    new_row.credit_facility_proposal_id := (NEW.event ->> 'credit_facility_proposal_id')::UUID;
     new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
@@ -62,6 +61,7 @@ BEGIN
        ELSE ARRAY[]::UUID[]
      END
 ;
+    new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
   ELSE
     -- Default all fields to current values
     new_row.abs_diff := current_row.abs_diff;
@@ -69,9 +69,9 @@ BEGIN
     new_row.action := current_row.action;
     new_row.collateral_amount := current_row.collateral_amount;
     new_row.credit_facility_id := current_row.credit_facility_id;
-    new_row.credit_facility_proposal_id := current_row.credit_facility_proposal_id;
     new_row.custody_wallet_id := current_row.custody_wallet_id;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
+    new_row.pending_credit_facility_id := current_row.pending_credit_facility_id;
   END IF;
 
   -- Update only the fields that are modified by the specific event
@@ -79,8 +79,8 @@ BEGIN
     WHEN 'initialized' THEN
       new_row.account_id := (NEW.event ->> 'account_id')::UUID;
       new_row.credit_facility_id := (NEW.event ->> 'credit_facility_id')::UUID;
-      new_row.credit_facility_proposal_id := (NEW.event ->> 'credit_facility_proposal_id')::UUID;
       new_row.custody_wallet_id := (NEW.event ->> 'custody_wallet_id')::UUID;
+      new_row.pending_credit_facility_id := (NEW.event ->> 'pending_credit_facility_id')::UUID;
     WHEN 'updated_via_manual_input' THEN
       new_row.abs_diff := (NEW.event ->> 'abs_diff')::BIGINT;
       new_row.action := (NEW.event ->> 'action');
@@ -103,9 +103,9 @@ BEGIN
     action,
     collateral_amount,
     credit_facility_id,
-    credit_facility_proposal_id,
     custody_wallet_id,
-    ledger_tx_ids
+    ledger_tx_ids,
+    pending_credit_facility_id
   )
   VALUES (
     new_row.id,
@@ -117,9 +117,9 @@ BEGIN
     new_row.action,
     new_row.collateral_amount,
     new_row.credit_facility_id,
-    new_row.credit_facility_proposal_id,
     new_row.custody_wallet_id,
-    new_row.ledger_tx_ids
+    new_row.ledger_tx_ids,
+    new_row.pending_credit_facility_id
   );
 
   RETURN NEW;
