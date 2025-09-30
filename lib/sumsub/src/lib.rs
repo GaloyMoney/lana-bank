@@ -152,6 +152,15 @@ impl SumsubClient {
             .await?;
 
         if response.status().is_success() {
+            tracing::info!(
+                tx_id = %tx_id,
+                tx_type = %tx_type,
+                direction = %direction,
+                amount = %amount,
+                currency = %currency_code,
+                customer_id = %external_user_id,
+                "Submitted finance transaction to Sumsub"
+            );
             Ok(())
         } else {
             let response_text = response.text().await?;

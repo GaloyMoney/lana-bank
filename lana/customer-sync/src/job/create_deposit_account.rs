@@ -208,14 +208,14 @@ where
         message.inject_trace_parent();
 
         // don't activate if we are syncing the customer status
-        let active = !(is_customer_create_event && self.config.customer_status_sync_active);
+        let start_as_active = !(is_customer_create_event && self.config.customer_status_sync_active);
 
         if self.config.auto_create_deposit_account {
             match self.deposit
                 .create_account(
                     &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
                     id,
-                    active,
+                    start_as_active,
                     customer_type,
                 )
                 .await

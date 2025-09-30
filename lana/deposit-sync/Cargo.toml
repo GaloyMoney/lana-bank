@@ -10,6 +10,7 @@ fail-on-warnings = []
 [dependencies]
 
 core-deposit = { workspace = true }
+core-customer = { workspace = true }
 core-money = { workspace = true }
 governance = { workspace = true }
 

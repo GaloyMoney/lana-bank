@@ -4,6 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers, KycLevel};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
@@ -55,10 +56,11 @@ impl<Perms, E> JobConfig for SumsubExportJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction>,
+        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
+        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -70,6 +72,7 @@ pub struct SumsubExportInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -77,12 +80,14 @@ where
     outbox: Outbox<E>,
     sumsub_client: SumsubClient,
     deposits: CoreDeposit<Perms, E>,
+    customers: Customers<Perms, E>,
 }
 
 impl<Perms, E> SumsubExportInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -91,11 +96,13 @@ where
         outbox: &Outbox<E>,
         sumsub_client: SumsubClient,
         deposits: &CoreDeposit<Perms, E>,
+        customers: &Customers<Perms, E>,
     ) -> Self {
         Self {
             outbox: outbox.clone(),
             sumsub_client,
             deposits: deposits.clone(),
+            customers: customers.clone(),
         }
     }
 }
@@ -104,10 +111,11 @@ impl<Perms, E> JobInitializer for SumsubExportInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction>,
+        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
+        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -124,6 +132,7 @@ where
             outbox: self.outbox.clone(),
             sumsub_client: self.sumsub_client.clone(),
             deposits: self.deposits.clone(),
+            customers: self.customers.clone(),
         }))
     }
 
@@ -144,6 +153,7 @@ pub struct SumsubExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -151,6 +161,7 @@ where
     outbox: Outbox<E>,
     sumsub_client: SumsubClient,
     deposits: CoreDeposit<Perms, E>,
+    customers: Customers<Perms, E>,
 }
 
 #[async_trait]
@@ -158,10 +169,11 @@ impl<Perms, E> JobRunner for SumsubExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<GovernanceAction>,
+        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<GovernanceObject>,
+        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
@@ -183,44 +195,72 @@ where
                     deposit_account_id,
                     amount,
                 })) => {
+                    message.inject_trace_parent();
                     let account = self
                         .deposits
                         .find_account_by_id_without_audit(*deposit_account_id)
                         .await?;
-                    message.inject_trace_parent();
-                    let amount_usd: f64 = amount.to_usd().try_into()?;
-                    self.sumsub_client
-                        .submit_finance_transaction(
-                            account.account_holder_id,
-                            id.to_string(),
-                            "Deposit",
-                            &SumsubTransactionDirection::In.to_string(),
-                            amount_usd,
-                            "USD",
-                        )
+                    let customer = self
+                        .customers
+                        .find_by_id_without_audit(account.account_holder_id)
                         .await?;
+
+                    if matches!(customer.level, KycLevel::Basic | KycLevel::Advanced) {
+                        let amount_usd: f64 = amount.to_usd().try_into()?;
+                        self.sumsub_client
+                            .submit_finance_transaction(
+                                account.account_holder_id,
+                                id.to_string(),
+                                "Deposit",
+                                &SumsubTransactionDirection::In.to_string(),
+                                amount_usd,
+                                "USD",
+                            )
+                            .await?;
+                    } else {
+                        tracing::warn!(
+                            deposit_id = %id,
+                            customer_id = %account.account_holder_id,
+                            kyc_level = ?customer.level,
+                            "Skipping sync for non verified customer deposit"
+                        );
+                    }
                 }
                 Some(LanaEvent::Deposit(CoreDepositEvent::WithdrawalConfirmed {
                     id,
                     deposit_account_id,
                     amount,
                 })) => {
+                    message.inject_trace_parent();
                     let account = self
                         .deposits
                         .find_account_by_id_without_audit(*deposit_account_id)
                         .await?;
-                    message.inject_trace_parent();
-                    let amount_usd: f64 = amount.to_usd().try_into()?;
-                    self.sumsub_client
-                        .submit_finance_transaction(
-                            account.account_holder_id,
-                            id.to_string(),
-                            "Withdrawal",
-                            &SumsubTransactionDirection::Out.to_string(),
-                            amount_usd,
-                            "USD",
-                        )
+                    let customer = self
+                        .customers
+                        .find_by_id_without_audit(account.account_holder_id)
                         .await?;
+
+                    if matches!(customer.level, KycLevel::Basic | KycLevel::Advanced) {
+                        let amount_usd: f64 = amount.to_usd().try_into()?;
+                        self.sumsub_client
+                            .submit_finance_transaction(
+                                account.account_holder_id,
+                                id.to_string(),
+                                "Withdrawal",
+                                &SumsubTransactionDirection::Out.to_string(),
+                                amount_usd,
+                                "USD",
+                            )
+                            .await?;
+                    } else {
+                        tracing::warn!(
+                            withdrawal_id = %id,
+                            customer_id = %account.account_holder_id,
+                            kyc_level = ?customer.level,
+                            "Skipping sync for non verified customer withdrawal"
+                        );
+                    }
                 }
                 _ => continue,
             }
