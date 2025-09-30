@@ -499,7 +499,7 @@ mod test {
             new_account_set: level_1_new_account_set,
             ..
         } = chart
-            .create_node(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     None,
                     vec![section("1")],
@@ -515,7 +515,7 @@ mod test {
             new_account_set: level_2_new_account_set,
             ..
         } = chart
-            .create_node(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     Some(code("1")),
                     vec![section("1"), section("1")],
@@ -531,7 +531,7 @@ mod test {
             new_account_set: level_3_new_account_set,
             ..
         } = chart
-            .create_node(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     Some(code("1.1")),
                     vec![section("1"), section("1"), section("1")],
@@ -593,7 +593,7 @@ mod test {
     fn unchecked_fails_to_create_node_if_parent_node_does_not_exist() {
         let (mut chart, _) = default_chart();
 
-        let _ = chart.create_node(
+        let _ = chart.create_node_without_verifying_parent(
             &AccountSpec::try_new(
                 Some(code("1.9")),
                 vec![section("1"), section("9"), section("1")],
@@ -628,7 +628,7 @@ mod test {
                 },
             ..
         } = chart
-            .create_node(
+            .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
                     None,
                     vec![section("5")],

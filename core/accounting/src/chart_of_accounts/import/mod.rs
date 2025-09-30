@@ -59,6 +59,8 @@ impl<'a> BulkAccountImport<'a> {
                         .entry(parent_code)
                         .or_default()
                         .push(node_id);
+                } else {
+                    new_connections.push((self.chart.account_set_id, new_account_set.id));
                 }
                 node_id_to_account_set_id.insert(node_id, new_account_set.id);
 
@@ -88,6 +90,7 @@ mod tests {
         chart_of_accounts::entity::ChartEvent,
         primitives::{ChartId, DebitOrCredit},
     };
+    use chrono::NaiveDate;
     use es_entity::{EntityEvents, TryFromEvents};
 
     fn chart_from(events: Vec<ChartEvent>) -> Chart {
@@ -97,8 +100,11 @@ mod tests {
     fn initial_events() -> Vec<ChartEvent> {
         vec![ChartEvent::Initialized {
             id: ChartId::new(),
+            account_set_id: CalaAccountSetId::new(),
             name: "Test Chart".to_string(),
             reference: "test-chart".to_string(),
+            first_period_opened_at: crate::time::now(),
+            first_period_opened_as_of: "2025-01-01".parse::<NaiveDate>().unwrap(),
         }]
     }
 
@@ -124,7 +130,7 @@ mod tests {
         let result = import.import(specs);
         assert_eq!(result.new_account_sets.len(), 2);
         assert_eq!(result.new_account_set_ids.len(), 2);
-        assert!(result.new_connections.is_empty());
+        assert_eq!(result.new_connections.len(), 2);
     }
 
     #[test]
@@ -168,6 +174,6 @@ mod tests {
         let result = import.import(specs);
         assert_eq!(result.new_account_sets.len(), 5);
         assert_eq!(result.new_account_set_ids.len(), 5);
-        assert_eq!(result.new_connections.len(), 3);
+        assert_eq!(result.new_connections.len(), 5);
     }
 }
