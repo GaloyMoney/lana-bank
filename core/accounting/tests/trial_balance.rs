@@ -69,16 +69,15 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .await?;
 
     let accounts = accounting
-        .list_account_children(
+        .list_all_account_children(
             &DummySubject,
             &chart_ref,
             trial_balance.id,
-            Default::default(),
             Utc::now().date_naive(),
             Some(Utc::now().date_naive()),
         )
         .await?;
-    assert_eq!(accounts.entities.len(), 0);
+    assert_eq!(accounts.len(), 0);
 
     accounting
         .trial_balances()
@@ -87,17 +86,16 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     let accounts = accounting
         .ledger_accounts()
-        .list_account_children(
+        .list_all_account_children(
             &DummySubject,
             &chart,
             trial_balance.id,
-            Default::default(),
             Utc::now().date_naive(),
             Some(Utc::now().date_naive()),
             false,
         )
         .await?;
-    assert_eq!(accounts.entities.len(), 1);
+    assert_eq!(accounts.len(), 1);
 
     Ok(())
 }

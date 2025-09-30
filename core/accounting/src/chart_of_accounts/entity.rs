@@ -1,3 +1,6 @@
+// coa accounts only have bank accounts or per customer too?
+// why 2 types of heirarchies? dot and no dot?
+// what are manual txn and leaf accounts
 use cala_ledger::{account::NewAccount, account_set::NewAccountSet};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
