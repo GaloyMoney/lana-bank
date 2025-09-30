@@ -237,6 +237,65 @@ where
         }
     }
 
+    #[instrument(
+        name = "core_accounting.ledger_account.list_all_account_children",
+        skip(self, chart),
+        err
+    )]
+    pub async fn list_all_account_children(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: &Chart,
+        id: cala_ledger::AccountSetId,
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+        filter_non_zero: bool,
+    ) -> Result<Vec<LedgerAccount>, LedgerAccountError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_ledger_accounts(),
+                CoreAccountingAction::LEDGER_ACCOUNT_LIST,
+            )
+            .await?;
+
+        let mut entities: Vec<LedgerAccount> = Vec::new();
+        let mut after: Option<LedgerAccountChildrenCursor> = None;
+        let page_size: usize = 100;
+
+        loop {
+            let res = self
+                .ledger
+                .list_children(
+                    id,
+                    es_entity::PaginatedQueryArgs {
+                        first: page_size,
+                        after,
+                    },
+                    from,
+                    until,
+                )
+                .await?;
+
+            for mut account in res.entities {
+                if filter_non_zero && !account.has_non_zero_activity() {
+                    continue;
+                }
+                self.populate_ancestors(chart, &mut account).await?;
+                self.populate_children(chart, &mut account).await?;
+                entities.push(account);
+            }
+
+            if !res.has_next_page {
+                break;
+            }
+
+            after = res.end_cursor;
+        }
+
+        Ok(entities)
+    }
+
     /// Pushes into `account`'s `ancestor_ids` ancestors from the chart of account. The ancestors
     /// are pushed in ascending order, the root of the chart of accounts is pushed last. `account`
     /// itself is not pushed.

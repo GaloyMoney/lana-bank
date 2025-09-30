@@ -1392,41 +1392,12 @@ type LedgerAccountBalanceRangeByCurrency {
 	btc: BtcLedgerAccountBalanceRange!
 }
 
-type LedgerAccountConnection {
-	"""
-	Information to aid in pagination.
-	"""
-	pageInfo: PageInfo!
-	"""
-	A list of edges.
-	"""
-	edges: [LedgerAccountEdge!]!
-	"""
-	A list of nodes.
-	"""
-	nodes: [LedgerAccount!]!
-}
-
 input LedgerAccountCsvCreateInput {
 	ledgerAccountId: UUID!
 }
 
 type LedgerAccountCsvCreatePayload {
 	accountingCsvDocument: AccountingCsvDocument!
-}
-
-"""
-An edge in a connection.
-"""
-type LedgerAccountEdge {
-	"""
-	The item at the end of the edge
-	"""
-	node: LedgerAccount!
-	"""
-	A cursor for use in pagination
-	"""
-	cursor: String!
 }
 
 union LedgerAccountEntity = DepositAccount | CreditFacility | Collateral
@@ -2103,7 +2074,7 @@ type TransactionTemplateEdge {
 type TrialBalance {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
-	accounts(first: Int!, after: String): LedgerAccountConnection!
+	accounts: [LedgerAccount!]!
 }
 
 scalar UUID

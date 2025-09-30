@@ -1,4 +1,4 @@
-use async_graphql::{connection::*, *};
+use async_graphql::*;
 
 use lana_app::accounting::ledger_account::LedgerAccountChildrenCursor;
 
@@ -44,30 +44,19 @@ impl TrialBalance {
         })
     }
 
-    pub async fn accounts(
-        &self,
-        ctx: &Context<'_>,
-        first: i32,
-        after: Option<String>,
-    ) -> async_graphql::Result<
-        Connection<LedgerAccountChildrenCursor, LedgerAccount, EmptyFields, EmptyFields>,
-    > {
+    pub async fn accounts(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        crate::list_with_cursor!(
-            LedgerAccountChildrenCursor,
-            LedgerAccount,
-            ctx,
-            after,
-            first,
-            |query| app.accounting().list_account_children(
+        let accounts = app
+            .accounting()
+            .list_all_account_children(
                 sub,
                 CHART_REF.0,
                 self.entity.id,
-                query,
                 self.from.into_inner(),
                 Some(self.until.into_inner()),
             )
-        )
+            .await?;
+        Ok(accounts.into_iter().map(LedgerAccount::from).collect())
     }
 }
 

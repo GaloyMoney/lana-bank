@@ -243,6 +243,29 @@ where
             .await?)
     }
 
+    #[instrument(name = "core_accounting.list_all_account_children", skip(self), err)]
+    pub async fn list_all_account_children(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        id: cala_ledger::AccountSetId,
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<Vec<LedgerAccount>, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts
+            .find_by_reference(chart_ref)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
+            })?;
+
+        Ok(self
+            .ledger_accounts()
+            .list_all_account_children(sub, &chart, id, from, until, true)
+            .await?)
+    }
+
     #[instrument(
         name = "core_accounting.execute_manual_transaction",
         skip(self, entries),
