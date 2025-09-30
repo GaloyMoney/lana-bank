@@ -94,8 +94,7 @@ impl ChartNode {
     }
 
     pub fn is_trial_balance_account(&self) -> bool {
-        // TODO: Remove magic number with some meaningful constant
-        self.spec.code.len_sections() == 2
+        !self.spec.has_parent()
     }
 }
 

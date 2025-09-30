@@ -97,7 +97,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
             false,
         )
         .await?;
-    assert_eq!(accounts.entities.len(), 2);
+    assert_eq!(accounts.entities.len(), 1);
 
     Ok(())
 }

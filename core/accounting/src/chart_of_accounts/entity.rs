@@ -503,7 +503,7 @@ mod test {
             .trial_balance_account_ids_from_new_accounts(&[level_1_id, level_2_id, level_3_id])
             .collect::<Vec<_>>();
         assert_eq!(new_ids.len(), 1);
-        assert!(new_ids.contains(&level_2_id));
+        assert!(new_ids.contains(&level_1_id));
     }
 
     #[test]
@@ -520,8 +520,8 @@ mod test {
         } = chart
             .create_node_without_verifying_parent(
                 &AccountSpec::try_new(
-                    Some(code("1")),
-                    vec![section("1"), section("2")],
+                    None,
+                    vec![section("5")],
                     "Long-term Assets".parse::<AccountName>().unwrap(),
                     DebitOrCredit::Debit,
                 )
