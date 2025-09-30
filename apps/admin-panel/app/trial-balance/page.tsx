@@ -6,7 +6,6 @@ import {
   Table,
   TableBody,
   TableCell,
-  TableFooter,
   TableHead,
   TableHeader,
   TableRow,
@@ -43,14 +42,6 @@ gql`
   query GetTrialBalance($from: Date!, $until: Date!) {
     trialBalance(from: $from, until: $until) {
       name
-      total {
-        usd {
-          ...UsdLedgerBalanceRangeFragment
-        }
-        btc {
-          ...BtcLedgerBalanceRangeFragment
-        }
-      }
       accounts {
         ...TrialBalanceAccountBase
         children {
@@ -166,52 +157,6 @@ type Account = NonNullable<
   NonNullable<GetTrialBalanceQuery["trialBalance"]>["accounts"]
 >[0]
 
-const TrialBalanceFooter = ({
-  total,
-  currency,
-  layer,
-  t,
-}: {
-  total: NonNullable<GetTrialBalanceQuery["trialBalance"]>["total"]
-  currency: Currency
-  layer: TrialBalanceLayers
-  t: (key: string) => string
-}) => {
-  const totalData =
-    currency === "usd"
-      ? {
-          start: total.usd.usdStart[layer],
-          diff: total.usd.usdDiff[layer],
-          end: total.usd.usdEnd[layer],
-        }
-      : {
-          start: total.btc.btcStart[layer],
-          diff: total.btc.btcDiff[layer],
-          end: total.btc.btcEnd[layer],
-        }
-
-  return (
-    <TableFooter className="border-t-4">
-      <TableRow>
-        <TableCell className="font-bold text-sm">{t("totals")}</TableCell>
-        <TableCell />
-        <TableCell className="text-right">
-          <Balance align="end" currency={currency} amount={totalData.start.net} />
-        </TableCell>
-        <TableCell className="text-right">
-          <Balance align="end" currency={currency} amount={totalData.diff.debit} />
-        </TableCell>
-        <TableCell className="text-right">
-          <Balance align="start" currency={currency} amount={totalData.diff.credit} />
-        </TableCell>
-        <TableCell className="text-right">
-          <Balance align="end" currency={currency} amount={totalData.end.net} />
-        </TableCell>
-      </TableRow>
-    </TableFooter>
-  )
-}
-
 function TrialBalancePage() {
   const t = useTranslations("TrialBalance")
 
@@ -227,7 +172,6 @@ function TrialBalancePage() {
       until: dateRange.until,
     },
   })
-  const total = data?.trialBalance?.total
   const accounts = data?.trialBalance?.accounts
 
   const renderAccount = (account: Account, isRoot = false): React.ReactElement | null => {
@@ -303,7 +247,7 @@ function TrialBalancePage() {
 
   if (error) return <div className="text-destructive">{error.message}</div>
   if (loading && !data) return null
-  if (!total) return <div>{t("noAccountsPresent")}</div>
+  if (!accounts) return <div>{t("noAccountsPresent")}</div>
 
   return (
     <Card>
@@ -352,7 +296,6 @@ function TrialBalancePage() {
             <TableBody>
               {accounts?.map((account) => renderAccount(account, true))}
             </TableBody>
-            <TrialBalanceFooter total={total} currency={currency} layer={layer} t={t} />
           </Table>
         </div>
       </CardContent>
