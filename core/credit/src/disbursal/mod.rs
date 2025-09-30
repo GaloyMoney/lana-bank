@@ -122,7 +122,6 @@ where
     pub(super) async fn create_first_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
-        structuring_fee: UsdCents,
         approval_process_id: ApprovalProcessId,
         credit_facility: &CreditFacility,
     ) -> Result<(), DisbursalError> {
@@ -146,7 +145,7 @@ where
             .id(disbursal_id)
             .credit_facility_id(credit_facility.id)
             .approval_process_id(approval_process_id)
-            .amount(structuring_fee)
+            .amount(credit_facility.structuring_fee())
             .account_ids(credit_facility.account_ids)
             .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
             .due_date(due_date)

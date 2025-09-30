@@ -209,7 +209,7 @@ impl CreditFacility {
         self.maturity_date.start_of_day()
     }
 
-    pub(super) fn structuring_fee(&self) -> UsdCents {
+    pub(crate) fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.amount)
     }
 

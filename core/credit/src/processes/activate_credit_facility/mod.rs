@@ -112,7 +112,6 @@ where
             self.disbursals
                 .create_first_disbursal_in_op(
                     &mut op,
-                    structuring_fee,
                     approval_process_id,
                     &credit_facility,
                 )
