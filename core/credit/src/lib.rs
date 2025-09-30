@@ -202,8 +202,15 @@ where
         )
         .await?;
         let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
-        let disbursals =
-            Disbursals::init(pool, authz, &publisher, &obligations, governance).await?;
+        let disbursals = Disbursals::init(
+            pool,
+            authz,
+            &publisher,
+            &obligations,
+            governance,
+            public_ids,
+        )
+        .await?;
         let payments = Payments::new(pool, authz);
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);

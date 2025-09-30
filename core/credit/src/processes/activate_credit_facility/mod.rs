@@ -108,15 +108,16 @@ where
             }
         };
 
-        self.disbursals
-            .create_first_disbursal_in_op(
-                &mut op,
-                structuring_fee,
-                &self.public_ids,
-                approval_process_id,
-                &credit_facility,
-            )
-            .await?;
+        if !structuring_fee.is_zero() {
+            self.disbursals
+                .create_first_disbursal_in_op(
+                    &mut op,
+                    structuring_fee,
+                    approval_process_id,
+                    &credit_facility,
+                )
+                .await?;
+        }
 
         let accrual_id = credit_facility
             .interest_accrual_cycle_in_progress()

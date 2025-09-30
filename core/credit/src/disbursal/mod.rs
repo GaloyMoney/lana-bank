@@ -31,6 +31,7 @@ where
     authz: Perms,
     obligations: Obligations<Perms, E>,
     governance: Governance<Perms, E>,
+    public_ids: PublicIds,
 }
 
 impl<Perms, E> Clone for Disbursals<Perms, E>
@@ -44,6 +45,7 @@ where
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             obligations: self.obligations.clone(),
+            public_ids: self.public_ids.clone(),
         }
     }
 }
@@ -69,6 +71,7 @@ where
         publisher: &crate::CreditFacilityPublisher<E>,
         obligations: &Obligations<Perms, E>,
         governance: &Governance<Perms, E>,
+        public_ids: &PublicIds,
     ) -> Result<Self, DisbursalError> {
         match governance
             .init_policy(crate::APPROVE_DISBURSAL_PROCESS)
@@ -86,6 +89,7 @@ where
             authz: authz.clone(),
             obligations: obligations.clone(),
             governance: governance.clone(),
+            public_ids: public_ids.clone(),
         })
     }
 
@@ -113,40 +117,57 @@ where
 
     #[instrument(
         name = "disbursals.create_first_disbursal_in_op",
-        skip(self, db, public_ids, credit_facility)
+        skip(self, db, credit_facility)
     )]
     pub(super) async fn create_first_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         structuring_fee: UsdCents,
-        public_ids: &PublicIds,
         approval_process_id: ApprovalProcessId,
         credit_facility: &CreditFacility,
     ) -> Result<(), DisbursalError> {
-        let new_disbursal = self
-            .create_fee_disbursal(
-                structuring_fee,
-                public_ids,
-                approval_process_id,
-                credit_facility,
-                db,
-            )
+        let disbursal_id = DisbursalId::new();
+        let public_id = self
+            .public_ids
+            .create_in_op(db, DISBURSAL_REF_TARGET, disbursal_id)
             .await?;
 
-        if let Some(new_disbursal) = new_disbursal {
-            let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
+        let due_date = credit_facility.maturity_date;
+        let overdue_date = credit_facility
+            .terms
+            .obligation_overdue_duration_from_due
+            .map(|d| d.end_date(due_date));
+        let liquidation_date = credit_facility
+            .terms
+            .obligation_liquidation_duration_from_due
+            .map(|d| d.end_date(due_date));
 
-            let new_obligation = disbursal
-                .approval_process_concluded(LedgerTxId::new(), true, db.now().date_naive())
-                .expect("First instance of idempotent action ignored")
-                .expect("First disbursal obligation was already created");
+        let new_disbursal = NewDisbursal::builder()
+            .id(disbursal_id)
+            .credit_facility_id(credit_facility.id)
+            .approval_process_id(approval_process_id)
+            .amount(structuring_fee)
+            .account_ids(credit_facility.account_ids)
+            .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
+            .due_date(due_date)
+            .overdue_date(overdue_date)
+            .liquidation_date(liquidation_date)
+            .public_id(public_id.id)
+            .build()
+            .expect("could not build new disbursal");
 
-            self.obligations
-                .create_with_jobs_in_op(db, new_obligation)
-                .await?;
+        let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
-            self.repo.update_in_op(db, &mut disbursal).await?;
-        }
+        let new_obligation = disbursal
+            .approval_process_concluded(LedgerTxId::new(), true, db.now().date_naive())
+            .expect("First instance of idempotent action ignored")
+            .expect("First disbursal obligation was already created");
+
+        self.obligations
+            .create_with_jobs_in_op(db, new_obligation)
+            .await?;
+
+        self.repo.update_in_op(db, &mut disbursal).await?;
 
         Ok(())
     }
@@ -313,49 +334,5 @@ where
         ids: &[DisbursalId],
     ) -> Result<std::collections::HashMap<DisbursalId, T>, DisbursalError> {
         self.repo.find_all(ids).await
-    }
-
-    async fn create_fee_disbursal(
-        &self,
-        structuring_fee: UsdCents,
-        public_ids: &PublicIds,
-        approval_process_id: ApprovalProcessId,
-        credit_facility: &CreditFacility,
-        db: &mut es_entity::DbOpWithTime<'_>,
-    ) -> Result<Option<NewDisbursal>, DisbursalError> {
-        if structuring_fee.is_zero() {
-            return Ok(None);
-        }
-
-        let disbursal_id = DisbursalId::new();
-        let public_id = public_ids
-            .create_in_op(db, DISBURSAL_REF_TARGET, disbursal_id)
-            .await?;
-
-        let due_date = credit_facility.maturity_date;
-        let overdue_date = credit_facility
-            .terms
-            .obligation_overdue_duration_from_due
-            .map(|d| d.end_date(due_date));
-        let liquidation_date = credit_facility
-            .terms
-            .obligation_liquidation_duration_from_due
-            .map(|d| d.end_date(due_date));
-
-        Ok(Some(
-            NewDisbursal::builder()
-                .id(disbursal_id)
-                .credit_facility_id(credit_facility.id)
-                .approval_process_id(approval_process_id)
-                .amount(structuring_fee)
-                .account_ids(credit_facility.account_ids)
-                .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
-                .due_date(due_date)
-                .overdue_date(overdue_date)
-                .liquidation_date(liquidation_date)
-                .public_id(public_id.id)
-                .build()
-                .expect("could not build new disbursal"),
-        ))
     }
 }
