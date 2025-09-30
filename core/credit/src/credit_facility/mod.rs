@@ -84,7 +84,6 @@ pub struct ActivationData {
     pub credit_facility: CreditFacility,
     pub next_accrual_period: InterestPeriod,
     pub approval_process_id: ApprovalProcessId,
-    pub structuring_fee: UsdCents,
 }
 
 #[derive(Clone)]
@@ -182,7 +181,6 @@ where
             .expect("could not build new credit facility");
 
         let mut credit_facility = self.repo.create_in_op(db, new_credit_facility).await?;
-        let structuring_fee = credit_facility.structuring_fee();
 
         let periods = credit_facility
             .start_interest_accrual_cycle()?
@@ -206,7 +204,6 @@ where
             credit_facility,
             next_accrual_period: periods.accrual,
             approval_process_id: proposal.approval_process_id,
-            structuring_fee,
         }))
     }
 
