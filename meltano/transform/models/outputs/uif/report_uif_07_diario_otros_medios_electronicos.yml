@@ -50,6 +50,8 @@ models:
               severity: warn
           - accepted_values:
               values: [1, 2]
+              quote: false
+              where: "tipoPersonaA is not null"
       - name: detallesPersonaA
         description: >
           Person performing the transaction. Can be either PersonaDTO (natural person)
@@ -87,6 +89,8 @@ models:
               severity: warn
           - accepted_values:
               values: [1, 2]
+              quote: false
+              where: "tipoPersonaB is not null"
       - name: detallesPersonaB
         description: >
           Person receiving the transaction in Section B. Can be either PersonaDTO
