@@ -99,7 +99,6 @@ where
         let ActivationData {
             credit_facility,
             next_accrual_period,
-            approval_process_id,
         } = match self.credit_facilities.activate_in_op(&mut op, id).await? {
             ActivationOutcome::Activated(data) => data,
             ActivationOutcome::Ignored => {
@@ -109,7 +108,7 @@ where
 
         if !credit_facility.structuring_fee().is_zero() {
             self.disbursals
-                .create_first_disbursal_in_op(&mut op, approval_process_id, &credit_facility)
+                .create_first_disbursal_in_op(&mut op, &credit_facility)
                 .await?;
         }
 

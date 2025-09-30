@@ -83,7 +83,6 @@ pub(super) enum ActivationOutcome {
 pub struct ActivationData {
     pub credit_facility: CreditFacility,
     pub next_accrual_period: InterestPeriod,
-    pub approval_process_id: ApprovalProcessId,
 }
 
 #[derive(Clone)]
@@ -203,7 +202,6 @@ where
         Ok(ActivationOutcome::Activated(ActivationData {
             credit_facility,
             next_accrual_period: periods.accrual,
-            approval_process_id: proposal.approval_process_id,
         }))
     }
 

@@ -10,8 +10,7 @@ use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject
 use outbox::OutboxEventMarker;
 use public_id::PublicIds;
 
-use crate::CreditFacility;
-use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
+use crate::{CreditFacility, Obligation, Obligations, event::CoreCreditEvent, primitives::*};
 pub(super) use entity::*;
 use error::DisbursalError;
 pub(super) use repo::*;
@@ -122,7 +121,6 @@ where
     pub(super) async fn create_first_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
-        approval_process_id: ApprovalProcessId,
         credit_facility: &CreditFacility,
     ) -> Result<(), DisbursalError> {
         let disbursal_id = DisbursalId::new();
@@ -144,7 +142,7 @@ where
         let new_disbursal = NewDisbursal::builder()
             .id(disbursal_id)
             .credit_facility_id(credit_facility.id)
-            .approval_process_id(approval_process_id)
+            .approval_process_id(credit_facility.id)
             .amount(credit_facility.structuring_fee())
             .account_ids(credit_facility.account_ids)
             .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
