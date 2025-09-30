@@ -57,6 +57,6 @@ describe(t(TB + ".title"), () => {
   })
 
   it("should show date range selector", () => {
-    cy.contains(t(TB + ".dateRange") + ":").should("exist")
+    cy.contains(t(TB + ".dateRange")).should("exist")
   })
 })
