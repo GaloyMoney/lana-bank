@@ -26,8 +26,9 @@ pub use public_id::PublicId;
 pub use cvl::*;
 
 es_entity::entity_id! {
-    CreditFacilityId,
     CreditFacilityProposalId,
+    PendingCreditFacilityId,
+    CreditFacilityId,
     DisbursalId,
     PaymentId,
     PaymentAllocationId,
@@ -38,11 +39,14 @@ es_entity::entity_id! {
     InterestAccrualCycleId,
     TermsTemplateId;
 
+    CreditFacilityProposalId => PendingCreditFacilityId,
+
     CreditFacilityProposalId => CreditFacilityId,
+    PendingCreditFacilityId => CreditFacilityId,
 
     CreditFacilityId => governance::ApprovalProcessId,
-    DisbursalId => governance::ApprovalProcessId,
     CreditFacilityProposalId => governance::ApprovalProcessId,
+    DisbursalId => governance::ApprovalProcessId,
 
     CreditFacilityId => job::JobId,
     InterestAccrualCycleId => job::JobId,

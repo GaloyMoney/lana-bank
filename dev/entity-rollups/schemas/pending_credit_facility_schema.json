@@ -294,35 +294,14 @@
         "type",
         "id",
         "ledger_tx_id",
+        "approval_process_id",
         "customer_id",
         "customer_type",
         "collateral_id",
         "terms",
         "amount",
         "account_ids",
-        "disbursal_credit_account_id",
-        "approval_process_id"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "approval_process_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "approved": {
-          "type": "boolean"
-        },
-        "type": {
-          "const": "approval_process_concluded",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "approval_process_id",
-        "approved"
+        "disbursal_credit_account_id"
       ],
       "type": "object"
     },

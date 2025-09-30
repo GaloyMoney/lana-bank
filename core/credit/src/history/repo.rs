@@ -1,6 +1,6 @@
 use sqlx::PgPool;
 
-use crate::primitives::CreditFacilityProposalId;
+use crate::primitives::CreditFacilityId;
 
 use super::{CreditFacilityHistory, error::*};
 
@@ -23,7 +23,7 @@ impl HistoryRepo {
     pub async fn persist_in_tx(
         &self,
         tx: &mut sqlx::Transaction<'_, sqlx::Postgres>,
-        credit_facility_proposal_id: impl Into<CreditFacilityProposalId>,
+        credit_facility_proposal_id: impl Into<CreditFacilityId>,
         history: CreditFacilityHistory,
     ) -> Result<(), CreditFacilityHistoryError> {
         let id = credit_facility_proposal_id.into();
@@ -34,7 +34,7 @@ impl HistoryRepo {
             VALUES ($1, $2)
             ON CONFLICT (id) DO UPDATE SET history = $2
             "#,
-            id as CreditFacilityProposalId,
+            id as CreditFacilityId,
             json
         )
         .execute(&mut **tx)
@@ -44,12 +44,12 @@ impl HistoryRepo {
 
     pub async fn load(
         &self,
-        credit_facility_proposal_id: impl Into<CreditFacilityProposalId>,
+        credit_facility_proposal_id: impl Into<CreditFacilityId>,
     ) -> Result<CreditFacilityHistory, CreditFacilityHistoryError> {
         let id = credit_facility_proposal_id.into();
         let row = sqlx::query!(
             "SELECT history FROM core_credit_facility_histories WHERE id = $1",
-            id as CreditFacilityProposalId,
+            id as CreditFacilityId,
         )
         .fetch_optional(&self.pool)
         .await?;

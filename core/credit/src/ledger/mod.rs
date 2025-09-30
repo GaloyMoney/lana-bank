@@ -27,10 +27,10 @@ use crate::{
     payment_allocation::PaymentAllocation,
     primitives::{
         CREDIT_FACILITY_ENTITY_TYPE, CREDIT_FACILITY_PROPOSAL_ENTITY_TYPE, CalaAccountId,
-        CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId,
-        CreditFacilityProposalId, CustomerType, DisbursalId, DisbursedReceivableAccountCategory,
-        DisbursedReceivableAccountType, InterestReceivableAccountType, LedgerOmnibusAccountIds,
-        LedgerTxId, Satoshis, UsdCents,
+        CalaAccountSetId, CollateralAction, CollateralUpdate, CreditFacilityId, CustomerType,
+        DisbursalId, DisbursedReceivableAccountCategory, DisbursedReceivableAccountType,
+        InterestReceivableAccountType, LedgerOmnibusAccountIds, LedgerTxId,
+        PendingCreditFacilityId, Satoshis, UsdCents,
     },
 };
 
@@ -979,7 +979,7 @@ impl CreditLedger {
         ))
     }
 
-    pub(crate) async fn get_proposal_collateral(
+    pub(crate) async fn get_collateral_for_pending_facility(
         &self,
         collateral_account_id: CalaAccountId,
     ) -> Result<Satoshis, CreditLedgerError> {
@@ -1954,7 +1954,7 @@ impl CreditLedger {
     pub(super) async fn handle_facility_proposal_create(
         &self,
         op: es_entity::DbOp<'_>,
-        credit_facility_proposal: &crate::PendingCreditFacility,
+        pending_credit_facility: &crate::PendingCreditFacility,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self
             .cala
@@ -1962,19 +1962,19 @@ impl CreditLedger {
 
         self.create_accounts_for_credit_facility_proposal(
             &mut op,
-            credit_facility_proposal.id,
-            credit_facility_proposal.collateral_id,
-            credit_facility_proposal.account_ids,
+            pending_credit_facility.id,
+            pending_credit_facility.collateral_id,
+            pending_credit_facility.account_ids,
         )
         .await?;
 
         self.add_credit_facility_control_to_account(
             &mut op,
-            credit_facility_proposal.account_ids.facility_account_id,
+            pending_credit_facility.account_ids.facility_account_id,
         )
         .await?;
 
-        self.create_credit_facility_proposal(op, credit_facility_proposal.creation_data())
+        self.create_credit_facility_proposal(op, pending_credit_facility.creation_data())
             .await?;
 
         Ok(())
@@ -1983,7 +1983,7 @@ impl CreditLedger {
     async fn create_accounts_for_credit_facility_proposal(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
-        credit_facility_id: CreditFacilityProposalId,
+        credit_facility_id: PendingCreditFacilityId,
         collateral_id: CollateralId,
         account_ids: CreditFacilityProposalAccountIds,
     ) -> Result<(), CreditLedgerError> {
