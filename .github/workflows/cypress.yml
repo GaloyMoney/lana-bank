@@ -1,0 +1,236 @@
+name: Cypress
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  run-cypress-tests:
+    name: Run Tests
+    runs-on: ubuntu-latest
+    env:
+      NETLIFY_TOKEN_PRESENT: ${{ secrets.NETLIFY_AUTH_TOKEN != '' }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup-podman
+      - uses: ./.github/actions/setup-nix
+        with:
+          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+          free_disk_space: false
+      - uses: ./.github/actions/cache-pnpm 
+      - run: nix develop -c make build-for-tests
+      - name: Start services for Cypress tests
+        run: nix develop -c make start-cypress-stack
+        env:
+          ENGINE_DEFAULT: podman
+          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
+          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
+          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
+          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
+          TF_VAR_name_prefix: "gha"
+      - run: nix develop -c make test-cypress-in-ci
+      - uses: actions/upload-artifact@v4
+        with:
+          name: screenshots
+          path: apps/admin-panel/cypress/manuals/screenshots/*
+      - if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: videos
+          path: apps/admin-panel/cypress/videos/*
+
+      - run: mkdir -p apps/admin-panel/cypress/manuals/screenshots
+      - uses: actions/download-artifact@v4
+        with:
+          name: screenshots
+          path: apps/admin-panel/cypress/manuals/screenshots
+
+      - name: generate pdfs
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
+        run: |
+          cd apps/admin-panel && nix develop -c pnpm run local:pdf
+
+      - name: list manuals
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
+        run: |
+          ls -R apps/admin-panel/cypress/manuals
+
+      - uses: actions/upload-artifact@v4
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
+        with:
+          name: pdfs
+          path: apps/admin-panel/cypress/manuals/results/*
+
+      - name: generate manual page
+        if: env.NETLIFY_TOKEN_PRESENT == 'true'
+        run: |
+          cd apps/admin-panel/cypress/manuals/results
+          cat <<EOF > index.html
+          <!DOCTYPE html>
+          <html lang="es">
+          <head>
+            <meta charset="UTF-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+            <title>Manuales de Lana Bank</title>
+            <script src="https://cdn.tailwindcss.com"></script>
+            <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/inter/3.19.3/inter.css" />
+            <script>
+              tailwind.config = {
+                theme: {
+                  fontFamily: {
+                    sans: ['Inter', 'sans-serif']
+                  }
+                }
+              }
+            </script>
+            <style>
+              body {
+                background-color:rgb(255, 255, 255);
+              }
+              .transition-all {
+                transition: all 0.2s;
+              }
+            </style>
+          </head>
+          <body class="bg-slate-50 font-sans text-slate-900">
+            <div class="max-w-5xl mx-auto mt-10 p-5">
+              <div class="text-center mb-8">
+                <!-- Lana Logo SVG -->
+                <div class="flex justify-center mb-4">
+                  <svg viewBox="0 0 506 109" xmlns="http://www.w3.org/2000/svg" width="200" height="55" class="text-slate-700 fill-current">
+                    <path d="M177.15 106.6V0.700012H200.25V86.1H240.65V106.6H177.15Z"/>
+                    <path d="M315.85 106.6C311.85 106.6 308.45 105.3 305.75 102.8C303.05 100.3 301.35 96.9 300.65 92.6H299.75C298.55 97.8 295.85 101.7 291.75 104.4C287.65 107.1 282.45 108.4 276.45 108.4C268.45 108.4 262.35 106.3 258.05 102C253.75 97.7 251.65 92.2 251.65 85.2C251.65 76.8 254.75 70.6 260.85 66.5C266.95 62.4 275.25 60.4 285.85 60.4H298.45V55.4C298.45 51.6 297.45 48.5 295.45 46.2C293.45 43.9 290.05 42.8 285.25 42.8C280.75 42.8 277.25 43.8 274.65 45.7C272.05 47.6 269.85 49.8 268.15 52.2L254.75 40.3C257.95 35.5 262.05 31.8 266.95 29.1C271.85 26.4 278.55 25.1 286.95 25.1C298.25 25.1 306.75 27.6 312.45 32.5C318.15 37.5 320.95 44.7 320.95 54.2V89.1H328.35V106.5H315.85V106.6ZM284.75 92.8C288.45 92.8 291.75 92 294.35 90.4C297.05 88.8 298.35 86.2 298.35 82.6V73.3H287.45C278.65 73.3 274.25 76.3 274.25 82.2V84.5C274.25 87.4 275.15 89.5 276.95 90.9C278.85 92.2 281.45 92.8 284.75 92.8Z"/>
+                    <path d="M343.35 106.6V26.9H365.85V40.4H366.75C368.15 36.3 370.65 32.7 374.15 29.6C377.65 26.6 382.55 25 388.85 25C397.05 25 403.25 27.7 407.45 33.2C411.65 38.7 413.75 46.5 413.75 56.6V106.5H391.25V58.4C391.25 53.2 390.45 49.4 388.85 46.9C387.25 44.4 384.35 43.2 380.25 43.2C378.45 43.2 376.65 43.4 374.95 43.9C373.25 44.4 371.65 45.1 370.35 46.1C368.95 47.1 367.85 48.4 367.05 49.8C366.25 51.3 365.85 53 365.85 54.9V106.5H343.35V106.6Z"/>
+                    <path d="M492.65 106.6C488.65 106.6 485.25 105.3 482.55 102.8C479.85 100.3 478.15 96.9 477.45 92.6H476.55C475.35 97.8 472.65 101.7 468.55 104.4C464.45 107.1 459.25 108.4 453.25 108.4C445.25 108.4 439.15 106.3 434.85 102C430.55 97.7 428.45 92.2 428.45 85.2C428.45 76.8 431.55 70.6 437.65 66.5C443.75 62.4 452.05 60.4 462.65 60.4H475.25V55.4C475.25 51.6 474.25 48.5 472.25 46.2C470.25 43.9 466.85 42.8 462.05 42.8C457.55 42.8 454.05 43.8 451.45 45.7C448.85 47.6 446.65 49.8 444.95 52.2L431.55 40.3C434.75 35.5 438.85 31.8 443.75 29.1C448.65 26.4 455.35 25.1 463.75 25.1C475.05 25.1 483.55 27.6 489.25 32.5C494.95 37.5 497.75 44.7 497.75 54.2V89.1H505.15V106.5H492.65V106.6ZM461.55 92.8C465.25 92.8 468.55 92 471.15 90.4C473.85 88.8 475.15 86.2 475.15 82.6V73.3H464.25C455.45 73.3 451.05 76.3 451.05 82.2V84.5C451.05 87.4 451.95 89.5 453.75 90.9C455.65 92.2 458.15 92.8 461.55 92.8Z"/>
+                    <path d="M122.15 80.6999H0.0500488V106.6H122.15V80.6999Z"/>
+                    <path d="M122.15 106.3V1.09991H96.2501V106.3H122.15Z"/>
+                    <path d="M73.35 62.2999V1.09991H49.55V62.2999H73.35Z"/>
+                    <path d="M23.85 62.1999V1.19992H0.0500488V62.1999H23.85Z"/>
+                  </svg>
+                </div>
+                <h1 class="text-3xl font-bold text-slate-800 mb-2">
+                  Manuales para Reguladores
+                </h1>
+              </div>
+              <div class="bg-white rounded-lg shadow-md overflow-hidden border border-slate-200">
+                <div class="px-6 py-4 border-b border-slate-200 bg-slate-50">
+                  <h2 class="text-lg font-medium text-slate-800">Lista de Manuales</h2>
+                </div>
+                <div class="overflow-x-auto">
+                  <table class="w-full border-collapse">
+                    <thead>
+                      <tr class="bg-slate-100 text-slate-700">
+                        <th class="py-3 px-5 text-left font-medium">#</th>
+                        <th class="py-3 px-5 text-left font-medium">Nombre del Manual</th>
+                        <th class="py-3 px-5 text-left font-medium">Ver</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+          EOF
+
+          COUNTER=1
+          for pdf in *.pdf; do
+            echo "<tr class='hover:bg-slate-50 border-b border-slate-100 transition-all'>
+                    <td class='py-3 px-5'>$COUNTER</td>
+                    <td class='py-3 px-5 font-medium text-slate-700'>${pdf%.pdf}</td>
+                    <td class='py-3 px-5'>
+                      <a href='$pdf' class='inline-flex items-center justify-center rounded-md bg-slate-800 px-4 py-2 text-sm font-medium text-white hover:bg-slate-700 transition-all' target='_blank'>Abrir</a>
+                    </td>
+                  </tr>" >> index.html
+            ((COUNTER++))
+          done
+
+          cat <<EOF >> index.html
+                    </tbody>
+                  </table>
+                </div>
+              </div>
+            </div>
+          </body>
+          </html>
+          EOF
+
+      - name: Deploy to Netlify (Pull Request)
+        id: netlify_deploy
+        if: >
+          github.event_name == 'pull_request'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
+        run: |
+          GITHUB_SHA="${{ github.sha }}"
+          SHORT_SHA="${GITHUB_SHA::7}"
+          ALIAS="pr-${{ github.event.pull_request.number }}-commit-${SHORT_SHA}"
+          nix develop -c netlify deploy \
+            --dir=apps/admin-panel/cypress/manuals/results \
+            --filter=admin-panel \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --alias="$ALIAS" \
+            --message="Manuals Preview for PR #${{ github.event.pull_request.number }} Commit $GITHUB_SHA" \
+            --json > deploy-info.json
+          DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Deploy to Netlify (Push to Main)
+        if: >
+          github.event_name == 'push'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
+        env:
+          NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+          NETLIFY_SITE_ID: 61296920-bd52-43a3-9253-78db17a78d9c
+        run: |
+          nix develop -c netlify deploy \
+            --prod \
+            --dir=apps/admin-panel/cypress/manuals/results \
+            --filter=admin-panel \
+            --site=$NETLIFY_SITE_ID \
+            --auth=$NETLIFY_AUTH_TOKEN \
+            --message="Manuals Build for Commit ${{ github.sha }}" \
+            --json > deploy-info.json
+          DEPLOY_URL=$(jq -r '.deploy_url' deploy-info.json)
+          echo "deploy_url=$DEPLOY_URL" >> $GITHUB_OUTPUT
+
+      - name: Create or Update Preview Comment
+        if: >
+          github.event_name == 'pull_request'
+          && env.NETLIFY_TOKEN_PRESENT == 'true'
+        uses: actions/github-script@v6
+        with:
+          script: |
+            const prNumber = context.payload.pull_request.number;
+            const deployUrl = '${{ steps.netlify_deploy.outputs.deploy_url }}';
+            const commentBody = `<!-- Manuals Preview Comment -->\nManuals preview: [Link to Manuals](${deployUrl})`;
+            // Fetch existing comments on the PR
+            const { data: comments } = await github.rest.issues.listComments({
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              issue_number: prNumber,
+            });
+            // Identify if the bot has already made a comment
+            const botLogin = 'github-actions[bot]'
+            const existingComment = comments.find(
+              comment => comment.user.login === botLogin && comment.body.includes('<!-- Manuals Preview Comment -->')
+            );
+            if (existingComment) {
+              // Update the existing comment
+              await github.rest.issues.updateComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                comment_id: existingComment.id,
+                body: commentBody,
+              });
+            } else {
+              // Create a new comment
+              await github.rest.issues.createComment({
+                owner: context.repo.owner,
+                repo: context.repo.repo,
+                issue_number: prNumber,
+                body: commentBody,
+              });
+            }
