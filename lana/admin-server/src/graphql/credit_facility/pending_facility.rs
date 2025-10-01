@@ -1,12 +1,7 @@
 use async_graphql::*;
 
 use crate::{
-    graphql::{
-        custody::Wallet,
-        customer::*,
-        loader::LanaDataLoader,
-        terms::{TermValues, TermsInput},
-    },
+    graphql::{custody::Wallet, customer::*, loader::LanaDataLoader, terms::TermValues},
     primitives::*,
 };
 
@@ -58,19 +53,6 @@ impl PendingCreditFacility {
         Ok(CollateralBalance {
             btc_balance: collateral,
         })
-    }
-
-    async fn status(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<CreditFacilityProposalStatus> {
-        let (app, _) = crate::app_and_sub_from_ctx!(ctx);
-        Ok(app
-            .credit()
-            .ensure_up_to_date_proposal_status(&self.entity)
-            .await?
-            .map(|cf| cf.status())
-            .unwrap_or_else(|| self.entity.status()))
     }
 
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
