@@ -4,9 +4,7 @@ use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_custody::{
-    CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject,
-};
+use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::Price;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;

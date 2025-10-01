@@ -24,10 +24,11 @@ pub enum CreditFacilityProposalEvent {
         disbursal_credit_account_id: CalaAccountId,
         terms: TermValues,
         amount: UsdCents,
+        status: CreditFacilityProposalStatus,
     },
     ApprovalProcessConcluded {
         approval_process_id: ApprovalProcessId,
-        approved: bool,
+        status: CreditFacilityProposalStatus,
     },
 }
 
@@ -67,12 +68,31 @@ impl CreditFacilityProposal {
             self.events.iter_all(),
             CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
         );
+
+        let status = if approved {
+            CreditFacilityProposalStatus::Approved
+        } else {
+            CreditFacilityProposalStatus::Denied
+        };
+
         self.events
             .push(CreditFacilityProposalEvent::ApprovalProcessConcluded {
                 approval_process_id: self.id.into(),
-                approved,
+                status,
             });
         Idempotent::Executed(())
+    }
+
+    pub fn status(&self) -> CreditFacilityProposalStatus {
+        self.events
+            .iter_all()
+            .rev()
+            .map(|event| match event {
+                CreditFacilityProposalEvent::ApprovalProcessConcluded { status, .. } => *status,
+                CreditFacilityProposalEvent::Initialized { status, .. } => *status,
+            })
+            .next()
+            .expect("status should always exist")
     }
 }
 
@@ -147,6 +167,7 @@ impl IntoEvents<CreditFacilityProposalEvent> for NewCreditFacilityProposal {
                 disbursal_credit_account_id: self.disbursal_credit_account_id,
                 terms: self.terms,
                 amount: self.amount,
+                status: CreditFacilityProposalStatus::PendingApproval,
             }],
         )
     }

@@ -648,10 +648,9 @@ where
 
     pub async fn ensure_up_to_date_proposal_status(
         &self,
-        proposal: &PendingCreditFacility,
-    ) -> Result<Option<PendingCreditFacility>, CoreCreditError> {
-        unimplemented!();
-        // self.approve_proposal.execute_from_svc(proposal).await
+        proposal: &CreditFacilityProposal,
+    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
+        self.approve_proposal.execute_from_svc(proposal).await
     }
 
     pub async fn subject_can_update_collateral(

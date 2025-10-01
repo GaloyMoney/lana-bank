@@ -238,7 +238,7 @@ where
         let mut has_next_page = true;
         let mut after: Option<PendingCreditFacilitiesByCollateralizationRatioCursor> = None;
         while has_next_page {
-            let mut credit_facility_proposals = self
+            let mut pending_credit_facilities = self
                 .repo
                 .list_by_collateralization_ratio(
                     es_entity::PaginatedQueryArgs::<
@@ -251,26 +251,26 @@ where
                 )
                 .await?;
             (after, has_next_page) = (
-                credit_facility_proposals.end_cursor,
-                credit_facility_proposals.has_next_page,
+                pending_credit_facilities.end_cursor,
+                pending_credit_facilities.has_next_page,
             );
             let mut op = self.repo.begin_op().await?;
 
             let mut at_least_one = false;
 
-            for proposal in credit_facility_proposals.entities.iter_mut() {
-                if proposal.status() == CreditFacilityProposalStatus::Completed {
+            for pending_facility in pending_credit_facilities.entities.iter_mut() {
+                if pending_facility.status() == PendingCreditFacilityStatus::Completed {
                     continue;
                 }
                 let balances = self
                     .ledger
-                    .get_credit_facility_proposal_balance(proposal.account_ids)
+                    .get_credit_facility_proposal_balance(pending_facility.account_ids)
                     .await?;
-                if proposal
+                if pending_facility
                     .update_collateralization(price, balances)
                     .did_execute()
                 {
-                    self.repo.update_in_op(&mut op, proposal).await?;
+                    self.repo.update_in_op(&mut op, pending_facility).await?;
                     at_least_one = true;
                 }
             }
