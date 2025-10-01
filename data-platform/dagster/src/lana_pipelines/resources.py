@@ -5,10 +5,10 @@ import dagster as dg
 from dagster_dbt import DbtCliResource
 
 from dlt.sources.credentials import ConnectionStringCredentials
-from dlt.sources.sql_database import sql_table, sql_database
 import psycopg2
 
-from lana_pipelines.destinations import create_bigquery_destination
+from lana_pipelines.dlt.resources import create_sql_table_resource
+from lana_pipelines.dlt.destinations import create_bigquery_destination
 
 
 class PostgresResource(dg.ConfigurableResource):
@@ -25,11 +25,8 @@ class PostgresResource(dg.ConfigurableResource):
         return credentials
 
     def create_dlt_postgres_resource(self, table_name):
-        dlt_postgres_resource = sql_table(
-            credentials=self.get_credentials(),
-            schema="public",
-            backend="sqlalchemy",
-            table=table_name,
+        dlt_postgres_resource = create_sql_table_resource(
+            crendetials=self.get_credentials(), table_name=table_name
         )
 
         return dlt_postgres_resource
@@ -53,6 +50,7 @@ class PostgresResource(dg.ConfigurableResource):
 
 class BigQueryResource(dg.ConfigurableResource):
     base64_credentials: Any
+    target_dataset: str = "counterweight_dataset"
 
     def get_dlt_destination(self):
         dlt_destination = create_bigquery_destination(self.base64_credentials)

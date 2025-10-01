@@ -110,7 +110,7 @@ class DefinitionBuilder:
         if self.automation_style == "mixed":
             build_seed_bank_address_job_schedule = dg.ScheduleDefinition(
                 name="build_seed_bank_address_job_schedule",
-                cron_schedule="* * * * *",
+                cron_schedule="*/2 * * * *",
                 job=build_seed_bank_address_job,
                 default_status=dg.DefaultScheduleStatus.RUNNING,
             )
@@ -158,9 +158,9 @@ def build_definitions():
     definition_builder.build_generate_es_reports_layer()
 
     return dg.Definitions(
+        resources=definition_builder.resource_definitions,
         assets=definition_builder.asset_definitions,
         jobs=definition_builder.job_definitions,
-        resources=definition_builder.resource_definitions,
         schedules=definition_builder.schedule_definitions,
         sensors=definition_builder.sensor_definitions,
     )

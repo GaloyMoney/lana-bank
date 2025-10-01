@@ -1,16 +1,16 @@
 from typing import Any, Optional, Mapping
 
-import dagster as dg
 import dlt
+import dagster as dg
 from dagster_dbt import DbtCliResource, dbt_assets, DagsterDbtTranslator
 from generate_es_reports.service import run_report_batch
 
-from lana_pipelines.destinations import create_bigquery_destination
 from lana_pipelines.resources import (
     dbt_manifest_path,
     PostgresResource,
     BigQueryResource,
 )
+from lana_pipelines.dlt.pipelines import prepare_lana_el_pipeline
 from lana_pipelines import constants
 
 
@@ -56,21 +56,10 @@ def build_lana_to_dw_el_asset(table_name):
             f"Running lana_to_dw_el_asset pipeline for table {table_name}."
         )
 
-        dlt_postgres_resource = lana_core_pg.create_dlt_postgres_resource(
-            table_name=table_name
+        runnable_pipeline = prepare_lana_el_pipeline(
+            lana_core_pg=lana_core_pg, dw_bq=dw_bq, table_name=table_name
         )
-        dlt_bq_destination = dw_bq.get_dlt_destination()
-
-        pipeline = dlt.pipeline(
-            pipeline_name=table_name,
-            destination=dlt_bq_destination,
-            dataset_name="counterweight_dataset",
-        )
-        load_info = pipeline.run(
-            dlt_postgres_resource,
-            write_disposition="replace",
-            table_name=table_name,
-        )
+        load_info = runnable_pipeline()
 
         context.log.info(f"Pipeline completed.")
         context.log.info(load_info)

@@ -4,6 +4,7 @@ import dagster as dg
 
 from lana_pipelines.resources import PostgresResource
 
+
 def build_lana_el_sensor(lana_to_dw_el_job):
     @dg.sensor(
         job=lana_to_dw_el_job,
@@ -19,9 +20,7 @@ def build_lana_el_sensor(lana_to_dw_el_job):
         highest_seen_timestamp = (
             datetime.datetime.fromisoformat(context.cursor)
             if context.cursor
-            else datetime.datetime(
-                1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc
-            )
+            else datetime.datetime(1970, 1, 1, 0, 0, 0, tzinfo=datetime.timezone.utc)
         )
 
         context.log.info(
@@ -39,4 +38,3 @@ def build_lana_el_sensor(lana_to_dw_el_job):
         context.update_cursor(current_highest_timestamp.isoformat())
 
     return lana_el_sensor
-    
