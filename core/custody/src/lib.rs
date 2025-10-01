@@ -91,16 +91,17 @@ where
     pub async fn ensure_mock_custodian_in_op(
         &self,
         db: &mut DbOp<'_>,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
     ) -> Result<(), CoreCustodyError> {
         let mock_custodian = self
-            .find_custodian_by_id(sub, CustodianId::mock_custodian_id())
-            .await;
+            .custodians
+            .find_by_id(CustodianId::mock_custodian_id())
+            .await
+            .map_err(|e| e.into());
 
         match mock_custodian {
             Err(CoreCustodyError::Custodian(e)) if e.was_not_found() => {
                 let _ = self
-                    .create_custodian_in_op(db, sub, "Mock Custodian", CustodianConfig::Mock)
+                    .create_mock_custodian_in_op(db, "Mock Custodian", CustodianConfig::Mock)
                     .await?;
 
                 Ok(())
@@ -108,6 +109,33 @@ where
             Err(e) => Err(e),
             Ok(_) => Ok(()),
         }
+    }
+
+    #[cfg(feature = "mock-custodian")]
+    #[instrument(name = "core_custody.create_mock_custodian_in_op", skip(self, db), err)]
+    pub async fn create_mock_custodian_in_op(
+        &self,
+        db: &mut DbOp<'_>,
+        custodian_name: impl AsRef<str> + std::fmt::Debug,
+        custodian_config: CustodianConfig,
+    ) -> Result<Custodian, CoreCustodyError> {
+        let custodian_id = if custodian_config == CustodianConfig::Mock {
+            CustodianId::mock_custodian_id()
+        } else {
+            CustodianId::new()
+        };
+
+        let new_custodian = NewCustodian::builder()
+            .id(custodian_id)
+            .name(custodian_name.as_ref().to_owned())
+            .provider(custodian_config.discriminant().to_string())
+            .encrypted_custodian_config(custodian_config, &self.config.encryption.key)
+            .build()
+            .expect("should always build a new custodian");
+
+        let custodian = self.custodians.create_in_op(db, new_custodian).await?;
+
+        Ok(custodian)
     }
 
     #[instrument(name = "core_custody.created_custodian_in_op", skip(self, db), err)]
@@ -126,23 +154,12 @@ where
             )
             .await?;
 
-        // We should not be calling any external service in any environment
-        // with mock custodian.
-        #[cfg(not(feature = "mock-custodian"))]
         custodian_config
             .clone()
             .custodian_client(&self.config.custody_providers)?
             .verify_client()
             .await?;
 
-        #[cfg(feature = "mock-custodian")]
-        let custodian_id = if custodian_config == CustodianConfig::Mock {
-            CustodianId::mock_custodian_id()
-        } else {
-            CustodianId::new()
-        };
-
-        #[cfg(not(feature = "mock-custodian"))]
         let custodian_id = CustodianId::new();
 
         let new_custodian = NewCustodian::builder()
@@ -251,23 +268,6 @@ where
         ids: &[CustodianId],
     ) -> Result<std::collections::HashMap<CustodianId, T>, CoreCustodyError> {
         Ok(self.custodians.find_all(ids).await?)
-    }
-
-    #[instrument(name = "core_custody.find_custodian_by_id", skip(self), err)]
-    pub async fn find_custodian_by_id(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        id: CustodianId,
-    ) -> Result<Custodian, CoreCustodyError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreCustodyObject::all_custodians(),
-                CoreCustodyAction::CUSTODIAN_LIST,
-            )
-            .await?;
-
-        Ok(self.custodians.find_by_id(id).await?)
     }
 
     #[instrument(name = "core_custody.list_custodians", skip(self), err)]
