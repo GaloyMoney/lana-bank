@@ -4,10 +4,11 @@ use super::{DeprecatedEncryptionKey, EncryptionConfig, custodian::CustodyProvide
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
 pub struct CustodyConfig {
-    #[serde(default)]
+    #[serde(skip)]
     pub encryption: EncryptionConfig,
 
-    #[serde(default)]
+    // FIXME: there is no way to pass for now
+    #[serde(skip)]
     pub deprecated_encryption_key: Option<DeprecatedEncryptionKey>,
 
     #[serde(default)]

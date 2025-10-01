@@ -2,7 +2,8 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct DbConfig {
-    #[serde(default)]
+    /// PostgreSQL connection string (provided via PG_CON env var)
+    #[serde(skip)]
     pub pg_con: String,
     #[serde(default = "default_pool_size")]
     pub pool_size: u32,

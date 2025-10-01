@@ -2,9 +2,9 @@ use serde::{Deserialize, Serialize};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
 pub struct EmailConfig {
-    #[serde(default)]
+    #[serde(skip)]
     pub username: String,
-    #[serde(default)]
+    #[serde(skip)]
     pub password: String,
     #[serde(default)]
     pub from_email: String,

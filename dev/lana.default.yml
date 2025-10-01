@@ -1,5 +1,4 @@
 db:
-  pg_con: ''
   pool_size: 20
 admin_server:
   port: 5253
@@ -14,9 +13,6 @@ app:
     job_lost_interval: 300
     max_jobs_per_process: 50
     min_jobs_per_process: 30
-  sumsub:
-    sumsub_key: ''
-    sumsub_secret: ''
   access:
     superuser_email: null
   credit:
@@ -30,7 +26,6 @@ app:
       url: http://localhost:8081
       client_id: internal-service-account
       realm: internal
-      client_secret: secret
   customer_sync:
     auto_create_deposit_account: true
     customer_status_sync_active: true
@@ -39,7 +34,6 @@ app:
       url: http://localhost:8081
       client_id: customer-service-account
       realm: customer
-      client_secret: secret
     activity_update_utc_time: 00:00
     activity_update_enabled: true
   deposit_sync:
@@ -52,9 +46,6 @@ app:
     balance_sheet_config_path: null
     profit_and_loss_config_path: null
   custody:
-    encryption:
-      key: '0000000000000000000000000000000000000000000000000000000000000000'
-    deprecated_encryption_key: null
     custody_providers:
       komainu_directory:
         production_url: https://api.komainu.io/
@@ -64,8 +55,6 @@ app:
         production_url: https://app.bitgo.com/
   notification:
     email:
-      username: ''
-      password: ''
       from_email: ''
       from_name: ''
       relay: ''

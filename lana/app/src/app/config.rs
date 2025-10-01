@@ -13,7 +13,7 @@ use crate::{
 pub struct AppConfig {
     #[serde(default)]
     pub job_execution: JobsConfig,
-    #[serde(default)]
+    #[serde(skip)]
     pub sumsub: SumsubConfig,
     #[serde(default)]
     pub access: AccessConfig,
