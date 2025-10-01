@@ -23,6 +23,7 @@ import { useTranslations } from "next-intl"
 import { Label } from "@lana/web/ui/label"
 
 import { Separator } from "@lana/web/ui/separator"
+import { Skeleton } from "@lana/web/ui/skeleton"
 
 import {
   TrialBalanceCurrencySelection,
@@ -44,28 +45,31 @@ gql`
       name
       accounts {
         ...TrialBalanceAccountBase
-        children {
+        childrenWithCodeAndActivity {
           ...TrialBalanceAccountBase
-          children {
+          childrenWithCodeAndActivity {
             ...TrialBalanceAccountBase
-            children {
+            childrenWithCodeAndActivity {
               ...TrialBalanceAccountBase
-              children {
+              childrenWithCodeAndActivity {
                 ...TrialBalanceAccountBase
-                children {
+                childrenWithCodeAndActivity {
                   ...TrialBalanceAccountBase
-                  children {
+                  childrenWithCodeAndActivity {
                     ...TrialBalanceAccountBase
-                    children {
+                    childrenWithCodeAndActivity {
                       ...TrialBalanceAccountBase
-                      children {
+                      childrenWithCodeAndActivity {
                         ...TrialBalanceAccountBase
-                        children {
+                        childrenWithCodeAndActivity {
                           ...TrialBalanceAccountBase
-                          children {
+                          childrenWithCodeAndActivity {
                             ...TrialBalanceAccountBase
-                            children {
+                            childrenWithCodeAndActivity {
                               ...TrialBalanceAccountBase
+                              childrenWithCodeAndActivity {
+                                ...TrialBalanceAccountBase
+                              }
                             }
                           }
                         }
@@ -91,77 +95,103 @@ gql`
       ...BtcLedgerBalanceRangeFragment
     }
   }
-
-  fragment UsdBalanceFragment on UsdLedgerAccountBalance {
-    settled {
-      debit
-      credit
-      net
-    }
-    pending {
-      debit
-      credit
-      net
-    }
-    encumbrance {
-      debit
-      credit
-      net
-    }
-  }
-
-  fragment BtcBalanceFragment on BtcLedgerAccountBalance {
-    settled {
-      debit
-      credit
-      net
-    }
-    pending {
-      debit
-      credit
-      net
-    }
-    encumbrance {
-      debit
-      credit
-      net
-    }
-  }
-
-  fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
-    usdStart: open {
-      ...UsdBalanceFragment
-    }
-    usdDiff: periodActivity {
-      ...UsdBalanceFragment
-    }
-    usdEnd: close {
-      ...UsdBalanceFragment
-    }
-  }
-
-  fragment BtcLedgerBalanceRangeFragment on BtcLedgerAccountBalanceRange {
-    btcStart: open {
-      ...BtcBalanceFragment
-    }
-    btcDiff: periodActivity {
-      ...BtcBalanceFragment
-    }
-    btcEnd: close {
-      ...BtcBalanceFragment
-    }
-  }
 `
 
 type Account = NonNullable<
   NonNullable<GetTrialBalanceQuery["trialBalance"]>["accounts"]
 >[0]
 
+const TrialBalanceAccountRow = ({
+  account,
+  isRoot,
+  currency,
+  layer,
+}: {
+  account: Account
+  isRoot: boolean
+  currency: Currency
+  layer: TrialBalanceLayers
+}) => {
+  const router = useRouter()
+  if (!hasInEitherSettledOrPending(account.balanceRange)) return null
+  const balanceData = getBalanceData(account.balanceRange, currency, layer)
+
+  return (
+    <React.Fragment key={account.id}>
+      <TableRow
+        className="cursor-pointer hover:bg-muted/50"
+        onClick={() => router.push(`/ledger-accounts/${account.code}`)}
+      >
+        <TableCell>
+          <div className={`font-mono text-xs ${isRoot ? "font-bold" : "text-gray-500"}`}>
+            {account.code}
+          </div>
+        </TableCell>
+        <TableCell className={isRoot ? "font-bold" : ""}>{account.name}</TableCell>
+        <TableCell className="text-right">
+          {balanceData?.start ? (
+            <Balance
+              align="end"
+              currency={currency}
+              className={isRoot ? "font-bold" : ""}
+              amount={balanceData.start.net}
+            />
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
+        </TableCell>
+        <TableCell className="text-right">
+          {balanceData?.diff ? (
+            <Balance
+              align="end"
+              currency={currency}
+              className={isRoot ? "font-bold" : ""}
+              amount={balanceData.diff.debit}
+            />
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
+        </TableCell>
+        <TableCell className="text-left">
+          {balanceData?.diff ? (
+            <Balance
+              align="start"
+              currency={currency}
+              className={isRoot ? "font-bold" : ""}
+              amount={balanceData.diff.credit}
+            />
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
+        </TableCell>
+        <TableCell className="text-right">
+          {balanceData?.end ? (
+            <Balance
+              align="end"
+              currency={currency}
+              className={isRoot ? "font-bold" : ""}
+              amount={balanceData.end.net}
+            />
+          ) : (
+            <span className="text-muted-foreground">-</span>
+          )}
+        </TableCell>
+      </TableRow>
+      {account.childrenWithCodeAndActivity?.map((child) => (
+        <TrialBalanceAccountRow
+          key={child.id}
+          account={child as Account}
+          isRoot={false}
+          currency={currency}
+          layer={layer}
+        />
+      ))}
+    </React.Fragment>
+  )
+}
+
 function TrialBalancePage() {
   const t = useTranslations("TrialBalance")
-
-  const router = useRouter()
-
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange())
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<TrialBalanceLayers>("settled")
@@ -172,82 +202,9 @@ function TrialBalancePage() {
       until: dateRange.until,
     },
   })
+
   const accounts = data?.trialBalance?.accounts
-
-  const renderAccount = (account: Account, isRoot = false): React.ReactElement | null => {
-    if (!shouldShowAccount(account)) return null
-    const balanceData = getBalanceData(account.balanceRange, currency, layer)
-    return (
-      <React.Fragment key={account.id}>
-        <TableRow
-          className="cursor-pointer hover:bg-muted/50"
-          onClick={() => router.push(`/ledger-accounts/${account.code}`)}
-        >
-          <TableCell>
-            <div
-              className={`font-mono text-xs  ${isRoot ? "font-bold" : "text-gray-500"}`}
-            >
-              {account.code}
-            </div>
-          </TableCell>
-          <TableCell className={isRoot ? "font-bold" : ""}>{account.name}</TableCell>
-          <TableCell className="text-right">
-            {balanceData?.start ? (
-              <Balance
-                align="end"
-                currency={currency}
-                className={isRoot ? "font-bold" : ""}
-                amount={balanceData.start.net}
-              />
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </TableCell>
-          <TableCell className="text-right">
-            {balanceData?.diff ? (
-              <Balance
-                align="end"
-                currency={currency}
-                className={isRoot ? "font-bold" : ""}
-                amount={balanceData.diff.debit}
-              />
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </TableCell>
-          <TableCell className="text-left">
-            {balanceData?.diff ? (
-              <Balance
-                align="start"
-                currency={currency}
-                className={isRoot ? "font-bold" : ""}
-                amount={balanceData.diff.credit}
-              />
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </TableCell>
-          <TableCell className="text-right">
-            {balanceData?.end ? (
-              <Balance
-                align="end"
-                currency={currency}
-                className={isRoot ? "font-bold" : ""}
-                amount={balanceData.end.net}
-              />
-            ) : (
-              <span className="text-muted-foreground">-</span>
-            )}
-          </TableCell>
-        </TableRow>
-        {account.children?.map((child) => renderAccount(child as Account, false))}
-      </React.Fragment>
-    )
-  }
-
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading && !data) return null
-  if (!accounts) return <div>{t("noAccountsPresent")}</div>
 
   return (
     <Card>
@@ -273,31 +230,53 @@ function TrialBalancePage() {
             <TrialBalanceLayerSelection layer={layer} setLayer={setLayer} />
           </div>
         </div>
-        <div className="overflow-x-auto rounded-md border">
-          <Table>
-            <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
-              <TableRow>
-                <TableHead className="w-36 ">{t("table.headers.accountCode")}</TableHead>
-                <TableHead className="w-40">{t("table.headers.accountName")}</TableHead>
-                <TableHead className="text-right w-40">
-                  {t("table.headers.beginningBalance")}
-                </TableHead>
-                <TableHead className="text-right w-48">
-                  {t("table.headers.debits")}
-                </TableHead>
-                <TableHead className="text-left w-32">
-                  {t("table.headers.credits")}
-                </TableHead>
-                <TableHead className="text-right w-32">
-                  {t("table.headers.endingBalance")}
-                </TableHead>
-              </TableRow>
-            </TableHeader>
-            <TableBody>
-              {accounts?.map((account) => renderAccount(account, true))}
-            </TableBody>
-          </Table>
-        </div>
+        {loading && !accounts ? (
+          <Skeleton className="h-96 w-full" />
+        ) : (
+          <div className="overflow-x-auto rounded-md border">
+            <Table>
+              <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
+                <TableRow>
+                  <TableHead className="w-28">{t("table.headers.accountCode")}</TableHead>
+                  <TableHead className="w-56">{t("table.headers.accountName")}</TableHead>
+                  <TableHead className="text-right w-40">
+                    {t("table.headers.beginningBalance")}
+                  </TableHead>
+                  <TableHead className="text-right w-36">
+                    {t("table.headers.debits")}
+                  </TableHead>
+                  <TableHead className="text-left w-24">
+                    {t("table.headers.credits")}
+                  </TableHead>
+                  <TableHead className="text-right w-20">
+                    {t("table.headers.endingBalance")}
+                  </TableHead>
+                </TableRow>
+              </TableHeader>
+              {accounts ? (
+                <TableBody>
+                  {accounts.map((account) => (
+                    <TrialBalanceAccountRow
+                      key={account.id}
+                      account={account}
+                      isRoot={true}
+                      currency={currency}
+                      layer={layer}
+                    />
+                  ))}
+                </TableBody>
+              ) : (
+                <TableBody>
+                  <TableRow>
+                    <TableCell colSpan={6} className="text-center">
+                      {t("noAccountsPresent")}
+                    </TableCell>
+                  </TableRow>
+                </TableBody>
+              )}
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
@@ -364,6 +343,3 @@ const isUsdLedgerBalanceRange = (balanceRange: Account["balanceRange"]) =>
 
 const isBtcLedgerBalanceRange = (balanceRange: Account["balanceRange"]) =>
   balanceRange?.__typename === "BtcLedgerAccountBalanceRange"
-
-const shouldShowAccount = (account: Account): boolean =>
-  Boolean(account.code && hasInEitherSettledOrPending(account.balanceRange))

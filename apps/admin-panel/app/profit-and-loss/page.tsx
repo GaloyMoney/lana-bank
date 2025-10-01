@@ -65,42 +65,6 @@ gql`
     }
   }
 
-  fragment UsdBalanceFragment on UsdLedgerAccountBalance {
-    settled {
-      debit
-      credit
-      net
-    }
-    pending {
-      debit
-      credit
-      net
-    }
-    encumbrance {
-      debit
-      credit
-      net
-    }
-  }
-
-  fragment BtcBalanceFragment on BtcLedgerAccountBalance {
-    settled {
-      debit
-      credit
-      net
-    }
-    pending {
-      debit
-      credit
-      net
-    }
-    encumbrance {
-      debit
-      credit
-      net
-    }
-  }
-
   fragment UsdLedgerBalanceRangeFragment on UsdLedgerAccountBalanceRange {
     usdStart: open {
       ...UsdBalanceFragment

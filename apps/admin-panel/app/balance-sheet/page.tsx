@@ -74,11 +74,6 @@ gql`
       credit
       net
     }
-    encumbrance {
-      debit
-      credit
-      net
-    }
   }
 
   fragment BtcBalanceFragment on BtcLedgerAccountBalance {
@@ -88,11 +83,6 @@ gql`
       net
     }
     pending {
-      debit
-      credit
-      net
-    }
-    encumbrance {
       debit
       credit
       net
