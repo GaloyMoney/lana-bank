@@ -14,8 +14,6 @@ use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use job::*;
 
-use crate::config::*;
-
 #[derive(serde::Serialize)]
 pub struct CustomerActiveSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
@@ -50,7 +48,6 @@ where
 {
     outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
-    config: CustomerSyncConfig,
 }
 
 impl<Perms, E> CustomerActiveSyncInit<Perms, E>
@@ -60,15 +57,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    pub fn new(
-        outbox: &Outbox<E>,
-        deposit: &CoreDeposit<Perms, E>,
-        config: CustomerSyncConfig,
-    ) -> Self {
+    pub fn new(outbox: &Outbox<E>, deposit: &CoreDeposit<Perms, E>) -> Self {
         Self {
             outbox: outbox.clone(),
             deposit: deposit.clone(),
-            config,
         }
     }
 }
@@ -96,7 +88,6 @@ where
         Ok(Box::new(CustomerActiveSyncJobRunner {
             outbox: self.outbox.clone(),
             deposit: self.deposit.clone(),
-            config: self.config.clone(),
         }))
     }
 
@@ -122,7 +113,6 @@ where
 {
     outbox: Outbox<E>,
     deposit: CoreDeposit<Perms, E>,
-    config: CustomerSyncConfig,
 }
 #[async_trait]
 impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
@@ -186,22 +176,20 @@ where
         {
             message.inject_trace_parent();
 
-            if self.config.customer_status_sync_active {
-                let deposit_account_status = match kyc_verification {
-                    KycVerification::Rejected | KycVerification::PendingVerification => {
-                        DepositAccountStatus::Inactive
-                    }
-                    KycVerification::Verified => DepositAccountStatus::Active,
-                };
+            let deposit_account_status = match kyc_verification {
+                KycVerification::Rejected | KycVerification::PendingVerification => {
+                    DepositAccountStatus::Inactive
+                }
+                KycVerification::Verified => DepositAccountStatus::Active,
+            };
 
-                self.deposit
-                    .update_account_status_for_holder(
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                        *id,
-                        deposit_account_status,
-                    )
-                    .await?;
-            }
+            self.deposit
+                .update_account_status_for_holder(
+                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                    *id,
+                    deposit_account_status,
+                )
+                .await?;
         }
         Ok(())
     }

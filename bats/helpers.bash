@@ -274,6 +274,19 @@ create_customer() {
   echo $customer_id
 }
 
+create_verified_customer() {
+  echo "--- Creating verified customer ---"
+  customer_id=$(create_customer)
+  
+  # Wait for deposit account to be created
+  retry 80 1 wait_for_checking_account "$customer_id"
+  
+  # Simulate KYC verification to activate the deposit account
+  simulate_kyc_verification "$customer_id"
+  
+  echo $customer_id
+}
+
 assert_balance_sheet_balanced() {
   variables=$(
     jq -n \
@@ -356,4 +369,70 @@ wait_for_checking_account() {
   deposit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
   [[ "$deposit_account_id" != "null" ]] || exit 1
 
+}
+
+simulate_kyc_verification() {
+  local customer_id=$1
+  
+  echo "--- Simulating KYC verification for customer: $customer_id ---"
+  
+  # Create test applicant for KYC verification
+  variables=$(
+    jq -n \
+    --arg customerId "$customer_id" \
+    '{
+      input: {
+        customerId: $customerId
+      }
+    }'
+  )
+  
+  exec_admin_graphql 'sumsub-test-applicant-create' "$variables"
+  test_applicant_id=$(graphql_output .data.sumsubTestApplicantCreate.applicantId)
+  [[ "$test_applicant_id" != "null" ]] || { echo "Failed to create test applicant"; exit 1; }
+  [[ -n "$test_applicant_id" ]] || { echo "Empty test applicant ID"; exit 1; }
+  
+  echo "Created test applicant_id: $test_applicant_id"
+  
+  # Simulate applicantCreated webhook
+  echo "Simulating applicantCreated webhook..."
+  curl -s -X POST http://localhost:5253/webhook/sumsub \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "'"$test_applicant_id"'",
+      "inspectionId": "test-inspection-id",
+      "correlationId": "test-correlation-id",
+      "levelName": "basic-kyc-level",
+      "externalUserId": "'"$customer_id"'",
+      "type": "applicantCreated",
+      "sandboxMode": true,
+      "reviewStatus": "init",
+      "createdAtMs": "2024-10-05 13:23:19.002",
+      "clientId": "testClientId"
+    }' > /dev/null
+  
+  # Simulate applicantReviewed (GREEN) webhook for approval
+  echo "Simulating applicantReviewed (GREEN) webhook..."
+  curl -s -X POST http://localhost:5253/webhook/sumsub \
+    -H "Content-Type: application/json" \
+    -d '{
+      "applicantId": "'"$test_applicant_id"'",
+      "inspectionId": "test-inspection-id",
+      "correlationId": "test-correlation-id",
+      "externalUserId": "'"$customer_id"'",
+      "levelName": "basic-kyc-level",
+      "type": "applicantReviewed",
+      "reviewResult": {
+        "reviewAnswer": "GREEN"
+      },
+      "reviewStatus": "completed",
+      "createdAtMs": "2024-10-05 13:23:19.002",
+      "sandboxMode": true
+    }' > /dev/null
+  
+  # Wait briefly for webhook processing
+  echo "Waiting for webhook processing..."
+  sleep 1
+  
+  echo "--- KYC verification simulation completed ---"
 }

@@ -6,8 +6,6 @@ use serde::{Deserialize, Deserializer, Serialize, Serializer};
 pub struct CustomerSyncConfig {
     #[serde(default = "default_auto_create_deposit_account")]
     pub auto_create_deposit_account: bool,
-    #[serde(default = "default_customer_status_sync_active")]
-    pub customer_status_sync_active: bool,
     #[serde(default = "default_create_deposit_account_on_customer_create")]
     pub create_deposit_account_on_customer_create: bool,
     #[serde(default = "default_keycloak")]
@@ -22,7 +20,6 @@ impl Default for CustomerSyncConfig {
     fn default() -> Self {
         Self {
             auto_create_deposit_account: default_auto_create_deposit_account(),
-            customer_status_sync_active: default_customer_status_sync_active(),
             create_deposit_account_on_customer_create:
                 default_create_deposit_account_on_customer_create(),
             keycloak: default_keycloak(),
@@ -104,10 +101,6 @@ fn default_keycloak() -> KeycloakConnectionConfig {
 }
 
 fn default_auto_create_deposit_account() -> bool {
-    true
-}
-
-fn default_customer_status_sync_active() -> bool {
     true
 }
 

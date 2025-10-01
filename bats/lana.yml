@@ -22,7 +22,6 @@ app:
     url: "http://localhost:8081"
     client_id: "admin-cli"
   customer_sync:
-    customer_status_sync_active: false
     create_deposit_account_on_customer_create: true
     keycloak_realm: "customer"
   user_onboarding:

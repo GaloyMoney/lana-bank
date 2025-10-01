@@ -207,8 +207,8 @@ where
     {
         message.inject_trace_parent();
 
-        // don't activate if we are syncing the customer status
-        let active = !(is_customer_create_event && self.config.customer_status_sync_active);
+        // account will be activated by the customer active sync job
+        let active = false;
 
         if self.config.auto_create_deposit_account {
             match self.deposit
