@@ -58,6 +58,16 @@ where
         use CreditFacilityEvent::*;
         let publish_events = new_events
             .filter_map(|event| match &event.event {
+                Initialized {
+                    amount,
+                    ledger_tx_id,
+                    ..
+                } => Some(CoreCreditEvent::FacilityActivated {
+                    id: entity.id,
+                    activation_tx_id: *ledger_tx_id,
+                    amount: *amount,
+                    activated_at: entity.created_at(),
+                }),
                 Completed { .. } => Some(CoreCreditEvent::FacilityCompleted {
                     id: entity.id,
                     completed_at: event.recorded_at,
