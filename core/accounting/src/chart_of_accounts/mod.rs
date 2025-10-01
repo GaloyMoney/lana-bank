@@ -9,6 +9,7 @@ pub mod tree;
 
 use es_entity::Idempotent;
 use tracing::instrument;
+use chrono::Datelike;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -208,6 +209,63 @@ where
         self.chart_ledger
             .monthly_close_chart_as_of(op, chart.id, closed_as_of_date)
             .await?;
+
+        Ok(chart)
+    }
+
+    #[instrument(
+        name = "core_accounting.chart_of_accounts.close_annual",
+        skip(self,),
+        err
+    )]
+    pub async fn close_annual(
+        &self,
+        // TODO: Confirm same permissions as close_monthly
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Chart, ChartOfAccountsError> {
+        let id = id.into();
+        let mut chart = self.repo.find_by_id(id).await?;
+
+        let now = crate::time::now();
+        let last_closed_period =
+            if let Idempotent::Executed(date) = chart.find_last_closed_monthly_period(now)? {
+                date
+            } else {
+                // TODO: Check error handling pattern to use at this layer.
+                return Err(
+                    ChartOfAccountsError::AccountPeriodCloseNotFound
+                );
+            };
+        
+        // TODO: Consider edge cases of this validation check.
+        if last_closed_period.year() != now.date_naive().year() ||
+        last_closed_period.month() != now.date_naive().month() {
+            return Err(ChartOfAccountsError::AccountPeriodCloseNotFound);
+        }
+
+        // TODO: Get all AccountSets in the ProfitAndLossStatementLedger (use the chart entity for this (line 227)).
+        let revenue_parent_code = "6".parse::<AccountCode>().unwrap();
+        let _revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
+    
+        let cost_of_revenue_parent_code = "7".parse::<AccountCode>().unwrap();
+        let _cost_of_revenue_set_id = chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
+        
+        let expenses_parent_code = "8".parse::<AccountCode>().unwrap();
+        let _expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
+        
+        // TODO: Calculate the net balance between Revenue (6), Cost of Revenues (7),
+        // and Expenses (8).
+
+        // [ ROUTE A ] self.cala.account_sets().find_where_member(member, query)
+        
+        // [ ROUTE B ] self.cala.balances().find(journal_id, account_id, currency)
+
+        // TODO: Use a transaction template to create the entries in Cala that should:
+        // (1) debit the Revenue Account(Set members and aggregate balance)
+        // (2) credit the Cost of Revenue Account(Set members and aggregate balance)
+        // (3) credit the Expenses Account(Set members and aggregate balance)
+        // (4) credit/debit (depending on the net amount from 1,2, and 3) the Equity AccountSet (Patrimonios > Utilidades ???)
 
         Ok(chart)
     }

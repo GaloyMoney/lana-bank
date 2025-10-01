@@ -30,6 +30,8 @@ pub enum ChartOfAccountsError {
     ParentAccountNotFound(String),
     #[error("ChartOfAccountsError - AccountPeriodStartNotFound")]
     AccountPeriodStartNotFound,
+    #[error("ChartOfAccountsError - AccountPeriodCloseNotFound")]
+    AccountPeriodCloseNotFound,
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountsError);

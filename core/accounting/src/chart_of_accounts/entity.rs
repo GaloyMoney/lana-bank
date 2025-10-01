@@ -332,6 +332,16 @@ impl Chart {
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 
+    // TODO: Evaluate if this should be a more specific use-case - for example,
+    // `is_ready_for_annual_close -> bool`
+    pub fn find_last_closed_monthly_period(
+        &self,
+        _now: DateTime<Utc>,
+    ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError>{
+        // TODO: Find the last ChartEvent::AccountingPeriodClosed event.
+        Ok(Idempotent::Ignored)
+    }
+
     pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }
