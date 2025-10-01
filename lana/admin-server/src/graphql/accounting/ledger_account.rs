@@ -160,10 +160,11 @@ impl LedgerAccount {
         let mut result = Vec::with_capacity(self.entity.children_ids.len());
 
         for id in self.entity.children_ids.iter() {
-            if let Some(account) = children.remove(id) {
-                if account.code.is_some() && account.entity.has_non_zero_activity() {
-                    result.push(account);
-                }
+            if let Some(account) = children.remove(id)
+                && account.code.is_some()
+                && account.entity.has_non_zero_activity()
+            {
+                result.push(account);
             }
         }
 
