@@ -184,6 +184,7 @@ pub struct CreditLedger {
 impl CreditLedger {
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
+        templates::AddStructuringFee::init(cala).await?;
         templates::CreateCreditFacility::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
@@ -1563,11 +1564,25 @@ impl CreditLedger {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
                     credit_facility_account: account_ids.facility_account_id,
+                    facility_amount: facility_amount.to_usd(),
+                    currency: self.usd,
+                    external_id: tx_ref.clone(),
+                },
+            )
+            .await?;
+        self.cala
+            .post_transaction_in_op(
+                &mut op,
+                tx_id,
+                templates::ADD_STRUCTURING_FEE_CODE,
+                templates::AddStructuringFeeParams {
+                    journal_id: self.journal_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
+                    credit_facility_account: account_ids.facility_account_id,
                     facility_disbursed_receivable_account: account_ids
                         .disbursed_receivable_not_yet_due_account_id,
                     facility_fee_income_account: account_ids.fee_income_account_id,
                     debit_account_id,
-                    facility_amount: facility_amount.to_usd(),
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
                     currency: self.usd,
                     external_id: tx_ref,
