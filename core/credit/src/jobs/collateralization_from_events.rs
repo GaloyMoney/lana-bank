@@ -11,7 +11,6 @@ use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, primitive
 
 #[derive(Serialize, Deserialize)]
 pub struct CreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
-    pub upgrade_buffer_cvl_pct: CVLPct,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> JobConfig for CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>
@@ -58,6 +57,7 @@ where
 
 const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("credit-facility-collateralization-from-events");
+
 impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -74,12 +74,11 @@ where
         CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB
     }
 
-    fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
+    fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(CreditFacilityCollateralizationFromEventsRunner::<
             Perms,
             E,
         > {
-            config: job.config()?,
             outbox: self.outbox.clone(),
             credit_facilities: self.credit_facilities.clone(),
         }))
@@ -98,7 +97,6 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    config: CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>,
     outbox: Outbox<E>,
     credit_facilities: CreditFacilities<Perms, E>,
 }
@@ -137,10 +135,7 @@ where
                     ..
                 }) => {
                     self.credit_facilities
-                        .update_collateralization_from_events(
-                            *id,
-                            self.config.upgrade_buffer_cvl_pct,
-                        )
+                        .update_collateralization_from_events(*id, CVLPct::UPGRADE_BUFFER)
                         .await?;
                     state.sequence = message.sequence;
                     current_job.update_execution_state(state).await?;

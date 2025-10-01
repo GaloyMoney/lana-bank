@@ -246,7 +246,6 @@ where
                 >::new(credit_facilities.clone()),
                 collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
                     job_interval: std::time::Duration::from_secs(30),
-                    upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                     _phantom: std::marker::PhantomData,
                 },
             )
@@ -269,7 +268,6 @@ where
                     E,
                 >::new(outbox, &credit_facilities),
                 collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
-                    upgrade_buffer_cvl_pct: config.upgrade_buffer_cvl_pct,
                     _phantom: std::marker::PhantomData,
                 },
             )
@@ -923,7 +921,7 @@ where
 
         let credit_facility = match self
             .facilities
-            .complete_in_op(&mut db, id, self.config.upgrade_buffer_cvl_pct)
+            .complete_in_op(&mut db, id, CVLPct::UPGRADE_BUFFER)
             .await?
         {
             CompletionOutcome::Ignored(facility) => facility,

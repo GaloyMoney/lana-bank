@@ -64,6 +64,8 @@ in general, because nix build deterministically, there is no need to prune the n
 -- core can import lib
 -- lana can import core
 
+do not add any `#[allow(dead_code)]`
+
 ## hexagonal architecture
 
 the incoming adapter layer is graphql. code for it is in:

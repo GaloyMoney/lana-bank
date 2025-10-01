@@ -19,7 +19,6 @@ use crate::{
 pub(crate) struct CreditFacilityCollateralizationFromPriceJobConfig<Perms, E> {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     pub job_interval: Duration,
-    pub upgrade_buffer_cvl_pct: CVLPct,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 impl<Perms, E> JobConfig for CreditFacilityCollateralizationFromPriceJobConfig<Perms, E>
@@ -107,7 +106,7 @@ where
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         self.credit_facilities
-            .update_collateralization_from_price(self.config.upgrade_buffer_cvl_pct)
+            .update_collateralization_from_price(CVLPct::UPGRADE_BUFFER)
             .await?;
 
         Ok(JobCompletion::RescheduleIn(self.config.job_interval))

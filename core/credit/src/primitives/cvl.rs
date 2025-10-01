@@ -33,6 +33,7 @@ impl PartialOrd for CVLPct {
 
 impl CVLPct {
     pub const ZERO: Self = Self::Finite(dec!(0));
+    pub const UPGRADE_BUFFER: Self = Self::Finite(dec!(5));
 
     pub fn new(value: u64) -> Self {
         Self::Finite(Decimal::from(value))
