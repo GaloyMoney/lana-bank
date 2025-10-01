@@ -4,13 +4,14 @@ mod repo;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_custody::{
+    CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
+};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::OutboxEventMarker;
 use tracing::instrument;
-
-use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 use crate::{
     Collaterals, CreditFacilityProposal, event::CoreCreditEvent, ledger::*, primitives::*,
@@ -123,13 +124,11 @@ where
         let id = proposal.id;
 
         let wallet_id = if let Some(custodian_id) = proposal.custodian_id {
-            let custodian_id = custodian_id.into();
+            let custodian_id: CustodianId = custodian_id;
 
             #[cfg(feature = "mock-custodian")]
             if custodian_id.is_mock_custodian() {
-                self.custody
-                    .ensure_mock_custodian_in_op(&mut db, sub)
-                    .await?;
+                self.custody.ensure_mock_custodian_in_op(&mut db).await?;
             }
 
             let wallet = self
