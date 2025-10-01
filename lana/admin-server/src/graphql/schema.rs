@@ -1965,6 +1965,21 @@ impl Mutation {
         )
     }
 
+    async fn chart_of_accounts_close_annual(
+        &self,
+        ctx: &Context<'_>,
+        input: ChartOfAccountsCloseAnnualInput,
+    ) -> async_graphql::Result<ChartOfAccountsCloseAnnualPayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            ChartOfAccountsCloseAnnualPayload,
+            ChartOfAccounts,
+            ChartId,
+            ctx,
+            app.accounting().close_annual(sub, input.chart_id.into())
+        )
+    }
+
     async fn chart_of_accounts_add_root_node(
         &self,
         ctx: &Context<'_>,
