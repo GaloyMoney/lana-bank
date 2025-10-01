@@ -12,6 +12,7 @@ pub struct BitgoConfig {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct BitgoDirectoryConfig {
     #[serde(default = "default_testing_url")]
     pub testing_url: Url,

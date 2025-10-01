@@ -64,7 +64,6 @@ app:
 tracing:
   service_name: lana-dev
 time:
-  # we should have some comments to explain
   realtime: true
   simulation:
     start_at: 2021-01-01T00:00:00Z

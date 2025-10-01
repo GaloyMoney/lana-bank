@@ -3,6 +3,7 @@ use keycloak_client::KeycloakConnectionConfig;
 use serde::{Deserialize, Deserializer, Serialize, Serializer};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct CustomerSyncConfig {
     #[serde(default = "default_customer_status_sync_active")]
     pub customer_status_sync_active: bool,

@@ -14,6 +14,7 @@ use super::{StorageClientError, r#trait::StorageClient};
 const LINK_DURATION_IN_SECS: u64 = 60 * 5;
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct GcpConfig {
     #[serde(default)]
     pub bucket_name: String,

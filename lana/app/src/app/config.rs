@@ -10,6 +10,7 @@ use crate::{
 };
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct AppConfig {
     #[serde(default)]
     pub job_execution: JobsConfig,
@@ -36,6 +37,7 @@ pub struct AppConfig {
 }
 
 #[derive(Clone, Default, Debug, Deserialize, Serialize)]
+#[serde(deny_unknown_fields)]
 pub struct AccountingInitConfig {
     #[serde(default)]
     pub chart_of_accounts_seed_path: Option<PathBuf>,

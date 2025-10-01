@@ -3,6 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::{DeprecatedEncryptionKey, EncryptionConfig, custodian::CustodyProviderConfig};
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct CustodyConfig {
     #[serde(skip)]
     pub encryption: EncryptionConfig,

@@ -17,6 +17,7 @@ pub enum KomainuSecretKey {
 }
 
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct KomainuDirectoryConfig {
     #[serde(default = "default_production_url")]
     pub production_url: Url,

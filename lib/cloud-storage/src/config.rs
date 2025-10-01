@@ -4,6 +4,7 @@ use super::client::{GcpConfig, LocalConfig};
 
 #[derive(Clone, Debug, Deserialize, Serialize)]
 #[serde(tag = "provider", rename_all = "lowercase")]
+#[serde(deny_unknown_fields)]
 pub enum StorageConfig {
     Gcp(GcpConfig),
     Local(LocalConfig),

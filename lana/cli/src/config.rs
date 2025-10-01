@@ -18,6 +18,7 @@ use lana_app::{app::AppConfig, storage::config::StorageConfig};
 
 /// Main configuration structure for the Lana banking application
 #[derive(Clone, Default, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct Config {
     /// Database configuration for PostgreSQL connection
     #[serde(default)]

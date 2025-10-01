@@ -36,12 +36,14 @@ pub struct EncryptionConfig {
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DeprecatedEncryptionKey {
     pub nonce: String,
     pub key: String,
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct CustodyProviderConfig {
     #[serde(default)]
     pub komainu_directory: KomainuDirectoryConfig,

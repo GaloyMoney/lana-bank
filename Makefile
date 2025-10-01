@@ -43,7 +43,7 @@ run-server-nix:
 run-server-with-bootstrap:
 	cargo run --all-features --bin lana-cli -- --config ./bats/lana.yml | tee .e2e-logs
 
-check-code: check-code-rust-cargo check-code-apps check-code-tf check-code-nix validate-config
+check-code: check-code-rust-cargo check-code-apps check-code-tf check-code-nix
 
 check-code-tf:
 	tofu fmt -recursive .
@@ -113,9 +113,6 @@ sdl-rust-cargo:
 # Generate default configuration file
 generate-default-config:
 	SQLX_OFFLINE=true cargo run -p lana-cli --all-features -- dump-default-config > dev/lana.default.yml
-
-validate-config:
-	python3 dev/bin/validate-config.py
 
 sdl-js:
 	cd apps/admin-panel && pnpm install && pnpm codegen

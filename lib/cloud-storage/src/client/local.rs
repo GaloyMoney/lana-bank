@@ -4,6 +4,7 @@ use std::path::{Path, PathBuf};
 use super::{StorageClient, error::StorageClientError};
 
 #[derive(Clone, Debug, Deserialize, Serialize, Default)]
+#[serde(deny_unknown_fields)]
 pub struct LocalConfig {
     #[serde(default)]
     pub root_folder: PathBuf,

@@ -4,6 +4,7 @@ use std::time::Duration;
 
 #[serde_with::serde_as]
 #[derive(Clone, Debug, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct JobsConfig {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     #[serde(default = "default_job_lost_interval")]

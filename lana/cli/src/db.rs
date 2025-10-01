@@ -2,6 +2,7 @@ use serde::{Deserialize, Serialize};
 
 /// Database connection configuration for PostgreSQL
 #[derive(Debug, Clone, Serialize, Deserialize)]
+#[serde(deny_unknown_fields)]
 pub struct DbConfig {
     /// PostgreSQL connection string (provided via PG_CON env var)
     #[serde(skip)]
