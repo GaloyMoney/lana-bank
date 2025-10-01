@@ -413,6 +413,23 @@ export const mockChartOfAccountsAddRootNodePayload = (overrides?: Partial<ChartO
     };
 };
 
+export const mockChartOfAccountsCloseAnnualInput = (overrides?: Partial<ChartOfAccountsCloseAnnualInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCloseAnnualInput => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ChartOfAccountsCloseAnnualInput');
+    return {
+        chartId: overrides && overrides.hasOwnProperty('chartId') ? overrides.chartId! : generateMockValue.uuid(),
+    };
+};
+
+export const mockChartOfAccountsCloseAnnualPayload = (overrides?: Partial<ChartOfAccountsCloseAnnualPayload>, _relationshipsToOmit: Set<string> = new Set()): { __typename: 'ChartOfAccountsCloseAnnualPayload' } & ChartOfAccountsCloseAnnualPayload => {
+    const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
+    relationshipsToOmit.add('ChartOfAccountsCloseAnnualPayload');
+    return {
+        __typename: 'ChartOfAccountsCloseAnnualPayload',
+        chartOfAccounts: overrides && overrides.hasOwnProperty('chartOfAccounts') ? overrides.chartOfAccounts! : relationshipsToOmit.has('ChartOfAccounts') ? {} as ChartOfAccounts : mockChartOfAccounts({}, relationshipsToOmit),
+    };
+};
+
 export const mockChartOfAccountsCloseMonthlyInput = (overrides?: Partial<ChartOfAccountsCloseMonthlyInput>, _relationshipsToOmit: Set<string> = new Set()): ChartOfAccountsCloseMonthlyInput => {
     const relationshipsToOmit: Set<string> = new Set(_relationshipsToOmit);
     relationshipsToOmit.add('ChartOfAccountsCloseMonthlyInput');
@@ -1941,6 +1958,7 @@ export const mockMutation = (overrides?: Partial<Mutation>, _relationshipsToOmit
         balanceSheetConfigure: overrides && overrides.hasOwnProperty('balanceSheetConfigure') ? overrides.balanceSheetConfigure! : relationshipsToOmit.has('BalanceSheetModuleConfigurePayload') ? {} as BalanceSheetModuleConfigurePayload : mockBalanceSheetModuleConfigurePayload({}, relationshipsToOmit),
         chartOfAccountsAddChildNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddChildNode') ? overrides.chartOfAccountsAddChildNode! : relationshipsToOmit.has('ChartOfAccountsAddChildNodePayload') ? {} as ChartOfAccountsAddChildNodePayload : mockChartOfAccountsAddChildNodePayload({}, relationshipsToOmit),
         chartOfAccountsAddRootNode: overrides && overrides.hasOwnProperty('chartOfAccountsAddRootNode') ? overrides.chartOfAccountsAddRootNode! : relationshipsToOmit.has('ChartOfAccountsAddRootNodePayload') ? {} as ChartOfAccountsAddRootNodePayload : mockChartOfAccountsAddRootNodePayload({}, relationshipsToOmit),
+        chartOfAccountsCloseAnnual: overrides && overrides.hasOwnProperty('chartOfAccountsCloseAnnual') ? overrides.chartOfAccountsCloseAnnual! : relationshipsToOmit.has('ChartOfAccountsCloseAnnualPayload') ? {} as ChartOfAccountsCloseAnnualPayload : mockChartOfAccountsCloseAnnualPayload({}, relationshipsToOmit),
         chartOfAccountsCloseMonthly: overrides && overrides.hasOwnProperty('chartOfAccountsCloseMonthly') ? overrides.chartOfAccountsCloseMonthly! : relationshipsToOmit.has('ChartOfAccountsCloseMonthlyPayload') ? {} as ChartOfAccountsCloseMonthlyPayload : mockChartOfAccountsCloseMonthlyPayload({}, relationshipsToOmit),
         chartOfAccountsCsvImport: overrides && overrides.hasOwnProperty('chartOfAccountsCsvImport') ? overrides.chartOfAccountsCsvImport! : relationshipsToOmit.has('ChartOfAccountsCsvImportPayload') ? {} as ChartOfAccountsCsvImportPayload : mockChartOfAccountsCsvImportPayload({}, relationshipsToOmit),
         committeeAddUser: overrides && overrides.hasOwnProperty('committeeAddUser') ? overrides.committeeAddUser! : relationshipsToOmit.has('CommitteeAddUserPayload') ? {} as CommitteeAddUserPayload : mockCommitteeAddUserPayload({}, relationshipsToOmit),
