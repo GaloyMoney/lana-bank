@@ -210,20 +210,18 @@ where
         // don't activate if we are syncing the customer status
         let active = !(is_customer_create_event && self.config.customer_status_sync_active);
 
-        if self.config.auto_create_deposit_account {
-            match self.deposit
-                .create_account(
-                    &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
-                    id,
-                    active,
-                    customer_type,
-                )
-                .await
-            {
-                Ok(_) => {}
-                Err(e) if e.is_account_already_exists() => {},
-                Err(e) => return Err(e.into()),
-            }
+        match self.deposit
+            .create_account(
+                &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
+                id,
+                active,
+                customer_type,
+            )
+            .await
+        {
+            Ok(_) => {}
+            Err(e) if e.is_account_already_exists() => {},
+            Err(e) => return Err(e.into()),
         }
         Ok(())
     }
