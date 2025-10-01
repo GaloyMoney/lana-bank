@@ -86,17 +86,12 @@ impl PendingCreditFacility {
             .expect("entity_first_persisted_at not found")
     }
 
-    pub fn status(&self) -> CreditFacilityProposalStatus {
+    pub fn status(&self) -> PendingCreditFacilityStatus {
         if self.is_completed() {
-            CreditFacilityProposalStatus::Completed
-        } else if !matches!(
-            self.last_collateralization_state(),
-            PendingCreditFacilityCollateralizationState::FullyCollateralized
-        ) {
-            CreditFacilityProposalStatus::PendingCollateralization
-        } else {
-            CreditFacilityProposalStatus::PendingCompletion
+            return PendingCreditFacilityStatus::Completed;
         }
+
+        PendingCreditFacilityStatus::PendingCollateralization
     }
 
     pub(crate) fn update_collateralization(

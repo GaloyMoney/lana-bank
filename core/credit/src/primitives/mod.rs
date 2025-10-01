@@ -530,10 +530,29 @@ pub enum CreditFacilityStatus {
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 pub enum CreditFacilityProposalStatus {
     #[default]
-    PendingCollateralization,
     PendingApproval,
+    Approved,
+    Denied,
+}
+
+#[derive(
+    Debug,
+    Default,
+    Clone,
+    Copy,
+    Serialize,
+    Deserialize,
+    PartialEq,
+    Eq,
+    strum::Display,
+    strum::EnumString,
+)]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
+#[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+pub enum PendingCreditFacilityStatus {
+    #[default]
+    PendingCollateralization,
     Completed,
-    PendingCompletion,
 }
 
 #[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]

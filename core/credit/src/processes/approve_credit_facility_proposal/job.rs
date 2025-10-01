@@ -38,7 +38,9 @@ where
         From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     type Initializer = CreditFacilityProposalApprovalInit<Perms, E>;
 }
@@ -50,7 +52,9 @@ where
         From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     process: ApproveCreditFacilityProposal<Perms, E>,
@@ -63,7 +67,9 @@ where
         From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(outbox: &Outbox<E>, process: &ApproveCreditFacilityProposal<Perms, E>) -> Self {
         Self {
@@ -82,7 +88,9 @@ where
         From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn job_type() -> JobType
     where
@@ -114,7 +122,9 @@ struct CreditFacilityProposalApprovalJobData {
 pub struct CreditFacilityProposalApprovalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     process: ApproveCreditFacilityProposal<Perms, E>,
@@ -127,7 +137,9 @@ where
         From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     async fn run(
         &self,

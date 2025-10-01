@@ -24,7 +24,9 @@ pub const APPROVE_DISBURSAL_PROCESS: ApprovalProcessType = ApprovalProcessType::
 pub struct ApproveDisbursal<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     disbursals: Disbursals<Perms, E>,
     credit_facilities: CreditFacilities<Perms, E>,
@@ -36,7 +38,9 @@ where
 impl<Perms, E> Clone for ApproveDisbursal<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn clone(&self) -> Self {
         Self {
@@ -56,7 +60,9 @@ where
         From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<CoreCustodyEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
         disbursals: &Disbursals<Perms, E>,

@@ -645,7 +645,11 @@ type CreditFacilityProposal {
 	approvalProcessId: UUID!
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
+	status: CreditFacilityProposalStatus!
+	customer: Customer!
 	creditFacilityTerms: TermValues!
+	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
+	approvalProcess: ApprovalProcess!
 }
 
 input CreditFacilityProposalCreateInput {
@@ -661,10 +665,9 @@ type CreditFacilityProposalCreatePayload {
 }
 
 enum CreditFacilityProposalStatus {
-	PENDING_COLLATERALIZATION
 	PENDING_APPROVAL
-	COMPLETED
-	PENDING_COMPLETION
+	APPROVED
+	DENIED
 }
 
 type CreditFacilityRepaymentPlanEntry {
@@ -1560,7 +1563,6 @@ type PendingCreditFacility {
 	facilityAmount: UsdCents!
 	wallet: Wallet
 	collateral: CollateralBalance!
-	status: CreditFacilityProposalStatus!
 	customer: Customer!
 	creditFacilityTerms: TermValues!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
