@@ -14,7 +14,7 @@ use chrono::Datelike;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account::Account};
+use cala_ledger::{account::Account, CalaLedger};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
@@ -225,7 +225,7 @@ where
         id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Chart, ChartOfAccountsError> {
         let id = id.into();
-        let mut chart = self.repo.find_by_id(id).await?;
+        let chart = self.repo.find_by_id(id).await?;
 
         let now = crate::time::now();
         let last_closed_period =
@@ -244,10 +244,10 @@ where
             return Err(ChartOfAccountsError::AccountPeriodCloseNotFound);
         }
 
-        // TODO: Get all AccountSets in the ProfitAndLossStatementLedger (use the chart entity for this (line 227)).
+        // TODO: Where should we get these codes from?
         let revenue_parent_code = "6".parse::<AccountCode>().unwrap();
         let _revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
-    
+
         let cost_of_revenue_parent_code = "7".parse::<AccountCode>().unwrap();
         let _cost_of_revenue_set_id = chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
         
@@ -258,10 +258,20 @@ where
         // and Expenses (8).
 
         // [ ROUTE A ] self.cala.account_sets().find_where_member(member, query)
-        
-        // [ ROUTE B ] self.cala.balances().find(journal_id, account_id, currency)
+        let _revenue_account_sets = self.cala
+            .account_sets()
+            .find_where_member(_revenue_set_id, Default::default())
+            .await?;
+        // ... iterate accounts to collect data to eventually build the entries and transaction.
 
-        // TODO: Use a transaction template to create the entries in Cala that should:
+        // NOTE: could be useful still for getting the values we need to debit/credit
+        // from each underlying account.
+        // let _revenue_account_balances = self.cala
+        //     .balances()
+        //     .find(self.journal_id, _revenue_set_id, Currency::USD)
+        //     .await?;
+
+        // TODO: Use a transaction template to create the entries in Cala that should - 
         // (1) debit the Revenue Account(Set members and aggregate balance)
         // (2) credit the Cost of Revenue Account(Set members and aggregate balance)
         // (3) credit the Expenses Account(Set members and aggregate balance)
