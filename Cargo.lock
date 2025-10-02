@@ -1840,16 +1840,6 @@ dependencies = [
 ]
 
 [[package]]
-name = "deranged"
-version = "0.5.4"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "a41953f86f8a05768a6cda24def994fd2f424b04ec5c719cf89989779f199071"
-dependencies = [
- "powerfmt",
- "serde_core",
-]
-
-[[package]]
 name = "derive_builder"
 version = "0.20.2"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6250,7 +6240,7 @@ version = "0.3.41"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "8a7619e19bc266e0f9c5e6686659d394bc57973859340060a69221e57dbc0c40"
 dependencies = [
- "deranged 0.4.0",
+ "deranged",
  "itoa 1.0.15",
  "num-conv",
  "powerfmt",
@@ -7468,7 +7458,7 @@ dependencies = [
  "clap_builder",
  "crypto-common",
  "der",
- "deranged 0.5.4",
+ "deranged",
  "digest",
  "ecdsa",
  "either",
@@ -7489,6 +7479,7 @@ dependencies = [
  "getrandom 0.2.16",
  "group",
  "hashbrown 0.14.5",
+ "hashbrown 0.15.3",
  "hmac",
  "hyper",
  "hyper-util",
@@ -7537,12 +7528,15 @@ dependencies = [
  "tokio",
  "tokio-stream",
  "tokio-util",
+ "toml_datetime",
+ "toml_edit",
  "tonic",
  "tower",
  "tracing",
  "tracing-core",
  "tracing-opentelemetry",
  "tracing-subscriber",
+ "url",
  "uuid",
  "zeroize",
 ]
