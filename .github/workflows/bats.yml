@@ -1,4 +1,4 @@
-name: "Podman BATS Tests"
+name: "BATS Tests"
 
 on:
   pull_request:
@@ -8,28 +8,34 @@ on:
 
 jobs:
   bats-tests:
-    name: End to End BATS Tests (Podman)
+    name: End to End BATS Tests
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      
-      - uses: ./.github/actions/setup-podman
-      
-      - uses: ./.github/actions/setup-nix
+      - uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Get bats derivation
+        id: bats-derivation
+        run: |
+          nix build .#bats --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
+          echo "Checks to wait for:"
+          cat nix-checks-paths.txt
+      - name: Wait for .#bats in Cachix
+        uses: ./.github/actions/wait-for-cachix-paths
         with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
-          
-      - name: Run BATS tests with podman
-        run: nix develop -c make e2e
-        env:
-          ENGINE_DEFAULT: podman
-          GOOGLE_CREDENTIALS: ${{ secrets.GOOGLE_CREDENTIALS }}
-          TF_VAR_sa_creds: ${{ secrets.GOOGLE_SA_BASE64 }}
-          SA_CREDS_BASE64: ${{ secrets.GOOGLE_SA_BASE64 }}
-          SUMSUB_KEY: ${{ secrets.SUMSUB_KEY }}
-          SUMSUB_SECRET: ${{ secrets.SUMSUB_SECRET }}
-          TF_VAR_name_prefix: "gha"
+          paths-file: ./nix-checks-paths.txt
+          cache-name: lana-bank-ci
+          max-attempts: 300
+          retry-delay: 10
+
+      - uses: cachix/cachix-action@v15
+        with:
+          name: lana-bank-ci
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+
+      - name: Run BATS tests
+        run: nix run .#bats
           
       - name: Rename bats log
         if: always()
@@ -39,7 +45,7 @@ jobs:
         if: always()
         uses: actions/upload-artifact@v4
         with:
-          name: Podman BATS Logs
+          name: BATS Logs
           path: |
             e2e-logs
             *.e2e-logs 

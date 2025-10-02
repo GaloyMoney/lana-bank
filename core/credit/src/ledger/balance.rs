@@ -228,6 +228,7 @@ impl CVLData {
 
 #[cfg(test)]
 mod test {
+    #![allow(clippy::inconsistent_digit_grouping)]
 
     use super::*;
 

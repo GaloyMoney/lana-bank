@@ -19,10 +19,7 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup-podman
-      - uses: ./.github/actions/setup-nix
-        with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - uses: DeterminateSystems/nix-installer-action@v16
 
       - name: Configure Meltano environment variables (credentials only)
         run: |

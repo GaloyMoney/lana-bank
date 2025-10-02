@@ -18,10 +18,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/setup-nix
-        with:
-          cachix_auth_token: ${{ secrets.CACHIX_AUTH_TOKEN }}
-          google_credentials: ${{ secrets.GOOGLE_CREDENTIALS }}
+      - uses: DeterminateSystems/nix-installer-action@v16
       - uses: ./.github/actions/cache-pnpm
       - run: nix develop -c make build-storybook-admin-panel
       - name: Check for Netlify secret
