@@ -84,6 +84,10 @@ impl Customer {
         true
     }
 
+    pub fn should_sync_financial_transactions(&self) -> bool {
+        self.applicant_id.is_some()
+    }
+
     pub fn start_kyc(&mut self, applicant_id: String) {
         self.events.push(CustomerEvent::KycStarted {
             applicant_id: applicant_id.clone(),

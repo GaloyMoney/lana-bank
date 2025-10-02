@@ -4,7 +4,7 @@ use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers, KycLevel};
+use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{
     CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
     GovernanceObject,
@@ -205,7 +205,7 @@ where
                         .find_by_id_without_audit(account.account_holder_id)
                         .await?;
 
-                    if matches!(customer.level, KycLevel::Basic | KycLevel::Advanced) {
+                    if customer.should_sync_financial_transactions() {
                         let amount_usd: f64 = amount.to_usd().try_into()?;
                         self.sumsub_client
                             .submit_finance_transaction(
@@ -241,7 +241,7 @@ where
                         .find_by_id_without_audit(account.account_holder_id)
                         .await?;
 
-                    if matches!(customer.level, KycLevel::Basic | KycLevel::Advanced) {
+                    if customer.should_sync_financial_transactions() {
                         let amount_usd: f64 = amount.to_usd().try_into()?;
                         self.sumsub_client
                             .submit_finance_transaction(
