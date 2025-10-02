@@ -6,7 +6,7 @@
   # Build the podman-compose runner as a derivation
   podman-compose-runner = pkgs.stdenv.mkDerivation {
     pname = "podman-compose-runner";
-    version = "1.0.0";
+    version = "0.1.0";
 
     # No source needed for a wrapper script
     dontUnpack = true;
@@ -121,7 +121,7 @@
   # Alternative: Pure podman-compose without auto-start
   podman-compose-simple = pkgs.stdenv.mkDerivation {
     pname = "podman-compose-simple";
-    version = "1.0.0";
+    version = "0.1.0";
 
     dontUnpack = true;
 
