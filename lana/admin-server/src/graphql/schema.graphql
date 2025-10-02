@@ -266,6 +266,14 @@ type ChartOfAccountsAddRootNodePayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
+input ChartOfAccountsCloseAnnualInput {
+	chartId: UUID!
+}
+
+type ChartOfAccountsCloseAnnualPayload {
+	chartOfAccounts: ChartOfAccounts!
+}
+
 input ChartOfAccountsCloseMonthlyInput {
 	chartId: UUID!
 }
@@ -1557,6 +1565,7 @@ type Mutation {
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	chartOfAccountsCloseMonthly(input: ChartOfAccountsCloseMonthlyInput!): ChartOfAccountsCloseMonthlyPayload!
+	chartOfAccountsCloseAnnual(input: ChartOfAccountsCloseAnnualInput!): ChartOfAccountsCloseAnnualPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
