@@ -160,7 +160,7 @@ pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
 markdown2pdf = { version = "0.1.7", features = ["rustls-tls"], default-features = false }
 bytes = "1.10"
-keycloak = "26.3.202"
+keycloak = "26.4.0"
 
 [profile.release]
 lto = true
