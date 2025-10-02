@@ -314,11 +314,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
     ) -> Result<Chart, CoreAccountingError> {
-        Ok(self
-            .chart_of_accounts()
-            .close_annual(sub, chart_id)
-            .await?
-        )
+        Ok(self.chart_of_accounts().close_annual(sub, chart_id).await?)
     }
 
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]

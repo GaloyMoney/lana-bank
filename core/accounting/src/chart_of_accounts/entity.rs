@@ -337,7 +337,7 @@ impl Chart {
     pub fn find_last_closed_monthly_period(
         &self,
         _now: DateTime<Utc>,
-    ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError>{
+    ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError> {
         // TODO: Find the last ChartEvent::AccountingPeriodClosed event.
         Ok(Idempotent::Ignored)
     }
