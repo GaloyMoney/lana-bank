@@ -7,18 +7,17 @@ pub mod ledger;
 mod repo;
 pub mod tree;
 
-use chrono::Datelike;
 use es_entity::Idempotent;
 use tracing::instrument;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account::Account};
+use cala_ledger::{CalaLedger, account::Account, account::AccountId};
 
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId
 };
 
 #[cfg(feature = "json-schema")]
@@ -220,7 +219,7 @@ where
     )]
     pub async fn close_annual(
         &self,
-        // TODO: Confirm same permissions as close_monthly
+        // TODO: Confirm same permissions as close_monthly (job vs. manually triggered).
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Chart, ChartOfAccountsError> {
@@ -228,7 +227,7 @@ where
         let chart = self.repo.find_by_id(id).await?;
 
         let now = crate::time::now();
-        let last_closed_period =
+        let _last_closed_period =
             if let Idempotent::Executed(date) = chart.find_last_closed_monthly_period(now)? {
                 date
             } else {
@@ -236,12 +235,9 @@ where
                 return Err(ChartOfAccountsError::AccountPeriodCloseNotFound);
             };
 
-        // TODO: Consider edge cases of this validation check.
-        if last_closed_period.year() != now.date_naive().year()
-            || last_closed_period.month() != now.date_naive().month()
-        {
-            return Err(ChartOfAccountsError::AccountPeriodCloseNotFound);
-        }
+        // TODO: It feels like we need a config to know that a certain month's close
+        // represents the pre-req to the annual closing transaction... Validate
+        // `last_closed_period` against that config.
 
         // TODO: Where should we get these codes from?
         let revenue_parent_code = "6".parse::<AccountCode>().unwrap();
@@ -254,19 +250,59 @@ where
         let expenses_parent_code = "8".parse::<AccountCode>().unwrap();
         let _expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
 
-        // TODO: Calculate the net balance between Revenue (6), Cost of Revenues (7),
-        // and Expenses (8).
-
-        // [ ROUTE A ] self.cala.account_sets().find_where_member(member, query)
+        // TODO: Collect all underlying accounts (Could be moved to `ChartLedger`?) - 
+        
+        // NOTE: Testing account collection process with just `Revenue`.
+        let mut _revenue_accounts: Vec<AccountId> = Vec::new();
         let _revenue_account_sets = self
             .cala
             .account_sets()
-            .find_where_member(_revenue_set_id, Default::default())
+            .list_members_by_created_at(_revenue_set_id, Default::default())
             .await?;
-        // ... iterate accounts to collect data to eventually build the entries and transaction.
+        
+        for member in &_revenue_account_sets.entities {
+            match &member.id {
+                cala_ledger::account_set::AccountSetMemberId::Account(account_id) => {
+                    _revenue_accounts.push(account_id.clone());
+                }
+                cala_ledger::account_set::AccountSetMemberId::AccountSet(account_set_id) => {
+                    let mut current_depth = 0; // TODO: 0 or 1?
+                    let mut sets_to_process = vec![*account_set_id];
+                    // TODO: Use `MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE` 
+                    // constant and/or move to ChartLedger?
+                    while !sets_to_process.is_empty() && current_depth <= 2 {
+                        let current_level_sets = std::mem::take(&mut sets_to_process);
+                        
+                        for set_id in current_level_sets {
+                            let members = self
+                                .cala
+                                .account_sets()
+                                .list_members_by_created_at(set_id, Default::default())
+                                .await?
+                                .entities;
+                                
+                            for member in members {
+                                match member.id {
+                                    cala_ledger::account_set::AccountSetMemberId::Account(account_id) => {
+                                        _revenue_accounts.push(account_id);
+                                    }
+                                    cala_ledger::account_set::AccountSetMemberId::AccountSet(nested_set_id) => {
+                                        // TODO: Use `MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE` constant 
+                                        // and/or move to ChartLedger?
+                                        if current_depth < 2 {
+                                            sets_to_process.push(nested_set_id);
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                        current_depth += 1;
+                    }
+                }
+            }
+        }
 
-        // NOTE: could be useful still for getting the values we need to debit/credit
-        // from each underlying account.
+        // TODO: Get balances for the collected accounts (to start preparing entries).
         // let _revenue_account_balances = self.cala
         //     .balances()
         //     .find(self.journal_id, _revenue_set_id, Currency::USD)
