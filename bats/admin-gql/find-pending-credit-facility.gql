@@ -1,0 +1,12 @@
+query pendingCreditFacility($id: UUID!) {
+  pendingCreditFacility(id: $id) {
+    pendingCreditFacilityId
+    status
+    wallet {
+      address
+    }
+    collateral {
+      btcBalance
+    }
+  }
+}

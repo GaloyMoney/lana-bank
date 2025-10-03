@@ -145,6 +145,7 @@ where
             .id(id)
             .customer_id(proposal.customer_id)
             .customer_type(proposal.customer_type)
+            .approval_process_id(proposal.approval_process_id)
             .ledger_tx_id(LedgerTxId::new())
             .account_ids(account_ids)
             .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
@@ -284,10 +285,10 @@ where
         Ok(())
     }
 
-    #[instrument(name = "credit.credit_facility_proposals.list", skip(self))]
+    #[instrument(name = "credit.pending_credit_facility.list", skip(self))]
     pub async fn list(
         &self,
-        _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         query: es_entity::PaginatedQueryArgs<PendingCreditFacilitiesByCreatedAtCursor>,
     ) -> Result<
         es_entity::PaginatedQueryRet<
@@ -296,6 +297,14 @@ where
         >,
         PendingCreditFacilityError,
     > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
+            .await?;
+
         self.repo
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await

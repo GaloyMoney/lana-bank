@@ -138,7 +138,7 @@ pub struct NewCreditFacilityProposal {
     #[builder(setter(into))]
     pub(super) customer_id: CustomerId,
     pub(super) customer_type: CustomerType,
-    #[builder(setter(into, strip_option), default)]
+    #[builder(setter(into), default)]
     pub(super) custodian_id: Option<CustodianId>,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,

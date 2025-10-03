@@ -652,6 +652,21 @@ type CreditFacilityProposal {
 	approvalProcess: ApprovalProcess!
 }
 
+type CreditFacilityProposalConnection {
+	"""
+	Information to aid in pagination.
+	"""
+	pageInfo: PageInfo!
+	"""
+	A list of edges.
+	"""
+	edges: [CreditFacilityProposalEdge!]!
+	"""
+	A list of nodes.
+	"""
+	nodes: [CreditFacilityProposal!]!
+}
+
 input CreditFacilityProposalCreateInput {
 	customerId: UUID!
 	disbursalCreditAccountId: UUID!
@@ -662,6 +677,20 @@ input CreditFacilityProposalCreateInput {
 
 type CreditFacilityProposalCreatePayload {
 	creditFacilityProposal: CreditFacilityProposal!
+}
+
+"""
+An edge in a connection.
+"""
+type CreditFacilityProposalEdge {
+	"""
+	The item at the end of the edge
+	"""
+	node: CreditFacilityProposal!
+	"""
+	A cursor for use in pagination
+	"""
+	cursor: String!
 }
 
 enum CreditFacilityProposalStatus {
@@ -1491,7 +1520,7 @@ type Mutation {
 	creditModuleConfigure(input: CreditModuleConfigureInput!): CreditModuleConfigurePayload!
 	creditFacilityProposalCreate(input: CreditFacilityProposalCreateInput!): CreditFacilityProposalCreatePayload!
 	creditFacilityCollateralUpdate(input: CreditFacilityCollateralUpdateInput!): CreditFacilityCollateralUpdatePayload!
-	creditFacilityProposalCollateralUpdate(input: PendingCreditFacilityCollateralUpdateInput!): PendingCreditFacilityCollateralUpdatePayload!
+	pendingCreditFacilityCollateralUpdate(input: PendingCreditFacilityCollateralUpdateInput!): PendingCreditFacilityCollateralUpdatePayload!
 	creditFacilityPartialPaymentRecord(input: CreditFacilityPartialPaymentRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityPartialPaymentWithDateRecord(input: CreditFacilityPartialPaymentWithDateRecordInput!): CreditFacilityPartialPaymentRecordPayload!
 	creditFacilityDisbursalInitiate(input: CreditFacilityDisbursalInitiateInput!): CreditFacilityDisbursalInitiatePayload!
@@ -1556,7 +1585,8 @@ type PaymentEntry {
 
 type PendingCreditFacility {
 	id: ID!
-	creditFacilityProposalId: UUID!
+	pendingCreditFacilityId: UUID!
+	status: PendingCreditFacilityStatus!
 	approvalProcessId: UUID!
 	createdAt: Timestamp!
 	collateralizationState: PendingCreditFacilityCollateralizationState!
@@ -1611,6 +1641,11 @@ type PendingCreditFacilityEdge {
 	A cursor for use in pagination
 	"""
 	cursor: String!
+}
+
+enum PendingCreditFacilityStatus {
+	PENDING_COLLATERALIZATION
+	COMPLETED
 }
 
 enum Period {
@@ -1772,6 +1807,8 @@ type Query {
 	termsTemplate(id: UUID!): TermsTemplate
 	termsTemplates: [TermsTemplate!]!
 	creditFacility(id: UUID!): CreditFacility
+	creditFacilityProposal(id: UUID!): CreditFacilityProposal
+	creditFacilityProposals(first: Int!, after: String): CreditFacilityProposalConnection!
 	pendingCreditFacility(id: UUID!): PendingCreditFacility
 	pendingCreditFacilities(first: Int!, after: String): PendingCreditFacilityConnection!
 	creditFacilityByPublicId(id: PublicId!): CreditFacility

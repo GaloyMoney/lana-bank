@@ -1,9 +1,6 @@
 query creditFacilityProposal($id: UUID!) {
   creditFacilityProposal(id: $id) {
     creditFacilityProposalId
-    facilityAmount
-    collateral {
-      btcBalance
-    }
+    status
   }
 }

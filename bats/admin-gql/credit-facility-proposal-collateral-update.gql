@@ -1,9 +1,0 @@
-mutation CreditFacilityProposalCollateralUpdate(
-  $input: CreditFacilityProposalCollateralUpdateInput!
-) {
-  creditFacilityProposalCollateralUpdate(input: $input) {
-    creditFacilityProposal {
-      creditFacilityProposalId
-    }
-  }
-}

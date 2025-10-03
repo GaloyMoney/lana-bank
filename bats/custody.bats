@@ -1,5 +1,4 @@
 #!/usr/bin/env bats
-
 load "helpers"
 
 setup_file() {

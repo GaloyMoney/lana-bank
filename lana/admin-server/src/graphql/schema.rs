@@ -293,6 +293,44 @@ impl Query {
         )
     }
 
+    async fn credit_facility_proposal(
+        &self,
+        ctx: &Context<'_>,
+        id: UUID,
+    ) -> async_graphql::Result<Option<CreditFacilityProposal>> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+
+        maybe_fetch_one!(
+            CreditFacilityProposal,
+            ctx,
+            app.credit().proposals().find_by_id(sub, id)
+        )
+    }
+
+    async fn credit_facility_proposals(
+        &self,
+        ctx: &Context<'_>,
+        first: i32,
+        after: Option<String>,
+    ) -> async_graphql::Result<
+        Connection<
+            CreditFacilityProposalsByCreatedAtCursor,
+            CreditFacilityProposal,
+            EmptyFields,
+            EmptyFields,
+        >,
+    > {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        list_with_cursor!(
+            CreditFacilityProposalsByCreatedAtCursor,
+            CreditFacilityProposal,
+            ctx,
+            after,
+            first,
+            |query| app.credit().proposals().list(sub, query)
+        )
+    }
+
     async fn pending_credit_facility(
         &self,
         ctx: &Context<'_>,
@@ -1672,7 +1710,7 @@ impl Mutation {
         )
     }
 
-    pub async fn credit_facility_proposal_collateral_update(
+    pub async fn pending_credit_facility_collateral_update(
         &self,
         ctx: &Context<'_>,
         input: PendingCreditFacilityCollateralUpdateInput,
