@@ -39,6 +39,7 @@ describe("Profit and Loss Statement", () => {
 
   it("should display basic page elements", () => {
     cy.contains(t(PL + ".title")).should("exist")
+    cy.contains(t("DateRangePicker.dateRange")).should("exist")
     cy.contains(t(PL + ".net")).should("exist")
   })
 
