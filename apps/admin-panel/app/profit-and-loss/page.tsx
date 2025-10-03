@@ -16,19 +16,14 @@ import { useTranslations } from "next-intl"
 
 import { Account } from "./account"
 
-import { PnlCurrencySelection, PnlLayerSelection } from "./pnl-currency-selector"
-
 import {
   ProfitAndLossStatementQuery,
   useProfitAndLossStatementQuery,
 } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-
-import {
-  DateRange,
-  DateRangeSelector,
-  getInitialDateRange,
-} from "@/components/date-range-picker"
+import { getInitialDateRange, DateRange } from "@/components/date-range-picker"
+import { ReportFilters } from "@/components/report-filters"
+import { ReportLayer } from "@/components/report-filters/selectors"
 
 gql`
   query ProfitAndLossStatement($from: Date!, $until: Date) {
@@ -97,60 +92,6 @@ interface ProfitAndLossProps {
   setDateRange: (range: DateRange) => void
 }
 
-const LoadingSkeleton = () => {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-72" />
-        <Skeleton className="h-10 w-96" />
-      </div>
-      <Table>
-        <TableBody>
-          <TableRow>
-            <TableCell>
-              <Skeleton className="h-6 w-32" />
-            </TableCell>
-            <TableCell className="w-48">
-              <Skeleton className="h-6 w-24 ml-auto" />
-            </TableCell>
-          </TableRow>
-          {[1, 2, 3].map((i) => (
-            <TableRow key={`revenue-${i}`}>
-              <TableCell>
-                <div className="flex gap-2">
-                  <div className="w-6" />
-                  <Skeleton className="h-5 w-48" />
-                </div>
-              </TableCell>
-              <TableCell>
-                <Skeleton className="h-5 w-24 ml-auto" />
-              </TableCell>
-            </TableRow>
-          ))}
-          <TableRow>
-            <TableCell>
-              <Skeleton className="h-6 w-32" />
-            </TableCell>
-            <TableCell className="w-48">
-              <Skeleton className="h-6 w-24 ml-auto" />
-            </TableCell>
-          </TableRow>
-        </TableBody>
-        <TableFooter>
-          <TableRow>
-            <TableCell>
-              <Skeleton className="h-6 w-32" />
-            </TableCell>
-            <TableCell>
-              <Skeleton className="h-6 w-24 ml-auto" />
-            </TableCell>
-          </TableRow>
-        </TableFooter>
-      </Table>
-    </div>
-  )
-}
-
 export default function ProfitAndLossStatementPage() {
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange)
   const handleDateChange = useCallback((newDateRange: DateRange) => {
@@ -181,28 +122,11 @@ const ProfitAndLossStatement = ({
 }: ProfitAndLossProps) => {
   const t = useTranslations("ProfitAndLoss")
   const [currency, setCurrency] = useState<Currency>("usd")
-  const [layer, setLayer] = useState<PnlLayers>("settled")
+  const [layer, setLayer] = useState<ReportLayer>("settled")
 
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (loading || !data) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LoadingSkeleton />
-        </CardContent>
-      </Card>
-    )
-  }
 
-  if (!data.categories || data.categories.length === 0) {
-    return <div>No data available</div>
-  }
-
-  const total = data.total
+  const total = data?.total
   let netEnd: number | undefined
 
   if (currency === "usd" && total?.usd) {
@@ -218,47 +142,57 @@ const ProfitAndLossStatement = ({
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-6 items-center">
-          <div>{t("dateRange")}:</div>
-          <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
-        </div>
-        <PnlCurrencySelection currency={currency} setCurrency={setCurrency} />
-        <PnlLayerSelection layer={layer} setLayer={setLayer} />
-        <Table className="mt-6">
-          <TableBody>
-            {data.categories.map((category) => {
-              let categoryEnd: number | undefined
-              if (category.balanceRange.__typename === "UsdLedgerAccountBalanceRange") {
-                categoryEnd = category.balanceRange.usdEnd[layer].net
-              } else if (
-                category.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
-              ) {
-                categoryEnd = category.balanceRange.btcEnd[layer].net
-              }
-              return (
-                <CategoryRow
-                  key={category.id}
-                  category={category}
-                  currency={currency}
-                  layer={layer}
-                  endingBalance={categoryEnd}
-                />
-              )
-            })}
-          </TableBody>
-          <TableFooter>
-            <TableRow>
-              <TableCell className="uppercase font-bold">{t("net")}</TableCell>
-              <TableCell className="w-48">
-                <Balance
-                  align="end"
-                  currency={currency}
-                  amount={netEnd as CurrencyType}
-                />
-              </TableCell>
-            </TableRow>
-          </TableFooter>
-        </Table>
+        <ReportFilters
+          dateRange={dateRange}
+          onDateChange={setDateRange}
+          currency={currency}
+          onCurrencyChange={setCurrency}
+          layer={layer}
+          onLayerChange={setLayer}
+        />
+        {loading || !data?.categories || data.categories.length === 0 ? (
+          <Skeleton className="h-96 w-full" />
+        ) : (
+          <div className="border rounded-md overflow-hidden">
+            <Table>
+              <TableBody>
+                {data.categories.map((category) => {
+                  let categoryEnd: number | undefined
+                  if (
+                    category.balanceRange.__typename === "UsdLedgerAccountBalanceRange"
+                  ) {
+                    categoryEnd = category.balanceRange.usdEnd[layer].net
+                  } else if (
+                    category.balanceRange.__typename === "BtcLedgerAccountBalanceRange"
+                  ) {
+                    categoryEnd = category.balanceRange.btcEnd[layer].net
+                  }
+                  return (
+                    <CategoryRow
+                      key={category.id}
+                      category={category}
+                      currency={currency}
+                      layer={layer}
+                      endingBalance={categoryEnd}
+                    />
+                  )
+                })}
+              </TableBody>
+              <TableFooter>
+                <TableRow>
+                  <TableCell className="uppercase font-bold">{t("net")}</TableCell>
+                  <TableCell className="w-48">
+                    <Balance
+                      align="end"
+                      currency={currency}
+                      amount={netEnd as CurrencyType}
+                    />
+                  </TableCell>
+                </TableRow>
+              </TableFooter>
+            </Table>
+          </div>
+        )}
       </CardContent>
     </Card>
   )
@@ -269,7 +203,7 @@ interface CategoryRowProps {
     ProfitAndLossStatementQuery["profitAndLossStatement"]
   >["categories"][0]
   currency: Currency
-  layer: PnlLayers
+  layer: ReportLayer
   endingBalance?: number
 }
 

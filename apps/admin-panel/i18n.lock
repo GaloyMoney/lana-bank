@@ -956,7 +956,6 @@ checksums:
     BalanceSheet/title: 0c5e5cc9dd1e661a276e1536917a8db8
     BalanceSheet/description: 3025ff334feb2d3790244d58a9a40eb3
     BalanceSheet/noData: 81e91b979968615c55f9c0701fa9bbe3
-    BalanceSheet/dateRange: 9b3aa5954144de586931f60ef9594e99
     BalanceSheet/total: f60dc0a14e9b1bace656c644de25de5b
     BalanceSheet/columns/assets: 63b7f2a516d939c1bbecaa26843da7e8
     BalanceSheet/columns/liabilitiesAndEquity: 3c539b763602d4adf850240e8809ea6f
@@ -966,7 +965,6 @@ checksums:
     ProfitAndLoss/title: 5a4b40ff5c66e810a068aac0bd659173
     ProfitAndLoss/description: 8a369af374cdc06501a168a6b8bd93c7
     ProfitAndLoss/noData: 81e91b979968615c55f9c0701fa9bbe3
-    ProfitAndLoss/dateRange: 9b3aa5954144de586931f60ef9594e99
     ProfitAndLoss/net: b7e51f0a41e8719bf5ce3ddf1897cf7b
     ProfitAndLoss/categories/Revenue: ff03ab827646d3027cc63ed72943c03d
     ProfitAndLoss/categories/CostofRevenue: 961c71d8f4f8ca818f2de8ecfdab0d76
@@ -1001,7 +999,6 @@ checksums:
     TrialBalance/title: 2d6598d15bc81b1e8d626782922e6ab7
     TrialBalance/description: 3ebb7d653fc18ee660566dd3043c9b05
     TrialBalance/noAccountsPresent: 13af00b386a336e7a22a433dfbb4e465
-    TrialBalance/dateRange: 9b3aa5954144de586931f60ef9594e99
     TrialBalance/totals: 1654fbdbee666553653e9f3042468a54
     TrialBalance/tabs/regular: a85e9f646b05a474ec32a9cdbc1ef123
     TrialBalance/tabs/offBalanceSheet: 6b84f41a7ced3ff1db94af889f8330ed
@@ -1018,6 +1015,11 @@ checksums:
     CurrencyLayerSelection/layer/options/all: 5e2e93f8e2a5f315b6fecdd0a0e6f55f
     CurrencyLayerSelection/layer/options/settled: 9d8966da26c006bf2ef3d196d3255ebb
     CurrencyLayerSelection/layer/options/pending: 030a6f3395d5d4efddd3cc67d6009039
+    DateRangePicker/dateRange: 9b3aa5954144de586931f60ef9594e99
+    DateRangePicker/fromDate: f95d2e89a79b650bf55c329b73071881
+    DateRangePicker/toDate: 3dcb01eb7710165085b37d631fba8dcb
+    DateRangePicker/apply: 0f03e8e3752eb120bf8ea0b8f8f5d244
+    DateRangePicker/pickDateRange: b7061cf5d72d1e8380b7e2ef41b09f06
     dateTime/created: 845d6188357aaa76a703d2fd68cf23d6
     dateTime/format/short: ab423691fde1389f9be644bd5f264d0e
     CreateButton/buttons/create: 757ccd28dd533ff3a933355273c1e32a

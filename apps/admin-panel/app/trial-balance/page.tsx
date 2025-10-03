@@ -20,24 +20,13 @@ import {
 import { useRouter } from "next/navigation"
 import { useTranslations } from "next-intl"
 
-import { Label } from "@lana/web/ui/label"
-
-import { Separator } from "@lana/web/ui/separator"
 import { Skeleton } from "@lana/web/ui/skeleton"
-
-import {
-  TrialBalanceCurrencySelection,
-  TrialBalanceLayerSelection,
-  TrialBalanceLayers,
-} from "./trial-balance-currency-selector"
 
 import { GetTrialBalanceQuery, useGetTrialBalanceQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-import {
-  DateRange,
-  DateRangeSelector,
-  getInitialDateRange,
-} from "@/components/date-range-picker"
+import { getInitialDateRange, DateRange } from "@/components/date-range-picker"
+import { ReportFilters } from "@/components/report-filters"
+import { ReportLayer } from "@/components/report-filters/selectors"
 
 gql`
   query GetTrialBalance($from: Date!, $until: Date!) {
@@ -110,7 +99,7 @@ const TrialBalanceAccountRow = ({
   account: Account
   isRoot: boolean
   currency: Currency
-  layer: TrialBalanceLayers
+  layer: ReportLayer
 }) => {
   const router = useRouter()
   if (!hasInEitherSettledOrPending(account.balanceRange)) return null
@@ -122,13 +111,15 @@ const TrialBalanceAccountRow = ({
         className="cursor-pointer hover:bg-muted/50"
         onClick={() => router.push(`/ledger-accounts/${account.code}`)}
       >
-        <TableCell>
+        <TableCell className="w-32">
           <div className={`font-mono text-xs ${isRoot ? "font-bold" : "text-gray-500"}`}>
             {account.code}
           </div>
         </TableCell>
-        <TableCell className={isRoot ? "font-bold" : ""}>{account.name}</TableCell>
-        <TableCell className="text-right">
+        <TableCell className={`min-w-64 ${isRoot ? "font-bold" : ""}`}>
+          {account.name}
+        </TableCell>
+        <TableCell className="text-right w-48">
           {balanceData?.start ? (
             <Balance
               align="end"
@@ -140,7 +131,7 @@ const TrialBalanceAccountRow = ({
             <span className="text-muted-foreground">-</span>
           )}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right w-48">
           {balanceData?.diff ? (
             <Balance
               align="end"
@@ -152,7 +143,7 @@ const TrialBalanceAccountRow = ({
             <span className="text-muted-foreground">-</span>
           )}
         </TableCell>
-        <TableCell className="text-left">
+        <TableCell className="text-left w-48">
           {balanceData?.diff ? (
             <Balance
               align="start"
@@ -164,7 +155,7 @@ const TrialBalanceAccountRow = ({
             <span className="text-muted-foreground">-</span>
           )}
         </TableCell>
-        <TableCell className="text-right">
+        <TableCell className="text-right w-48">
           {balanceData?.end ? (
             <Balance
               align="end"
@@ -194,7 +185,7 @@ function TrialBalancePage() {
   const t = useTranslations("TrialBalance")
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange())
   const [currency, setCurrency] = useState<Currency>("usd")
-  const [layer, setLayer] = useState<TrialBalanceLayers>("settled")
+  const [layer, setLayer] = useState<ReportLayer>("settled")
 
   const { data, loading, error } = useGetTrialBalanceQuery({
     variables: {
@@ -213,23 +204,14 @@ function TrialBalancePage() {
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="mb-4 flex items-center">
-          <div className="mr-8">
-            <Label>{t("dateRange")}</Label>
-            <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
-          </div>
-          <Separator orientation="vertical" className="h-14" />
-          <div className="ml-2 mr-8">
-            <TrialBalanceCurrencySelection
-              currency={currency}
-              setCurrency={setCurrency}
-            />
-          </div>
-          <Separator orientation="vertical" className="h-14" />
-          <div className="ml-2">
-            <TrialBalanceLayerSelection layer={layer} setLayer={setLayer} />
-          </div>
-        </div>
+        <ReportFilters
+          dateRange={dateRange}
+          onDateChange={setDateRange}
+          currency={currency}
+          onCurrencyChange={setCurrency}
+          layer={layer}
+          onLayerChange={setLayer}
+        />
         {loading && !accounts ? (
           <Skeleton className="h-96 w-full" />
         ) : (
@@ -237,18 +219,20 @@ function TrialBalancePage() {
             <Table>
               <TableHeader className="bg-secondary [&_tr:hover]:!bg-secondary">
                 <TableRow>
-                  <TableHead className="w-28">{t("table.headers.accountCode")}</TableHead>
-                  <TableHead className="w-56">{t("table.headers.accountName")}</TableHead>
-                  <TableHead className="text-right w-40">
+                  <TableHead className="w-32">{t("table.headers.accountCode")}</TableHead>
+                  <TableHead className="min-w-64">
+                    {t("table.headers.accountName")}
+                  </TableHead>
+                  <TableHead className="text-right w-48">
                     {t("table.headers.beginningBalance")}
                   </TableHead>
-                  <TableHead className="text-right w-36">
+                  <TableHead className="text-right w-48">
                     {t("table.headers.debits")}
                   </TableHead>
-                  <TableHead className="text-left w-24">
+                  <TableHead className="text-left w-48">
                     {t("table.headers.credits")}
                   </TableHead>
-                  <TableHead className="text-right w-20">
+                  <TableHead className="text-right w-48">
                     {t("table.headers.endingBalance")}
                   </TableHead>
                 </TableRow>
@@ -287,7 +271,7 @@ export default TrialBalancePage
 const getBalanceData = (
   balanceRange: Account["balanceRange"],
   currency: Currency,
-  layer: TrialBalanceLayers,
+  layer: ReportLayer,
 ) => {
   if (!balanceRange) return null
   if (currency === "usd" && isUsdLedgerBalanceRange(balanceRange)) {

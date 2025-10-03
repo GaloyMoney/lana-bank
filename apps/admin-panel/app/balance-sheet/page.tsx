@@ -15,21 +15,13 @@ import {
 
 import { Skeleton } from "@lana/web/ui/skeleton"
 
-import {
-  PnlCurrencySelection,
-  PnlLayerSelection,
-} from "../profit-and-loss/pnl-currency-selector"
-
 import { Account } from "./account"
 
 import { BalanceSheetQuery, useBalanceSheetQuery } from "@/lib/graphql/generated"
 import Balance, { Currency } from "@/components/balance/balance"
-
-import {
-  DateRange,
-  DateRangeSelector,
-  getInitialDateRange,
-} from "@/components/date-range-picker"
+import { getInitialDateRange, DateRange } from "@/components/date-range-picker"
+import { ReportFilters } from "@/components/report-filters"
+import { ReportLayer } from "@/components/report-filters/selectors"
 
 gql`
   query BalanceSheet($from: Date!, $until: Date) {
@@ -114,30 +106,6 @@ gql`
   }
 `
 
-const LoadingSkeleton = () => {
-  return (
-    <div className="space-y-6">
-      <div className="space-y-4">
-        <Skeleton className="h-10 w-72" />
-        <Skeleton className="h-10 w-96" />
-      </div>
-      <div className="flex gap-4 justify-between">
-        <div className="w-1/2 space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={`left-${i}`} className="h-16 w-full" />
-          ))}
-        </div>
-        <div className="w-0.5 min-h-full bg-secondary" />
-        <div className="w-1/2 space-y-4">
-          {[1, 2, 3, 4, 5].map((i) => (
-            <Skeleton key={`right-${i}`} className="h-16 w-full" />
-          ))}
-        </div>
-      </div>
-    </div>
-  )
-}
-
 export default function BalanceSheetPage() {
   const initialDateRange = useMemo(() => getInitialDateRange(), [])
   const [dateRange, setDateRange] = useState<DateRange>(initialDateRange)
@@ -180,29 +148,13 @@ const BalanceSheet = ({
 }: BalanceSheetProps) => {
   const t = useTranslations("BalanceSheet")
   const [currency, setCurrency] = useState<Currency>("usd")
-  const [layer, setLayer] = useState<BalanceSheetLayers>("settled")
+  const [layer, setLayer] = useState<ReportLayer>("settled")
 
   if (error) return <div className="text-destructive">{error.message}</div>
 
-  if (loading && !data) {
-    return (
-      <Card>
-        <CardHeader>
-          <CardTitle>{t("title")}</CardTitle>
-          <CardDescription>{t("description")}</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <LoadingSkeleton />
-        </CardContent>
-      </Card>
-    )
-  }
-
-  if (!data?.balance) return <div>{t("noData")}</div>
-
-  const assets = data.categories?.filter((cat) => cat.name === "Assets")
-  const liabilities = data.categories?.filter((cat) => cat.name === "Liabilities")
-  const equity = data.categories?.filter((cat) => cat.name === "Equity")
+  const assets = data?.categories?.filter((cat) => cat.name === "Assets")
+  const liabilities = data?.categories?.filter((cat) => cat.name === "Liabilities")
+  const equity = data?.categories?.filter((cat) => cat.name === "Equity")
 
   const assetsTotal = getBalanceTotal(assets, currency, layer)
 
@@ -216,63 +168,42 @@ const BalanceSheet = ({
         <CardDescription>{t("description")}</CardDescription>
       </CardHeader>
       <CardContent>
-        <div className="flex gap-6 items-center">
-          <div>{t("dateRange")}:</div>
-          <DateRangeSelector initialDateRange={dateRange} onDateChange={setDateRange} />
-        </div>
-
-        <BalanceSheetHeader
+        <ReportFilters
+          dateRange={dateRange}
+          onDateChange={setDateRange}
           currency={currency}
-          setCurrency={setCurrency}
+          onCurrencyChange={setCurrency}
           layer={layer}
-          setLayer={setLayer}
+          onLayerChange={setLayer}
         />
 
-        <div className="flex gap-4 justify-between mt-6">
-          {assets && assets.length > 0 && (
-            <BalanceSheetColumn
-              title={t("columns.assets")}
-              categories={assets}
-              currency={currency}
-              layer={layer}
-              total={assetsTotal}
-            />
-          )}
-          <div className="w-0.5 min-h-full bg-secondary"></div>
-          {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
-            <BalanceSheetColumn
-              title={t("columns.liabilitiesAndEquity")}
-              categories={liabilitiesAndEquity}
-              currency={currency}
-              layer={layer}
-              total={liabilitiesAndEquityTotal}
-            />
-          )}
-        </div>
+        {loading || !data?.balance ? (
+          <Skeleton className="h-96 w-full" />
+        ) : (
+          <div className="flex justify-between border rounded-md">
+            {assets && assets.length > 0 && (
+              <BalanceSheetColumn
+                title={t("columns.assets")}
+                categories={assets}
+                currency={currency}
+                layer={layer}
+                total={assetsTotal}
+              />
+            )}
+            <div className="w-[1px] min-h-full bg-border" />
+            {liabilitiesAndEquity && liabilitiesAndEquity.length > 0 && (
+              <BalanceSheetColumn
+                title={t("columns.liabilitiesAndEquity")}
+                categories={liabilitiesAndEquity}
+                currency={currency}
+                layer={layer}
+                total={liabilitiesAndEquityTotal}
+              />
+            )}
+          </div>
+        )}
       </CardContent>
     </Card>
-  )
-}
-
-interface BalanceSheetHeaderProps {
-  currency: Currency
-  setCurrency: (currency: Currency) => void
-  layer: BalanceSheetLayers
-  setLayer: (layer: BalanceSheetLayers) => void
-}
-
-function BalanceSheetHeader({
-  currency,
-  setCurrency,
-  layer,
-  setLayer,
-}: BalanceSheetHeaderProps) {
-  return (
-    <div>
-      {/* TODO: update this to use common component */}
-      <PnlCurrencySelection currency={currency} setCurrency={setCurrency} />
-      <PnlLayerSelection layer={layer} setLayer={setLayer} />
-    </div>
   )
 }
 
@@ -280,7 +211,7 @@ interface BalanceSheetColumnProps {
   title: string
   categories: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"]
   currency: Currency
-  layer: BalanceSheetLayers
+  layer: ReportLayer
   total: number
 }
 
@@ -327,7 +258,7 @@ function BalanceSheetColumn({
 interface CategoryRowProps {
   category: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"][0]
   currency: Currency
-  layer: BalanceSheetLayers
+  layer: ReportLayer
 }
 
 function CategoryRow({ category, currency, layer }: CategoryRowProps) {
@@ -369,7 +300,7 @@ function CategoryRow({ category, currency, layer }: CategoryRowProps) {
 function getBalance(
   item: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"][0],
   currency: Currency,
-  layer: BalanceSheetLayers,
+  layer: ReportLayer,
 ): number {
   if (!item.balanceRange) return 0
   if (
@@ -390,7 +321,7 @@ function getBalance(
 function getBalanceTotal(
   categories: NonNullable<BalanceSheetQuery["balanceSheet"]>["categories"] | undefined,
   currency: Currency,
-  layer: BalanceSheetLayers,
+  layer: ReportLayer,
 ): number {
   if (!categories || categories.length === 0) return 0
   return categories.reduce((total, category) => {

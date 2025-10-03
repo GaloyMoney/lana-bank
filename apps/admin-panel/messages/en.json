@@ -1671,7 +1671,6 @@
     "title": "Balance Sheet",
     "description": "A financial statement showing the company's assets, liabilities, and equity at a specific point in time.",
     "noData": "No data",
-    "dateRange": "Date Range",
     "total": "Total",
     "columns": {
       "assets": "Total Assets",
@@ -1687,7 +1686,6 @@
     "title": "Profit and Loss Statement",
     "description": "A financial report showing revenue, expenses, and resulting profit or loss over a specific time period.",
     "noData": "No data",
-    "dateRange": "Date Range",
     "net": "NET",
     "categories": {
       "Revenue": "Revenue",
@@ -1742,7 +1740,6 @@
     "title": "Trial Balance",
     "description": "A summary of all accounts listing debit and credit balances to ensure accounting entries are balanced.",
     "noAccountsPresent": "No accounts present",
-    "dateRange": "Date Range",
     "totals": "Totals (across all accounts)",
     "tabs": {
       "regular": "Regular",
@@ -1775,6 +1772,13 @@
         "pending": "Pending"
       }
     }
+  },
+  "DateRangePicker": {
+    "dateRange": "Date Range",
+    "fromDate": "From Date",
+    "toDate": "To Date",
+    "apply": "Apply",
+    "pickDateRange": "Pick a date range"
   },
   "dateTime": {
     "created": "Created on {date}",

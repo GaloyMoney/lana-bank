@@ -1671,7 +1671,6 @@
     "title": "Balance General",
     "description": "Un estado financiero que muestra los activos, pasivos y patrimonio de la empresa en un momento específico.",
     "noData": "Sin datos",
-    "dateRange": "Rango de Fechas",
     "total": "Total",
     "columns": {
       "assets": "Total de Activos",
@@ -1687,7 +1686,6 @@
     "title": "Estado de Resultados",
     "description": "Un informe financiero que muestra ingresos, gastos y las ganancias o pérdidas resultantes durante un período específico.",
     "noData": "Sin datos",
-    "dateRange": "Rango de Fechas",
     "net": "NETO",
     "categories": {
       "Revenue": "Ingresos",
@@ -1742,7 +1740,6 @@
     "title": "Balance de Comprobación",
     "description": "Un resumen de todas las cuentas que enumera los saldos de débito y crédito para garantizar que los asientos contables estén equilibrados.",
     "noAccountsPresent": "No hay cuentas presentes",
-    "dateRange": "Rango de Fechas",
     "totals": "Totales (de todas las cuentas)",
     "tabs": {
       "regular": "Regular",
@@ -1775,6 +1772,13 @@
         "pending": "Pendientes"
       }
     }
+  },
+  "DateRangePicker": {
+    "dateRange": "Rango de fechas",
+    "fromDate": "Fecha de Inicio",
+    "toDate": "Fecha de Fin",
+    "apply": "Aplicar",
+    "pickDateRange": "Seleccionar rango de fechas"
   },
   "dateTime": {
     "created": "Fecha de registro {date}",

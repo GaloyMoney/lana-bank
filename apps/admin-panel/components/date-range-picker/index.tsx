@@ -1,127 +1,115 @@
-import React, { useState, useCallback } from "react"
+"use client"
 
-import { Input } from "@lana/web/ui/input"
+import { useMemo, useState } from "react"
+import { useTranslations } from "next-intl"
+
 import { Button } from "@lana/web/ui/button"
-import {
-  Dialog,
-  DialogContent,
-  DialogFooter,
-  DialogHeader,
-  DialogTitle,
-  DialogTrigger,
-} from "@lana/web/ui/dialog"
-import { Label } from "@lana/web/ui/label"
+import { Calendar } from "@lana/web/ui/calendar"
+import { Popover, PopoverContent, PopoverTrigger } from "@lana/web/ui/popover"
 
-type DateRangeSelectorProps = {
-  initialDateRange: DateRange
-  onDateChange: (dateRange: DateRange) => void
-}
+import { formatDate } from "@lana/web/utils"
 
 export type DateRange = {
   from: string
   until: string
 }
 
+type DateRangeSelectorProps = {
+  initialDateRange: DateRange
+  onDateChange: (dateRange: DateRange) => void
+}
+
+const toDateString = (date: Date): string => {
+  const year = date.getFullYear()
+  const month = String(date.getMonth() + 1).padStart(2, "0")
+  const day = String(date.getDate()).padStart(2, "0")
+  return `${year}-${month}-${day}`
+}
+
 export const getInitialDateRange = (): DateRange => {
   const today = new Date()
   const oneYearAgo = new Date(today.getFullYear() - 1, today.getMonth(), today.getDate())
   return {
-    from: oneYearAgo.toISOString().split("T")[0],
-    until: today.toISOString().split("T")[0],
+    from: toDateString(oneYearAgo),
+    until: toDateString(today),
   }
 }
 
-export const DateRangeSelector: React.FC<DateRangeSelectorProps> = ({
+export const DateRangeSelector = ({
   initialDateRange,
   onDateChange,
-}) => {
+}: DateRangeSelectorProps) => {
+  const t = useTranslations("DateRangePicker")
   const [isOpen, setIsOpen] = useState(false)
-  const [startDate, setStartDate] = useState(() => initialDateRange.from)
-  const [endDate, setEndDate] = useState(() => initialDateRange.until)
-  const [error, setError] = useState("")
-  const [displayRange, setDisplayRange] = useState(`${startDate} - ${endDate}`)
+  const [selectedFrom, setSelectedFrom] = useState<Date | undefined>(
+    new Date(initialDateRange.from),
+  )
+  const [selectedTo, setSelectedTo] = useState<Date | undefined>(
+    new Date(initialDateRange.until),
+  )
 
-  const updateDateRange = useCallback(() => {
-    if (startDate && endDate && !error) {
-      const newDateRange: DateRange = {
-        from: startDate,
-        until: endDate,
-      }
-      onDateChange(newDateRange)
-      setDisplayRange(`${startDate} - ${endDate}`)
-    }
-  }, [startDate, endDate, error, onDateChange])
-
-  const handleStartDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newStartDate = e.target.value
-    setStartDate(newStartDate)
-    if (newStartDate > endDate) {
-      setEndDate(newStartDate)
-    }
-    setError("")
-  }
-
-  const handleEndDateChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const newEndDate = e.target.value
-    if (newEndDate >= startDate) {
-      setEndDate(newEndDate)
-      setError("")
-    } else {
-      setError("End date cannot be earlier than start date")
-    }
-  }
+  const today = useMemo(() => {
+    const date = new Date()
+    date.setHours(0, 0, 0, 0)
+    return date
+  }, [])
 
   const handleSubmit = () => {
-    updateDateRange()
-    setIsOpen(false)
+    if (selectedFrom && selectedTo) {
+      onDateChange({
+        from: toDateString(selectedFrom),
+        until: toDateString(selectedTo),
+      })
+      setIsOpen(false)
+    }
   }
 
   return (
-    <Dialog open={isOpen} onOpenChange={setIsOpen}>
-      <DialogTrigger asChild>
-        <div className="rounded-md bg-input-text p-2 px-4 text-sm border cursor-pointer">
-          {displayRange}
+    <Popover open={isOpen} onOpenChange={setIsOpen}>
+      <PopoverTrigger asChild>
+        <div className="rounded-md bg-input-text p-2 px-4 text-sm border cursor-pointer bg-muted">
+          {selectedFrom && selectedTo
+            ? `${formatDate(selectedFrom, { includeTime: false })} - ${formatDate(selectedTo, { includeTime: false })}`
+            : t("pickDateRange")}
         </div>
-      </DialogTrigger>
-      <DialogContent>
-        <DialogHeader>
-          <DialogTitle>Select Date Range</DialogTitle>
-        </DialogHeader>
-        <div className="flex gap-2 w-full">
-          <div className="w-1/2">
-            <Label htmlFor="start-date" className="text-right">
-              Start Date
-            </Label>
-            <Input
-              id="start-date"
-              type="date"
-              value={startDate}
-              onChange={handleStartDateChange}
-              max={new Date().toISOString().split("T")[0]}
-            />
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <div className="flex flex-col">
+          <div className="flex">
+            <div className="border-r">
+              <div className="p-3 text-sm font-medium">{t("fromDate")}</div>
+              <Calendar
+                mode="single"
+                selected={selectedFrom}
+                onSelect={setSelectedFrom}
+                defaultMonth={selectedFrom}
+                disabled={(date) => date > today}
+              />
+            </div>
+            <div>
+              <div className="p-3 text-sm font-medium">{t("toDate")}</div>
+              <Calendar
+                mode="single"
+                selected={selectedTo}
+                onSelect={setSelectedTo}
+                defaultMonth={selectedTo}
+                disabled={(date) =>
+                  date > today || (selectedFrom ? date < selectedFrom : false)
+                }
+              />
+            </div>
           </div>
-          <div className="w-1/2">
-            <Label htmlFor="end-date" className="text-right">
-              End Date
-            </Label>
-            <Input
-              id="end-date"
-              type="date"
-              value={endDate}
-              onChange={handleEndDateChange}
-              min={startDate}
-              max={new Date().toISOString().split("T")[0]}
-            />
+          <div className="border-t p-2 flex justify-end">
+            <Button
+              onClick={handleSubmit}
+              variant="ghost"
+              disabled={!selectedFrom || !selectedTo}
+            >
+              {t("apply")}
+            </Button>
           </div>
         </div>
-
-        {error && <p className="text-destructive">{error}</p>}
-        <DialogFooter>
-          <Button onClick={handleSubmit} disabled={!!error} className="w-full mt-4">
-            Apply
-          </Button>
-        </DialogFooter>
-      </DialogContent>
-    </Dialog>
+      </PopoverContent>
+    </Popover>
   )
 }
