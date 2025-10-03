@@ -7,6 +7,8 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::{Outbox, OutboxEventMarker};
 
+use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+
 use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 use super::ApproveDisbursal;
@@ -31,10 +33,12 @@ impl<Perms, E> JobConfig for DisbursalApprovalJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     type Initializer = DisbursalApprovalInit<Perms, E>;
 }
@@ -43,10 +47,12 @@ pub(crate) struct DisbursalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     process: ApproveDisbursal<Perms, E>,
@@ -56,10 +62,12 @@ impl<Perms, E> DisbursalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(outbox: &Outbox<E>, process: &ApproveDisbursal<Perms, E>) -> Self {
         Self {
@@ -74,10 +82,12 @@ impl<Perms, E> JobInitializer for DisbursalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn job_type() -> JobType
     where
@@ -109,7 +119,9 @@ struct DisbursalApprovalJobData {
 pub struct DisbursalApprovalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
     process: ApproveDisbursal<Perms, E>,
@@ -119,10 +131,12 @@ impl<Perms, E> JobRunner for DisbursalApprovalJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     async fn run(
         &self,

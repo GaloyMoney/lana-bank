@@ -9,105 +9,119 @@ use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
 use outbox::OutboxEventMarker;
 
+use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
+
 use crate::{
     CoreCreditAction, CoreCreditEvent, CoreCreditObject,
-    credit_facility_proposal::CreditFacilityProposals,
+    pending_credit_facility::PendingCreditFacilities,
 };
 
 #[serde_with::serde_as]
 #[derive(Clone, Serialize, Deserialize)]
-pub(crate) struct CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E> {
+pub(crate) struct PendingCreditFacilityCollateralizationFromPriceJobConfig<Perms, E> {
     #[serde_as(as = "serde_with::DurationSeconds<u64>")]
     pub job_interval: Duration,
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PendingCreditFacilityCollateralizationFromPriceJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
-    type Initializer = CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>;
+    type Initializer = PendingCreditFacilityCollateralizationFromPriceInit<Perms, E>;
 }
-pub struct CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>
+pub struct PendingCreditFacilityCollateralizationFromPriceInit<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>
+impl<Perms, E> PendingCreditFacilityCollateralizationFromPriceInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub fn new(credit_facility_proposals: CreditFacilityProposals<Perms, E>) -> Self {
+    pub fn new(pending_credit_facilities: PendingCreditFacilities<Perms, E>) -> Self {
         Self {
-            credit_facility_proposals,
+            pending_credit_facilities,
         }
     }
 }
 
-const CREDIT_FACILITY_PROPOSAL_COLLATERALZIATION_FROM_PRICE_JOB: JobType =
+const PENDING_CREDIT_FACILITY_COLLATERALZIATION_FROM_PRICE_JOB: JobType =
     JobType::new("credit-facility-proposal-collateralization-from-price");
-impl<Perms, E> JobInitializer for CreditFacilityProposalCollateralizationFromPriceInit<Perms, E>
+impl<Perms, E> JobInitializer for PendingCreditFacilityCollateralizationFromPriceInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     fn job_type() -> JobType
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_PROPOSAL_COLLATERALZIATION_FROM_PRICE_JOB
+        PENDING_CREDIT_FACILITY_COLLATERALZIATION_FROM_PRICE_JOB
     }
 
     fn init(&self, job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(
-            CreditFacilityProposalCollateralizationFromPriceJobRunner::<Perms, E> {
+            PendingCreditFacilityCollateralizationFromPriceJobRunner::<Perms, E> {
                 config: job.config()?,
-                credit_facility_proposals: self.credit_facility_proposals.clone(),
+                pending_credit_facilities: self.pending_credit_facilities.clone(),
             },
         ))
     }
 }
 
-pub struct CreditFacilityProposalCollateralizationFromPriceJobRunner<Perms, E>
+pub struct PendingCreditFacilityCollateralizationFromPriceJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
-    config: CreditFacilityProposalCollateralizationFromPriceJobConfig<Perms, E>,
-    credit_facility_proposals: CreditFacilityProposals<Perms, E>,
+    config: PendingCreditFacilityCollateralizationFromPriceJobConfig<Perms, E>,
+    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProposalCollateralizationFromPriceJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PendingCreditFacilityCollateralizationFromPriceJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCreditAction> + From<GovernanceAction>,
+        From<CoreCreditAction> + From<GovernanceAction> + From<CoreCustodyAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreCreditObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+        From<CoreCreditObject> + From<GovernanceObject> + From<CoreCustodyObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
 {
     async fn run(
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        self.credit_facility_proposals
+        self.pending_credit_facilities
             .update_collateralization_from_price()
             .await?;
 

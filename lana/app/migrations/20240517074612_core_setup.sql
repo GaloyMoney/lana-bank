@@ -281,9 +281,6 @@ CREATE TABLE core_credit_facility_proposals (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
-  collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
-  collateralization_ratio NUMERIC,
-  collateralization_state VARCHAR NOT NULL,
   created_at TIMESTAMPTZ NOT NULL
 );
 
@@ -297,10 +294,30 @@ CREATE TABLE core_credit_facility_proposal_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_pending_credit_facilities (
+  id UUID PRIMARY KEY,
+  customer_id UUID NOT NULL REFERENCES core_customers(id),
+  approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
+  collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
+  collateralization_ratio NUMERIC,
+  collateralization_state VARCHAR NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_pending_credit_facility_events (
+  id UUID NOT NULL REFERENCES core_pending_credit_facilities(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_credit_facilities (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
-  credit_facility_proposal_id UUID NOT NULL REFERENCES core_credit_facility_proposals(id),
+  pending_credit_facility_id UUID NOT NULL REFERENCES core_pending_credit_facilities(id),
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   collateralization_ratio NUMERIC,
   collateralization_state VARCHAR NOT NULL,
@@ -615,14 +632,14 @@ CREATE TABLE audit_entries (
 );
 
 CREATE TABLE core_credit_facility_histories (
-  id UUID PRIMARY KEY REFERENCES core_credit_facility_proposals(id),
+  id UUID PRIMARY KEY REFERENCES core_pending_credit_facilities(id),
   history JSONB NOT NULL DEFAULT '[]',
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
 CREATE TABLE core_credit_facility_repayment_plans (
-  id UUID PRIMARY KEY REFERENCES core_credit_facility_proposals(id),
+  id UUID PRIMARY KEY REFERENCES core_pending_credit_facilities(id),
   repayment_plan JSONB NOT NULL,
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
   modified_at TIMESTAMPTZ NOT NULL DEFAULT NOW()

@@ -19,6 +19,7 @@ use crate::{
     payment_allocation::{
         PaymentAllocation, PaymentAllocationEvent, error::PaymentAllocationError,
     },
+    primitives::CreditFacilityProposalStatus,
 };
 
 pub struct CreditFacilityPublisher<E>
@@ -114,7 +115,9 @@ where
                         created_at: entity.created_at(),
                     })
                 }
-                ApprovalProcessConcluded { approved, .. } if *approved => {
+                ApprovalProcessConcluded { status, .. }
+                    if *status == CreditFacilityProposalStatus::Approved =>
+                {
                     Some(CoreCreditEvent::FacilityProposalApproved { id: entity.id })
                 }
                 _ => None,
@@ -155,7 +158,7 @@ where
                     effective: event.recorded_at.date_naive(),
                     new_amount: entity.amount,
                     credit_facility_id: entity.credit_facility_id,
-                    credit_facility_proposal_id: entity.credit_facility_proposal_id,
+                    pending_credit_facility_id: entity.pending_credit_facility_id,
                 }),
                 _ => None,
             })
