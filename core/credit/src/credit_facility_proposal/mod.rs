@@ -14,6 +14,7 @@ use crate::{event::CoreCreditEvent, primitives::*};
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
 use repo::CreditFacilityProposalRepo;
+pub use repo::credit_facility_proposal_cursor::*;
 
 pub struct CreditFacilityProposals<Perms, E>
 where
@@ -134,5 +135,55 @@ where
     ) -> Result<std::collections::HashMap<CreditFacilityProposalId, T>, CreditFacilityProposalError>
     {
         self.repo.find_all(ids).await
+    }
+
+    #[instrument(
+        name = "credit.credit_facility_proposals.find_by_id",
+        skip(self, sub, id),
+        err
+    )]
+    pub async fn find_by_id(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+    ) -> Result<Option<CreditFacilityProposal>, CreditFacilityProposalError> {
+        let id = id.into();
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::credit_facility(id.into()),
+                CoreCreditAction::CREDIT_FACILITY_READ,
+            )
+            .await?;
+        match self.repo.find_by_id(id).await {
+            Ok(credit_facility) => Ok(Some(credit_facility)),
+            Err(e) if e.was_not_found() => Ok(None),
+            Err(e) => Err(e),
+        }
+    }
+
+    #[instrument(name = "credit.pending_credit_facility.list", skip(self))]
+    pub async fn list(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        query: es_entity::PaginatedQueryArgs<CreditFacilityProposalsByCreatedAtCursor>,
+    ) -> Result<
+        es_entity::PaginatedQueryRet<
+            CreditFacilityProposal,
+            CreditFacilityProposalsByCreatedAtCursor,
+        >,
+        CreditFacilityProposalError,
+    > {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreCreditObject::all_credit_facilities(),
+                CoreCreditAction::CREDIT_FACILITY_LIST,
+            )
+            .await?;
+
+        self.repo
+            .list_by_created_at(query, es_entity::ListDirection::Descending)
+            .await
     }
 }

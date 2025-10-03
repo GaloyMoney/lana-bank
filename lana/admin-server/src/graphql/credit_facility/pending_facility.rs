@@ -15,7 +15,8 @@ pub use lana_app::credit::{
 #[graphql(complex)]
 pub struct PendingCreditFacility {
     id: ID,
-    credit_facility_proposal_id: UUID,
+    pending_credit_facility_id: UUID,
+    status: PendingCreditFacilityStatus,
     approval_process_id: UUID,
     created_at: Timestamp,
     collateralization_state: PendingCreditFacilityCollateralizationState,
@@ -92,11 +93,12 @@ impl From<DomainPendingCreditFacility> for PendingCreditFacility {
 
         Self {
             id: pending_credit_facility.id.to_global_id(),
-            credit_facility_proposal_id: UUID::from(pending_credit_facility.id),
+            pending_credit_facility_id: UUID::from(pending_credit_facility.id),
             approval_process_id: UUID::from(pending_credit_facility.approval_process_id),
             created_at: created_at.into(),
             facility_amount: pending_credit_facility.amount,
             collateralization_state: pending_credit_facility.last_collateralization_state(),
+            status: pending_credit_facility.status(),
 
             entity: Arc::new(pending_credit_facility),
         }

@@ -696,7 +696,7 @@ mod test {
         let id = CreditFacilityId::new();
         vec![CreditFacilityEvent::Initialized {
             id,
-            pending_credit_facility_id: id.into(),
+            pending_credit_facility_id: PendingCreditFacilityId::from(id),
             ledger_tx_id: LedgerTxId::new(),
             customer_id: CustomerId::new(),
             customer_type: CustomerType::Individual,

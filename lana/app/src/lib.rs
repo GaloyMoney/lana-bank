@@ -162,13 +162,13 @@ pub mod credit {
         Collateral, CollateralUpdated, CollateralizationUpdated, CoreCreditEvent, CreditConfig,
         CreditFacilitiesCursor, CreditFacilitiesFilter, CreditFacilitiesSortBy, CreditFacility,
         CreditFacilityApproved, CreditFacilityBalanceSummary, CreditFacilityHistoryEntry,
-        CreditFacilityProposal, CreditFacilityProposalId, CreditFacilityRepaymentPlanEntry,
-        CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE, Disbursal, DisbursalExecuted,
-        DisbursalStatus, DisbursalsCursor, DisbursalsFilter, DisbursalsSortBy, IncrementalPayment,
-        InterestAccrualsPosted, ListDirection, ObligationMovedToLiquidation, Payment,
-        PaymentAllocation, PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility,
-        PendingCreditFacilityId, RepaymentStatus, RepaymentType, Sort, TermsTemplate, error,
-        terms_template_error,
+        CreditFacilityProposal, CreditFacilityProposalId, CreditFacilityProposalsByCreatedAtCursor,
+        CreditFacilityRepaymentPlanEntry, CreditFacilityStatus, DISBURSAL_TRANSACTION_ENTITY_TYPE,
+        Disbursal, DisbursalExecuted, DisbursalStatus, DisbursalsCursor, DisbursalsFilter,
+        DisbursalsSortBy, IncrementalPayment, InterestAccrualsPosted, ListDirection,
+        ObligationMovedToLiquidation, Payment, PaymentAllocation,
+        PendingCreditFacilitiesByCreatedAtCursor, PendingCreditFacility, PendingCreditFacilityId,
+        RepaymentStatus, RepaymentType, Sort, TermsTemplate, error, terms_template_error,
     };
 
     pub type Credit =
