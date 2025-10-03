@@ -138,52 +138,44 @@ impl LedgerAccountLedger {
         })
     }
 
-    #[allow(clippy::type_complexity)]
-    pub fn find_leaf_children(
+    pub async fn find_leaf_children(
         &self,
         id: LedgerAccountId,
         current_depth: usize,
-    ) -> std::pin::Pin<
-        Box<
-            dyn Future<Output = Result<Vec<LedgerAccountId>, LedgerAccountLedgerError>> + Send + '_,
-        >,
-    > {
-        Box::pin(async move {
-            if current_depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
-                return Ok(Vec::new());
-            }
+    ) -> Result<Vec<LedgerAccountId>, LedgerAccountLedgerError> {
+        if current_depth > MAX_DEPTH_BETWEEN_LEAF_AND_COA_EDGE {
+            return Ok(Vec::new());
+        }
 
-            let children = self
-                .cala
-                .account_sets()
-                .list_members_by_external_id(id.into(), Default::default())
-                .await?
-                .entities;
+        let children = self
+            .cala
+            .account_sets()
+            .list_members_by_external_id(id.into(), Default::default())
+            .await?
+            .entities;
 
-            let mut results = Vec::new();
+        let mut results = Vec::new();
 
-            for child in children {
-                match (child.external_id, child.id) {
-                    (
-                        Some(external_id),
-                        cala_ledger::account_set::AccountSetMemberId::AccountSet(id),
-                    ) if external_id.parse::<AccountCode>().is_ok() => {
-                        results.push(id.into());
-                    }
-                    (_, cala_ledger::account_set::AccountSetMemberId::Account(id)) => {
-                        results.push(id.into());
-                    }
-                    (_, cala_ledger::account_set::AccountSetMemberId::AccountSet(id)) => {
-                        let nested_children = self
-                            .find_leaf_children(id.into(), current_depth + 1)
-                            .await?;
-                        results.extend(nested_children);
-                    }
+        for child in children {
+            match (child.external_id, child.id) {
+                (
+                    Some(external_id),
+                    cala_ledger::account_set::AccountSetMemberId::AccountSet(id),
+                ) if external_id.parse::<AccountCode>().is_ok() => {
+                    results.push(id.into());
+                }
+                (_, cala_ledger::account_set::AccountSetMemberId::Account(id)) => {
+                    results.push(id.into());
+                }
+                (_, cala_ledger::account_set::AccountSetMemberId::AccountSet(id)) => {
+                    let nested_children =
+                        Box::pin(self.find_leaf_children(id.into(), current_depth + 1)).await?;
+                    results.extend(nested_children);
                 }
             }
+        }
 
-            Ok(results)
-        })
+        Ok(results)
     }
 
     pub async fn load_ledger_account_by_external_id(
