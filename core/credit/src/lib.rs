@@ -244,11 +244,11 @@ where
         let terms_templates = TermsTemplates::new(pool, authz);
 
         jobs.add_initializer_and_spawn_unique(
-            collateralization_from_price_for_proposal::CreditFacilityProposalCollateralizationFromPriceInit::<
+            collateralization_from_price_for_proposal::PendingCreditFacilityCollateralizationFromPriceInit::<
                 Perms,
                 E,
             >::new(pending_credit_facilities.clone()),
-            collateralization_from_price_for_proposal::CreditFacilityProposalCollateralizationFromPriceJobConfig {
+            collateralization_from_price_for_proposal::PendingCreditFacilityCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 _phantom: std::marker::PhantomData,
             },
@@ -493,16 +493,19 @@ where
             .customer_id(customer_id)
             .customer_type(customer.customer_type)
             .approval_process_id(proposal_id)
+            .custodian_id(custodian_id.map(|id| id.into()))
             .disbursal_credit_account_id(disbursal_credit_account_id.into())
             .terms(terms)
             .amount(amount)
             .build()
-            .expect("could not build new credit facility");
+            .expect("could not build new credit facility proposal");
 
         let credit_facility_proposal = self
             .proposals
             .create_in_op(&mut db, new_facility_proposal)
             .await?;
+
+        db.commit().await?;
 
         Ok(credit_facility_proposal)
     }

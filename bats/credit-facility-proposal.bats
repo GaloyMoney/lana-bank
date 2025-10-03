@@ -16,6 +16,18 @@ teardown_file() {
   cp "$LOG_FILE" "$PERSISTED_LOG_FILE"
 }
 
+wait_for_approval() {
+  variables=$(
+    jq -n \
+      --arg creditFacilityProposalId "$1" \
+    '{ id: $creditFacilityProposalId }'
+  )
+  exec_admin_graphql 'find-credit-facility-proposal' "$variables"
+  echo "withdrawal | $i. $(graphql_output)" >> $RUN_LOG_FILE
+  status=$(graphql_output '.data.creditFacilityProposal.status')
+  [[ "$status" == "APPROVED" ]] || return 1
+}
+
 wait_for_active() {
   credit_facility_id=$1
 
@@ -152,35 +164,34 @@ ymd() {
 
   exec_admin_graphql 'credit-facility-proposal-create' "$variables"
 
-  address=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.wallet.address')
-  [[ "$address" == "null" ]] || exit 1
-
   credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
   [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
 
   cache_value 'credit_facility_proposal_id' "$credit_facility_proposal_id"
 }
 
-@test "credit-facility-proposal: can update collateral" {
-  credit_facility_proposal_id=$(read_value 'credit_facility_proposal_id')
+@test "pending-credit-facility: can update collateral" {
+  retry 10 1 wait_for_approval "$(read_value 'credit_facility_proposal_id')"
+
+  pending_credit_facility_id=$(read_value 'credit_facility_proposal_id')
 
   variables=$(
     jq -n \
-      --arg credit_facility_proposal_id "$credit_facility_proposal_id" \
+      --arg pending_credit_facility_id "$pending_credit_facility_id" \
       --arg effective "$(naive_now)" \
     '{
       input: {
-        creditFacilityProposalId: $credit_facility_proposal_id,
+        pendingCreditFacilityId: $pending_credit_facility_id,
         collateral: 50000000,
         effective: $effective,
       }
     }'
   )
-  exec_admin_graphql 'credit-facility-proposal-collateral-update' "$variables"
-  credit_facility_proposal_id=$(graphql_output '.data.creditFacilityProposalCollateralUpdate.creditFacilityProposal.creditFacilityProposalId')
-  [[ "$credit_facility_proposal_id" != "null" ]] || exit 1
+  exec_admin_graphql 'pending-credit-facility-collateral-update' "$variables"
+  pending_credit_facility_id=$(graphql_output '.data.pendingCreditFacilityCollateralUpdate.pendingCreditFacility.pendingCreditFacilityId')
+  [[ "$pending_credit_facility_id" != "null" ]] || exit 1
 
-  credit_facility_id=$credit_facility_proposal_id
+  credit_facility_id=$pending_credit_facility_id
 
   retry 10 1 wait_for_active "$credit_facility_id"
 

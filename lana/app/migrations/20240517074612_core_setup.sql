@@ -281,7 +281,6 @@ CREATE TABLE core_credit_facility_proposals (
   id UUID PRIMARY KEY,
   customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
-  collateral_id UUID NOT NULL REFERENCES core_collaterals(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

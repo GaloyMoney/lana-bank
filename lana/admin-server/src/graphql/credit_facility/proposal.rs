@@ -11,7 +11,10 @@ use crate::{
 
 use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry};
 
-pub use lana_app::credit::CreditFacilityProposal as DomainCreditFacilityProposal;
+pub use lana_app::credit::{
+    CreditFacilityProposal as DomainCreditFacilityProposal,
+    CreditFacilityProposalsByCreatedAtCursor,
+};
 
 #[derive(SimpleObject, Clone)]
 #[graphql(complex)]

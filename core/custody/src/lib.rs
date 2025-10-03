@@ -154,12 +154,23 @@ where
             )
             .await?;
 
+        // We should not be calling any external service in any environment
+        // with mock custodian.
+        #[cfg(not(feature = "mock-custodian"))]
         custodian_config
             .clone()
             .custodian_client(&self.config.custody_providers)?
             .verify_client()
             .await?;
 
+        #[cfg(feature = "mock-custodian")]
+        let custodian_id = if custodian_config == CustodianConfig::Mock {
+            CustodianId::mock_custodian_id()
+        } else {
+            CustodianId::new()
+        };
+
+        #[cfg(not(feature = "mock-custodian"))]
         let custodian_id = CustodianId::new();
 
         let new_custodian = NewCustodian::builder()
