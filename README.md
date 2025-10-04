@@ -52,7 +52,6 @@ Set them in your `.env` file
 - `BROWSERSTACK_USERNAME`: BrowserStack username for e2e testing via Cypress
 - `BROWSERSTACK_ACCESS_KEY`: BrowserStack access key for e2e testing via Cypress
 - `HONEYCOMB_KEY`: Honeycomb API key for tracing
-- `HONEYCOMB_DATASET`: Honeycomb dataset for tracing
 
 ### Start & Stop the stack
 
