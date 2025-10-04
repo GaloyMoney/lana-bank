@@ -13,11 +13,11 @@ use outbox::{EventSequence, Outbox, OutboxEventMarker};
 use lana_events::LanaEvent;
 
 #[derive(Default, Clone, Deserialize, Serialize)]
-struct UpdateLastActivityDateJobData {
+struct PermanentUpdateLastActivityDateJobData {
     sequence: EventSequence,
 }
 
-pub struct UpdateLastActivityDateJobRunner<Perms, E>
+pub struct PermanentUpdateLastActivityDateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -35,7 +35,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for UpdateLastActivityDateJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PermanentUpdateLastActivityDateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -52,7 +52,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<UpdateLastActivityDateJobData>()?
+            .execution_state::<PermanentUpdateLastActivityDateJobData>()?
             .unwrap_or_default();
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
@@ -102,7 +102,7 @@ where
     }
 }
 
-impl<Perms, E> UpdateLastActivityDateJobRunner<Perms, E>
+impl<Perms, E> PermanentUpdateLastActivityDateJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -127,7 +127,7 @@ where
     }
 }
 
-pub struct UpdateLastActivityDateInit<Perms, E>
+pub struct PermanentUpdateLastActivityDateInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -144,7 +144,7 @@ where
     deposits: CoreDeposit<Perms, E>,
 }
 
-impl<Perms, E> UpdateLastActivityDateInit<Perms, E>
+impl<Perms, E> PermanentUpdateLastActivityDateInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -169,9 +169,9 @@ where
     }
 }
 
-const UPDATE_LAST_ACTIVITY_DATE: JobType = JobType::new("update-last-activity-date");
+const UPDATE_LAST_ACTIVITY_DATE: JobType = JobType::new("permanent-update-last-activity-date");
 
-impl<Perms, E> JobInitializer for UpdateLastActivityDateInit<Perms, E>
+impl<Perms, E> JobInitializer for PermanentUpdateLastActivityDateInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -191,7 +191,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UpdateLastActivityDateJobRunner::new(
+        Ok(Box::new(PermanentUpdateLastActivityDateJobRunner::new(
             &self.outbox,
             &self.customers,
             &self.deposits,
@@ -207,11 +207,11 @@ where
 }
 
 #[derive(Serialize, Deserialize)]
-pub struct UpdateLastActivityDateConfig<Perms, E> {
+pub struct PermanentUpdateLastActivityDateConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> UpdateLastActivityDateConfig<Perms, E> {
+impl<Perms, E> PermanentUpdateLastActivityDateConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -219,13 +219,13 @@ impl<Perms, E> UpdateLastActivityDateConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> Default for UpdateLastActivityDateConfig<Perms, E> {
+impl<Perms, E> Default for PermanentUpdateLastActivityDateConfig<Perms, E> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Perms, E> JobConfig for UpdateLastActivityDateConfig<Perms, E>
+impl<Perms, E> JobConfig for PermanentUpdateLastActivityDateConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -237,5 +237,5 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Initializer = UpdateLastActivityDateInit<Perms, E>;
+    type Initializer = PermanentUpdateLastActivityDateInit<Perms, E>;
 }

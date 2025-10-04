@@ -71,28 +71,28 @@ where
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak.clone());
 
         jobs.add_initializer_and_spawn_unique(
-            CreateDepositAccountInit::new(outbox, deposit, config.clone()),
-            CreateDepositAccountJobConfig::new(),
+            PermanentCreateDepositAccountInit::new(outbox, deposit, config.clone()),
+            PermanentCreateDepositAccountJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreateKeycloakUserInit::new(outbox, keycloak_client.clone()),
-            CreateKeycloakUserJobConfig::new(),
+            PermanentCreateKeycloakUserInit::new(outbox, keycloak_client.clone()),
+            PermanentCreateKeycloakUserJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            SyncEmailInit::new(outbox, keycloak_client),
-            SyncEmailJobConfig::new(),
+            PermanentSyncEmailInit::new(outbox, keycloak_client),
+            PermanentSyncEmailJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CustomerActiveSyncInit::new(outbox, deposit, config.clone()),
-            CustomerActiveSyncJobConfig::new(),
+            PermanentCustomerActiveSyncInit::new(outbox, deposit, config.clone()),
+            PermanentCustomerActiveSyncJobConfig::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            UpdateLastActivityDateInit::new(outbox, customers, deposit),
-            UpdateLastActivityDateConfig::new(),
+            PermanentUpdateLastActivityDateInit::new(outbox, customers, deposit),
+            PermanentUpdateLastActivityDateConfig::new(),
         )
         .await?;
 

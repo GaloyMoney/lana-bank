@@ -44,8 +44,8 @@ where
         let keycloak_client = keycloak_client::KeycloakClient::new(config.keycloak);
 
         jobs.add_initializer_and_spawn_unique(
-            UserOnboardingInit::new(outbox, keycloak_client),
-            UserOnboardingJobConfig::new(),
+            PermanentUserOnboardingInit::new(outbox, keycloak_client),
+            PermanentUserOnboardingJobConfig::new(),
         )
         .await?;
         Ok(Self {

@@ -17,7 +17,7 @@ use job::*;
 use lana_events::LanaEvent;
 
 /// Job configuration for Sumsub export
-pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("sumsub-export");
+pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("permanent-sumsub-export");
 
 /// Direction of the transaction from Sumsub's perspective
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
@@ -40,11 +40,11 @@ impl std::fmt::Display for SumsubTransactionDirection {
 }
 
 #[derive(serde::Serialize)]
-pub struct SumsubExportJobConfig<Perms, E> {
+pub struct PermanentSumsubExportJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
 
-impl<Perms, E> SumsubExportJobConfig<Perms, E> {
+impl<Perms, E> PermanentSumsubExportJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -52,7 +52,7 @@ impl<Perms, E> SumsubExportJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> JobConfig for SumsubExportJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PermanentSumsubExportJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -65,10 +65,10 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    type Initializer = SumsubExportInit<Perms, E>;
+    type Initializer = PermanentSumsubExportInit<Perms, E>;
 }
 
-pub struct SumsubExportInit<Perms, E>
+pub struct PermanentSumsubExportInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -83,7 +83,7 @@ where
     customers: Customers<Perms, E>,
 }
 
-impl<Perms, E> SumsubExportInit<Perms, E>
+impl<Perms, E> PermanentSumsubExportInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -107,7 +107,7 @@ where
     }
 }
 
-impl<Perms, E> JobInitializer for SumsubExportInit<Perms, E>
+impl<Perms, E> JobInitializer for PermanentSumsubExportInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -128,7 +128,7 @@ where
     }
 
     fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SumsubExportJobRunner {
+        Ok(Box::new(PermanentSumsubExportJobRunner {
             outbox: self.outbox.clone(),
             sumsub_client: self.sumsub_client.clone(),
             deposits: self.deposits.clone(),
@@ -145,11 +145,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct SumsubExportJobState {
+struct PermanentSumsubExportJobState {
     sequence: outbox::EventSequence,
 }
 
-pub struct SumsubExportJobRunner<Perms, E>
+pub struct PermanentSumsubExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreDepositEvent>
@@ -165,7 +165,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for SumsubExportJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PermanentSumsubExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -184,7 +184,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<SumsubExportJobState>()?
+            .execution_state::<PermanentSumsubExportJobState>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 

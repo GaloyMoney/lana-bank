@@ -11,15 +11,15 @@ use outbox::Outbox;
 use crate::email::EmailNotification;
 
 #[derive(Serialize, Deserialize)]
-pub struct EmailEventListenerConfig<AuthzType>(std::marker::PhantomData<AuthzType>);
+pub struct PermanentEmailEventListenerConfig<AuthzType>(std::marker::PhantomData<AuthzType>);
 
-impl<AuthzType> Default for EmailEventListenerConfig<AuthzType> {
+impl<AuthzType> Default for PermanentEmailEventListenerConfig<AuthzType> {
     fn default() -> Self {
         Self(std::marker::PhantomData)
     }
 }
 
-impl<AuthzType> JobConfig for EmailEventListenerConfig<AuthzType>
+impl<AuthzType> JobConfig for PermanentEmailEventListenerConfig<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -35,10 +35,10 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
-    type Initializer = EmailEventListenerInit<AuthzType>;
+    type Initializer = PermanentEmailEventListenerInit<AuthzType>;
 }
 
-pub struct EmailEventListenerInit<AuthzType>
+pub struct PermanentEmailEventListenerInit<AuthzType>
 where
     AuthzType: authz::PermissionCheck,
 {
@@ -46,7 +46,7 @@ where
     email_notification: EmailNotification<AuthzType>,
 }
 
-impl<AuthzType> EmailEventListenerInit<AuthzType>
+impl<AuthzType> PermanentEmailEventListenerInit<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -73,8 +73,8 @@ where
     }
 }
 
-const EMAIL_LISTENER_JOB: JobType = JobType::new("email-listener");
-impl<AuthzType> JobInitializer for EmailEventListenerInit<AuthzType>
+const EMAIL_LISTENER_JOB: JobType = JobType::new("permanent-email-listener");
+impl<AuthzType> JobInitializer for PermanentEmailEventListenerInit<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -95,7 +95,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(EmailEventListenerRunner {
+        Ok(Box::new(PermanentEmailEventListenerRunner {
             outbox: self.outbox.clone(),
             email_notification: self.email_notification.clone(),
         }))
@@ -107,11 +107,11 @@ where
 }
 
 #[derive(Default, Serialize, Deserialize)]
-struct EmailEventListenerJobData {
+struct PermanentEmailEventListenerJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct EmailEventListenerRunner<AuthzType>
+pub struct PermanentEmailEventListenerRunner<AuthzType>
 where
     AuthzType: authz::PermissionCheck,
 {
@@ -120,7 +120,7 @@ where
 }
 
 #[async_trait]
-impl<AuthzType> JobRunner for EmailEventListenerRunner<AuthzType>
+impl<AuthzType> JobRunner for PermanentEmailEventListenerRunner<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
@@ -141,7 +141,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<EmailEventListenerJobData>()?
+            .execution_state::<PermanentEmailEventListenerJobData>()?
             .unwrap_or_default();
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
@@ -160,7 +160,7 @@ where
     }
 }
 
-impl<AuthzType> EmailEventListenerRunner<AuthzType>
+impl<AuthzType> PermanentEmailEventListenerRunner<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>

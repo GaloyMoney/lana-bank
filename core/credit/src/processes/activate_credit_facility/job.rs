@@ -12,17 +12,17 @@ use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityI
 use super::ActivateCreditFacility;
 
 #[derive(serde::Serialize)]
-pub(crate) struct CreditFacilityActivationJobConfig<Perms, E> {
+pub(crate) struct PermanentCreditFacilityActivationJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CreditFacilityActivationJobConfig<Perms, E> {
+impl<Perms, E> PermanentCreditFacilityActivationJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CreditFacilityActivationJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PermanentCreditFacilityActivationJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -31,10 +31,10 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreditFacilityActivationInit<Perms, E>;
+    type Initializer = PermanentCreditFacilityActivationInit<Perms, E>;
 }
 
-pub(crate) struct CreditFacilityActivationInit<Perms, E>
+pub(crate) struct PermanentCreditFacilityActivationInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -43,7 +43,7 @@ where
     process: ActivateCreditFacility<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityActivationInit<Perms, E>
+impl<Perms, E> PermanentCreditFacilityActivationInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -60,8 +60,8 @@ where
     }
 }
 
-const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("credit-facility-activation");
-impl<Perms, E> JobInitializer for CreditFacilityActivationInit<Perms, E>
+const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("permanent-credit-facility-activation");
+impl<Perms, E> JobInitializer for PermanentCreditFacilityActivationInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -78,7 +78,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityActivationJobRunner {
+        Ok(Box::new(PermanentCreditFacilityActivationJobRunner {
             outbox: self.outbox.clone(),
             process: self.process.clone(),
         }))
@@ -93,11 +93,11 @@ where
 }
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct CreditFacilityActivationJobData {
+struct PermanentCreditFacilityActivationJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreditFacilityActivationJobRunner<Perms, E>
+pub struct PermanentCreditFacilityActivationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -110,7 +110,7 @@ where
     process: ActivateCreditFacility<Perms, E>,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CreditFacilityActivationJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PermanentCreditFacilityActivationJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -124,7 +124,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreditFacilityActivationJobData>()?
+            .execution_state::<PermanentCreditFacilityActivationJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 

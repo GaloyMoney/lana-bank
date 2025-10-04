@@ -10,10 +10,10 @@ use outbox::{EventSequence, Outbox, OutboxEventMarker};
 use crate::{credit_facility::CreditFacilities, event::CoreCreditEvent, primitives::*};
 
 #[derive(Serialize, Deserialize)]
-pub struct CreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
+pub struct PermanentCreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityCollateralizationFromEventsJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PermanentCreditFacilityCollateralizationFromEventsJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -22,10 +22,10 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreditFacilityCollateralizationFromEventsInit<Perms, E>;
+    type Initializer = PermanentCreditFacilityCollateralizationFromEventsInit<Perms, E>;
 }
 
-pub struct CreditFacilityCollateralizationFromEventsInit<Perms, E>
+pub struct PermanentCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -38,7 +38,7 @@ where
     credit_facilities: CreditFacilities<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityCollateralizationFromEventsInit<Perms, E>
+impl<Perms, E> PermanentCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -56,9 +56,9 @@ where
 }
 
 const CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
-    JobType::new("credit-facility-collateralization-from-events");
+    JobType::new("permanent-credit-facility-collateralization-from-events");
 
-impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromEventsInit<Perms, E>
+impl<Perms, E> JobInitializer for PermanentCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -75,24 +75,23 @@ where
     }
 
     fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreditFacilityCollateralizationFromEventsRunner::<
-            Perms,
-            E,
-        > {
-            outbox: self.outbox.clone(),
-            credit_facilities: self.credit_facilities.clone(),
-        }))
+        Ok(Box::new(
+            PermanentCreditFacilityCollateralizationFromEventsRunner::<Perms, E> {
+                outbox: self.outbox.clone(),
+                credit_facilities: self.credit_facilities.clone(),
+            },
+        ))
     }
 }
 
 // TODO: reproduce 'collateralization_ratio' test from old credit facility
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct CreditFacilityCollateralizationFromEventsData {
+struct PermanentCreditFacilityCollateralizationFromEventsData {
     sequence: EventSequence,
 }
 
-pub struct CreditFacilityCollateralizationFromEventsRunner<Perms, E>
+pub struct PermanentCreditFacilityCollateralizationFromEventsRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
@@ -102,7 +101,7 @@ where
 }
 
 #[async_trait::async_trait]
-impl<Perms, E> JobRunner for CreditFacilityCollateralizationFromEventsRunner<Perms, E>
+impl<Perms, E> JobRunner for PermanentCreditFacilityCollateralizationFromEventsRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -116,7 +115,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreditFacilityCollateralizationFromEventsData>()?
+            .execution_state::<PermanentCreditFacilityCollateralizationFromEventsData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 

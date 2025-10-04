@@ -12,7 +12,7 @@ use job::Jobs;
 use lana_events::LanaEvent;
 
 use email::EmailNotification;
-use email::job::{EmailEventListenerConfig, EmailEventListenerInit};
+use email::job::{PermanentEmailEventListenerConfig, PermanentEmailEventListenerInit};
 
 pub use config::NotificationConfig;
 
@@ -60,8 +60,8 @@ where
     ) -> Result<Self, error::NotificationError> {
         let email = EmailNotification::init(jobs, config.email, users, credit, customers).await?;
         jobs.add_initializer_and_spawn_unique(
-            EmailEventListenerInit::new(outbox, &email),
-            EmailEventListenerConfig::default(),
+            PermanentEmailEventListenerInit::new(outbox, &email),
+            PermanentEmailEventListenerConfig::default(),
         )
         .await?;
 

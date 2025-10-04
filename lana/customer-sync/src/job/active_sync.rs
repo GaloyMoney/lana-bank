@@ -17,17 +17,17 @@ use job::*;
 use crate::config::*;
 
 #[derive(serde::Serialize)]
-pub struct CustomerActiveSyncJobConfig<Perms, E> {
+pub struct PermanentCustomerActiveSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CustomerActiveSyncJobConfig<Perms, E> {
+impl<Perms, E> PermanentCustomerActiveSyncJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CustomerActiveSyncJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PermanentCustomerActiveSyncJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -38,10 +38,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CustomerActiveSyncInit<Perms, E>;
+    type Initializer = PermanentCustomerActiveSyncInit<Perms, E>;
 }
 
-pub struct CustomerActiveSyncInit<Perms, E>
+pub struct PermanentCustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -53,7 +53,7 @@ where
     config: CustomerSyncConfig,
 }
 
-impl<Perms, E> CustomerActiveSyncInit<Perms, E>
+impl<Perms, E> PermanentCustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -73,8 +73,8 @@ where
     }
 }
 
-const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("customer-active-sync");
-impl<Perms, E> JobInitializer for CustomerActiveSyncInit<Perms, E>
+const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("permanent-customer-active-sync");
+impl<Perms, E> JobInitializer for PermanentCustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -93,7 +93,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CustomerActiveSyncJobRunner {
+        Ok(Box::new(PermanentCustomerActiveSyncJobRunner {
             outbox: self.outbox.clone(),
             deposit: self.deposit.clone(),
             config: self.config.clone(),
@@ -109,11 +109,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CustomerActiveSyncJobData {
+struct PermanentCustomerActiveSyncJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CustomerActiveSyncJobRunner<Perms, E>
+pub struct PermanentCustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -125,7 +125,7 @@ where
     config: CustomerSyncConfig,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PermanentCustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -141,7 +141,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CustomerActiveSyncJobData>()?
+            .execution_state::<PermanentCustomerActiveSyncJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
@@ -159,7 +159,7 @@ where
     }
 }
 
-impl<Perms, E> CustomerActiveSyncJobRunner<Perms, E>
+impl<Perms, E> PermanentCustomerActiveSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
