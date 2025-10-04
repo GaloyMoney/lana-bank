@@ -12,10 +12,10 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use crate::{Collaterals, CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
 #[derive(serde::Serialize)]
-pub(crate) struct WalletCollateralSyncJobConfig<Perms, E> {
+pub(crate) struct PermanentWalletCollateralSyncJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> WalletCollateralSyncJobConfig<Perms, E> {
+impl<Perms, E> PermanentWalletCollateralSyncJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -23,13 +23,13 @@ impl<Perms, E> WalletCollateralSyncJobConfig<Perms, E> {
     }
 }
 
-impl<Perms, E> Default for WalletCollateralSyncJobConfig<Perms, E> {
+impl<Perms, E> Default for PermanentWalletCollateralSyncJobConfig<Perms, E> {
     fn default() -> Self {
         Self::new()
     }
 }
 
-impl<Perms, E> JobConfig for WalletCollateralSyncJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PermanentWalletCollateralSyncJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -40,15 +40,15 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = WalletCollateralSyncInit<Perms, E>;
+    type Initializer = PermanentWalletCollateralSyncInit<Perms, E>;
 }
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct WalletCollateralSyncJobData {
+struct PermanentWalletCollateralSyncJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct WalletCollateralSyncJobRunner<Perms, E>
+pub struct PermanentWalletCollateralSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -64,7 +64,7 @@ where
 }
 
 #[async_trait]
-impl<Perms, E> JobRunner for WalletCollateralSyncJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PermanentWalletCollateralSyncJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -80,7 +80,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<WalletCollateralSyncJobData>()?
+            .execution_state::<PermanentWalletCollateralSyncJobData>()?
             .unwrap_or_default();
 
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
@@ -109,7 +109,7 @@ where
     }
 }
 
-pub struct WalletCollateralSyncInit<Perms, E>
+pub struct PermanentWalletCollateralSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -122,7 +122,7 @@ where
     collaterals: Collaterals<Perms, E>,
 }
 
-impl<Perms, E> WalletCollateralSyncInit<Perms, E>
+impl<Perms, E> PermanentWalletCollateralSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -141,8 +141,8 @@ where
     }
 }
 
-const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("wallet-collateral-sync");
-impl<Perms, E> JobInitializer for WalletCollateralSyncInit<Perms, E>
+const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("permanent-wallet-collateral-sync");
+impl<Perms, E> JobInitializer for PermanentWalletCollateralSyncInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -161,7 +161,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(WalletCollateralSyncJobRunner {
+        Ok(Box::new(PermanentWalletCollateralSyncJobRunner {
             outbox: self.outbox.clone(),
             collaterals: self.collaterals.clone(),
         }))

@@ -17,17 +17,17 @@ use job::*;
 use crate::config::*;
 
 #[derive(serde::Serialize)]
-pub struct CreateDepositAccountJobConfig<Perms, E> {
+pub struct PermanentCreateDepositAccountJobConfig<Perms, E> {
     _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> CreateDepositAccountJobConfig<Perms, E> {
+impl<Perms, E> PermanentCreateDepositAccountJobConfig<Perms, E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<Perms, E> JobConfig for CreateDepositAccountJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PermanentCreateDepositAccountJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -38,10 +38,10 @@ where
         + OutboxEventMarker<CoreDepositEvent>
         + OutboxEventMarker<GovernanceEvent>,
 {
-    type Initializer = CreateDepositAccountInit<Perms, E>;
+    type Initializer = PermanentCreateDepositAccountInit<Perms, E>;
 }
 
-pub struct CreateDepositAccountInit<Perms, E>
+pub struct PermanentCreateDepositAccountInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -53,7 +53,7 @@ where
     config: CustomerSyncConfig,
 }
 
-impl<Perms, E> CreateDepositAccountInit<Perms, E>
+impl<Perms, E> PermanentCreateDepositAccountInit<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -74,8 +74,8 @@ where
 }
 
 const CUSTOMER_SYNC_CREATE_DEPOSIT_ACCOUNT: JobType =
-    JobType::new("customer-sync-create-deposit-account");
-impl<Perms, E> JobInitializer for CreateDepositAccountInit<Perms, E>
+    JobType::new("permanent-customer-sync-create-deposit-account");
+impl<Perms, E> JobInitializer for PermanentCreateDepositAccountInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -94,7 +94,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateDepositAccountJobRunner {
+        Ok(Box::new(PermanentCreateDepositAccountJobRunner {
             outbox: self.outbox.clone(),
             deposit: self.deposit.clone(),
             config: self.config.clone(),
@@ -110,11 +110,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CreateDepositAccountJobData {
+struct PermanentCreateDepositAccountJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreateDepositAccountJobRunner<Perms, E>
+pub struct PermanentCreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCustomerEvent>
@@ -126,7 +126,7 @@ where
     config: CustomerSyncConfig,
 }
 #[async_trait]
-impl<Perms, E> JobRunner for CreateDepositAccountJobRunner<Perms, E>
+impl<Perms, E> JobRunner for PermanentCreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -142,7 +142,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreateDepositAccountJobData>()?
+            .execution_state::<PermanentCreateDepositAccountJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
@@ -183,7 +183,7 @@ where
     }
 }
 
-impl<Perms, E> CreateDepositAccountJobRunner<Perms, E>
+impl<Perms, E> PermanentCreateDepositAccountJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
