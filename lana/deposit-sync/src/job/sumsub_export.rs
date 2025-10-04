@@ -6,12 +6,14 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Customers};
 use core_deposit::{
-    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, GovernanceAction,
-    GovernanceObject,
+    CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject, DepositAccountId,
+    DepositId, GovernanceAction, GovernanceObject, UsdCents, WithdrawalId,
 };
 use governance::GovernanceEvent;
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use sumsub::SumsubClient;
+
+use tracing::instrument;
 
 use job::*;
 use lana_events::LanaEvent;
@@ -178,7 +180,6 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    #[tracing::instrument(name = "deposit_sync.sumsub_export", skip_all, fields(insert_id), err)]
     async fn run(
         &self,
         mut current_job: CurrentJob,
@@ -195,78 +196,123 @@ where
                     deposit_account_id,
                     amount,
                 })) => {
-                    message.inject_trace_parent();
-                    let account = self
-                        .deposits
-                        .find_account_by_id_without_audit(*deposit_account_id)
+                    self.handle_deposit(message.as_ref(), *id, *deposit_account_id, *amount)
                         .await?;
-                    let customer = self
-                        .customers
-                        .find_by_id_without_audit(account.account_holder_id)
-                        .await?;
-
-                    if customer.should_sync_financial_transactions() {
-                        let amount_usd: f64 = amount.to_usd().try_into()?;
-                        self.sumsub_client
-                            .submit_finance_transaction(
-                                account.account_holder_id,
-                                id.to_string(),
-                                "Deposit",
-                                &SumsubTransactionDirection::In.to_string(),
-                                amount_usd,
-                                "USD",
-                            )
-                            .await?;
-                    } else {
-                        tracing::warn!(
-                            deposit_id = %id,
-                            customer_id = %account.account_holder_id,
-                            kyc_level = ?customer.level,
-                            "Skipping sync for non verified customer deposit"
-                        );
-                    }
                 }
                 Some(LanaEvent::Deposit(CoreDepositEvent::WithdrawalConfirmed {
                     id,
                     deposit_account_id,
                     amount,
                 })) => {
-                    message.inject_trace_parent();
-                    let account = self
-                        .deposits
-                        .find_account_by_id_without_audit(*deposit_account_id)
+                    self.handle_withdrawal(message.as_ref(), *id, *deposit_account_id, *amount)
                         .await?;
-                    let customer = self
-                        .customers
-                        .find_by_id_without_audit(account.account_holder_id)
-                        .await?;
-
-                    if customer.should_sync_financial_transactions() {
-                        let amount_usd: f64 = amount.to_usd().try_into()?;
-                        self.sumsub_client
-                            .submit_finance_transaction(
-                                account.account_holder_id,
-                                id.to_string(),
-                                "Withdrawal",
-                                &SumsubTransactionDirection::Out.to_string(),
-                                amount_usd,
-                                "USD",
-                            )
-                            .await?;
-                    } else {
-                        tracing::warn!(
-                            withdrawal_id = %id,
-                            customer_id = %account.account_holder_id,
-                            kyc_level = ?customer.level,
-                            "Skipping sync for non verified customer withdrawal"
-                        );
-                    }
                 }
-                _ => continue,
+                _ => {}
             }
+
             state.sequence = message.sequence;
             current_job.update_execution_state(&state).await?;
         }
         Ok(JobCompletion::RescheduleNow)
+    }
+}
+
+impl<Perms, E> SumsubExportJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<LanaEvent>
+        + std::fmt::Debug,
+{
+    #[instrument(name = "deposit_sync.sumsub_export.deposit", skip(self, message))]
+    async fn handle_deposit(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+        id: DepositId,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        message.inject_trace_parent();
+
+        let account = self
+            .deposits
+            .find_account_by_id_without_audit(deposit_account_id)
+            .await?;
+
+        let customer = self
+            .customers
+            .find_by_id_without_audit(account.account_holder_id)
+            .await?;
+
+        if customer.should_sync_financial_transactions() {
+            let amount_usd: f64 = amount.to_usd().try_into()?;
+            self.sumsub_client
+                .submit_finance_transaction(
+                    account.account_holder_id,
+                    id.to_string(),
+                    "Deposit",
+                    &SumsubTransactionDirection::In.to_string(),
+                    amount_usd,
+                    "USD",
+                )
+                .await?;
+        } else {
+            tracing::warn!(
+                deposit_id = %id,
+                customer_id = %account.account_holder_id,
+                kyc_level = ?customer.level,
+                "Skipping sync for non verified customer deposit"
+            );
+        }
+        Ok(())
+    }
+
+    #[instrument(name = "deposit_sync.sumsub_export.withdrawal", skip(self, message))]
+    async fn handle_withdrawal(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+        id: WithdrawalId,
+        deposit_account_id: DepositAccountId,
+        amount: UsdCents,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        message.inject_trace_parent();
+
+        let account = self
+            .deposits
+            .find_account_by_id_without_audit(deposit_account_id)
+            .await?;
+
+        let customer = self
+            .customers
+            .find_by_id_without_audit(account.account_holder_id)
+            .await?;
+
+        if customer.should_sync_financial_transactions() {
+            let amount_usd: f64 = amount.to_usd().try_into()?;
+            self.sumsub_client
+                .submit_finance_transaction(
+                    account.account_holder_id,
+                    id.to_string(),
+                    "Withdrawal",
+                    &SumsubTransactionDirection::Out.to_string(),
+                    amount_usd,
+                    "USD",
+                )
+                .await?;
+        } else {
+            tracing::warn!(
+                withdrawal_id = %id,
+                customer_id = %account.account_holder_id,
+                kyc_level = ?customer.level,
+                "Skipping sync for non verified customer withdrawal"
+            );
+        }
+        Ok(())
     }
 }
