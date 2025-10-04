@@ -10,14 +10,6 @@ receivers:
       http:
         endpoint: 0.0.0.0:4318
 
-
-processors:
-  resource:
-    attributes:
-    - key: developer.dataset
-      value: ${HONEYCOMB_DATASET}
-      action: upsert
-
 exporters:
   debug:
     verbosity: detailed
@@ -25,7 +17,6 @@ exporters:
     endpoint: "api.honeycomb.io:443"
     headers:
       "x-honeycomb-team": ${HONEYCOMB_API_KEY}
-      "x-honeycomb-dataset": ${HONEYCOMB_DATASET}
 
 extensions:
   health_check:
@@ -37,5 +28,5 @@ service:
   pipelines:
     traces:
       receivers: [jaeger, otlp]
-      processors: [resource]
+      processors: []
       exporters: [otlp, debug]
