@@ -79,7 +79,6 @@ After bringing the development stack up, you can access the following services:
 
 1. Open [Admin Panel](http://admin.localhost:4455) in your browser
 1. Use email `admin@galoy.io` to log in
-1. Get the login code by running `make get-superadmin-login-code` or `make get-admin-login-code EMAIL=admin@galoy.io`
 1. You're in!
 
 #### Steps to access Customer Portal
