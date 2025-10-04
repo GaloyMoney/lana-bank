@@ -1,6 +1,7 @@
 mod accrue_interest;
 mod activate_credit_facility;
 mod add_collateral;
+mod add_structuring_fee;
 mod cancel_disbursal;
 mod confirm_disbursal;
 mod create_credit_facility;
@@ -17,6 +18,7 @@ mod reserve_for_liquidation;
 pub use accrue_interest::*;
 pub use activate_credit_facility::*;
 pub use add_collateral::*;
+pub use add_structuring_fee::*;
 pub use cancel_disbursal::*;
 pub use confirm_disbursal::*;
 pub use create_credit_facility::*;
