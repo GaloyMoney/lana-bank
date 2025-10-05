@@ -1550,6 +1550,8 @@ impl CreditLedger {
             tx_ref,
             account_ids,
             facility_amount,
+            debit_account_id,
+            structuring_fee_amount,
             ..
         }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
@@ -1568,23 +1570,11 @@ impl CreditLedger {
                 },
             )
             .await?;
-        op.commit().await?;
-        Ok(())
-    }
-
-    pub async fn add_structuring_fee(
-        &self,
-        op: es_entity::DbOpWithTime<'_>,
-        account_ids: CreditFacilityLedgerAccountIds,
-        debit_account_id: CalaAccountId,
-        structuring_fee_amount: UsdCents,
-    ) -> Result<(), CreditLedgerError> {
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        let tx_id = LedgerTxId::new();
+        let fee_tx_id = LedgerTxId::new();
         self.cala
             .post_transaction_in_op(
                 &mut op,
-                tx_id,
+                fee_tx_id,
                 templates::ADD_STRUCTURING_FEE_CODE,
                 templates::AddStructuringFeeParams {
                     journal_id: self.journal_id,
@@ -1596,7 +1586,7 @@ impl CreditLedger {
                     debit_account_id,
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
                     currency: self.usd,
-                    external_id: tx_id.to_string(),
+                    external_id: fee_tx_id.to_string(),
                 },
             )
             .await?;

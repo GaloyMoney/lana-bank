@@ -133,25 +133,6 @@ where
             .handle_facility_activation(op, credit_facility.activation_data())
             .await?;
 
-        let op2 = self
-            .credit_facilities
-            .begin_op()
-            .await?
-            .with_db_time()
-            .await?;
-
-        let debit_account_id = credit_facility.activation_data().debit_account_id;
-        let structuring_fee_amount = credit_facility.structuring_fee();
-
-        self.ledger
-            .add_structuring_fee(
-                op2,
-                credit_facility.activation_data().account_ids,
-                debit_account_id,
-                structuring_fee_amount,
-            )
-            .await?;
-
         Ok(())
     }
 }
