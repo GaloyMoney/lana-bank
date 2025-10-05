@@ -49,3 +49,6 @@ echo "Starting services..."
 "$ENGINE" compose "${FILES[@]}" up -d "$@"
 
 wait4x postgresql ${PG_CON} --timeout 120s
+
+# wait for keycloak to be ready
+wait4x http http://localhost:8081/health/ready --timeout 120s
