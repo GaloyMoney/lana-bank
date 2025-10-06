@@ -398,7 +398,7 @@
                 echo "Running cli"
                 export LANA_CONFIG="./bats/lana.yml"
                 ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
-                echo "PID=$!" > .server.pid
+                echo "$!" > .server.pid
 
                 wait4x http http://localhost:5253/health --timeout 30m
 
