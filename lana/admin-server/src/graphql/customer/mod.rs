@@ -113,7 +113,7 @@ impl Customer {
         Ok(credit_facilities)
     }
 
-    async fn credit_facility_proposals(
+    async fn pending_credit_facilities(
         &self,
         ctx: &Context<'_>,
     ) -> async_graphql::Result<Vec<crate::graphql::credit_facility::PendingCreditFacility>> {
@@ -126,6 +126,24 @@ impl Customer {
             .await?
             .into_iter()
             .map(crate::graphql::credit_facility::PendingCreditFacility::from)
+            .collect();
+
+        Ok(proposals)
+    }
+
+    async fn credit_facility_proposals(
+        &self,
+        ctx: &Context<'_>,
+    ) -> async_graphql::Result<Vec<crate::graphql::credit_facility::CreditFacilityProposal>> {
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+
+        let proposals = app
+            .credit()
+            .proposals()
+            .list_for_customer_by_created_at(sub, self.entity.id)
+            .await?
+            .into_iter()
+            .map(crate::graphql::credit_facility::CreditFacilityProposal::from)
             .collect();
 
         Ok(proposals)
