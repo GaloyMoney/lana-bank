@@ -8,8 +8,8 @@ use es_entity::*;
 
 use crate::{
     ledger::{
-        CreditFacilityProposalAccountIds, CreditFacilityProposalBalanceSummary,
-        CreditFacilityProposalCreation,
+        CreditFacilityProposalBalanceSummary, PendingCreditFacilityAccountIds,
+        PendingCreditFacilityCreation,
     },
     primitives::*,
     terms::TermValues,
@@ -31,7 +31,7 @@ pub enum PendingCreditFacilityEvent {
         collateral_id: CollateralId,
         terms: TermValues,
         amount: UsdCents,
-        account_ids: CreditFacilityProposalAccountIds,
+        account_ids: PendingCreditFacilityAccountIds,
         disbursal_credit_account_id: CalaAccountId,
     },
     CollateralizationStateChanged {
@@ -51,7 +51,7 @@ pub struct PendingCreditFacility {
     pub id: PendingCreditFacilityId,
     pub ledger_tx_id: LedgerTxId,
     pub approval_process_id: ApprovalProcessId,
-    pub account_ids: CreditFacilityProposalAccountIds,
+    pub account_ids: PendingCreditFacilityAccountIds,
     pub disbursal_credit_account_id: CalaAccountId,
     pub customer_id: CustomerId,
     pub customer_type: CustomerType,
@@ -63,17 +63,17 @@ pub struct PendingCreditFacility {
 }
 
 impl PendingCreditFacility {
-    pub fn creation_data(&self) -> CreditFacilityProposalCreation {
+    pub fn creation_data(&self) -> PendingCreditFacilityCreation {
         match self.events.iter_all().next() {
             Some(PendingCreditFacilityEvent::Initialized {
                 ledger_tx_id,
                 account_ids,
                 amount,
                 ..
-            }) => CreditFacilityProposalCreation {
+            }) => PendingCreditFacilityCreation {
                 tx_id: *ledger_tx_id,
                 tx_ref: format!("{}-create", self.id),
-                credit_facility_proposal_account_ids: *account_ids,
+                pending_credit_facility_account_ids: *account_ids,
                 facility_amount: *amount,
             },
             _ => unreachable!("Initialized event must be the first event"),
@@ -256,7 +256,7 @@ pub struct NewPendingCreditFacility {
     pub(super) collateral_id: CollateralId,
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: PendingCreditFacilityCollateralizationState,
-    account_ids: CreditFacilityProposalAccountIds,
+    account_ids: PendingCreditFacilityAccountIds,
     disbursal_credit_account_id: CalaAccountId,
     terms: TermValues,
     amount: UsdCents,
@@ -337,7 +337,7 @@ mod test {
             collateral_id: CollateralId::new(),
             amount: default_facility(),
             terms: default_terms(),
-            account_ids: CreditFacilityProposalAccountIds::new(),
+            account_ids: PendingCreditFacilityAccountIds::new(),
             disbursal_credit_account_id: CalaAccountId::new(),
         }]
     }

@@ -946,12 +946,12 @@ impl CreditLedger {
         })
     }
 
-    pub async fn get_credit_facility_proposal_balance(
+    pub async fn get_pending_credit_facility_balance(
         &self,
-        CreditFacilityProposalAccountIds {
+        PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
-        }: CreditFacilityProposalAccountIds,
+        }: PendingCreditFacilityAccountIds,
     ) -> Result<CreditFacilityProposalBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
@@ -1166,7 +1166,7 @@ impl CreditLedger {
             action,
             effective,
         }: CollateralUpdate,
-        credit_facility_proposal_account_ids: CreditFacilityProposalAccountIds,
+        credit_facility_proposal_account_ids: PendingCreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self
             .cala
@@ -1493,12 +1493,12 @@ impl CreditLedger {
     async fn create_credit_facility_proposal(
         &self,
         mut op: cala_ledger::LedgerOperation<'_>,
-        CreditFacilityProposalCreation {
+        PendingCreditFacilityCreation {
             tx_id,
             tx_ref,
-            credit_facility_proposal_account_ids,
+            pending_credit_facility_account_ids: credit_facility_proposal_account_ids,
             facility_amount,
-        }: CreditFacilityProposalCreation,
+        }: PendingCreditFacilityCreation,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1951,7 +1951,7 @@ impl CreditLedger {
         }
     }
 
-    pub(super) async fn handle_facility_proposal_create(
+    pub(super) async fn handle_pending_facility_creation(
         &self,
         op: es_entity::DbOp<'_>,
         pending_credit_facility: &crate::PendingCreditFacility,
@@ -1985,9 +1985,9 @@ impl CreditLedger {
         op: &mut cala_ledger::LedgerOperation<'_>,
         credit_facility_id: PendingCreditFacilityId,
         collateral_id: CollateralId,
-        account_ids: CreditFacilityProposalAccountIds,
+        account_ids: PendingCreditFacilityAccountIds,
     ) -> Result<(), CreditLedgerError> {
-        let CreditFacilityProposalAccountIds {
+        let PendingCreditFacilityAccountIds {
             facility_account_id,
             collateral_account_id,
         } = account_ids;
