@@ -143,6 +143,7 @@ where
 
         let new_pending_facility = NewPendingCreditFacility::builder()
             .id(id)
+            .credit_facility_proposal_id(id)
             .customer_id(proposal.customer_id)
             .customer_type(proposal.customer_type)
             .approval_process_id(proposal.approval_process_id)

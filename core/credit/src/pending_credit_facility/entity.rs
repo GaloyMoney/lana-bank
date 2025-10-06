@@ -24,6 +24,7 @@ use super::error::PendingCreditFacilityError;
 pub enum PendingCreditFacilityEvent {
     Initialized {
         id: PendingCreditFacilityId,
+        credit_facility_proposal_id: CreditFacilityProposalId,
         ledger_tx_id: LedgerTxId,
         approval_process_id: ApprovalProcessId,
         customer_id: CustomerId,
@@ -246,6 +247,8 @@ pub struct NewPendingCreditFacility {
     #[builder(setter(into))]
     pub(super) id: PendingCreditFacilityId,
     #[builder(setter(into))]
+    pub(super) credit_facility_proposal_id: CreditFacilityProposalId,
+    #[builder(setter(into))]
     pub(super) ledger_tx_id: LedgerTxId,
     #[builder(setter(into))]
     pub(super) approval_process_id: ApprovalProcessId,
@@ -274,6 +277,7 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
             self.id,
             [PendingCreditFacilityEvent::Initialized {
                 id: self.id,
+                credit_facility_proposal_id: self.credit_facility_proposal_id,
                 ledger_tx_id: self.ledger_tx_id,
                 approval_process_id: self.approval_process_id,
                 customer_id: self.customer_id,
@@ -330,6 +334,7 @@ mod test {
     fn initial_events() -> Vec<PendingCreditFacilityEvent> {
         vec![PendingCreditFacilityEvent::Initialized {
             id: PendingCreditFacilityId::new(),
+            credit_facility_proposal_id: CreditFacilityProposalId::new(),
             ledger_tx_id: LedgerTxId::new(),
             approval_process_id: ApprovalProcessId::new(),
             customer_id: CustomerId::new(),
