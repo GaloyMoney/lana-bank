@@ -332,14 +332,28 @@ impl Chart {
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 
-    // TODO: Evaluate if this should be a more specific use-case - for example,
-    // `is_ready_for_annual_close -> bool`
-    pub fn find_last_closed_monthly_period(
-        &self,
-        _now: DateTime<Utc>,
-    ) -> Result<Idempotent<NaiveDate>, ChartOfAccountsError> {
-        // TODO: Find the last ChartEvent::AccountingPeriodClosed event.
-        Ok(Idempotent::Ignored)
+    pub fn find_chart_opening_date(&self) -> Result<NaiveDate, ChartOfAccountsError> {
+        self.events.iter_all().find_map(|event| match event {
+            ChartEvent::Initialized { first_period_opened_as_of, .. } => Some(*first_period_opened_as_of),
+            _ => None,
+        })
+        .ok_or(ChartOfAccountsError::AccountPeriodStartNotFound)
+    }
+
+    pub fn find_chart_last_monthly_closed_date(&self) -> Result<NaiveDate, ChartOfAccountsError> {
+        self.events.iter_all().find_map(|event| match event {
+            ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
+            _ => None,
+        })
+        .ok_or(ChartOfAccountsError::AccountPeriodCloseNotFound)
+    }
+
+    pub fn find_all_monthly_closed_dates(&self) -> Vec<NaiveDate> {
+        self.events.iter_all().filter_map(|event| match event {
+            ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
+            _ => None,
+        })
+        .collect()
     }
 
     pub fn chart(&self) -> tree::ChartTree {
