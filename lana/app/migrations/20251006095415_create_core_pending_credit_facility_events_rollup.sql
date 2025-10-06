@@ -12,6 +12,7 @@ CREATE TABLE core_pending_credit_facility_events_rollup (
   collateral_id UUID,
   collateralization_ratio JSONB,
   collateralization_state VARCHAR,
+  credit_facility_proposal_id UUID,
   customer_id UUID,
   customer_type VARCHAR,
   disbursal_credit_account_id UUID,
@@ -65,6 +66,7 @@ BEGIN
     new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
     new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
+    new_row.credit_facility_proposal_id := (NEW.event ->> 'credit_facility_proposal_id')::UUID;
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
@@ -87,6 +89,7 @@ BEGIN
     new_row.collateral_id := current_row.collateral_id;
     new_row.collateralization_ratio := current_row.collateralization_ratio;
     new_row.collateralization_state := current_row.collateralization_state;
+    new_row.credit_facility_proposal_id := current_row.credit_facility_proposal_id;
     new_row.customer_id := current_row.customer_id;
     new_row.customer_type := current_row.customer_type;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
@@ -104,6 +107,7 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.approval_process_id := (NEW.event ->> 'approval_process_id')::UUID;
       new_row.collateral_id := (NEW.event ->> 'collateral_id')::UUID;
+      new_row.credit_facility_proposal_id := (NEW.event ->> 'credit_facility_proposal_id')::UUID;
       new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
       new_row.customer_type := (NEW.event ->> 'customer_type');
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
@@ -131,6 +135,7 @@ BEGIN
     collateral_id,
     collateralization_ratio,
     collateralization_state,
+    credit_facility_proposal_id,
     customer_id,
     customer_type,
     disbursal_credit_account_id,
@@ -152,6 +157,7 @@ BEGIN
     new_row.collateral_id,
     new_row.collateralization_ratio,
     new_row.collateralization_state,
+    new_row.credit_facility_proposal_id,
     new_row.customer_id,
     new_row.customer_type,
     new_row.disbursal_credit_account_id,

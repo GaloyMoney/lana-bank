@@ -296,6 +296,7 @@ CREATE TABLE core_credit_facility_proposal_events (
 
 CREATE TABLE core_pending_credit_facilities (
   id UUID PRIMARY KEY,
+  credit_facility_proposal_id UUID NOT NULL REFERENCES core_credit_facility_proposals(id),
   customer_id UUID NOT NULL REFERENCES core_customers(id),
   approval_process_id UUID NOT NULL REFERENCES core_approval_processes(id),
   collateral_id UUID NOT NULL REFERENCES core_collaterals(id),

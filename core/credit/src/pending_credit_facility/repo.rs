@@ -13,6 +13,7 @@ use super::{entity::*, error::PendingCreditFacilityError};
     err = "PendingCreditFacilityError",
     columns(
         customer_id(ty = "CustomerId", list_for, update(persist = false)),
+        credit_facility_proposal_id(ty = "CreditFacilityProposalId", update(persist = false)),
         approval_process_id(ty = "ApprovalProcessId", list_by, update(persist = "false")),
         collateral_id(ty = "CollateralId", update(persist = false)),
         collateralization_ratio(
