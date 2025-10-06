@@ -27,7 +27,7 @@ services:
       KC_TRACING_ENABLED: "true"
       KC_TRACING_ENDPOINT: http://otel-agent:4317
     command: start-dev --import-realm
-    depends_on: [keycloak-pg, otel-agent]
+    depends_on: [keycloak-pg]
     volumes:
       - "./dev/keycloak:/opt/keycloak/data/import"
 
@@ -36,7 +36,7 @@ services:
     ports: [4455:4455, 4456:4456]
     command: serve -c /home/ory/oathkeeper.yml --sqa-opt-out
     volumes: ["./dev/ory:/home/ory"]
-    depends_on: [keycloak, otel-agent]
+    depends_on: [keycloak]
 
   mailcrab:
     image: marlonb/mailcrab:latest
