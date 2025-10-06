@@ -1,0 +1,36 @@
+name: Facility Scenarios
+
+on:
+  workflow_dispatch:
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  simulations:
+    name: Simulations
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: DeterminateSystems/nix-installer-action@v16
+
+      - name: Get simulation derivation
+        id: simulation-derivation
+        run: |
+          nix build .#simulation --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
+          echo "Checks to wait for:"
+          cat nix-checks-paths.txt
+      - name: Wait for .#simulation in Cachix
+        uses: ./.github/actions/wait-for-cachix-paths
+        with:
+          paths-file: ./nix-checks-paths.txt
+          cache-name: lana-bank-ci
+          max-attempts: 300
+          retry-delay: 10
+      - uses: cachix/cachix-action@v15
+        with:
+          name: lana-bank-ci
+          authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
+          skipPush: true
+      - name: Run SIMULATION tests
+        run: nix run .#simulation

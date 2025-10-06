@@ -136,6 +136,25 @@ jobs:
                 cachix use $CACHIX_CACHE_NAME
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-debug
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#bats
+
+      - task: cache-simulation
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#simulation
       - task: cache-nextest
         config:
           platform: linux

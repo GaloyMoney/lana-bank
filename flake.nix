@@ -122,6 +122,15 @@
         }
       );
 
+      lana-cli-bootstrap = craneLib.buildPackage (
+        individualCrateArgs
+        // {
+          pname = "lana-cli-bootstrap";
+          cargoExtraArgs = "-p lana-cli --all-features";
+          src = rustSource;
+        }
+      );
+
       # Pre-built test binaries with nextest archive
       lana-test-archive = craneLib.mkCargoDerivation (
         commonArgs
@@ -339,9 +348,78 @@
               '';
             };
 
+          simulation-runner = let
+            podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
+            binPath = pkgs.lib.makeBinPath [
+              podman-runner.podman-compose-runner
+              pkgs.wait4x
+              pkgs.gnugrep
+            ];
+          in
+            pkgs.symlinkJoin {
+              name = "bats-runner";
+              paths = [
+                podman-runner.podman-compose-runner
+                pkgs.wait4x
+                pkgs.gnugrep
+                lana-cli-bootstrap
+              ];
+              postBuild = ''
+                mkdir -p $out/bin
+                cat > $out/bin/simulation-runner << 'EOF'
+                #!${pkgs.bash}/bin/bash
+                set -e
+
+                # Add all tools to PATH
+                export PATH="${binPath}:$PATH"
+
+                # Set environment variables needed by bats tests
+                export PG_CON="${devEnvVars.PG_CON}"
+                export DATABASE_URL="${devEnvVars.DATABASE_URL}"
+                export ENCRYPTION_KEY="${devEnvVars.ENCRYPTION_KEY}"
+
+                # Function to cleanup on exit
+                cleanup() {
+                  echo "Stopping podman-compose..."
+                  podman-compose-runner down || true
+                  cat .server.pid | xargs kill || true
+                }
+
+                # Register cleanup function
+                trap cleanup EXIT
+
+                echo "Starting podman-compose in detached mode..."
+                podman-compose-runner up -d
+
+                # Wait for PostgreSQL to be ready
+                echo "Waiting for PostgreSQL to be ready..."
+                wait4x postgresql "${devEnvVars.PG_CON}" --timeout 120s
+
+                echo "Running cli"
+                export LANA_CONFIG="./bats/lana.yml"
+                ${lana-cli-bootstrap}/bin/lana-cli 2>&1 | tee server.log &
+                echo "PID=$!" > .server.pid
+
+                wait4x http http://localhost:5253/health --timeout 30m
+
+                if grep -q "panicked" server.log; then
+                  echo "❌ Server panicked; dumping last 200 lines of logs:"
+                  tail -n 200 server.log
+                  cat .server.pid | xargs kill || true
+                  exit 1
+                fi
+                EOF
+                chmod +x $out/bin/simulation-runner
+              '';
+            };
+
           # Legacy wrapper for backward compatibility
           bats = pkgs.writeShellScriptBin "bats" ''
             exec ${self.packages.${system}.bats-runner}/bin/bats-runner "$@"
+          '';
+
+          simulation = pkgs.writeShellScriptBin "simulation" ''
+            exec ${self.packages.${system}.simulation-runner}/bin/simulation-runner "$@"
           '';
 
           # Simple nextest runner that runs pre-built test archive
@@ -659,6 +737,11 @@
         apps.bats = flake-utils.lib.mkApp {
           drv = self.packages.${system}.bats-runner;
           name = "bats-runner";
+        };
+
+        apps.simulation = flake-utils.lib.mkApp {
+          drv = self.packages.${system}.simulation-runner;
+          name = "simulation-runner";
         };
 
         apps.nextest = flake-utils.lib.mkApp {
