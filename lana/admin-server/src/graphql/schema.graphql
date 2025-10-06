@@ -898,7 +898,8 @@ type Customer {
 	applicantId: String
 	depositAccount: DepositAccount
 	creditFacilities: [CreditFacility!]!
-	creditFacilityProposals: [PendingCreditFacility!]!
+	pendingCreditFacilities: [PendingCreditFacility!]!
+	creditFacilityProposals: [CreditFacilityProposal!]!
 	documents: [CustomerDocument!]!
 	userCanCreateCreditFacility: Boolean!
 }

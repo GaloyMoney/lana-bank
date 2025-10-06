@@ -186,4 +186,24 @@ where
             .list_by_created_at(query, es_entity::ListDirection::Descending)
             .await
     }
+
+    #[instrument(
+        name = "credit.credit_facility_proposals.list_for_customer_by_created_at",
+        skip(self)
+    )]
+    pub async fn list_for_customer_by_created_at(
+        &self,
+        _sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        customer_id: impl Into<CustomerId> + std::fmt::Debug,
+    ) -> Result<Vec<CreditFacilityProposal>, CreditFacilityProposalError> {
+        Ok(self
+            .repo
+            .list_for_customer_id_by_created_at(
+                customer_id.into(),
+                Default::default(),
+                es_entity::ListDirection::Descending,
+            )
+            .await?
+            .entities)
+    }
 }
