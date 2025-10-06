@@ -18,7 +18,7 @@ use crate::{
     jobs::credit_facility_maturity,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
-    pending_credit_facility::{CreditFacilityProposalCompletionOutcome, PendingCreditFacilities},
+    pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
     primitives::*,
     terms::InterestPeriod,
 };
@@ -161,8 +161,8 @@ where
             .complete_in_op(db, id.into())
             .await?
         {
-            CreditFacilityProposalCompletionOutcome::Completed(proposal) => proposal,
-            CreditFacilityProposalCompletionOutcome::Ignored => {
+            PendingCreditFacilityCompletionOutcome::Completed(proposal) => proposal,
+            PendingCreditFacilityCompletionOutcome::Ignored => {
                 return Ok(ActivationOutcome::Ignored);
             }
         };

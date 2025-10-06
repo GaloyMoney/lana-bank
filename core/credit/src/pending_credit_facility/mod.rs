@@ -22,7 +22,7 @@ use error::*;
 use repo::PendingCreditFacilityRepo;
 pub use repo::pending_credit_facility_cursor::*;
 
-pub enum CreditFacilityProposalCompletionOutcome {
+pub enum PendingCreditFacilityCompletionOutcome {
     Ignored,
     Completed(PendingCreditFacility),
 }
@@ -119,7 +119,7 @@ where
         mut db: es_entity::DbOp<'_>,
         proposal: &CreditFacilityProposal,
     ) -> Result<(), PendingCreditFacilityError> {
-        let account_ids = CreditFacilityProposalAccountIds::new();
+        let account_ids = PendingCreditFacilityAccountIds::new();
         let collateral_id = CollateralId::new();
         let id = proposal.id;
 
@@ -171,37 +171,37 @@ where
             .await?;
 
         self.ledger
-            .handle_facility_proposal_create(db, &pending_credit_facility)
+            .handle_pending_facility_creation(db, &pending_credit_facility)
             .await?;
 
         Ok(())
     }
 
-    #[instrument(
-        name = "credit.credit_facility_proposals.complete_in_op",
-        skip(self, db)
-    )]
+    #[instrument(name = "credit.pending_credit_facility.complete_in_op", skip(self, db))]
     pub(crate) async fn complete_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         id: PendingCreditFacilityId,
-    ) -> Result<CreditFacilityProposalCompletionOutcome, PendingCreditFacilityError> {
-        let mut proposal = self.repo.find_by_id(id).await?;
+    ) -> Result<PendingCreditFacilityCompletionOutcome, PendingCreditFacilityError> {
+        let mut pending_facility = self.repo.find_by_id(id).await?;
 
         let price = self.price.usd_cents_per_btc().await?;
 
         let balances = self
             .ledger
-            .get_credit_facility_proposal_balance(proposal.account_ids)
+            .get_pending_credit_facility_balance(pending_facility.account_ids)
             .await?;
 
-        let Ok(es_entity::Idempotent::Executed(_)) = proposal.complete(balances, price) else {
-            return Ok(CreditFacilityProposalCompletionOutcome::Ignored);
+        let Ok(es_entity::Idempotent::Executed(_)) = pending_facility.complete(balances, price)
+        else {
+            return Ok(PendingCreditFacilityCompletionOutcome::Ignored);
         };
 
-        self.repo.update_in_op(db, &mut proposal).await?;
+        self.repo.update_in_op(db, &mut pending_facility).await?;
 
-        Ok(CreditFacilityProposalCompletionOutcome::Completed(proposal))
+        Ok(PendingCreditFacilityCompletionOutcome::Completed(
+            pending_facility,
+        ))
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]
@@ -210,26 +210,26 @@ where
         id: PendingCreditFacilityId,
     ) -> Result<PendingCreditFacility, PendingCreditFacilityError> {
         let mut op = self.repo.begin_op().await?;
-        let mut facility_proposal = self.repo.find_by_id_in_op(&mut op, id).await?;
+        let mut pending_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
 
         let balances = self
             .ledger
-            .get_credit_facility_proposal_balance(facility_proposal.account_ids)
+            .get_pending_credit_facility_balance(pending_facility.account_ids)
             .await?;
 
         let price = self.price.usd_cents_per_btc().await?;
 
-        if facility_proposal
+        if pending_facility
             .update_collateralization(price, balances)
             .did_execute()
         {
             self.repo
-                .update_in_op(&mut op, &mut facility_proposal)
+                .update_in_op(&mut op, &mut pending_facility)
                 .await?;
 
             op.commit().await?;
         }
-        Ok(facility_proposal)
+        Ok(pending_facility)
     }
 
     pub(super) async fn update_collateralization_from_price(
@@ -265,7 +265,7 @@ where
                 }
                 let balances = self
                     .ledger
-                    .get_credit_facility_proposal_balance(pending_facility.account_ids)
+                    .get_pending_credit_facility_balance(pending_facility.account_ids)
                     .await?;
                 if pending_facility
                     .update_collateralization(price, balances)
@@ -311,7 +311,7 @@ where
     }
 
     #[instrument(
-        name = "credit.credit_facility_proposals.list_for_customer_by_created_at",
+        name = "credit.pending_credit_facility.list_for_customer_by_created_at",
         skip(self)
     )]
     pub async fn list_for_customer_by_created_at(
@@ -330,7 +330,7 @@ where
             .entities)
     }
 
-    #[instrument(name = "credit.credit_facility_proposals.find_all", skip(self, ids))]
+    #[instrument(name = "credit.pending_credit_facility.find_all", skip(self, ids))]
     pub async fn find_all<T: From<PendingCreditFacility>>(
         &self,
         ids: &[PendingCreditFacilityId],
@@ -346,7 +346,7 @@ where
         self.repo.find_by_id(id.into()).await
     }
 
-    #[instrument(name = "credit.credit_facility_proposals.find_by_id", skip(self, sub))]
+    #[instrument(name = "credit.pending_credit_facility.find_by_id", skip(self, sub))]
     pub async fn find_by_id(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

@@ -52,23 +52,6 @@
         }
       ]
     },
-    "CreditFacilityProposalAccountIds": {
-      "properties": {
-        "collateral_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "facility_account_id": {
-          "format": "uuid",
-          "type": "string"
-        }
-      },
-      "required": [
-        "facility_account_id",
-        "collateral_account_id"
-      ],
-      "type": "object"
-    },
     "CustomerType": {
       "enum": [
         "Individual",
@@ -152,6 +135,23 @@
           "type": "object"
         }
       ]
+    },
+    "PendingCreditFacilityAccountIds": {
+      "properties": {
+        "collateral_account_id": {
+          "format": "uuid",
+          "type": "string"
+        },
+        "facility_account_id": {
+          "format": "uuid",
+          "type": "string"
+        }
+      },
+      "required": [
+        "facility_account_id",
+        "collateral_account_id"
+      ],
+      "type": "object"
     },
     "PendingCreditFacilityCollateralizationState": {
       "enum": [
@@ -250,7 +250,7 @@
     {
       "properties": {
         "account_ids": {
-          "$ref": "#/$defs/CreditFacilityProposalAccountIds"
+          "$ref": "#/$defs/PendingCreditFacilityAccountIds"
         },
         "amount": {
           "$ref": "#/$defs/UsdCents"
