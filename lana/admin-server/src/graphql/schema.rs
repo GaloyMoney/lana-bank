@@ -1976,7 +1976,8 @@ impl Mutation {
             ChartOfAccounts,
             ChartId,
             ctx,
-            app.accounting().close_annual(sub, input.chart_id.into())
+            app.accounting()
+                .close_annual(sub, input.chart_id.into(), CHART_REF.0,)
         )
     }
 

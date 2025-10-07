@@ -19,24 +19,24 @@ use std::collections::HashMap;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
-use document_storage::DocumentStorage;
-use job::Jobs;
-use manual_transaction::ManualTransactions;
-use tracing::instrument;
-
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
+use cala_ledger::CalaLedger;
 pub use chart_of_accounts::{
     Chart, ChartOfAccounts, PeriodClosing, error as chart_of_accounts_error, tree,
 };
+use chrono::Utc;
 pub use csv::AccountingCsvExports;
+use document_storage::DocumentStorage;
 use error::CoreAccountingError;
+use job::Jobs;
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
+use manual_transaction::ManualTransactions;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
+use tracing::instrument;
 pub use transaction_templates::TransactionTemplates;
 pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
@@ -313,8 +313,32 @@ where
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
+        chart_ref: &str,
     ) -> Result<Chart, CoreAccountingError> {
-        Ok(self.chart_of_accounts().close_annual(sub, chart_id).await?)
+        // TODO: This could more simply be a use-case of the BalanceSheet sub-domain service,
+        // since `ChartOfAccounts.create_annual_closing_entries` is still leaning on
+        // hard-coded AccountCodes.
+        let entries = self
+            .chart_of_accounts()
+            .create_annual_closing_entries(sub, chart_id)
+            .await?;
+        // TODO: How can we use both ChartOfAccounts and ManualTransaction
+        // sub-domain services while adhering to our DDD?
+        let closing_entries = entries.into_iter().map(Into::into).collect();
+        let effective = Utc::now().date_naive();
+        let _annual_closing_tx = self
+            .manual_transactions()
+            .execute(
+                sub,
+                chart_ref,
+                None, // TODO: Use a reference param?
+                "Annual Closing".to_string(),
+                effective,
+                closing_entries,
+            )
+            .await?;
+
+        Ok(self.chart_of_accounts().find_by_id(chart_id).await?)
     }
 
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
