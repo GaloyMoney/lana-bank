@@ -32,17 +32,18 @@ async fn annual_closing() -> anyhow::Result<()> {
     println!("{:#?}", all_accounts);
 
     // TODO: Need to close monthly first (refactor to run monthly independently of annual w/ shared helpers).
-    let _closed_chart = test.accounting
-        .chart_of_accounts()
-        .close_monthly(&DummySubject, test.chart.id)
-        .await?;
+    // let _closed_chart = test.accounting
+    //     .chart_of_accounts()
+    //     .close_monthly(&DummySubject, test.chart.id)
+    //     .await?;
 
     // TODO: Failing due to the AccountCodes being used in ChartOfAccounts.close_annnual (6,7,8)
     // don't align with the chart we use here.
-    // let _closed_with_annual_tx = test.accounting
-    //     .chart_of_accounts()
-    //     .close_annual(&DummySubject, test.chart.id)
-    //     .await?;
+    let _closed_with_annual_tx = test
+        .accounting
+        .chart_of_accounts()
+        .close_annual(&DummySubject, test.chart.id)
+        .await?;
 
     Ok(())
 }
