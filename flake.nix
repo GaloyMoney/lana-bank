@@ -290,6 +290,7 @@
               pkgs.curl
               pkgs.gnused
               pkgs.gawk
+              pkgs.poppler_utils
             ];
           in
             pkgs.symlinkJoin {
@@ -306,6 +307,7 @@
                 pkgs.curl
                 pkgs.gnused
                 pkgs.gawk
+                pkgs.poppler_utils
                 lana-cli-debug
               ];
               postBuild = ''
