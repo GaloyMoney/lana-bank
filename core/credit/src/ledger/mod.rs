@@ -1541,10 +1541,12 @@ impl CreditLedger {
         self.activate_credit_facility(&mut op, &activation_data)
             .await?;
         if !activation_data.structuring_fee_amount.is_zero() {
-            let disbursal_id =
-                disbursal_id.ok_or(CreditLedgerError::MissingDisbursalIdForStructuringFee)?;
-            self.add_structuring_fee(&mut op, disbursal_id, activation_data)
-                .await?;
+            self.add_structuring_fee(
+                &mut op,
+                disbursal_id.expect("Disbursal ID should exist"),
+                activation_data,
+            )
+            .await?;
         }
         op.commit().await?;
         Ok(())
