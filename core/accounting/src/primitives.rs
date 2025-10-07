@@ -1069,6 +1069,7 @@ impl BalanceRange {
 // TODO: Does something exist for this or should Cala primitives be used to pass a return value
 // from ChartOfAccounts that can be consumed by ManualTranactions
 // (the Vec<ManualEntryInput> param of execute specifically)?
+#[derive(Debug, Clone)]
 pub struct TransactionEntrySpec {
     pub account_id: AccountIdOrCode,
     pub amount: Decimal,
