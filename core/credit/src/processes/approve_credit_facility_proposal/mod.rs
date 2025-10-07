@@ -114,7 +114,12 @@ where
         let mut db = self.proposals.begin_op().await?;
         let proposal = self.proposals.approve(&mut db, id.into(), approved).await?;
 
-        if approved {
+        if approved
+            && matches!(
+                self.pending_credit_facilities.find_by_id_without_audit(&proposal.id.into()).await,
+                Err(ref e) if e.was_not_found()
+            )
+        {
             self.pending_credit_facilities
                 .create_in_op(db, &proposal)
                 .await?;
