@@ -12,6 +12,7 @@ import DataTable, { Column } from "@/components/data-table"
 import {
   GetCreditFacilityRepaymentPlanQuery,
   GetCreditFacilityProposalRepaymentPlanQuery,
+  GetPendingCreditFacilityRepaymentPlanQuery,
   CreditFacilityRepaymentStatus,
   CreditFacilityRepaymentType,
 } from "@/lib/graphql/generated"
@@ -29,6 +30,7 @@ type CreditFacilityRepaymentPlanProps = {
   creditFacility: NonNullable<
     | GetCreditFacilityRepaymentPlanQuery["creditFacilityByPublicId"]
     | GetCreditFacilityProposalRepaymentPlanQuery["creditFacilityProposal"]
+    | GetPendingCreditFacilityRepaymentPlanQuery["pendingCreditFacility"]
   >
 }
 

@@ -4,22 +4,28 @@ import { gql } from "@apollo/client"
 import { use } from "react"
 import { useTranslations } from "next-intl"
 
-import CreditFacilityProposalDetailsCard from "./details"
+import PendingCreditFacilityDetailsCard from "./details"
+import { PendingCreditFacilityCollateral } from "./collateral-card"
 
-import { CreditFacilityTermsCard } from "./terms-card"
+import { PendingCreditFacilityTermsCard } from "./terms-card"
 
 import { DetailsPageSkeleton } from "@/components/details-page-skeleton"
 
-import { useGetCreditFacilityProposalLayoutDetailsQuery } from "@/lib/graphql/generated"
+import { useGetPendingCreditFacilityLayoutDetailsQuery } from "@/lib/graphql/generated"
 
 gql`
-  fragment CreditFacilityProposalLayoutFragment on CreditFacilityProposal {
+  fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
     id
-    creditFacilityProposalId
+    pendingCreditFacilityId
     approvalProcessId
     createdAt
     status
     facilityAmount
+    collateralizationState
+    collateral {
+      btcBalance
+    }
+    collateralToMatchInitialCvl @client
     customer {
       customerId
       customerType
@@ -63,41 +69,53 @@ gql`
         }
       }
     }
+    wallet {
+      id
+      walletId
+      address
+      network
+      custodian {
+        name
+      }
+    }
     approvalProcess {
       ...ApprovalProcessFields
     }
   }
 
-  query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
-    creditFacilityProposal(id: $creditFacilityProposalId) {
-      ...CreditFacilityProposalLayoutFragment
+  query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
+    pendingCreditFacility(id: $pendingCreditFacilityId) {
+      ...PendingCreditFacilityLayoutFragment
     }
   }
 `
 
-export default function CreditFacilityProposalLayout({
+export default function PendingCreditFacilityLayout({
   children,
   params,
 }: {
   children: React.ReactNode
-  params: Promise<{ "credit-facility-proposal-id": string }>
+  params: Promise<{ "pending-credit-facility-id": string }>
 }) {
-  const { "credit-facility-proposal-id": proposalId } = use(params)
+  const { "pending-credit-facility-id": pendingId } = use(params)
   const commonT = useTranslations("Common")
 
-  const { data, loading, error } = useGetCreditFacilityProposalLayoutDetailsQuery({
-    variables: { creditFacilityProposalId: proposalId },
+  const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
+    variables: { pendingCreditFacilityId: pendingId },
   })
 
   if (loading && !data) return <DetailsPageSkeleton detailItems={4} tabs={2} />
   if (error) return <div className="text-destructive">{error.message}</div>
-  if (!data?.creditFacilityProposal) return <div>{commonT("notFound")}</div>
+  if (!data?.pendingCreditFacility) return <div>{commonT("notFound")}</div>
 
   return (
     <main className="max-w-7xl m-auto">
-      <CreditFacilityProposalDetailsCard proposalDetails={data.creditFacilityProposal} />
+      <PendingCreditFacilityDetailsCard pendingDetails={data.pendingCreditFacility} />
       <div className="flex md:flex-row gap-2 my-2 w-full">
-        <CreditFacilityTermsCard creditFacilityProposal={data.creditFacilityProposal} />
+        <PendingCreditFacilityTermsCard
+          pendingCreditFacility={data.pendingCreditFacility}
+        />
+        <PendingCreditFacilityCollateral pending={data.pendingCreditFacility} />
       </div>
       {children}
     </main>

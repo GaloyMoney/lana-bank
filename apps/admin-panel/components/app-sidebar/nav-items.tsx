@@ -17,12 +17,14 @@ import {
   BookText,
   FileText,
   LayoutTemplate,
-  Grid2x2,
   Cog,
   ScrollIcon,
   SquareAsterisk,
   ShieldAlert,
   Building,
+  Building2,
+  FileSignature,
+  Hourglass,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -38,12 +40,17 @@ export function useNavItems() {
   ]
 
   const navLoansItems: NavItem[] = [
-    { title: t("creditFacilities"), url: "/credit-facilities", icon: Grid2x2 },
     {
       title: t("creditFacilityProposals"),
       url: "/credit-facility-proposals",
-      icon: FileText,
+      icon: FileSignature,
     },
+    {
+      title: t("pendingCreditFacilities"),
+      url: "/pending-credit-facilities",
+      icon: Hourglass,
+    },
+    { title: t("creditFacilities"), url: "/credit-facilities", icon: Building2 },
     { title: t("disbursals"), url: "/disbursals", icon: ClipboardList },
     { title: t("termTemplates"), url: "/terms-templates", icon: LayoutTemplate },
   ]

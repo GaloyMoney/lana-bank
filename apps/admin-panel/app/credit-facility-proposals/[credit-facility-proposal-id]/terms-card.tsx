@@ -62,7 +62,7 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
   return (
     <DetailsCard
       title={tCard("title")}
-      className="w-[55%]"
+      className="w-full"
       details={details}
       columns={3}
     />

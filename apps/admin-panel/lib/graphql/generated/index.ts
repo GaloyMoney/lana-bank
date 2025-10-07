@@ -672,9 +672,7 @@ export type CreditFacilityProposal = {
   __typename?: 'CreditFacilityProposal';
   approvalProcess: ApprovalProcess;
   approvalProcessId: Scalars['UUID']['output'];
-  collateral: CollateralBalance;
   collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
-  collateralizationState: PendingCreditFacilityCollateralizationState;
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityProposalId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
@@ -683,18 +681,6 @@ export type CreditFacilityProposal = {
   id: Scalars['ID']['output'];
   repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
   status: CreditFacilityProposalStatus;
-  wallet?: Maybe<Wallet>;
-};
-
-export type CreditFacilityProposalCollateralUpdateInput = {
-  collateral: Scalars['Satoshis']['input'];
-  creditFacilityProposalId: Scalars['UUID']['input'];
-  effective: Scalars['Date']['input'];
-};
-
-export type CreditFacilityProposalCollateralUpdatePayload = {
-  __typename?: 'CreditFacilityProposalCollateralUpdatePayload';
-  creditFacilityProposal: CreditFacilityProposal;
 };
 
 export type CreditFacilityProposalConnection = {
@@ -730,10 +716,9 @@ export type CreditFacilityProposalEdge = {
 };
 
 export enum CreditFacilityProposalStatus {
-  Completed = 'COMPLETED',
-  PendingApproval = 'PENDING_APPROVAL',
-  PendingCollateralization = 'PENDING_COLLATERALIZATION',
-  PendingCompletion = 'PENDING_COMPLETION'
+  Approved = 'APPROVED',
+  Denied = 'DENIED',
+  PendingApproval = 'PENDING_APPROVAL'
 }
 
 export type CreditFacilityRepaymentPlanEntry = {
@@ -930,6 +915,7 @@ export type Customer = {
   id: Scalars['ID']['output'];
   kycVerification: KycVerification;
   level: KycLevel;
+  pendingCreditFacilities: Array<PendingCreditFacility>;
   publicId: Scalars['PublicId']['output'];
   telegramId: Scalars['String']['output'];
   transactions: Array<Transaction>;
@@ -1546,7 +1532,6 @@ export type Mutation = {
   creditFacilityDisbursalInitiate: CreditFacilityDisbursalInitiatePayload;
   creditFacilityPartialPaymentRecord: CreditFacilityPartialPaymentRecordPayload;
   creditFacilityPartialPaymentWithDateRecord: CreditFacilityPartialPaymentRecordPayload;
-  creditFacilityProposalCollateralUpdate: CreditFacilityProposalCollateralUpdatePayload;
   creditFacilityProposalCreate: CreditFacilityProposalCreatePayload;
   creditModuleConfigure: CreditModuleConfigurePayload;
   custodianConfigUpdate: CustodianConfigUpdatePayload;
@@ -1566,6 +1551,7 @@ export type Mutation = {
   loanAgreementDownloadLinkGenerate: LoanAgreementDownloadLinksGeneratePayload;
   loanAgreementGenerate: LoanAgreementGeneratePayload;
   manualTransactionExecute: ManualTransactionExecutePayload;
+  pendingCreditFacilityCollateralUpdate: PendingCreditFacilityCollateralUpdatePayload;
   policyAssignCommittee: PolicyAssignCommitteePayload;
   profitAndLossStatementConfigure: ProfitAndLossStatementModuleConfigurePayload;
   reportFileGenerateDownloadLink: ReportFileGenerateDownloadLinkPayload;
@@ -1666,11 +1652,6 @@ export type MutationCreditFacilityPartialPaymentWithDateRecordArgs = {
 };
 
 
-export type MutationCreditFacilityProposalCollateralUpdateArgs = {
-  input: CreditFacilityProposalCollateralUpdateInput;
-};
-
-
 export type MutationCreditFacilityProposalCreateArgs = {
   input: CreditFacilityProposalCreateInput;
 };
@@ -1763,6 +1744,11 @@ export type MutationLoanAgreementGenerateArgs = {
 
 export type MutationManualTransactionExecuteArgs = {
   input: ManualTransactionExecuteInput;
+};
+
+
+export type MutationPendingCreditFacilityCollateralUpdateArgs = {
+  input: PendingCreditFacilityCollateralUpdateInput;
 };
 
 
@@ -1864,9 +1850,62 @@ export type PaymentEntry = {
   recordedAt: Scalars['Timestamp']['output'];
 };
 
+export type PendingCreditFacility = {
+  __typename?: 'PendingCreditFacility';
+  approvalProcess: ApprovalProcess;
+  approvalProcessId: Scalars['UUID']['output'];
+  collateral: CollateralBalance;
+  collateralToMatchInitialCvl?: Maybe<Scalars['Satoshis']['output']>;
+  collateralizationState: PendingCreditFacilityCollateralizationState;
+  createdAt: Scalars['Timestamp']['output'];
+  creditFacilityTerms: TermValues;
+  customer: Customer;
+  facilityAmount: Scalars['UsdCents']['output'];
+  id: Scalars['ID']['output'];
+  pendingCreditFacilityId: Scalars['UUID']['output'];
+  repaymentPlan: Array<CreditFacilityRepaymentPlanEntry>;
+  status: PendingCreditFacilityStatus;
+  wallet?: Maybe<Wallet>;
+};
+
+export type PendingCreditFacilityCollateralUpdateInput = {
+  collateral: Scalars['Satoshis']['input'];
+  effective: Scalars['Date']['input'];
+  pendingCreditFacilityId: Scalars['UUID']['input'];
+};
+
+export type PendingCreditFacilityCollateralUpdatePayload = {
+  __typename?: 'PendingCreditFacilityCollateralUpdatePayload';
+  pendingCreditFacility: PendingCreditFacility;
+};
+
 export enum PendingCreditFacilityCollateralizationState {
   FullyCollateralized = 'FULLY_COLLATERALIZED',
   UnderCollateralized = 'UNDER_COLLATERALIZED'
+}
+
+export type PendingCreditFacilityConnection = {
+  __typename?: 'PendingCreditFacilityConnection';
+  /** A list of edges. */
+  edges: Array<PendingCreditFacilityEdge>;
+  /** A list of nodes. */
+  nodes: Array<PendingCreditFacility>;
+  /** Information to aid in pagination. */
+  pageInfo: PageInfo;
+};
+
+/** An edge in a connection. */
+export type PendingCreditFacilityEdge = {
+  __typename?: 'PendingCreditFacilityEdge';
+  /** A cursor for use in pagination */
+  cursor: Scalars['String']['output'];
+  /** The item at the end of the edge */
+  node: PendingCreditFacility;
+};
+
+export enum PendingCreditFacilityStatus {
+  Completed = 'COMPLETED',
+  PendingCollateralization = 'PENDING_COLLATERALIZATION'
 }
 
 export enum Period {
@@ -2029,6 +2068,8 @@ export type Query = {
   ledgerTransactionsForTemplateCode: LedgerTransactionConnection;
   loanAgreement?: Maybe<LoanAgreement>;
   me: Me;
+  pendingCreditFacilities: PendingCreditFacilityConnection;
+  pendingCreditFacility?: Maybe<PendingCreditFacility>;
   permissionSets: PermissionSetConnection;
   policies: PolicyConnection;
   policy?: Maybe<Policy>;
@@ -2220,6 +2261,17 @@ export type QueryLedgerTransactionsForTemplateCodeArgs = {
 
 
 export type QueryLoanAgreementArgs = {
+  id: Scalars['UUID']['input'];
+};
+
+
+export type QueryPendingCreditFacilitiesArgs = {
+  after?: InputMaybe<Scalars['String']['input']>;
+  first: Scalars['Int']['input'];
+};
+
+
+export type QueryPendingCreditFacilityArgs = {
   id: Scalars['UUID']['input'];
 };
 
@@ -3141,7 +3193,7 @@ export type CreditFacilityPartialPaymentWithDateRecordMutation = { __typename?: 
           | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
         , duration: { __typename?: 'Duration', period: Period, units: number } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }>, customer: { __typename?: 'Customer', customerId: string, publicId: any, customerType: CustomerType, email: string }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null } } };
 
-export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
       | { __typename: 'FiniteCVLPct', value: any }
       | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
     , marginCallCvl:
@@ -3150,7 +3202,7 @@ export type CreditFacilityProposalLayoutFragmentFragment = { __typename?: 'Credi
     , initialCvl:
       | { __typename: 'FiniteCVLPct', value: any }
       | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-     }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+     }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
       | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
       | { __typename?: 'SystemApproval', autoApprove: boolean }
     , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } };
@@ -3160,7 +3212,7 @@ export type GetCreditFacilityProposalLayoutDetailsQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
       , marginCallCvl:
@@ -3169,7 +3221,7 @@ export type GetCreditFacilityProposalLayoutDetailsQuery = { __typename?: 'Query'
       , initialCvl:
         | { __typename: 'FiniteCVLPct', value: any }
         | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-       }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+       }, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
         | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
         | { __typename?: 'SystemApproval', autoApprove: boolean }
       , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } | null };
@@ -3180,25 +3232,6 @@ export type GetCreditFacilityProposalRepaymentPlanQueryVariables = Exact<{
 
 
 export type GetCreditFacilityProposalRepaymentPlanQuery = { __typename?: 'Query', creditFacilityProposal?: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }> } | null };
-
-export type CreditFacilityProposalCollateralUpdateMutationVariables = Exact<{
-  input: CreditFacilityProposalCollateralUpdateInput;
-}>;
-
-
-export type CreditFacilityProposalCollateralUpdateMutation = { __typename?: 'Mutation', creditFacilityProposalCollateralUpdate: { __typename?: 'CreditFacilityProposalCollateralUpdatePayload', creditFacilityProposal: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, approvalProcessId: string, createdAt: any, status: CreditFacilityProposalStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
-          | { __typename: 'FiniteCVLPct', value: any }
-          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-        , marginCallCvl:
-          | { __typename: 'FiniteCVLPct', value: any }
-          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-        , initialCvl:
-          | { __typename: 'FiniteCVLPct', value: any }
-          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
-         }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
-          | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
-          | { __typename?: 'SystemApproval', autoApprove: boolean }
-        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
 
 export type CreditFacilityProposalCreateMutationVariables = Exact<{
   input: CreditFacilityProposalCreateInput;
@@ -3213,7 +3246,7 @@ export type CreditFacilityProposalsQueryVariables = Exact<{
 }>;
 
 
-export type CreditFacilityProposalsQuery = { __typename?: 'Query', creditFacilityProposals: { __typename?: 'CreditFacilityProposalConnection', edges: Array<{ __typename?: 'CreditFacilityProposalEdge', cursor: string, node: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
+export type CreditFacilityProposalsQuery = { __typename?: 'Query', creditFacilityProposals: { __typename?: 'CreditFacilityProposalConnection', edges: Array<{ __typename?: 'CreditFacilityProposalEdge', cursor: string, node: { __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type CustodianCreateMutationVariables = Exact<{
   input: CustodianCreateInput;
@@ -3244,7 +3277,7 @@ export type GetCustomerCreditFacilityProposalsQueryVariables = Exact<{
 }>;
 
 
-export type GetCustomerCreditFacilityProposalsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
+export type GetCustomerCreditFacilityProposalsQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, creditFacilityProposals: Array<{ __typename?: 'CreditFacilityProposal', id: string, creditFacilityProposalId: string, createdAt: any, facilityAmount: UsdCents, status: CreditFacilityProposalStatus, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
 
 export type CustomerDocumentDownloadLinkGenerateMutationVariables = Exact<{
   input: CustomerDocumentDownloadLinksGenerateInput;
@@ -3318,6 +3351,13 @@ export type GetCustomerTransactionHistoryQuery = { __typename?: 'Query', custome
             | { __typename?: 'UnknownEntry' }
             | { __typename?: 'WithdrawalEntry', recordedAt: any, withdrawal: { __typename?: 'Withdrawal', id: string, withdrawalId: string, publicId: any, accountId: string, amount: UsdCents, createdAt: any, reference: string, status: WithdrawalStatus } }
            }> } } | null } | null };
+
+export type GetCustomerPendingCreditFacilitiesQueryVariables = Exact<{
+  id: Scalars['PublicId']['input'];
+}>;
+
+
+export type GetCustomerPendingCreditFacilitiesQuery = { __typename?: 'Query', customerByPublicId?: { __typename?: 'Customer', id: string, pendingCreditFacilities: Array<{ __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, createdAt: any, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } }> } | null };
 
 export type CustomerEmailUpdateMutationVariables = Exact<{
   input: CustomerEmailUpdateInput;
@@ -3597,6 +3637,73 @@ export type ProfitAndLossStatementConfigureMutationVariables = Exact<{
 
 
 export type ProfitAndLossStatementConfigureMutation = { __typename?: 'Mutation', profitAndLossStatementConfigure: { __typename?: 'ProfitAndLossStatementModuleConfigurePayload', profitAndLossConfig: { __typename?: 'ProfitAndLossStatementModuleConfig', chartOfAccountsId?: string | null, chartOfAccountsRevenueCode?: string | null, chartOfAccountsCostOfRevenueCode?: string | null, chartOfAccountsExpensesCode?: string | null } } };
+
+export type PendingCreditFacilityLayoutFragmentFragment = { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, approvalProcessId: string, createdAt: any, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+      | { __typename: 'FiniteCVLPct', value: any }
+      | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+    , marginCallCvl:
+      | { __typename: 'FiniteCVLPct', value: any }
+      | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+    , initialCvl:
+      | { __typename: 'FiniteCVLPct', value: any }
+      | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+     }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+      | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
+      | { __typename?: 'SystemApproval', autoApprove: boolean }
+    , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } };
+
+export type GetPendingCreditFacilityLayoutDetailsQueryVariables = Exact<{
+  pendingCreditFacilityId: Scalars['UUID']['input'];
+}>;
+
+
+export type GetPendingCreditFacilityLayoutDetailsQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, approvalProcessId: string, createdAt: any, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralizationState: PendingCreditFacilityCollateralizationState, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+      , marginCallCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+      , initialCvl:
+        | { __typename: 'FiniteCVLPct', value: any }
+        | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+       }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+        | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
+        | { __typename?: 'SystemApproval', autoApprove: boolean }
+      , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } | null };
+
+export type GetPendingCreditFacilityRepaymentPlanQueryVariables = Exact<{
+  id: Scalars['UUID']['input'];
+}>;
+
+
+export type GetPendingCreditFacilityRepaymentPlanQuery = { __typename?: 'Query', pendingCreditFacility?: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: UsdCents, outstanding: UsdCents, accrualAt: any, dueAt: any }> } | null };
+
+export type PendingCreditFacilityCollateralUpdateMutationVariables = Exact<{
+  input: PendingCreditFacilityCollateralUpdateInput;
+}>;
+
+
+export type PendingCreditFacilityCollateralUpdateMutation = { __typename?: 'Mutation', pendingCreditFacilityCollateralUpdate: { __typename?: 'PendingCreditFacilityCollateralUpdatePayload', pendingCreditFacility: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, collateralizationState: PendingCreditFacilityCollateralizationState, approvalProcessId: string, createdAt: any, status: PendingCreditFacilityStatus, facilityAmount: UsdCents, collateralToMatchInitialCvl?: Satoshis | null, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, customerType: CustomerType, publicId: any, email: string }, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualInterval: InterestInterval, accrualCycleInterval: InterestInterval, oneTimeFeeRate: any, duration: { __typename?: 'Duration', period: Period, units: number }, liquidationCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , marginCallCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+        , initialCvl:
+          | { __typename: 'FiniteCVLPct', value: any }
+          | { __typename: 'InfiniteCVLPct', isInfinite: boolean }
+         }, wallet?: { __typename?: 'Wallet', id: string, walletId: string, address: string, network: WalletNetwork, custodian: { __typename?: 'Custodian', name: string } } | null, approvalProcess: { __typename?: 'ApprovalProcess', id: string, approvalProcessId: string, deniedReason?: string | null, approvalProcessType: ApprovalProcessType, createdAt: any, userCanSubmitDecision: boolean, status: ApprovalProcessStatus, rules:
+          | { __typename?: 'CommitteeThreshold', threshold: number, committee: { __typename?: 'Committee', name: string, currentMembers: Array<{ __typename?: 'User', id: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } }> } }
+          | { __typename?: 'SystemApproval', autoApprove: boolean }
+        , voters: Array<{ __typename?: 'ApprovalProcessVoter', stillEligible: boolean, didVote: boolean, didApprove: boolean, didDeny: boolean, user: { __typename?: 'User', id: string, userId: string, email: string, role: { __typename?: 'Role', id: string, roleId: string, name: string, createdAt: any, permissionSets: Array<{ __typename?: 'PermissionSet', id: string, permissionSetId: string, name: PermissionSetName }> } } }> } } } };
+
+export type PendingCreditFacilitiesQueryVariables = Exact<{
+  first: Scalars['Int']['input'];
+  after?: InputMaybe<Scalars['String']['input']>;
+}>;
+
+
+export type PendingCreditFacilitiesQuery = { __typename?: 'Query', pendingCreditFacilities: { __typename?: 'PendingCreditFacilityConnection', edges: Array<{ __typename?: 'PendingCreditFacilityEdge', cursor: string, node: { __typename?: 'PendingCreditFacility', id: string, pendingCreditFacilityId: string, createdAt: any, collateralizationState: PendingCreditFacilityCollateralizationState, facilityAmount: UsdCents, status: PendingCreditFacilityStatus, collateral: { __typename?: 'CollateralBalance', btcBalance: Satoshis }, customer: { __typename?: 'Customer', customerId: string, email: string } } }>, pageInfo: { __typename?: 'PageInfo', endCursor?: string | null, hasNextPage: boolean } } };
 
 export type PolicyAssignCommitteeMutationVariables = Exact<{
   input: PolicyAssignCommitteeInput;
@@ -4372,10 +4479,6 @@ export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
   createdAt
   status
   facilityAmount
-  collateralizationState
-  collateral {
-    btcBalance
-  }
   customer {
     customerId
     customerType
@@ -4419,19 +4522,9 @@ export const CreditFacilityProposalLayoutFragmentFragmentDoc = gql`
       }
     }
   }
-  wallet {
-    id
-    walletId
-    address
-    network
-    custodian {
-      name
-    }
-  }
   approvalProcess {
     ...ApprovalProcessFields
   }
-  collateralToMatchInitialCvl @client
 }
     ${ApprovalProcessFieldsFragmentDoc}`;
 export const CustodianFieldsFragmentDoc = gql`
@@ -4591,6 +4684,76 @@ export const LedgerAccountDetailsFragmentDoc = gql`
   }
 }
     `;
+export const PendingCreditFacilityLayoutFragmentFragmentDoc = gql`
+    fragment PendingCreditFacilityLayoutFragment on PendingCreditFacility {
+  id
+  pendingCreditFacilityId
+  approvalProcessId
+  createdAt
+  status
+  facilityAmount
+  collateralizationState
+  collateral {
+    btcBalance
+  }
+  collateralToMatchInitialCvl @client
+  customer {
+    customerId
+    customerType
+    publicId
+    email
+  }
+  creditFacilityTerms {
+    annualRate
+    accrualInterval
+    accrualCycleInterval
+    oneTimeFeeRate
+    duration {
+      period
+      units
+    }
+    liquidationCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+    marginCallCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+    initialCvl {
+      __typename
+      ... on FiniteCVLPct {
+        value
+      }
+      ... on InfiniteCVLPct {
+        isInfinite
+      }
+    }
+  }
+  wallet {
+    id
+    walletId
+    address
+    network
+    custodian {
+      name
+    }
+  }
+  approvalProcess {
+    ...ApprovalProcessFields
+  }
+}
+    ${ApprovalProcessFieldsFragmentDoc}`;
 export const TermsTemplateFieldsFragmentDoc = gql`
     fragment TermsTemplateFields on TermsTemplate {
   id
@@ -5968,46 +6131,6 @@ export type GetCreditFacilityProposalRepaymentPlanQueryHookResult = ReturnType<t
 export type GetCreditFacilityProposalRepaymentPlanLazyQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalRepaymentPlanLazyQuery>;
 export type GetCreditFacilityProposalRepaymentPlanSuspenseQueryHookResult = ReturnType<typeof useGetCreditFacilityProposalRepaymentPlanSuspenseQuery>;
 export type GetCreditFacilityProposalRepaymentPlanQueryResult = Apollo.QueryResult<GetCreditFacilityProposalRepaymentPlanQuery, GetCreditFacilityProposalRepaymentPlanQueryVariables>;
-export const CreditFacilityProposalCollateralUpdateDocument = gql`
-    mutation CreditFacilityProposalCollateralUpdate($input: CreditFacilityProposalCollateralUpdateInput!) {
-  creditFacilityProposalCollateralUpdate(input: $input) {
-    creditFacilityProposal {
-      id
-      creditFacilityProposalId
-      collateral {
-        btcBalance
-      }
-      ...CreditFacilityProposalLayoutFragment
-    }
-  }
-}
-    ${CreditFacilityProposalLayoutFragmentFragmentDoc}`;
-export type CreditFacilityProposalCollateralUpdateMutationFn = Apollo.MutationFunction<CreditFacilityProposalCollateralUpdateMutation, CreditFacilityProposalCollateralUpdateMutationVariables>;
-
-/**
- * __useCreditFacilityProposalCollateralUpdateMutation__
- *
- * To run a mutation, you first call `useCreditFacilityProposalCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
- * When your component renders, `useCreditFacilityProposalCollateralUpdateMutation` returns a tuple that includes:
- * - A mutate function that you can call at any time to execute the mutation
- * - An object with fields that represent the current status of the mutation's execution
- *
- * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
- *
- * @example
- * const [creditFacilityProposalCollateralUpdateMutation, { data, loading, error }] = useCreditFacilityProposalCollateralUpdateMutation({
- *   variables: {
- *      input: // value for 'input'
- *   },
- * });
- */
-export function useCreditFacilityProposalCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<CreditFacilityProposalCollateralUpdateMutation, CreditFacilityProposalCollateralUpdateMutationVariables>) {
-        const options = {...defaultOptions, ...baseOptions}
-        return Apollo.useMutation<CreditFacilityProposalCollateralUpdateMutation, CreditFacilityProposalCollateralUpdateMutationVariables>(CreditFacilityProposalCollateralUpdateDocument, options);
-      }
-export type CreditFacilityProposalCollateralUpdateMutationHookResult = ReturnType<typeof useCreditFacilityProposalCollateralUpdateMutation>;
-export type CreditFacilityProposalCollateralUpdateMutationResult = Apollo.MutationResult<CreditFacilityProposalCollateralUpdateMutation>;
-export type CreditFacilityProposalCollateralUpdateMutationOptions = Apollo.BaseMutationOptions<CreditFacilityProposalCollateralUpdateMutation, CreditFacilityProposalCollateralUpdateMutationVariables>;
 export const CreditFacilityProposalCreateDocument = gql`
     mutation CreditFacilityProposalCreate($input: CreditFacilityProposalCreateInput!) {
   creditFacilityProposalCreate(input: $input) {
@@ -6060,12 +6183,8 @@ export const CreditFacilityProposalsDocument = gql`
         id
         creditFacilityProposalId
         createdAt
-        collateralizationState
         facilityAmount
         status
-        collateral {
-          btcBalance
-        }
         customer {
           customerId
           email
@@ -6267,12 +6386,8 @@ export const GetCustomerCreditFacilityProposalsDocument = gql`
       id
       creditFacilityProposalId
       createdAt
-      collateralizationState
       facilityAmount
       status
-      collateral {
-        btcBalance
-      }
       customer {
         customerId
         email
@@ -6757,6 +6872,61 @@ export type GetCustomerTransactionHistoryQueryHookResult = ReturnType<typeof use
 export type GetCustomerTransactionHistoryLazyQueryHookResult = ReturnType<typeof useGetCustomerTransactionHistoryLazyQuery>;
 export type GetCustomerTransactionHistorySuspenseQueryHookResult = ReturnType<typeof useGetCustomerTransactionHistorySuspenseQuery>;
 export type GetCustomerTransactionHistoryQueryResult = Apollo.QueryResult<GetCustomerTransactionHistoryQuery, GetCustomerTransactionHistoryQueryVariables>;
+export const GetCustomerPendingCreditFacilitiesDocument = gql`
+    query GetCustomerPendingCreditFacilities($id: PublicId!) {
+  customerByPublicId(id: $id) {
+    id
+    pendingCreditFacilities {
+      id
+      pendingCreditFacilityId
+      createdAt
+      collateralizationState
+      facilityAmount
+      status
+      collateral {
+        btcBalance
+      }
+      customer {
+        customerId
+        email
+      }
+    }
+  }
+}
+    `;
+
+/**
+ * __useGetCustomerPendingCreditFacilitiesQuery__
+ *
+ * To run a query within a React component, call `useGetCustomerPendingCreditFacilitiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetCustomerPendingCreditFacilitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetCustomerPendingCreditFacilitiesQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetCustomerPendingCreditFacilitiesQuery(baseOptions: Apollo.QueryHookOptions<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables> & ({ variables: GetCustomerPendingCreditFacilitiesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>(GetCustomerPendingCreditFacilitiesDocument, options);
+      }
+export function useGetCustomerPendingCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>(GetCustomerPendingCreditFacilitiesDocument, options);
+        }
+export function useGetCustomerPendingCreditFacilitiesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>(GetCustomerPendingCreditFacilitiesDocument, options);
+        }
+export type GetCustomerPendingCreditFacilitiesQueryHookResult = ReturnType<typeof useGetCustomerPendingCreditFacilitiesQuery>;
+export type GetCustomerPendingCreditFacilitiesLazyQueryHookResult = ReturnType<typeof useGetCustomerPendingCreditFacilitiesLazyQuery>;
+export type GetCustomerPendingCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof useGetCustomerPendingCreditFacilitiesSuspenseQuery>;
+export type GetCustomerPendingCreditFacilitiesQueryResult = Apollo.QueryResult<GetCustomerPendingCreditFacilitiesQuery, GetCustomerPendingCreditFacilitiesQueryVariables>;
 export const CustomerEmailUpdateDocument = gql`
     mutation CustomerEmailUpdate($input: CustomerEmailUpdateInput!) {
   customerEmailUpdate(input: $input) {
@@ -8199,6 +8369,193 @@ export function useProfitAndLossStatementConfigureMutation(baseOptions?: Apollo.
 export type ProfitAndLossStatementConfigureMutationHookResult = ReturnType<typeof useProfitAndLossStatementConfigureMutation>;
 export type ProfitAndLossStatementConfigureMutationResult = Apollo.MutationResult<ProfitAndLossStatementConfigureMutation>;
 export type ProfitAndLossStatementConfigureMutationOptions = Apollo.BaseMutationOptions<ProfitAndLossStatementConfigureMutation, ProfitAndLossStatementConfigureMutationVariables>;
+export const GetPendingCreditFacilityLayoutDetailsDocument = gql`
+    query GetPendingCreditFacilityLayoutDetails($pendingCreditFacilityId: UUID!) {
+  pendingCreditFacility(id: $pendingCreditFacilityId) {
+    ...PendingCreditFacilityLayoutFragment
+  }
+}
+    ${PendingCreditFacilityLayoutFragmentFragmentDoc}`;
+
+/**
+ * __useGetPendingCreditFacilityLayoutDetailsQuery__
+ *
+ * To run a query within a React component, call `useGetPendingCreditFacilityLayoutDetailsQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPendingCreditFacilityLayoutDetailsQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPendingCreditFacilityLayoutDetailsQuery({
+ *   variables: {
+ *      pendingCreditFacilityId: // value for 'pendingCreditFacilityId'
+ *   },
+ * });
+ */
+export function useGetPendingCreditFacilityLayoutDetailsQuery(baseOptions: Apollo.QueryHookOptions<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables> & ({ variables: GetPendingCreditFacilityLayoutDetailsQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>(GetPendingCreditFacilityLayoutDetailsDocument, options);
+      }
+export function useGetPendingCreditFacilityLayoutDetailsLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>(GetPendingCreditFacilityLayoutDetailsDocument, options);
+        }
+export function useGetPendingCreditFacilityLayoutDetailsSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>(GetPendingCreditFacilityLayoutDetailsDocument, options);
+        }
+export type GetPendingCreditFacilityLayoutDetailsQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsQuery>;
+export type GetPendingCreditFacilityLayoutDetailsLazyQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsLazyQuery>;
+export type GetPendingCreditFacilityLayoutDetailsSuspenseQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityLayoutDetailsSuspenseQuery>;
+export type GetPendingCreditFacilityLayoutDetailsQueryResult = Apollo.QueryResult<GetPendingCreditFacilityLayoutDetailsQuery, GetPendingCreditFacilityLayoutDetailsQueryVariables>;
+export const GetPendingCreditFacilityRepaymentPlanDocument = gql`
+    query GetPendingCreditFacilityRepaymentPlan($id: UUID!) {
+  pendingCreditFacility(id: $id) {
+    id
+    pendingCreditFacilityId
+    repaymentPlan {
+      ...RepaymentOnFacilityPage
+    }
+  }
+}
+    ${RepaymentOnFacilityPageFragmentDoc}`;
+
+/**
+ * __useGetPendingCreditFacilityRepaymentPlanQuery__
+ *
+ * To run a query within a React component, call `useGetPendingCreditFacilityRepaymentPlanQuery` and pass it any options that fit your needs.
+ * When your component renders, `useGetPendingCreditFacilityRepaymentPlanQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = useGetPendingCreditFacilityRepaymentPlanQuery({
+ *   variables: {
+ *      id: // value for 'id'
+ *   },
+ * });
+ */
+export function useGetPendingCreditFacilityRepaymentPlanQuery(baseOptions: Apollo.QueryHookOptions<GetPendingCreditFacilityRepaymentPlanQuery, GetPendingCreditFacilityRepaymentPlanQueryVariables> & ({ variables: GetPendingCreditFacilityRepaymentPlanQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<GetPendingCreditFacilityRepaymentPlanQuery, GetPendingCreditFacilityRepaymentPlanQueryVariables>(GetPendingCreditFacilityRepaymentPlanDocument, options);
+      }
+export function useGetPendingCreditFacilityRepaymentPlanLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<GetPendingCreditFacilityRepaymentPlanQuery, GetPendingCreditFacilityRepaymentPlanQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<GetPendingCreditFacilityRepaymentPlanQuery, GetPendingCreditFacilityRepaymentPlanQueryVariables>(GetPendingCreditFacilityRepaymentPlanDocument, options);
+        }
+export function useGetPendingCreditFacilityRepaymentPlanSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<GetPendingCreditFacilityRepaymentPlanQuery, GetPendingCreditFacilityRepaymentPlanQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<GetPendingCreditFacilityRepaymentPlanQuery, GetPendingCreditFacilityRepaymentPlanQueryVariables>(GetPendingCreditFacilityRepaymentPlanDocument, options);
+        }
+export type GetPendingCreditFacilityRepaymentPlanQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityRepaymentPlanQuery>;
+export type GetPendingCreditFacilityRepaymentPlanLazyQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityRepaymentPlanLazyQuery>;
+export type GetPendingCreditFacilityRepaymentPlanSuspenseQueryHookResult = ReturnType<typeof useGetPendingCreditFacilityRepaymentPlanSuspenseQuery>;
+export type GetPendingCreditFacilityRepaymentPlanQueryResult = Apollo.QueryResult<GetPendingCreditFacilityRepaymentPlanQuery, GetPendingCreditFacilityRepaymentPlanQueryVariables>;
+export const PendingCreditFacilityCollateralUpdateDocument = gql`
+    mutation PendingCreditFacilityCollateralUpdate($input: PendingCreditFacilityCollateralUpdateInput!) {
+  pendingCreditFacilityCollateralUpdate(input: $input) {
+    pendingCreditFacility {
+      id
+      pendingCreditFacilityId
+      collateral {
+        btcBalance
+      }
+      collateralizationState
+      ...PendingCreditFacilityLayoutFragment
+    }
+  }
+}
+    ${PendingCreditFacilityLayoutFragmentFragmentDoc}`;
+export type PendingCreditFacilityCollateralUpdateMutationFn = Apollo.MutationFunction<PendingCreditFacilityCollateralUpdateMutation, PendingCreditFacilityCollateralUpdateMutationVariables>;
+
+/**
+ * __usePendingCreditFacilityCollateralUpdateMutation__
+ *
+ * To run a mutation, you first call `usePendingCreditFacilityCollateralUpdateMutation` within a React component and pass it any options that fit your needs.
+ * When your component renders, `usePendingCreditFacilityCollateralUpdateMutation` returns a tuple that includes:
+ * - A mutate function that you can call at any time to execute the mutation
+ * - An object with fields that represent the current status of the mutation's execution
+ *
+ * @param baseOptions options that will be passed into the mutation, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options-2;
+ *
+ * @example
+ * const [pendingCreditFacilityCollateralUpdateMutation, { data, loading, error }] = usePendingCreditFacilityCollateralUpdateMutation({
+ *   variables: {
+ *      input: // value for 'input'
+ *   },
+ * });
+ */
+export function usePendingCreditFacilityCollateralUpdateMutation(baseOptions?: Apollo.MutationHookOptions<PendingCreditFacilityCollateralUpdateMutation, PendingCreditFacilityCollateralUpdateMutationVariables>) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useMutation<PendingCreditFacilityCollateralUpdateMutation, PendingCreditFacilityCollateralUpdateMutationVariables>(PendingCreditFacilityCollateralUpdateDocument, options);
+      }
+export type PendingCreditFacilityCollateralUpdateMutationHookResult = ReturnType<typeof usePendingCreditFacilityCollateralUpdateMutation>;
+export type PendingCreditFacilityCollateralUpdateMutationResult = Apollo.MutationResult<PendingCreditFacilityCollateralUpdateMutation>;
+export type PendingCreditFacilityCollateralUpdateMutationOptions = Apollo.BaseMutationOptions<PendingCreditFacilityCollateralUpdateMutation, PendingCreditFacilityCollateralUpdateMutationVariables>;
+export const PendingCreditFacilitiesDocument = gql`
+    query PendingCreditFacilities($first: Int!, $after: String) {
+  pendingCreditFacilities(first: $first, after: $after) {
+    edges {
+      cursor
+      node {
+        id
+        pendingCreditFacilityId
+        createdAt
+        collateralizationState
+        facilityAmount
+        status
+        collateral {
+          btcBalance
+        }
+        customer {
+          customerId
+          email
+        }
+      }
+    }
+    pageInfo {
+      endCursor
+      hasNextPage
+    }
+  }
+}
+    `;
+
+/**
+ * __usePendingCreditFacilitiesQuery__
+ *
+ * To run a query within a React component, call `usePendingCreditFacilitiesQuery` and pass it any options that fit your needs.
+ * When your component renders, `usePendingCreditFacilitiesQuery` returns an object from Apollo Client that contains loading, error, and data properties
+ * you can use to render your UI.
+ *
+ * @param baseOptions options that will be passed into the query, supported options are listed on: https://www.apollographql.com/docs/react/api/react-hooks/#options;
+ *
+ * @example
+ * const { data, loading, error } = usePendingCreditFacilitiesQuery({
+ *   variables: {
+ *      first: // value for 'first'
+ *      after: // value for 'after'
+ *   },
+ * });
+ */
+export function usePendingCreditFacilitiesQuery(baseOptions: Apollo.QueryHookOptions<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables> & ({ variables: PendingCreditFacilitiesQueryVariables; skip?: boolean; } | { skip: boolean; }) ) {
+        const options = {...defaultOptions, ...baseOptions}
+        return Apollo.useQuery<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables>(PendingCreditFacilitiesDocument, options);
+      }
+export function usePendingCreditFacilitiesLazyQuery(baseOptions?: Apollo.LazyQueryHookOptions<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables>) {
+          const options = {...defaultOptions, ...baseOptions}
+          return Apollo.useLazyQuery<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables>(PendingCreditFacilitiesDocument, options);
+        }
+export function usePendingCreditFacilitiesSuspenseQuery(baseOptions?: Apollo.SkipToken | Apollo.SuspenseQueryHookOptions<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables>) {
+          const options = baseOptions === Apollo.skipToken ? baseOptions : {...defaultOptions, ...baseOptions}
+          return Apollo.useSuspenseQuery<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables>(PendingCreditFacilitiesDocument, options);
+        }
+export type PendingCreditFacilitiesQueryHookResult = ReturnType<typeof usePendingCreditFacilitiesQuery>;
+export type PendingCreditFacilitiesLazyQueryHookResult = ReturnType<typeof usePendingCreditFacilitiesLazyQuery>;
+export type PendingCreditFacilitiesSuspenseQueryHookResult = ReturnType<typeof usePendingCreditFacilitiesSuspenseQuery>;
+export type PendingCreditFacilitiesQueryResult = Apollo.QueryResult<PendingCreditFacilitiesQuery, PendingCreditFacilitiesQueryVariables>;
 export const PolicyAssignCommitteeDocument = gql`
     mutation PolicyAssignCommittee($input: PolicyAssignCommitteeInput!) {
   policyAssignCommittee(input: $input) {

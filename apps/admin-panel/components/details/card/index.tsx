@@ -52,7 +52,7 @@ export interface DetailsCardProps
   badge?: React.JSX.Element
   description?: string
   details: DetailItemProps[]
-  footerContent?: React.JSX.Element
+  footerContent?: React.JSX.Element | null
   headerAction?: React.JSX.Element
   errorMessage?: string | undefined | null
   className?: string

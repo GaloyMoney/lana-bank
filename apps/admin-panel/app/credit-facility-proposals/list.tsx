@@ -6,7 +6,6 @@ import { useTranslations } from "next-intl"
 import DateWithTooltip from "@lana/web/components/date-with-tooltip"
 
 import { CreditFacilityProposalStatusBadge } from "./status-badge"
-import { CreditFacilityProposalCollateralizationStateLabel } from "./label"
 
 import {
   CreditFacilityProposal,
@@ -29,12 +28,8 @@ gql`
           id
           creditFacilityProposalId
           createdAt
-          collateralizationState
           facilityAmount
           status
-          collateral {
-            btcBalance
-          }
           customer {
             customerId
             email
@@ -93,18 +88,6 @@ const columns = (t: (key: string) => string): Column<CreditFacilityProposal>[] =
     key: "facilityAmount",
     label: t("table.headers.facilityAmount"),
     render: (amount) => <Balance amount={amount} currency="usd" />,
-  },
-  {
-    key: "collateral",
-    label: t("table.headers.collateral"),
-    render: (collateral) => <Balance amount={collateral.btcBalance} currency="btc" />,
-  },
-  {
-    key: "collateralizationState",
-    label: t("table.headers.collateralizationState"),
-    render: (state) => (
-      <CreditFacilityProposalCollateralizationStateLabel state={state} />
-    ),
   },
   {
     key: "createdAt",

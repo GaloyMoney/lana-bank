@@ -146,6 +146,7 @@
       "dashboard": "Panel Principal",
       "actions": "Acciones",
       "creditFacilities": "Líneas de Crédito",
+      "pendingCreditFacilities": "Líneas de Crédito Pendientes",
       "creditFacilityProposals": "Propuestas de Línea de Crédito",
       "disbursals": "Desembolsos",
       "termTemplates": "Plantillas de Términos",
@@ -277,6 +278,7 @@
         "tabs": {
           "transactions": "Transacciones",
           "creditFacilities": "Líneas de Crédito",
+          "pendingCreditFacilities": "Líneas de Crédito Pendientes",
           "creditFacilityProposals": "Propuestas de Línea de Crédito",
           "documents": "Documentos"
         },
@@ -475,9 +477,17 @@
       "creditFacilityProposals": {
         "title": "Propuestas de Línea de Crédito",
         "description": "Propuestas de Línea de Crédito para este Cliente",
-        "loading": "Cargando...",
-        "error": "Ha ocurrido un error",
-        "notFound": "Cliente no encontrado",
+        "table": {
+          "headers": {
+            "status": "Estado",
+            "facilityAmount": "Monto de línea",
+            "createdAt": "Fecha de registro"
+          }
+        }
+      },
+      "pendingCreditFacilities": {
+        "title": "Líneas de Crédito Pendientes",
+        "description": "Líneas de Crédito Pendientes para este Cliente",
         "table": {
           "headers": {
             "status": "Estado",
@@ -504,10 +514,9 @@
       }
     },
     "status": {
-      "pending_collateralization": "Colateralización Pendiente",
       "pending_approval": "Aprobación Pendiente",
-      "pending_completion": "Pendiente de completar",
-      "completed": "Completado"
+      "approved": "Aprobado",
+      "denied": "Denegado"
     },
     "collateralizationState": {
       "fullycollateralized": "Totalmente garantizado",
@@ -617,7 +626,8 @@
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
           "deny": "Rechazar",
-          "viewFacility": "Ver Línea de Crédito"
+          "viewFacility": "Ver Línea de Crédito",
+          "viewPendingFacility": "Ver Línea de Crédito Pendiente"
         },
         "alerts": {
           "completedTitle": "Propuesta completada",
@@ -800,8 +810,7 @@
           "loanAgreement": "Contrato de Préstamo",
           "updateCollateral": "Actualizar Garantía",
           "approve": "Aprobar",
-          "deny": "Rechazar",
-          "viewProposal": "Ver Propuesta"
+          "deny": "Rechazar"
         },
         "loanAgreement": {
           "success": "Contrato de préstamo generado exitosamente",
@@ -862,23 +871,102 @@
           "placeholders": {
             "newCollateral": "Ingrese nuevo monto de garantía"
           },
-          "errors": {
-            "emptyCollateral": "Por favor ingrese un monto de garantía válido.",
-            "noData": "No se devolvieron datos de la mutación",
-            "unknownError": "Ocurrió un error desconocido"
-          },
           "buttons": {
-            "back": "Atrás",
             "proceedToConfirm": "Proceder a Confirmar",
-            "confirm": "Confirmar",
-            "updating": "Actualizando..."
+            "confirm": "Confirmar"
           }
         },
         "messages": {
           "success": "Garantía de línea de crédito actualizada exitosamente"
+        }
+      }
+    }
+  },
+  "PendingCreditFacilities": {
+    "title": "Líneas de Crédito Pendientes",
+    "description": "Líneas de crédito en espera de colateralización después de la aprobación",
+    "table": {
+      "headers": {
+        "customer": "Cliente",
+        "status": "Estado",
+        "facilityAmount": "Monto de línea",
+        "collateral": "Garantía",
+        "collateralizationState": "Estado de Colateralización",
+        "createdAt": "Fecha de registro"
+      }
+    },
+    "status": {
+      "pending_collateralization": "Colateralización Pendiente",
+      "completed": "Completado"
+    },
+    "collateralizationState": {
+      "fully_collateralized": "Totalmente Garantizado",
+      "under_collateralized": "Insuficientemente Garantizado"
+    },
+    "PendingDetails": {
+      "CollateralCard": {
+        "title": "Garantía",
+        "details": {
+          "collateralBalance": "Saldo de garantía (BTC)",
+          "currentPrice": "Precio actual BTC/USD",
+          "collateralValue": "Valor de garantía (USD)",
+          "collateralToReachTarget": "Garantía para alcanzar el objetivo ({percentage})"
+        }
+      },
+      "DetailsCard": {
+        "title": "Línea de Crédito Pendiente",
+        "details": {
+          "customer": "Cliente",
+          "status": "Estado",
+          "facilityAmount": "Monto de línea",
+          "collateralizationState": "Estado de Colateralización",
+          "createdAt": "Fecha de registro",
+          "custodian": "Custodio",
+          "manual": "Manual",
+          "walletAddress": "Dirección de Billetera",
+          "viewOnMempool": "Ver en mempool"
         },
-        "units": {
-          "btc": "BTC"
+        "buttons": {
+          "updateCollateral": "Actualizar Garantía",
+          "viewFacility": "Ver Línea de Crédito"
+        }
+      },
+      "TermsCard": {
+        "title": "Términos",
+        "description": "Detalles sobre los términos de esta línea pendiente",
+        "details": {
+          "duration": "Duración",
+          "interestRate": "Tasa de Interés",
+          "targetCvl": "CVL Objetivo",
+          "marginCallCvl": "CVL de Margin Call",
+          "liquidationCvl": "CVL de Liquidación",
+          "structuringFeeRate": "Tasa de Comisión de Estructuración",
+          "effectiveRate": "Tasa Efectiva"
+        }
+      },
+      "PendingCreditFacilityCollateralUpdate": {
+        "dialog": {
+          "title": "Actualizar Garantía de Línea de Crédito Pendiente",
+          "description": "Ingrese el nuevo monto de garantía para esta línea de crédito pendiente.",
+          "confirmTitle": "Confirmar Actualización",
+          "confirmDescription": "¿Está seguro de que desea actualizar la garantía para esta línea de crédito pendiente?"
+        },
+        "form": {
+          "labels": {
+            "currentCollateral": "Garantía Actual",
+            "expectedCollateral": "Garantía Esperada",
+            "newCollateral": "Nueva Garantía"
+          },
+          "placeholders": {
+            "newCollateral": "Ingrese el nuevo monto de garantía"
+          },
+          "buttons": {
+            "proceedToConfirm": "Proceder a Confirmar",
+            "confirm": "Confirmar"
+          }
+        },
+        "messages": {
+          "success": "Garantía de línea de crédito pendiente actualizada exitosamente"
         }
       }
     }

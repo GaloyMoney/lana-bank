@@ -12,6 +12,10 @@ extend type CreditFacilityProposal {
   collateralToMatchInitialCvl: Satoshis
 }
 
+extend type PendingCreditFacility {
+  collateralToMatchInitialCvl: Satoshis
+}
+
 extend type Customer {
   transactions: [Transaction!]!
 }
