@@ -1525,6 +1525,7 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOpWithTime<'_>,
         activation_data: CreditFacilityActivation,
+        disbursal_id: Option<DisbursalId>,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
@@ -1539,7 +1540,12 @@ impl CreditLedger {
 
         self.activate_credit_facility(&mut op, &activation_data)
             .await?;
-        self.add_structuring_fee(&mut op, activation_data).await?;
+        if !activation_data.structuring_fee_amount.is_zero() {
+            let disbursal_id =
+                disbursal_id.ok_or(CreditLedgerError::MissingDisbursalIdForStructuringFee)?;
+            self.add_structuring_fee(&mut op, disbursal_id, activation_data)
+                .await?;
+        }
         op.commit().await?;
         Ok(())
     }
@@ -1570,19 +1576,19 @@ impl CreditLedger {
     async fn add_structuring_fee(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
+        disbursal_id: DisbursalId,
         CreditFacilityActivation {
-            credit_facility_id,
             account_ids,
             debit_account_id,
             structuring_fee_amount,
             ..
         }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
-        let fee_tx_id = LedgerTxId::new();
+        let tx_id = disbursal_id.into();
         self.cala
             .post_transaction_in_op(
                 op,
-                fee_tx_id,
+                tx_id,
                 templates::ADD_STRUCTURING_FEE_CODE,
                 templates::AddStructuringFeeParams {
                     journal_id: self.journal_id,
@@ -1594,7 +1600,7 @@ impl CreditLedger {
                     debit_account_id,
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
                     currency: self.usd,
-                    external_id: format!("{}-structuring-fee", credit_facility_id),
+                    external_id: format!("{}-structuring-fee", disbursal_id),
                 },
             )
             .await?;

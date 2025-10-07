@@ -123,7 +123,7 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         credit_facility: &CreditFacility,
-    ) -> Result<(), DisbursalError> {
+    ) -> Result<DisbursalId, DisbursalError> {
         let disbursal_id = DisbursalId::new();
         let public_id = self
             .public_ids
@@ -167,7 +167,7 @@ where
 
         self.repo.update_in_op(db, &mut disbursal).await?;
 
-        Ok(())
+        Ok(disbursal.id)
     }
 
     #[instrument(name = "core_credit.disbursals.find_by_id", skip(self), err)]

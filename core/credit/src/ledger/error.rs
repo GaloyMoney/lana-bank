@@ -26,4 +26,6 @@ pub enum CreditLedgerError {
     NonAccountMemberFoundInAccountSet(String),
     #[error("CreditLedgerError - JournalIdMismatch: Account sets have wrong JournalId")]
     JournalIdMismatch,
+    #[error("CreditLedgerError - MissingDisbursalIdForStructuringFee")]
+    MissingDisbursalIdForStructuringFee,
 }
