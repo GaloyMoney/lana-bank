@@ -2,6 +2,7 @@ mod closing;
 pub mod error;
 
 use std::collections::HashMap;
+use rust_decimal::Decimal;
 
 use cala_ledger::{
     AccountId, AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
@@ -16,7 +17,7 @@ use cala_ledger::{
 use closing::*;
 use error::*;
 
-use crate::primitives::TransactionEntrySpec;
+use crate::{primitives::TransactionEntrySpec, AccountIdOrCode};
 
 use crate::Chart;
 
@@ -131,7 +132,7 @@ impl ChartLedger {
         Ok(())
     }
 
-    pub async fn post_annual_closing_transaction(
+    pub async fn prepare_annual_closing_transaction(
         &self,
         _op: es_entity::DbOp<'_>,
         chart_root_account_set_id: impl Into<AccountSetId>,
@@ -139,6 +140,8 @@ impl ChartLedger {
         _revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
         _expense_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
         _cost_of_revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
+        _retained_earnings_account_set: AccountSetId,
+        _retained_losses_account_set: AccountSetId,
     ) -> Result<Vec<TransactionEntrySpec>, ChartLedgerError> {
         let _id = chart_root_account_set_id.into();
         // TODO: Use a transaction template to create the entries in Cala that should -
@@ -146,8 +149,37 @@ impl ChartLedger {
         // (2) credit the Cost of Revenue Account(Set members and aggregate balance)
         // (3) credit the Expenses Account(Set members and aggregate balance)
         // (4) credit/debit (depending on the net amount from 1,2, and 3) the Equity AccountSet (Patrimonios > Utilidades ???)
-        
+
+        // TODO: Create and attach accounts to target AccountSet (both under the Equity AccountCode).
+
         Ok(vec![])
+    }
+
+    fn _create_annual_close_offset_entries(
+        &self, 
+        accounts_by_code: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
+    ) -> Result<Vec<TransactionEntrySpec>, ChartLedgerError> {
+
+        let mut entries = Vec::new();
+        let mut net: Decimal = Decimal::from(0);
+
+        for ((journal_id, account_id, currency), bal_details) in accounts_by_code.iter() {
+            let amt = bal_details.settled();
+
+            // TODO: Other considerations here for `pending` or `encumbrance`?
+            // let entry = TransactionEntrySpec {
+            //     // TODO: go from (Cala)AccountId to LedgerAccountId to satisfy AccountIdOrCode.
+            //     //account_id: AccountIdOrCode::Id(account_id.into()),
+            //     currency: currency.clone(),
+            //     amount: amt,
+            //     // TODO: Add a parameter for this field?
+            //     description: "Annual Close Offset".to_string(),
+            //     // TODO: How should we determine the direction - do we need to know the AccountCode
+            //     // we are operating on?
+            //     direction: DebitOrCredit::Debit,
+            // };
+        }
+        Ok(entries)
     }
 
     async fn create_monthly_close_control_with_limits_in_op(
