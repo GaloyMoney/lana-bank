@@ -89,7 +89,7 @@ const CreditFacilityProposalDetailsCard: React.FC<
         <Link
           href={`/pending-credit-facilities/${proposalDetails.creditFacilityProposalId}`}
         >
-          <Button variant="outline">
+          <Button variant="outline" data-testid="view-pending-facility-button">
             {t("buttons.viewPendingFacility")}
             <ArrowRight className="h-4 w-4 ml-2" />
           </Button>

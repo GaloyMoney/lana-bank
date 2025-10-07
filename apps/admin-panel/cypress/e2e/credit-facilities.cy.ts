@@ -9,6 +9,7 @@ import { t } from "../support/translation"
 
 const CF = "CreditFacilities"
 const CFP = "CreditFacilityProposals"
+const PCF = "PendingCreditFacilities"
 const Committee = "Committees.CommitteeDetails"
 const Policy = "Policies.PolicyDetails"
 const Disbursals = "Disbursals"
@@ -17,6 +18,7 @@ describe("credit facility", () => {
   let customerId: string
   let customerPublicId: string
   let proposalId: string
+  let pendingFacilityId: string
   const termsTemplateName: string = `Test Template ${Date.now()}`
 
   before(() => {
@@ -153,15 +155,16 @@ describe("credit facility", () => {
         Cypress.env("creditFacilityProposalId", proposalId)
       })
 
-    cy.contains(t(CFP + ".collateralizationState.undercollateralized")).should(
-      "be.visible",
-    )
+    cy.get("[data-testid=proposal-status-badge]")
+      .should("be.visible")
+      .invoke("text")
+      .should("eq", t(CFP + ".status.pending_approval"))
     cy.takeScreenshot("05_proposal_created_success")
   })
 
   it("should show newly created proposal in the list", () => {
     cy.visit(`/credit-facility-proposals`)
-    cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
+    cy.get('[data-testid="table-row-0"] > :nth-child(5) > a > .gap-2').click()
     cy.contains("$5,000.00").should("be.visible")
     cy.takeScreenshot("proposal_in_list")
   })
@@ -174,15 +177,76 @@ describe("credit facility", () => {
     cy.contains("$5,000").should("be.visible")
     cy.takeScreenshot("06_visit_proposal_page")
 
-    cy.get('[data-testid="collateral-to-reach-target"]').should("be.visible")
-    cy.get('[data-testid="update-collateral-button"]').should("be.visible")
+    cy.get('[data-testid="approval-process-approve-button"]').should("be.visible")
   })
 
-  it("should calculate and store required collateral amount", () => {
+  it("should approve the proposal", () => {
     const proposalUuid = Cypress.env("creditFacilityProposalId")
     expect(proposalUuid).to.exist
 
     cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+    cy.reload()
+
+    cy.get('[data-testid="approval-process-approve-button"]').should("be.visible")
+    cy.takeScreenshot("07_approve_proposal_button")
+    cy.get('[data-testid="approval-process-approve-button"]').click()
+
+    cy.wait(2000).then(() => {
+      cy.takeScreenshot("08_approve_proposal_dialog")
+      cy.get('[data-testid="approval-process-dialog-approve-button"]')
+        .should("exist")
+        .should("be.visible")
+        .click()
+      cy.wait(2000)
+    })
+  })
+
+  it("should verify proposal approved status", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    expect(proposalUuid).to.exist
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+    cy.wait(2000)
+    cy.reload()
+    cy.get("[data-testid=proposal-status-badge]")
+      .should("be.visible")
+      .invoke("text")
+      .should("eq", t(CFP + ".status.approved"))
+    cy.takeScreenshot("09_proposal_approved_status")
+  })
+
+  it("should navigate to pending credit facility from proposal", () => {
+    const proposalUuid = Cypress.env("creditFacilityProposalId")
+    expect(proposalUuid).to.exist
+    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+    cy.get('[data-testid="view-pending-facility-button"]').should("be.visible")
+    cy.takeScreenshot("10_view_pending_facility_button")
+    cy.get('[data-testid="view-pending-facility-button"]').click()
+    cy.url()
+      .should("match", /\/pending-credit-facilities\/[a-f0-9-]+$/)
+      .then((url) => {
+        pendingFacilityId = url.split("/").pop() as string
+        Cypress.env("pendingCreditFacilityId", pendingFacilityId)
+        cy.log(`Pending credit facility ID: ${pendingFacilityId}`)
+      })
+  })
+
+  it("should verify pending facility initial state", () => {
+    const pendingUuid = Cypress.env("pendingCreditFacilityId")
+    expect(pendingUuid).to.exist
+    cy.visit(`/pending-credit-facilities/${pendingUuid}`)
+    cy.contains("$5,000").should("be.visible")
+    cy.get("[data-testid=pending-status-badge]")
+      .should("be.visible")
+      .invoke("text")
+      .should("eq", t(PCF + ".status.pending_collateralization"))
+    cy.takeScreenshot("11_pending_facility_initial_state")
+  })
+
+  it("should calculate and store required collateral amount", () => {
+    const pendingUuid = Cypress.env("pendingCreditFacilityId")
+    expect(pendingUuid).to.exist
+
+    cy.visit(`/pending-credit-facilities/${pendingUuid}`)
     cy.wait(2000)
 
     cy.get('[data-testid="collateral-to-reach-target"]')
@@ -195,40 +259,21 @@ describe("credit facility", () => {
       })
   })
 
-  it("should open collateral update form and enter required amount", () => {
-    const proposalUuid = Cypress.env("creditFacilityProposalId")
+  it("should update collateral in pending facility", () => {
+    const pendingUuid = Cypress.env("pendingCreditFacilityId")
     const requiredAmount = Cypress.env("requiredCollateralAmount")
-    expect(proposalUuid).to.exist
+    expect(pendingUuid).to.exist
     expect(requiredAmount).to.exist
 
-    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-
+    cy.visit(`/pending-credit-facilities/${pendingUuid}`)
     cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
-    cy.takeScreenshot("07_click_update_collateral_button")
+    cy.takeScreenshot("12_click_update_collateral_button")
 
     cy.get('[data-testid="new-collateral-input"]')
       .should("be.visible")
       .clear()
       .type(requiredAmount.toString())
-    cy.takeScreenshot("08_enter_new_collateral_value")
-
-    cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
-  })
-
-  it("should confirm collateral update", () => {
-    const proposalUuid = Cypress.env("creditFacilityProposalId")
-    const requiredAmount = Cypress.env("requiredCollateralAmount")
-    expect(proposalUuid).to.exist
-    expect(requiredAmount).to.exist
-    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-    cy.get('[data-testid="update-collateral-button"]').should("be.visible").click()
-    cy.get('[data-testid="new-collateral-input"]')
-      .should("be.visible")
-      .clear()
-      .type(requiredAmount.toString())
-
-    cy.get('[data-testid="proceed-to-confirm-button"]').should("be.visible")
-    cy.takeScreenshot("09_confirm_collateral_update")
+    cy.takeScreenshot("13_enter_new_collateral_value")
 
     cy.get('[data-testid="proceed-to-confirm-button"]')
       .should("be.visible")
@@ -241,49 +286,28 @@ describe("credit facility", () => {
       .should("be.visible")
       .click()
       .wait(2000)
-    cy.takeScreenshot("10_collateral_updated")
+    cy.takeScreenshot("14_collateral_updated")
   })
 
-  it("should approve the proposal after collateral update", () => {
-    const proposalUuid = Cypress.env("creditFacilityProposalId")
-    expect(proposalUuid).to.exist
-
-    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
-    cy.reload()
-
-    cy.get('[data-testid="approval-process-approve-button"]').should("be.visible")
-    cy.takeScreenshot("11_approve_proposal_button")
-    cy.get('[data-testid="approval-process-approve-button"]').click()
-
-    cy.wait(2000).then(() => {
-      cy.takeScreenshot("12_approve_proposal_dialog")
-      cy.get('[data-testid="approval-process-dialog-approve-button"]')
-        .should("exist")
-        .should("be.visible")
-        .click()
-      cy.wait(2000)
-    })
-  })
-
-  it("should verify proposal completion status", () => {
-    const proposalUuid = Cypress.env("creditFacilityProposalId")
-    expect(proposalUuid).to.exist
-    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+  it("should verify pending facility completed status", () => {
+    const pendingUuid = Cypress.env("pendingCreditFacilityId")
+    expect(pendingUuid).to.exist
+    cy.visit(`/pending-credit-facilities/${pendingUuid}`)
     cy.wait(2000)
     cy.reload()
-    cy.get("[data-testid=proposal-status-badge]")
+    cy.get("[data-testid=pending-status-badge]")
       .should("be.visible")
       .invoke("text")
-      .should("eq", t(CFP + ".status.completed"))
-    cy.takeScreenshot("13_proposal_completed_status")
+      .should("eq", t(PCF + ".status.completed"))
+    cy.takeScreenshot("15_pending_facility_completed")
   })
 
-  it("should navigate to created credit facility", () => {
-    const proposalUuid = Cypress.env("creditFacilityProposalId")
-    expect(proposalUuid).to.exist
-    cy.visit(`/credit-facility-proposals/${proposalUuid}`)
+  it("should navigate to created credit facility from pending facility", () => {
+    const pendingUuid = Cypress.env("pendingCreditFacilityId")
+    expect(pendingUuid).to.exist
+    cy.visit(`/pending-credit-facilities/${pendingUuid}`)
     cy.get('[data-testid="view-facility-button"]').should("be.visible")
-    cy.takeScreenshot("14_view_facility_button")
+    cy.takeScreenshot("16_view_facility_button")
     cy.get('[data-testid="view-facility-button"]').click()
     cy.url()
       .should("match", /\/credit-facilities\/\d+$/)
@@ -304,14 +328,14 @@ describe("credit facility", () => {
       .should("be.visible")
       .invoke("text")
       .should("eq", t(CF + ".CreditFacilityStatus.active"))
-    cy.takeScreenshot("15_verify_active_status")
+    cy.takeScreenshot("17_verify_active_status")
   })
 
   it("should show newly created credit facility in the list", () => {
     cy.visit(`/credit-facilities`)
     cy.get('[data-testid="table-row-0"] > :nth-child(7) > a > .gap-2').click()
     cy.contains("$5,000.00").should("be.visible")
-    cy.takeScreenshot("16_credit_facility_in_list")
+    cy.takeScreenshot("18_credit_facility_in_list")
   })
 
   it("should successfully initiate and confirm a disbursal", () => {
@@ -323,24 +347,24 @@ describe("credit facility", () => {
 
     cy.get('[data-testid="global-create-button"]').click()
     cy.get('[data-testid="initiate-disbursal-button"]').should("be.visible").click()
-    cy.takeScreenshot("17_click_initiate_disbursal_button")
+    cy.takeScreenshot("19_click_initiate_disbursal_button")
 
     cy.get('[data-testid="disbursal-amount-input"]')
       .type("1000")
       .should("have.value", "1,000")
-    cy.takeScreenshot("18_enter_disbursal_amount")
+    cy.takeScreenshot("20_enter_disbursal_amount")
 
     cy.get('[data-testid="disbursal-submit-button"]').click()
-    cy.takeScreenshot("19_submit_disbursal_request")
+    cy.takeScreenshot("21_submit_disbursal_request")
 
     cy.url().should("match", /\/disbursals\/\w+$/)
 
-    cy.takeScreenshot("20_disbursal_page")
+    cy.takeScreenshot("22_disbursal_page")
 
     cy.reload()
     cy.get('[data-testid="disbursal-approve-button"]').should("be.visible").click()
     cy.wait(2000).then(() => {
-      cy.takeScreenshot("21_1_approve")
+      cy.takeScreenshot("23_approve")
       cy.get('[data-testid="approval-process-dialog-approve-button"]')
         .should("be.visible")
         .click()
@@ -350,7 +374,7 @@ describe("credit facility", () => {
           .should("be.visible")
           .invoke("text")
           .should("eq", t(Disbursals + ".DisbursalStatus.confirmed"))
-        cy.takeScreenshot("22_verify_disbursal_status_confirmed")
+        cy.takeScreenshot("24_verify_disbursal_status_confirmed")
       })
     })
   })
@@ -358,6 +382,6 @@ describe("credit facility", () => {
   it("should show disbursal in the list page", () => {
     cy.visit(`/disbursals`)
     cy.contains("$1,000.00").should("be.visible")
-    cy.takeScreenshot("23_disbursal_in_list")
+    cy.takeScreenshot("25_disbursal_in_list")
   })
 })
