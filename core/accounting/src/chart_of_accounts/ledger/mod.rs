@@ -1,10 +1,13 @@
 mod closing;
 pub mod error;
 
+use std::collections::HashMap;
+
 use cala_ledger::{
-    AccountSetId, CalaLedger, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId,
-    VelocityLimitId,
+    AccountId, AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
+    VelocityControlId, VelocityLimitId,
     account_set::{AccountSetUpdate, NewAccountSet},
+    balance::AccountBalance,
     velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
     },
@@ -12,6 +15,8 @@ use cala_ledger::{
 
 use closing::*;
 use error::*;
+
+use crate::primitives::TransactionEntrySpec;
 
 use crate::Chart;
 
@@ -124,6 +129,25 @@ impl ChartLedger {
 
         op.commit().await?;
         Ok(())
+    }
+
+    pub async fn post_annual_closing_transaction(
+        &self,
+        _op: es_entity::DbOp<'_>,
+        chart_root_account_set_id: impl Into<AccountSetId>,
+        // TODO: Check types to use for ChartLedger params.
+        _revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
+        _expense_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
+        _cost_of_revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
+    ) -> Result<Vec<TransactionEntrySpec>, ChartLedgerError> {
+        let _id = chart_root_account_set_id.into();
+        // TODO: Use a transaction template to create the entries in Cala that should -
+        // (1) debit the Revenue Account(Set members and aggregate balance)
+        // (2) credit the Cost of Revenue Account(Set members and aggregate balance)
+        // (3) credit the Expenses Account(Set members and aggregate balance)
+        // (4) credit/debit (depending on the net amount from 1,2, and 3) the Equity AccountSet (Patrimonios > Utilidades ???)
+        
+        Ok(vec![])
     }
 
     async fn create_monthly_close_control_with_limits_in_op(
