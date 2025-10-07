@@ -25,6 +25,7 @@ import {
   Building2,
   FileSignature,
   Hourglass,
+  Clock,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
 
@@ -48,7 +49,7 @@ export function useNavItems() {
     {
       title: t("pendingCreditFacilities"),
       url: "/pending-credit-facilities",
-      icon: Hourglass,
+      icon: Clock,
     },
     { title: t("creditFacilities"), url: "/credit-facilities", icon: Building2 },
     { title: t("disbursals"), url: "/disbursals", icon: ClipboardList },

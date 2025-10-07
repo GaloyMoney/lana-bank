@@ -31,7 +31,7 @@ export const PendingCreditFacilityStatusBadge: React.FC<
     <Badge
       variant={badgeVariant()}
       className={cn(className)}
-      data-testid="pending-credit-facility-status-badge"
+      data-testid="pending-status-badge"
     >
       {t(status.toLowerCase())}
     </Badge>

@@ -56,12 +56,7 @@ const PendingCreditFacilityDetailsCard: React.FC<
     },
     {
       label: t("details.status"),
-      value: (
-        <PendingCreditFacilityStatusBadge
-          status={pendingDetails.status}
-          data-testid="pending-status-badge"
-        />
-      ),
+      value: <PendingCreditFacilityStatusBadge status={pendingDetails.status} />,
     },
     {
       label: t("details.collateralizationState"),
