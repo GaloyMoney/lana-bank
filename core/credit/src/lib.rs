@@ -74,7 +74,8 @@ pub use terms_template::{error as terms_template_error, *};
 pub mod event_schema {
     pub use crate::{
         TermsTemplateEvent, collateral::CollateralEvent, credit_facility::CreditFacilityEvent,
-        disbursal::DisbursalEvent, interest_accrual_cycle::InterestAccrualCycleEvent,
+        credit_facility_proposal::CreditFacilityProposalEvent, disbursal::DisbursalEvent,
+        interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
         payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
         pending_credit_facility::PendingCreditFacilityEvent,

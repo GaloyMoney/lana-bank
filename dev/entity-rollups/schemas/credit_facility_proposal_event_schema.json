@@ -26,53 +26,11 @@
         }
       ]
     },
-    "CollateralizationRatio": {
-      "oneOf": [
-        {
-          "enum": [
-            "Infinite"
-          ],
-          "type": "string"
-        },
-        {
-          "additionalProperties": false,
-          "properties": {
-            "Finite": {
-              "pattern": "^-?\\d+(\\.\\d+)?([eE]\\d+)?$",
-              "type": [
-                "string",
-                "number"
-              ]
-            }
-          },
-          "required": [
-            "Finite"
-          ],
-          "type": "object"
-        }
-      ]
-    },
-    "CreditFacilityProposalAccountIds": {
-      "properties": {
-        "collateral_account_id": {
-          "format": "uuid",
-          "type": "string"
-        },
-        "facility_account_id": {
-          "format": "uuid",
-          "type": "string"
-        }
-      },
-      "required": [
-        "facility_account_id",
-        "collateral_account_id"
-      ],
-      "type": "object"
-    },
-    "CreditFacilityProposalCollateralizationState": {
+    "CreditFacilityProposalStatus": {
       "enum": [
-        "FullyCollateralized",
-        "UnderCollateralized"
+        "PendingApproval",
+        "Approved",
+        "Denied"
       ],
       "type": "string"
     },
@@ -160,14 +118,6 @@
         }
       ]
     },
-    "PriceOfOneBTC": {
-      "$ref": "#/$defs/UsdCents"
-    },
-    "Satoshis": {
-      "format": "uint64",
-      "minimum": 0,
-      "type": "integer"
-    },
     "TermValues": {
       "properties": {
         "accrual_cycle_interval": {
@@ -249,9 +199,6 @@
   "oneOf": [
     {
       "properties": {
-        "account_ids": {
-          "$ref": "#/$defs/CreditFacilityProposalAccountIds"
-        },
         "amount": {
           "$ref": "#/$defs/UsdCents"
         },
@@ -259,9 +206,12 @@
           "format": "uuid",
           "type": "string"
         },
-        "collateral_id": {
+        "custodian_id": {
           "format": "uuid",
-          "type": "string"
+          "type": [
+            "string",
+            "null"
+          ]
         },
         "customer_id": {
           "format": "uuid",
@@ -278,9 +228,8 @@
           "format": "uuid",
           "type": "string"
         },
-        "ledger_tx_id": {
-          "format": "uuid",
-          "type": "string"
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
         },
         "terms": {
           "$ref": "#/$defs/TermValues"
@@ -293,15 +242,13 @@
       "required": [
         "type",
         "id",
-        "ledger_tx_id",
         "customer_id",
         "customer_type",
-        "collateral_id",
+        "approval_process_id",
+        "disbursal_credit_account_id",
         "terms",
         "amount",
-        "account_ids",
-        "disbursal_credit_account_id",
-        "approval_process_id"
+        "status"
       ],
       "type": "object"
     },
@@ -311,8 +258,8 @@
           "format": "uuid",
           "type": "string"
         },
-        "approved": {
-          "type": "boolean"
+        "status": {
+          "$ref": "#/$defs/CreditFacilityProposalStatus"
         },
         "type": {
           "const": "approval_process_concluded",
@@ -322,59 +269,7 @@
       "required": [
         "type",
         "approval_process_id",
-        "approved"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "collateral": {
-          "$ref": "#/$defs/Satoshis"
-        },
-        "collateralization_state": {
-          "$ref": "#/$defs/CreditFacilityProposalCollateralizationState"
-        },
-        "price": {
-          "$ref": "#/$defs/PriceOfOneBTC"
-        },
-        "type": {
-          "const": "collateralization_state_changed",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "collateralization_state",
-        "collateral",
-        "price"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "collateralization_ratio": {
-          "$ref": "#/$defs/CollateralizationRatio"
-        },
-        "type": {
-          "const": "collateralization_ratio_changed",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type",
-        "collateralization_ratio"
-      ],
-      "type": "object"
-    },
-    {
-      "properties": {
-        "type": {
-          "const": "completed",
-          "type": "string"
-        }
-      },
-      "required": [
-        "type"
+        "status"
       ],
       "type": "object"
     }

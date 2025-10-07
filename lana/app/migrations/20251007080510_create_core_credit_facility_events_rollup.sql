@@ -30,8 +30,6 @@ CREATE TABLE core_credit_facility_events_rollup (
   obligation_ids UUID[],
 
   -- Toggle fields
-  is_activated BOOLEAN DEFAULT false,
-  is_approval_process_concluded BOOLEAN DEFAULT false,
   is_completed BOOLEAN DEFAULT false
 ,
   PRIMARY KEY (id, version)
@@ -85,8 +83,6 @@ BEGIN
      END
 ;
     new_row.interest_period := (NEW.event -> 'interest_period');
-    new_row.is_activated := false;
-    new_row.is_approval_process_concluded := false;
     new_row.is_completed := false;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
@@ -121,8 +117,6 @@ BEGIN
     new_row.interest_accrual_cycle_idx := current_row.interest_accrual_cycle_idx;
     new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.interest_period := current_row.interest_period;
-    new_row.is_activated := current_row.is_activated;
-    new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.maturity_date := current_row.maturity_date;
@@ -168,7 +162,6 @@ BEGIN
     WHEN 'completed' THEN
       new_row.is_completed := true;
     WHEN 'activated' THEN
-      new_row.is_activated := true;
       new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;
 
@@ -190,8 +183,6 @@ BEGIN
     interest_accrual_cycle_idx,
     interest_accrual_ids,
     interest_period,
-    is_activated,
-    is_approval_process_concluded,
     is_completed,
     ledger_tx_ids,
     maturity_date,
@@ -220,8 +211,6 @@ BEGIN
     new_row.interest_accrual_cycle_idx,
     new_row.interest_accrual_ids,
     new_row.interest_period,
-    new_row.is_activated,
-    new_row.is_approval_process_concluded,
     new_row.is_completed,
     new_row.ledger_tx_ids,
     new_row.maturity_date,
