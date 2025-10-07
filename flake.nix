@@ -170,6 +170,8 @@
       # Create a separate Crane lib for musl builds
       craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
+      meltanoPkgs = pkgs.callPackage ./nix/meltano.nix {};
+
       nativeBuildInputs = with pkgs;
         [
           wait4x
@@ -205,6 +207,7 @@
           curl
           tilt
           procps
+          meltanoPkgs.meltano
           poppler_utils
           keycloak
           # Documentation tools
@@ -237,6 +240,8 @@
     in
       with pkgs; {
         packages = {
+          meltano = meltanoPkgs.meltano;
+          meltano-image = meltanoPkgs.meltano-image;
           default = lana-cli-debug;
 
           lana-cli-debug = lana-cli-debug;
@@ -268,6 +273,8 @@
               cargoExtraArgs = "-p entity-rollups --all-features";
             }
           );
+
+          meltanoPkgs = meltanoPkgs;
 
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
