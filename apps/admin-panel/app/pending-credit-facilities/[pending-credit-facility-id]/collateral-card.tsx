@@ -4,36 +4,36 @@ import { useTranslations } from "next-intl"
 import Balance from "@/components/balance/balance"
 import { DetailsCard, DetailItemProps } from "@/components/details"
 import {
-  GetCreditFacilityProposalLayoutDetailsQuery,
+  GetPendingCreditFacilityLayoutDetailsQuery,
   useGetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
 import { CENTS_PER_USD, formatCvl, SATS_PER_BTC } from "@/lib/utils"
 import { Satoshis, UsdCents } from "@/types"
 
-type CreditFacilityProposalCollateralProps = {
-  proposal: NonNullable<
-    GetCreditFacilityProposalLayoutDetailsQuery["creditFacilityProposal"]
+type PendingCreditFacilityCollateralProps = {
+  pending: NonNullable<
+    GetPendingCreditFacilityLayoutDetailsQuery["pendingCreditFacility"]
   >
 }
 
-export const CreditFacilityProposalCollateral: React.FC<
-  CreditFacilityProposalCollateralProps
-> = ({ proposal }) => {
-  const t = useTranslations("CreditFacilityProposals.ProposalDetails.CollateralCard")
+export const PendingCreditFacilityCollateral: React.FC<
+  PendingCreditFacilityCollateralProps
+> = ({ pending }) => {
+  const t = useTranslations("PendingCreditFacilities.PendingDetails.CollateralCard")
 
   const { data: priceInfo } = useGetRealtimePriceUpdatesQuery({
     fetchPolicy: "cache-only",
   })
 
   const collateralInUsd = priceInfo
-    ? (proposal.collateral.btcBalance / SATS_PER_BTC) *
+    ? (pending.collateral.btcBalance / SATS_PER_BTC) *
       (priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD)
     : 0
 
   const collateralDependentDetails: DetailItemProps[] = [
     {
       label: t("details.collateralBalance"),
-      value: <Balance amount={proposal.collateral.btcBalance} currency="btc" />,
+      value: <Balance amount={pending.collateral.btcBalance} currency="btc" />,
     },
     {
       label: t("details.currentPrice"),
@@ -49,11 +49,11 @@ export const CreditFacilityProposalCollateral: React.FC<
     },
     {
       label: t("details.collateralToReachTarget", {
-        percentage: formatCvl(proposal.creditFacilityTerms.initialCvl),
+        percentage: formatCvl(pending.creditFacilityTerms.initialCvl),
       }),
       value: (
         <Balance
-          amount={(proposal.collateralToMatchInitialCvl ?? 0) as Satoshis}
+          amount={(pending.collateralToMatchInitialCvl ?? 0) as Satoshis}
           currency="btc"
         />
       ),

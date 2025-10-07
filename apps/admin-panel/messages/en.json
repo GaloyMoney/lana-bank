@@ -146,6 +146,7 @@
       "dashboard": "Dashboard",
       "actions": "Actions",
       "creditFacilities": "Credit Facilities",
+      "pendingCreditFacilities": "Pending Credit Facilities",
       "creditFacilityProposals": "Credit Facility Proposals",
       "disbursals": "Disbursals",
       "termTemplates": "Term Templates",
@@ -277,6 +278,7 @@
         "tabs": {
           "transactions": "Transactions",
           "creditFacilities": "Credit Facilities",
+          "pendingCreditFacilities": "Pending Credit Facilities",
           "creditFacilityProposals": "Credit Facility Proposals",
           "documents": "Documents"
         },
@@ -475,9 +477,17 @@
       "creditFacilityProposals": {
         "title": "Credit Facility Proposals",
         "description": "Credit Facility Proposals for this Customer",
-        "loading": "Loading...",
-        "error": "An error occurred",
-        "notFound": "Customer not found",
+        "table": {
+          "headers": {
+            "status": "Status",
+            "facilityAmount": "Facility Amount",
+            "createdAt": "Created At"
+          }
+        }
+      },
+      "pendingCreditFacilities": {
+        "title": "Pending Credit Facilities",
+        "description": "Pending Credit Facilities for this Customer",
         "table": {
           "headers": {
             "status": "Status",
@@ -504,10 +514,9 @@
       }
     },
     "status": {
-      "pending_collateralization": "Pending Collateralization",
       "pending_approval": "Pending Approval",
-      "pending_completion": "Pending Completion",
-      "completed": "Completed"
+      "approved": "Approved",
+      "denied": "Denied"
     },
     "collateralizationState": {
       "fullycollateralized": "Fully Collateralized",
@@ -617,7 +626,8 @@
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
           "deny": "Deny",
-          "viewFacility": "View Credit Facility"
+          "viewFacility": "View Credit Facility",
+          "viewPendingFacility": "View Pending Facility"
         },
         "alerts": {
           "completedTitle": "Proposal completed",
@@ -800,8 +810,7 @@
           "loanAgreement": "Loan Agreement",
           "updateCollateral": "Update Collateral",
           "approve": "Approve",
-          "deny": "Deny",
-          "viewProposal": "View Proposal"
+          "deny": "Deny"
         },
         "loanAgreement": {
           "success": "Loan agreement generated successfully",
@@ -862,23 +871,102 @@
           "placeholders": {
             "newCollateral": "Enter new collateral amount"
           },
-          "errors": {
-            "emptyCollateral": "Please enter a valid collateral amount.",
-            "noData": "No data returned from mutation",
-            "unknownError": "An unknown error occurred"
-          },
           "buttons": {
-            "back": "Back",
             "proceedToConfirm": "Proceed to Confirm",
-            "confirm": "Confirm",
-            "updating": "Updating..."
+            "confirm": "Confirm"
           }
         },
         "messages": {
           "success": "Credit facility collateral updated successfully"
+        }
+      }
+    }
+  },
+  "PendingCreditFacilities": {
+    "title": "Pending Credit Facilities",
+    "description": "Credit facilities awaiting collateralization after approval",
+    "table": {
+      "headers": {
+        "customer": "Customer",
+        "status": "Status",
+        "facilityAmount": "Facility Amount",
+        "collateral": "Collateral",
+        "collateralizationState": "Collateralization State",
+        "createdAt": "Created At"
+      }
+    },
+    "status": {
+      "pending_collateralization": "Pending Collateralization",
+      "completed": "Completed"
+    },
+    "collateralizationState": {
+      "fully_collateralized": "Fully Collateralized",
+      "under_collateralized": "Under Collateralized"
+    },
+    "PendingDetails": {
+      "CollateralCard": {
+        "title": "Collateral",
+        "details": {
+          "collateralBalance": "Collateral balance (BTC)",
+          "currentPrice": "Current BTC/USD Price",
+          "collateralValue": "Collateral value (USD)",
+          "collateralToReachTarget": "Collateral to reach target ({percentage})"
+        }
+      },
+      "DetailsCard": {
+        "title": "Pending Credit Facility",
+        "details": {
+          "customer": "Customer",
+          "status": "Status",
+          "facilityAmount": "Facility Amount",
+          "collateralizationState": "Collateralization State",
+          "createdAt": "Created At",
+          "custodian": "Custodian",
+          "manual": "Manual",
+          "walletAddress": "Wallet Address",
+          "viewOnMempool": "View on mempool"
         },
-        "units": {
-          "btc": "BTC"
+        "buttons": {
+          "updateCollateral": "Update Collateral",
+          "viewFacility": "View Credit Facility"
+        }
+      },
+      "TermsCard": {
+        "title": "Terms",
+        "description": "Details about the terms for this pending facility",
+        "details": {
+          "duration": "Duration",
+          "interestRate": "Interest Rate",
+          "targetCvl": "Target CVL",
+          "marginCallCvl": "Margin Call CVL",
+          "liquidationCvl": "Liquidation CVL",
+          "structuringFeeRate": "Structuring Fee Rate",
+          "effectiveRate": "Effective Rate"
+        }
+      },
+      "PendingCreditFacilityCollateralUpdate": {
+        "dialog": {
+          "title": "Update Pending Credit Facility Collateral",
+          "description": "Enter the new collateral amount for this pending credit facility.",
+          "confirmTitle": "Confirm Update",
+          "confirmDescription": "Are you sure you want to update the collateral for this pending credit facility?"
+        },
+        "form": {
+          "labels": {
+            "currentCollateral": "Current Collateral",
+            "expectedCollateral": "Expected Collateral",
+            "newCollateral": "New Collateral"
+          },
+          "placeholders": {
+            "newCollateral": "Enter new collateral amount"
+          },
+          "buttons": {
+            "proceedToConfirm": "Proceed to Confirm",
+            "confirm": "Confirm"
+          }
+        },
+        "messages": {
+          "success": "Pending credit facility collateral updated successfully"
         }
       }
     }

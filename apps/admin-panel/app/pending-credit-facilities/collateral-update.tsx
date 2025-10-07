@@ -13,71 +13,69 @@ import {
 } from "@lana/web/ui/dialog"
 import { Button } from "@lana/web/ui/button"
 import { Input } from "@lana/web/ui/input"
+
 import { Label } from "@lana/web/ui/label"
 
-import { useCreditFacilityProposalCollateralUpdateMutation } from "@/lib/graphql/generated"
+import { usePendingCreditFacilityCollateralUpdateMutation } from "@/lib/graphql/generated"
 import { DetailItem, DetailsGroup } from "@/components/details"
 import { currencyConverter, getCurrentLocalDate } from "@/lib/utils"
 import Balance from "@/components/balance/balance"
 import { Satoshis } from "@/types"
 
 gql`
-  mutation CreditFacilityProposalCollateralUpdate(
-    $input: CreditFacilityProposalCollateralUpdateInput!
+  mutation PendingCreditFacilityCollateralUpdate(
+    $input: PendingCreditFacilityCollateralUpdateInput!
   ) {
-    creditFacilityProposalCollateralUpdate(input: $input) {
-      creditFacilityProposal {
+    pendingCreditFacilityCollateralUpdate(input: $input) {
+      pendingCreditFacility {
         id
-        creditFacilityProposalId
+        pendingCreditFacilityId
         collateral {
           btcBalance
         }
-        ...CreditFacilityProposalLayoutFragment
+        collateralizationState
+        ...PendingCreditFacilityLayoutFragment
       }
     }
   }
 `
 
-type CreditFacilityProposalCollateralUpdateDialogProps = {
+type PendingCreditFacilityCollateralUpdateDialogProps = {
   setOpenDialog: (isOpen: boolean) => void
   openDialog: boolean
-  creditFacilityProposalId: string
+  pendingCreditFacilityId: string
   currentCollateral: Satoshis
   collateralToMatchInitialCvl?: Satoshis | null
 }
 
-export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
-  CreditFacilityProposalCollateralUpdateDialogProps
+export const PendingCreditFacilityCollateralUpdateDialog: React.FC<
+  PendingCreditFacilityCollateralUpdateDialogProps
 > = ({
   setOpenDialog,
   openDialog,
-  creditFacilityProposalId,
+  pendingCreditFacilityId,
   currentCollateral,
   collateralToMatchInitialCvl,
 }) => {
   const t = useTranslations(
-    "CreditFacilityProposals.CreditFacilityProposalCollateralUpdate",
+    "PendingCreditFacilities.PendingDetails.PendingCreditFacilityCollateralUpdate",
   )
   const commonT = useTranslations("Common")
 
   const [updateCollateral, { loading, reset }] =
-    useCreditFacilityProposalCollateralUpdateMutation()
+    usePendingCreditFacilityCollateralUpdateMutation()
   const [error, setError] = useState<string | null>(null)
   const [isConfirmed, setIsConfirmed] = useState<boolean>(false)
   const [newCollateral, setNewCollateral] = useState<string>("")
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newCollateral === "") {
-      setError(t("form.errors.emptyCollateral"))
-      return
-    }
     setError(null)
     try {
       const result = await updateCollateral({
         variables: {
           input: {
-            creditFacilityProposalId,
+            pendingCreditFacilityId,
             collateral: currencyConverter.btcToSatoshi(Number(newCollateral)),
             effective: getCurrentLocalDate(),
           },
@@ -87,10 +85,10 @@ export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
         toast.success(t("messages.success"))
         handleCloseDialog()
       } else {
-        throw new Error(t("form.errors.noData"))
+        setError(commonT("error"))
       }
     } catch (error) {
-      console.error("Error updating credit facility proposal collateral:", error)
+      console.error("Error updating pending credit facility collateral:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
@@ -209,11 +207,11 @@ export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
                     onChange={(e) => setNewCollateral(e.target.value)}
                     placeholder={t("form.placeholders.newCollateral")}
                     step="0.00000001"
+                    min="0"
+                    required
                     data-testid="new-collateral-input"
                   />
-                  <div className="p-1.5 bg-input-text rounded-md px-4">
-                    {t("units.btc")}
-                  </div>
+                  <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
                 </div>
               </div>
               {error && <p className="text-destructive">{error}</p>}
@@ -221,7 +219,6 @@ export const CreditFacilityProposalCollateralUpdateDialog: React.FC<
                 <Button
                   type="submit"
                   onClick={handleConfirm}
-                  loading={loading}
                   data-testid="proceed-to-confirm-button"
                 >
                   {t("form.buttons.proceedToConfirm")}

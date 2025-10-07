@@ -60,6 +60,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
   const t = useTranslations(
     "CreditFacilities.CreditFacilityDetails.CreditFacilityCollateralUpdate",
   )
+  const commonT = useTranslations("Common")
 
   const [updateCollateral, { loading, reset }] =
     useCreditFacilityCollateralUpdateMutation()
@@ -69,10 +70,6 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
-    if (newCollateral === "") {
-      setError(t("form.errors.emptyCollateral"))
-      return
-    }
     setError(null)
     try {
       const result = await updateCollateral({
@@ -88,14 +85,14 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
         toast.success(t("messages.success"))
         handleCloseDialog()
       } else {
-        throw new Error(t("form.errors.noData"))
+        setError(commonT("error"))
       }
     } catch (error) {
       console.error("Error updating credit facility collateral:", error)
       if (error instanceof Error) {
         setError(error.message)
       } else {
-        setError(t("form.errors.unknownError"))
+        setError(commonT("error"))
       }
     }
   }
@@ -161,7 +158,7 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                   variant="ghost"
                   disabled={loading}
                 >
-                  {t("form.buttons.back")}
+                  {commonT("back")}
                 </Button>
                 <Button
                   type="submit"
@@ -210,11 +207,11 @@ export const CreditFacilityCollateralUpdateDialog: React.FC<
                     onChange={(e) => setNewCollateral(e.target.value)}
                     placeholder={t("form.placeholders.newCollateral")}
                     step="0.00000001"
+                    min="0"
+                    required
                     data-testid="new-collateral-input"
                   />
-                  <div className="p-1.5 bg-input-text rounded-md px-4">
-                    {t("units.btc")}
-                  </div>
+                  <div className="p-1.5 bg-input-text rounded-md px-4">BTC</div>
                 </div>
               </div>
               {error && <p className="text-destructive">{error}</p>}

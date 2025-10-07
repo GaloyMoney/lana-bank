@@ -9,7 +9,6 @@ import Balance from "@/components/balance/balance"
 import { GetCustomerCreditFacilityProposalsQuery } from "@/lib/graphql/generated"
 
 import { CreditFacilityProposalStatusBadge } from "@/app/credit-facility-proposals/status-badge"
-import { CreditFacilityProposalCollateralizationStateLabel } from "@/app/credit-facility-proposals/label"
 import DataTable, { Column } from "@/components/data-table"
 
 type CreditFacilityProposal = NonNullable<
@@ -37,20 +36,6 @@ export const CustomerCreditFacilityProposalsTable: React.FC<
       key: "facilityAmount",
       header: t("table.headers.facilityAmount"),
       render: (amount) => <Balance amount={amount} currency="usd" />,
-    },
-    {
-      key: "collateral",
-      header: t("table.headers.collateral"),
-      render: (_, proposal) => (
-        <Balance amount={proposal.collateral.btcBalance} currency="btc" />
-      ),
-    },
-    {
-      key: "collateralizationState",
-      header: t("table.headers.collateralizationState"),
-      render: (state) => (
-        <CreditFacilityProposalCollateralizationStateLabel state={state} />
-      ),
     },
     {
       key: "createdAt",

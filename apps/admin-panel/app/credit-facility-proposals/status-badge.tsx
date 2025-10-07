@@ -16,14 +16,12 @@ export const CreditFacilityProposalStatusBadge: React.FC<
 
   const badgeVariant = () => {
     switch (status) {
-      case CreditFacilityProposalStatus.Completed:
-        return "success"
       case CreditFacilityProposalStatus.PendingApproval:
         return "secondary"
-      case CreditFacilityProposalStatus.PendingCollateralization:
+      case CreditFacilityProposalStatus.Approved:
+        return "success"
+      case CreditFacilityProposalStatus.Denied:
         return "destructive"
-      case CreditFacilityProposalStatus.PendingCompletion:
-        return "secondary"
       default: {
         const exhaustiveCheck: never = status
         return exhaustiveCheck
