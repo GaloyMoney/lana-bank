@@ -1521,11 +1521,11 @@ impl CreditLedger {
         Ok(())
     }
 
-    pub async fn handle_facility_activation(
+    pub async fn handle_activation_with_structuring_fee(
         &self,
         op: es_entity::DbOpWithTime<'_>,
         activation_data: CreditFacilityActivation,
-        disbursal_id: Option<DisbursalId>,
+        disbursal_id: DisbursalId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
@@ -1540,14 +1540,33 @@ impl CreditLedger {
 
         self.activate_credit_facility(&mut op, &activation_data)
             .await?;
-        if !activation_data.structuring_fee_amount.is_zero() {
-            self.add_structuring_fee(
-                &mut op,
-                disbursal_id.expect("Disbursal ID should exist"),
-                activation_data,
-            )
+
+        self.add_structuring_fee(&mut op, disbursal_id, activation_data)
             .await?;
-        }
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn handle_facility_activation(
+        &self,
+        op: es_entity::DbOpWithTime<'_>,
+        activation_data: CreditFacilityActivation,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        self.create_accounts_for_credit_facility(
+            &mut op,
+            activation_data.credit_facility_id,
+            activation_data.account_ids,
+            activation_data.customer_type,
+            activation_data.duration_type,
+        )
+        .await?;
+
+        self.activate_credit_facility(&mut op, &activation_data)
+            .await?;
+
         op.commit().await?;
         Ok(())
     }
