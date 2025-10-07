@@ -91,7 +91,6 @@ crate::mutation_payload! { ChartOfAccountsCloseMonthlyPayload, chart_of_accounts
 pub struct ChartOfAccountsCloseAnnualInput {
     pub chart_id: UUID,
 }
-// TODO: Address desired response payload.
 crate::mutation_payload! { ChartOfAccountsCloseAnnualPayload, chart_of_accounts: ChartOfAccounts }
 
 #[derive(InputObject)]
