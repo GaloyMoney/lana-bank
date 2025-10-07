@@ -247,6 +247,12 @@ where
         let expenses_parent_code = "8".parse::<AccountCode>().unwrap();
         let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
 
+        let equity_parent_code = "5".parse::<AccountCode>().unwrap();
+        let equity_set_id = chart.account_set_id_from_code(&equity_parent_code)?;
+        // TODO: We need to know specific Equity account sets (one for losses one for profits) to be identified
+        // by configuration so we have a target AccountSet to create accounts to receive the net income value
+        // from the profit and loss statement's underlying accounts.
+
         // TODO: Abstract or condense the account collection process across
         // Revenue, Cost of Revenue, and Expenses top-level AccountSets.
         let mut revenue_accounts: Vec<BalanceId> = Vec::new();
@@ -416,12 +422,14 @@ where
 
         let entries = self
             .chart_ledger
-            .post_annual_closing_transaction(
+            .prepare_annual_closing_transaction(
                 op,
                 chart.id,
                 revenue_account_balances,
                 cost_of_revenue_account_balances,
                 expenses_account_balances,
+                equity_set_id, // TODO: Configure profit AccountSetId
+                equity_set_id, // TODO: Configure loss AccountSetId
             )
             .await?;
 
