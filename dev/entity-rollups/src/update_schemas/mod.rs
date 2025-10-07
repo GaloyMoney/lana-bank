@@ -6,9 +6,9 @@ use colored::*;
 use core_access::event_schema::{PermissionSetEvent, RoleEvent, UserEvent};
 use core_accounting::event_schema::{ChartEvent, ChartNodeEvent, ManualTransactionEvent};
 use core_credit::event_schema::{
-    CollateralEvent, CreditFacilityEvent, DisbursalEvent, InterestAccrualCycleEvent,
-    LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent, PaymentEvent,
-    PendingCreditFacilityEvent, TermsTemplateEvent,
+    CollateralEvent, CreditFacilityEvent, CreditFacilityProposalEvent, DisbursalEvent,
+    InterestAccrualCycleEvent, LiquidationProcessEvent, ObligationEvent, PaymentAllocationEvent,
+    PaymentEvent, PendingCreditFacilityEvent, TermsTemplateEvent,
 };
 use core_custody::event_schema::CustodianEvent;
 use core_customer::event_schema::CustomerEvent;
@@ -17,7 +17,7 @@ use document_storage::event_schema::DocumentEvent;
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
-pub use json_schema::{SchemaChangeInfo, detect_schema_changes, process_schemas_with_changes};
+pub use json_schema::{detect_schema_changes, process_schemas_with_changes, SchemaChangeInfo};
 pub use migration::*;
 
 #[derive(Clone)]
@@ -270,8 +270,17 @@ pub fn update_schemas(
                     remove_events: vec![],
                 },
             ],
-            toggle_events: vec!["ApprovalProcessConcluded", "Activated", "Completed"],
+            toggle_events: vec!["Completed"],
             generate_schema: || serde_json::to_value(schema_for!(CreditFacilityEvent)).unwrap(),
+            ..Default::default()
+        },
+        SchemaInfo {
+            name: "CreditFacilityProposalEvent",
+            filename: "credit_facility_proposal_event_schema.json",
+            toggle_events: vec!["ApprovalProcessConcluded"],
+            generate_schema: || {
+                serde_json::to_value(schema_for!(CreditFacilityProposalEvent)).unwrap()
+            },
             ..Default::default()
         },
         SchemaInfo {
@@ -283,7 +292,11 @@ pub fn update_schemas(
                 add_events: vec!["Initialized".to_string()],
                 remove_events: vec![],
             }],
-            toggle_events: vec!["ApprovalProcessConcluded", "Completed"],
+            toggle_events: vec![
+                "CollateralizationStateChanged",
+                "CollateralizationRatioChanged",
+                "Completed",
+            ],
             generate_schema: || {
                 serde_json::to_value(schema_for!(PendingCreditFacilityEvent)).unwrap()
             },

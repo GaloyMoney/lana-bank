@@ -23,7 +23,8 @@ CREATE TABLE core_pending_credit_facility_events_rollup (
   ledger_tx_ids UUID[],
 
   -- Toggle fields
-  is_approval_process_concluded BOOLEAN DEFAULT false,
+  is_collateralization_ratio_changed BOOLEAN DEFAULT false,
+  is_collateralization_state_changed BOOLEAN DEFAULT false,
   is_completed BOOLEAN DEFAULT false
 ,
   PRIMARY KEY (id, version)
@@ -70,7 +71,8 @@ BEGIN
     new_row.customer_id := (NEW.event ->> 'customer_id')::UUID;
     new_row.customer_type := (NEW.event ->> 'customer_type');
     new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
-    new_row.is_approval_process_concluded := false;
+    new_row.is_collateralization_ratio_changed := false;
+    new_row.is_collateralization_state_changed := false;
     new_row.is_completed := false;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
@@ -93,7 +95,8 @@ BEGIN
     new_row.customer_id := current_row.customer_id;
     new_row.customer_type := current_row.customer_type;
     new_row.disbursal_credit_account_id := current_row.disbursal_credit_account_id;
-    new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
+    new_row.is_collateralization_ratio_changed := current_row.is_collateralization_ratio_changed;
+    new_row.is_collateralization_state_changed := current_row.is_collateralization_state_changed;
     new_row.is_completed := current_row.is_completed;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.price := current_row.price;
@@ -116,9 +119,11 @@ BEGIN
     WHEN 'collateralization_state_changed' THEN
       new_row.collateral := (NEW.event ->> 'collateral')::BIGINT;
       new_row.collateralization_state := (NEW.event ->> 'collateralization_state');
+      new_row.is_collateralization_state_changed := true;
       new_row.price := (NEW.event -> 'price');
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
+      new_row.is_collateralization_ratio_changed := true;
     WHEN 'completed' THEN
       new_row.is_completed := true;
   END CASE;
@@ -139,7 +144,8 @@ BEGIN
     customer_id,
     customer_type,
     disbursal_credit_account_id,
-    is_approval_process_concluded,
+    is_collateralization_ratio_changed,
+    is_collateralization_state_changed,
     is_completed,
     ledger_tx_ids,
     price,
@@ -161,7 +167,8 @@ BEGIN
     new_row.customer_id,
     new_row.customer_type,
     new_row.disbursal_credit_account_id,
-    new_row.is_approval_process_concluded,
+    new_row.is_collateralization_ratio_changed,
+    new_row.is_collateralization_state_changed,
     new_row.is_completed,
     new_row.ledger_tx_ids,
     new_row.price,
