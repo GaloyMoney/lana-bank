@@ -24,7 +24,6 @@ import {
   Building,
   Building2,
   FileSignature,
-  Hourglass,
   Clock,
 } from "lucide-react"
 import { useTranslations } from "next-intl"
