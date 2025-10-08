@@ -422,7 +422,7 @@ where
 
         let entries = self
             .chart_ledger
-            .prepare_annual_closing_transaction(
+            .prepare_annual_closing_entries(
                 op,
                 chart.id,
                 revenue_account_balances,
