@@ -18,7 +18,7 @@ use cala_ledger::{
 use closing::*;
 use error::*;
 
-use crate::{primitives::TransactionEntrySpec, AccountIdOrCode, LedgerAccountId, EntityRef, CHART_TRANSACTION_ENTITY_TYPE};
+use crate::{primitives::TransactionEntrySpec, AccountIdOrCode, LedgerAccountId, EntityRef, CHART_OF_ACCOUNTS_ENTITY_TYPE};
 
 use crate::Chart;
 
@@ -135,7 +135,7 @@ impl ChartLedger {
 
     pub async fn prepare_annual_closing_entries(
         &self,
-        op: es_entity::DbOp<'_>,
+        op: es_entity::DbOpWithTime<'_>,
         chart_root_account_set_id: impl Into<AccountSetId>,
         // TODO: Check types to use for ChartLedger params.
         revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
@@ -145,7 +145,6 @@ impl ChartLedger {
         retained_losses_account_set: AccountSetId,
     ) -> Result<Vec<TransactionEntrySpec>, ChartLedgerError> {
         let id = chart_root_account_set_id.into();
-        let entity_ref = EntityRef::new(CHART_TRANSACTION_ENTITY_TYPE, id);
         let (revenue_offset_entries, net_revenue) = self.create_annual_close_offset_entries(
             DebitOrCredit::Credit, None, revenue_accounts,
         );
@@ -161,15 +160,14 @@ impl ChartLedger {
         all_entries.extend(cost_of_revenue_offset_entries);
 
         let retained_earnings = net_revenue - net_expenses - net_cost_of_revenue;
-        // TODO: Where should we source params (through API?) and `EntityRef`?
-        // let equity_entry  = self.create_annual_close_equity_target(
-        //     op,
-        //     retained_earnings,
-        //     entity_ref,
-        //     retained_earnings_account_set,
-        //     retained_losses_account_set,
-        // ).await?;
-        //all_entries.extend(vec![equity_entry]);
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+        let equity_entry  = self.create_annual_close_equity_target(
+            &mut op,
+            retained_earnings,
+            retained_earnings_account_set,
+            retained_losses_account_set,
+        ).await?;
+        all_entries.extend(vec![equity_entry]);
 
         Ok(all_entries)
     }
@@ -179,7 +177,6 @@ impl ChartLedger {
         &self, 
         op: &mut LedgerOperation<'_>,
         net_earnings: Decimal, 
-        entity_ref: EntityRef,
         retained_earnings_account_set: AccountSetId, 
         retained_losses_account_set: AccountSetId,
     ) -> Result<TransactionEntrySpec, ChartLedgerError> {
@@ -193,8 +190,7 @@ impl ChartLedger {
             op,
             reference,
             "Annual Close Net Income",
-            "Annual Close Net Income",
-            entity_ref, 
+            "Annual Close Net Income", 
             direction,
             parent_account_set,
         ).await?;
@@ -216,14 +212,11 @@ impl ChartLedger {
         reference: &str,
         name: &str,
         description: &str,
-        entity_ref: EntityRef,
         normal_balance_type: DebitOrCredit,
         parent_account_set: AccountSetId,
     ) -> Result<AccountId, ChartLedgerError> {
-        // TODO: How to format the account ID so that it is 
-        // prefixed properly (3. ...)? Or, should this be a 
-        // param?
         let id = AccountId::new();
+        let entity_ref = EntityRef::new(CHART_OF_ACCOUNTS_ENTITY_TYPE, id);
         self.create_annual_close_equity_account_in_op(
             op,
             id,
