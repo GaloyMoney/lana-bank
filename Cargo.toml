@@ -157,7 +157,7 @@ tempfile = "3.23.0"
 p256 = "0.13.2"
 pbkdf2 = "0.12"
 pkcs8 = { version = "0.10.2", features = ["encryption"] }
-markdown2pdf = { version = "0.1.7", features = ["rustls-tls"], default-features = false }
+markdown2pdf = { version = "0.1.8", features = ["rustls-tls"], default-features = false }
 bytes = "1.10"
 keycloak = "26.4.0"
 
