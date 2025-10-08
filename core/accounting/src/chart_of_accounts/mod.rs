@@ -13,7 +13,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{BalanceId, CalaLedger, Currency, account::Account};
+use cala_ledger::{account::Account, AccountSetId, BalanceId, CalaLedger, Currency};
 
 use crate::{
     TransactionEntrySpec,
@@ -216,7 +216,7 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.chart_of_accounts.close_annual",
+        name = "core_accounting.chart_of_accounts.create_annual_closing_entries",
         skip(self,),
         err
     )]
@@ -247,11 +247,9 @@ where
         let expenses_parent_code = "8".parse::<AccountCode>().unwrap();
         let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
 
-        let equity_parent_code = "5".parse::<AccountCode>().unwrap();
-        let equity_set_id = chart.account_set_id_from_code(&equity_parent_code)?;
-        // TODO: We need to know specific Equity account sets (one for losses one for profits) to be identified
-        // by configuration so we have a target AccountSet to create accounts to receive the net income value
-        // from the profit and loss statement's underlying accounts.
+        // TODO: These profit/loss destination AccountSets must also be configured but slightly differently than the ProfitAndLoss (top-level) AccountSets.
+        let retained_earnings_set_id = AccountSetId::new();
+        let retained_losses_set_id = AccountSetId::new();
 
         // TODO: Abstract or condense the account collection process across
         // Revenue, Cost of Revenue, and Expenses top-level AccountSets.
@@ -428,8 +426,8 @@ where
                 revenue_account_balances,
                 cost_of_revenue_account_balances,
                 expenses_account_balances,
-                equity_set_id, // TODO: Configure profit AccountSetId
-                equity_set_id, // TODO: Configure loss AccountSetId
+                retained_earnings_set_id,
+                retained_losses_set_id,
             )
             .await?;
 
