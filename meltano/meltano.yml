@@ -89,6 +89,7 @@ plugins:
         - public-core_collateral_events.*
         - public-core_credit_facility_events.*
         - public-core_credit_facility_proposal_events.*
+        - public-core_pending_credit_facility_events.*
         - public-core_credit_facility_repayment_plans.*
         - public-core_deposit_accounts.*
         - public-core_deposit_events.*
@@ -114,6 +115,7 @@ plugins:
         - public-core_collateral_events_rollup.*
         - public-core_credit_facility_events_rollup.*
         - public-core_credit_facility_proposal_events_rollup.*
+        - public-core_pending_credit_facility_events_rollup.*
         - public-core_disbursal_events_rollup.*
         - public-core_interest_accrual_cycle_events_rollup.*
         - public-core_obligation_events_rollup.*
