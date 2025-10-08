@@ -162,7 +162,7 @@
   relPath = p: lib.removePrefix srcRoot (toString p);
 
   meltanoSrc = lib.cleanSourceWith {
-    src = ./meltano;
+    src = ../meltano;
 
     filter = path: _type: let
       p = relPath path;

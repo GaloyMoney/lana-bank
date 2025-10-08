@@ -274,8 +274,6 @@
             }
           );
 
-          meltanoPkgs = meltanoPkgs;
-
           podman-up = let
             podman-runner = pkgs.callPackage ./nix/podman-runner.nix {};
           in
@@ -334,6 +332,10 @@
 
                 # Function to cleanup on exit
                 cleanup() {
+                  if [[ -n "''${KEEP_PODMAN_UP:-}" ]]; then
+                    echo "KEEP_PODMAN_UP set — skipping podman-compose cleanup."
+                    return 0
+                  fi
                   echo "Stopping podman-compose..."
                   podman-compose-runner down || true
                 }
