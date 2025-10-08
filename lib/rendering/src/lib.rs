@@ -59,8 +59,6 @@ impl Default for Renderer {
 mod tests {
     use super::*;
     use serde::Serialize;
-    use std::fs;
-    use std::path::Path;
 
     #[derive(Serialize)]
     struct TestData {
@@ -98,14 +96,6 @@ mod tests {
 
         assert!(!pdf_bytes.is_empty());
         assert!(pdf_bytes.starts_with(b"%PDF"));
-
-        // Create a directory for test outputs in the rendering library
-        let output_dir = Path::new(env!("CARGO_MANIFEST_DIR")).join("test-output");
-        fs::create_dir_all(&output_dir)?;
-
-        // Write the PDF to a file
-        let output_path = output_dir.join("test_rendering.pdf");
-        fs::write(output_path, pdf_bytes)?;
 
         Ok(())
     }
