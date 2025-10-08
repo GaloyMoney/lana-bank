@@ -61,7 +61,7 @@ transformed as (
         approved,
 
         is_approval_process_concluded,
-        case when activated_at is not null then true else false end as is_activated,
+        coalesce(activated_at is not null, false) as is_activated,
         cast(activated_at as timestamp) as credit_facility_activated_at,
         is_completed,
 

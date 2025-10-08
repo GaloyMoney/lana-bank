@@ -13,7 +13,7 @@ from {{ source("lana", "public_core_pending_credit_facility_events_rollup_view")
         select max(_sdc_batched_at)
         from {{ source("lana", "public_core_pending_credit_facility_events_rollup_view") }}
     )
-      and t.id is null
+    and t.id is null
 {% else %}
     where s._sdc_batched_at = (
         select max(_sdc_batched_at)
