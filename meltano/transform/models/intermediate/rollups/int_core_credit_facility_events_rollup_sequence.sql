@@ -16,10 +16,15 @@ with source as (
 
 proposal as (
     select
-        credit_facility_proposal_id,
-        approval_process_id,
-        approved
-    from {{ ref('stg_core_credit_facility_proposal_events_rollup') }}
+        pending_credit_facility_id,
+        prop.approval_process_id,
+        pend.approval_process_id as pending_approval_process_id,
+        is_approval_process_concluded,
+        is_approval_process_concluded as approved
+    from {{ ref('stg_core_credit_facility_proposal_events_rollup') }} as prop
+    left join {{ ref('stg_core_pending_credit_facility_events_rollup') }} as pend
+        using (credit_facility_proposal_id, version)
+    where is_completed = true
 ),
 
 transformed as (
@@ -56,7 +61,7 @@ transformed as (
         approved,
 
         is_approval_process_concluded,
-        is_activated,
+        case when activated_at is not null then true else false end as is_activated,
         cast(activated_at as timestamp) as credit_facility_activated_at,
         is_completed,
 
@@ -124,7 +129,6 @@ transformed as (
             approval_process_id,
             approved,
             is_approval_process_concluded,
-            is_activated,
             activated_at,
             is_completed,
             interest_accrual_cycle_idx,
@@ -141,7 +145,7 @@ transformed as (
             _sdc_table_version
         )
     from source
-    left join proposal using (credit_facility_proposal_id)
+    left join proposal using (pending_credit_facility_id)
 ),
 
 final as (
