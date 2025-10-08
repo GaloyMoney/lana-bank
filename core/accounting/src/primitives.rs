@@ -65,6 +65,10 @@ impl EntityRef {
     }
 }
 
+// TODO: Using Chart entity (to access root of account sets)
+pub const CHART_TRANSACTION_ENTITY_TYPE: EntityType = 
+    EntityType::new("Chart");
+
 pub type LedgerTransactionId = CalaTxId;
 pub type TransactionTemplateId = CalaTxTemplateId;
 
