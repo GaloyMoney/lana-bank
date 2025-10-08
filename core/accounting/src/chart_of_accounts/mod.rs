@@ -413,9 +413,9 @@ where
             .await?;
         let expenses_account_balances = self.cala.balances().find_all(&expense_accounts).await?;
 
-        let op = self.repo.begin_op().await?;
-        // TODO: Add to entity/make updates regarding account close?
-        // Emit an event?
+        let op = self.repo.begin_op().await?.with_db_time().await?;
+        // TODO: (a) Add to entity for updates regarding account close?
+        // (b) Emit a ChartEvent?
         //self.repo.update_in_op(&mut op, &mut chart).await?;
 
         let entries = self
