@@ -1524,25 +1524,41 @@ impl CreditLedger {
     pub async fn handle_activation_with_structuring_fee(
         &self,
         op: es_entity::DbOpWithTime<'_>,
-        activation_data: CreditFacilityActivation,
+        CreditFacilityActivation {
+            credit_facility_id,
+            tx_id,
+            tx_ref,
+            account_ids,
+            customer_type,
+            duration_type,
+            facility_amount,
+            debit_account_id,
+            structuring_fee_amount,
+        }: CreditFacilityActivation,
         disbursal_id: DisbursalId,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
         self.create_accounts_for_credit_facility(
             &mut op,
-            activation_data.credit_facility_id,
-            activation_data.account_ids,
-            activation_data.customer_type,
-            activation_data.duration_type,
+            credit_facility_id,
+            account_ids,
+            customer_type,
+            duration_type,
         )
         .await?;
 
-        self.activate_credit_facility(&mut op, &activation_data)
+        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
             .await?;
 
-        self.add_structuring_fee(&mut op, disbursal_id, activation_data)
-            .await?;
+        self.add_structuring_fee(
+            &mut op,
+            disbursal_id,
+            account_ids,
+            debit_account_id,
+            structuring_fee_amount,
+        )
+        .await?;
 
         op.commit().await?;
         Ok(())
@@ -1551,20 +1567,29 @@ impl CreditLedger {
     pub async fn handle_facility_activation(
         &self,
         op: es_entity::DbOpWithTime<'_>,
-        activation_data: CreditFacilityActivation,
+        CreditFacilityActivation {
+            credit_facility_id,
+            tx_id,
+            facility_amount,
+            account_ids,
+            customer_type,
+            duration_type,
+            tx_ref,
+            ..
+        }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
         let mut op = self.cala.ledger_operation_from_db_op(op);
 
         self.create_accounts_for_credit_facility(
             &mut op,
-            activation_data.credit_facility_id,
-            activation_data.account_ids,
-            activation_data.customer_type,
-            activation_data.duration_type,
+            credit_facility_id,
+            account_ids,
+            customer_type,
+            duration_type,
         )
         .await?;
 
-        self.activate_credit_facility(&mut op, &activation_data)
+        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
             .await?;
 
         op.commit().await?;
@@ -1574,20 +1599,23 @@ impl CreditLedger {
     async fn activate_credit_facility(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
-        activation_data: &CreditFacilityActivation,
+        tx_id: LedgerTxId,
+        account_ids: CreditFacilityLedgerAccountIds,
+        facility_amount: UsdCents,
+        external_id: String,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
                 op,
-                activation_data.tx_id,
+                tx_id,
                 templates::ACTIVATE_CREDIT_FACILITY_CODE,
                 templates::ActivateCreditFacilityParams {
                     journal_id: self.journal_id,
                     credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
-                    credit_facility_account: activation_data.account_ids.facility_account_id,
-                    facility_amount: activation_data.facility_amount.to_usd(),
+                    credit_facility_account: account_ids.facility_account_id,
+                    facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
-                    external_id: activation_data.tx_ref.clone(),
+                    external_id,
                 },
             )
             .await?;
@@ -1598,12 +1626,9 @@ impl CreditLedger {
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
         disbursal_id: DisbursalId,
-        CreditFacilityActivation {
-            account_ids,
-            debit_account_id,
-            structuring_fee_amount,
-            ..
-        }: CreditFacilityActivation,
+        account_ids: CreditFacilityLedgerAccountIds,
+        debit_account_id: CalaAccountId,
+        structuring_fee_amount: UsdCents,
     ) -> Result<(), CreditLedgerError> {
         let tx_id = disbursal_id.into();
         self.cala
