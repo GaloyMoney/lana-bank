@@ -18,7 +18,7 @@ use cala_ledger::{
 use closing::*;
 use error::*;
 
-use crate::{primitives::TransactionEntrySpec, AccountIdOrCode, LedgerAccountId, EntityRef};
+use crate::{primitives::TransactionEntrySpec, AccountIdOrCode, LedgerAccountId, EntityRef, CHART_TRANSACTION_ENTITY_TYPE};
 
 use crate::Chart;
 
@@ -144,7 +144,8 @@ impl ChartLedger {
         retained_earnings_account_set: AccountSetId,
         retained_losses_account_set: AccountSetId,
     ) -> Result<Vec<TransactionEntrySpec>, ChartLedgerError> {
-        let _id = chart_root_account_set_id.into();
+        let id = chart_root_account_set_id.into();
+        let entity_ref = EntityRef::new(CHART_TRANSACTION_ENTITY_TYPE, id);
         let (revenue_offset_entries, net_revenue) = self.create_annual_close_offset_entries(
             DebitOrCredit::Credit, None, revenue_accounts,
         );
@@ -219,7 +220,9 @@ impl ChartLedger {
         normal_balance_type: DebitOrCredit,
         parent_account_set: AccountSetId,
     ) -> Result<AccountId, ChartLedgerError> {
-        // TODO: How to format the account ID so that it is prefixed properly (3. ...)?
+        // TODO: How to format the account ID so that it is 
+        // prefixed properly (3. ...)? Or, should this be a 
+        // param?
         let id = AccountId::new();
         self.create_annual_close_equity_account_in_op(
             op,
