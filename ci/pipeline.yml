@@ -53,6 +53,26 @@ jobs:
       trigger: true
       version: every
     - in_parallel:
+      - task: cache-dev-profile
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: lana-prs
+            path: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: lana-bank-ci
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix develop --profile /tmp/dev-profile --command true
+
       - task: cache-lana-cli-static
         config:
           platform: linux
@@ -120,25 +140,6 @@ jobs:
                     cachix use $CACHIX_CACHE_NAME
                     
                     cachix watch-exec $CACHIX_CACHE_NAME -- nix flake check
-          - task: cache-dev-profile
-            config:
-              platform: linux
-              image_resource: #@ nix_flake_cachix_image_config()
-              inputs:
-              - name: lana-prs
-                path: repo
-              params:
-                CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-                CACHIX_CACHE_NAME: lana-bank-ci
-              run:
-                path: sh
-                args:
-                  - -exc
-                  - |
-                    set -euo pipefail
-                    cd repo
-                    cachix use $CACHIX_CACHE_NAME
-                    cachix watch-exec ${CACHIX_CACHE_NAME} -- nix develop --profile /tmp/dev-profile --command true
     
           - task: cache-lana-cli-debug
             config:
