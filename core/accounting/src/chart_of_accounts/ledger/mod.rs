@@ -1,14 +1,14 @@
 mod closing;
 pub mod error;
 
-use std::collections::HashMap;
 use rust_decimal::Decimal;
+use std::collections::HashMap;
 
 use cala_ledger::{
     AccountId, AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
     VelocityControlId, VelocityLimitId,
-    account_set::{AccountSetUpdate, NewAccountSet},
     account::NewAccount,
+    account_set::{AccountSetUpdate, NewAccountSet},
     balance::AccountBalance,
     velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
@@ -18,7 +18,9 @@ use cala_ledger::{
 use closing::*;
 use error::*;
 
-use crate::{primitives::TransactionEntrySpec, AccountIdOrCode, LedgerAccountId, EntityRef, CHART_OF_ACCOUNTS_ENTITY_TYPE};
+use crate::{
+    CHART_OF_ACCOUNTS_ENTITY_TYPE, EntityRef, LedgerAccountId, primitives::TransactionEntrySpec,
+};
 
 use crate::Chart;
 
@@ -136,7 +138,6 @@ impl ChartLedger {
     pub async fn prepare_annual_closing_entries(
         &self,
         op: es_entity::DbOpWithTime<'_>,
-        chart_root_account_set_id: impl Into<AccountSetId>,
         // TODO: Check types to use for ChartLedger params.
         revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
         expense_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
@@ -144,16 +145,16 @@ impl ChartLedger {
         retained_earnings_account_set: AccountSetId,
         retained_losses_account_set: AccountSetId,
     ) -> Result<Vec<TransactionEntrySpec>, ChartLedgerError> {
-        let id = chart_root_account_set_id.into();
-        let (revenue_offset_entries, net_revenue) = self.create_annual_close_offset_entries(
-            DebitOrCredit::Credit, None, revenue_accounts,
-        );
-        let (expense_offset_entries, net_expenses) = self.create_annual_close_offset_entries(
-            DebitOrCredit::Debit, None, expense_accounts,
-        );
-        let (cost_of_revenue_offset_entries, net_cost_of_revenue) = self.create_annual_close_offset_entries(
-            DebitOrCredit::Debit, None, cost_of_revenue_accounts,
-        );
+        let (revenue_offset_entries, net_revenue) =
+            self.create_annual_close_offset_entries(DebitOrCredit::Credit, None, revenue_accounts);
+        let (expense_offset_entries, net_expenses) =
+            self.create_annual_close_offset_entries(DebitOrCredit::Debit, None, expense_accounts);
+        let (cost_of_revenue_offset_entries, net_cost_of_revenue) = self
+            .create_annual_close_offset_entries(
+                DebitOrCredit::Debit,
+                None,
+                cost_of_revenue_accounts,
+            );
         let mut all_entries = Vec::new();
         all_entries.extend(revenue_offset_entries);
         all_entries.extend(expense_offset_entries);
@@ -161,12 +162,14 @@ impl ChartLedger {
 
         let retained_earnings = net_revenue - net_expenses - net_cost_of_revenue;
         let mut op = self.cala.ledger_operation_from_db_op(op);
-        let equity_entry  = self.create_annual_close_equity_target(
-            &mut op,
-            retained_earnings,
-            retained_earnings_account_set,
-            retained_losses_account_set,
-        ).await?;
+        let equity_entry = self
+            .create_annual_close_equity_target(
+                &mut op,
+                retained_earnings,
+                retained_earnings_account_set,
+                retained_losses_account_set,
+            )
+            .await?;
         all_entries.extend(vec![equity_entry]);
 
         Ok(all_entries)
@@ -174,29 +177,39 @@ impl ChartLedger {
 
     // TODO: Rename / refactor.
     async fn create_annual_close_equity_target(
-        &self, 
+        &self,
         op: &mut LedgerOperation<'_>,
-        net_earnings: Decimal, 
-        retained_earnings_account_set: AccountSetId, 
+        net_earnings: Decimal,
+        retained_earnings_account_set: AccountSetId,
         retained_losses_account_set: AccountSetId,
     ) -> Result<TransactionEntrySpec, ChartLedgerError> {
         let (direction, parent_account_set, reference) = if net_earnings > Decimal::ZERO {
-            (DebitOrCredit::Credit, retained_earnings_account_set, "retained_earnings")
+            (
+                DebitOrCredit::Credit,
+                retained_earnings_account_set,
+                "retained_earnings",
+            )
         } else {
-            (DebitOrCredit::Debit, retained_losses_account_set, "retained_losses")
+            (
+                DebitOrCredit::Debit,
+                retained_losses_account_set,
+                "retained_losses",
+            )
         };
         // TODO: Evaluate where these params should be sourced from.
-        let account_id = self.create_annual_close_equity_account(
-            op,
-            reference,
-            "Annual Close Net Income",
-            "Annual Close Net Income", 
-            direction,
-            parent_account_set,
-        ).await?;
+        let account_id = self
+            .create_annual_close_equity_account(
+                op,
+                reference,
+                "Annual Close Net Income",
+                "Annual Close Net Income",
+                direction,
+                parent_account_set,
+            )
+            .await?;
         let ledger_account_id = LedgerAccountId::from(account_id);
         Ok(TransactionEntrySpec {
-            account_id: AccountIdOrCode::Id(ledger_account_id),
+            account_id: ledger_account_id,
             // TODO: Make currency a param?
             currency: Currency::USD,
             amount: net_earnings,
@@ -226,7 +239,8 @@ impl ChartLedger {
             entity_ref,
             normal_balance_type,
             parent_account_set,
-        ).await
+        )
+        .await
     }
 
     async fn create_annual_close_equity_account_in_op(
@@ -262,7 +276,7 @@ impl ChartLedger {
             .account_sets()
             .add_member_in_op(op, parent_account_set, ledger_account.id)
             .await?;
-        
+
         Ok(ledger_account.id)
     }
 
@@ -294,10 +308,12 @@ impl ChartLedger {
             // TODO: go from (Cala)AccountId to LedgerAccountId to satisfy AccountIdOrCode properly.
             let ledger_account_id = LedgerAccountId::from(*account_id);
             let entry = TransactionEntrySpec {
-                account_id: AccountIdOrCode::Id(ledger_account_id),
+                account_id: ledger_account_id,
                 currency: currency.clone(),
                 amount: amt,
-                description: description.clone().unwrap_or("Annual Close Offset".to_string()),
+                description: description
+                    .clone()
+                    .unwrap_or("Annual Close Offset".to_string()),
                 direction: direction,
             };
             entries.push(entry);
