@@ -323,7 +323,7 @@ jobs:
             # Setup Cachix cache
             cachix use $CACHIX_CACHE_NAME
             
-            cachix watch-exec $CACHIX_CACHE_NAME -- nix build .#static
+            nix build .#lana-cli-static
 
             # Copy the binary to output
             mkdir -p ../bin
