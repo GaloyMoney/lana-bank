@@ -231,6 +231,7 @@
           procps
           meltanoPkgs.meltano
           poppler_utils
+          cocogitto
           keycloak
           # Documentation tools
           mdbook
