@@ -114,47 +114,51 @@ where
             .execution_state::<FindNewReportRunJobExecutionState>()?
             .unwrap_or_default();
 
-        let next_runs = self
+        // Ignoring Airlow errors until Airflow is substituted.
+        if let Ok(next_runs) = self
             .airflow
             .reports()
             .list_runs(Some(1), state.run_id)
-            .await?;
-
-        for run in next_runs.into_iter() {
-            let report_run = match self
-                .report_run_repo
-                .create(
-                    NewReportRun::builder()
-                        .external_id(run.run_id.clone())
-                        .build()
-                        .expect("Failed to create NewReportRun"),
-                )
-                .await
-            {
-                Ok(report_run) => report_run,
-                Err(e)
-                    if e.to_string()
-                        .contains("duplicate key value violates unique constraint") =>
+            .await
+        {
+            for run in next_runs.into_iter() {
+                let report_run = match self
+                    .report_run_repo
+                    .create(
+                        NewReportRun::builder()
+                            .external_id(run.run_id.clone())
+                            .build()
+                            .expect("Failed to create NewReportRun"),
+                    )
+                    .await
                 {
-                    continue;
-                }
-                Err(e) => {
-                    return Err(e.into());
-                }
-            };
+                    Ok(report_run) => report_run,
+                    Err(e)
+                        if e.to_string()
+                            .contains("duplicate key value violates unique constraint") =>
+                    {
+                        continue;
+                    }
+                    Err(e) => {
+                        return Err(e.into());
+                    }
+                };
 
-            let mut db = self.report_run_repo.begin_op().await?;
-            self.jobs
-                .create_and_spawn_in_op(
-                    &mut db,
-                    job::JobId::new(),
-                    super::monitor_report_run::MonitorReportRunJobConfig::<E>::new(report_run.id),
-                )
-                .await?;
-            db.commit().await?;
+                let mut db = self.report_run_repo.begin_op().await?;
+                self.jobs
+                    .create_and_spawn_in_op(
+                        &mut db,
+                        job::JobId::new(),
+                        super::monitor_report_run::MonitorReportRunJobConfig::<E>::new(
+                            report_run.id,
+                        ),
+                    )
+                    .await?;
+                db.commit().await?;
 
-            state.run_id = Some(run.run_id);
-            current_job.update_execution_state(&state).await?;
+                state.run_id = Some(run.run_id);
+                current_job.update_execution_state(&state).await?;
+            }
         }
 
         Ok(JobCompletion::RescheduleIn(std::time::Duration::from_secs(
