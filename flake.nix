@@ -72,9 +72,7 @@
           "rustfmt"
           "clippy"
         ];
-        targets = ["x86_64-unknown-linux-musl"];
       };
-
       craneLib = (crane.mkLib pkgs).overrideToolchain rustToolchain;
 
       rustSource = pkgs.lib.cleanSourceWith {
@@ -131,6 +129,32 @@
         }
       );
 
+      lana-cli-static = let
+        rustTarget = "x86_64-unknown-linux-musl";
+      in
+        craneLibMusl.buildPackage {
+          inherit (craneLib.crateNameFromCargoToml {src = rustSource;}) version;
+          src = rustSource;
+          strictDeps = true;
+          cargoToml = ./lana/cli/Cargo.toml;
+          doCheck = false;
+          pname = "lana-cli-static";
+          CARGO_PROFILE = "release";
+          SQLX_OFFLINE = true;
+          CARGO_BUILD_TARGET = rustTarget;
+          cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
+
+          # Add musl target for static linking
+          depsBuildBuild = with pkgs; [
+            pkgsCross.musl64.stdenv.cc
+          ];
+
+          # Environment variables for static linking
+          CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+        };
+
       # Pre-built test binaries with nextest archive
       lana-test-archive = craneLib.mkCargoDerivation (
         commonArgs
@@ -161,13 +185,11 @@
         }
       );
 
-      # Separate toolchain for musl cross-compilation
       rustToolchainMusl = rustVersion.override {
         extensions = ["rust-src"];
         targets = ["x86_64-unknown-linux-musl"];
       };
 
-      # Create a separate Crane lib for musl builds
       craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
       meltanoPkgs = pkgs.callPackage ./nix/meltano.nix {};
@@ -243,8 +265,8 @@
           meltano = meltanoPkgs.meltano;
           meltano-image = meltanoPkgs.meltano-image;
           default = lana-cli-debug;
-
           lana-cli-debug = lana-cli-debug;
+          lana-cli-static = lana-cli-static;
 
           lana-deps = cargoArtifacts;
 
