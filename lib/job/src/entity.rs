@@ -137,6 +137,7 @@ pub struct NewJob {
     pub(super) job_type: JobType,
     #[builder(setter(custom))]
     pub(super) config: serde_json::Value,
+    // TODO: add a trace_parent field
 }
 
 impl NewJob {

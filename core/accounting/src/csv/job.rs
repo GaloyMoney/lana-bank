@@ -1,4 +1,5 @@
 use async_trait::async_trait;
+use tracing::instrument;
 
 use authz::PermissionCheck;
 
@@ -89,6 +90,7 @@ where
     generator: GenerateCsvExport<Perms>,
 }
 
+// per mutation request
 #[async_trait]
 impl<Perms> JobRunner for GenerateAccountingCsvExportJobRunner<Perms>
 where
@@ -96,10 +98,13 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
+    #[instrument(name = "core_accounting.generate_csv", skip(self, _current_job), fields(document_id = ?self.config.document_id, ledger_account_id = ?self.config.ledger_account_id))]
     async fn run(
         &self,
         _current_job: CurrentJob,
+        // trace_parent: TraceParent,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        // _current_job.trace_parent();
         let csv_result = self
             .generator
             .generate_ledger_account_csv(self.config.ledger_account_id)
