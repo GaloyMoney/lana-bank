@@ -217,8 +217,6 @@ where
 
     pub async fn create_annual_closing_entries(
         &self,
-        // TODO: Confirm same permissions as close_monthly (job vs. manually triggered).
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Vec<TransactionEntrySpec>, ChartOfAccountsError> {
         let id = id.into();
