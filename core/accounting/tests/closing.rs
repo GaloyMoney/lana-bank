@@ -16,6 +16,27 @@ use core_accounting::{AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput};
 use helpers::{action, object};
 use rust_decimal::Decimal;
 
+// TODO: Re-evaluate after merge with config work.
+struct PlaceholderAnnualClosingTxConfig {
+    revenue_code: String,
+    cost_of_revenue_code: String,
+    expenses_code: String,
+    equity_retained_earnings_code: String,
+    equity_retained_losses_code: String,
+}
+
+impl PlaceholderAnnualClosingTxConfig {
+    pub fn new() -> Self {
+        Self {
+            revenue_code: "4".to_string(),
+            cost_of_revenue_code: "5".to_string(),
+            expenses_code: "6".to_string(),
+            equity_retained_earnings_code: "3140.01.0101".to_string(),
+            equity_retained_losses_code: "3140.01.0201".to_string(),
+        }
+    }
+}
+
 #[tokio::test]
 async fn annual_closing() -> anyhow::Result<()> {
     let mut test = prepare_test().await?;
@@ -24,26 +45,29 @@ async fn annual_closing() -> anyhow::Result<()> {
     test.account("11.03.0302", 200).await;
     test.account("31.01", 300).await;
     test.account("41.01.0102", 400).await;
-    println!("{:#?}", test.balances().await);
 
-    let all_accounts = find_all_accounts(&test.cala, test.chart.account_set_id)
-        .await
-        .unwrap();
-    println!("{:#?}", all_accounts);
-
-    // TODO: Need to close monthly first (refactor to run monthly independently of annual w/ shared helpers).
-    // let _closed_chart = test.accounting
-    //     .chart_of_accounts()
-    //     .close_monthly(&DummySubject, test.chart.id)
-    //     .await?;
-
-    // TODO: Failing due to the AccountCodes being used in ChartOfAccounts.close_annnual (6,7,8)
-    // don't align with the chart we use here.
-    let _closed_with_annual_tx = test
-        .accounting
+    let year_end_balances = test.balances().await;
+    // TODO: Move to prepare or make a helper when multiple cases on annual closing transaction.
+    let _closed_chart = test.accounting
         .chart_of_accounts()
-        .close_annual(&DummySubject, test.chart.id)
+        .close_monthly(&DummySubject, test.chart.id)
         .await?;
+
+    let _ann_closing_tx = test
+        .accounting
+        .annual_closing_transactions()
+        .execute(
+            &DummySubject, 
+            test.chart.id,
+            None,
+            "Test Annual Closing".to_string(),
+        )
+        .await?;
+
+    let year_end_balances_after = test.balances().await;
+    println!("{:#?}", year_end_balances_after);
+
+    // TODO: Make assertions based on account ID.
 
     Ok(())
 }
@@ -147,6 +171,22 @@ async fn prepare_test() -> anyhow::Result<Test> {
 ,,0201,Consulting Services,,
 ,,,,,
 ,,0202,Maintenance Services,,
+,,,,,
+5,,,Cost of Revenue,Debit,
+,,,,,
+51,,,Capital Cost,,
+,,,,,
+,01,,Custody,,
+,,,,,
+,,0101,Custodian Fees,,
+,,,,,
+6,,,Expenses,Debit,
+,,,,,
+61,,,Fixed Expenses,,
+,,,,,
+,01,,Regulatory,,
+,,,,,
+,,0101,Regulatory Fees,,
         "#;
     let chart_id = chart.id;
     let (chart, _) = accounting
