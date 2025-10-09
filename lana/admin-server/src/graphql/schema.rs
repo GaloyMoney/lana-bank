@@ -2003,19 +2003,21 @@ impl Mutation {
         )
     }
 
-    async fn chart_of_accounts_close_annual(
+    async fn annual_closing_transaction_execute(
         &self,
         ctx: &Context<'_>,
-        input: ChartOfAccountsCloseAnnualInput,
-    ) -> async_graphql::Result<ChartOfAccountsCloseAnnualPayload> {
+        input: AnnualClosingTransactionExecuteInput,
+    ) -> async_graphql::Result<AnnualClosingTransactionExecutePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
         exec_mutation!(
-            ChartOfAccountsCloseAnnualPayload,
-            ChartOfAccounts,
-            ChartId,
+            AnnualClosingTransactionExecutePayload,
+            LedgerTransaction,
+            LedgerTransactionId,
             ctx,
-            app.accounting()
-                .close_annual(sub, input.chart_id.into(), CHART_REF.0,)
+            app.accounting().execute_annual_closing_transaction(
+                sub,
+                input.chart_id.into(),
+            )
         )
     }
 

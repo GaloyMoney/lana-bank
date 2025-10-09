@@ -1,3 +1,4 @@
+mod annual_closing_transaction;
 mod balance_sheet;
 mod chart_of_accounts;
 mod csv;
@@ -9,6 +10,7 @@ mod profit_and_loss;
 mod transaction_templates;
 mod trial_balance;
 
+pub use annual_closing_transaction::*;
 pub use balance_sheet::*;
 pub use chart_of_accounts::*;
 pub use csv::*;
