@@ -75,6 +75,15 @@ export enum Activity {
   Suspended = 'SUSPENDED'
 }
 
+export type AnnualClosingTransactionExecuteInput = {
+  chartId: Scalars['UUID']['input'];
+};
+
+export type AnnualClosingTransactionExecutePayload = {
+  __typename?: 'AnnualClosingTransactionExecutePayload';
+  annualClosingTransaction: LedgerTransaction;
+};
+
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
@@ -296,15 +305,6 @@ export type ChartOfAccountsAddRootNodeInput = {
 
 export type ChartOfAccountsAddRootNodePayload = {
   __typename?: 'ChartOfAccountsAddRootNodePayload';
-  chartOfAccounts: ChartOfAccounts;
-};
-
-export type ChartOfAccountsCloseAnnualInput = {
-  chartId: Scalars['UUID']['input'];
-};
-
-export type ChartOfAccountsCloseAnnualPayload = {
-  __typename?: 'ChartOfAccountsCloseAnnualPayload';
   chartOfAccounts: ChartOfAccounts;
 };
 
@@ -1545,12 +1545,12 @@ export type Me = {
 export type Mutation = {
   __typename?: 'Mutation';
   accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
+  annualClosingTransactionExecute: AnnualClosingTransactionExecutePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
   chartOfAccountsAddChildNode: ChartOfAccountsAddChildNodePayload;
   chartOfAccountsAddRootNode: ChartOfAccountsAddRootNodePayload;
-  chartOfAccountsCloseAnnual: ChartOfAccountsCloseAnnualPayload;
   chartOfAccountsCloseMonthly: ChartOfAccountsCloseMonthlyPayload;
   chartOfAccountsCsvImport: ChartOfAccountsCsvImportPayload;
   committeeAddUser: CommitteeAddUserPayload;
@@ -1605,6 +1605,11 @@ export type MutationAccountingCsvDownloadLinkGenerateArgs = {
 };
 
 
+export type MutationAnnualClosingTransactionExecuteArgs = {
+  input: AnnualClosingTransactionExecuteInput;
+};
+
+
 export type MutationApprovalProcessApproveArgs = {
   input: ApprovalProcessApproveInput;
 };
@@ -1628,11 +1633,6 @@ export type MutationChartOfAccountsAddChildNodeArgs = {
 
 export type MutationChartOfAccountsAddRootNodeArgs = {
   input: ChartOfAccountsAddRootNodeInput;
-};
-
-
-export type MutationChartOfAccountsCloseAnnualArgs = {
-  input: ChartOfAccountsCloseAnnualInput;
 };
 
 

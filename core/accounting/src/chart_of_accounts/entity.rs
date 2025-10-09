@@ -342,7 +342,11 @@ impl Chart {
         };
         let now = crate::time::now().date_naive();
         let (current_year, current_month) = (now.year(), now.month());
-        let (prev_year, prev_month) = if current_month == 1 { (current_year - 1, 12) } else { (current_year, current_month - 1) };
+        let (prev_year, prev_month) = if current_month == 1 {
+            (current_year - 1, 12)
+        } else {
+            (current_year, current_month - 1)
+        };
 
         (last_closed.year(), last_closed.month()) == (prev_year, prev_month)
     }

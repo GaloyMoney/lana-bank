@@ -13,7 +13,7 @@ use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{account::Account, AccountSetId, BalanceId, CalaLedger, Currency};
+use cala_ledger::{AccountSetId, BalanceId, CalaLedger, Currency, account::Account};
 
 use crate::{
     TransactionEntrySpec,
@@ -215,11 +215,6 @@ where
         Ok(chart)
     }
 
-    #[instrument(
-        name = "core_accounting.chart_of_accounts.create_annual_closing_entries",
-        skip(self,),
-        err
-    )]
     pub async fn create_annual_closing_entries(
         &self,
         // TODO: Confirm same permissions as close_monthly (job vs. manually triggered).
@@ -412,17 +407,13 @@ where
             .find_all(&cost_of_revenue_accounts)
             .await?;
         let expenses_account_balances = self.cala.balances().find_all(&expense_accounts).await?;
-
+        
+        // TODO: pass in db op?
         let op = self.repo.begin_op().await?.with_db_time().await?;
-        // TODO: (a) Add to entity for updates regarding account close?
-        // (b) Emit a ChartEvent?
-        //self.repo.update_in_op(&mut op, &mut chart).await?;
-
         let entries = self
             .chart_ledger
             .prepare_annual_closing_entries(
                 op,
-                chart.id,
                 revenue_account_balances,
                 cost_of_revenue_account_balances,
                 expenses_account_balances,

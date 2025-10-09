@@ -33,6 +33,14 @@ enum Activity {
 	SUSPENDED
 }
 
+input AnnualClosingTransactionExecuteInput {
+	chartId: UUID!
+}
+
+type AnnualClosingTransactionExecutePayload {
+	annualClosingTransaction: LedgerTransaction!
+}
+
 scalar AnnualRatePct
 
 type ApprovalProcess {
@@ -263,14 +271,6 @@ input ChartOfAccountsAddRootNodeInput {
 }
 
 type ChartOfAccountsAddRootNodePayload {
-	chartOfAccounts: ChartOfAccounts!
-}
-
-input ChartOfAccountsCloseAnnualInput {
-	chartId: UUID!
-}
-
-type ChartOfAccountsCloseAnnualPayload {
 	chartOfAccounts: ChartOfAccounts!
 }
 
@@ -1565,7 +1565,7 @@ type Mutation {
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
 	chartOfAccountsCloseMonthly(input: ChartOfAccountsCloseMonthlyInput!): ChartOfAccountsCloseMonthlyPayload!
-	chartOfAccountsCloseAnnual(input: ChartOfAccountsCloseAnnualInput!): ChartOfAccountsCloseAnnualPayload!
+	annualClosingTransactionExecute(input: AnnualClosingTransactionExecuteInput!): AnnualClosingTransactionExecutePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
