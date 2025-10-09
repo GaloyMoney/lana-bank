@@ -23,6 +23,7 @@ es_entity::entity_id! {
     ChartId,
     ChartNodeId,
     ManualTransactionId,
+    AnnualClosingTransactionId,
     LedgerAccountId,
     AccountingCsvId;
 
@@ -66,8 +67,7 @@ impl EntityRef {
 }
 
 // TODO: Using Chart entity (to access root of account sets)
-pub const CHART_OF_ACCOUNTS_ENTITY_TYPE: EntityType = 
-    EntityType::new("Chart");
+pub const CHART_OF_ACCOUNTS_ENTITY_TYPE: EntityType = EntityType::new("Chart");
 
 pub type LedgerTransactionId = CalaTxId;
 pub type TransactionTemplateId = CalaTxTemplateId;
@@ -377,6 +377,7 @@ pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
 pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
+pub type AnnualClosingTransactionAllOrOne = AllOrOne<AnnualClosingTransactionId>;
 // option
 
 pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
@@ -465,6 +466,7 @@ pub enum CoreAccountingObject {
     BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
     AccountingCsv(AccountingCsvAllOrOne),
     TrialBalance(TrialBalanceAllOrOne),
+    AnnualClosingTransaction(AnnualClosingTransactionAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -546,6 +548,10 @@ impl CoreAccountingObject {
     pub fn all_trial_balance() -> Self {
         CoreAccountingObject::TrialBalance(AllOrOne::All)
     }
+
+    pub fn annual_closing_transaction(id: AnnualClosingTransactionId) -> Self {
+        CoreAccountingObject::AnnualClosingTransaction(AllOrOne::ById(id))
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -565,6 +571,7 @@ impl Display for CoreAccountingObject {
             BalanceSheetConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             AccountingCsv(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             TrialBalance(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            AnnualClosingTransaction(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -633,6 +640,12 @@ impl FromStr for CoreAccountingObject {
             TrialBalance => {
                 let obj_ref = id.parse().map_err(|_| "could not parse TrialBalance")?;
                 CoreAccountingObject::TrialBalance(obj_ref)
+            }
+            AnnualClosingTransaction => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse AnnualClosingTransaction")?;
+                CoreAccountingObject::AnnualClosingTransaction(obj_ref)
             }
         };
         Ok(res)
@@ -1075,7 +1088,7 @@ impl BalanceRange {
 // (the Vec<ManualEntryInput> param of execute specifically)?
 #[derive(Debug, Clone)]
 pub struct TransactionEntrySpec {
-    pub account_id: AccountIdOrCode,
+    pub account_id: LedgerAccountId,
     pub amount: Decimal,
     pub currency: CalaCurrency,
     pub description: String,

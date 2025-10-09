@@ -537,6 +537,23 @@ CREATE TABLE report_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_annual_closing_transactions (
+  id UUID PRIMARY KEY,
+  reference VARCHAR NOT NULL UNIQUE,
+  ledger_transaction_id UUID NOT NULL,
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_annual_closing_transaction_events (
+  id UUID NOT NULL REFERENCES core_annual_closing_transactions(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE core_manual_transactions (
   id UUID PRIMARY KEY,
   reference VARCHAR NOT NULL UNIQUE,
