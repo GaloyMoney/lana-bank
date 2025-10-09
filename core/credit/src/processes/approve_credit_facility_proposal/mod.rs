@@ -91,7 +91,6 @@ where
         Ok(res)
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
     #[instrument(name = "credit_facility.approval.execute", skip(self))]
     pub async fn execute(
         &self,
