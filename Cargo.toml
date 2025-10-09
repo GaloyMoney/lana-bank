@@ -23,7 +23,6 @@ audit = { path = "lib/audit" }
 authz = { path = "lib/authz" }
 bitgo = { path = "lib/bitgo" }
 cloud-storage = { path = "lib/cloud-storage" }
-job = { path = "lib/job" }
 jwks-utils = { path = "lib/jwks-utils" }
 keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
@@ -67,6 +66,7 @@ es-entity = { version = "0.9.3", features = ["event-context", "tracing-context"]
 sim-time = "0.9"
 cala-ledger = "0.11.5"
 cala-cel-interpreter = "0.11"
+job = "0.1"
 
 
 aes = "0.8"
