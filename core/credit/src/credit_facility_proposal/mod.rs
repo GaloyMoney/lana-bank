@@ -117,6 +117,7 @@ where
         self.repo.create_in_op(db, new_proposal).await
     }
 
+    #[es_entity::retry_on_concurrent_modification]
     #[instrument(name = "credit.credit_facility_proposals.approve", skip(self))]
     pub(super) async fn approve(
         &self,
@@ -173,7 +174,7 @@ where
         Ok(CreditFacilityProposalCompletionOutcome::Completed(proposal))
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_events(
         &self,
         id: CreditFacilityProposalId,
