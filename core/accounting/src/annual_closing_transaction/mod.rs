@@ -87,7 +87,7 @@ where
         let annual_closing_transaction = self.repo.create_in_op(&mut db, new_tx).await?;
         let entries = self
             .chart_of_accounts
-            .create_annual_closing_entries(sub, chart_id)
+            .create_annual_closing_entries(chart_id)
             .await?;
 
         let entry_params = entries.into_iter().map(EntryParams::from).collect();
