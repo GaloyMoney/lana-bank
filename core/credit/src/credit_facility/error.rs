@@ -16,6 +16,8 @@ pub enum CreditFacilityError {
     InterestAccrualCycleError(
         #[from] crate::credit_facility::interest_accrual_cycle::error::InterestAccrualCycleError,
     ),
+    #[error("CreditFacilityError - DisbursalError: {0}")]
+    DisbursalError(#[from] crate::disbursal::error::DisbursalError),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]
