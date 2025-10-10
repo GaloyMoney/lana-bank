@@ -137,6 +137,7 @@ where
         + OutboxEventMarker<GovernanceEvent>,
 {
     #[instrument(name = "customer_sync.active_sync_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[allow(clippy::single_match)]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,

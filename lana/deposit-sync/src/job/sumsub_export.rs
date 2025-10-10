@@ -180,6 +180,7 @@ where
         + std::fmt::Debug,
 {
     #[instrument(name = "deposit_sync.sumsub_export_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[allow(clippy::single_match)]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
