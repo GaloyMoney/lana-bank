@@ -143,36 +143,25 @@ where
             )
             .await?;
 
-        let proposal = match self.proposals.complete_in_op(&mut db, id.into()).await? {
-            CreditFacilityProposalCompletionOutcome::Completed(proposal) => proposal,
-            CreditFacilityProposalCompletionOutcome::Ignored => {
-                return Ok(());
-            }
-        };
+        let mut new_credit_facility_bld =
+            match self.proposals.complete_in_op(&mut db, id.into()).await? {
+                CreditFacilityProposalCompletionOutcome::Completed(new_credit_facility_bld) => {
+                    new_credit_facility_bld
+                }
+                CreditFacilityProposalCompletionOutcome::Ignored => {
+                    return Ok(());
+                }
+            };
 
         let public_id = self
             .public_ids
             .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
             .await?;
 
-        let new_credit_facility = NewCreditFacility::builder()
-            .id(id)
-            .credit_facility_proposal_id(proposal.id)
-            .ledger_tx_id(LedgerTxId::new())
-            .customer_id(proposal.customer_id)
-            .customer_type(proposal.customer_type)
-            .account_ids(crate::CreditFacilityLedgerAccountIds::from(
-                proposal.account_ids,
-            ))
-            .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
-            .collateral_id(proposal.collateral_id)
-            .terms(proposal.terms)
-            .amount(proposal.amount)
-            .activated_at(crate::time::now())
-            .maturity_date(proposal.terms.maturity_date(crate::time::now()))
+        let new_credit_facility = new_credit_facility_bld
             .public_id(public_id.id)
             .build()
-            .expect("could not build new credit facility");
+            .expect("Could not build NewCreditFacility");
 
         let mut credit_facility = self.repo.create_in_op(&mut db, new_credit_facility).await?;
 
