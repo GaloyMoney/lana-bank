@@ -5,14 +5,9 @@ use rust_decimal::Decimal;
 use std::collections::HashMap;
 
 use cala_ledger::{
-    AccountId, AccountSetId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
-    VelocityControlId, VelocityLimitId,
-    account::NewAccount,
-    account_set::{AccountSetUpdate, NewAccountSet},
-    balance::AccountBalance,
-    velocity::{
+    account::NewAccount, account_set::{AccountSetUpdate, NewAccountSet, AccountSetMemberId}, balance::AccountBalance, velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
-    },
+    }, AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId, VelocityLimitId
 };
 
 use closing::*;
@@ -481,6 +476,34 @@ impl ChartLedger {
             credit_settled: credit_settled_limit,
             credit_pending: credit_pending_limit,
         })
+    }
+
+    pub async fn find_all_accounts_by_parent_set_id(
+        &self,
+        journal_id: JournalId,
+        parent_set_id: AccountSetId,
+    ) -> Result<Vec<BalanceId>, ChartLedgerError> {
+        let mut accounts: Vec<BalanceId> = Vec::new();
+        // TODO: Does this require pagination or should we use a non default value?
+        let members = self.cala
+            .account_sets()
+            .list_members_by_created_at(
+                parent_set_id, 
+                Default::default()
+            )
+            .await?;
+        for member in members.entities {
+            match member.id {
+                AccountSetMemberId::Account(account_id) => {
+                    accounts.push((journal_id, account_id.clone(), Currency::USD));
+                }
+                AccountSetMemberId::AccountSet(account_set_id) => {
+                    let nested_accounts = Box::pin(self.find_all_accounts_by_parent_set_id(journal_id, account_set_id)).await?;
+                    accounts.extend(nested_accounts);
+                }
+            }
+        }
+        Ok(accounts)
     }
 }
 

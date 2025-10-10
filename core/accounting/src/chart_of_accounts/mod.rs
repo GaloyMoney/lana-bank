@@ -9,6 +9,7 @@ pub mod tree;
 
 use es_entity::Idempotent;
 use tracing::instrument;
+use chrono::{DateTime, Utc};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -217,12 +218,13 @@ where
 
     pub async fn create_annual_closing_entries(
         &self,
+        now: DateTime<Utc>,
         id: impl Into<ChartId> + std::fmt::Debug,
     ) -> Result<Vec<TransactionEntrySpec>, ChartOfAccountsError> {
         let id = id.into();
         let chart = self.repo.find_by_id(id).await?;
 
-        if !chart.is_last_monthly_period_closed() {
+        if !chart.is_prev_monthly_period_closed(now) {
             return Err(ChartOfAccountsError::AccountPeriodAnnualCloseNotReady);
         }
         // TODO: Where should we get these codes from? "6", "7", "8" intending to capture
