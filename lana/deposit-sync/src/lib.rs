@@ -72,8 +72,8 @@ where
         sumsub_client: SumsubClient,
     ) -> Result<Self, DepositSyncError> {
         jobs.add_initializer_and_spawn_unique(
-            SumsubExportInit::new(outbox, sumsub_client, deposits, customers),
-            SumsubExportJobConfig::<Perms, E>::new(),
+            PermanentSumsubExportInit::new(outbox, sumsub_client, deposits, customers),
+            PermanentSumsubExportJobConfig::<Perms, E>::new(),
         )
         .await?;
 

@@ -10,24 +10,24 @@ use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use keycloak_client::KeycloakClient;
 
 #[derive(serde::Serialize)]
-pub struct UserOnboardingJobConfig<E> {
+pub struct PermanentUserOnboardingJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
-impl<E> UserOnboardingJobConfig<E> {
+impl<E> PermanentUserOnboardingJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<E> JobConfig for UserOnboardingJobConfig<E>
+impl<E> JobConfig for PermanentUserOnboardingJobConfig<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
-    type Initializer = UserOnboardingInit<E>;
+    type Initializer = PermanentUserOnboardingInit<E>;
 }
 
-pub struct UserOnboardingInit<E>
+pub struct PermanentUserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
@@ -35,7 +35,7 @@ where
     keycloak_client: KeycloakClient,
 }
 
-impl<E> UserOnboardingInit<E>
+impl<E> PermanentUserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
@@ -47,8 +47,8 @@ where
     }
 }
 
-const USER_ONBOARDING_JOB: JobType = JobType::new("user-onboarding");
-impl<E> JobInitializer for UserOnboardingInit<E>
+const USER_ONBOARDING_JOB: JobType = JobType::new("permanent-user-onboarding");
+impl<E> JobInitializer for PermanentUserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
@@ -60,7 +60,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(UserOnboardingJobRunner::<E> {
+        Ok(Box::new(PermanentUserOnboardingJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
@@ -75,11 +75,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct UserOnboardingJobData {
+struct PermanentUserOnboardingJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct UserOnboardingJobRunner<E>
+pub struct PermanentUserOnboardingJobRunner<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
@@ -87,7 +87,7 @@ where
     keycloak_client: KeycloakClient,
 }
 #[async_trait]
-impl<E> JobRunner for UserOnboardingJobRunner<E>
+impl<E> JobRunner for PermanentUserOnboardingJobRunner<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {
@@ -96,7 +96,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<UserOnboardingJobData>()?
+            .execution_state::<PermanentUserOnboardingJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
         while let Some(message) = stream.next().await {
@@ -112,7 +112,7 @@ where
     }
 }
 
-impl<E> UserOnboardingJobRunner<E>
+impl<E> PermanentUserOnboardingJobRunner<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,
 {

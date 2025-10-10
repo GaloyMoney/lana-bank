@@ -10,24 +10,24 @@ use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use job::*;
 
 #[derive(serde::Serialize)]
-pub struct CreateKeycloakUserJobConfig<E> {
+pub struct PermanentCreateKeycloakUserJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
-impl<E> CreateKeycloakUserJobConfig<E> {
+impl<E> PermanentCreateKeycloakUserJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
         }
     }
 }
-impl<E> JobConfig for CreateKeycloakUserJobConfig<E>
+impl<E> JobConfig for PermanentCreateKeycloakUserJobConfig<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
-    type Initializer = CreateKeycloakUserInit<E>;
+    type Initializer = PermanentCreateKeycloakUserInit<E>;
 }
 
-pub struct CreateKeycloakUserInit<E>
+pub struct PermanentCreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
@@ -35,7 +35,7 @@ where
     keycloak_client: KeycloakClient,
 }
 
-impl<E> CreateKeycloakUserInit<E>
+impl<E> PermanentCreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
@@ -48,8 +48,8 @@ where
 }
 
 const CUSTOMER_SYNC_CREATE_KEYCLOAK_USER: JobType =
-    JobType::new("customer-sync-create-keycloak-user");
-impl<E> JobInitializer for CreateKeycloakUserInit<E>
+    JobType::new("permanent-customer-sync-create-keycloak-user");
+impl<E> JobInitializer for PermanentCreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
@@ -61,7 +61,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(CreateKeycloakUserJobRunner::<E> {
+        Ok(Box::new(PermanentCreateKeycloakUserJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
@@ -76,11 +76,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct CreateKeycloakUserJobData {
+struct PermanentCreateKeycloakUserJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct CreateKeycloakUserJobRunner<E>
+pub struct PermanentCreateKeycloakUserJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
@@ -88,7 +88,7 @@ where
     keycloak_client: KeycloakClient,
 }
 #[async_trait]
-impl<E> JobRunner for CreateKeycloakUserJobRunner<E>
+impl<E> JobRunner for PermanentCreateKeycloakUserJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {
@@ -97,7 +97,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreateKeycloakUserJobData>()?
+            .execution_state::<PermanentCreateKeycloakUserJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
@@ -114,7 +114,7 @@ where
     }
 }
 
-impl<E> CreateKeycloakUserJobRunner<E>
+impl<E> PermanentCreateKeycloakUserJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
 {

@@ -9,11 +9,11 @@ use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use job::*;
 
 #[derive(serde::Serialize)]
-pub struct SyncEmailJobConfig<E> {
+pub struct PermanentSyncEmailJobConfig<E> {
     _phantom: std::marker::PhantomData<E>,
 }
 
-impl<E> SyncEmailJobConfig<E> {
+impl<E> PermanentSyncEmailJobConfig<E> {
     pub fn new() -> Self {
         Self {
             _phantom: std::marker::PhantomData,
@@ -21,14 +21,14 @@ impl<E> SyncEmailJobConfig<E> {
     }
 }
 
-impl<E> JobConfig for SyncEmailJobConfig<E>
+impl<E> JobConfig for PermanentSyncEmailJobConfig<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
-    type Initializer = SyncEmailInit<E>;
+    type Initializer = PermanentSyncEmailInit<E>;
 }
 
-pub struct SyncEmailInit<E>
+pub struct PermanentSyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
@@ -36,7 +36,7 @@ where
     keycloak_client: KeycloakClient,
 }
 
-impl<E> SyncEmailInit<E>
+impl<E> PermanentSyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
@@ -48,8 +48,8 @@ where
     }
 }
 
-const SYNC_EMAIL_JOB: JobType = JobType::new("sync-email-job");
-impl<E> JobInitializer for SyncEmailInit<E>
+const SYNC_EMAIL_JOB: JobType = JobType::new("permanent-sync-email-job");
+impl<E> JobInitializer for PermanentSyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
@@ -61,7 +61,7 @@ where
     }
 
     fn init(&self, _: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
-        Ok(Box::new(SyncEmailJobRunner::<E> {
+        Ok(Box::new(PermanentSyncEmailJobRunner::<E> {
             outbox: self.outbox.clone(),
             keycloak_client: self.keycloak_client.clone(),
         }))
@@ -76,11 +76,11 @@ where
 }
 
 #[derive(Default, Clone, serde::Deserialize, serde::Serialize)]
-struct SyncEmailJobData {
+struct PermanentSyncEmailJobData {
     sequence: outbox::EventSequence,
 }
 
-pub struct SyncEmailJobRunner<E>
+pub struct PermanentSyncEmailJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
@@ -89,7 +89,7 @@ where
 }
 
 #[async_trait]
-impl<E> JobRunner for SyncEmailJobRunner<E>
+impl<E> JobRunner for PermanentSyncEmailJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {
@@ -98,7 +98,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<SyncEmailJobData>()?
+            .execution_state::<PermanentSyncEmailJobData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
@@ -116,7 +116,7 @@ where
     }
 }
 
-impl<E> SyncEmailJobRunner<E>
+impl<E> PermanentSyncEmailJobRunner<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,
 {

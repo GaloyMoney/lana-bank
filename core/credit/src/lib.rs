@@ -266,11 +266,11 @@ where
             .await?;
         jobs
             .add_initializer_and_spawn_unique(
-                collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
+                collateralization_from_events::PermanentCreditFacilityCollateralizationFromEventsInit::<
                     Perms,
                     E,
                 >::new(outbox, &credit_facilities),
-                collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
+                collateralization_from_events::PermanentCreditFacilityCollateralizationFromEventsJobConfig {
                     _phantom: std::marker::PhantomData,
                 },
             )
@@ -336,8 +336,8 @@ where
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityActivationInit::new(outbox, &activate_credit_facility),
-            CreditFacilityActivationJobConfig::<Perms, E>::new(),
+            PermanentCreditFacilityActivationInit::new(outbox, &activate_credit_facility),
+            PermanentCreditFacilityActivationJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
@@ -347,8 +347,8 @@ where
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, &collaterals),
-            wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
+            wallet_collateral_sync::PermanentWalletCollateralSyncInit::new(outbox, &collaterals),
+            wallet_collateral_sync::PermanentWalletCollateralSyncJobConfig::<Perms, E>::new(),
         )
         .await?;
 
