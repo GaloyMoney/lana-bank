@@ -16,26 +16,6 @@ use core_accounting::{AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput};
 use helpers::{action, object};
 use rust_decimal::Decimal;
 
-// TODO: Re-evaluate after merge with config work.
-struct PlaceholderAnnualClosingTxConfig {
-    revenue_code: String,
-    cost_of_revenue_code: String,
-    expenses_code: String,
-    equity_retained_earnings_code: String,
-    equity_retained_losses_code: String,
-}
-
-impl PlaceholderAnnualClosingTxConfig {
-    pub fn new() -> Self {
-        Self {
-            revenue_code: "4".to_string(),
-            cost_of_revenue_code: "5".to_string(),
-            expenses_code: "6".to_string(),
-            equity_retained_earnings_code: "3140.01.0101".to_string(),
-            equity_retained_losses_code: "3140.01.0201".to_string(),
-        }
-    }
-}
 
 #[tokio::test]
 async fn annual_closing() -> anyhow::Result<()> {
@@ -45,9 +25,9 @@ async fn annual_closing() -> anyhow::Result<()> {
     test.account("51.01.0101", 100).await;
     test.account("61.01.0101", 100).await;
 
-    let year_end_balances = test.balances().await;
-    println!("{:#?}", year_end_balances);
-    // TODO: Move to prepare or make a helper when multiple cases on annual closing transaction.
+    let pre_close_balances = test.balances().await;
+    let pre_close_act_count = pre_close_balances.len();
+
     let _closed_chart = test.accounting
         .chart_of_accounts()
         .close_monthly(&DummySubject, test.chart.id)
@@ -64,11 +44,24 @@ async fn annual_closing() -> anyhow::Result<()> {
         )
         .await?;
 
-    let year_end_balances_after = test.balances().await;
-    println!("{:#?}", year_end_balances_after);
-    // TODO: Assert Revenue, Cost of Revenue, and Expenses are cleared.
-    // TODO: Assert a new account under Equity Retained Earnings was created.
-    // TODO: Assert the new account under Equity Retained Earnings has a balance of 100.
+    let post_close_balances = test.balances().await;
+    println!("{:#?}", post_close_balances);
+    let post_close_act_count = post_close_balances.len();
+
+    assert_eq!(post_close_act_count, pre_close_act_count + 1);
+
+    for (act, _pre_bal) in &pre_close_balances {
+        if let Some(post_bal) = post_close_balances.get(act) {
+            assert_eq!(*post_bal, Decimal::ZERO);
+        }
+    }
+
+    for (act, post_bal) in post_close_balances {
+        if !pre_close_balances.contains_key(&act) {
+            assert_eq!(post_bal, Decimal::from(100));
+        }
+    }
+
     Ok(())
 }
 
