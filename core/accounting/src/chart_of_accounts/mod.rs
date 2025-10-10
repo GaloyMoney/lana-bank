@@ -227,188 +227,54 @@ where
         if !chart.is_prev_monthly_period_closed(now) {
             return Err(ChartOfAccountsError::AccountPeriodAnnualCloseNotReady);
         }
+
         // TODO: Where should we get these codes from? "6", "7", "8" intending to capture
         // "Revenue", "Cost of Revenue", "Expenses". May need to add an Account to
         // the "Equity" account set as a part of this process also, so. Note, there
         // is a TODO inside `is_ready_for_annual_closing_transaction` that also mentions
         // a possible need for additional config (or firm assumptions).
-        let revenue_parent_code = "3".parse::<AccountCode>().unwrap();
+        let revenue_parent_code = "41".parse::<AccountCode>().unwrap();
         let revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
 
-        let cost_of_revenue_parent_code = "7".parse::<AccountCode>().unwrap();
+        let cost_of_revenue_parent_code = "51".parse::<AccountCode>().unwrap();
         let cost_of_revenue_set_id =
             chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
 
-        let expenses_parent_code = "8".parse::<AccountCode>().unwrap();
+        let expenses_parent_code = "61".parse::<AccountCode>().unwrap();
         let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
 
         // TODO: These profit/loss destination AccountSets must also be configured but slightly differently than the ProfitAndLoss (top-level) AccountSets.
         let retained_earnings_set_id = AccountSetId::new();
         let retained_losses_set_id = AccountSetId::new();
 
-        // TODO: Abstract or condense the account collection process across
-        // Revenue, Cost of Revenue, and Expenses top-level AccountSets.
-        let mut revenue_accounts: Vec<BalanceId> = Vec::new();
-        // TODO: Does this require pagination or should we use a non default value?
-        let revenue_account_sets = self
-            .cala
-            .account_sets()
-            .list_members_by_created_at(revenue_set_id, Default::default())
+        let revenue_accounts = self.chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
             .await?;
 
-        for member in &revenue_account_sets.entities {
-            match &member.id {
-                cala_ledger::account_set::AccountSetMemberId::Account(account_id) => {
-                    // TODO: Can we assume Currency::USD here i.e. thinking BTC may be for collateral only?
-                    revenue_accounts.push((self.journal_id, account_id.clone(), Currency::USD));
-                }
-                cala_ledger::account_set::AccountSetMemberId::AccountSet(account_set_id) => {
-                    let mut sets_to_process = vec![*account_set_id];
-
-                    while !sets_to_process.is_empty() {
-                        let current_level_sets = std::mem::take(&mut sets_to_process);
-
-                        for set_id in current_level_sets {
-                            let members = self
-                                .cala
-                                .account_sets()
-                                .list_members_by_created_at(set_id, Default::default())
-                                .await?
-                                .entities;
-
-                            for member in members {
-                                match member.id {
-                                    cala_ledger::account_set::AccountSetMemberId::Account(
-                                        account_id,
-                                    ) => {
-                                        revenue_accounts.push((
-                                            self.journal_id,
-                                            account_id.clone(),
-                                            Currency::USD,
-                                        ));
-                                    }
-                                    cala_ledger::account_set::AccountSetMemberId::AccountSet(
-                                        nested_set_id,
-                                    ) => {
-                                        sets_to_process.push(nested_set_id);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        let mut expense_accounts: Vec<BalanceId> = Vec::new();
-        let expenses_account_sets = self
-            .cala
-            .account_sets()
-            .list_members_by_created_at(expenses_set_id, Default::default())
+        let expense_accounts = self.chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, expenses_set_id)
             .await?;
 
-        for member in &expenses_account_sets.entities {
-            match &member.id {
-                cala_ledger::account_set::AccountSetMemberId::Account(account_id) => {
-                    expense_accounts.push((self.journal_id, account_id.clone(), Currency::USD));
-                }
-                cala_ledger::account_set::AccountSetMemberId::AccountSet(account_set_id) => {
-                    let mut sets_to_process = vec![*account_set_id];
-
-                    while !sets_to_process.is_empty() {
-                        let current_level_sets = std::mem::take(&mut sets_to_process);
-
-                        for set_id in current_level_sets {
-                            let members = self
-                                .cala
-                                .account_sets()
-                                .list_members_by_created_at(set_id, Default::default())
-                                .await?
-                                .entities;
-
-                            for member in members {
-                                match member.id {
-                                    cala_ledger::account_set::AccountSetMemberId::Account(
-                                        account_id,
-                                    ) => {
-                                        expense_accounts.push((
-                                            self.journal_id,
-                                            account_id.clone(),
-                                            Currency::USD,
-                                        ));
-                                    }
-                                    cala_ledger::account_set::AccountSetMemberId::AccountSet(
-                                        nested_set_id,
-                                    ) => {
-                                        sets_to_process.push(nested_set_id);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        let mut cost_of_revenue_accounts: Vec<BalanceId> = Vec::new();
-        let cost_of_revenue_account_sets = self
-            .cala
-            .account_sets()
-            .list_members_by_created_at(cost_of_revenue_set_id, Default::default())
+        let cost_of_revenue_accounts = self.chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, cost_of_revenue_set_id)
             .await?;
-        for member in &cost_of_revenue_account_sets.entities {
-            match &member.id {
-                cala_ledger::account_set::AccountSetMemberId::Account(account_id) => {
-                    cost_of_revenue_accounts.push((
-                        self.journal_id,
-                        account_id.clone(),
-                        Currency::USD,
-                    ));
-                }
-                cala_ledger::account_set::AccountSetMemberId::AccountSet(account_set_id) => {
-                    let mut sets_to_process = vec![*account_set_id];
 
-                    while !sets_to_process.is_empty() {
-                        let current_level_sets = std::mem::take(&mut sets_to_process);
+        let revenue_account_balances = self.cala
+            .balances()
+            .find_all(&revenue_accounts)
+            .await?;
 
-                        for set_id in current_level_sets {
-                            let members = self
-                                .cala
-                                .account_sets()
-                                .list_members_by_created_at(set_id, Default::default())
-                                .await?
-                                .entities;
-
-                            for member in members {
-                                match member.id {
-                                    cala_ledger::account_set::AccountSetMemberId::Account(
-                                        account_id,
-                                    ) => {
-                                        cost_of_revenue_accounts.push((
-                                            self.journal_id,
-                                            account_id.clone(),
-                                            Currency::USD,
-                                        ));
-                                    }
-                                    cala_ledger::account_set::AccountSetMemberId::AccountSet(
-                                        nested_set_id,
-                                    ) => {
-                                        sets_to_process.push(nested_set_id);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-        }
-        let revenue_account_balances = self.cala.balances().find_all(&revenue_accounts).await?;
         let cost_of_revenue_account_balances = self
             .cala
             .balances()
             .find_all(&cost_of_revenue_accounts)
             .await?;
-        let expenses_account_balances = self.cala.balances().find_all(&expense_accounts).await?;
+
+        let expenses_account_balances = self.cala
+            .balances()
+            .find_all(&expense_accounts)
+            .await?;
         
-        // TODO: pass in db op?
         let op = self.repo.begin_op().await?.with_db_time().await?;
         let entries = self
             .chart_ledger
