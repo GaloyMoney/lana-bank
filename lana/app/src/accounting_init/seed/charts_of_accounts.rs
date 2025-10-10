@@ -134,5 +134,13 @@ async fn seed_chart_of_accounts(
             });
     }
 
+    if let Some(config_path) = annual_closing_config_path {
+        annual_closing_module_configure(&chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
     Ok(())
 }

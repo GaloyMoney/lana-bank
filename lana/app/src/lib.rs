@@ -142,6 +142,12 @@ pub mod balance_sheet {
     pub type BalanceSheets = core_accounting::BalanceSheets<crate::authorization::Authorization>;
 }
 
+pub mod annual_closing {
+    pub use core_accounting::annual_closing_transaction::*;
+    pub type AnnualClosings =
+        core_accounting::AnnualClosingTransactions<crate::authorization::Authorization>;
+}
+
 pub mod trial_balance {
     pub use core_accounting::trial_balance::*;
     pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
