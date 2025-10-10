@@ -4,14 +4,13 @@ use es_entity::*;
 pub use es_entity::{ListDirection, Sort};
 use outbox::OutboxEventMarker;
 
-use crate::{
-    event::CoreCreditEvent,
-    interest_accrual_cycle::{error::InterestAccrualCycleError, *},
-    primitives::*,
-    publisher::*,
-};
+use crate::{event::CoreCreditEvent, primitives::*, publisher::*};
 
-use super::{entity::*, error::CreditFacilityError};
+use super::{
+    entity::*,
+    error::CreditFacilityError,
+    interest_accrual_cycle::{error::InterestAccrualCycleError, *},
+};
 
 #[derive(EsRepo)]
 #[es_repo(

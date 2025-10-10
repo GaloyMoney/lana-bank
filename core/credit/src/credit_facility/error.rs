@@ -14,7 +14,7 @@ pub enum CreditFacilityError {
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - InterestAccrualCycleError: {0}")]
     InterestAccrualCycleError(
-        #[from] crate::interest_accrual_cycle::error::InterestAccrualCycleError,
+        #[from] crate::credit_facility::interest_accrual_cycle::error::InterestAccrualCycleError,
     ),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
