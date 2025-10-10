@@ -922,6 +922,7 @@ export const mockCreditFacilityProposal = (overrides?: Partial<CreditFacilityPro
         createdAt: overrides && overrides.hasOwnProperty('createdAt') ? overrides.createdAt! : generateMockValue.timestamp(),
         creditFacilityProposalId: overrides && overrides.hasOwnProperty('creditFacilityProposalId') ? overrides.creditFacilityProposalId! : generateMockValue.uuid(),
         creditFacilityTerms: overrides && overrides.hasOwnProperty('creditFacilityTerms') ? overrides.creditFacilityTerms! : relationshipsToOmit.has('TermValues') ? {} as TermValues : mockTermValues({}, relationshipsToOmit),
+        custodian: overrides && overrides.hasOwnProperty('custodian') ? overrides.custodian! : relationshipsToOmit.has('Custodian') ? {} as Custodian : mockCustodian({}, relationshipsToOmit),
         customer: overrides && overrides.hasOwnProperty('customer') ? overrides.customer! : relationshipsToOmit.has('Customer') ? {} as Customer : mockCustomer({}, relationshipsToOmit),
         facilityAmount: overrides && overrides.hasOwnProperty('facilityAmount') ? overrides.facilityAmount! : generateMockValue.usdCents(),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),

@@ -676,6 +676,7 @@ export type CreditFacilityProposal = {
   createdAt: Scalars['Timestamp']['output'];
   creditFacilityProposalId: Scalars['UUID']['output'];
   creditFacilityTerms: TermValues;
+  custodian?: Maybe<Custodian>;
   customer: Customer;
   facilityAmount: Scalars['UsdCents']['output'];
   id: Scalars['ID']['output'];

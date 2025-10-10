@@ -17,7 +17,7 @@ use document_storage::event_schema::DocumentEvent;
 use governance::event_schema::{ApprovalProcessEvent, CommitteeEvent, PolicyEvent};
 use schemars::schema_for;
 
-pub use json_schema::{detect_schema_changes, process_schemas_with_changes, SchemaChangeInfo};
+pub use json_schema::{SchemaChangeInfo, detect_schema_changes, process_schemas_with_changes};
 pub use migration::*;
 
 #[derive(Clone)]

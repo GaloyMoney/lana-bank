@@ -645,9 +645,10 @@ type CreditFacilityProposal {
 	approvalProcessId: UUID!
 	createdAt: Timestamp!
 	facilityAmount: UsdCents!
-	status: CreditFacilityProposalStatus!
-	customer: Customer!
 	creditFacilityTerms: TermValues!
+	status: CreditFacilityProposalStatus!
+	custodian: Custodian
+	customer: Customer!
 	repaymentPlan: [CreditFacilityRepaymentPlanEntry!]!
 	approvalProcess: ApprovalProcess!
 }
