@@ -30,6 +30,12 @@ pub enum ChartOfAccountsError {
     ParentAccountNotFound(String),
     #[error("ChartOfAccountsError - AccountPeriodStartNotFound")]
     AccountPeriodStartNotFound,
+    #[error("ChartOfAccountsError - AccountPeriodCloseNotFound")]
+    AccountPeriodCloseNotFound,
+    #[error("ChartOfAccountsError - AccountPeriodAnnualCloseNotReady")]
+    AccountPeriodAnnualCloseNotReady,
+    #[error("ChartOfAccountsError - CalaBalanceError: {0}")]
+    CalaBalance(#[from] cala_ledger::balance::error::BalanceError),
 }
 
 es_entity::from_es_entity_error!(ChartOfAccountsError);

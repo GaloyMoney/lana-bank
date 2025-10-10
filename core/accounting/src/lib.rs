@@ -1,6 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
+pub mod annual_closing_transaction;
 pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
@@ -17,26 +18,26 @@ pub mod trial_balance;
 
 use std::collections::HashMap;
 
+pub use annual_closing_transaction::AnnualClosingTransactions;
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use cala_ledger::CalaLedger;
-use document_storage::DocumentStorage;
-use job::Jobs;
-use manual_transaction::ManualTransactions;
-use tracing::instrument;
-
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
+use cala_ledger::CalaLedger;
 pub use chart_of_accounts::{
     Chart, ChartOfAccounts, PeriodClosing, error as chart_of_accounts_error, tree,
 };
 pub use csv::AccountingCsvExports;
+use document_storage::DocumentStorage;
 use error::CoreAccountingError;
+use job::Jobs;
 pub use journal::{Journal, error as journal_error};
 pub use ledger_account::{LedgerAccount, LedgerAccountChildrenCursor, LedgerAccounts};
 pub use ledger_transaction::{LedgerTransaction, LedgerTransactions};
 pub use manual_transaction::ManualEntryInput;
+use manual_transaction::ManualTransactions;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
+use tracing::instrument;
 pub use transaction_templates::TransactionTemplates;
 pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
@@ -62,6 +63,7 @@ where
     balance_sheets: BalanceSheets<Perms>,
     csvs: AccountingCsvExports<Perms>,
     trial_balances: TrialBalances<Perms>,
+    annual_closing_transactions: AnnualClosingTransactions<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -81,6 +83,7 @@ where
             balance_sheets: self.balance_sheets.clone(),
             csvs: self.csvs.clone(),
             trial_balances: self.trial_balances.clone(),
+            annual_closing_transactions: self.annual_closing_transactions.clone(),
         }
     }
 }
@@ -110,6 +113,8 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
+        let annual_closing_transactions =
+            AnnualClosingTransactions::new(pool, authz, &chart_of_accounts, cala, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -122,6 +127,7 @@ where
             balance_sheets,
             csvs,
             trial_balances,
+            annual_closing_transactions,
         }
     }
 
@@ -163,6 +169,10 @@ where
 
     pub fn trial_balances(&self) -> &TrialBalances<Perms> {
         &self.trial_balances
+    }
+
+    pub fn annual_closing_transactions(&self) -> &AnnualClosingTransactions<Perms> {
+        &self.annual_closing_transactions
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
@@ -306,6 +316,39 @@ where
             .chart_of_accounts()
             .close_monthly(sub, chart_id)
             .await?)
+    }
+
+    #[instrument(
+        name = "core_accounting.execute_annual_closing_transaction",
+        skip(self),
+        err
+    )]
+    pub async fn execute_annual_closing_transaction(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        // TODO: Need both? Can lookup one from the other?
+        chart_id: ChartId,
+    ) -> Result<LedgerTransaction, CoreAccountingError> {
+        let annual_closing_tx = self
+            .annual_closing_transactions()
+            .execute(
+                sub,
+                chart_id,
+                // TODO: Where to source `reference`?
+                None,
+                // TODO: Add optional description to API?
+                "Annual Closing".to_string(),
+            )
+            .await?;
+
+        let ledger_tx_id = annual_closing_tx.ledger_transaction_id;
+        Ok(self
+            .ledger_transactions
+            .find_by_id(sub, ledger_tx_id)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::AnnualClosingTransactionNotFoundById(ledger_tx_id.to_string())
+            })?)
     }
 
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]

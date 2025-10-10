@@ -9,15 +9,19 @@ pub mod tree;
 
 use es_entity::Idempotent;
 use tracing::instrument;
+use chrono::{DateTime, Utc};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
-use cala_ledger::{CalaLedger, account::Account};
+use cala_ledger::{AccountSetId, BalanceId, CalaLedger, Currency, account::Account};
 
-use crate::primitives::{
-    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+use crate::{
+    TransactionEntrySpec,
+    primitives::{
+        AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
+        ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
+    },
 };
 
 #[cfg(feature = "json-schema")]
@@ -210,6 +214,81 @@ where
             .await?;
 
         Ok(chart)
+    }
+
+    pub async fn create_annual_closing_entries(
+        &self,
+        now: DateTime<Utc>,
+        id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Vec<TransactionEntrySpec>, ChartOfAccountsError> {
+        let id = id.into();
+        let chart = self.repo.find_by_id(id).await?;
+
+        if !chart.is_prev_monthly_period_closed(now) {
+            return Err(ChartOfAccountsError::AccountPeriodAnnualCloseNotReady);
+        }
+
+        // TODO: Where should we get these codes from? "6", "7", "8" intending to capture
+        // "Revenue", "Cost of Revenue", "Expenses". May need to add an Account to
+        // the "Equity" account set as a part of this process also, so. Note, there
+        // is a TODO inside `is_ready_for_annual_closing_transaction` that also mentions
+        // a possible need for additional config (or firm assumptions).
+        let revenue_parent_code = "41".parse::<AccountCode>().unwrap();
+        let revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
+
+        let cost_of_revenue_parent_code = "51".parse::<AccountCode>().unwrap();
+        let cost_of_revenue_set_id =
+            chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
+
+        let expenses_parent_code = "61".parse::<AccountCode>().unwrap();
+        let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
+
+        // TODO: These profit/loss destination AccountSets must also be configured but slightly differently than the ProfitAndLoss (top-level) AccountSets.
+        let retained_earnings_set_id = AccountSetId::new();
+        let retained_losses_set_id = AccountSetId::new();
+
+        let revenue_accounts = self.chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
+            .await?;
+
+        let expense_accounts = self.chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, expenses_set_id)
+            .await?;
+
+        let cost_of_revenue_accounts = self.chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, cost_of_revenue_set_id)
+            .await?;
+
+        let revenue_account_balances = self.cala
+            .balances()
+            .find_all(&revenue_accounts)
+            .await?;
+
+        let cost_of_revenue_account_balances = self
+            .cala
+            .balances()
+            .find_all(&cost_of_revenue_accounts)
+            .await?;
+
+        let expenses_account_balances = self.cala
+            .balances()
+            .find_all(&expense_accounts)
+            .await?;
+        
+        let op = self.repo.begin_op().await?.with_db_time().await?;
+        let entries = self
+            .chart_ledger
+            .prepare_annual_closing_entries(
+                op,
+                revenue_account_balances,
+                cost_of_revenue_account_balances,
+                expenses_account_balances,
+                retained_earnings_set_id,
+                retained_losses_set_id,
+            )
+            .await?;
+
+        Ok(entries)
     }
 
     #[instrument(

@@ -75,6 +75,15 @@ export enum Activity {
   Suspended = 'SUSPENDED'
 }
 
+export type AnnualClosingTransactionExecuteInput = {
+  chartId: Scalars['UUID']['input'];
+};
+
+export type AnnualClosingTransactionExecutePayload = {
+  __typename?: 'AnnualClosingTransactionExecutePayload';
+  annualClosingTransaction: LedgerTransaction;
+};
+
 export type ApprovalProcess = {
   __typename?: 'ApprovalProcess';
   approvalProcessId: Scalars['UUID']['output'];
@@ -1536,6 +1545,7 @@ export type Me = {
 export type Mutation = {
   __typename?: 'Mutation';
   accountingCsvDownloadLinkGenerate: AccountingCsvDownloadLinkGeneratePayload;
+  annualClosingTransactionExecute: AnnualClosingTransactionExecutePayload;
   approvalProcessApprove: ApprovalProcessApprovePayload;
   approvalProcessDeny: ApprovalProcessDenyPayload;
   balanceSheetConfigure: BalanceSheetModuleConfigurePayload;
@@ -1592,6 +1602,11 @@ export type Mutation = {
 
 export type MutationAccountingCsvDownloadLinkGenerateArgs = {
   input: AccountingCsvDownloadLinkGenerateInput;
+};
+
+
+export type MutationAnnualClosingTransactionExecuteArgs = {
+  input: AnnualClosingTransactionExecuteInput;
 };
 
 

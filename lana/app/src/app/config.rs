@@ -51,4 +51,8 @@ pub struct AccountingInitConfig {
     pub balance_sheet_config_path: Option<PathBuf>,
     #[serde(default)]
     pub profit_and_loss_config_path: Option<PathBuf>,
+    // TODO: `annual_closing_config_path` applies to `ChartOfAccounts`...
+    // feels slightly different than the other configs
+    #[serde(default)]
+    pub annual_closing_config_path: Option<PathBuf>,
 }

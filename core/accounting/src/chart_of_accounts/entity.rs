@@ -332,6 +332,58 @@ impl Chart {
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 
+    pub fn is_prev_monthly_period_closed(&self, now: DateTime<Utc>) -> bool {
+        let last_closed = self.events.iter_all().find_map(|event| match event {
+            ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
+            _ => None,
+        });
+        let Some(last_closed) = last_closed else {
+            return false;
+        };
+        let ts = now.date_naive();
+        let (current_year, current_month) = (ts.year(), ts.month());
+        let (prev_year, prev_month) = if current_month == 1 {
+            (current_year - 1, 12)
+        } else {
+            (current_year, current_month - 1)
+        };
+
+        (last_closed.year(), last_closed.month()) == (prev_year, prev_month)
+    }
+
+    pub fn find_chart_opening_date(&self) -> Result<NaiveDate, ChartOfAccountsError> {
+        self.events
+            .iter_all()
+            .find_map(|event| match event {
+                ChartEvent::Initialized {
+                    first_period_opened_as_of,
+                    ..
+                } => Some(*first_period_opened_as_of),
+                _ => None,
+            })
+            .ok_or(ChartOfAccountsError::AccountPeriodStartNotFound)
+    }
+
+    pub fn find_chart_last_monthly_closed_date(&self) -> Result<NaiveDate, ChartOfAccountsError> {
+        self.events
+            .iter_all()
+            .find_map(|event| match event {
+                ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
+                _ => None,
+            })
+            .ok_or(ChartOfAccountsError::AccountPeriodCloseNotFound)
+    }
+
+    pub fn find_all_monthly_closed_dates(&self) -> Vec<NaiveDate> {
+        self.events
+            .iter_all()
+            .filter_map(|event| match event {
+                ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
+                _ => None,
+            })
+            .collect()
+    }
+
     pub fn chart(&self) -> tree::ChartTree {
         tree::project_from_nodes(self.id, &self.name, self.chart_nodes.iter_persisted())
     }

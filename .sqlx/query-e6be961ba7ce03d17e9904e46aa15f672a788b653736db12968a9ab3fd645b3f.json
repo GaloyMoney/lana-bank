@@ -1,0 +1,16 @@
+{
+  "db_name": "PostgreSQL",
+  "query": "UPDATE core_annual_closing_transactions SET reference = $2, ledger_transaction_id = $3 WHERE id = $1",
+  "describe": {
+    "columns": [],
+    "parameters": {
+      "Left": [
+        "Uuid",
+        "Varchar",
+        "Uuid"
+      ]
+    },
+    "nullable": []
+  },
+  "hash": "e6be961ba7ce03d17e9904e46aa15f672a788b653736db12968a9ab3fd645b3f"
+}
