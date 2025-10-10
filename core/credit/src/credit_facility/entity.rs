@@ -7,14 +7,13 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
-    interest_accrual_cycle::*,
     ledger::*,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
     terms::{InterestPeriod, TermValues},
 };
 
-use super::error::CreditFacilityError;
+use super::{error::CreditFacilityError, interest_accrual_cycle::*};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]

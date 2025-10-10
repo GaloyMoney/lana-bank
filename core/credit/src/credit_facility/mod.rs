@@ -1,5 +1,6 @@
 mod entity;
 pub mod error;
+pub mod interest_accrual_cycle;
 mod repo;
 
 use tracing::instrument;
@@ -15,7 +16,6 @@ use crate::{
     PublicIds,
     credit_facility_proposal::{CreditFacilityProposalCompletionOutcome, CreditFacilityProposals},
     event::CoreCreditEvent,
-    interest_accrual_cycle::NewInterestAccrualCycleData,
     jobs::credit_facility_maturity,
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
@@ -25,6 +25,7 @@ use crate::{
 
 pub use entity::CreditFacility;
 pub(crate) use entity::*;
+use interest_accrual_cycle::NewInterestAccrualCycleData;
 
 #[cfg(feature = "json-schema")]
 pub use entity::CreditFacilityEvent;
