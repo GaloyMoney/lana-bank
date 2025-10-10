@@ -5,7 +5,6 @@ import { use } from "react"
 import { useTranslations } from "next-intl"
 
 import CreditFacilityProposalDetailsCard from "./details"
-import { CreditFacilityProposalCollateral } from "./collateral-card"
 
 import { CreditFacilityTermsCard } from "./terms-card"
 
@@ -21,10 +20,6 @@ gql`
     createdAt
     status
     facilityAmount
-    collateralizationState
-    collateral {
-      btcBalance
-    }
     customer {
       customerId
       customerType
@@ -68,19 +63,9 @@ gql`
         }
       }
     }
-    wallet {
-      id
-      walletId
-      address
-      network
-      custodian {
-        name
-      }
-    }
     approvalProcess {
       ...ApprovalProcessFields
     }
-    collateralToMatchInitialCvl @client
   }
 
   query GetCreditFacilityProposalLayoutDetails($creditFacilityProposalId: UUID!) {
@@ -113,7 +98,6 @@ export default function CreditFacilityProposalLayout({
       <CreditFacilityProposalDetailsCard proposalDetails={data.creditFacilityProposal} />
       <div className="flex md:flex-row gap-2 my-2 w-full">
         <CreditFacilityTermsCard creditFacilityProposal={data.creditFacilityProposal} />
-        <CreditFacilityProposalCollateral proposal={data.creditFacilityProposal} />
       </div>
       {children}
     </main>

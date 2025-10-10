@@ -80,6 +80,15 @@ sources:
             count: 7
             period: day
 
+      - name: public_core_pending_credit_facility_events_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
       - name: public_core_credit_facility_repayment_plans_view
         freshness:
           warn_after:
@@ -333,6 +342,15 @@ sources:
             period: day
 
       - name: public_core_credit_facility_proposal_events_rollup_view
+        freshness:
+          warn_after:
+            count: 2
+            period: day
+          error_after:
+            count: 7
+            period: day
+
+      - name: public_core_pending_credit_facility_events_rollup_view
         freshness:
           warn_after:
             count: 2

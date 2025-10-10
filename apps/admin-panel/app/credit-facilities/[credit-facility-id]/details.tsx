@@ -9,11 +9,9 @@ import { formatDate } from "@lana/web/utils"
 
 import { toast } from "sonner"
 
-import { ExternalLinkIcon, FileText, Download, RefreshCw, Eye } from "lucide-react"
+import { ExternalLinkIcon, FileText, Download, RefreshCw } from "lucide-react"
 
 import { Label } from "@lana/web/ui/label"
-
-import Link from "next/link"
 
 import { CreditFacilityCollateralUpdateDialog } from "../collateral-update"
 
@@ -166,12 +164,6 @@ const CreditFacilityDetailsCard: React.FC<CreditFacilityDetailsProps> = ({
           {t("buttons.updateCollateral")}
         </Button>
       )}
-      <Link href={`/credit-facility-proposals/${creditFacilityDetails.creditFacilityId}`}>
-        <Button variant="outline">
-          <Eye className="h-4 w-4 mr-2" />
-          {t("buttons.viewProposal")}
-        </Button>
-      </Link>
     </>
   )
 

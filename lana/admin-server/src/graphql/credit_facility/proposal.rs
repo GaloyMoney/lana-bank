@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{
     graphql::{
-        custody::Wallet,
+        custody::Custodian,
         customer::*,
         loader::LanaDataLoader,
         terms::{TermValues, TermsInput},
@@ -10,7 +10,7 @@ use crate::{
     primitives::*,
 };
 
-use super::{ApprovalProcess, CollateralBalance, CreditFacilityRepaymentPlanEntry};
+use super::{ApprovalProcess, CreditFacilityRepaymentPlanEntry};
 
 pub use lana_app::credit::{
     CreditFacilityProposal as DomainCreditFacilityProposal,
@@ -24,8 +24,8 @@ pub struct CreditFacilityProposal {
     credit_facility_proposal_id: UUID,
     approval_process_id: UUID,
     created_at: Timestamp,
-    collateralization_state: CreditFacilityProposalCollateralizationState,
     facility_amount: UsdCents,
+    credit_facility_terms: TermValues,
 
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainCreditFacilityProposal>,
@@ -33,34 +33,6 @@ pub struct CreditFacilityProposal {
 
 #[ComplexObject]
 impl CreditFacilityProposal {
-    async fn wallet(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Wallet>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let collateral = loader
-            .load_one(self.entity.collateral_id)
-            .await?
-            .expect("credit facility proposal has collateral");
-
-        if let Some(wallet_id) = collateral.wallet_id {
-            Ok(loader.load_one(WalletId::from(wallet_id)).await?)
-        } else {
-            Ok(None)
-        }
-    }
-
-    async fn collateral(&self, ctx: &Context<'_>) -> async_graphql::Result<CollateralBalance> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-
-        let collateral = app
-            .credit()
-            .credit_facility_proposals()
-            .collateral(sub, self.entity.id)
-            .await?;
-
-        Ok(CollateralBalance {
-            btc_balance: collateral,
-        })
-    }
-
     async fn status(
         &self,
         ctx: &Context<'_>,
@@ -74,6 +46,19 @@ impl CreditFacilityProposal {
             .unwrap_or_else(|| self.entity.status()))
     }
 
+    async fn custodian(&self, ctx: &Context<'_>) -> async_graphql::Result<Option<Custodian>> {
+        let loader = ctx.data_unchecked::<LanaDataLoader>();
+        if let Some(custodian_id) = self.entity.custodian_id {
+            let custodian = loader
+                .load_one(custodian_id)
+                .await?
+                .expect("custodian not found");
+
+            return Ok(Some(custodian));
+        }
+        Ok(None)
+    }
+
     async fn customer(&self, ctx: &Context<'_>) -> async_graphql::Result<Customer> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let customer = loader
@@ -81,10 +66,6 @@ impl CreditFacilityProposal {
             .await?
             .expect("customer not found");
         Ok(customer)
-    }
-
-    async fn credit_facility_terms(&self) -> TermValues {
-        self.entity.terms.into()
     }
 
     async fn repayment_plan(
@@ -106,18 +87,18 @@ impl CreditFacilityProposal {
 }
 
 impl From<DomainCreditFacilityProposal> for CreditFacilityProposal {
-    fn from(credit_facility_proposal: DomainCreditFacilityProposal) -> Self {
-        let created_at = credit_facility_proposal.created_at();
+    fn from(proposal: DomainCreditFacilityProposal) -> Self {
+        let created_at = proposal.created_at();
 
         Self {
-            id: credit_facility_proposal.id.to_global_id(),
-            credit_facility_proposal_id: UUID::from(credit_facility_proposal.id),
-            approval_process_id: UUID::from(credit_facility_proposal.approval_process_id),
+            id: proposal.id.to_global_id(),
+            credit_facility_proposal_id: UUID::from(proposal.id),
+            approval_process_id: UUID::from(proposal.approval_process_id),
             created_at: created_at.into(),
-            facility_amount: credit_facility_proposal.amount,
-            collateralization_state: credit_facility_proposal.last_collateralization_state(),
+            facility_amount: proposal.amount,
+            credit_facility_terms: proposal.terms.into(),
 
-            entity: Arc::new(credit_facility_proposal),
+            entity: Arc::new(proposal),
         }
     }
 }
@@ -131,11 +112,3 @@ pub struct CreditFacilityProposalCreateInput {
     pub custodian_id: Option<UUID>,
 }
 crate::mutation_payload! { CreditFacilityProposalCreatePayload, credit_facility_proposal: CreditFacilityProposal }
-
-#[derive(InputObject)]
-pub struct CreditFacilityProposalCollateralUpdateInput {
-    pub credit_facility_proposal_id: UUID,
-    pub collateral: Satoshis,
-    pub effective: Date,
-}
-crate::mutation_payload! { CreditFacilityProposalCollateralUpdatePayload, credit_facility_proposal: CreditFacilityProposal }

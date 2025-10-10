@@ -16,12 +16,8 @@ gql`
         id
         creditFacilityProposalId
         createdAt
-        collateralizationState
         facilityAmount
         status
-        collateral {
-          btcBalance
-        }
         customer {
           customerId
           email
@@ -36,16 +32,16 @@ export default function CustomerCreditFacilityProposalsPage({
 }: {
   params: Promise<{ "customer-id": string }>
 }) {
-  const t = useTranslations("Customers.CustomerDetails.creditFacilityProposals")
+  const commonT = useTranslations("Common")
 
   const { "customer-id": customerId } = use(params)
   const { data, loading, error } = useGetCustomerCreditFacilityProposalsQuery({
     variables: { id: customerId },
   })
 
-  if (loading) return <div>{t("loading")}</div>
-  if (error) return <div className="text-destructive">{t("error")}</div>
-  if (!data?.customerByPublicId) return <div>{t("notFound")}</div>
+  if (loading) return <div>{commonT("loading")}</div>
+  if (error) return <div className="text-destructive">{error.message}</div>
+  if (!data?.customerByPublicId) return <div>{commonT("notFound")}</div>
 
   return (
     <CustomerCreditFacilityProposalsTable

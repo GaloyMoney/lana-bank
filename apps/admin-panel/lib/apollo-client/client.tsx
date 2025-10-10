@@ -10,6 +10,8 @@ import { getToken } from "@/app/auth/keycloak"
 import {
   CreditFacility,
   CreditFacilityProposal,
+  PendingCreditFacility,
+  Cvlpct,
   GetRealtimePriceUpdatesDocument,
   GetRealtimePriceUpdatesQuery,
 } from "@/lib/graphql/generated"
@@ -77,33 +79,14 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
     },
   })
 
-  const fetchData = (cache: InMemoryCache): Promise<GetRealtimePriceUpdatesQuery> =>
-    new Promise((resolve) => {
-      const priceInfo = cache.readQuery({
-        query: GetRealtimePriceUpdatesDocument,
-      }) as GetRealtimePriceUpdatesQuery
-
-      resolve(priceInfo)
-    })
-
   const resolvers: Resolvers = {
     CreditFacility: {
       collateralToMatchInitialCvl: async (facility: CreditFacility, _, { cache }) => {
-        const priceInfo = await fetchData(cache)
-        if (!priceInfo) return null
-
-        const bitcoinPrice = priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD
-        const basisAmountInUsd = facility.facilityAmount / CENTS_PER_USD
-
-        const initialCvlDecimal =
-          facility.creditFacilityTerms.initialCvl.__typename === "FiniteCVLPct"
-            ? Number(facility.creditFacilityTerms.initialCvl.value || 0) / 100
-            : Infinity
-
-        const requiredCollateralInSats =
-          (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) / bitcoinPrice
-
-        return Math.floor(requiredCollateralInSats)
+        return calculateRequiredCollateralInSats(
+          cache,
+          facility.facilityAmount,
+          facility.creditFacilityTerms.initialCvl,
+        )
       },
     },
     CreditFacilityProposal: {
@@ -112,25 +95,27 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
         _,
         { cache },
       ) => {
-        const priceInfo = await fetchData(cache)
-        if (!priceInfo) return null
-
-        const bitcoinPrice = priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD
-        const basisAmountInUsd = proposal.facilityAmount / CENTS_PER_USD
-
-        const initialCvlDecimal =
-          proposal.creditFacilityTerms.initialCvl.__typename === "FiniteCVLPct"
-            ? Number(proposal.creditFacilityTerms.initialCvl.value || 0) / 100
-            : Infinity
-
-        const requiredCollateralInSats =
-          (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) / bitcoinPrice
-
-        return Math.floor(requiredCollateralInSats)
+        return calculateRequiredCollateralInSats(
+          cache,
+          proposal.facilityAmount,
+          proposal.creditFacilityTerms.initialCvl,
+        )
+      },
+    },
+    PendingCreditFacility: {
+      collateralToMatchInitialCvl: async (
+        pendingFacility: PendingCreditFacility,
+        _,
+        { cache },
+      ) => {
+        return calculateRequiredCollateralInSats(
+          cache,
+          pendingFacility.facilityAmount,
+          pendingFacility.creditFacilityTerms.initialCvl,
+        )
       },
     },
   }
-
   return new ApolloClient({
     cache,
     resolvers,
@@ -141,4 +126,36 @@ export const makeClient = ({ coreAdminGqlUrl }: { coreAdminGqlUrl: string }) => 
       },
     },
   })
+}
+
+const getRealtimePriceFromCache = (
+  cache: InMemoryCache,
+): Promise<GetRealtimePriceUpdatesQuery> =>
+  new Promise((resolve) => {
+    const priceInfo = cache.readQuery({
+      query: GetRealtimePriceUpdatesDocument,
+    }) as GetRealtimePriceUpdatesQuery
+    resolve(priceInfo)
+  })
+
+const calculateRequiredCollateralInSats = async (
+  cache: InMemoryCache,
+  facilityAmount: number,
+  initialCvl: Cvlpct,
+): Promise<number | null> => {
+  const priceInfo = await getRealtimePriceFromCache(cache)
+  if (!priceInfo) return null
+
+  const bitcoinPrice = priceInfo.realtimePrice.usdCentsPerBtc / CENTS_PER_USD
+  const basisAmountInUsd = facilityAmount / CENTS_PER_USD
+
+  const initialCvlDecimal =
+    initialCvl.__typename === "FiniteCVLPct"
+      ? Number(initialCvl.value || 0) / 100
+      : Infinity
+
+  const requiredCollateralInSats =
+    (initialCvlDecimal * basisAmountInUsd * SATS_PER_BTC) / bitcoinPrice
+
+  return Math.floor(requiredCollateralInSats)
 }
