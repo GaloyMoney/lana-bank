@@ -332,7 +332,7 @@ impl Chart {
         Ok(Idempotent::Executed(new_monthly_closing_date))
     }
 
-    pub fn is_last_monthly_period_closed(&self) -> bool {
+    pub fn is_prev_monthly_period_closed(&self, now: DateTime<Utc>) -> bool {
         let last_closed = self.events.iter_all().find_map(|event| match event {
             ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
             _ => None,
@@ -340,8 +340,8 @@ impl Chart {
         let Some(last_closed) = last_closed else {
             return false;
         };
-        let now = crate::time::now().date_naive();
-        let (current_year, current_month) = (now.year(), now.month());
+        let ts = now.date_naive();
+        let (current_year, current_month) = (ts.year(), ts.month());
         let (prev_year, prev_month) = if current_month == 1 {
             (current_year - 1, 12)
         } else {
