@@ -142,7 +142,7 @@ where
 
     #[instrument(
         name = "core_accounting.balance_sheet.set_integration_config",
-        skip(self, chart),
+        skip(self, chart)
     )]
     pub async fn set_chart_of_accounts_integration_config(
         &self,

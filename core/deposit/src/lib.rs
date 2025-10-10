@@ -862,7 +862,10 @@ where
             .await?)
     }
 
-    #[instrument(name = "deposit.set_chart_of_accounts_integration_config", skip(self, chart))]
+    #[instrument(
+        name = "deposit.set_chart_of_accounts_integration_config",
+        skip(self, chart)
+    )]
     pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
