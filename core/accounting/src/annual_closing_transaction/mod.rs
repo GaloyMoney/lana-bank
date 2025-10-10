@@ -71,7 +71,7 @@ where
         description: String,
     ) -> Result<AnnualClosingTransaction, AnnualClosingTransactionError> {
         // TODO: authz permissions (follow ManualTransactions).
-        let effective = Utc::now().date_naive();
+        let effective = Utc::now();
         let ledger_tx_id: CalaTxId = CalaTxId::new();
         let closing_tx_id: AnnualClosingTransactionId = AnnualClosingTransactionId::new();
 
@@ -87,7 +87,7 @@ where
         let annual_closing_transaction = self.repo.create_in_op(&mut db, new_tx).await?;
         let entries = self
             .chart_of_accounts
-            .create_annual_closing_entries(chart_id)
+            .create_annual_closing_entries(effective, chart_id)
             .await?;
 
         let entry_params = entries.into_iter().map(EntryParams::from).collect();
@@ -99,7 +99,7 @@ where
                     journal_id: self.journal_id,
                     description,
                     entry_params,
-                    effective,
+                    effective: effective.date_naive(),
                 },
             )
             .await?;
