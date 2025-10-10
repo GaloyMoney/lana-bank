@@ -40,13 +40,13 @@ impl PlaceholderAnnualClosingTxConfig {
 #[tokio::test]
 async fn annual_closing() -> anyhow::Result<()> {
     let mut test = prepare_test().await?;
-    // TODO: Add more complex setup (Cost of Revenues, Expenses).
-    test.account("11.01.0101", 100).await;
-    test.account("11.03.0302", 200).await;
-    test.account("31.01", 300).await;
-    test.account("41.01.0102", 400).await;
+    
+    test.account("41.01.0102", 300).await;
+    test.account("51.01.0101", 100).await;
+    test.account("61.01.0101", 100).await;
 
     let year_end_balances = test.balances().await;
+    println!("{:#?}", year_end_balances);
     // TODO: Move to prepare or make a helper when multiple cases on annual closing transaction.
     let _closed_chart = test.accounting
         .chart_of_accounts()
@@ -66,9 +66,9 @@ async fn annual_closing() -> anyhow::Result<()> {
 
     let year_end_balances_after = test.balances().await;
     println!("{:#?}", year_end_balances_after);
-
-    // TODO: Make assertions based on account ID.
-
+    // TODO: Assert Revenue, Cost of Revenue, and Expenses are cleared.
+    // TODO: Assert a new account under Equity Retained Earnings was created.
+    // TODO: Assert the new account under Equity Retained Earnings has a balance of 100.
     Ok(())
 }
 
