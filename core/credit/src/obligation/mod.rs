@@ -3,6 +3,8 @@ pub mod error;
 mod primitives;
 mod repo;
 
+use std::sync::Arc;
+
 use tracing::{Span, instrument};
 
 use audit::AuditSvc;
@@ -37,12 +39,12 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    authz: Perms,
-    repo: ObligationRepo<E>,
-    liquidation_process_repo: LiquidationProcessRepo<E>,
-    payment_allocation_repo: PaymentAllocationRepo<E>,
-    ledger: CreditLedger,
-    jobs: Jobs,
+    authz: Arc<Perms>,
+    repo: Arc<ObligationRepo<E>>,
+    liquidation_process_repo: Arc<LiquidationProcessRepo<E>>,
+    payment_allocation_repo: Arc<PaymentAllocationRepo<E>>,
+    ledger: Arc<CreditLedger>,
+    jobs: Arc<Jobs>,
 }
 
 impl<Perms, E> Clone for Obligations<Perms, E>
@@ -71,21 +73,21 @@ where
 {
     pub(crate) fn new(
         pool: &sqlx::PgPool,
-        authz: &Perms,
-        ledger: &CreditLedger,
-        jobs: &Jobs,
+        authz: Arc<Perms>,
+        ledger: Arc<CreditLedger>,
+        jobs: Arc<Jobs>,
         publisher: &CreditFacilityPublisher<E>,
     ) -> Self {
         let obligation_repo = ObligationRepo::new(pool, publisher);
         let liquidation_process_repo = LiquidationProcessRepo::new(pool, publisher);
         let payment_allocation_repo = PaymentAllocationRepo::new(pool, publisher);
         Self {
-            authz: authz.clone(),
-            repo: obligation_repo,
-            liquidation_process_repo,
-            jobs: jobs.clone(),
-            ledger: ledger.clone(),
-            payment_allocation_repo,
+            authz,
+            repo: Arc::new(obligation_repo),
+            liquidation_process_repo: Arc::new(liquidation_process_repo),
+            jobs,
+            ledger,
+            payment_allocation_repo: Arc::new(payment_allocation_repo),
         }
     }
 

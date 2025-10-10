@@ -3,6 +3,7 @@ pub mod error;
 pub mod interest_accrual_cycle;
 mod repo;
 
+use std::sync::Arc;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -15,6 +16,7 @@ use outbox::OutboxEventMarker;
 use crate::{
     PublicIds,
     credit_facility_proposal::{CreditFacilityProposalCompletionOutcome, CreditFacilityProposals},
+    disbursal::Disbursals,
     event::CoreCreditEvent,
     jobs::{credit_facility_maturity, interest_accruals},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
@@ -40,15 +42,16 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    repo: CreditFacilityRepo<E>,
-    obligations: Obligations<Perms, E>,
-    proposals: CreditFacilityProposals<Perms, E>,
-    authz: Perms,
-    ledger: CreditLedger,
-    price: Price,
-    jobs: Jobs,
-    governance: Governance<Perms, E>,
-    public_ids: PublicIds,
+    repo: Arc<CreditFacilityRepo<E>>,
+    obligations: Arc<Obligations<Perms, E>>,
+    proposals: Arc<CreditFacilityProposals<Perms, E>>,
+    disbursals: Arc<Disbursals<Perms, E>>,
+    authz: Arc<Perms>,
+    ledger: Arc<CreditLedger>,
+    price: Arc<Price>,
+    jobs: Arc<Jobs>,
+    governance: Arc<Governance<Perms, E>>,
+    public_ids: Arc<PublicIds>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -61,6 +64,7 @@ where
             repo: self.repo.clone(),
             obligations: self.obligations.clone(),
             proposals: self.proposals.clone(),
+            disbursals: self.disbursals.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
@@ -102,31 +106,33 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    pub async fn init(
+    pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Perms,
-        obligations: &Obligations<Perms, E>,
-        proposals: &CreditFacilityProposals<Perms, E>,
-        ledger: &CreditLedger,
-        price: &Price,
-        jobs: &Jobs,
+        authz: Arc<Perms>,
+        obligations: Arc<Obligations<Perms, E>>,
+        proposals: Arc<CreditFacilityProposals<Perms, E>>,
+        disbursals: Arc<Disbursals<Perms, E>>,
+        ledger: Arc<CreditLedger>,
+        price: Arc<Price>,
+        jobs: Arc<Jobs>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        governance: &Governance<Perms, E>,
-        public_ids: &PublicIds,
-    ) -> Result<Self, CreditFacilityError> {
+        governance: Arc<Governance<Perms, E>>,
+        public_ids: Arc<PublicIds>,
+    ) -> Self {
         let repo = CreditFacilityRepo::new(pool, publisher);
 
-        Ok(Self {
-            repo,
-            obligations: obligations.clone(),
-            proposals: proposals.clone(),
-            authz: authz.clone(),
-            ledger: ledger.clone(),
-            price: price.clone(),
-            jobs: jobs.clone(),
-            governance: governance.clone(),
-            public_ids: public_ids.clone(),
-        })
+        Self {
+            repo: Arc::new(repo),
+            obligations,
+            proposals,
+            disbursals,
+            authz,
+            ledger,
+            price,
+            jobs,
+            governance,
+            public_ids,
+        }
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CreditFacilityError> {

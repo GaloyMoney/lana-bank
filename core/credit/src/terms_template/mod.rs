@@ -2,7 +2,7 @@ pub mod entity;
 pub mod error;
 mod repo;
 
-use std::collections::HashMap;
+use std::{collections::HashMap, sync::Arc};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -22,8 +22,8 @@ pub struct TermsTemplates<Perms>
 where
     Perms: PermissionCheck,
 {
-    authz: Perms,
-    repo: TermsTemplateRepo,
+    authz: Arc<Perms>,
+    repo: Arc<TermsTemplateRepo>,
 }
 
 impl<Perms> TermsTemplates<Perms>
@@ -32,11 +32,11 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>) -> Self {
         let repo = TermsTemplateRepo::new(pool);
         Self {
-            authz: authz.clone(),
-            repo,
+            authz,
+            repo: Arc::new(repo),
         }
     }
 

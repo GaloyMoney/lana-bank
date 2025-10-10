@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::sync::Arc;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_price::Price;
@@ -27,12 +29,12 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    repo: CreditFacilityProposalRepo<E>,
-    authz: Perms,
-    jobs: Jobs,
-    price: Price,
-    ledger: CreditLedger,
-    governance: Governance<Perms, E>,
+    repo: Arc<CreditFacilityProposalRepo<E>>,
+    authz: Arc<Perms>,
+    jobs: Arc<Jobs>,
+    price: Arc<Price>,
+    ledger: Arc<CreditLedger>,
+    governance: Arc<Governance<Perms, E>>,
 }
 impl<Perms, E> Clone for CreditFacilityProposals<Perms, E>
 where
@@ -62,12 +64,12 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        authz: &Perms,
-        jobs: &Jobs,
-        ledger: &CreditLedger,
-        price: &Price,
+        authz: Arc<Perms>,
+        jobs: Arc<Jobs>,
+        ledger: Arc<CreditLedger>,
+        price: Arc<Price>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        governance: &Governance<Perms, E>,
+        governance: Arc<Governance<Perms, E>>,
     ) -> Result<Self, CreditFacilityProposalError> {
         let repo = CreditFacilityProposalRepo::new(pool, publisher);
         match governance
@@ -82,12 +84,12 @@ where
         }
 
         Ok(Self {
-            repo,
-            ledger: ledger.clone(),
-            jobs: jobs.clone(),
-            authz: authz.clone(),
-            price: price.clone(),
-            governance: governance.clone(),
+            repo: Arc::new(repo),
+            ledger,
+            jobs,
+            authz,
+            price,
+            governance,
         })
     }
 

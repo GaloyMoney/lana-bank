@@ -1,5 +1,7 @@
 mod job;
 
+use std::sync::Arc;
+
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -26,13 +28,13 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    credit_facilities: CreditFacilities<Perms, E>,
-    disbursals: Disbursals<Perms, E>,
-    ledger: CreditLedger,
-    price: Price,
-    jobs: Jobs,
-    audit: Perms::Audit,
-    public_ids: PublicIds,
+    credit_facilities: Arc<CreditFacilities<Perms, E>>,
+    disbursals: Arc<Disbursals<Perms, E>>,
+    ledger: Arc<CreditLedger>,
+    price: Arc<Price>,
+    jobs: Arc<Jobs>,
+    audit: Arc<Perms::Audit>,
+    public_ids: Arc<PublicIds>,
 }
 
 impl<Perms, E> Clone for ActivateCreditFacility<Perms, E>
@@ -62,22 +64,22 @@ where
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
     pub fn new(
-        credit_facilities: &CreditFacilities<Perms, E>,
-        disbursals: &Disbursals<Perms, E>,
-        ledger: &CreditLedger,
-        price: &Price,
-        jobs: &Jobs,
-        audit: &Perms::Audit,
-        public_ids: &PublicIds,
+        credit_facilities: Arc<CreditFacilities<Perms, E>>,
+        disbursals: Arc<Disbursals<Perms, E>>,
+        ledger: Arc<CreditLedger>,
+        price: Arc<Price>,
+        jobs: Arc<Jobs>,
+        audit: Arc<Perms::Audit>,
+        public_ids: Arc<PublicIds>,
     ) -> Self {
         Self {
-            credit_facilities: credit_facilities.clone(),
-            disbursals: disbursals.clone(),
-            ledger: ledger.clone(),
-            price: price.clone(),
-            jobs: jobs.clone(),
-            audit: audit.clone(),
-            public_ids: public_ids.clone(),
+            credit_facilities,
+            disbursals,
+            ledger,
+            price,
+            jobs,
+            audit,
+            public_ids,
         }
     }
 

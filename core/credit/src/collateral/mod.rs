@@ -3,6 +3,7 @@ pub mod error;
 mod repo;
 
 use std::collections::HashMap;
+use std::sync::Arc;
 
 use tracing::instrument;
 
@@ -24,9 +25,9 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    authz: Perms,
-    repo: CollateralRepo<E>,
-    ledger: CreditLedger,
+    authz: Arc<Perms>,
+    repo: Arc<CollateralRepo<E>>,
+    ledger: Arc<CreditLedger>,
 }
 
 impl<Perms, E> Clone for Collaterals<Perms, E>
@@ -50,14 +51,14 @@ where
 {
     pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Perms,
+        authz: Arc<Perms>,
         publisher: &CreditFacilityPublisher<E>,
-        ledger: &CreditLedger,
+        ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
-            authz: authz.clone(),
-            repo: CollateralRepo::new(pool, publisher),
-            ledger: ledger.clone(),
+            authz,
+            repo: Arc::new(CollateralRepo::new(pool, publisher)),
+            ledger,
         }
     }
 

@@ -1,5 +1,7 @@
 mod job;
 
+use std::sync::Arc;
+
 use ::job::Jobs;
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -24,11 +26,11 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    disbursals: Disbursals<Perms, E>,
-    credit_facilities: CreditFacilities<Perms, E>,
-    jobs: Jobs,
-    governance: Governance<Perms, E>,
-    ledger: CreditLedger,
+    disbursals: Arc<Disbursals<Perms, E>>,
+    credit_facilities: Arc<CreditFacilities<Perms, E>>,
+    jobs: Arc<Jobs>,
+    governance: Arc<Governance<Perms, E>>,
+    ledger: Arc<CreditLedger>,
 }
 
 impl<Perms, E> Clone for ApproveDisbursal<Perms, E>
@@ -57,18 +59,18 @@ where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
     pub fn new(
-        disbursals: &Disbursals<Perms, E>,
-        credit_facilities: &CreditFacilities<Perms, E>,
-        jobs: &Jobs,
-        governance: &Governance<Perms, E>,
-        ledger: &CreditLedger,
+        disbursals: Arc<Disbursals<Perms, E>>,
+        credit_facilities: Arc<CreditFacilities<Perms, E>>,
+        jobs: Arc<Jobs>,
+        governance: Arc<Governance<Perms, E>>,
+        ledger: Arc<CreditLedger>,
     ) -> Self {
         Self {
-            disbursals: disbursals.clone(),
-            credit_facilities: credit_facilities.clone(),
-            jobs: jobs.clone(),
-            governance: governance.clone(),
-            ledger: ledger.clone(),
+            disbursals,
+            credit_facilities,
+            jobs,
+            governance,
+            ledger,
         }
     }
 

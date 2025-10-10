@@ -1,5 +1,7 @@
 pub mod error;
 
+use std::sync::Arc;
+
 use serde::{Deserialize, Serialize};
 
 use audit::AuditSvc;
@@ -82,8 +84,8 @@ pub struct ChartOfAccountsIntegrations<Perms>
 where
     Perms: PermissionCheck,
 {
-    authz: Perms,
-    ledger: CreditLedger,
+    authz: Arc<Perms>,
+    ledger: Arc<CreditLedger>,
 }
 
 impl<Perms> Clone for ChartOfAccountsIntegrations<Perms>
@@ -104,10 +106,10 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(authz: &Perms, ledger: &CreditLedger) -> Self {
+    pub fn new(authz: Arc<Perms>, ledger: Arc<CreditLedger>) -> Self {
         Self {
-            authz: authz.clone(),
-            ledger: ledger.clone(),
+            authz,
+            ledger,
         }
     }
 
