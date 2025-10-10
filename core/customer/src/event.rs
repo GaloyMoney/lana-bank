@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::{CustomerId, CustomerType, KycVerification};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "type")]
 pub enum CoreCustomerEvent {
     CustomerCreated {

@@ -1,7 +1,7 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use keycloak_client::KeycloakClient;
-use tracing::instrument;
+use tracing::{Span, instrument};
 
 use core_customer::CoreCustomerEvent;
 use core_deposit::CoreDepositEvent;
@@ -87,6 +87,32 @@ where
     outbox: Outbox<E>,
     keycloak_client: KeycloakClient,
 }
+
+impl<E> CreateKeycloakUserJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
+{
+    #[instrument(name = "customer_sync.create_keycloak_user_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(event @ CoreCustomerEvent::CustomerCreated { id, email, .. }) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                self.keycloak_client
+                    .create_user(email.clone(), id.into())
+                    .await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<E> JobRunner for CreateKeycloakUserJobRunner<E>
 where
@@ -102,36 +128,11 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustomerEvent::CustomerCreated { .. }) = &message.as_ref().as_event() {
-                self.handle_create_keycloak_user(message.as_ref()).await?;
-            }
-
+            self.process_message(message.as_ref()).await?;
             state.sequence = message.sequence;
-            current_job.update_execution_state(state.clone()).await?;
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
-    }
-}
-
-impl<E> CreateKeycloakUserJobRunner<E>
-where
-    E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,
-{
-    #[instrument(name = "customer_sync.create_keycloak_user", skip(self, message))]
-    async fn handle_create_keycloak_user(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>>
-    where
-        E: OutboxEventMarker<CoreCustomerEvent>,
-    {
-        if let Some(CoreCustomerEvent::CustomerCreated { id, email, .. }) = message.as_event() {
-            message.inject_trace_parent();
-            self.keycloak_client
-                .create_user(email.clone(), id.into())
-                .await?;
-        }
-        Ok(())
     }
 }

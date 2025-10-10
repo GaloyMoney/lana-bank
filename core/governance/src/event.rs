@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::*;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "type")]
 pub enum GovernanceEvent {
     ApprovalProcessConcluded {

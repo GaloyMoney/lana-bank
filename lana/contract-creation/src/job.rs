@@ -124,11 +124,12 @@ where
     E: OutboxEventMarker<CoreCustomerEvent> + Send + Sync,
 {
     #[tracing::instrument(
-        name = "lana.contract_creation.generate_loan_agreement",
+        name = "contract_creation.generate_loan_agreement_job.run",
         skip_all,
         fields(
             job_id = %current_job.id(),
-            job_attempt = current_job.attempt()
+            job_attempt = current_job.attempt(),
+            customer_id = %self.config.customer_id
         ),
         err
     )]

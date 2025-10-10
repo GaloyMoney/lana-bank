@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 
 use crate::primitives::{PermissionSetId, RoleId, UserId};
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "type")]
 pub enum CoreAccessEvent {
     UserCreated {

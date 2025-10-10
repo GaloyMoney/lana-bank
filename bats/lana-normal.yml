@@ -1,0 +1,32 @@
+db:
+  pool_size: 90
+app:
+  job_execution:
+    job_lost_interval: 4
+  access:
+    superuser_email: "admin@galoy.io"
+  storage:
+    provider: local
+    root_folder: ".lana"
+  credit:
+    customer_active_check_enabled: false
+  notification:
+    email:
+      admin_panel_url: "http://admin.localhost:4455"
+      from_email: "noreply@local.test"
+      from_name: "Lana Dev"
+      relay: "localhost"
+      port: 1025
+      insecure: true
+  customer_sync:
+    customer_status_sync_active: false
+    create_deposit_account_on_customer_create: true
+  accounting_init:
+    chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
+    chart_of_accounts_opening_date: "2021-01-01"
+    credit_config_path: "./bats/accounting-init/credit-module-config.json"
+    deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
+    balance_sheet_config_path: "./bats/accounting-init/balance-sheet-module-config.json"
+    profit_and_loss_config_path: "./bats/accounting-init/profit-and-loss-module-config.json"
+time:
+  realtime: true

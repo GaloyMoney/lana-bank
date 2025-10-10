@@ -12,7 +12,7 @@ pub use core_report::CoreReportEvent;
 pub use governance::GovernanceEvent;
 pub use outbox::OutboxEventMarker;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "module")]
 pub enum LanaEvent {
     Governance(GovernanceEvent),

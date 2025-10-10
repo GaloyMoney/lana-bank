@@ -1,6 +1,7 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
@@ -8,7 +9,7 @@ use core_customer::{CoreCustomerAction, CoreCustomerEvent, CustomerObject, Custo
 use core_deposit::{CoreDeposit, CoreDepositAction, CoreDepositEvent, CoreDepositObject};
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{EventSequence, Outbox, OutboxEventMarker};
+use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use lana_events::LanaEvent;
 
@@ -34,6 +35,74 @@ where
     customers: Customers<Perms, E>,
 }
 
+impl<Perms, E> UpdateLastActivityDateJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<LanaEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustomerEvent>,
+{
+    #[instrument(name = "customer_sync.update_last_activity_date_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        // TODO: Add other events that should update the customer activity
+        match message.as_event() {
+            Some(
+                event @ CoreDepositEvent::DepositInitialized {
+                    deposit_account_id, ..
+                },
+            )
+            | Some(
+                event @ CoreDepositEvent::WithdrawalConfirmed {
+                    deposit_account_id, ..
+                },
+            )
+            | Some(
+                event @ CoreDepositEvent::DepositReverted {
+                    deposit_account_id, ..
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                let account = self
+                    .deposits
+                    .find_account_by_id_without_audit(*deposit_account_id)
+                    .await?;
+
+                let customer_id = account.account_holder_id.into();
+                let activity_date = message.recorded_at;
+
+                self.customers
+                    .record_last_activity_date(customer_id, activity_date)
+                    .await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    pub fn new(
+        outbox: &Outbox<E>,
+        customers: &Customers<Perms, E>,
+        deposits: &CoreDeposit<Perms, E>,
+    ) -> Self {
+        Self {
+            outbox: outbox.clone(),
+            customers: customers.clone(),
+            deposits: deposits.clone(),
+        }
+    }
+}
+
 #[async_trait]
 impl<Perms, E> JobRunner for UpdateLastActivityDateJobRunner<Perms, E>
 where
@@ -54,76 +123,15 @@ where
         let mut state = current_job
             .execution_state::<UpdateLastActivityDateJobData>()?
             .unwrap_or_default();
-
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(event) = &message.payload {
-                let event = if let Some(event) = event.as_event() {
-                    event
-                } else {
-                    continue;
-                };
-                // TODO: Add other events that should update the customer activity
-                let customer_id = match event {
-                    LanaEvent::Deposit(
-                        CoreDepositEvent::DepositInitialized {
-                            deposit_account_id, ..
-                        }
-                        | CoreDepositEvent::WithdrawalConfirmed {
-                            deposit_account_id, ..
-                        }
-                        | CoreDepositEvent::DepositReverted {
-                            deposit_account_id, ..
-                        },
-                    ) => {
-                        let account = self
-                            .deposits
-                            .find_account_by_id_without_audit(*deposit_account_id)
-                            .await?;
-                        Some(account.account_holder_id.into())
-                    }
-                    _ => None,
-                };
-
-                if let Some(customer_id) = customer_id {
-                    let activity_date = message.recorded_at;
-                    self.customers
-                        .record_last_activity_date(customer_id, activity_date)
-                        .await?;
-                }
-            }
-
+            self.process_message(message.as_ref()).await?;
             state.sequence = message.sequence;
             current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
-    }
-}
-
-impl<Perms, E> UpdateLastActivityDateJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<LanaEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<CoreCustomerEvent>,
-{
-    pub fn new(
-        outbox: &Outbox<E>,
-        customers: &Customers<Perms, E>,
-        deposits: &CoreDeposit<Perms, E>,
-    ) -> Self {
-        Self {
-            outbox: outbox.clone(),
-            customers: customers.clone(),
-            deposits: deposits.clone(),
-        }
     }
 }
 

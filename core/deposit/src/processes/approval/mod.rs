@@ -5,6 +5,7 @@ use governance::{
     ApprovalProcess, ApprovalProcessStatus, ApprovalProcessType, GovernanceAction, GovernanceEvent,
     GovernanceObject,
 };
+use tracing::instrument;
 
 use audit::AuditSvc;
 use governance::Governance;
@@ -91,6 +92,7 @@ where
     }
 
     #[es_entity::retry_on_concurrent_modification]
+    #[instrument(name = "core_deposit.withdrawal_approval.execute", skip(self))]
     pub async fn execute(
         &self,
         id: impl es_entity::RetryableInto<WithdrawalId>,

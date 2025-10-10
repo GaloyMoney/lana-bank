@@ -3422,6 +3422,7 @@ dependencies = [
  "governance",
  "outbox",
  "serde",
+ "strum 0.27.2",
  "workspace-hack",
 ]
 

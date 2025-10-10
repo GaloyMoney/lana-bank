@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
-use tracing::instrument;
+use tracing::{Span, instrument};
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
@@ -124,6 +124,67 @@ where
     deposit: CoreDeposit<Perms, E>,
     config: CustomerSyncConfig,
 }
+
+impl<Perms, E> CustomerActiveSyncJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
+{
+    #[instrument(name = "customer_sync.active_sync_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(
+                event @ CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
+                    id,
+                    kyc_verification,
+                    ..
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+                self.handle_status_updated(*id, *kyc_verification).await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    #[instrument(name = "customer_sync.active_sync_job.handle", skip(self), fields(id = ?id, kyc = ?kyc_verification))]
+    async fn handle_status_updated(
+        &self,
+        id: core_customer::CustomerId,
+        kyc_verification: KycVerification,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if self.config.customer_status_sync_active {
+            let deposit_account_status = match kyc_verification {
+                KycVerification::Rejected | KycVerification::PendingVerification => {
+                    DepositAccountStatus::Inactive
+                }
+                KycVerification::Verified => DepositAccountStatus::Active,
+            };
+
+            self.deposit
+                .update_account_status_for_holder(
+                    &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
+                    id,
+                    deposit_account_status,
+                )
+                .await?;
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<Perms, E> JobRunner for CustomerActiveSyncJobRunner<Perms, E>
 where
@@ -146,63 +207,11 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustomerEvent::CustomerAccountKycVerificationUpdated { .. }) =
-                &message.as_ref().as_event()
-            {
-                self.handle_status_updated(message.as_ref()).await?;
-                state.sequence = message.sequence;
-                current_job.update_execution_state(&state).await?;
-            }
+            self.process_message(message.as_ref()).await?;
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
-    }
-}
-
-impl<Perms, E> CustomerActiveSyncJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    #[instrument(name = "customer_sync.handle_status_update", skip(self, message), err)]
-    async fn handle_status_updated(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>>
-    where
-        E: OutboxEventMarker<CoreCustomerEvent>,
-    {
-        if let Some(CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
-            id,
-            kyc_verification,
-            ..
-        }) = message.as_event()
-        {
-            message.inject_trace_parent();
-
-            if self.config.customer_status_sync_active {
-                let deposit_account_status = match kyc_verification {
-                    KycVerification::Rejected | KycVerification::PendingVerification => {
-                        DepositAccountStatus::Inactive
-                    }
-                    KycVerification::Verified => DepositAccountStatus::Active,
-                };
-
-                self.deposit
-                    .update_account_status_for_holder(
-                        &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject::system(),
-                        *id,
-                        deposit_account_status,
-                    )
-                    .await?;
-            }
-        }
-        Ok(())
     }
 }

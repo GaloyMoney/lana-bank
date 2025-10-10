@@ -1,10 +1,11 @@
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use tracing::{Span, instrument};
 
 use job::*;
-use outbox::{EventSequence, Outbox, OutboxEventMarker};
+use outbox::{EventSequence, Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
-use crate::{event::CoreCreditEvent, history::*};
+use crate::{event::CoreCreditEvent, history::*, primitives::CreditFacilityId};
 
 #[derive(Default, Clone, Deserialize, Serialize)]
 struct HistoryProjectionJobData {
@@ -16,6 +17,131 @@ pub struct HistoryProjectionJobRunner<E: OutboxEventMarker<CoreCreditEvent>> {
     repo: HistoryRepo,
 }
 
+impl<E> HistoryProjectionJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCreditEvent>,
+{
+    #[instrument(name = "core_credit.history_projection_job.process_msg", parent = None, skip(self, message, current_job, state), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+        current_job: &mut CurrentJob,
+        state: &mut HistoryProjectionJobData,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use CoreCreditEvent::*;
+
+        match message.as_event() {
+            Some(event @ FacilityProposalCreated { id, .. })
+            | Some(event @ FacilityProposalApproved { id, .. }) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                let facility_id: CreditFacilityId = (*id).into();
+
+                let mut db = self.repo.begin().await?;
+                let mut history = self.repo.load(facility_id).await?;
+                history.process_event(event);
+                self.repo
+                    .persist_in_tx(&mut db, facility_id, history)
+                    .await?;
+
+                state.sequence = message.sequence;
+                current_job
+                    .update_execution_state_in_tx(&mut db, state)
+                    .await?;
+                db.commit().await?;
+            }
+            Some(event @ FacilityActivated { id, .. })
+            | Some(event @ FacilityCompleted { id, .. })
+            | Some(
+                event @ FacilityRepaymentRecorded {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ FacilityCollateralUpdated {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(event @ FacilityCollateralizationChanged { id, .. })
+            | Some(
+                event @ DisbursalSettled {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ AccrualPosted {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ ObligationCreated {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ ObligationDue {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ ObligationOverdue {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ ObligationDefaulted {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ ObligationCompleted {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ LiquidationProcessStarted {
+                    credit_facility_id: id,
+                    ..
+                },
+            )
+            | Some(
+                event @ LiquidationProcessConcluded {
+                    credit_facility_id: id,
+                    ..
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                let mut db = self.repo.begin().await?;
+                let mut history = self.repo.load(*id).await?;
+                history.process_event(event);
+                self.repo.persist_in_tx(&mut db, *id, history).await?;
+
+                state.sequence = message.sequence;
+                current_job
+                    .update_execution_state_in_tx(&mut db, state)
+                    .await?;
+                db.commit().await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait::async_trait]
 impl<E> JobRunner for HistoryProjectionJobRunner<E>
 where
@@ -25,88 +151,14 @@ where
         &self,
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        use CoreCreditEvent::*;
-
         let mut state = current_job
             .execution_state::<HistoryProjectionJobData>()?
             .unwrap_or_default();
-
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(event) = &message.payload {
-                let event = if let Some(event) = event.as_event() {
-                    event
-                } else {
-                    continue;
-                };
-
-                let id = match event {
-                    FacilityProposalCreated { id, .. } | FacilityProposalApproved { id, .. } => {
-                        (*id).into()
-                    }
-                    FacilityActivated { id, .. }
-                    | FacilityCompleted { id, .. }
-                    | FacilityRepaymentRecorded {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | FacilityCollateralUpdated {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | FacilityCollateralizationChanged { id, .. }
-                    | DisbursalSettled {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | AccrualPosted {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | ObligationCreated {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | ObligationDue {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | ObligationOverdue {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | ObligationDefaulted {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | ObligationCompleted {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | LiquidationProcessStarted {
-                        credit_facility_id: id,
-                        ..
-                    }
-                    | LiquidationProcessConcluded {
-                        credit_facility_id: id,
-                        ..
-                    } => *id,
-                };
-
-                let mut db = self.repo.begin().await?;
-
-                let mut history = self.repo.load(id).await?;
-                history.process_event(event);
-                self.repo.persist_in_tx(&mut db, id, history).await?;
-
-                state.sequence = message.sequence;
-                current_job
-                    .update_execution_state_in_tx(&mut db, &state)
-                    .await?;
-
-                db.commit().await?;
-            }
+            self.process_message(message.as_ref(), &mut current_job, &mut state)
+                .await?;
         }
 
         Ok(JobCompletion::RescheduleNow)

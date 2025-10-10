@@ -3,7 +3,7 @@ use serde::{Deserialize, Serialize};
 use super::primitives::{DepositAccountHolderId, DepositAccountId, DepositId, WithdrawalId};
 use core_money::UsdCents;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "type")]
 pub enum CoreDepositEvent {
     DepositAccountCreated {

@@ -13,7 +13,7 @@ use governance::GovernanceEvent;
 use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 use sumsub::SumsubClient;
 
-use tracing::instrument;
+use tracing::{Span, instrument};
 
 use job::*;
 use lana_events::LanaEvent;
@@ -166,57 +166,6 @@ where
     customers: Customers<Perms, E>,
 }
 
-#[async_trait]
-impl<Perms, E> JobRunner for SumsubExportJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<GovernanceEvent>
-        + OutboxEventMarker<LanaEvent>
-        + std::fmt::Debug,
-{
-    async fn run(
-        &self,
-        mut current_job: CurrentJob,
-    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        let mut state = current_job
-            .execution_state::<SumsubExportJobState>()?
-            .unwrap_or_default();
-        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
-
-        while let Some(message) = stream.next().await {
-            match message.as_ref().as_event() {
-                Some(LanaEvent::Deposit(CoreDepositEvent::DepositInitialized {
-                    id,
-                    deposit_account_id,
-                    amount,
-                })) => {
-                    self.handle_deposit(message.as_ref(), *id, *deposit_account_id, *amount)
-                        .await?;
-                }
-                Some(LanaEvent::Deposit(CoreDepositEvent::WithdrawalConfirmed {
-                    id,
-                    deposit_account_id,
-                    amount,
-                })) => {
-                    self.handle_withdrawal(message.as_ref(), *id, *deposit_account_id, *amount)
-                        .await?;
-                }
-                _ => {}
-            }
-
-            state.sequence = message.sequence;
-            current_job.update_execution_state(&state).await?;
-        }
-        Ok(JobCompletion::RescheduleNow)
-    }
-}
-
 impl<Perms, E> SumsubExportJobRunner<Perms, E>
 where
     Perms: PermissionCheck,
@@ -230,16 +179,51 @@ where
         + OutboxEventMarker<LanaEvent>
         + std::fmt::Debug,
 {
-    #[instrument(name = "deposit_sync.sumsub_export.deposit", skip(self, message))]
-    async fn handle_deposit(
+    #[instrument(name = "deposit_sync.sumsub_export_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(
+                event @ CoreDepositEvent::DepositInitialized {
+                    id,
+                    deposit_account_id,
+                    amount,
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                self.handle_deposit(*id, *deposit_account_id, *amount)
+                    .await?;
+            }
+            Some(
+                event @ CoreDepositEvent::WithdrawalConfirmed {
+                    id,
+                    deposit_account_id,
+                    amount,
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                self.handle_withdrawal(*id, *deposit_account_id, *amount)
+                    .await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+
+    async fn handle_deposit(
+        &self,
         id: DepositId,
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        message.inject_trace_parent();
-
         let account = self
             .deposits
             .find_account_by_id_without_audit(deposit_account_id)
@@ -273,16 +257,12 @@ where
         Ok(())
     }
 
-    #[instrument(name = "deposit_sync.sumsub_export.withdrawal", skip(self, message))]
     async fn handle_withdrawal(
         &self,
-        message: &PersistentOutboxEvent<E>,
         id: WithdrawalId,
         deposit_account_id: DepositAccountId,
         amount: UsdCents,
     ) -> Result<(), Box<dyn std::error::Error>> {
-        message.inject_trace_parent();
-
         let account = self
             .deposits
             .find_account_by_id_without_audit(deposit_account_id)
@@ -314,5 +294,38 @@ where
             );
         }
         Ok(())
+    }
+}
+
+#[async_trait]
+impl<Perms, E> JobRunner for SumsubExportJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreDepositAction> + From<CoreCustomerAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreDepositObject> + From<CustomerObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<LanaEvent>
+        + std::fmt::Debug,
+{
+    async fn run(
+        &self,
+        mut current_job: CurrentJob,
+    ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
+        let mut state = current_job
+            .execution_state::<SumsubExportJobState>()?
+            .unwrap_or_default();
+        let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+
+        while let Some(message) = stream.next().await {
+            self.process_message(message.as_ref()).await?;
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
+        }
+
+        Ok(JobCompletion::RescheduleNow)
     }
 }

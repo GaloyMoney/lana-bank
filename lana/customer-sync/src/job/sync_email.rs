@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
-use tracing::instrument;
+use tracing::{Span, instrument};
 
 use core_customer::CoreCustomerEvent;
 use keycloak_client::KeycloakClient;
@@ -88,6 +88,31 @@ where
     keycloak_client: KeycloakClient,
 }
 
+impl<E> SyncEmailJobRunner<E>
+where
+    E: OutboxEventMarker<CoreCustomerEvent>,
+{
+    #[instrument(name = "customer_sync.sync_email_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(event @ CoreCustomerEvent::CustomerEmailUpdated { id, email }) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                self.keycloak_client
+                    .update_user_email((*id).into(), email.clone())
+                    .await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<E> JobRunner for SyncEmailJobRunner<E>
 where
@@ -103,38 +128,11 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustomerEvent::CustomerEmailUpdated { .. }) =
-                &message.as_ref().as_event()
-            {
-                self.handle_email_update(message.as_ref()).await?;
-                state.sequence = message.sequence;
-                current_job.update_execution_state(&state).await?;
-            }
+            self.process_message(message.as_ref()).await?;
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
-    }
-}
-
-impl<E> SyncEmailJobRunner<E>
-where
-    E: OutboxEventMarker<CoreCustomerEvent>,
-{
-    #[instrument(name = "customer_sync.sync_email", skip(self, message))]
-    async fn handle_email_update(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-    ) -> Result<(), Box<dyn std::error::Error>>
-    where
-        E: OutboxEventMarker<CoreCustomerEvent>,
-    {
-        if let Some(CoreCustomerEvent::CustomerEmailUpdated { id, email }) = message.as_event() {
-            message.inject_trace_parent();
-
-            self.keycloak_client
-                .update_user_email((*id).into(), email.clone())
-                .await?;
-        }
-        Ok(())
     }
 }

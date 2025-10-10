@@ -1,6 +1,6 @@
 use async_trait::async_trait;
 use futures::StreamExt;
-use tracing::instrument;
+use tracing::{Span, instrument};
 
 use audit::{AuditSvc, SystemSubject};
 use authz::PermissionCheck;
@@ -125,6 +125,97 @@ where
     deposit: CoreDeposit<Perms, E>,
     config: CustomerSyncConfig,
 }
+
+impl<Perms, E> CreateDepositAccountJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCustomerEvent>
+        + OutboxEventMarker<CoreDepositEvent>
+        + OutboxEventMarker<GovernanceEvent>,
+{
+    #[instrument(name = "customer_sync.create_deposit_acct_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(
+                event @ CoreCustomerEvent::CustomerCreated {
+                    id, customer_type, ..
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+                Span::current().record(
+                    "config.create_deposit_account_on_customer_create",
+                    self.config.create_deposit_account_on_customer_create,
+                );
+
+                if self.config.create_deposit_account_on_customer_create {
+                    // don't activate if we are syncing the customer status
+                    let active = !self.config.customer_status_sync_active;
+
+                    match self.deposit
+                        .create_account(
+                            &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
+                            *id,
+                            active,
+                            *customer_type,
+                        )
+                        .await
+                    {
+                        Ok(_) => {}
+                        Err(e) if e.is_account_already_exists() => {},
+                        Err(e) => return Err(e.into()),
+                    }
+                }
+            }
+            Some(
+                event @ CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
+                    id,
+                    customer_type,
+                    kyc_verification: KycVerification::Verified,
+                    ..
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+                Span::current().record(
+                    "config.create_deposit_account_on_customer_create",
+                    self.config.create_deposit_account_on_customer_create,
+                );
+
+                if !self.config.create_deposit_account_on_customer_create {
+                    // activate since KYC is verified
+                    let active = true;
+
+                    match self.deposit
+                        .create_account(
+                            &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
+                            *id,
+                            active,
+                            *customer_type,
+                        )
+                        .await
+                    {
+                        Ok(_) => {}
+                        Err(e) if e.is_account_already_exists() => {},
+                        Err(e) => return Err(e.into()),
+                    }
+                }
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<Perms, E> JobRunner for CreateDepositAccountJobRunner<Perms, E>
 where
@@ -147,82 +238,11 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            let did_handle = match message.as_ref().as_event() {
-                Some(CoreCustomerEvent::CustomerCreated {
-                    id, customer_type, ..
-                }) if self.config.create_deposit_account_on_customer_create => {
-                    self.handle_create_deposit_account(message.as_ref(), *id, *customer_type, true)
-                        .await?;
-                    true
-                }
-                Some(CoreCustomerEvent::CustomerAccountKycVerificationUpdated {
-                    id,
-                    customer_type,
-                    kyc_verification: KycVerification::Verified,
-                    ..
-                }) if !self.config.create_deposit_account_on_customer_create => {
-                    self.handle_create_deposit_account(
-                        message.as_ref(),
-                        *id,
-                        *customer_type,
-                        false,
-                    )
-                    .await?;
-                    true
-                }
-                _ => false,
-            };
-
-            if did_handle {
-                state.sequence = message.sequence;
-                current_job.update_execution_state(&state).await?;
-            }
+            self.process_message(message.as_ref()).await?;
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
-    }
-}
-
-impl<Perms, E> CreateDepositAccountJobRunner<Perms, E>
-where
-    Perms: PermissionCheck,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
-        From<CoreCustomerAction> + From<CoreDepositAction> + From<GovernanceAction>,
-    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
-        From<CustomerObject> + From<CoreDepositObject> + From<GovernanceObject>,
-    E: OutboxEventMarker<CoreCustomerEvent>
-        + OutboxEventMarker<CoreDepositEvent>
-        + OutboxEventMarker<GovernanceEvent>,
-{
-    #[instrument(name = "customer_sync.create_deposit_account", skip(self, message))]
-    async fn handle_create_deposit_account(
-        &self,
-        message: &PersistentOutboxEvent<E>,
-        id: core_customer::CustomerId,
-        customer_type: core_customer::CustomerType,
-        is_customer_create_event: bool,
-    ) -> Result<(), Box<dyn std::error::Error>>
-    where
-        E: OutboxEventMarker<CoreCustomerEvent>,
-    {
-        message.inject_trace_parent();
-
-        // don't activate if we are syncing the customer status
-        let active = !(is_customer_create_event && self.config.customer_status_sync_active);
-
-        match self.deposit
-            .create_account(
-                &<<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject as SystemSubject>::system(),
-                id,
-                active,
-                customer_type,
-            )
-            .await
-        {
-            Ok(_) => {}
-            Err(e) if e.is_account_already_exists() => {},
-            Err(e) => return Err(e.into()),
-        }
-        Ok(())
     }
 }
