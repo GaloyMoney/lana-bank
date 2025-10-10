@@ -16,7 +16,7 @@ use crate::{
     PublicIds,
     credit_facility_proposal::{CreditFacilityProposalCompletionOutcome, CreditFacilityProposals},
     event::CoreCreditEvent,
-    jobs::credit_facility_maturity,
+    jobs::{credit_facility_maturity, interest_accruals},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     primitives::*,
@@ -83,7 +83,6 @@ pub(super) enum ActivationOutcome {
 
 pub struct ActivationData {
     pub credit_facility: CreditFacility,
-    pub next_accrual_period: InterestPeriod,
 }
 
 #[derive(Clone)]
@@ -200,9 +199,25 @@ where
             )
             .await?;
 
+        let accrual_id = credit_facility
+            .interest_accrual_cycle_in_progress()
+            .expect("First accrual not found")
+            .id;
+
+        self.jobs
+            .create_and_spawn_at_in_op(
+                db,
+                accrual_id,
+                interest_accruals::InterestAccrualJobConfig::<Perms, E> {
+                    credit_facility_id: id,
+                    _phantom: std::marker::PhantomData,
+                },
+                periods.accrual.end,
+            )
+            .await?;
+
         Ok(ActivationOutcome::Activated(ActivationData {
             credit_facility,
-            next_accrual_period: periods.accrual,
         }))
     }
 

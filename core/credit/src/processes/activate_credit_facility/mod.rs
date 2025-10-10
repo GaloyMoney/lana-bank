@@ -15,7 +15,6 @@ use crate::{
     disbursal::Disbursals,
     error::CoreCreditError,
     event::CoreCreditEvent,
-    jobs::interest_accruals,
     ledger::CreditLedger,
     primitives::{CoreCreditAction, CoreCreditObject, CreditFacilityId},
 };
@@ -96,32 +95,13 @@ where
             .with_db_time()
             .await?;
 
-        let ActivationData {
-            credit_facility,
-            next_accrual_period,
-        } = match self.credit_facilities.activate_in_op(&mut op, id).await? {
-            ActivationOutcome::Activated(data) => data,
-            ActivationOutcome::Ignored => {
-                return Ok(());
-            }
-        };
-
-        let accrual_id = credit_facility
-            .interest_accrual_cycle_in_progress()
-            .expect("First accrual not found")
-            .id;
-
-        self.jobs
-            .create_and_spawn_at_in_op(
-                &mut op,
-                accrual_id,
-                interest_accruals::InterestAccrualJobConfig::<Perms, E> {
-                    credit_facility_id: id,
-                    _phantom: std::marker::PhantomData,
-                },
-                next_accrual_period.end,
-            )
-            .await?;
+        let ActivationData { credit_facility } =
+            match self.credit_facilities.activate_in_op(&mut op, id).await? {
+                ActivationOutcome::Activated(data) => data,
+                ActivationOutcome::Ignored => {
+                    return Ok(());
+                }
+            };
 
         if !credit_facility.structuring_fee().is_zero() {
             let disbursal_id = self
