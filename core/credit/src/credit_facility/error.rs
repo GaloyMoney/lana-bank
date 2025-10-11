@@ -14,8 +14,10 @@ pub enum CreditFacilityError {
     ConversionError(#[from] crate::primitives::ConversionError),
     #[error("CreditFacilityError - InterestAccrualCycleError: {0}")]
     InterestAccrualCycleError(
-        #[from] crate::interest_accrual_cycle::error::InterestAccrualCycleError,
+        #[from] crate::credit_facility::interest_accrual_cycle::error::InterestAccrualCycleError,
     ),
+    #[error("CreditFacilityError - DisbursalError: {0}")]
+    DisbursalError(#[from] crate::disbursal::error::DisbursalError),
     #[error("CreditFacilityError - ApprovalInProgress")]
     ApprovalInProgress,
     #[error("CreditFacilityError - Denied")]

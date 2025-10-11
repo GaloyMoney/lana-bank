@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
+    credit_facility::NewCreditFacilityBuilder,
     ledger::{
         CreditFacilityProposalAccountIds, CreditFacilityProposalBalanceSummary,
         CreditFacilityProposalCreation,
@@ -211,7 +212,8 @@ impl CreditFacilityProposal {
         &mut self,
         balances: CreditFacilityProposalBalanceSummary,
         price: PriceOfOneBTC,
-    ) -> Result<Idempotent<()>, CreditFacilityProposalError> {
+        time: DateTime<Utc>,
+    ) -> Result<Idempotent<NewCreditFacilityBuilder>, CreditFacilityProposalError> {
         idempotency_guard!(
             self.events.iter_all(),
             CreditFacilityProposalEvent::Completed { .. }
@@ -227,7 +229,24 @@ impl CreditFacilityProposal {
 
         self.events.push(CreditFacilityProposalEvent::Completed {});
 
-        Ok(Idempotent::Executed(()))
+        let mut new_credit_facility = NewCreditFacilityBuilder::default();
+        new_credit_facility
+            .id(self.id)
+            .credit_facility_proposal_id(self.id)
+            .ledger_tx_id(LedgerTxId::new())
+            .customer_id(self.customer_id)
+            .customer_type(self.customer_type)
+            .account_ids(crate::CreditFacilityLedgerAccountIds::from(
+                self.account_ids,
+            ))
+            .disbursal_credit_account_id(self.disbursal_credit_account_id)
+            .collateral_id(self.collateral_id)
+            .terms(self.terms)
+            .amount(self.amount)
+            .activated_at(crate::time::now())
+            .maturity_date(self.terms.maturity_date(time));
+
+        Ok(Idempotent::Executed(new_credit_facility))
     }
 
     fn is_completed(&self) -> bool {
@@ -394,7 +413,7 @@ mod test {
         fn errors_when_not_approved_yet() {
             let mut facility_proposal = proposal_from(initial_events());
             assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price()),
+                facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
                 Err(CreditFacilityProposalError::ApprovalInProgress)
             ));
         }
@@ -409,7 +428,7 @@ mod test {
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price()),
+                facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
                 Err(CreditFacilityProposalError::BelowMarginLimit)
             ));
         }
@@ -429,7 +448,8 @@ mod test {
                         default_facility(),
                         Satoshis::from(1_000)
                     ),
-                    default_price()
+                    default_price(),
+                    crate::time::now()
                 ),
                 Err(CreditFacilityProposalError::BelowMarginLimit)
             ));
@@ -448,7 +468,7 @@ mod test {
             let mut facility_proposal = proposal_from(events);
 
             assert!(matches!(
-                facility_proposal.complete(default_balances(), default_price()),
+                facility_proposal.complete(default_balances(), default_price(), crate::time::now()),
                 Ok(Idempotent::Ignored)
             ));
         }
@@ -469,7 +489,8 @@ mod test {
                             default_facility(),
                             Satoshis::from(1_000_000)
                         ),
-                        default_price()
+                        default_price(),
+                        crate::time::now()
                     )
                     .is_ok()
             );

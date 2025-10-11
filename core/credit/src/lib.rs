@@ -11,7 +11,6 @@ pub mod error;
 mod event;
 mod for_subject;
 mod history;
-mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
 mod liquidation_process;
@@ -54,7 +53,6 @@ use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
-pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
@@ -184,20 +182,6 @@ where
             pool, authz, jobs, &ledger, price, &publisher, governance,
         )
         .await?;
-        let credit_facilities = CreditFacilities::init(
-            pool,
-            authz,
-            &obligations,
-            &credit_facility_proposals,
-            &ledger,
-            price,
-            jobs,
-            &publisher,
-            governance,
-            public_ids,
-        )
-        .await?;
-        let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
         let disbursals = Disbursals::init(
             pool,
             authz,
@@ -207,6 +191,21 @@ where
             public_ids,
         )
         .await?;
+        let credit_facilities = CreditFacilities::init(
+            pool,
+            authz,
+            &obligations,
+            &credit_facility_proposals,
+            &disbursals,
+            &ledger,
+            price,
+            jobs,
+            &publisher,
+            governance,
+            public_ids,
+        )
+        .await?;
+        let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
         let payments = Payments::new(pool, authz);
         let history_repo = HistoryRepo::new(pool);
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
