@@ -101,18 +101,25 @@ where
             customer_email: customer.email,
         };
 
-        let mut query = es_entity::PaginatedQueryArgs::default();
-        loop {
-            let first = query.first;
+        let mut has_next_page = true;
+        let mut after = None;
+        // currently email notifications are sent to all users in the system
+        // TODO: create a role for receiving margin call / overdue payment emails
+        while has_next_page {
             let es_entity::PaginatedQueryRet {
-                entities,
-                has_next_page,
+                entities: users,
+                has_next_page: next_page,
                 end_cursor,
             } = self
                 .users
-                .list_users_without_audit(query, es_entity::ListDirection::Descending)
+                .list_users_without_audit(
+                    es_entity::PaginatedQueryArgs { first: 20, after },
+                    es_entity::ListDirection::Descending,
+                )
                 .await?;
-            for user in entities {
+            (after, has_next_page) = (end_cursor, next_page);
+
+            for user in users {
                 let email_config = EmailSenderConfig {
                     recipient: user.email,
                     email_type: EmailType::OverduePayment(email_data.clone()),
@@ -120,14 +127,6 @@ where
                 self.jobs
                     .create_and_spawn_in_op(op, JobId::new(), email_config)
                     .await?;
-            }
-            if has_next_page {
-                query = es_entity::PaginatedQueryArgs {
-                    first,
-                    after: end_cursor,
-                };
-            } else {
-                break;
             }
         }
         Ok(())
