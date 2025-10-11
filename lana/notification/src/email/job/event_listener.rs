@@ -1,12 +1,13 @@
 use async_trait::async_trait;
 use futures::StreamExt;
 use serde::{Deserialize, Serialize};
+use tracing::{Span, instrument};
 
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
 use lana_events::{CoreCreditEvent, LanaEvent};
-use outbox::Outbox;
+use outbox::{Outbox, PersistentOutboxEvent};
 
 use crate::email::EmailNotification;
 
@@ -119,6 +120,50 @@ where
     email_notification: EmailNotification<AuthzType>,
 }
 
+impl<AuthzType> EmailEventListenerRunner<AuthzType>
+where
+    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
+        + From<core_customer::CoreCustomerAction>
+        + From<core_access::CoreAccessAction>
+        + From<governance::GovernanceAction>
+        + From<core_custody::CoreCustodyAction>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
+        + From<core_customer::CustomerObject>
+        + From<core_access::CoreAccessObject>
+        + From<governance::GovernanceObject>
+        + From<core_custody::CoreCustodyObject>,
+    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
+        From<core_access::UserId>,
+{
+    #[instrument(name = "notification.email_listener_job.process_msg", parent = None, skip(self, message, op), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<LanaEvent>,
+        op: &mut impl es_entity::AtomicOperation,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(
+                event @ CoreCreditEvent::ObligationOverdue {
+                    id,
+                    credit_facility_id,
+                    amount,
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                self.email_notification
+                    .send_obligation_overdue_notification(op, id, credit_facility_id, amount)
+                    .await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<AuthzType> JobRunner for EmailEventListenerRunner<AuthzType>
 where
@@ -143,54 +188,18 @@ where
         let mut state = current_job
             .execution_state::<EmailEventListenerJobData>()?
             .unwrap_or_default();
-
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
+
         while let Some(message) = stream.next().await {
             let mut op = current_job.pool().begin().await?;
-            if let Some(event) = &message.payload {
-                self.handle_event(&mut op, event).await?;
-            }
+            self.process_message(message.as_ref(), &mut op).await?;
             state.sequence = message.sequence;
             current_job
                 .update_execution_state_in_op(&mut op, &state)
                 .await?;
             op.commit().await?;
         }
-        Ok(JobCompletion::RescheduleNow)
-    }
-}
 
-impl<AuthzType> EmailEventListenerRunner<AuthzType>
-where
-    AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
-        + From<core_customer::CoreCustomerAction>
-        + From<core_access::CoreAccessAction>
-        + From<governance::GovernanceAction>
-        + From<core_custody::CoreCustodyAction>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
-        + From<core_customer::CustomerObject>
-        + From<core_access::CoreAccessObject>
-        + From<governance::GovernanceObject>
-        + From<core_custody::CoreCustodyObject>,
-    <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
-        From<core_access::UserId>,
-{
-    async fn handle_event(
-        &self,
-        op: &mut impl es_entity::AtomicOperation,
-        event: &LanaEvent,
-    ) -> Result<(), Box<dyn std::error::Error>> {
-        if let LanaEvent::Credit(CoreCreditEvent::ObligationOverdue {
-            id,
-            credit_facility_id,
-            amount,
-        }) = event
-        {
-            self.email_notification
-                .send_obligation_overdue_notification(op, id, credit_facility_id, amount)
-                .await?;
-        }
-        Ok(())
+        Ok(JobCompletion::RescheduleNow)
     }
 }
