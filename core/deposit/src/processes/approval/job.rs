@@ -124,7 +124,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
         From<CoreDepositObject> + From<GovernanceObject>,
 {
-    #[instrument(name = "core_deposit.withdraw_approval_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
+    #[instrument(name = "core_deposit.withdraw_approval_job.process_msg", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(
         &self,
