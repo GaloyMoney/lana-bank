@@ -1,8 +1,6 @@
 pub mod config;
 pub mod error;
 pub mod job;
-
-mod smtp;
 pub mod templates;
 
 use ::job::{JobId, Jobs};
@@ -11,8 +9,8 @@ use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
 use core_customer::Customers;
 use job::{EmailSenderConfig, EmailSenderInit};
 use lana_events::LanaEvent;
+use smtp_client::SmtpClient;
 
-use smtp::SmtpClient;
 use templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
 
 pub use config::EmailConfig;
@@ -54,7 +52,7 @@ where
         customers: &Customers<AuthzType, LanaEvent>,
     ) -> Result<Self, EmailError> {
         let template = EmailTemplate::new(config.admin_panel_url.clone())?;
-        let smtp_client = SmtpClient::init(config)?;
+        let smtp_client = SmtpClient::init(config.to_smtp_config())?;
         jobs.add_initializer(EmailSenderInit::new(smtp_client, template));
         Ok(Self {
             jobs: jobs.clone(),

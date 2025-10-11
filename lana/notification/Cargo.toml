@@ -20,13 +20,13 @@ core-money = { workspace = true }
 governance = { workspace = true }
 core-custody = { workspace = true }
 
+smtp-client = { workspace = true }
 es-entity = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-lettre = { workspace = true }
 handlebars = { workspace = true }
 chrono = { workspace = true }
 tracing = { workspace = true }
