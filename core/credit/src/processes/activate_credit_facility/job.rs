@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId};
 
@@ -109,6 +110,49 @@ where
     outbox: Outbox<E>,
     process: ActivateCreditFacility<Perms, E>,
 }
+
+impl<Perms, E> CreditFacilityActivationJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
+{
+    #[instrument(name = "core_credit.credit_facility_activation_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        use CoreCreditEvent::*;
+
+        match message.as_event() {
+            Some(
+                event @ FacilityCollateralUpdated {
+                    credit_facility_id, ..
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                self.process.execute(*credit_facility_id).await?;
+            }
+            Some(event @ FacilityProposalApproved { id, .. }) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                let facility_id: CreditFacilityId = (*id).into();
+                self.process.execute(facility_id).await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<Perms, E> JobRunner for CreditFacilityActivationJobRunner<Perms, E>
 where
@@ -129,19 +173,9 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(event) = message.as_ref().as_event() {
-                let id: CreditFacilityId = match event {
-                    CoreCreditEvent::FacilityCollateralUpdated {
-                        credit_facility_id, ..
-                    } => *credit_facility_id,
-                    CoreCreditEvent::FacilityProposalApproved { id, .. } => (*id).into(),
-                    _ => continue,
-                };
-
-                self.process.execute(id).await?;
-                state.sequence = message.sequence;
-                current_job.update_execution_state(state).await?;
-            }
+            self.process_message(message.as_ref()).await?;
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)

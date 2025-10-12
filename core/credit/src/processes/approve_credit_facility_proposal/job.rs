@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use crate::{CoreCreditAction, CoreCreditEvent, CoreCreditObject};
 
@@ -117,6 +118,43 @@ where
     outbox: Outbox<E>,
     process: ApproveCreditFacilityProposal<Perms, E>,
 }
+
+impl<Perms, E> CreditFacilityProposalApprovalJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
+{
+    #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(
+                event @ GovernanceEvent::ApprovalProcessConcluded {
+                    id,
+                    approved,
+                    process_type,
+                    ..
+                },
+            ) if process_type == &super::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+                Span::current().record("process_type", process_type.to_string());
+                
+                self.process.execute(*id, *approved).await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<Perms, E> JobRunner for CreditFacilityProposalApprovalJobRunner<Perms, E>
 where
@@ -137,19 +175,9 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            match message.as_ref().as_event() {
-                Some(GovernanceEvent::ApprovalProcessConcluded {
-                    id,
-                    approved,
-                    process_type,
-                    ..
-                }) if process_type == &super::APPROVE_CREDIT_FACILITY_PROPOSAL_PROCESS => {
-                    self.process.execute(*id, *approved).await?;
-                    state.sequence = message.sequence;
-                    current_job.update_execution_state(state).await?;
-                }
-                _ => {}
-            }
+            self.process_message(message.as_ref()).await?;
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
