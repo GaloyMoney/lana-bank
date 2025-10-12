@@ -163,7 +163,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     }
 
     let (send, mut receive) = tokio::sync::mpsc::channel(1);
-    let mut handles = Vec::new();
+    let mut server_handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
 
     #[cfg(feature = "sim-bootstrap")]
@@ -184,7 +184,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let admin_send = send.clone();
     let admin_app = app.clone();
 
-    handles.push(tokio::spawn(async move {
+    server_handles.push(tokio::spawn(async move {
         let _ = admin_send.try_send(
             admin_server::run(config.admin_server, admin_app)
                 .await
@@ -193,7 +193,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     }));
     let customer_send = send.clone();
     let customer_app = app.clone();
-    handles.push(tokio::spawn(async move {
+    server_handles.push(tokio::spawn(async move {
         let _ = customer_send.try_send(
             customer_server::run(config.customer_server, customer_app)
                 .await
@@ -207,31 +207,27 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
         .context("Failed to setup SIGINT handler")?;
 
-    // Wait for either a server error or a shutdown signal
     let result = tokio::select! {
         reason = receive.recv() => {
-            // Server error occurred
             eprintln!("Shutting down due to error...");
-            let res = reason.expect("Didn't receive msg");
-            app.shutdown().await;
-            res
+            reason.expect("Didn't receive msg")
         }
         _ = sigterm.recv() => {
             eprintln!("Received SIGTERM, shutting down gracefully...");
-            app.shutdown().await;
             Ok(())
         }
         _ = sigint.recv() => {
             eprintln!("Received SIGINT (Ctrl-C), shutting down gracefully...");
-            app.shutdown().await;
             Ok(())
         }
     };
 
-    // Abort spawned server tasks
-    for handle in handles {
+    for handle in server_handles {
         handle.abort();
     }
+
+    app.shutdown().await?;
+    eprintln!("shutdown complete");
 
     result
 }

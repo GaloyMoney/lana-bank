@@ -87,7 +87,7 @@ impl LanaApp {
                 .pool(pool.clone())
                 .poller_config(config.job_poller)
                 .build()
-                .unwrap(),
+                .expect("Couldn't build JobSvcConfig"),
         )
         .await?;
 
@@ -300,8 +300,9 @@ impl LanaApp {
         crate::authorization::get_visible_navigation_items(&self.authz, sub).await
     }
 
-    #[instrument(name = "app.shutdown", skip(self))]
-    pub async fn shutdown(&self) {
-        let _ = self.jobs.shutdown().await;
+    #[instrument(name = "app.shutdown", skip(self), err)]
+    pub async fn shutdown(&self) -> Result<(), ApplicationError> {
+        self.jobs.shutdown().await?;
+        Ok(())
     }
 }
