@@ -24,8 +24,8 @@ base16ct = { version = "0.2", default-features = false, features = ["alloc"] }
 base64 = { version = "0.22" }
 byteorder = { version = "1", default-features = false, features = ["std"] }
 bytes = { version = "1", features = ["serde"] }
-cala-ledger = { version = "0.11", default-features = false, features = ["graphql", "json-schema"] }
-cala-ledger-core-types = { version = "0.11", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
+cala-ledger-core-types = { version = "0.12", default-features = false, features = ["graphql", "json-schema"] }
 chrono = { version = "0.4", features = ["serde"] }
 cipher = { version = "0.4", default-features = false, features = ["block-padding", "zeroize"] }
 clap = { version = "4", features = ["derive", "env"] }
@@ -59,7 +59,7 @@ hyper-util = { version = "0.1", features = ["client-legacy", "server-auto", "ser
 idna = { version = "1" }
 indexmap = { version = "2", features = ["serde"] }
 inout = { version = "0.1", default-features = false, features = ["block-padding"] }
-job = { version = "0.1", default-features = false, features = ["json-schema", "sim-time"] }
+job = { version = "0.2", default-features = false, features = ["json-schema", "sim-time"] }
 lalrpop-util = { version = "0.20", features = ["lexer"] }
 log = { version = "0.4", default-features = false, features = ["std"] }
 memchr = { version = "2" }
@@ -95,7 +95,7 @@ standback = { version = "0.2", default-features = false, features = ["std"] }
 subtle = { version = "2", default-features = false, features = ["i128"] }
 thiserror = { version = "2" }
 time = { version = "0.3", features = ["formatting", "macros", "parsing", "serde"] }
-tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "sync", "time"] }
+tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "signal", "sync", "time"] }
 tokio-stream = { version = "0.1", features = ["fs", "net", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
 toml_datetime = { version = "0.6", default-features = false, features = ["serde"] }
@@ -159,7 +159,7 @@ syn = { version = "2", features = ["extra-traits", "fold", "full", "visit", "vis
 thiserror = { version = "2" }
 time-macros = { version = "0.2", default-features = false, features = ["formatting", "parsing", "serde"] }
 tiny-keccak = { version = "2", features = ["sha3", "shake"] }
-tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "sync", "time"] }
+tokio = { version = "1", features = ["fs", "io-std", "io-util", "macros", "net", "parking_lot", "rt-multi-thread", "signal", "sync", "time"] }
 tokio-stream = { version = "0.1", features = ["fs", "net", "sync"] }
 tokio-util = { version = "0.7", features = ["codec", "compat", "io"] }
 toml_datetime = { version = "0.6", default-features = false, features = ["serde"] }

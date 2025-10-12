@@ -174,15 +174,15 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .clone()
         .expect("super user");
 
-    let admin_app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
-    let customer_app = admin_app.clone();
+    let app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
 
     #[cfg(feature = "sim-bootstrap")]
     {
-        let _ = sim_bootstrap::run(superuser_email.to_string(), &admin_app, config.bootstrap).await;
+        let _ = sim_bootstrap::run(superuser_email.to_string(), &app, config.bootstrap).await;
     }
 
     let admin_send = send.clone();
+    let admin_app = app.clone();
 
     handles.push(tokio::spawn(async move {
         let _ = admin_send.try_send(
@@ -192,6 +192,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         );
     }));
     let customer_send = send.clone();
+    let customer_app = app.clone();
     handles.push(tokio::spawn(async move {
         let _ = customer_send.try_send(
             customer_server::run(config.customer_server, customer_app)
@@ -200,12 +201,39 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         );
     }));
 
-    let reason = receive.recv().await.expect("Didn't receive msg");
+    // Setup signal handlers
+    let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        .context("Failed to setup SIGTERM handler")?;
+    let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+        .context("Failed to setup SIGINT handler")?;
+
+    // Wait for either a server error or a shutdown signal
+    let result = tokio::select! {
+        reason = receive.recv() => {
+            // Server error occurred
+            eprintln!("Shutting down due to error...");
+            let res = reason.expect("Didn't receive msg");
+            app.shutdown().await;
+            res
+        }
+        _ = sigterm.recv() => {
+            eprintln!("Received SIGTERM, shutting down gracefully...");
+            app.shutdown().await;
+            Ok(())
+        }
+        _ = sigint.recv() => {
+            eprintln!("Received SIGINT (Ctrl-C), shutting down gracefully...");
+            app.shutdown().await;
+            Ok(())
+        }
+    };
+
+    // Abort spawned server tasks
     for handle in handles {
         handle.abort();
     }
 
-    reason
+    result
 }
 
 pub fn store_server_pid(lana_home: &str, pid: u32) -> anyhow::Result<()> {

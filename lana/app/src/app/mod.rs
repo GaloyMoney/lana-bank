@@ -42,7 +42,7 @@ use error::ApplicationError;
 #[derive(Clone)]
 pub struct LanaApp {
     _pool: PgPool,
-    _jobs: Jobs,
+    jobs: Jobs,
     audit: Audit,
     authz: Authorization,
     accounting: Accounting,
@@ -188,7 +188,7 @@ impl LanaApp {
 
         Ok(Self {
             _pool: pool,
-            _jobs: jobs,
+            jobs,
             audit,
             authz,
             accounting,
@@ -298,5 +298,10 @@ impl LanaApp {
         crate::authorization::error::AuthorizationError,
     > {
         crate::authorization::get_visible_navigation_items(&self.authz, sub).await
+    }
+
+    #[instrument(name = "app.shutdown", skip(self))]
+    pub async fn shutdown(&self) {
+        let _ = self.jobs.shutdown().await;
     }
 }

@@ -38,7 +38,7 @@ run-server-normal:
 	cargo run --features sim-time,mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana-normal.yml 2>&1 | tee .e2e-logs
 
 run-server:
-	cargo run --features sim-time,mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml 2>&1 | tee .e2e-logs
+	cargo run --features sim-time,mock-custodian,sumsub-testing --bin lana-cli -- --config ./bats/lana.yml 2>&1
 
 run-server-nix:
 	nix run . -- --config ./bats/lana.yml 2>&1 | tee .e2e-logs
