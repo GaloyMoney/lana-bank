@@ -14,6 +14,7 @@ lana-events = { workspace = true }
 core-access = { workspace = true }
 core-credit = { workspace = true }
 core-customer = { workspace = true }
+core-deposit = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 core-money = { workspace = true }

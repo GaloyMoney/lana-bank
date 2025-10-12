@@ -6,7 +6,7 @@ use tracing::{Span, instrument};
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
-use lana_events::{CoreCreditEvent, LanaEvent};
+use lana_events::{CoreCreditEvent, CoreDepositEvent, LanaEvent};
 use outbox::{Outbox, PersistentOutboxEvent};
 
 use crate::email::EmailNotification;
@@ -26,11 +26,13 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
@@ -53,11 +55,13 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
@@ -81,11 +85,13 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
@@ -126,37 +132,52 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
     #[instrument(name = "notification.email_listener_job.process_msg", parent = None, skip(self, message, op), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
-    #[allow(clippy::single_match)]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<LanaEvent>,
         op: &mut impl es_entity::AtomicOperation,
     ) -> Result<(), Box<dyn std::error::Error>> {
         match message.as_event() {
-            Some(
-                event @ CoreCreditEvent::ObligationOverdue {
+            Some(LanaEvent::Credit(
+                credit_event @ CoreCreditEvent::ObligationOverdue {
                     id,
                     credit_facility_id,
                     amount,
                 },
-            ) => {
+            )) => {
                 message.inject_trace_parent();
                 Span::current().record("handled", true);
-                Span::current().record("event_type", event.as_ref());
+                Span::current().record("event_type", credit_event.as_ref());
 
                 self.email_notification
                     .send_obligation_overdue_notification(op, id, credit_facility_id, amount)
+                    .await?;
+            }
+            Some(LanaEvent::Deposit(
+                deposit_event @ CoreDepositEvent::DepositAccountCreated {
+                    id,
+                    account_holder_id,
+                },
+            )) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", deposit_event.as_ref());
+
+                self.email_notification
+                    .send_deposit_account_created_notification(op, id, account_holder_id)
                     .await?;
             }
             _ => {}
@@ -172,11 +193,13 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:

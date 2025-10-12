@@ -9,6 +9,7 @@ use crate::email::error::EmailError;
 #[derive(Debug, Serialize, Deserialize)]
 pub enum EmailType {
     OverduePayment(OverduePaymentEmailData),
+    DepositAccountCreated(DepositAccountCreatedEmailData),
     General { subject: String, body: String },
 }
 
@@ -26,6 +27,10 @@ impl EmailTemplate {
         handlebars.register_template_string("styles", include_str!("partials/styles.hbs"))?;
         handlebars.register_template_string("general", include_str!("views/general.hbs"))?;
         handlebars.register_template_string("overdue", include_str!("views/overdue.hbs"))?;
+        handlebars.register_template_string(
+            "account_created",
+            include_str!("views/account_created.hbs"),
+        )?;
         Ok(Self {
             handlebars,
             admin_panel_url,
@@ -36,6 +41,9 @@ impl EmailTemplate {
     pub fn render_email(&self, email_type: &EmailType) -> Result<(String, String), EmailError> {
         match email_type {
             EmailType::OverduePayment(data) => self.render_overdue_payment_email(data),
+            EmailType::DepositAccountCreated(data) => {
+                self.render_deposit_account_created_email(data)
+            }
             EmailType::General { subject, body } => self.generic_email_template(subject, body),
         }
     }
@@ -80,6 +88,21 @@ impl EmailTemplate {
         let html_body = self.handlebars.render("overdue", &data)?;
         Ok((subject, html_body))
     }
+
+    #[allow(clippy::result_large_err)]
+    fn render_deposit_account_created_email(
+        &self,
+        data: &DepositAccountCreatedEmailData,
+    ) -> Result<(String, String), EmailError> {
+        let subject = "Lana Bank: Your Deposit Account Has Been Created".to_string();
+        let data = json!({
+            "subject": &subject,
+            "customer_email": &data.customer_email,
+            "account_id": &data.account_id,
+        });
+        let html_body = self.handlebars.render("account_created", &data)?;
+        Ok((subject, html_body))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -89,5 +112,11 @@ pub struct OverduePaymentEmailData {
     pub original_amount: UsdCents,
     pub outstanding_amount: UsdCents,
     pub due_date: DateTime<Utc>,
+    pub customer_email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct DepositAccountCreatedEmailData {
+    pub account_id: String,
     pub customer_email: String,
 }

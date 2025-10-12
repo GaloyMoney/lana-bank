@@ -11,7 +11,9 @@ use job::{EmailSenderConfig, EmailSenderInit};
 use lana_events::LanaEvent;
 use smtp_client::SmtpClient;
 
-use templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
+use templates::{
+    DepositAccountCreatedEmailData, EmailTemplate, EmailType, OverduePaymentEmailData,
+};
 
 pub use config::EmailConfig;
 pub use error::EmailError;
@@ -34,11 +36,13 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
@@ -127,6 +131,32 @@ where
                     .await?;
             }
         }
+        Ok(())
+    }
+
+    pub async fn send_deposit_account_created_notification(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        account_id: &core_deposit::DepositAccountId,
+        account_holder_id: &core_deposit::DepositAccountHolderId,
+    ) -> Result<(), EmailError> {
+        let customer_id: core_customer::CustomerId = (*account_holder_id).into();
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+
+        let email_data = DepositAccountCreatedEmailData {
+            account_id: account_id.to_string(),
+            customer_email: customer.email.clone(),
+        };
+
+        let email_config = EmailSenderConfig {
+            recipient: customer.email,
+            email_type: EmailType::DepositAccountCreated(email_data),
+        };
+
+        self.jobs
+            .create_and_spawn_in_op(op, JobId::new(), email_config)
+            .await?;
+
         Ok(())
     }
 }

@@ -3752,6 +3752,7 @@ dependencies = [
  "core-credit",
  "core-custody",
  "core-customer",
+ "core-deposit",
  "core-money",
  "es-entity",
  "futures",
