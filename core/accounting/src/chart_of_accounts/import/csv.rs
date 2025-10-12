@@ -98,7 +98,7 @@ impl CsvParser {
                         }
                     }
                 }
-                Err(e) => eprintln!("Error reading record: {e}"),
+                Err(e) => tracing::error!(error = %e, "Error reading CSV record"),
             }
         }
 

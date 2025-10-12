@@ -177,9 +177,9 @@ where
                 )
                 .await?;
         } else {
-            println!(
-                "All Credit Facility interest accrual cycles completed for credit_facility: {:?}",
-                self.config.credit_facility_id
+            tracing::info!(
+                credit_facility_id = %self.config.credit_facility_id,
+                "All credit facility interest accrual cycles completed"
             );
         };
 
