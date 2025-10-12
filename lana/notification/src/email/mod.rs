@@ -13,6 +13,7 @@ use smtp_client::SmtpClient;
 
 use templates::{
     DepositAccountCreatedEmailData, EmailTemplate, EmailType, OverduePaymentEmailData,
+    RoleCreatedEmailData,
 };
 
 pub use config::EmailConfig;
@@ -157,6 +158,47 @@ where
             .create_and_spawn_in_op(op, JobId::new(), email_config)
             .await?;
 
+        Ok(())
+    }
+
+    pub async fn send_role_created_notification(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        role_id: &core_access::RoleId,
+        role_name: &str,
+    ) -> Result<(), EmailError> {
+        let email_data = RoleCreatedEmailData {
+            role_id: role_id.to_string(),
+            role_name: role_name.to_string(),
+        };
+
+        let mut has_next_page = true;
+        let mut after = None;
+        // Send email to all users in the system
+        while has_next_page {
+            let es_entity::PaginatedQueryRet {
+                entities: users,
+                has_next_page: next_page,
+                end_cursor,
+            } = self
+                .users
+                .list_users_without_audit(
+                    es_entity::PaginatedQueryArgs { first: 20, after },
+                    es_entity::ListDirection::Descending,
+                )
+                .await?;
+            (after, has_next_page) = (end_cursor, next_page);
+
+            for user in users {
+                let email_config = EmailSenderConfig {
+                    recipient: user.email,
+                    email_type: EmailType::RoleCreated(email_data.clone()),
+                };
+                self.jobs
+                    .create_and_spawn_in_op(op, JobId::new(), email_config)
+                    .await?;
+            }
+        }
         Ok(())
     }
 }

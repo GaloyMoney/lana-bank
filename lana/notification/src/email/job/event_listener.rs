@@ -6,7 +6,7 @@ use tracing::{Span, instrument};
 use job::{
     CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType, RetrySettings,
 };
-use lana_events::{CoreCreditEvent, CoreDepositEvent, LanaEvent};
+use lana_events::{CoreAccessEvent, CoreCreditEvent, CoreDepositEvent, LanaEvent};
 use outbox::{Outbox, PersistentOutboxEvent};
 
 use crate::email::EmailNotification;
@@ -178,6 +178,15 @@ where
 
                 self.email_notification
                     .send_deposit_account_created_notification(op, id, account_holder_id)
+                    .await?;
+            }
+            Some(LanaEvent::Access(access_event @ CoreAccessEvent::RoleCreated { id, name })) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", access_event.as_ref());
+
+                self.email_notification
+                    .send_role_created_notification(op, id, name)
                     .await?;
             }
             _ => {}

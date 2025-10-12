@@ -10,6 +10,7 @@ use crate::email::error::EmailError;
 pub enum EmailType {
     OverduePayment(OverduePaymentEmailData),
     DepositAccountCreated(DepositAccountCreatedEmailData),
+    RoleCreated(RoleCreatedEmailData),
     General { subject: String, body: String },
 }
 
@@ -31,6 +32,8 @@ impl EmailTemplate {
             "account_created",
             include_str!("views/account_created.hbs"),
         )?;
+        handlebars
+            .register_template_string("role_created", include_str!("views/role_created.hbs"))?;
         Ok(Self {
             handlebars,
             admin_panel_url,
@@ -44,6 +47,7 @@ impl EmailTemplate {
             EmailType::DepositAccountCreated(data) => {
                 self.render_deposit_account_created_email(data)
             }
+            EmailType::RoleCreated(data) => self.render_role_created_email(data),
             EmailType::General { subject, body } => self.generic_email_template(subject, body),
         }
     }
@@ -103,6 +107,21 @@ impl EmailTemplate {
         let html_body = self.handlebars.render("account_created", &data)?;
         Ok((subject, html_body))
     }
+
+    #[allow(clippy::result_large_err)]
+    fn render_role_created_email(
+        &self,
+        data: &RoleCreatedEmailData,
+    ) -> Result<(String, String), EmailError> {
+        let subject = format!("Lana Bank: New Role Created - {}", data.role_name);
+        let data = json!({
+            "subject": &subject,
+            "role_name": &data.role_name,
+            "role_id": &data.role_id,
+        });
+        let html_body = self.handlebars.render("role_created", &data)?;
+        Ok((subject, html_body))
+    }
 }
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -119,4 +138,10 @@ pub struct OverduePaymentEmailData {
 pub struct DepositAccountCreatedEmailData {
     pub account_id: String,
     pub customer_email: String,
+}
+
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct RoleCreatedEmailData {
+    pub role_id: String,
+    pub role_name: String,
 }
