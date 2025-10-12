@@ -128,7 +128,7 @@ where
         From<CoreCreditObject> + From<GovernanceObject>,
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreCreditEvent>,
 {
-    #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_msg", parent = None, skip(self, message), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
+    #[instrument(name = "core_credit.credit_facility_proposal_approval_job.process_msg", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty, process_type = tracing::field::Empty))]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
@@ -146,7 +146,7 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
                 Span::current().record("process_type", process_type.to_string());
-                
+
                 self.process.execute(*id, *approved).await?;
             }
             _ => {}

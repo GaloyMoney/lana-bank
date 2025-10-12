@@ -5,7 +5,7 @@ use core_money::Satoshis;
 
 use crate::primitives::WalletId;
 
-#[derive(Debug, Serialize, Deserialize)]
+#[derive(Debug, Serialize, Deserialize, strum::AsRefStr)]
 #[serde(tag = "type")]
 pub enum CoreCustodyEvent {
     WalletBalanceChanged {

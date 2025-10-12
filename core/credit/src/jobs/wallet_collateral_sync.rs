@@ -1,11 +1,12 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use tracing::{Span, instrument};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::*;
-use outbox::{Outbox, OutboxEventMarker};
+use outbox::{Outbox, OutboxEventMarker, PersistentOutboxEvent};
 
 use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
@@ -63,6 +64,48 @@ where
     outbox: Outbox<E>,
 }
 
+impl<Perms, E> WalletCollateralSyncJobRunner<Perms, E>
+where
+    Perms: PermissionCheck,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
+        From<CoreCreditAction> + From<GovernanceAction>,
+    <<Perms as PermissionCheck>::Audit as AuditSvc>::Object:
+        From<CoreCreditObject> + From<GovernanceObject>,
+    E: OutboxEventMarker<CoreCreditEvent>
+        + OutboxEventMarker<GovernanceEvent>
+        + OutboxEventMarker<CoreCustodyEvent>,
+{
+    #[instrument(name = "core_credit.wallet_collateral_sync_job.process_msg", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<E>,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        match message.as_event() {
+            Some(
+                event @ CoreCustodyEvent::WalletBalanceChanged {
+                    id,
+                    new_balance,
+                    changed_at,
+                },
+            ) => {
+                message.inject_trace_parent();
+                Span::current().record("handled", true);
+                Span::current().record("event_type", event.as_ref());
+
+                self.collaterals
+                    .record_collateral_update_via_custodian_sync(
+                        *id,
+                        *new_balance,
+                        changed_at.date_naive(),
+                    )
+                    .await?;
+            }
+            _ => {}
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl<Perms, E> JobRunner for WalletCollateralSyncJobRunner<Perms, E>
 where
@@ -82,27 +125,12 @@ where
         let mut state = current_job
             .execution_state::<WalletCollateralSyncJobData>()?
             .unwrap_or_default();
-
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(CoreCustodyEvent::WalletBalanceChanged {
-                id,
-                new_balance,
-                changed_at,
-            }) = message.as_ref().as_event()
-            {
-                self.collaterals
-                    .record_collateral_update_via_custodian_sync(
-                        *id,
-                        *new_balance,
-                        changed_at.date_naive(),
-                    )
-                    .await?;
-
-                state.sequence = message.sequence;
-                current_job.update_execution_state(state).await?;
-            }
+            self.process_message(message.as_ref()).await?;
+            state.sequence = message.sequence;
+            current_job.update_execution_state(&state).await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
