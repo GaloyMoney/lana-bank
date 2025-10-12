@@ -80,6 +80,7 @@ where
         &self,
         message: &PersistentOutboxEvent<E>,
     ) -> Result<(), Box<dyn std::error::Error>> {
+        #[allow(clippy::single_match)]
         match message.as_event() {
             Some(
                 event @ CoreCustodyEvent::WalletBalanceChanged {
