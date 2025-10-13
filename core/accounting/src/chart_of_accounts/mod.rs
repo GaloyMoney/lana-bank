@@ -224,9 +224,9 @@ where
         let id = id.into();
         let chart = self.repo.find_by_id(id).await?;
 
-        if !chart.is_prev_monthly_period_closed(now) {
-            return Err(ChartOfAccountsError::AccountPeriodAnnualCloseNotReady);
-        }
+        // if !chart.is_prev_monthly_period_closed(now) {
+        //     return Err(ChartOfAccountsError::AccountPeriodAnnualCloseNotReady);
+        // }
 
         // TODO: Where should we get these codes from? "6", "7", "8" intending to capture
         // "Revenue", "Cost of Revenue", "Expenses". May need to add an Account to
