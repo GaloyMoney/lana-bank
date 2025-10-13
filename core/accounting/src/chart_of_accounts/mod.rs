@@ -213,6 +213,26 @@ where
     }
 
     #[instrument(
+        name = "core_accounting.chart_of_accounts.close_annual",
+        skip(self,),
+        err
+    )]
+    pub async fn close_annual(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        id: impl Into<ChartId> + std::fmt::Debug,
+    ) -> Result<Chart, ChartOfAccountsError> {
+        let id = id.into();
+        let mut chart = self.repo.find_by_id(id).await?;
+
+        // TODO: Update repo.
+
+        // TODO: Use ChartLedger to collect accounts and make closing tx.
+
+        Ok(chart)
+    }
+
+    #[instrument(
         name = "core_accounting.chart_of_accounts.add_root_node",
         skip(self,),
         err
