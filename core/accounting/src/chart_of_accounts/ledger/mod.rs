@@ -1,4 +1,8 @@
 mod closing;
+
+mod template;
+use template::*;
+
 pub mod error;
 
 use cala_ledger::{
@@ -286,6 +290,29 @@ impl ChartLedger {
             credit_settled: credit_settled_limit,
             credit_pending: credit_pending_limit,
         })
+    }
+
+    pub async fn execute_annual_close_transaction(
+        &self,
+        op: es_entity::DbOp<'_>,
+        chart_root_account_set_id: impl Into<AccountSetId>,
+        closed_as_of: chrono::NaiveDate,
+    ) -> Result<(), ChartLedgerError> {
+        let mut op = self
+        .cala
+        .ledger_operation_from_db_op(op.with_db_time().await?);
+
+        // TODO: Move logic to build params based on `chart_root_account_set_id`
+
+        // let template =
+        //     AnnualClosingTransactionTemplate::init(&self.cala, params.entry_params.len()).await?;
+
+        // self.cala
+        //     .post_transaction_in_op(&mut op, tx_id, &template.code(), params)
+        //     .await?;
+
+        // op.commit().await?;
+        Ok(())
     }
 }
 
