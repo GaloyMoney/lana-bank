@@ -115,7 +115,7 @@ resource "honeycombio_flexible_board" "event_jobs" {
   panel {
     type = "query"
 
-      query_panel {
+    query_panel {
       query_id            = honeycombio_query.events.id
       query_annotation_id = honeycombio_query_annotation.events.id
       query_style         = "graph"
@@ -125,7 +125,7 @@ resource "honeycombio_flexible_board" "event_jobs" {
   panel {
     type = "query"
 
-      query_panel {
+    query_panel {
       query_id            = honeycombio_query.handled.id
       query_annotation_id = honeycombio_query_annotation.handled.id
       query_style         = "graph"
