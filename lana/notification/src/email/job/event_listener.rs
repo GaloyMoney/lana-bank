@@ -144,7 +144,7 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
         From<core_access::UserId>,
 {
-    #[instrument(name = "notification.email_listener_job.process_msg", parent = None, skip(self, message, op), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "notification.email_listener_job.process_message", parent = None, skip(self, message, op), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<LanaEvent>,

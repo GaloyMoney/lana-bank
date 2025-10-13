@@ -75,7 +75,7 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    #[instrument(name = "core_credit.wallet_collateral_sync_job.process_msg", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "core_credit.wallet_collateral_sync_job.process_message", parent = None, skip(self, message), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
