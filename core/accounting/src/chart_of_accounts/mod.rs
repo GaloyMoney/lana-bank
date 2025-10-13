@@ -224,28 +224,27 @@ where
         let id = id.into();
         let chart = self.repo.find_by_id(id).await?;
 
-        if !chart.is_prev_monthly_period_closed(now) {
-            return Err(ChartOfAccountsError::AccountPeriodAnnualCloseNotReady);
-        }
+        // if !chart.is_prev_monthly_period_closed(now) {
+        //     return Err(ChartOfAccountsError::AccountPeriodAnnualCloseNotReady);
+        // }
 
         // TODO: Where should we get these codes from? "6", "7", "8" intending to capture
         // "Revenue", "Cost of Revenue", "Expenses". May need to add an Account to
         // the "Equity" account set as a part of this process also, so. Note, there
         // is a TODO inside `is_ready_for_annual_closing_transaction` that also mentions
         // a possible need for additional config (or firm assumptions).
-        let revenue_parent_code = "41".parse::<AccountCode>().unwrap();
+        let revenue_parent_code = "4".parse::<AccountCode>().unwrap();
         let revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
-
-        let cost_of_revenue_parent_code = "51".parse::<AccountCode>().unwrap();
+        let cost_of_revenue_parent_code = "5".parse::<AccountCode>().unwrap();
         let cost_of_revenue_set_id =
             chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
-
-        let expenses_parent_code = "61".parse::<AccountCode>().unwrap();
+        let expenses_parent_code = "6".parse::<AccountCode>().unwrap();
         let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
-
         // TODO: These profit/loss destination AccountSets must also be configured but slightly differently than the ProfitAndLoss (top-level) AccountSets.
-        let retained_earnings_set_id = AccountSetId::new();
-        let retained_losses_set_id = AccountSetId::new();
+        let retained_earnings_parent_code = "32.01".parse::<AccountCode>().unwrap();
+        let retained_earnings_set_id = chart.account_set_id_from_code(&retained_earnings_parent_code)?;
+        let retained_losses_parent_code = "32.02".parse::<AccountCode>().unwrap();
+        let retained_losses_set_id = chart.account_set_id_from_code(&retained_losses_parent_code)?;
 
         let revenue_accounts = self.chart_ledger
             .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
