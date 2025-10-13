@@ -170,16 +170,20 @@ where
             .get_credit_facility_proposal_balance(proposal.account_ids)
             .await?;
 
-        if let es_entity::Idempotent::Executed(new_facility) =
-            proposal.complete(balances, price, crate::time::now())?
-        {
-            self.repo.update_in_op(db, &mut proposal).await?;
+        match proposal.complete(balances, price, crate::time::now()) {
+            Ok(es_entity::Idempotent::Executed(new_facility)) => {
+                self.repo.update_in_op(db, &mut proposal).await?;
 
-            Ok(CreditFacilityProposalCompletionOutcome::Completed(
-                new_facility,
-            ))
-        } else {
-            Ok(CreditFacilityProposalCompletionOutcome::Ignored)
+                Ok(CreditFacilityProposalCompletionOutcome::Completed(
+                    new_facility,
+                ))
+            }
+            Ok(es_entity::Idempotent::Ignored)
+            | Err(CreditFacilityProposalError::BelowMarginLimit)
+            | Err(CreditFacilityProposalError::ApprovalInProgress) => {
+                Ok(CreditFacilityProposalCompletionOutcome::Ignored)
+            }
+            Err(e) => Err(e),
         }
     }
 
