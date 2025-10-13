@@ -89,10 +89,7 @@ where
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityId>,
     ) -> Result<(), CoreCreditError> {
-        let id = id.into();
-
-        self.credit_facilities.activate(id).await?;
-
+        self.credit_facilities.activate(id.into()).await?;
         Ok(())
     }
 }

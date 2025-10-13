@@ -202,12 +202,23 @@ where
             )
             .await?;
 
-        if !credit_facility.structuring_fee().is_zero() {
+        let new_disbursal_bld = credit_facility.create_new_disbursal_builder_for_structuring_fee();
+        if let Some(mut new_disbursal_bld) = new_disbursal_bld {
+            let disbursal_id = DisbursalId::new();
+            let public_id = self
+                .public_ids
+                .create_in_op(&mut db, DISBURSAL_REF_TARGET, disbursal_id)
+                .await?;
+            let new_disbursal = new_disbursal_bld
+                .public_id(public_id.id)
+                .id(disbursal_id)
+                .build()
+                .expect("could not build new disbursal");
+
             let disbursal_id = self
                 .disbursals
-                .create_first_disbursal_in_op(&mut db, &credit_facility)
+                .create_first_disbursal_in_op(&mut db, new_disbursal)
                 .await?;
-
             self.ledger
                 .handle_activation_with_structuring_fee(
                     db,
@@ -215,7 +226,6 @@ where
                     disbursal_id,
                 )
                 .await?;
-
             return Ok(());
         }
 

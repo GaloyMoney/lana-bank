@@ -18,8 +18,6 @@ pub enum DisbursalError {
     ObligationError(#[from] crate::obligation::error::ObligationError),
     #[error("CreditFacilityError - AuditError: {0}")]
     AuditError(#[from] audit::error::AuditError),
-    #[error("DisbursalError - PublicIdError: {0}")]
-    PublicIdError(#[from] public_id::error::PublicIdError),
 }
 
 es_entity::from_es_entity_error!(DisbursalError);

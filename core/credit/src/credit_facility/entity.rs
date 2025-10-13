@@ -7,6 +7,7 @@ use serde::{Deserialize, Serialize};
 use es_entity::*;
 
 use crate::{
+    disbursal::NewDisbursalBuilder,
     ledger::*,
     obligation::{NewObligation, ObligationsAmounts},
     primitives::*,
@@ -517,6 +518,36 @@ impl CreditFacility {
         }
 
         Idempotent::Executed(())
+    }
+
+    pub(super) fn create_new_disbursal_builder_for_structuring_fee(
+        &self,
+    ) -> Option<NewDisbursalBuilder> {
+        if self.structuring_fee().is_zero() {
+            return None;
+        }
+        let due_date = self.maturity_date;
+        let overdue_date = self
+            .terms
+            .obligation_overdue_duration_from_due
+            .map(|d| d.end_date(due_date));
+        let liquidation_date = self
+            .terms
+            .obligation_liquidation_duration_from_due
+            .map(|d| d.end_date(due_date));
+
+        let mut new_disbursal_bld = NewDisbursalBuilder::default();
+        new_disbursal_bld
+            .credit_facility_id(self.id)
+            .approval_process_id(self.id)
+            .amount(self.structuring_fee())
+            .account_ids(self.account_ids)
+            .disbursal_credit_account_id(self.disbursal_credit_account_id)
+            .due_date(due_date)
+            .overdue_date(overdue_date)
+            .liquidation_date(liquidation_date);
+
+        Some(new_disbursal_bld)
     }
 }
 
