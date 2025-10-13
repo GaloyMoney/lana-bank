@@ -532,6 +532,7 @@ impl CreditFacility {
 
         let mut new_disbursal_bld = NewDisbursalBuilder::default();
         new_disbursal_bld
+            .id(DisbursalId::new())
             .credit_facility_id(self.id)
             .approval_process_id(self.id)
             .amount(self.structuring_fee())

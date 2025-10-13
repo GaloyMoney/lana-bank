@@ -270,6 +270,12 @@ pub struct NewDisbursal {
 }
 
 impl NewDisbursalBuilder {
+    pub fn unwrap_id(&self) -> DisbursalId {
+        self.id.expect("disbursal_id not set")
+    }
+}
+
+impl NewDisbursalBuilder {
     fn validate(&self) -> Result<(), String> {
         match self.amount {
             Some(amount) if amount.is_zero() => Err("Disbursal amount cannot be zero".to_string()),

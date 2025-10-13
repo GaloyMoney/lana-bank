@@ -204,14 +204,12 @@ where
 
         let new_disbursal_bld = credit_facility.create_new_disbursal_builder_for_structuring_fee();
         if let Some(mut new_disbursal_bld) = new_disbursal_bld {
-            let disbursal_id = DisbursalId::new();
             let public_id = self
                 .public_ids
-                .create_in_op(&mut db, DISBURSAL_REF_TARGET, disbursal_id)
+                .create_in_op(&mut db, DISBURSAL_REF_TARGET, new_disbursal_bld.unwrap_id())
                 .await?;
             let new_disbursal = new_disbursal_bld
                 .public_id(public_id.id)
-                .id(disbursal_id)
                 .build()
                 .expect("could not build new disbursal");
 
