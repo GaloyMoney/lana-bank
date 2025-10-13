@@ -165,7 +165,8 @@ impl ChartLedger {
                 retained_losses_account_set,
             )
             .await?;
-        all_entries.extend(vec![equity_entry]);
+        all_entries.extend(vec![equity_entry.clone()]);
+        op.commit().await?;
 
         Ok(all_entries)
     }
@@ -191,6 +192,7 @@ impl ChartLedger {
                 "retained_losses",
             )
         };
+
         // TODO: Evaluate where these params should be sourced from.
         let account_id = self
             .create_annual_close_equity_account(
@@ -292,12 +294,11 @@ impl ChartLedger {
             if amt == Decimal::ZERO {
                 continue;
             }
+            net += amt;
             // TODO: - Related to note on `normal_balance_type` param.
             let direction = if normal_balance_type == DebitOrCredit::Debit {
-                net -= amt;
                 DebitOrCredit::Credit
             } else {
-                net += amt;
                 DebitOrCredit::Debit
             };
             // TODO: go from (Cala)AccountId to LedgerAccountId to satisfy AccountIdOrCode properly.
