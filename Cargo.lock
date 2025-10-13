@@ -7483,7 +7483,6 @@ dependencies = [
  "once_cell",
  "opentelemetry-http",
  "opentelemetry-otlp",
- "opentelemetry_sdk",
  "percent-encoding",
  "petgraph 0.6.5",
  "pkcs8",
