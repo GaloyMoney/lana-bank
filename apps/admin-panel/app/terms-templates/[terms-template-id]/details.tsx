@@ -22,6 +22,9 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
   termsTemplate,
 }) => {
   const t = useTranslations("TermsTemplates.TermsTemplateDetails.DetailsCard")
+  const commonT = useTranslations("Common")
+
+  const disburseAllAtActivation = termsTemplate.values.disburseAllAtActivation
 
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
     useState(false)
@@ -59,6 +62,10 @@ const TermsTemplateDetailsCard: React.FC<TermsTemplateDetailsProps> = ({
     {
       label: t("fields.oneTimeFeeRate"),
       value: `${termsTemplate.values.oneTimeFeeRate}%`,
+    },
+    {
+      label: t("fields.disburseAllAtActivation"),
+      value: disburseAllAtActivation ? commonT("yes") : commonT("no"),
     },
   ]
 

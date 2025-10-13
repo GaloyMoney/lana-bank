@@ -390,6 +390,7 @@ export type TermValues = {
   accrualCycleInterval: InterestInterval;
   accrualInterval: InterestInterval;
   annualRate: Scalars['AnnualRatePct']['output'];
+  disburseAllAtActivation: Scalars['Boolean']['output'];
   duration: Duration;
   initialCvl: Scalars['CVLPct']['output'];
   liquidationCvl: Scalars['CVLPct']['output'];
@@ -439,7 +440,7 @@ export type GetCreditFacilityQueryVariables = Exact<{
 }>;
 
 
-export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, maturesAt: any, currentCvl: any, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, history: Array<
+export type GetCreditFacilityQuery = { __typename?: 'Query', creditFacility?: { __typename?: 'CreditFacility', id: string, creditFacilityId: any, facilityAmount: any, collateralizationState: CollateralizationState, status: CreditFacilityStatus, activatedAt: any, maturesAt: any, currentCvl: any, disbursals: Array<{ __typename?: 'CreditFacilityDisbursal', id: string, disbursalId: any, amount: any, status: DisbursalStatus, createdAt: any }>, creditFacilityTerms: { __typename?: 'TermValues', annualRate: any, accrualCycleInterval: InterestInterval, accrualInterval: InterestInterval, oneTimeFeeRate: any, disburseAllAtActivation: boolean, liquidationCvl: any, marginCallCvl: any, initialCvl: any, duration: { __typename?: 'Duration', period: Period, units: number } }, balance: { __typename?: 'CreditFacilityBalance', facilityRemaining: { __typename?: 'FacilityRemaining', usdBalance: any }, disbursed: { __typename?: 'Disbursed', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, interest: { __typename?: 'Interest', total: { __typename?: 'Total', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any } }, collateral: { __typename?: 'Collateral', btcBalance: any }, dueOutstanding: { __typename?: 'Outstanding', usdBalance: any }, outstanding: { __typename?: 'Outstanding', usdBalance: any } }, repaymentPlan: Array<{ __typename?: 'CreditFacilityRepaymentPlanEntry', repaymentType: CreditFacilityRepaymentType, status: CreditFacilityRepaymentStatus, initial: any, outstanding: any, accrualAt: any, dueAt: any }>, history: Array<
       | { __typename?: 'CreditFacilityApproved', cents: any, recordedAt: any, txId: any, effective: any }
       | { __typename?: 'CreditFacilityCollateralUpdated', satoshis: any, recordedAt: any, action: CollateralAction, txId: any, effective: any }
       | { __typename?: 'CreditFacilityCollateralizationUpdated', state: CollateralizationState, collateral: any, outstandingInterest: any, outstandingDisbursal: any, recordedAt: any, price: any, effective: any }
@@ -497,6 +498,7 @@ export const GetCreditFacilityDocument = gql`
       accrualCycleInterval
       accrualInterval
       oneTimeFeeRate
+      disburseAllAtActivation
       duration {
         period
         units

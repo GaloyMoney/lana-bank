@@ -60,6 +60,7 @@ gql`
         }
       }
       oneTimeFeeRate
+      disburseAllAtActivation
       duration {
         period
         units
@@ -76,6 +77,7 @@ gql`
 
 const columns = (
   t: ReturnType<typeof useTranslations>,
+  commonT: ReturnType<typeof useTranslations>,
 ): Column<NonNullable<TermsTemplatesQuery["termsTemplates"]>[number]>[] => [
   {
     key: "name",
@@ -110,10 +112,16 @@ const columns = (
     header: t("table.headers.liquidationCvl"),
     render: (values) => formatCvl(values.liquidationCvl),
   },
+  {
+    key: "values",
+    header: t("table.headers.disburseAllAtActivation"),
+    render: (values) => (values.disburseAllAtActivation ? commonT("yes") : commonT("no")),
+  },
 ]
 
 function TermPage() {
   const t = useTranslations("TermsTemplates")
+  const commonT = useTranslations("Common")
 
   const { data, loading, error } = useTermsTemplatesQuery()
   const [openUpdateTermsTemplateDialog, setOpenUpdateTermsTemplateDialog] =
@@ -146,7 +154,7 @@ function TermPage() {
         <CardContent>
           <DataTable
             data={data?.termsTemplates || []}
-            columns={columns(t)}
+            columns={columns(t, commonT)}
             loading={loading}
             navigateTo={(template) => `/terms-templates/${template.termsId}`}
           />

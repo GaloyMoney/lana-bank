@@ -97,6 +97,36 @@ wait_for_dashboard_payment() {
   [[ "$after" -eq "$expected_after" ]] || exit 1
 }
 
+wait_for_full_activation_disbursal() {
+  credit_facility_id=$1
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+
+  facility_amount=$(graphql_output '.data.creditFacility.facilityAmount')
+  [[ "$facility_amount" != "null" ]] || exit 1
+
+  disbursal_count=$(graphql_output '.data.creditFacility.disbursals | length')
+  [[ "$disbursal_count" != "null" ]] || exit 1
+  [[ "$disbursal_count" -eq 1 ]] || exit 1
+
+  disbursal_status=$(graphql_output '.data.creditFacility.disbursals[0].status')
+  [[ "$disbursal_status" == "CONFIRMED" ]] || exit 1
+
+  facility_remaining=$(graphql_output '.data.creditFacility.balance.facilityRemaining.usdBalance')
+  [[ "$facility_remaining" == "0" ]] || exit 1
+
+  disbursed_total=$(graphql_output '.data.creditFacility.balance.disbursed.total.usdBalance')
+  [[ "$disbursed_total" == "$facility_amount" ]] || exit 1
+
+  disbursed_outstanding=$(graphql_output '.data.creditFacility.balance.disbursed.outstanding.usdBalance')
+  [[ "$disbursed_outstanding" == "$facility_amount" ]] || exit 1
+}
+
 ymd() {
   local date_value
   read -r date_value
@@ -138,6 +168,7 @@ ymd() {
           accrualCycleInterval: "END_OF_MONTH",
           accrualInterval: "END_OF_DAY",
           oneTimeFeeRate: "5",
+          disburseAllAtActivation: false,
           duration: { period: "MONTHS", units: 3 },
           interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
           obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
@@ -218,14 +249,15 @@ ymd() {
   credit_facility_id=$(read_value 'credit_facility_id')
   retry 30 2 wait_for_accruals 4 "$credit_facility_id"
 
-  cat_logs | grep "interest accrual cycles completed for.*$credit_facility_id" || exit 1
-
   variables=$(
     jq -n \
       --arg creditFacilityId "$credit_facility_id" \
     '{ id: $creditFacilityId }'
   )
   exec_admin_graphql 'find-credit-facility' "$variables"
+  status=$(graphql_output '.data.creditFacility.status')
+  [[ "$status" == "MATURED" ]] || exit 1
+
   num_accruals=$(
     graphql_output '[
       .data.creditFacility.history[]
@@ -292,4 +324,101 @@ ymd() {
   retry 10 1 wait_for_dashboard_payment "$disbursed_before" "$disbursed_payment"
 
   # assert_accounts_balanced
+}
+
+@test "credit-facility: disburses all liquidity at activation when configured" {
+  customer_id=$(create_customer)
+
+  retry 80 1 wait_for_checking_account "$customer_id"
+
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+    '{
+      id: $customerId
+    }'
+  )
+  exec_admin_graphql 'customer' "$variables"
+
+  disbursal_credit_account_id=$(graphql_output '.data.customer.depositAccount.depositAccountId')
+  [[ "$disbursal_credit_account_id" != "null" ]] || exit 1
+
+  facility=150000
+  variables=$(
+    jq -n \
+      --arg customerId "$customer_id" \
+      --arg disbursal_credit_account_id "$disbursal_credit_account_id" \
+      --argjson facility "$facility" \
+    '{
+      input: {
+        customerId: $customerId,
+        facility: $facility,
+        disbursalCreditAccountId: $disbursal_credit_account_id,
+        terms: {
+          annualRate: "12",
+          accrualCycleInterval: "END_OF_MONTH",
+          accrualInterval: "END_OF_DAY",
+          oneTimeFeeRate: "5",
+          disburseAllAtActivation: true,
+          duration: { period: "MONTHS", units: 3 },
+          interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
+          obligationOverdueDurationFromDue: { period: "DAYS", units: 50 },
+          obligationLiquidationDurationFromDue: { period: "DAYS", units: 360 },
+          liquidationCvl: "105",
+          marginCallCvl: "125",
+          initialCvl: "140"
+        }
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-proposal-create' "$variables"
+
+  credit_facility_id=$(graphql_output '.data.creditFacilityProposalCreate.creditFacilityProposal.creditFacilityProposalId')
+  [[ "$credit_facility_id" != "null" ]] || exit 1
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityProposalId "$credit_facility_id" \
+      --arg effective "$(naive_now)" \
+    '{
+      input: {
+        creditFacilityProposalId: $creditFacilityProposalId,
+        collateral: 50000000,
+        effective: $effective,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-proposal-collateral-update' "$variables"
+
+  retry 10 1 wait_for_active "$credit_facility_id"
+  retry 20 1 wait_for_full_activation_disbursal "$credit_facility_id"
+
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+    '{ id: $creditFacilityId }'
+  )
+  exec_admin_graphql 'find-credit-facility' "$variables"
+  facility_amount=$(graphql_output '.data.creditFacility.facilityAmount')
+  [[ "$facility_amount" == "$facility" ]] || exit 1
+  
+  additional_disbursal_amount=10000
+  variables=$(
+    jq -n \
+      --arg creditFacilityId "$credit_facility_id" \
+      --argjson amount "$additional_disbursal_amount" \
+    '{
+      input: {
+        creditFacilityId: $creditFacilityId,
+        amount: $amount,
+      }
+    }'
+  )
+  exec_admin_graphql 'credit-facility-disbursal-initiate' "$variables"
+
+  error_message=$(graphql_output '.errors[0].message')
+  [[ "$error_message" == *"CreditFacilityError - Additional disbursals disabled by terms"* ]] || exit 1
+
+  disbursal_response=$(graphql_output '.data.creditFacilityDisbursalInitiate')
+  [[ "$disbursal_response" == "null" ]] || exit 1
 }

@@ -175,6 +175,9 @@
             "number"
           ]
         },
+        "disburse_all_at_activation": {
+          "type": "boolean"
+        },
         "duration": {
           "$ref": "#/$defs/FacilityDuration"
         },
@@ -227,7 +230,8 @@
         "one_time_fee_rate",
         "liquidation_cvl",
         "margin_call_cvl",
-        "initial_cvl"
+        "initial_cvl",
+        "disburse_all_at_activation"
       ],
       "type": "object"
     },

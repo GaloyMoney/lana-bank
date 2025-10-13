@@ -19,6 +19,7 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
 }) => {
   const t = useTranslations("CreditFacilities.CreditFacilityDetails.TermsDialog")
   const tCard = useTranslations("CreditFacilityProposals.ProposalDetails.TermsCard")
+  const commonT = useTranslations("Common")
 
   const effectiveRate =
     Number(creditFacilityProposal.creditFacilityTerms.annualRate) +
@@ -55,6 +56,12 @@ export const CreditFacilityTermsCard: React.FC<CreditFacilityTermsCardProps> = (
     {
       label: t("details.structuringFeeRate"),
       value: `${creditFacilityProposal.creditFacilityTerms.oneTimeFeeRate}%`,
+    },
+    {
+      label: t("details.disburseAllAtActivation"),
+      value: creditFacilityProposal.creditFacilityTerms.disburseAllAtActivation
+        ? commonT("yes")
+        : commonT("no"),
     },
     { label: t("details.effectiveRate"), value: `${effectiveRate}%` },
   ]

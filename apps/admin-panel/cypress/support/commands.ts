@@ -190,6 +190,7 @@ Cypress.Commands.add(
           marginCallCvl: input.marginCallCvl,
           initialCvl: input.initialCvl,
           oneTimeFeeRate: input.oneTimeFeeRate,
+          disburseAllAtActivation: input.disburseAllAtActivation,
         },
       })
       .then((response) => response.data.termsTemplateCreate.termsTemplate.termsId)

@@ -1365,6 +1365,7 @@ impl Mutation {
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
+            .disburse_all_at_activation(input.disburse_all_at_activation)
             .build()?;
 
         exec_mutation!(
@@ -1398,6 +1399,7 @@ impl Mutation {
             .liquidation_cvl(input.liquidation_cvl)
             .margin_call_cvl(input.margin_call_cvl)
             .initial_cvl(input.initial_cvl)
+            .disburse_all_at_activation(input.disburse_all_at_activation)
             .build()?;
         exec_mutation!(
             TermsTemplateUpdatePayload,
@@ -1635,6 +1637,7 @@ impl Mutation {
             .liquidation_cvl(terms.liquidation_cvl)
             .margin_call_cvl(terms.margin_call_cvl)
             .initial_cvl(terms.initial_cvl)
+            .disburse_all_at_activation(terms.disburse_all_at_activation)
             .build()?;
 
         exec_mutation!(

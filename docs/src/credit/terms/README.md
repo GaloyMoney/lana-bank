@@ -18,6 +18,7 @@ The `TermValues` structure contains the following fields:
 - `liquidation_cvl` – collateral value limit that triggers liquidation.
 - `margin_call_cvl` – collateral value limit that triggers a margin call.
 - `initial_cvl` – collateral value limit required at facility creation.
+- `disburse_all_at_activation` – when `true`, the entire facility is disbursed immediately at activation and no further disbursals are allowed. This takes precedence over structuring-fee disbursals, so only the full activation disbursal is created.
 
 ### Terms Templates
 

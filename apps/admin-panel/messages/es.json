@@ -20,7 +20,9 @@
     "close": "Cerrar",
     "submit": "Enviar",
     "set": "Establecer",
-    "copiedToClipboard": "Copiado al portapapeles"
+    "copiedToClipboard": "Copiado al portapapeles",
+    "yes": "Sí",
+    "no": "No"
   },
   "LedgerTransactions": {
     "title": "Partidas contables",
@@ -532,7 +534,8 @@
           "months": "meses",
           "marginCallCvl": "CVL de llamada de margen (%)",
           "liquidationCvl": "CVL de liquidación (%)",
-          "structuringFeeRate": "Tasa de comisión de estructuración (%)"
+          "structuringFeeRate": "Tasa de comisión de estructuración (%)",
+          "disburseAllAtActivation": "Desembolsar todo en la activación"
         },
         "placeholders": {
           "facilityAmount": "Ingrese el monto de la línea",
@@ -544,6 +547,9 @@
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
           "structuringFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
+        },
+        "descriptions": {
+          "disburseAllAtActivation": "Cuando está habilitado, el monto completo de la línea se desembolsa automáticamente en la activación."
         },
         "buttons": {
           "create": "Crear Propuesta de Línea de Crédito"
@@ -746,6 +752,7 @@
           "liquidationCvl": "CVL de liquidación %",
           "dateCreated": "Fecha de creación",
           "structuringFeeRate": "Tasa de Comisión de Estructuración",
+          "disburseAllAtActivation": "Desembolsar todo en la activación",
           "effectiveRate": "Tasa efectiva"
         }
       },
@@ -960,7 +967,8 @@
         "annualRate": "Tasa Anual",
         "initialCvl": "CVL Inicial",
         "marginCallCvl": "CVL de Llamada de Margen",
-        "liquidationCvl": "CVL de Liquidación"
+        "liquidationCvl": "CVL de Liquidación",
+        "disburseAllAtActivation": "Desembolsar todo en la activación"
       }
     },
     "errors": {
@@ -977,7 +985,8 @@
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
-          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
+          "disburseAllAtActivation": "Desembolsar todo en la activación"
         },
         "buttons": {
           "update": "Actualizar",
@@ -994,7 +1003,8 @@
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
-          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
+          "disburseAllAtActivation": "Desembolsar todo en la activación"
         },
         "placeholders": {
           "annualRate": "Ingrese la tasa anual",
@@ -1003,6 +1013,9 @@
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
           "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
+        },
+        "descriptions": {
+          "disburseAllAtActivation": "Cuando está habilitado, la línea desembolsa la totalidad del monto aprobado en la activación."
         },
         "buttons": {
           "submit": "Actualizar Plantilla de Términos"
@@ -1028,7 +1041,8 @@
           "initialCvl": "CVL Inicial (%)",
           "marginCallCvl": "CVL de Llamada de Margen (%)",
           "liquidationCvl": "CVL de Liquidación (%)",
-          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)"
+          "oneTimeFeeRate": "Tasa de Comisión de Estructuración (%)",
+          "disburseAllAtActivation": "Desembolsar todo en la activación"
         },
         "placeholders": {
           "name": "Ingrese el nombre de la plantilla",
@@ -1038,6 +1052,9 @@
           "marginCallCvl": "Ingrese el CVL de llamada de margen",
           "liquidationCvl": "Ingrese el CVL de liquidación",
           "oneTimeFeeRate": "Ingrese la Tasa de Comisión de Estructuración"
+        },
+        "descriptions": {
+          "disburseAllAtActivation": "Cuando está habilitado, la línea desembolsa la totalidad del monto aprobado en la activación."
         },
         "buttons": {
           "submit": "Crear Plantilla de Términos"

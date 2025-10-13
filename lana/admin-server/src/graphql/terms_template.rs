@@ -64,6 +64,7 @@ pub(super) struct TermsTemplateCreateInput {
     pub liquidation_cvl: CVLPctValue,
     pub margin_call_cvl: CVLPctValue,
     pub initial_cvl: CVLPctValue,
+    pub disburse_all_at_activation: bool,
 }
 crate::mutation_payload! { TermsTemplateCreatePayload, terms_template: TermsTemplate }
 
@@ -81,5 +82,6 @@ pub(super) struct TermsTemplateUpdateInput {
     pub obligation_liquidation_duration_from_due: DurationInput,
     pub margin_call_cvl: CVLPctValue,
     pub initial_cvl: CVLPctValue,
+    pub disburse_all_at_activation: bool,
 }
 crate::mutation_payload! { TermsTemplateUpdatePayload, terms_template: TermsTemplate }

@@ -76,6 +76,7 @@ gql`
     }
     creditFacilityTerms {
       annualRate
+      disburseAllAtActivation
       liquidationCvl {
         __typename
         ... on FiniteCVLPct {

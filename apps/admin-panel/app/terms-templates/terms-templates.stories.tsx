@@ -81,6 +81,7 @@ const createTermsTemplates = () => {
           value: riskProfile.initialCvl,
         },
         oneTimeFeeRate: 0.5,
+        disburseAllAtActivation: false,
         duration: mockDuration({
           units: riskProfile.duration.units,
         }),

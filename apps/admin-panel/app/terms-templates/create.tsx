@@ -17,6 +17,7 @@ import {
 import { Input } from "@lana/web/ui/input"
 import { Button } from "@lana/web/ui/button"
 import { Label } from "@lana/web/ui/label"
+import { Checkbox } from "@lana/web/ui/check-box"
 
 import {
   useCreateTermsTemplateMutation,
@@ -77,6 +78,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     initialCvl: "",
     durationUnits: "",
     oneTimeFeeRate: "",
+    disburseAllAtActivation: false,
   })
   const [error, setError] = useState<string | null>(null)
 
@@ -90,6 +92,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
         initialCvl: getCvlValue(templateToDuplicate.values.initialCvl).toString(),
         durationUnits: templateToDuplicate.values.duration.units.toString(),
         oneTimeFeeRate: templateToDuplicate.values.oneTimeFeeRate.toString(),
+        disburseAllAtActivation: templateToDuplicate.values.disburseAllAtActivation,
       })
     }
   }, [templateToDuplicate, openCreateTermsTemplateDialog])
@@ -99,6 +102,13 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
     setFormValues((prevValues) => ({
       ...prevValues,
       [name]: value,
+    }))
+  }
+
+  const handleDisburseFullAmountChange = (checked: boolean) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      disburseAllAtActivation: checked,
     }))
   }
 
@@ -134,6 +144,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
             marginCallCvl: formValues.marginCallCvl,
             initialCvl: formValues.initialCvl,
             oneTimeFeeRate: formValues.oneTimeFeeRate,
+            disburseAllAtActivation: formValues.disburseAllAtActivation,
           },
         },
         onCompleted: (data) => {
@@ -163,6 +174,7 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
       initialCvl: "",
       durationUnits: "",
       oneTimeFeeRate: "",
+      disburseAllAtActivation: false,
     })
     setError(null)
   }
@@ -296,6 +308,24 @@ export const CreateTermsTemplateDialog: React.FC<CreateTermsTemplateDialogProps>
                   data-testid="terms-template-liquidation-cvl-input"
                 />
               </div>
+            </div>
+          </div>
+          <div className="flex items-start gap-2">
+            <Checkbox
+              id="disburseAllAtActivation"
+              checked={formValues.disburseAllAtActivation}
+              onCheckedChange={(checked) =>
+                handleDisburseFullAmountChange(Boolean(checked))
+              }
+              disabled={isLoading}
+            />
+            <div className="grid gap-1 text-sm">
+              <Label htmlFor="disburseAllAtActivation">
+                {t("fields.disburseAllAtActivation")}
+              </Label>
+              <p className="text-muted-foreground">
+                {t("descriptions.disburseAllAtActivation")}
+              </p>
             </div>
           </div>
           {error && <p className="text-destructive">{error}</p>}

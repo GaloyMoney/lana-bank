@@ -116,14 +116,45 @@ where
     }
 
     #[instrument(
-        name = "disbursals.create_first_disbursal_in_op",
+        name = "disbursals.create_initial_structure_fee_disbursal_in_op",
         skip(self, db, credit_facility)
     )]
-    pub(super) async fn create_first_disbursal_in_op(
+    pub(super) async fn create_initial_structure_fee_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         credit_facility: &CreditFacility,
-    ) -> Result<DisbursalId, DisbursalError> {
+    ) -> Result<(DisbursalId, Obligation), DisbursalError> {
+        self.create_activation_disbursal_with_amount_in_op(
+            db,
+            credit_facility,
+            credit_facility.structuring_fee(),
+        )
+        .await
+    }
+
+    #[instrument(
+        name = "disbursals.create_initial_full_disbursal_in_op",
+        skip(self, db, credit_facility)
+    )]
+    pub(super) async fn create_initial_full_disbursal_in_op(
+        &self,
+        db: &mut es_entity::DbOpWithTime<'_>,
+        credit_facility: &CreditFacility,
+    ) -> Result<(DisbursalId, Obligation), DisbursalError> {
+        self.create_activation_disbursal_with_amount_in_op(
+            db,
+            credit_facility,
+            credit_facility.amount,
+        )
+        .await
+    }
+
+    async fn create_activation_disbursal_with_amount_in_op(
+        &self,
+        db: &mut es_entity::DbOpWithTime<'_>,
+        credit_facility: &CreditFacility,
+        amount: UsdCents,
+    ) -> Result<(DisbursalId, Obligation), DisbursalError> {
         let disbursal_id = DisbursalId::new();
         let public_id = self
             .public_ids
@@ -144,7 +175,7 @@ where
             .id(disbursal_id)
             .credit_facility_id(credit_facility.id)
             .approval_process_id(credit_facility.id)
-            .amount(credit_facility.structuring_fee())
+            .amount(amount)
             .account_ids(credit_facility.account_ids)
             .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
             .due_date(due_date)
@@ -161,13 +192,14 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
-        self.obligations
+        let obligation = self
+            .obligations
             .create_with_jobs_in_op(db, new_obligation)
             .await?;
 
         self.repo.update_in_op(db, &mut disbursal).await?;
 
-        Ok(disbursal.id)
+        Ok((disbursal.id, obligation))
     }
 
     #[instrument(name = "core_credit.disbursals.find_by_id", skip(self), err)]

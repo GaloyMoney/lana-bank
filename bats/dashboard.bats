@@ -56,6 +56,7 @@ wait_for_total_disbursed() {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",
           accrualInterval: "END_OF_DAY",
+          disburseAllAtActivation: false,
           duration: { period: "MONTHS", units: 3 },
           liquidationCvl: "105",
           marginCallCvl: "125",

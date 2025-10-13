@@ -14,6 +14,7 @@ import {
 } from "@lana/web/ui/dialog"
 import { Input } from "@lana/web/ui/input"
 import { Label } from "@lana/web/ui/label"
+import { Checkbox } from "@lana/web/ui/check-box"
 
 import { Button } from "@lana/web/ui/button"
 import {
@@ -79,6 +80,7 @@ const initialFormValues = {
   initialCvl: "",
   durationUnits: "",
   oneTimeFeeRate: "",
+  disburseAllAtActivation: false,
 }
 
 export const CreateCreditFacilityProposalDialog: React.FC<
@@ -137,6 +139,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate.toString(),
+        disburseAllAtActivation: latestTemplate.values.disburseAllAtActivation,
       }))
     }
   }, [termsTemplatesData])
@@ -148,6 +151,14 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       [name]: value,
     }))
     if (name === "facility") return
+    setSelectedTemplateId("")
+  }
+
+  const handleDisburseFullAmountChange = (checked: boolean) => {
+    setFormValues((prevValues) => ({
+      ...prevValues,
+      disburseAllAtActivation: checked,
+    }))
     setSelectedTemplateId("")
   }
 
@@ -165,6 +176,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(selectedTemplate.values.initialCvl).toString(),
         durationUnits: selectedTemplate.values.duration.units.toString(),
         oneTimeFeeRate: selectedTemplate.values.oneTimeFeeRate.toString(),
+        disburseAllAtActivation: selectedTemplate.values.disburseAllAtActivation,
       }))
     }
   }
@@ -180,6 +192,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
       initialCvl,
       durationUnits,
       oneTimeFeeRate,
+      disburseAllAtActivation,
     } = formValues
 
     if (
@@ -211,6 +224,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
               marginCallCvl: parseFloat(marginCallCvl),
               initialCvl: parseFloat(initialCvl),
               oneTimeFeeRate: parseFloat(oneTimeFeeRate),
+              disburseAllAtActivation,
               duration: {
                 units: parseInt(durationUnits),
                 period: DEFAULT_TERMS.DURATION_PERIOD,
@@ -261,6 +275,7 @@ export const CreateCreditFacilityProposalDialog: React.FC<
         initialCvl: getCvlValue(latestTemplate.values.initialCvl).toString(),
         durationUnits: latestTemplate.values.duration.units.toString(),
         oneTimeFeeRate: latestTemplate.values.oneTimeFeeRate?.toString(),
+        disburseAllAtActivation: latestTemplate.values.disburseAllAtActivation,
       })
     } else {
       setFormValues(initialFormValues)
@@ -413,6 +428,12 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                   value={formValues.oneTimeFeeRate}
                 />
                 <DetailItem
+                  label={t("form.labels.disburseAllAtActivation")}
+                  value={
+                    formValues.disburseAllAtActivation ? commonT("yes") : commonT("no")
+                  }
+                />
+                <DetailItem
                   label={t("form.labels.liquidationCvl")}
                   value={formValues.liquidationCvl}
                 />
@@ -494,6 +515,23 @@ export const CreateCreditFacilityProposalDialog: React.FC<
                     min={0}
                     required
                   />
+                </div>
+              </div>
+              <div className="flex items-start gap-2">
+                <Checkbox
+                  id="disburseAllAtActivation"
+                  checked={formValues.disburseAllAtActivation}
+                  onCheckedChange={(checked) =>
+                    handleDisburseFullAmountChange(Boolean(checked))
+                  }
+                />
+                <div className="grid gap-1 text-sm">
+                  <Label htmlFor="disburseAllAtActivation">
+                    {t("form.labels.disburseAllAtActivation")}
+                  </Label>
+                  <p className="text-muted-foreground">
+                    {t("form.descriptions.disburseAllAtActivation")}
+                  </p>
                 </div>
               </div>
             </>

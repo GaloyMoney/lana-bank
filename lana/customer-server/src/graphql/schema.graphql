@@ -354,6 +354,7 @@ type TermValues {
 	liquidationCvl: CVLPct!
 	marginCallCvl: CVLPct!
 	initialCvl: CVLPct!
+	disburseAllAtActivation: Boolean!
 }
 
 scalar Timestamp

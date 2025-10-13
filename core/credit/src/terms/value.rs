@@ -248,6 +248,8 @@ pub struct TermValues {
     pub margin_call_cvl: CVLPct,
     #[builder(setter(into))]
     pub initial_cvl: CVLPct,
+    #[builder(default)]
+    pub disburse_all_at_activation: bool,
 }
 
 impl TermValues {
@@ -278,6 +280,10 @@ impl TermValues {
 
     pub fn builder() -> TermValuesBuilder {
         TermValuesBuilder::default()
+    }
+
+    pub fn disburse_all_at_activation(&self) -> bool {
+        self.disburse_all_at_activation
     }
 
     pub fn required_collateral(
@@ -885,5 +891,29 @@ mod test {
 
         let amount = UsdCents::try_from_usd(dec!(80_000)).unwrap();
         assert!(terms.is_disbursal_allowed(balance, amount, price));
+    }
+
+    #[test]
+    fn disburse_all_at_activation_toggle() {
+        let terms = default_terms();
+        assert!(!terms.disburse_all_at_activation());
+
+        let terms = TermValues::builder()
+            .annual_rate(AnnualRatePct(dec!(12)))
+            .duration(FacilityDuration::Months(3))
+            .interest_due_duration_from_accrual(ObligationDuration::Days(0))
+            .obligation_overdue_duration_from_due(None)
+            .obligation_liquidation_duration_from_due(None)
+            .accrual_cycle_interval(InterestInterval::EndOfMonth)
+            .accrual_interval(InterestInterval::EndOfDay)
+            .one_time_fee_rate(OneTimeFeeRatePct(dec!(1)))
+            .liquidation_cvl(dec!(105))
+            .margin_call_cvl(dec!(125))
+            .initial_cvl(dec!(140))
+            .disburse_all_at_activation(true)
+            .build()
+            .expect("should build a valid term");
+
+        assert!(terms.disburse_all_at_activation());
     }
 }

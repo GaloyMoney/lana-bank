@@ -20,7 +20,9 @@
     "close": "Close",
     "submit": "Submit",
     "set": "Set",
-    "copiedToClipboard": "Copied to clipboard"
+    "copiedToClipboard": "Copied to clipboard",
+    "yes": "Yes",
+    "no": "No"
   },
   "LedgerTransactions": {
     "title": "Ledger Transactions",
@@ -532,7 +534,8 @@
           "months": "months",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "structuringFeeRate": "Structuring Fee Rate (%)"
+          "structuringFeeRate": "Structuring Fee Rate (%)",
+          "disburseAllAtActivation": "Disburse All at Activation"
         },
         "placeholders": {
           "facilityAmount": "Enter the facility amount",
@@ -544,6 +547,9 @@
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
           "structuringFeeRate": "Enter the Structuring Fee Rate"
+        },
+        "descriptions": {
+          "disburseAllAtActivation": "When enabled, the entire facility amount is disbursed automatically at activation."
         },
         "buttons": {
           "create": "Create Credit Facility Proposal"
@@ -746,6 +752,7 @@
           "liquidationCvl": "Liquidation CVL %",
           "dateCreated": "Date created",
           "structuringFeeRate": "Structuring Fee Rate",
+          "disburseAllAtActivation": "Disburse All at Activation",
           "effectiveRate": "Effective Rate"
         }
       },
@@ -960,7 +967,8 @@
         "annualRate": "Annual Rate",
         "initialCvl": "Initial CVL",
         "marginCallCvl": "Margin Call CVL",
-        "liquidationCvl": "Liquidation CVL"
+        "liquidationCvl": "Liquidation CVL",
+        "disburseAllAtActivation": "Disburse All at Activation"
       }
     },
     "errors": {
@@ -977,7 +985,8 @@
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+          "oneTimeFeeRate": "Structuring Fee Rate (%)",
+          "disburseAllAtActivation": "Disburse All at Activation"
         },
         "buttons": {
           "update": "Update",
@@ -994,7 +1003,8 @@
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+          "oneTimeFeeRate": "Structuring Fee Rate (%)",
+          "disburseAllAtActivation": "Disburse All at Activation"
         },
         "placeholders": {
           "annualRate": "Enter the annual rate",
@@ -1003,6 +1013,9 @@
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
           "oneTimeFeeRate": "Enter the Structuring Fee Rate"
+        },
+        "descriptions": {
+          "disburseAllAtActivation": "When enabled, the facility disburses its entire approved amount at activation."
         },
         "buttons": {
           "submit": "Update Terms Template"
@@ -1028,7 +1041,8 @@
           "initialCvl": "Initial CVL (%)",
           "marginCallCvl": "Margin Call CVL (%)",
           "liquidationCvl": "Liquidation CVL (%)",
-          "oneTimeFeeRate": "Structuring Fee Rate (%)"
+          "oneTimeFeeRate": "Structuring Fee Rate (%)",
+          "disburseAllAtActivation": "Disburse All at Activation"
         },
         "placeholders": {
           "name": "Enter the template name",
@@ -1038,6 +1052,9 @@
           "marginCallCvl": "Enter the margin call CVL",
           "liquidationCvl": "Enter the liquidation CVL",
           "oneTimeFeeRate": "Enter the Structuring Fee Rate"
+        },
+        "descriptions": {
+          "disburseAllAtActivation": "When enabled, the facility disburses its entire approved amount at activation."
         },
         "buttons": {
           "submit": "Create Terms Template"

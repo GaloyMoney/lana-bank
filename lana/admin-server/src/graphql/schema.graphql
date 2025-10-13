@@ -1984,6 +1984,7 @@ type TermValues {
 	liquidationCvl: Cvlpct!
 	marginCallCvl: Cvlpct!
 	initialCvl: Cvlpct!
+	disburseAllAtActivation: Boolean!
 }
 
 input TermsInput {
@@ -1998,6 +1999,7 @@ input TermsInput {
 	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
 	liquidationCvl: CVLPctValue!
+	disburseAllAtActivation: Boolean!
 }
 
 type TermsTemplate {
@@ -2022,6 +2024,7 @@ input TermsTemplateCreateInput {
 	liquidationCvl: CVLPctValue!
 	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
+	disburseAllAtActivation: Boolean!
 }
 
 type TermsTemplateCreatePayload {
@@ -2041,6 +2044,7 @@ input TermsTemplateUpdateInput {
 	obligationLiquidationDurationFromDue: DurationInput!
 	marginCallCvl: CVLPctValue!
 	initialCvl: CVLPctValue!
+	disburseAllAtActivation: Boolean!
 }
 
 type TermsTemplateUpdatePayload {

@@ -28,6 +28,7 @@ describe("credit facility", () => {
       accrualCycleInterval: InterestInterval.EndOfMonth,
       accrualInterval: InterestInterval.EndOfDay,
       oneTimeFeeRate: "5",
+      disburseAllAtActivation: false,
       liquidationCvl: "110",
       marginCallCvl: "120",
       initialCvl: "140",
