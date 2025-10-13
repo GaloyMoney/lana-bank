@@ -107,10 +107,7 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
     pub fn new(authz: Arc<Perms>, ledger: Arc<CreditLedger>) -> Self {
-        Self {
-            authz,
-            ledger,
-        }
+        Self { authz, ledger }
     }
 
     pub async fn set_config(
