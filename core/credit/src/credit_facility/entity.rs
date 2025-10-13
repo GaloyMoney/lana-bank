@@ -527,14 +527,8 @@ impl CreditFacility {
             return None;
         }
         let due_date = self.maturity_date;
-        let overdue_date = self
-            .terms
-            .obligation_overdue_duration_from_due
-            .map(|d| d.end_date(due_date));
-        let liquidation_date = self
-            .terms
-            .obligation_liquidation_duration_from_due
-            .map(|d| d.end_date(due_date));
+        let overdue_date = self.terms.get_overdue_date_from_due_date(due_date);
+        let liquidation_date = self.terms.get_liquidation_date_from_due_date(due_date);
 
         let mut new_disbursal_bld = NewDisbursalBuilder::default();
         new_disbursal_bld
