@@ -202,3 +202,16 @@ create-user:
 
 docs-serve:
 	cd docs && mdbook serve -n 0.0.0.0
+
+# Honeycomb dashboards
+honeycomb-init:
+	cd tf/honeycomb && tofu init
+
+honeycomb-plan:
+	cd tf/honeycomb && tofu plan
+
+honeycomb-apply:
+	cd tf/honeycomb && tofu apply -auto-approve
+
+honeycomb-destroy:
+	cd tf/honeycomb && tofu destroy

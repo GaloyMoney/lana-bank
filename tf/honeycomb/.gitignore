@@ -1,0 +1,10 @@
+# OpenTofu/Terraform files
+.terraform/
+.terraform.lock.hcl
+.tofu/
+.tofu.lock.hcl
+terraform.tfstate
+terraform.tfstate.backup
+*.tfvars
+*.tfvars.json
+

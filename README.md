@@ -51,7 +51,8 @@ Set them in your `.env` file
 
 - `BROWSERSTACK_USERNAME`: BrowserStack username for e2e testing via Cypress
 - `BROWSERSTACK_ACCESS_KEY`: BrowserStack access key for e2e testing via Cypress
-- `HONEYCOMB_KEY`: Honeycomb API key for tracing
+- `HONEYCOMB_KEY`: Honeycomb Ingest API key for tracing
+- `TF_VAR_honeycomb_api_key`: Honeycomb Configuration API key for dashboards 
 
 ### Start & Stop the stack
 
@@ -151,3 +152,22 @@ make init-bq
 ```
 
 If you are doing work that requires adding a new big query table you need to add it to `./tf/bq-setup/bq.tf`
+
+## Honeycomb Dashboards
+
+We use Honeycomb for observability and tracing. To set up dashboards locally:
+
+### Prerequisites
+
+Set your Honeycomb API key TF_VAR_honeycomb_api_key in your .env.
+Note: this needs to be a `Configuration API Keys`, not an `Ingest API Keys`
+
+### Create Dashboards
+
+```bash
+make honeycomb-init   # Initialize OpenTofu
+make honeycomb-plan   # Preview changes
+make honeycomb-apply  # Create dashboards
+```
+
+See `tf/honeycomb/README.md` for more details.
