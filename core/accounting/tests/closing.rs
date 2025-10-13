@@ -68,7 +68,7 @@ async fn annual_closing() -> anyhow::Result<()> {
         post_equity_accounts[0],
         test.journal_id,
     ).await?;
-    assert_eq!(post_equity_balance, Decimal::from(100));
+    assert_eq!(post_equity_balance, Decimal::from(200));
 
     Ok(())
 }

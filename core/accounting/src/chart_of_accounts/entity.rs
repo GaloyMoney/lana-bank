@@ -333,7 +333,7 @@ impl Chart {
     }
 
     pub fn is_prev_monthly_period_closed(&self, now: DateTime<Utc>) -> bool {
-        let last_closed = self.events.iter_all().find_map(|event| match event {
+        let last_closed = self.events.iter_all().rev().find_map(|event| match event {
             ChartEvent::AccountingPeriodClosed { closed_as_of, .. } => Some(*closed_as_of),
             _ => None,
         });
@@ -341,14 +341,12 @@ impl Chart {
             return false;
         };
         let ts = now.date_naive();
-        let (current_year, current_month) = (ts.year(), ts.month());
-        let (prev_year, prev_month) = if current_month == 1 {
-            (current_year - 1, 12)
-        } else {
-            (current_year, current_month - 1)
-        };
+        let expected_prev_month_end = ts
+            .with_day(1)
+            .and_then(|d| d.pred_opt())
+            .expect("Failed to compute last day of previous month");
 
-        (last_closed.year(), last_closed.month()) == (prev_year, prev_month)
+        last_closed == expected_prev_month_end
     }
 
     pub fn find_chart_opening_date(&self) -> Result<NaiveDate, ChartOfAccountsError> {
