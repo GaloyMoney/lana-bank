@@ -1533,6 +1533,7 @@ impl CreditLedger {
             facility_amount,
             debit_account_id,
             structuring_fee_amount,
+            principal_amount,
         }: CreditFacilityActivation,
         disbursal_id: DisbursalId,
     ) -> Result<(), CreditLedgerError> {
@@ -1547,8 +1548,15 @@ impl CreditLedger {
         )
         .await?;
 
-        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
-            .await?;
+        self.activate_credit_facility(
+            &mut op,
+            tx_id,
+            account_ids,
+            facility_amount,
+            tx_ref,
+            principal_amount,
+        )
+        .await?;
 
         self.add_structuring_fee(
             &mut op,
@@ -1574,6 +1582,7 @@ impl CreditLedger {
             customer_type,
             duration_type,
             tx_ref,
+            principal_amount,
             ..
         }: CreditFacilityActivation,
     ) -> Result<(), CreditLedgerError> {
@@ -1588,8 +1597,15 @@ impl CreditLedger {
         )
         .await?;
 
-        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
-            .await?;
+        self.activate_credit_facility(
+            &mut op,
+            tx_id,
+            account_ids,
+            facility_amount,
+            tx_ref,
+            principal_amount,
+        )
+        .await?;
 
         op.commit().await?;
         Ok(())
@@ -1602,6 +1618,7 @@ impl CreditLedger {
         account_ids: CreditFacilityLedgerAccountIds,
         facility_amount: UsdCents,
         external_id: String,
+        principal_amount: UsdCents,
     ) -> Result<(), CreditLedgerError> {
         self.cala
             .post_transaction_in_op(
@@ -1615,6 +1632,7 @@ impl CreditLedger {
                     facility_amount: facility_amount.to_usd(),
                     currency: self.usd,
                     external_id,
+                    principal_amount: principal_amount.to_usd(),
                 },
             )
             .await?;
