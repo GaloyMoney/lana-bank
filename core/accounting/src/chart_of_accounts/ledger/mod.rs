@@ -150,6 +150,7 @@ impl ChartLedger {
                 None,
                 cost_of_revenue_accounts,
             );
+
         let mut all_entries = Vec::new();
         all_entries.extend(revenue_offset_entries);
         all_entries.extend(expense_offset_entries);
@@ -158,28 +159,31 @@ impl ChartLedger {
         let retained_earnings = net_revenue - net_expenses - net_cost_of_revenue;
         let mut op = self.cala.ledger_operation_from_db_op(op);
         let equity_entry = self
-            .create_annual_close_equity_target(
+            .create_annual_close_destination_account(
                 &mut op,
                 retained_earnings,
                 retained_earnings_account_set,
                 retained_losses_account_set,
             )
             .await?;
-        all_entries.extend(vec![equity_entry.clone()]);
+        all_entries.push(equity_entry);
+        // TODO: Ideally this should occur after the annual closing transaction
+        // and not only after the  account is created for retained earnings... 
+        // punt until period entity is established.
         op.commit().await?;
 
         Ok(all_entries)
     }
 
-    // TODO: Rename / refactor.
-    async fn create_annual_close_equity_target(
+    async fn create_annual_close_destination_account(
         &self,
         op: &mut LedgerOperation<'_>,
         net_earnings: Decimal,
         retained_earnings_account_set: AccountSetId,
         retained_losses_account_set: AccountSetId,
     ) -> Result<TransactionEntrySpec, ChartLedgerError> {
-        let (direction, parent_account_set, reference) = if net_earnings > Decimal::ZERO {
+        // TODO: Where to source ther reference, name and/or description params from?
+        let (direction, parent_account_set, reference) = if net_earnings >= Decimal::ZERO {
             (
                 DebitOrCredit::Credit,
                 retained_earnings_account_set,
@@ -192,14 +196,16 @@ impl ChartLedger {
                 "retained_losses",
             )
         };
-
-        // TODO: Evaluate where these params should be sourced from.
+        let id = AccountId::new();
+        let entity_ref = EntityRef::new(CHART_OF_ACCOUNTS_ENTITY_TYPE, id);
         let account_id = self
-            .create_annual_close_equity_account(
+            .create_annual_close_equity_account_in_op(
                 op,
+                id,
                 reference,
                 "Annual Close Net Income",
                 "Annual Close Net Income",
+                entity_ref,
                 direction,
                 parent_account_set,
             )
@@ -209,35 +215,10 @@ impl ChartLedger {
             account_id: ledger_account_id,
             // TODO: Make currency a param?
             currency: Currency::USD,
-            amount: net_earnings,
-            // TODO: Make description a param?
+            amount: net_earnings.abs(),
             description: "Annual Close Net Income to Equity".to_string(),
             direction,
         })
-    }
-
-    async fn create_annual_close_equity_account(
-        &self,
-        op: &mut cala_ledger::LedgerOperation<'_>,
-        reference: &str,
-        name: &str,
-        description: &str,
-        normal_balance_type: DebitOrCredit,
-        parent_account_set: AccountSetId,
-    ) -> Result<AccountId, ChartLedgerError> {
-        let id = AccountId::new();
-        let entity_ref = EntityRef::new(CHART_OF_ACCOUNTS_ENTITY_TYPE, id);
-        self.create_annual_close_equity_account_in_op(
-            op,
-            id,
-            reference,
-            name,
-            description,
-            entity_ref,
-            normal_balance_type,
-            parent_account_set,
-        )
-        .await
     }
 
     async fn create_annual_close_equity_account_in_op(
@@ -258,6 +239,7 @@ impl ChartLedger {
             .external_id(reference)
             .name(name)
             .description(description)
+            // TODO: Need another code parameter sourced?
             .code(id.to_string())
             .normal_balance_type(normal_balance_type)
             .metadata(serde_json::json!({"entity_ref": entity_ref}))
@@ -289,13 +271,12 @@ impl ChartLedger {
         let mut entries = Vec::new();
         let mut net: Decimal = Decimal::from(0);
         for ((_journal_id, account_id, currency), bal_details) in accounts_by_code.iter() {
-            // TODO: Other considerations here for `pending` or `encumbrance`?
             let amt = bal_details.settled();
             if amt == Decimal::ZERO {
                 continue;
             }
             net += amt;
-            // TODO: - Related to note on `normal_balance_type` param.
+            // TODO: - Use AccountBalance directly after this Cala PR: https://github.com/GaloyMoney/cala/pull/570
             let direction = if normal_balance_type == DebitOrCredit::Debit {
                 DebitOrCredit::Credit
             } else {
@@ -485,7 +466,8 @@ impl ChartLedger {
         parent_set_id: AccountSetId,
     ) -> Result<Vec<BalanceId>, ChartLedgerError> {
         let mut accounts: Vec<BalanceId> = Vec::new();
-        // TODO: Does this require pagination or should we use a non default value?
+        // TODO: Doesn't seem like pagination is used anywhere else... confirm default behavior
+        // will provide all.
         let members = self.cala
             .account_sets()
             .list_members_by_created_at(
@@ -496,7 +478,7 @@ impl ChartLedger {
         for member in members.entities {
             match member.id {
                 AccountSetMemberId::Account(account_id) => {
-                    accounts.push((journal_id, account_id.clone(), Currency::USD));
+                    accounts.push((journal_id, account_id, Currency::USD));
                 }
                 AccountSetMemberId::AccountSet(account_set_id) => {
                     let nested_accounts = Box::pin(self.find_all_accounts_by_parent_set_id(journal_id, account_set_id)).await?;
