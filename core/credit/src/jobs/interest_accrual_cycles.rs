@@ -179,7 +179,8 @@ where
         } else {
             tracing::info!(
                 credit_facility_id = %self.config.credit_facility_id,
-                "All credit facility interest accrual cycles completed"
+                "All interest accrual cycles completed for {}",
+                self.config.credit_facility_id
             );
         };
 
