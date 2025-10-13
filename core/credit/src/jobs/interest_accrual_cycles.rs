@@ -12,7 +12,9 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 use crate::{
     CompletedAccrualCycle, CoreCreditAction, CoreCreditEvent, CoreCreditObject, CreditFacilityId,
-    NewInterestAccrualCycleData, credit_facility::CreditFacilities, interest_accruals, ledger::*,
+    credit_facility::{CreditFacilities, interest_accrual_cycle::NewInterestAccrualCycleData},
+    interest_accruals,
+    ledger::*,
     obligation::Obligations,
 };
 

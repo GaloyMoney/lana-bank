@@ -11,7 +11,6 @@ pub mod error;
 mod event;
 mod for_subject;
 mod history;
-mod interest_accrual_cycle;
 mod jobs;
 pub mod ledger;
 mod liquidation_process;
@@ -26,6 +25,8 @@ mod repayment_plan;
 mod terms;
 mod terms_template;
 mod time;
+
+use std::sync::Arc;
 
 use audit::{AuditInfo, AuditSvc};
 use authz::PermissionCheck;
@@ -55,7 +56,6 @@ use error::*;
 pub use event::*;
 use for_subject::CreditFacilitiesForSubject;
 pub use history::*;
-pub use interest_accrual_cycle::*;
 use jobs::*;
 pub use ledger::*;
 pub use obligation::{error::*, obligation_cursor::*, *};
@@ -78,7 +78,6 @@ pub mod event_schema {
         interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
         payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
-        pending_credit_facility::PendingCreditFacilityEvent,
     };
 }
 
@@ -90,28 +89,29 @@ where
         + OutboxEventMarker<CoreCustodyEvent>
         + OutboxEventMarker<CoreCustomerEvent>,
 {
-    authz: Perms,
-    proposals: CreditFacilityProposals<Perms, E>,
-    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
-    facilities: CreditFacilities<Perms, E>,
-    disbursals: Disbursals<Perms, E>,
-    payments: Payments<Perms>,
-    history_repo: HistoryRepo,
-    repayment_plan_repo: RepaymentPlanRepo,
-    governance: Governance<Perms, E>,
-    customer: Customers<Perms, E>,
-    ledger: CreditLedger,
-    price: Price,
-    config: CreditConfig,
-    approve_disbursal: ApproveDisbursal<Perms, E>,
-    approve_proposal: ApproveCreditFacilityProposal<Perms, E>,
-    cala: CalaLedger,
-    activate_credit_facility: ActivateCreditFacility<Perms, E>,
-    obligations: Obligations<Perms, E>,
-    collaterals: Collaterals<Perms, E>,
-    chart_of_accounts_integrations: ChartOfAccountsIntegrations<Perms>,
-    terms_templates: TermsTemplates<Perms>,
-    public_ids: PublicIds,
+    authz: Arc<Perms>,
+    credit_facility_proposals: Arc<CreditFacilityProposals<Perms, E>>,
+    pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
+    facilities: Arc<CreditFacilities<Perms, E>>,
+    disbursals: Arc<Disbursals<Perms, E>>,
+    payments: Arc<Payments<Perms>>,
+    history_repo: Arc<HistoryRepo>,
+    repayment_plan_repo: Arc<RepaymentPlanRepo>,
+    governance: Arc<Governance<Perms, E>>,
+    customer: Arc<Customers<Perms, E>>,
+    ledger: Arc<CreditLedger>,
+    price: Arc<Price>,
+    config: Arc<CreditConfig>,
+    approve_disbursal: Arc<ApproveDisbursal<Perms, E>>,
+    approve_proposal: Arc<ApproveCreditFacilityProposal<Perms, E>>,
+    cala: Arc<CalaLedger>,
+    activate_credit_facility: Arc<ActivateCreditFacility<Perms, E>>,
+    obligations: Arc<Obligations<Perms, E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
+    custody: Arc<CoreCustody<Perms, E>>,
+    chart_of_accounts_integrations: Arc<ChartOfAccountsIntegrations<Perms>>,
+    terms_templates: Arc<TermsTemplates<Perms>>,
+    public_ids: Arc<PublicIds>,
 }
 
 impl<Perms, E> Clone for CoreCredit<Perms, E>
@@ -125,11 +125,12 @@ where
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
-            proposals: self.proposals.clone(),
+            credit_facility_proposals: self.credit_facility_proposals.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
             facilities: self.facilities.clone(),
             obligations: self.obligations.clone(),
             collaterals: self.collaterals.clone(),
+            custody: self.custody.clone(),
             disbursals: self.disbursals.clone(),
             payments: self.payments.clone(),
             history_repo: self.history_repo.clone(),
@@ -180,75 +181,134 @@ where
         journal_id: cala_ledger::JournalId,
         public_ids: &PublicIds,
     ) -> Result<Self, CoreCreditError> {
+        // Create Arc-wrapped versions of parameters once
+        let authz_arc = Arc::new(authz.clone());
+        let governance_arc = Arc::new(governance.clone());
+        let jobs_arc = Arc::new(jobs.clone());
+        let price_arc = Arc::new(price.clone());
+        let public_ids_arc = Arc::new(public_ids.clone());
+        let customer_arc = Arc::new(customer.clone());
+        let custody_arc = Arc::new(custody.clone());
+        let cala_arc = Arc::new(cala.clone());
+        let config_arc = Arc::new(config);
+
         let publisher = CreditFacilityPublisher::new(outbox);
         let ledger = CreditLedger::init(cala, journal_id).await?;
-        let obligations = Obligations::new(pool, authz, &ledger, jobs, &publisher);
-        let collaterals = Collaterals::new(pool, authz, &publisher, &ledger);
-        let proposals =
-            CreditFacilityProposals::init(pool, authz, jobs, &publisher, governance).await?;
+        let ledger_arc = Arc::new(ledger);
+
+        let obligations = Obligations::new(
+            pool,
+            authz_arc.clone(),
+            ledger_arc.clone(),
+            jobs_arc.clone(),
+            &publisher,
+        );
+        let obligations_arc = Arc::new(obligations);
+
+        let credit_facility_proposals = CreditFacilityProposals::init(
+            pool,
+            authz_arc.clone(),
+            jobs_arc.clone(),
+            &publisher,
+            governance_arc.clone(),
+        )
+        .await?;
+        let proposals_arc = Arc::new(credit_facility_proposals);
+
+        let collaterals = Collaterals::new(pool, authz_arc.clone(), &publisher, ledger_arc.clone());
+        let collaterals_arc = Arc::new(collaterals);
+
         let pending_credit_facilities = PendingCreditFacilities::init(
             pool,
-            custody,
-            &collaterals,
-            authz,
-            jobs,
-            &ledger,
-            price,
+            custody_arc.clone(),
+            collaterals_arc.clone(),
+            authz_arc.clone(),
+            jobs_arc.clone(),
+            ledger_arc.clone(),
+            price_arc.clone(),
             &publisher,
-            governance,
+            governance_arc.clone(),
         )
         .await?;
-        let credit_facilities = CreditFacilities::init(
-            pool,
-            authz,
-            &obligations,
-            &pending_credit_facilities,
-            &ledger,
-            price,
-            jobs,
-            &publisher,
-            governance,
-            public_ids,
-        )
-        .await?;
+        let pending_credit_facilities_arc = Arc::new(pending_credit_facilities);
+
         let disbursals = Disbursals::init(
             pool,
-            authz,
+            authz_arc.clone(),
             &publisher,
-            &obligations,
-            governance,
-            public_ids,
+            obligations_arc.clone(),
+            governance_arc.clone(),
+            public_ids_arc.clone(),
         )
         .await?;
-        let payments = Payments::new(pool, authz);
+        let disbursals_arc = Arc::new(disbursals);
+
+        let credit_facilities = CreditFacilities::new(
+            pool,
+            authz_arc.clone(),
+            obligations_arc.clone(),
+            pending_credit_facilities_arc.clone(),
+            disbursals_arc.clone(),
+            ledger_arc.clone(),
+            price_arc.clone(),
+            jobs_arc.clone(),
+            &publisher,
+            governance_arc.clone(),
+            public_ids_arc.clone(),
+        );
+        let facilities_arc = Arc::new(credit_facilities);
+
+        let payments = Payments::new(pool, authz_arc.clone());
+        let payments_arc = Arc::new(payments);
+
         let history_repo = HistoryRepo::new(pool);
+        let history_repo_arc = Arc::new(history_repo);
+
         let repayment_plan_repo = RepaymentPlanRepo::new(pool);
-        let approve_disbursal =
-            ApproveDisbursal::new(&disbursals, &credit_facilities, jobs, governance, &ledger);
+        let repayment_plan_repo_arc = Arc::new(repayment_plan_repo);
+
+        let audit_arc = Arc::new(authz.audit().clone());
+
+        let approve_disbursal = ApproveDisbursal::new(
+            disbursals_arc.clone(),
+            facilities_arc.clone(),
+            jobs_arc.clone(),
+            governance_arc.clone(),
+            ledger_arc.clone(),
+        );
+        let approve_disbursal_arc = Arc::new(approve_disbursal);
 
         let approve_proposal = ApproveCreditFacilityProposal::new(
-            &proposals,
-            &pending_credit_facilities,
-            authz.audit(),
-            governance,
+            proposals_arc.clone(),
+            pending_credit_facilities_arc.clone(),
+            audit_arc.clone(),
+            governance_arc.clone(),
         );
+        let approve_proposal_arc = Arc::new(approve_proposal);
+
         let activate_credit_facility = ActivateCreditFacility::new(
-            &credit_facilities,
-            &disbursals,
-            &ledger,
-            price,
-            jobs,
-            authz.audit(),
-            public_ids,
+            facilities_arc.clone(),
+            disbursals_arc.clone(),
+            ledger_arc.clone(),
+            price_arc.clone(),
+            jobs_arc.clone(),
+            audit_arc.clone(),
+            public_ids_arc.clone(),
         );
-        let chart_of_accounts_integrations = ChartOfAccountsIntegrations::new(authz, &ledger);
-        let terms_templates = TermsTemplates::new(pool, authz);
+        let activate_credit_facility_arc = Arc::new(activate_credit_facility);
+
+        let chart_of_accounts_integrations =
+            ChartOfAccountsIntegrations::new(authz_arc.clone(), ledger_arc.clone());
+        let chart_of_accounts_integrations_arc = Arc::new(chart_of_accounts_integrations);
+
+        let terms_templates = TermsTemplates::new(pool, authz_arc.clone());
+        let terms_templates_arc = Arc::new(terms_templates);
 
         jobs.add_initializer_and_spawn_unique(
             collateralization_from_price_for_proposal::PendingCreditFacilityCollateralizationFromPriceInit::<
                 Perms,
                 E,
-            >::new(pending_credit_facilities.clone()),
+            >::new(pending_credit_facilities_arc.as_ref().clone()),
             collateralization_from_price_for_proposal::PendingCreditFacilityCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 _phantom: std::marker::PhantomData,
@@ -260,7 +320,7 @@ where
                 collateralization_from_price::CreditFacilityCollateralizationFromPriceInit::<
                     Perms,
                     E,
-                >::new(credit_facilities.clone()),
+                >::new(facilities_arc.as_ref().clone()),
                 collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
                     job_interval: std::time::Duration::from_secs(30),
                     _phantom: std::marker::PhantomData,
@@ -269,11 +329,11 @@ where
             .await?;
         jobs
             .add_initializer_and_spawn_unique(
-                collateralization_from_events_for_proposal::CreditFacilityProposalCollateralizationFromEventsInit::<
+                collateralization_from_events_for_proposal::PendingCreditFacilityCollateralizationFromEventsInit::<
                     Perms,
                     E,
-                >::new(outbox, &pending_credit_facilities),
-                collateralization_from_events_for_proposal::CreditFacilityProposalCollateralizationFromEventsJobConfig {
+                >::new(outbox, pending_credit_facilities_arc.as_ref()),
+                collateralization_from_events_for_proposal::PendingCreditFacilityCollateralizationFromEventsJobConfig {
                     _phantom: std::marker::PhantomData,
                 },
             )
@@ -283,14 +343,17 @@ where
                 collateralization_from_events::CreditFacilityCollateralizationFromEventsInit::<
                     Perms,
                     E,
-                >::new(outbox, &credit_facilities),
+                >::new(outbox, facilities_arc.as_ref()),
                 collateralization_from_events::CreditFacilityCollateralizationFromEventsJobConfig {
                     _phantom: std::marker::PhantomData,
                 },
             )
             .await?;
         jobs.add_initializer_and_spawn_unique(
-            credit_facility_history::HistoryProjectionInit::<E>::new(outbox, &history_repo),
+            credit_facility_history::HistoryProjectionInit::<E>::new(
+                outbox,
+                history_repo_arc.as_ref(),
+            ),
             credit_facility_history::HistoryProjectionConfig {
                 _phantom: std::marker::PhantomData,
             },
@@ -299,7 +362,7 @@ where
         jobs.add_initializer_and_spawn_unique(
             credit_facility_repayment_plan::RepaymentPlanProjectionInit::<E>::new(
                 outbox,
-                &repayment_plan_repo,
+                repayment_plan_repo_arc.as_ref(),
             ),
             credit_facility_repayment_plan::RepaymentPlanProjectionConfig {
                 _phantom: std::marker::PhantomData,
@@ -307,125 +370,129 @@ where
         )
         .await?;
         jobs.add_initializer(interest_accruals::InterestAccrualInit::<Perms, E>::new(
-            &ledger,
-            &credit_facilities,
+            ledger_arc.as_ref(),
+            facilities_arc.as_ref(),
             jobs,
         ));
         jobs.add_initializer(
             interest_accrual_cycles::InterestAccrualCycleInit::<Perms, E>::new(
-                &ledger,
-                &obligations,
-                &credit_facilities,
+                ledger_arc.as_ref(),
+                obligations_arc.as_ref(),
+                facilities_arc.as_ref(),
                 jobs,
                 authz.audit(),
             ),
         );
         jobs.add_initializer(obligation_due::ObligationDueInit::<Perms, E>::new(
-            &ledger,
-            &obligations,
+            ledger_arc.as_ref(),
+            obligations_arc.as_ref(),
             jobs,
         ));
         jobs.add_initializer(obligation_overdue::ObligationOverdueInit::<Perms, E>::new(
-            &ledger,
-            &obligations,
+            ledger_arc.as_ref(),
+            obligations_arc.as_ref(),
             jobs,
         ));
         jobs.add_initializer(
             obligation_liquidation::ObligationLiquidationInit::<Perms, E>::new(
-                &ledger,
-                &obligations,
+                ledger_arc.as_ref(),
+                obligations_arc.as_ref(),
                 jobs,
             ),
         );
         jobs.add_initializer(
-            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(&ledger, &obligations),
+            obligation_defaulted::ObligationDefaultedInit::<Perms, E>::new(
+                ledger_arc.as_ref(),
+                obligations_arc.as_ref(),
+            ),
         );
         jobs.add_initializer(credit_facility_maturity::CreditFacilityMaturityInit::<
             Perms,
             E,
-        >::new(&credit_facilities));
+        >::new(facilities_arc.as_ref()));
         jobs.add_initializer_and_spawn_unique(
-            DisbursalApprovalInit::new(outbox, &approve_disbursal),
+            DisbursalApprovalInit::new(outbox, approve_disbursal_arc.as_ref()),
             DisbursalApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityActivationInit::new(outbox, &activate_credit_facility),
+            CreditFacilityActivationInit::new(outbox, activate_credit_facility_arc.as_ref()),
             CreditFacilityActivationJobConfig::<Perms, E>::new(),
         )
         .await?;
         jobs.add_initializer_and_spawn_unique(
-            CreditFacilityProposalApprovalInit::new(outbox, &approve_proposal),
+            CreditFacilityProposalApprovalInit::new(outbox, approve_proposal_arc.as_ref()),
             CreditFacilityProposalApprovalJobConfig::<Perms, E>::new(),
         )
         .await?;
 
         jobs.add_initializer_and_spawn_unique(
-            wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, &collaterals),
+            wallet_collateral_sync::WalletCollateralSyncInit::new(outbox, collaterals_arc.as_ref()),
             wallet_collateral_sync::WalletCollateralSyncJobConfig::<Perms, E>::new(),
         )
         .await?;
 
         Ok(Self {
-            authz: authz.clone(),
-            customer: customer.clone(),
-            proposals,
-            pending_credit_facilities,
-            facilities: credit_facilities,
-            obligations,
-            collaterals,
-            disbursals,
-            payments,
-            history_repo,
-            repayment_plan_repo,
-            governance: governance.clone(),
-            ledger,
-            price: price.clone(),
-            config,
-            cala: cala.clone(),
-            approve_disbursal,
-            approve_proposal,
-            activate_credit_facility,
-            chart_of_accounts_integrations,
-            terms_templates,
-            public_ids: public_ids.clone(),
+            authz: authz_arc,
+            customer: customer_arc,
+            credit_facility_proposals: proposals_arc,
+            pending_credit_facilities: pending_credit_facilities_arc,
+            facilities: facilities_arc,
+            obligations: obligations_arc,
+            collaterals: collaterals_arc,
+            custody: custody_arc,
+            disbursals: disbursals_arc,
+            payments: payments_arc,
+            history_repo: history_repo_arc,
+            repayment_plan_repo: repayment_plan_repo_arc,
+            governance: governance_arc,
+            ledger: ledger_arc,
+            price: price_arc,
+            config: config_arc,
+            cala: cala_arc,
+            approve_disbursal: approve_disbursal_arc,
+            approve_proposal: approve_proposal_arc,
+            activate_credit_facility: activate_credit_facility_arc,
+            chart_of_accounts_integrations: chart_of_accounts_integrations_arc,
+            terms_templates: terms_templates_arc,
+            public_ids: public_ids_arc,
         })
     }
 
     pub fn obligations(&self) -> &Obligations<Perms, E> {
-        &self.obligations
+        self.obligations.as_ref()
     }
 
     pub fn collaterals(&self) -> &Collaterals<Perms, E> {
-        &self.collaterals
+        self.collaterals.as_ref()
     }
 
     pub fn disbursals(&self) -> &Disbursals<Perms, E> {
-        &self.disbursals
+        self.disbursals.as_ref()
     }
 
     pub fn proposals(&self) -> &CreditFacilityProposals<Perms, E> {
-        &self.proposals
+        self.credit_facility_proposals.as_ref()
     }
 
     pub fn pending_credit_facilities(&self) -> &PendingCreditFacilities<Perms, E> {
-        &self.pending_credit_facilities
+        self.pending_credit_facilities.as_ref()
     }
 
     pub fn facilities(&self) -> &CreditFacilities<Perms, E> {
-        &self.facilities
+        self.facilities.as_ref()
     }
 
     pub fn payments(&self) -> &Payments<Perms> {
-        &self.payments
+        self.payments.as_ref()
     }
 
     pub fn chart_of_accounts_integrations(&self) -> &ChartOfAccountsIntegrations<Perms> {
-        &self.chart_of_accounts_integrations
+        self.chart_of_accounts_integrations.as_ref()
     }
 
     pub fn terms_templates(&self) -> &TermsTemplates<Perms> {
-        &self.terms_templates
+        self.terms_templates.as_ref()
     }
 
     pub async fn subject_can_create(
@@ -502,7 +569,7 @@ where
             .expect("could not build new credit facility proposal");
 
         let credit_facility_proposal = self
-            .proposals
+            .credit_facility_proposals
             .create_in_op(&mut db, new_facility_proposal)
             .await?;
 

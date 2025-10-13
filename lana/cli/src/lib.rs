@@ -163,7 +163,7 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
     }
 
     let (send, mut receive) = tokio::sync::mpsc::channel(1);
-    let mut handles = Vec::new();
+    let mut server_handles = Vec::new();
     let pool = db::init_pool(&config.db).await?;
 
     #[cfg(feature = "sim-bootstrap")]
@@ -174,17 +174,17 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         .clone()
         .expect("super user");
 
-    let admin_app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
-    let customer_app = admin_app.clone();
+    let app = lana_app::app::LanaApp::run(pool.clone(), config.app).await?;
 
     #[cfg(feature = "sim-bootstrap")]
     {
-        let _ = sim_bootstrap::run(superuser_email.to_string(), &admin_app, config.bootstrap).await;
+        let _ = sim_bootstrap::run(superuser_email.to_string(), &app, config.bootstrap).await;
     }
 
     let admin_send = send.clone();
+    let admin_app = app.clone();
 
-    handles.push(tokio::spawn(async move {
+    server_handles.push(tokio::spawn(async move {
         let _ = admin_send.try_send(
             admin_server::run(config.admin_server, admin_app)
                 .await
@@ -192,7 +192,8 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         );
     }));
     let customer_send = send.clone();
-    handles.push(tokio::spawn(async move {
+    let customer_app = app.clone();
+    server_handles.push(tokio::spawn(async move {
         let _ = customer_send.try_send(
             customer_server::run(config.customer_server, customer_app)
                 .await
@@ -200,12 +201,35 @@ async fn run_cmd(lana_home: &str, config: Config) -> anyhow::Result<()> {
         );
     }));
 
-    let reason = receive.recv().await.expect("Didn't receive msg");
-    for handle in handles {
+    // Setup signal handlers
+    let mut sigterm = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::terminate())
+        .context("Failed to setup SIGTERM handler")?;
+    let mut sigint = tokio::signal::unix::signal(tokio::signal::unix::SignalKind::interrupt())
+        .context("Failed to setup SIGINT handler")?;
+
+    let result = tokio::select! {
+        reason = receive.recv() => {
+            eprintln!("Shutting down due to error...");
+            reason.expect("Didn't receive msg")
+        }
+        _ = sigterm.recv() => {
+            eprintln!("Received SIGTERM, shutting down gracefully...");
+            Ok(())
+        }
+        _ = sigint.recv() => {
+            eprintln!("Received SIGINT (Ctrl-C), shutting down gracefully...");
+            Ok(())
+        }
+    };
+
+    for handle in server_handles {
         handle.abort();
     }
 
-    reason
+    app.shutdown().await?;
+    eprintln!("shutdown complete");
+
+    result
 }
 
 pub fn store_server_pid(lana_home: &str, pid: u32) -> anyhow::Result<()> {

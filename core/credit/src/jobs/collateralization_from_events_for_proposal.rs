@@ -14,10 +14,10 @@ use crate::{
 };
 
 #[derive(Serialize, Deserialize)]
-pub struct CreditFacilityProposalCollateralizationFromEventsJobConfig<Perms, E> {
+pub struct PendingCreditFacilityCollateralizationFromEventsJobConfig<Perms, E> {
     pub _phantom: std::marker::PhantomData<(Perms, E)>,
 }
-impl<Perms, E> JobConfig for CreditFacilityProposalCollateralizationFromEventsJobConfig<Perms, E>
+impl<Perms, E> JobConfig for PendingCreditFacilityCollateralizationFromEventsJobConfig<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -28,10 +28,10 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    type Initializer = CreditFacilityProposalCollateralizationFromEventsInit<Perms, E>;
+    type Initializer = PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>;
 }
 
-pub struct CreditFacilityProposalCollateralizationFromEventsInit<Perms, E>
+pub struct PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -46,7 +46,7 @@ where
     credit_facility_proposals: PendingCreditFacilities<Perms, E>,
 }
 
-impl<Perms, E> CreditFacilityProposalCollateralizationFromEventsInit<Perms, E>
+impl<Perms, E> PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -70,7 +70,7 @@ where
 
 const CREDIT_FACILITY_PROPOSAL_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
     JobType::new("credit-facility-proposal-collateralization-from-events");
-impl<Perms, E> JobInitializer for CreditFacilityProposalCollateralizationFromEventsInit<Perms, E>
+impl<Perms, E> JobInitializer for PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -90,9 +90,9 @@ where
 
     fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
         Ok(Box::new(
-            CreditFacilityProposalCollateralizationFromEventsRunner::<Perms, E> {
+            PendingCreditFacilityCollateralizationFromEventsRunner::<Perms, E> {
                 outbox: self.outbox.clone(),
-                credit_facility_proposals: self.credit_facility_proposals.clone(),
+                pending_credit_facility: self.credit_facility_proposals.clone(),
             },
         ))
     }
@@ -101,11 +101,11 @@ where
 // TODO: reproduce 'collateralization_ratio' test from old credit facility
 
 #[derive(Default, Clone, Copy, serde::Deserialize, serde::Serialize)]
-struct CreditFacilityProposalCollateralizationFromEventsData {
+struct PendingCreditFacilityCollateralizationFromEventsData {
     sequence: EventSequence,
 }
 
-pub struct CreditFacilityProposalCollateralizationFromEventsRunner<Perms, E>
+pub struct PendingCreditFacilityCollateralizationFromEventsRunner<Perms, E>
 where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent>
@@ -113,11 +113,11 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     outbox: Outbox<E>,
-    credit_facility_proposals: PendingCreditFacilities<Perms, E>,
+    pending_credit_facility: PendingCreditFacilities<Perms, E>,
 }
 
 #[async_trait::async_trait]
-impl<Perms, E> JobRunner for CreditFacilityProposalCollateralizationFromEventsRunner<Perms, E>
+impl<Perms, E> JobRunner for PendingCreditFacilityCollateralizationFromEventsRunner<Perms, E>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action:
@@ -133,7 +133,7 @@ where
         mut current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
         let mut state = current_job
-            .execution_state::<CreditFacilityProposalCollateralizationFromEventsData>()?
+            .execution_state::<PendingCreditFacilityCollateralizationFromEventsData>()?
             .unwrap_or_default();
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
@@ -143,7 +143,7 @@ where
                 ..
             }) = message.as_ref().as_event()
             {
-                self.credit_facility_proposals
+                self.pending_credit_facility
                     .update_collateralization_from_events(*id)
                     .await?;
                 state.sequence = message.sequence;

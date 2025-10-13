@@ -3,15 +3,18 @@ use outbox::{Outbox, OutboxEventMarker};
 use crate::{
     EffectiveDate,
     collateral::{Collateral, CollateralEvent, error::CollateralError},
-    credit_facility::{CreditFacility, CreditFacilityEvent, error::CreditFacilityError},
+    credit_facility::{
+        CreditFacility, CreditFacilityEvent,
+        error::CreditFacilityError,
+        interest_accrual_cycle::{
+            InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
+        },
+    },
     credit_facility_proposal::{
         CreditFacilityProposal, CreditFacilityProposalEvent, error::CreditFacilityProposalError,
     },
     disbursal::{Disbursal, DisbursalEvent, error::DisbursalError},
     event::*,
-    interest_accrual_cycle::{
-        InterestAccrualCycle, InterestAccrualCycleEvent, error::InterestAccrualCycleError,
-    },
     liquidation_process::{
         LiquidationProcess, LiquidationProcessEvent, error::LiquidationProcessError,
     },

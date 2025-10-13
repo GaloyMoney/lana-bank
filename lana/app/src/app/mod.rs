@@ -42,7 +42,7 @@ use error::ApplicationError;
 #[derive(Clone)]
 pub struct LanaApp {
     _pool: PgPool,
-    _jobs: Jobs,
+    jobs: Jobs,
     audit: Audit,
     authz: Authorization,
     accounting: Accounting,
@@ -82,7 +82,14 @@ impl LanaApp {
         )
         .await?;
 
-        let mut jobs = Jobs::new(&pool, config.job_execution);
+        let mut jobs = Jobs::init(
+            job::JobSvcConfig::builder()
+                .pool(pool.clone())
+                .poller_config(config.job_poller)
+                .build()
+                .expect("Couldn't build JobSvcConfig"),
+        )
+        .await?;
 
         let dashboard = Dashboard::init(&pool, &authz, &jobs, &outbox).await?;
         let governance = Governance::new(&pool, &authz, &outbox);
@@ -181,7 +188,7 @@ impl LanaApp {
 
         Ok(Self {
             _pool: pool,
-            _jobs: jobs,
+            jobs,
             audit,
             authz,
             accounting,
@@ -291,5 +298,11 @@ impl LanaApp {
         crate::authorization::error::AuthorizationError,
     > {
         crate::authorization::get_visible_navigation_items(&self.authz, sub).await
+    }
+
+    #[instrument(name = "app.shutdown", skip(self), err)]
+    pub async fn shutdown(&self) -> Result<(), ApplicationError> {
+        self.jobs.shutdown().await?;
+        Ok(())
     }
 }

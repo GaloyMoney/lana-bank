@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::sync::Arc;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use core_custody::{
@@ -14,7 +16,8 @@ use outbox::OutboxEventMarker;
 use tracing::instrument;
 
 use crate::{
-    Collaterals, CreditFacilityProposal, event::CoreCreditEvent, ledger::*, primitives::*,
+    Collaterals, CreditFacilityProposal, credit_facility::NewCreditFacilityBuilder,
+    event::CoreCreditEvent, ledger::*, primitives::*,
 };
 
 pub use entity::{NewPendingCreditFacility, PendingCreditFacility, PendingCreditFacilityEvent};
@@ -24,7 +27,7 @@ pub use repo::pending_credit_facility_cursor::*;
 
 pub enum PendingCreditFacilityCompletionOutcome {
     Ignored,
-    Completed(PendingCreditFacility),
+    Completed(NewCreditFacilityBuilder),
 }
 
 pub struct PendingCreditFacilities<Perms, E>
@@ -34,14 +37,14 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    repo: PendingCreditFacilityRepo<E>,
-    custody: CoreCustody<Perms, E>,
-    collaterals: Collaterals<Perms, E>,
-    authz: Perms,
-    jobs: Jobs,
-    price: Price,
-    ledger: CreditLedger,
-    governance: Governance<Perms, E>,
+    repo: Arc<PendingCreditFacilityRepo<E>>,
+    custody: Arc<CoreCustody<Perms, E>>,
+    collaterals: Arc<Collaterals<Perms, E>>,
+    authz: Arc<Perms>,
+    jobs: Arc<Jobs>,
+    price: Arc<Price>,
+    ledger: Arc<CreditLedger>,
+    governance: Arc<Governance<Perms, E>>,
 }
 impl<Perms, E> Clone for PendingCreditFacilities<Perms, E>
 where
@@ -77,14 +80,14 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        custody: &CoreCustody<Perms, E>,
-        collaterals: &Collaterals<Perms, E>,
-        authz: &Perms,
-        jobs: &Jobs,
-        ledger: &CreditLedger,
-        price: &Price,
+        custody: Arc<CoreCustody<Perms, E>>,
+        collaterals: Arc<Collaterals<Perms, E>>,
+        authz: Arc<Perms>,
+        jobs: Arc<Jobs>,
+        ledger: Arc<CreditLedger>,
+        price: Arc<Price>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        governance: &Governance<Perms, E>,
+        governance: Arc<Governance<Perms, E>>,
     ) -> Result<Self, PendingCreditFacilityError> {
         let repo = PendingCreditFacilityRepo::new(pool, publisher);
         match governance
@@ -99,14 +102,14 @@ where
         }
 
         Ok(Self {
-            repo,
-            custody: custody.clone(),
-            collaterals: collaterals.clone(),
-            ledger: ledger.clone(),
-            jobs: jobs.clone(),
-            authz: authz.clone(),
-            price: price.clone(),
-            governance: governance.clone(),
+            repo: Arc::new(repo),
+            custody,
+            collaterals,
+            authz,
+            jobs,
+            price,
+            ledger,
+            governance,
         })
     }
 
@@ -193,16 +196,20 @@ where
             .get_pending_credit_facility_balance(pending_facility.account_ids)
             .await?;
 
-        let Ok(es_entity::Idempotent::Executed(_)) = pending_facility.complete(balances, price)
-        else {
-            return Ok(PendingCreditFacilityCompletionOutcome::Ignored);
-        };
+        match pending_facility.complete(balances, price, crate::time::now()) {
+            Ok(es_entity::Idempotent::Executed(new_facility)) => {
+                self.repo.update_in_op(db, &mut pending_facility).await?;
 
-        self.repo.update_in_op(db, &mut pending_facility).await?;
-
-        Ok(PendingCreditFacilityCompletionOutcome::Completed(
-            pending_facility,
-        ))
+                Ok(PendingCreditFacilityCompletionOutcome::Completed(
+                    new_facility,
+                ))
+            }
+            Ok(es_entity::Idempotent::Ignored)
+            | Err(PendingCreditFacilityError::BelowMarginLimit) => {
+                Ok(PendingCreditFacilityCompletionOutcome::Ignored)
+            }
+            Err(e) => Err(e),
+        }
     }
 
     #[es_entity::retry_on_concurrent_modification(any_error = true)]

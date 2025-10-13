@@ -78,7 +78,7 @@ impl JobRunner for DashboardProjectionJobRunner {
                 self.repo.persist_in_tx(&mut db, &state.dashboard).await?;
                 state.sequence = message.sequence;
                 current_job
-                    .update_execution_state_in_tx(&mut db, &state)
+                    .update_execution_state_in_op(&mut db, &state)
                     .await?;
                 db.commit().await?;
             }

@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::sync::Arc;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
@@ -21,10 +23,10 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    repo: CreditFacilityProposalRepo<E>,
-    authz: Perms,
-    jobs: Jobs,
-    governance: Governance<Perms, E>,
+    repo: Arc<CreditFacilityProposalRepo<E>>,
+    authz: Arc<Perms>,
+    jobs: Arc<Jobs>,
+    governance: Arc<Governance<Perms, E>>,
 }
 impl<Perms, E> Clone for CreditFacilityProposals<Perms, E>
 where
@@ -52,10 +54,10 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        authz: &Perms,
-        jobs: &Jobs,
+        authz: Arc<Perms>,
+        jobs: Arc<Jobs>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        governance: &Governance<Perms, E>,
+        governance: Arc<Governance<Perms, E>>,
     ) -> Result<Self, CreditFacilityProposalError> {
         let repo = CreditFacilityProposalRepo::new(pool, publisher);
         match governance
@@ -70,10 +72,10 @@ where
         }
 
         Ok(Self {
-            repo,
-            jobs: jobs.clone(),
-            authz: authz.clone(),
-            governance: governance.clone(),
+            repo: Arc::new(repo),
+            jobs,
+            authz,
+            governance,
         })
     }
 

@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::sync::Arc;
+
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
@@ -19,8 +21,8 @@ pub struct Payments<Perms>
 where
     Perms: PermissionCheck,
 {
-    repo: PaymentRepo,
-    authz: Perms,
+    repo: Arc<PaymentRepo>,
+    authz: Arc<Perms>,
 }
 
 impl<Perms> Clone for Payments<Perms>
@@ -41,12 +43,12 @@ where
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreCreditAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreCreditObject>,
 {
-    pub fn new(pool: &sqlx::PgPool, authz: &Perms) -> Self {
+    pub fn new(pool: &sqlx::PgPool, authz: Arc<Perms>) -> Self {
         let repo = PaymentRepo::new(pool);
 
         Self {
-            repo,
-            authz: authz.clone(),
+            repo: Arc::new(repo),
+            authz,
         }
     }
 

@@ -2,6 +2,8 @@ mod entity;
 pub mod error;
 mod repo;
 
+use std::sync::Arc;
+
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -27,11 +29,11 @@ where
     Perms: PermissionCheck,
     E: OutboxEventMarker<CoreCreditEvent> + OutboxEventMarker<GovernanceEvent>,
 {
-    repo: DisbursalRepo<E>,
-    authz: Perms,
-    obligations: Obligations<Perms, E>,
-    governance: Governance<Perms, E>,
-    public_ids: PublicIds,
+    repo: Arc<DisbursalRepo<E>>,
+    authz: Arc<Perms>,
+    obligations: Arc<Obligations<Perms, E>>,
+    governance: Arc<Governance<Perms, E>>,
+    public_ids: Arc<PublicIds>,
 }
 
 impl<Perms, E> Clone for Disbursals<Perms, E>
@@ -67,11 +69,11 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
-        authz: &Perms,
+        authz: Arc<Perms>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        obligations: &Obligations<Perms, E>,
-        governance: &Governance<Perms, E>,
-        public_ids: &PublicIds,
+        obligations: Arc<Obligations<Perms, E>>,
+        governance: Arc<Governance<Perms, E>>,
+        public_ids: Arc<PublicIds>,
     ) -> Result<Self, DisbursalError> {
         match governance
             .init_policy(crate::APPROVE_DISBURSAL_PROCESS)
@@ -85,11 +87,11 @@ where
         }
 
         Ok(Self {
-            repo: DisbursalRepo::new(pool, publisher),
-            authz: authz.clone(),
-            obligations: obligations.clone(),
-            governance: governance.clone(),
-            public_ids: public_ids.clone(),
+            repo: Arc::new(DisbursalRepo::new(pool, publisher)),
+            authz,
+            obligations,
+            governance,
+            public_ids,
         })
     }
 

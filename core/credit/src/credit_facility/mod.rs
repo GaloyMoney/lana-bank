@@ -1,7 +1,9 @@
 mod entity;
 pub mod error;
+pub mod interest_accrual_cycle;
 mod repo;
 
+use std::sync::Arc;
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -13,9 +15,9 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     PublicIds,
+    disbursal::Disbursals,
     event::CoreCreditEvent,
-    interest_accrual_cycle::NewInterestAccrualCycleData,
-    jobs::credit_facility_maturity,
+    jobs::{credit_facility_maturity, interest_accruals},
     ledger::{CreditFacilityInterestAccrual, CreditFacilityInterestAccrualCycle, CreditLedger},
     obligation::Obligations,
     pending_credit_facility::{PendingCreditFacilities, PendingCreditFacilityCompletionOutcome},
@@ -27,6 +29,7 @@ use core_custody::{CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 
 pub use entity::CreditFacility;
 pub(crate) use entity::*;
+use interest_accrual_cycle::NewInterestAccrualCycleData;
 
 #[cfg(feature = "json-schema")]
 pub use entity::CreditFacilityEvent;
@@ -43,15 +46,16 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    repo: CreditFacilityRepo<E>,
-    obligations: Obligations<Perms, E>,
-    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
-    authz: Perms,
-    ledger: CreditLedger,
-    price: Price,
-    jobs: Jobs,
-    governance: Governance<Perms, E>,
-    public_ids: PublicIds,
+    pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
+    repo: Arc<CreditFacilityRepo<E>>,
+    obligations: Arc<Obligations<Perms, E>>,
+    disbursals: Arc<Disbursals<Perms, E>>,
+    authz: Arc<Perms>,
+    ledger: Arc<CreditLedger>,
+    price: Arc<Price>,
+    jobs: Arc<Jobs>,
+    governance: Arc<Governance<Perms, E>>,
+    public_ids: Arc<PublicIds>,
 }
 
 impl<Perms, E> Clone for CreditFacilities<Perms, E>
@@ -66,6 +70,7 @@ where
             repo: self.repo.clone(),
             obligations: self.obligations.clone(),
             pending_credit_facilities: self.pending_credit_facilities.clone(),
+            disbursals: self.disbursals.clone(),
             authz: self.authz.clone(),
             ledger: self.ledger.clone(),
             price: self.price.clone(),
@@ -79,16 +84,6 @@ where
 pub(super) enum CompletionOutcome {
     Ignored(CreditFacility),
     Completed((CreditFacility, crate::CreditFacilityCompletion)),
-}
-
-pub(super) enum ActivationOutcome {
-    Ignored,
-    Activated(ActivationData),
-}
-
-pub struct ActivationData {
-    pub credit_facility: CreditFacility,
-    pub next_accrual_period: InterestPeriod,
 }
 
 #[derive(Clone)]
@@ -110,102 +105,88 @@ where
         + OutboxEventMarker<GovernanceEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    pub async fn init(
+    pub fn new(
         pool: &sqlx::PgPool,
-        authz: &Perms,
-        obligations: &Obligations<Perms, E>,
-        proposals: &PendingCreditFacilities<Perms, E>,
-        ledger: &CreditLedger,
-        price: &Price,
-        jobs: &Jobs,
+        authz: Arc<Perms>,
+        obligations: Arc<Obligations<Perms, E>>,
+        pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
+        disbursals: Arc<Disbursals<Perms, E>>,
+        ledger: Arc<CreditLedger>,
+        price: Arc<Price>,
+        jobs: Arc<Jobs>,
         publisher: &crate::CreditFacilityPublisher<E>,
-        governance: &Governance<Perms, E>,
-        public_ids: &PublicIds,
-    ) -> Result<Self, CreditFacilityError> {
+        governance: Arc<Governance<Perms, E>>,
+        public_ids: Arc<PublicIds>,
+    ) -> Self {
         let repo = CreditFacilityRepo::new(pool, publisher);
 
-        Ok(Self {
-            repo,
-            obligations: obligations.clone(),
-            pending_credit_facilities: proposals.clone(),
-            authz: authz.clone(),
-            ledger: ledger.clone(),
-            price: price.clone(),
-            jobs: jobs.clone(),
-            governance: governance.clone(),
-            public_ids: public_ids.clone(),
-        })
+        Self {
+            repo: Arc::new(repo),
+            obligations,
+            pending_credit_facilities,
+            disbursals,
+            authz,
+            ledger,
+            price,
+            jobs,
+            governance,
+            public_ids,
+        }
     }
 
     pub(super) async fn begin_op(&self) -> Result<es_entity::DbOp<'_>, CreditFacilityError> {
         Ok(self.repo.begin_op().await?)
     }
 
-    #[instrument(name = "credit.credit_facility.activate", skip(self, db), err)]
-    pub(super) async fn activate_in_op(
-        &self,
-        db: &mut es_entity::DbOpWithTime<'_>,
-        id: CreditFacilityId,
-    ) -> Result<ActivationOutcome, CreditFacilityError> {
+    #[instrument(name = "credit.credit_facility.activate", skip(self), err)]
+    pub(super) async fn activate(&self, id: CreditFacilityId) -> Result<(), CreditFacilityError> {
+        let mut db = self.repo.begin_op().await?.with_db_time().await?;
+
         self.authz
             .audit()
             .record_system_entry_in_tx(
-                db,
+                &mut db,
                 CoreCreditObject::all_credit_facilities(),
                 CoreCreditAction::CREDIT_FACILITY_ACTIVATE,
             )
             .await?;
 
-        let pending_credit_facility = match self
+        let mut new_credit_facility_bld = match self
             .pending_credit_facilities
-            .complete_in_op(db, id.into())
+            .complete_in_op(&mut db, id.into())
             .await?
         {
-            PendingCreditFacilityCompletionOutcome::Completed(proposal) => proposal,
+            PendingCreditFacilityCompletionOutcome::Completed(new_credit_facility_bld) => {
+                new_credit_facility_bld
+            }
             PendingCreditFacilityCompletionOutcome::Ignored => {
-                return Ok(ActivationOutcome::Ignored);
+                return Ok(());
             }
         };
 
         let public_id = self
             .public_ids
-            .create_in_op(db, CREDIT_FACILITY_REF_TARGET, id)
+            .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
             .await?;
 
-        let new_credit_facility = NewCreditFacility::builder()
-            .id(id)
-            .pending_credit_facility_id(pending_credit_facility.id)
-            .ledger_tx_id(LedgerTxId::new())
-            .customer_id(pending_credit_facility.customer_id)
-            .customer_type(pending_credit_facility.customer_type)
-            .account_ids(crate::CreditFacilityLedgerAccountIds::from(
-                pending_credit_facility.account_ids,
-            ))
-            .disbursal_credit_account_id(pending_credit_facility.disbursal_credit_account_id)
-            .collateral_id(pending_credit_facility.collateral_id)
-            .terms(pending_credit_facility.terms)
-            .amount(pending_credit_facility.amount)
-            .activated_at(crate::time::now())
-            .maturity_date(
-                pending_credit_facility
-                    .terms
-                    .maturity_date(crate::time::now()),
-            )
+        let new_credit_facility = new_credit_facility_bld
             .public_id(public_id.id)
             .build()
-            .expect("could not build new credit facility");
+            .expect("Could not build NewCreditFacility");
 
-        let mut credit_facility = self.repo.create_in_op(db, new_credit_facility).await?;
+        let mut credit_facility = self.repo.create_in_op(&mut db, new_credit_facility).await?;
 
         let periods = credit_facility
             .start_interest_accrual_cycle()?
             .expect("first accrual");
 
-        self.repo.update_in_op(db, &mut credit_facility).await?;
+        self.repo
+            .update_in_op(&mut db, &mut credit_facility)
+            .await?;
 
         self.jobs
             .create_and_spawn_at_in_op(
-                db,
+                &mut db,
                 JobId::new(),
                 credit_facility_maturity::CreditFacilityMaturityJobConfig::<Perms, E> {
                     credit_facility_id: credit_facility.id,
@@ -215,10 +196,45 @@ where
             )
             .await?;
 
-        Ok(ActivationOutcome::Activated(ActivationData {
-            credit_facility,
-            next_accrual_period: periods.accrual,
-        }))
+        let accrual_id = credit_facility
+            .interest_accrual_cycle_in_progress()
+            .expect("First accrual not found")
+            .id;
+
+        self.jobs
+            .create_and_spawn_at_in_op(
+                &mut db,
+                accrual_id,
+                interest_accruals::InterestAccrualJobConfig::<Perms, E> {
+                    credit_facility_id: id,
+                    _phantom: std::marker::PhantomData,
+                },
+                periods.accrual.end,
+            )
+            .await?;
+
+        if !credit_facility.structuring_fee().is_zero() {
+            let disbursal_id = self
+                .disbursals
+                .create_first_disbursal_in_op(&mut db, &credit_facility)
+                .await?;
+
+            self.ledger
+                .handle_activation_with_structuring_fee(
+                    db,
+                    credit_facility.activation_data(),
+                    disbursal_id,
+                )
+                .await?;
+
+            return Ok(());
+        }
+
+        self.ledger
+            .handle_facility_activation(db, credit_facility.activation_data())
+            .await?;
+
+        Ok(())
     }
 
     pub(super) async fn confirm_interest_accrual_in_op(
@@ -459,7 +475,7 @@ where
         Ok(())
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true)]
+    #[es_entity::retry_on_concurrent_modification]
     pub(super) async fn update_collateralization_from_events(
         &self,
         id: CreditFacilityId,
@@ -631,7 +647,6 @@ where
         Ok(balances)
     }
 
-    #[es_entity::retry_on_concurrent_modification(any_error = true, max_retries = 15)]
     pub async fn has_outstanding_obligations(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,

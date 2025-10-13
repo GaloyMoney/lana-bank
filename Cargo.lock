@@ -839,9 +839,9 @@ checksum = "ade8366b8bd5ba243f0a58f036cc0ca8a2f069cff1a2351ef1cac6b083e16fc0"
 
 [[package]]
 name = "cala-cel-interpreter"
-version = "0.11.5"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "322f0afde60de9d7c3290293863487db93e86e06402b79ce2692e9abb35cb3ba"
+checksum = "6c288775a4b866f3a3208c88c938704186387b835050d28c9cd1795d886853a1"
 dependencies = [
  "cala-cel-parser",
  "chrono",
@@ -855,9 +855,9 @@ dependencies = [
 
 [[package]]
 name = "cala-cel-parser"
-version = "0.11.5"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "d6bc1066c3abd2a1862bec1d62094e574a1ac1569977a36030f3b34dcb996988"
+checksum = "21988c2acdae6f2c3525f1002a3af94f8fbd6c7ec283842c0849f4e1fc5b5d6a"
 dependencies = [
  "lalrpop",
  "lalrpop-util",
@@ -865,9 +865,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger"
-version = "0.11.5"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6a8ecff9b3fe6530a62aa89c6acb33d19a6be4ee9d1455eb4e132e8b0d563c1d"
+checksum = "3950f4f028df3cb36ac2309d51e43c153a9b7649cf7d7c65b74e1e50a5f10155"
 dependencies = [
  "async-graphql",
  "base64 0.22.1",
@@ -879,7 +879,7 @@ dependencies = [
  "derive_builder",
  "es-entity",
  "futures",
- "job 0.1.12",
+ "job",
  "opentelemetry",
  "prost",
  "prost-wkt-types",
@@ -902,9 +902,9 @@ dependencies = [
 
 [[package]]
 name = "cala-ledger-core-types"
-version = "0.11.5"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "6e84f07581702194e079671d0778743132ea4b246d4313501e5d4effabad945e"
+checksum = "5ff6cd88773b819d6041da3f95d96d1e303039c51d013e92280b4b7b4acc4d6d"
 dependencies = [
  "async-graphql",
  "cala-cel-interpreter",
@@ -924,9 +924,9 @@ dependencies = [
 
 [[package]]
 name = "cala-tracing"
-version = "0.11.5"
+version = "0.12.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "971f0f0d0871ebdd5f7b004bdc9cf005005d5d8c9d2d921a589f954cd8a1e295"
+checksum = "5ab5c0faf4327727bdbef372dd7f687923b31374eb85e50461cbdae82043a3c7"
 dependencies = [
  "anyhow",
  "axum-extra 0.9.6",
@@ -1230,7 +1230,7 @@ dependencies = [
  "document-storage",
  "es-entity",
  "handlebars",
- "job 0.0.0",
+ "job",
  "outbox",
  "rendering",
  "schemars 1.0.4",
@@ -1293,7 +1293,7 @@ dependencies = [
  "derive_builder",
  "document-storage",
  "es-entity",
- "job 0.0.0",
+ "job",
  "rand 0.9.2",
  "rust_decimal",
  "rust_decimal_macros",
@@ -1319,7 +1319,7 @@ dependencies = [
  "authz",
  "core-customer",
  "es-entity",
- "job 0.0.0",
+ "job",
  "outbox",
  "schemars 1.0.4",
  "serde",
@@ -1356,7 +1356,7 @@ dependencies = [
  "es-entity",
  "futures",
  "governance",
- "job 0.0.0",
+ "job",
  "outbox",
  "public-id",
  "rand 0.9.2",
@@ -1453,7 +1453,7 @@ dependencies = [
  "es-entity",
  "futures",
  "governance",
- "job 0.0.0",
+ "job",
  "outbox",
  "public-id",
  "rand 0.9.2",
@@ -1531,7 +1531,7 @@ dependencies = [
  "cloud-storage",
  "derive_builder",
  "es-entity",
- "job 0.0.0",
+ "job",
  "outbox",
  "schemars 1.0.4",
  "serde",
@@ -1684,7 +1684,7 @@ dependencies = [
  "core-deposit",
  "futures",
  "governance",
- "job 0.0.0",
+ "job",
  "keycloak-client",
  "lana-events",
  "outbox",
@@ -1776,7 +1776,7 @@ dependencies = [
  "core-money",
  "es-entity",
  "futures",
- "job 0.0.0",
+ "job",
  "lana-events",
  "outbox",
  "schemars 1.0.4",
@@ -1807,7 +1807,7 @@ dependencies = [
  "core-money",
  "futures",
  "governance",
- "job 0.0.0",
+ "job",
  "lana-events",
  "outbox",
  "rust_decimal",
@@ -3156,9 +3156,10 @@ checksum = "4a5f13b858c8d314ee3e8f639011f7ccefe71f97f96e50151fb991f267928e2c"
 
 [[package]]
 name = "job"
-version = "0.0.0"
+version = "0.2.0"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "95dff584dee16aca1dea3073b966b9e97f26e52f8f09a3d00fa9499b198ef8a7"
 dependencies = [
- "anyhow",
  "async-trait",
  "chrono",
  "derive_builder",
@@ -3170,30 +3171,6 @@ dependencies = [
  "serde_json",
  "serde_with",
  "sim-time",
- "sqlx",
- "thiserror 2.0.17",
- "tokio",
- "tracing",
- "uuid",
- "workspace-hack",
-]
-
-[[package]]
-name = "job"
-version = "0.1.12"
-source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "fbc97547bab9416fb9e5490474afef9f452611dbff8a478cf9dc3cf5bb093bdb"
-dependencies = [
- "async-trait",
- "chrono",
- "derive_builder",
- "es-entity",
- "futures",
- "rand 0.9.2",
- "schemars 1.0.4",
- "serde",
- "serde_json",
- "serde_with",
  "sqlx",
  "thiserror 2.0.17",
  "tokio",
@@ -3362,7 +3339,7 @@ dependencies = [
  "document-storage",
  "es-entity",
  "governance",
- "job 0.0.0",
+ "job",
  "lana-events",
  "lana-ids",
  "notification",
@@ -3433,7 +3410,7 @@ dependencies = [
  "cala-ledger",
  "es-entity",
  "governance",
- "job 0.0.0",
+ "job",
  "schemars 1.0.4",
  "serde",
  "sqlx",
@@ -3780,7 +3757,7 @@ dependencies = [
  "futures",
  "governance",
  "handlebars",
- "job 0.0.0",
+ "job",
  "lana-events",
  "lettre",
  "outbox",
@@ -5497,6 +5474,15 @@ source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "0fda2ff0d084019ba4d7c6f371c95d8fd75ce3524c3cb8fb653a3023f6323e64"
 
 [[package]]
+name = "signal-hook-registry"
+version = "1.4.6"
+source = "registry+https://github.com/rust-lang/crates.io-index"
+checksum = "b2a4719bff48cee6b39d12c020eeb490953ad2443b7055bd0b21fca26bd8c28b"
+dependencies = [
+ "libc",
+]
+
+[[package]]
 name = "signature"
 version = "2.2.0"
 source = "registry+https://github.com/rust-lang/crates.io-index"
@@ -6336,6 +6322,7 @@ dependencies = [
  "mio",
  "parking_lot",
  "pin-project-lite",
+ "signal-hook-registry",
  "slab",
  "socket2 0.6.0",
  "tokio-macros",
@@ -6834,7 +6821,7 @@ dependencies = [
  "core-access",
  "es-entity",
  "futures",
- "job 0.0.0",
+ "job",
  "keycloak-client",
  "outbox",
  "serde",
@@ -7487,7 +7474,7 @@ dependencies = [
  "idna",
  "indexmap 2.9.0",
  "inout",
- "job 0.1.12",
+ "job",
  "lalrpop-util",
  "log",
  "memchr",

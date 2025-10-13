@@ -65,7 +65,24 @@ start_server() {
 }
 stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
-    kill -9 $(cat "$SERVER_PID_FILE") || true
+    PID=$(cat "$SERVER_PID_FILE")
+
+    if kill -TERM $PID 2>/dev/null; then
+      echo "Sent SIGTERM to process $PID"
+
+      local seconds=0
+      while (( seconds < 30 )) && kill -0 $PID 2>/dev/null; do
+        sleep 1
+        ((seconds++))
+      done
+
+      if kill -0 $PID 2>/dev/null; then
+        echo "Process didn't stop gracefully, sending SIGKILL"
+        kill -9 $PID 2>/dev/null || true
+      fi
+    fi
+
+    rm -f "$SERVER_PID_FILE"
   fi
 }
 

@@ -1,5 +1,7 @@
 mod job;
 
+use std::sync::Arc;
+
 use tracing::instrument;
 
 use audit::AuditSvc;
@@ -29,10 +31,10 @@ where
         + OutboxEventMarker<CoreCreditEvent>
         + OutboxEventMarker<CoreCustodyEvent>,
 {
-    proposals: CreditFacilityProposals<Perms, E>,
-    pending_credit_facilities: PendingCreditFacilities<Perms, E>,
-    audit: Perms::Audit,
-    governance: Governance<Perms, E>,
+    proposals: Arc<CreditFacilityProposals<Perms, E>>,
+    pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
+    audit: Arc<Perms::Audit>,
+    governance: Arc<Governance<Perms, E>>,
 }
 
 impl<Perms, E> Clone for ApproveCreditFacilityProposal<Perms, E>
@@ -64,16 +66,16 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     pub fn new(
-        proposals: &CreditFacilityProposals<Perms, E>,
-        pending_credit_facilities: &PendingCreditFacilities<Perms, E>,
-        audit: &Perms::Audit,
-        governance: &Governance<Perms, E>,
+        proposals: Arc<CreditFacilityProposals<Perms, E>>,
+        pending_credit_facilities: Arc<PendingCreditFacilities<Perms, E>>,
+        audit: Arc<Perms::Audit>,
+        governance: Arc<Governance<Perms, E>>,
     ) -> Self {
         Self {
-            proposals: proposals.clone(),
-            pending_credit_facilities: pending_credit_facilities.clone(),
-            audit: audit.clone(),
-            governance: governance.clone(),
+            proposals,
+            pending_credit_facilities,
+            audit,
+            governance,
         }
     }
 
