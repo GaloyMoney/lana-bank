@@ -1,10 +1,12 @@
 mod template;
 
+use audit::AuditInfo;
+use serde::{Deserialize, Serialize};
 use template::*;
 pub use template::{AnnualClosingTransactionParams, EntryParams};
 
 use crate::primitives::CalaTxId;
-use cala_ledger::CalaLedger;
+use cala_ledger::{AccountSetId, CalaLedger};
 
 use super::{ChartOfAccountsIntegrationConfig, error::AnnualClosingTransactionError};
 
@@ -42,22 +44,30 @@ impl AnnualClosingTransactionLedger {
 
     pub async fn get_chart_of_accounts_integration_config(
         &self,
-        reference: String,
+        root_chart_account_set_id: impl Into<AccountSetId>,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AnnualClosingTransactionError> {
-        todo!();
-
-        // let account_set_id = self
-        //     .get_ids_from_reference(reference)
-        //     .await?
-        //     .account_set_id_for_config();
-        //
-        // let account_set = self.cala.account_sets().find(account_set_id).await?;
-        // if let Some(meta) = account_set.values().metadata.as_ref() {
-        //     let meta: ChartOfAccountsIntegrationMeta =
-        //         serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
-        //     Ok(Some(meta.config))
-        // } else {
-        //     Ok(None)
-        // }
+        let root_chart_account_set_id = root_chart_account_set_id.into();
+        let account_set = self
+            .cala
+            .account_sets()
+            .find(root_chart_account_set_id)
+            .await?;
+        if let Some(meta) = account_set.values().metadata.as_ref() {
+            let meta: ChartOfAccountsIntegrationMeta =
+                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
+            Ok(Some(meta.config))
+        } else {
+            Ok(None)
+        }
     }
+}
+
+#[derive(Serialize, Deserialize, Clone, Debug)]
+pub struct ChartOfAccountsIntegrationMeta {
+    pub config: ChartOfAccountsIntegrationConfig,
+    pub audit_info: AuditInfo,
+
+    pub revenue_child_account_set_id_from_chart: AccountSetId,
+    pub cost_of_revenue_child_account_set_id_from_chart: AccountSetId,
+    pub expenses_child_account_set_id_from_chart: AccountSetId,
 }

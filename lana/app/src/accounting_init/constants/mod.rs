@@ -8,5 +8,3 @@ pub const TRIAL_BALANCE_STATEMENT_NAME: &str = "Trial Balance";
 pub const PROFIT_AND_LOSS_STATEMENT_NAME: &str = "Profit & Loss Statement";
 
 pub const BALANCE_SHEET_NAME: &str = "Balance Sheet";
-
-pub const ANNUAL_CLOSING_NAME: &str = "Annual Closing";

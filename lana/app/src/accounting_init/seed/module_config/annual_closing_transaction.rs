@@ -2,7 +2,7 @@ use serde::Deserialize;
 
 use crate::{
     accounting::Chart,
-    accounting_init::{AccountingInitError, constants::ANNUAL_CLOSING_NAME},
+    accounting_init::AccountingInitError,
     annual_closing_transaction::{
         AnnualClosingTransactions, ChartOfAccountsIntegrationConfig,
         error::AnnualClosingTransactionError,
@@ -44,7 +44,6 @@ pub(in crate::accounting_init::seed) async fn annual_closing_transaction_module_
     match annual_closing_transaction
         .set_chart_of_accounts_integration_config(
             &rbac_types::Subject::System,
-            crate::accounting_init::constants::ANNUAL_CLOSING_NAME.to_string(),
             chart,
             config_values,
         )

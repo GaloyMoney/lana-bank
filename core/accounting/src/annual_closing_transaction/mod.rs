@@ -129,7 +129,7 @@ where
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: String,
+        chart: &Chart,
     ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AnnualClosingTransactionError> {
         self.authz
             .enforce_permission(
@@ -138,16 +138,16 @@ where
                 CoreAccountingAction::ANNUAL_CLOSING_TRANSACTION_CONFIGURATION_READ,
             )
             .await?;
+
         Ok(self
             .ledger
-            .get_chart_of_accounts_integration_config(reference)
+            .get_chart_of_accounts_integration_config(chart.id)
             .await?)
     }
 
     pub async fn set_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        reference: String,
         chart: &Chart,
         config: ChartOfAccountsIntegrationConfig,
     ) -> Result<ChartOfAccountsIntegrationConfig, AnnualClosingTransactionError> {
@@ -166,7 +166,7 @@ where
 
         if self
             .ledger
-            .get_chart_of_accounts_integration_config(reference.to_string())
+            .get_chart_of_accounts_integration_config(chart.id)
             .await?
             .is_some()
         {

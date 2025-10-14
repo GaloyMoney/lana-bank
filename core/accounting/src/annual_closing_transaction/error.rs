@@ -10,6 +10,8 @@ pub enum AnnualClosingTransactionError {
     EsEntityError(es_entity::EsEntityError),
     #[error("AnnualClosingTransactionError - CalaError: {0}")]
     CalaError(#[from] cala_ledger::error::LedgerError),
+    #[error("AnnualClosingTransactionError - CalaAccountSetError: {0}")]
+    AccountSetError(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("AnnualClosingTransactionError - CalaTxTemplateError: {0}")]
     TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("AnnualClosingTransactionError - AuthorizationError: {0}")]
