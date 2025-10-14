@@ -13,8 +13,8 @@ use outbox::OutboxEventMarker;
 use tracing::instrument;
 
 use crate::{
-    credit_facility::NewCreditFacilityBuilder, event::CoreCreditEvent, ledger::CreditLedger,
-    primitives::*,
+    credit_facility::NewCreditFacilityBuilder, disbursal::NewDisbursalBuilder,
+    event::CoreCreditEvent, ledger::CreditLedger, primitives::*,
 };
 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
@@ -24,7 +24,10 @@ pub use repo::credit_facility_proposal_cursor::*;
 
 pub enum CreditFacilityProposalCompletionOutcome {
     Ignored,
-    Completed(NewCreditFacilityBuilder),
+    Completed {
+        new_facility: NewCreditFacilityBuilder,
+        initial_disbursal: Option<NewDisbursalBuilder>,
+    },
 }
 
 pub struct CreditFacilityProposals<Perms, E>
@@ -171,12 +174,13 @@ where
             .await?;
 
         match proposal.complete(balances, price, crate::time::now()) {
-            Ok(es_entity::Idempotent::Executed(new_facility)) => {
+            Ok(es_entity::Idempotent::Executed((new_facility, initial_disbursal))) => {
                 self.repo.update_in_op(db, &mut proposal).await?;
 
-                Ok(CreditFacilityProposalCompletionOutcome::Completed(
+                Ok(CreditFacilityProposalCompletionOutcome::Completed {
                     new_facility,
-                ))
+                    initial_disbursal,
+                })
             }
             Ok(es_entity::Idempotent::Ignored)
             | Err(CreditFacilityProposalError::BelowMarginLimit)

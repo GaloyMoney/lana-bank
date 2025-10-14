@@ -715,6 +715,7 @@ where
             .initiate_disbursal(
                 db,
                 disbursal.id,
+                disbursal.initiated_tx_id,
                 disbursal.amount,
                 disbursal.account_ids.facility_account_id,
             )

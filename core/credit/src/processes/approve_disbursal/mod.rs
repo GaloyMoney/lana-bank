@@ -15,7 +15,7 @@ use outbox::OutboxEventMarker;
 
 use crate::{
     CoreCreditAction, CoreCreditError, CoreCreditEvent, CoreCreditObject, Disbursal, Disbursals,
-    LedgerTxId, credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
+    credit_facility::CreditFacilities, ledger::CreditLedger, primitives::DisbursalId,
 };
 
 pub use job::*;
@@ -110,10 +110,9 @@ where
     ) -> Result<Disbursal, CoreCreditError> {
         let mut op = self.disbursals.begin_op().await?.with_db_time().await?;
 
-        let tx_id = LedgerTxId::new();
         let disbursal = match self
             .disbursals
-            .conclude_approval_process_in_op(&mut op, id.into(), approved, tx_id)
+            .conclude_approval_process_in_op(&mut op, id.into(), approved)
             .await?
         {
             crate::ApprovalProcessOutcome::Ignored(disbursal) => {
@@ -147,7 +146,7 @@ where
                     .cancel_disbursal(
                         disbursal.id,
                         op,
-                        tx_id,
+                        disbursal.initiated_tx_id,
                         disbursal.amount,
                         credit_facility.account_ids.facility_account_id,
                     )

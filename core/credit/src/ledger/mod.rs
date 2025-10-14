@@ -1728,10 +1728,10 @@ impl CreditLedger {
         &self,
         op: es_entity::DbOp<'_>,
         entity_id: DisbursalId,
+        tx_id: LedgerTxId,
         amount: UsdCents,
         facility_account_id: CalaAccountId,
     ) -> Result<(), CreditLedgerError> {
-        let tx_id = entity_id.into();
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);

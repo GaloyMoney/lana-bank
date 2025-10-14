@@ -13,11 +13,13 @@ CREATE TABLE core_disbursal_events_rollup (
   due_date VARCHAR,
   effective VARCHAR,
   facility_id UUID,
-  ledger_tx_id UUID,
   liquidation_date JSONB,
   obligation_id UUID,
   overdue_date JSONB,
   public_id VARCHAR,
+
+  -- Collection rollups
+  ledger_tx_ids UUID[],
 
   -- Toggle fields
   is_approval_process_concluded BOOLEAN DEFAULT false,
@@ -68,7 +70,12 @@ BEGIN
     new_row.is_approval_process_concluded := false;
     new_row.is_cancelled := false;
     new_row.is_settled := false;
-    new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+    new_row.ledger_tx_ids := CASE
+       WHEN NEW.event ? 'ledger_tx_ids' THEN
+         ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
+       ELSE ARRAY[]::UUID[]
+     END
+;
     new_row.liquidation_date := (NEW.event -> 'liquidation_date');
     new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     new_row.overdue_date := (NEW.event -> 'overdue_date');
@@ -86,7 +93,7 @@ BEGIN
     new_row.is_approval_process_concluded := current_row.is_approval_process_concluded;
     new_row.is_cancelled := current_row.is_cancelled;
     new_row.is_settled := current_row.is_settled;
-    new_row.ledger_tx_id := current_row.ledger_tx_id;
+    new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.liquidation_date := current_row.liquidation_date;
     new_row.obligation_id := current_row.obligation_id;
     new_row.overdue_date := current_row.overdue_date;
@@ -102,6 +109,7 @@ BEGIN
       new_row.disbursal_credit_account_id := (NEW.event ->> 'disbursal_credit_account_id')::UUID;
       new_row.due_date := (NEW.event ->> 'due_date');
       new_row.facility_id := (NEW.event ->> 'facility_id')::UUID;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.liquidation_date := (NEW.event -> 'liquidation_date');
       new_row.overdue_date := (NEW.event -> 'overdue_date');
       new_row.public_id := (NEW.event ->> 'public_id');
@@ -113,11 +121,11 @@ BEGIN
       new_row.amount := (NEW.event ->> 'amount')::BIGINT;
       new_row.effective := (NEW.event ->> 'effective');
       new_row.is_settled := true;
-      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
       new_row.obligation_id := (NEW.event ->> 'obligation_id')::UUID;
     WHEN 'cancelled' THEN
       new_row.is_cancelled := true;
-      new_row.ledger_tx_id := (NEW.event ->> 'ledger_tx_id')::UUID;
+      new_row.ledger_tx_ids := array_append(COALESCE(current_row.ledger_tx_ids, ARRAY[]::UUID[]), (NEW.event ->> 'ledger_tx_id')::UUID);
   END CASE;
 
   INSERT INTO core_disbursal_events_rollup (
@@ -136,7 +144,7 @@ BEGIN
     is_approval_process_concluded,
     is_cancelled,
     is_settled,
-    ledger_tx_id,
+    ledger_tx_ids,
     liquidation_date,
     obligation_id,
     overdue_date,
@@ -158,7 +166,7 @@ BEGIN
     new_row.is_approval_process_concluded,
     new_row.is_cancelled,
     new_row.is_settled,
-    new_row.ledger_tx_id,
+    new_row.ledger_tx_ids,
     new_row.liquidation_date,
     new_row.obligation_id,
     new_row.overdue_date,

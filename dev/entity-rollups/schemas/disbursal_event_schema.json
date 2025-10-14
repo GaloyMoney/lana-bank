@@ -111,6 +111,10 @@
           "format": "uuid",
           "type": "string"
         },
+        "ledger_tx_id": {
+          "format": "uuid",
+          "type": "string"
+        },
         "liquidation_date": {
           "anyOf": [
             {
@@ -142,6 +146,7 @@
       "required": [
         "type",
         "id",
+        "ledger_tx_id",
         "approval_process_id",
         "facility_id",
         "amount",

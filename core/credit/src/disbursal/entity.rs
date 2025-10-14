@@ -19,6 +19,7 @@ use crate::{
 pub enum DisbursalEvent {
     Initialized {
         id: DisbursalId,
+        ledger_tx_id: LedgerTxId,
         approval_process_id: ApprovalProcessId,
         facility_id: CreditFacilityId,
         amount: UsdCents,
@@ -56,6 +57,7 @@ pub struct Disbursal {
     pub due_date: EffectiveDate,
     pub overdue_date: Option<EffectiveDate>,
     pub liquidation_date: Option<EffectiveDate>,
+    pub initiated_tx_id: LedgerTxId,
     #[builder(setter(strip_option), default)]
     pub concluded_tx_id: Option<LedgerTxId>,
     pub public_id: PublicId,
@@ -69,6 +71,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
             match event {
                 DisbursalEvent::Initialized {
                     id,
+                    ledger_tx_id,
                     approval_process_id,
                     facility_id,
                     amount,
@@ -82,6 +85,7 @@ impl TryFromEvents<DisbursalEvent> for Disbursal {
                 } => {
                     builder = builder
                         .id(*id)
+                        .initiated_tx_id(*ledger_tx_id)
                         .approval_process_id(*approval_process_id)
                         .facility_id(*facility_id)
                         .amount(*amount)
@@ -138,7 +142,6 @@ impl Disbursal {
 
     pub(crate) fn approval_process_concluded(
         &mut self,
-        tx_id: LedgerTxId,
         approved: bool,
         effective: chrono::NaiveDate,
     ) -> Idempotent<Option<NewObligation>> {
@@ -150,6 +153,7 @@ impl Disbursal {
             approval_process_id: self.approval_process_id,
             approved,
         });
+        let tx_id = LedgerTxId::new();
         let tx_ref: &str = &format!("disbursal-{}", self.id);
         let new_obligation = if approved {
             if let Idempotent::Executed(new_obligation) =
@@ -296,6 +300,7 @@ impl IntoEvents<DisbursalEvent> for NewDisbursal {
             self.id,
             [DisbursalEvent::Initialized {
                 id: self.id,
+                ledger_tx_id: self.id.into(),
                 approval_process_id: self.approval_process_id,
                 facility_id: self.credit_facility_id,
                 amount: self.amount,
