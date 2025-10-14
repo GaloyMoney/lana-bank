@@ -51,7 +51,9 @@ pub(in crate::accounting_init::seed) async fn annual_closing_transaction_module_
         .await
     {
         Ok(_) => (),
-        Err(AnnualClosingTransactionError::AnnualClosingIntegrationConfigAlreadyExists) => (),
+        Err(
+            AnnualClosingTransactionError::AnnualClosingTransactionIntegrationConfigAlreadyExists,
+        ) => (),
         Err(e) => return Err(e.into()),
     };
 

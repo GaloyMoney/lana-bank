@@ -126,28 +126,23 @@ where
         Ok(annual_closing_transaction)
     }
 
-    // #[instrument(
-    //     name = "core_accounting.annual_closing.get_integration_config",
-    //     skip(self),
-    //     err
-    // )]
-    // pub async fn get_chart_of_accounts_integration_config(
-    //     &self,
-    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-    //     reference: String,
-    // ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AnnualClosingTransactionError> {
-    //     self.authz
-    //         .enforce_permission(
-    //             sub,
-    //             CoreAccountingObject::all_annual_closing_configuration(),
-    //             CoreAccountingAction::ANNUAL_CLOSING_CONFIGURATION_READ,
-    //         )
-    //         .await?;
-    //     Ok(self
-    //         .ledger
-    //         .get_chart_of_accounts_integration_config(reference)
-    //         .await?)
-    // }
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        reference: String,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AnnualClosingTransactionError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_annual_closing_transaction_configuration(),
+                CoreAccountingAction::ANNUAL_CLOSING_TRANSACTION_CONFIGURATION_READ,
+            )
+            .await?;
+        Ok(self
+            .ledger
+            .get_chart_of_accounts_integration_config(reference)
+            .await?)
+    }
 
     pub async fn set_chart_of_accounts_integration_config(
         &self,
@@ -160,26 +155,26 @@ where
             return Err(AnnualClosingTransactionError::ChartIdMismatch);
         }
 
+        let audit_info = self
+            .authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_annual_closing_transaction_configuration(),
+                CoreAccountingAction::ANNUAL_CLOSING_TRANSACTION_CONFIGURATION_UPDATE,
+            )
+            .await?;
+
+        if self
+            .ledger
+            .get_chart_of_accounts_integration_config(reference.to_string())
+            .await?
+            .is_some()
+        {
+            return Err(AnnualClosingTransactionError::AnnualClosingTransactionIntegrationConfigAlreadyExists);
+        }
+
         todo!();
 
-        // let audit_info = self
-        //     .authz
-        //     .enforce_permission(
-        //         sub,
-        //         CoreAccountingObject::all_profit_and_loss_configuration(),
-        //         CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
-        //     )
-        //     .await?;
-
-        // if self
-        //     .pl_statement_ledger
-        //     .get_chart_of_accounts_integration_config(reference.to_string())
-        //     .await?
-        //     .is_some()
-        // {
-        //     return Err(ProfitAndLossStatementError::ProfitAndLossStatementConfigAlreadyExists);
-        // }
-        //
         // let revenue_child_account_set_id_from_chart =
         //     chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
         // let cost_of_revenue_child_account_set_id_from_chart =

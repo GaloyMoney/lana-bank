@@ -6,7 +6,7 @@ pub use template::{AnnualClosingTransactionParams, EntryParams};
 use crate::primitives::CalaTxId;
 use cala_ledger::CalaLedger;
 
-use super::error::AnnualClosingTransactionError;
+use super::{ChartOfAccountsIntegrationConfig, error::AnnualClosingTransactionError};
 
 #[derive(Clone)]
 pub struct AnnualClosingTransactionLedger {
@@ -38,5 +38,26 @@ impl AnnualClosingTransactionLedger {
         op.commit().await?;
 
         Ok(())
+    }
+
+    pub async fn get_chart_of_accounts_integration_config(
+        &self,
+        reference: String,
+    ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AnnualClosingTransactionError> {
+        todo!();
+
+        // let account_set_id = self
+        //     .get_ids_from_reference(reference)
+        //     .await?
+        //     .account_set_id_for_config();
+        //
+        // let account_set = self.cala.account_sets().find(account_set_id).await?;
+        // if let Some(meta) = account_set.values().metadata.as_ref() {
+        //     let meta: ChartOfAccountsIntegrationMeta =
+        //         serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
+        //     Ok(Some(meta.config))
+        // } else {
+        //     Ok(None)
+        // }
     }
 }
