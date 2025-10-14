@@ -10,6 +10,10 @@ pub enum AccountingPeriodError {
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
     #[error("AccountingPeriodError - NoOpenAccountingPeriodFound")]
     NoOpenAccountingPeriodFound,
+    #[error("AccountingPeriodError - PeriodAlreadyClosed")]
+    PeriodAlreadyClosed,
+    #[error("AccountingPeriodError - CannotCalculatePeriodEnd")]
+    CannotCalculatePeriodEnd,
 }
 
 es_entity::from_es_entity_error!(AccountingPeriodError);

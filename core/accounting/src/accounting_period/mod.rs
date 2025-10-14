@@ -16,7 +16,7 @@ struct AccountingPeriods {
 }
 
 impl AccountingPeriods {
-    /// Returns a list of all Accounting Periods that are currenlty
+    /// Returns a list of all Accounting Periods that are currently
     /// open on the given chart. No specific order of the periods is
     /// guaranteed.
     pub async fn find_open_accounting_periods(
@@ -27,12 +27,13 @@ impl AccountingPeriods {
     }
 
     /// Closes currently open monthly Accounting Period under the given
-    /// Chart of Accounts and returns blueprint for a next Accounting Period.
+    /// Chart of Accounts and returns next Accounting Period.
     /// Fails if no such Accounting Period is found.
-    pub async fn close_month(
+    pub async fn close_month_in_op(
         &self,
+        db: &mut es_entity::DbOp<'_>,
         chart_id: ChartId,
-    ) -> Result<NewAccountingPeriod, AccountingPeriodError> {
+    ) -> Result<AccountingPeriod, AccountingPeriodError> {
         let mut open_periods = self.find_open_accounting_periods(chart_id).await?;
 
         let id = open_periods
@@ -50,23 +51,23 @@ impl AccountingPeriods {
             .remove(&id)
             .expect("Value has been confirmed to be present.");
 
-        match open_period.close(None) {
+        match open_period.close(None)? {
             Idempotent::Executed(new) => {
-                // self.repo.update_in_op(&mut open_period);
-                todo!();
-                Ok(new)
+                self.repo.update_in_op(db, &mut open_period).await?;
+                let new_period = self.repo.create_in_op(db, new).await?;
+                Ok(new_period)
             }
-            Idempotent::Ignored => todo!(),
+            Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
         }
     }
 
-    /// Closes currently open anual Accounting Period under the given
-    /// Chart of Accounts and returns blueprint for a next Accounting Period.
+    /// Closes currently open annual Accounting Period under the given
+    /// Chart of Accounts and returns next Accounting Period.
     /// Fails if no such Accounting Period is found.
     ///
     /// This method does not automatically close any other underlying
-    /// Accouning Period.
-    pub async fn close_year(&self, chart_id: &ChartId) -> Result<NewAccountingPeriod, String> {
+    /// Accounting Period.
+    pub async fn close_year(&self, chart_id: &ChartId) -> Result<AccountingPeriod, String> {
         todo!()
     }
 
