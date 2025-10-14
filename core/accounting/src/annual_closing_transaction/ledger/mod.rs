@@ -53,12 +53,26 @@ impl AnnualClosingTransactionLedger {
             .find(root_chart_account_set_id)
             .await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
-            let meta: ChartOfAccountsIntegrationMeta =
-                serde_json::from_value(meta.clone()).expect("Could not deserialize metadata");
-            Ok(Some(meta.config))
+            if let Some(submeta) = meta.get("chart_of_accounts_integration") {
+                let meta: ChartOfAccountsIntegrationMeta = serde_json::from_value(submeta.clone())
+                    .expect("could not deserialize chart_of_accounts_integration meta");
+                Ok(Some(meta.config))
+            } else {
+                Ok(None)
+            }
         } else {
             Ok(None)
         }
+    }
+
+    pub async fn attach_chart_of_accounts_integration_meta(
+        &self,
+        root_chart_account_set_id: impl Into<AccountSetId>,
+        config: ChartOfAccountsIntegrationMeta,
+    ) -> Result<(), AnnualClosingTransactionError> {
+        let root_chart_account_set_id = root_chart_account_set_id.into();
+
+        Ok(())
     }
 }
 
@@ -70,4 +84,6 @@ pub struct ChartOfAccountsIntegrationMeta {
     pub revenue_child_account_set_id_from_chart: AccountSetId,
     pub cost_of_revenue_child_account_set_id_from_chart: AccountSetId,
     pub expenses_child_account_set_id_from_chart: AccountSetId,
+    pub equity_retained_earnings_child_account_set_id_from_chart: AccountSetId,
+    pub equity_retained_losses_child_account_set_id_from_chart: AccountSetId,
 }

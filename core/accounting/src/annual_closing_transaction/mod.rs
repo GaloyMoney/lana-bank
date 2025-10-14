@@ -16,6 +16,7 @@ use ledger::{AnnualClosingTransactionLedger, AnnualClosingTransactionParams, Ent
 
 use crate::{
     Chart,
+    annual_closing_transaction::ledger::ChartOfAccountsIntegrationMeta,
     chart_of_accounts::ChartOfAccounts,
     primitives::{
         AnnualClosingTransactionId, CalaAccountSetId, CalaTxId, ChartId, CoreAccountingAction,
@@ -173,28 +174,32 @@ where
             return Err(AnnualClosingTransactionError::AnnualClosingTransactionIntegrationConfigAlreadyExists);
         }
 
-        todo!();
+        let revenue_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
+        let cost_of_revenue_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
+        let expenses_child_account_set_id_from_chart =
+            chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
+        let equity_retained_earnings_child_account_set_id_from_chart = chart
+            .account_set_id_from_code(&config.chart_of_accounts_equity_retained_earnings_code)?;
+        let equity_retained_losses_child_account_set_id_from_chart = chart
+            .account_set_id_from_code(&config.chart_of_accounts_equity_retained_losses_code)?;
 
-        // let revenue_child_account_set_id_from_chart =
-        //     chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
-        // let cost_of_revenue_child_account_set_id_from_chart =
-        //     chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
-        // let expenses_child_account_set_id_from_chart =
-        //     chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
-        //
-        // let charts_integration_meta = ChartOfAccountsIntegrationMeta {
-        //     audit_info,
-        //     config: config.clone(),
-        //
-        //     revenue_child_account_set_id_from_chart,
-        //     cost_of_revenue_child_account_set_id_from_chart,
-        //     expenses_child_account_set_id_from_chart,
-        // };
-        //
-        // self.pl_statement_ledger
-        //     .attach_chart_of_accounts_account_sets(reference, charts_integration_meta)
-        //     .await?;
-        //
-        // Ok(config)
+        let charts_integration_meta = ChartOfAccountsIntegrationMeta {
+            audit_info,
+            config: config.clone(),
+
+            revenue_child_account_set_id_from_chart,
+            cost_of_revenue_child_account_set_id_from_chart,
+            expenses_child_account_set_id_from_chart,
+            equity_retained_earnings_child_account_set_id_from_chart,
+            equity_retained_losses_child_account_set_id_from_chart,
+        };
+
+        self.ledger
+            .attach_chart_of_accounts_integration_meta(chart.id, charts_integration_meta)
+            .await?;
+
+        Ok(config)
     }
 }
