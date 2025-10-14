@@ -24,7 +24,8 @@ es_entity::entity_id! {
     ChartNodeId,
     ManualTransactionId,
     LedgerAccountId,
-    AccountingCsvId;
+    AccountingCsvId,
+    AccountingPeriodId;
 
     ChartId => CalaAccountSetId,
     LedgerAccountId => CalaAccountId,
