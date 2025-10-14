@@ -15,6 +15,7 @@ pub mod profit_and_loss;
 mod time;
 pub mod transaction_templates;
 pub mod trial_balance;
+mod accounting_period;
 
 use std::collections::HashMap;
 
