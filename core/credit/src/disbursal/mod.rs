@@ -113,7 +113,7 @@ where
     }
 
     #[instrument(
-        name = "disbursals.create_first_disbursal_in_op",
+        name = "disbursals.create_pre_approved_disbursal_in_op",
         skip(self, db, new_disbursal)
     )]
     pub(super) async fn create_pre_approved_disbursal_in_op(
