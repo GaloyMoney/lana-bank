@@ -65,7 +65,7 @@ user-onboarding = { path = "lana/user-onboarding" }
 # External dependencies
 es-entity = { version = "0.9.3", features = ["event-context", "tracing-context"] }
 sim-time = "0.9"
-cala-ledger = "0.12.0"
+cala-ledger = "0.12.1"
 cala-cel-interpreter = "0.12"
 job = "0.2.1"
 
