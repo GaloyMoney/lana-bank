@@ -202,8 +202,7 @@ where
             )
             .await?;
 
-        let new_disbursal_builder = credit_facility.disbursal_for_structuring_fee();
-        if let Some(mut new_disbursal_builder) = new_disbursal_builder {
+        if let Some(mut new_disbursal_builder) = credit_facility.disbursal_for_structuring_fee() {
             let public_id = self
                 .public_ids
                 .create_in_op(
