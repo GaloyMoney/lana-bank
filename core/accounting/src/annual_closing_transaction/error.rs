@@ -18,6 +18,10 @@ pub enum AnnualClosingTransactionError {
     ChartOfAccountsError(#[from] chart_of_accounts::error::ChartOfAccountsError),
     #[error("AnnualClosingTransactionError - CursorDestructureError: {0}")]
     CursorDestructureError(#[from] es_entity::CursorDestructureError),
+    #[error("AnnualClosingTransactionError - AnnualClosingIntegrationConfigAlreadyExists")]
+    AnnualClosingIntegrationConfigAlreadyExists,
+    #[error("AnnualClosingTransactionError - ChartIdMismatch")]
+    ChartIdMismatch,
 }
 
 es_entity::from_es_entity_error!(AnnualClosingTransactionError);

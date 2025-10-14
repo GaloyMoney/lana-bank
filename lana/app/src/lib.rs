@@ -147,6 +147,12 @@ pub mod trial_balance {
     pub type TrialBalances = core_accounting::TrialBalances<crate::authorization::Authorization>;
 }
 
+pub mod annual_closing_transaction {
+    pub use core_accounting::annual_closing_transaction::*;
+    pub type AnnualClosingTransactions =
+        core_accounting::AnnualClosingTransactions<crate::authorization::Authorization>;
+}
+
 pub mod custody {
     pub use core_custody::{
         CustodyConfig, CustodyPublisher, Wallet, WalletId, WalletNetwork, custodian, error,

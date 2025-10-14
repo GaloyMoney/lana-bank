@@ -1,9 +1,11 @@
+mod chart_of_accounts_integration;
 mod entity;
 mod ledger;
 mod primitives;
 mod repo;
 
 pub mod error;
+pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
 
 use chrono::Utc;
 
@@ -13,9 +15,11 @@ use cala_ledger::{CalaLedger, JournalId};
 use ledger::{AnnualClosingTransactionLedger, AnnualClosingTransactionParams, EntryParams};
 
 use crate::{
+    Chart,
     chart_of_accounts::ChartOfAccounts,
     primitives::{
-        AnnualClosingTransactionId, CalaTxId, ChartId, CoreAccountingAction, CoreAccountingObject,
+        AnnualClosingTransactionId, CalaAccountSetId, CalaTxId, ChartId, CoreAccountingAction,
+        CoreAccountingObject,
     },
 };
 
@@ -27,6 +31,21 @@ pub use entity::AnnualClosingTransaction;
 pub use entity::AnnualClosingTransactionEvent;
 pub(super) use entity::*;
 pub use repo::annual_closing_transaction_cursor::AnnualClosingTransactionsByCreatedAtCursor;
+
+pub(crate) const REVENUE_NAME: &str = "Revenue";
+pub(crate) const EXPENSES_NAME: &str = "Expenses";
+pub(crate) const COST_OF_REVENUE_NAME: &str = "Cost of Revenue";
+pub(crate) const EQUITY_RETAINED_EARNINGS_NAME: &str = "Retained Earnings";
+pub(crate) const EQUITY_RETAINED_LOSSES_NAME: &str = "Retained Losses";
+#[derive(Clone, Copy)]
+pub struct AnnualClosingIds {
+    pub id: CalaAccountSetId,
+    pub revenue: CalaAccountSetId,
+    pub cost_of_revenue: CalaAccountSetId,
+    pub expenses: CalaAccountSetId,
+    pub equity_retained_earnings: CalaAccountSetId,
+    pub equity_retained_losses: CalaAccountSetId,
+}
 
 #[derive(Clone)]
 pub struct AnnualClosingTransactions<Perms>
@@ -105,5 +124,82 @@ where
             .await?;
 
         Ok(annual_closing_transaction)
+    }
+
+    // #[instrument(
+    //     name = "core_accounting.annual_closing.get_integration_config",
+    //     skip(self),
+    //     err
+    // )]
+    // pub async fn get_chart_of_accounts_integration_config(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     reference: String,
+    // ) -> Result<Option<ChartOfAccountsIntegrationConfig>, AnnualClosingTransactionError> {
+    //     self.authz
+    //         .enforce_permission(
+    //             sub,
+    //             CoreAccountingObject::all_annual_closing_configuration(),
+    //             CoreAccountingAction::ANNUAL_CLOSING_CONFIGURATION_READ,
+    //         )
+    //         .await?;
+    //     Ok(self
+    //         .ledger
+    //         .get_chart_of_accounts_integration_config(reference)
+    //         .await?)
+    // }
+
+    pub async fn set_chart_of_accounts_integration_config(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        reference: String,
+        chart: &Chart,
+        config: ChartOfAccountsIntegrationConfig,
+    ) -> Result<ChartOfAccountsIntegrationConfig, AnnualClosingTransactionError> {
+        if chart.id != config.chart_of_accounts_id {
+            return Err(AnnualClosingTransactionError::ChartIdMismatch);
+        }
+
+        todo!();
+
+        // let audit_info = self
+        //     .authz
+        //     .enforce_permission(
+        //         sub,
+        //         CoreAccountingObject::all_profit_and_loss_configuration(),
+        //         CoreAccountingAction::PROFIT_AND_LOSS_CONFIGURATION_UPDATE,
+        //     )
+        //     .await?;
+
+        // if self
+        //     .pl_statement_ledger
+        //     .get_chart_of_accounts_integration_config(reference.to_string())
+        //     .await?
+        //     .is_some()
+        // {
+        //     return Err(ProfitAndLossStatementError::ProfitAndLossStatementConfigAlreadyExists);
+        // }
+        //
+        // let revenue_child_account_set_id_from_chart =
+        //     chart.account_set_id_from_code(&config.chart_of_accounts_revenue_code)?;
+        // let cost_of_revenue_child_account_set_id_from_chart =
+        //     chart.account_set_id_from_code(&config.chart_of_accounts_cost_of_revenue_code)?;
+        // let expenses_child_account_set_id_from_chart =
+        //     chart.account_set_id_from_code(&config.chart_of_accounts_expenses_code)?;
+        //
+        // let charts_integration_meta = ChartOfAccountsIntegrationMeta {
+        //     audit_info,
+        //     config: config.clone(),
+        //
+        //     revenue_child_account_set_id_from_chart,
+        //     cost_of_revenue_child_account_set_id_from_chart,
+        //     expenses_child_account_set_id_from_chart,
+        // };
+        //
+        // self.pl_statement_ledger
+        //     .attach_chart_of_accounts_account_sets(reference, charts_integration_meta)
+        //     .await?;
+        //
+        // Ok(config)
     }
 }

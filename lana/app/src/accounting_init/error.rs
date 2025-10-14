@@ -26,6 +26,10 @@ pub enum AccountingInitError {
     ProfitAndLossStatementError(#[from] crate::profit_and_loss::error::ProfitAndLossStatementError),
     #[error("AccountingInitError - BalanceSheetError: {0}")]
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
+    #[error("AccountingInitError - AnnualClosingTransactionError: {0}")]
+    AnnualClosingTransactionError(
+        #[from] crate::annual_closing_transaction::error::AnnualClosingTransactionError,
+    ),
     #[error("AccountingInitError - SeedFileError: {0}")]
     SeedFileError(#[from] std::io::Error),
     #[error("AccountingInitError - MissingConfig: {0}")]
