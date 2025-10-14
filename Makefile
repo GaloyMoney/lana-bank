@@ -60,7 +60,7 @@ check-code: check-code-apps
 update-schemas:
 	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
-e2e: clean-deps start-deps build-for-tests
+e2e: clean-deps start-deps
 	bats -t bats
 
 # Cargo alternative for faster compilation during development
