@@ -153,22 +153,26 @@ impl LedgerAccount {
     async fn children_with_code_and_activity(
         &self,
         ctx: &Context<'_>,
+        from: Date,
+        until: Date,
     ) -> async_graphql::Result<Vec<LedgerAccount>> {
-        let loader = ctx.data_unchecked::<LanaDataLoader>();
-        let mut children = loader.load_many(self.entity.children_ids.clone()).await?;
+        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
+        let accounts = app
+            .accounting()
+            .list_all_account_children(
+                sub,
+                CHART_REF.0,
+                self.entity.id.into(),
+                from.into_inner(),
+                Some(until.into_inner()),
+            )
+            .await?;
 
-        let mut result = Vec::with_capacity(self.entity.children_ids.len());
-
-        for id in self.entity.children_ids.iter() {
-            if let Some(account) = children.remove(id)
-                && account.code.is_some()
-                && account.entity.has_non_zero_activity()
-            {
-                result.push(account);
-            }
-        }
-
-        Ok(result)
+        Ok(accounts
+            .into_iter()
+            .filter(|a| a.code.is_some())
+            .map(LedgerAccount::from)
+            .collect())
     }
 
     async fn history(

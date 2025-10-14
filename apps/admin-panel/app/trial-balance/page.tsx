@@ -34,29 +34,29 @@ gql`
       name
       accounts {
         ...TrialBalanceAccountBase
-        childrenWithCodeAndActivity {
+        childrenWithCodeAndActivity(from: $from, until: $until) {
           ...TrialBalanceAccountBase
-          childrenWithCodeAndActivity {
+          childrenWithCodeAndActivity(from: $from, until: $until) {
             ...TrialBalanceAccountBase
-            childrenWithCodeAndActivity {
+            childrenWithCodeAndActivity(from: $from, until: $until) {
               ...TrialBalanceAccountBase
-              childrenWithCodeAndActivity {
+              childrenWithCodeAndActivity(from: $from, until: $until) {
                 ...TrialBalanceAccountBase
-                childrenWithCodeAndActivity {
+                childrenWithCodeAndActivity(from: $from, until: $until) {
                   ...TrialBalanceAccountBase
-                  childrenWithCodeAndActivity {
+                  childrenWithCodeAndActivity(from: $from, until: $until) {
                     ...TrialBalanceAccountBase
-                    childrenWithCodeAndActivity {
+                    childrenWithCodeAndActivity(from: $from, until: $until) {
                       ...TrialBalanceAccountBase
-                      childrenWithCodeAndActivity {
+                      childrenWithCodeAndActivity(from: $from, until: $until) {
                         ...TrialBalanceAccountBase
-                        childrenWithCodeAndActivity {
+                        childrenWithCodeAndActivity(from: $from, until: $until) {
                           ...TrialBalanceAccountBase
-                          childrenWithCodeAndActivity {
+                          childrenWithCodeAndActivity(from: $from, until: $until) {
                             ...TrialBalanceAccountBase
-                            childrenWithCodeAndActivity {
+                            childrenWithCodeAndActivity(from: $from, until: $until) {
                               ...TrialBalanceAccountBase
-                              childrenWithCodeAndActivity {
+                              childrenWithCodeAndActivity(from: $from, until: $until) {
                                 ...TrialBalanceAccountBase
                               }
                             }

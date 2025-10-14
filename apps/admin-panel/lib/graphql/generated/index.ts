@@ -1411,6 +1411,12 @@ export type LedgerAccount = {
 };
 
 
+export type LedgerAccountChildrenWithCodeAndActivityArgs = {
+  from: Scalars['Date']['input'];
+  until: Scalars['Date']['input'];
+};
+
+
 export type LedgerAccountHistoryArgs = {
   after?: InputMaybe<Scalars['String']['input']>;
   first: Scalars['Int']['input'];
@@ -9120,29 +9126,29 @@ export const GetTrialBalanceDocument = gql`
     name
     accounts {
       ...TrialBalanceAccountBase
-      childrenWithCodeAndActivity {
+      childrenWithCodeAndActivity(from: $from, until: $until) {
         ...TrialBalanceAccountBase
-        childrenWithCodeAndActivity {
+        childrenWithCodeAndActivity(from: $from, until: $until) {
           ...TrialBalanceAccountBase
-          childrenWithCodeAndActivity {
+          childrenWithCodeAndActivity(from: $from, until: $until) {
             ...TrialBalanceAccountBase
-            childrenWithCodeAndActivity {
+            childrenWithCodeAndActivity(from: $from, until: $until) {
               ...TrialBalanceAccountBase
-              childrenWithCodeAndActivity {
+              childrenWithCodeAndActivity(from: $from, until: $until) {
                 ...TrialBalanceAccountBase
-                childrenWithCodeAndActivity {
+                childrenWithCodeAndActivity(from: $from, until: $until) {
                   ...TrialBalanceAccountBase
-                  childrenWithCodeAndActivity {
+                  childrenWithCodeAndActivity(from: $from, until: $until) {
                     ...TrialBalanceAccountBase
-                    childrenWithCodeAndActivity {
+                    childrenWithCodeAndActivity(from: $from, until: $until) {
                       ...TrialBalanceAccountBase
-                      childrenWithCodeAndActivity {
+                      childrenWithCodeAndActivity(from: $from, until: $until) {
                         ...TrialBalanceAccountBase
-                        childrenWithCodeAndActivity {
+                        childrenWithCodeAndActivity(from: $from, until: $until) {
                           ...TrialBalanceAccountBase
-                          childrenWithCodeAndActivity {
+                          childrenWithCodeAndActivity(from: $from, until: $until) {
                             ...TrialBalanceAccountBase
-                            childrenWithCodeAndActivity {
+                            childrenWithCodeAndActivity(from: $from, until: $until) {
                               ...TrialBalanceAccountBase
                             }
                           }
