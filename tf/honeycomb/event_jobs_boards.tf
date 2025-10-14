@@ -24,12 +24,10 @@ data "honeycombio_query_specification" "process_type" {
 }
 
 resource "honeycombio_query" "process_type" {
-  dataset    = var.honeycomb_dataset
   query_json = data.honeycombio_query_specification.process_type.json
 }
 
 resource "honeycombio_query_annotation" "process_type" {
-  dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.process_type.id
   name     = "Governance approval queries"
 }
@@ -55,12 +53,10 @@ data "honeycombio_query_specification" "events" {
 }
 
 resource "honeycombio_query" "events" {
-  dataset    = var.honeycomb_dataset
   query_json = data.honeycombio_query_specification.events.json
 }
 
 resource "honeycombio_query_annotation" "events" {
-  dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.events.id
   name     = "Events job queries"
 }
@@ -87,12 +83,10 @@ data "honeycombio_query_specification" "handled" {
 }
 
 resource "honeycombio_query" "handled" {
-  dataset    = var.honeycomb_dataset
   query_json = data.honeycombio_query_specification.handled.json
 }
 
 resource "honeycombio_query_annotation" "handled" {
-  dataset  = var.honeycomb_dataset
   query_id = honeycombio_query.handled.id
   name     = "handled job queries"
 }
