@@ -6,7 +6,7 @@ use template::*;
 pub use template::{AnnualClosingTransactionParams, EntryParams};
 
 use crate::primitives::CalaTxId;
-use cala_ledger::{AccountSetId, CalaLedger};
+use cala_ledger::{AccountSetId, CalaLedger, account_set::AccountSetUpdate};
 
 use super::{ChartOfAccountsIntegrationConfig, error::AnnualClosingTransactionError};
 
@@ -16,6 +16,8 @@ pub struct AnnualClosingTransactionLedger {
 }
 
 impl AnnualClosingTransactionLedger {
+    pub const CHART_OF_ACCOUNTS_INTEGRATION_KEY: &'static str = "chart_of_accounts_integration";
+
     pub fn new(cala: &CalaLedger) -> Self {
         Self { cala: cala.clone() }
     }
@@ -53,9 +55,12 @@ impl AnnualClosingTransactionLedger {
             .find(root_chart_account_set_id)
             .await?;
         if let Some(meta) = account_set.values().metadata.as_ref() {
-            if let Some(submeta) = meta.get("chart_of_accounts_integration") {
-                let meta: ChartOfAccountsIntegrationMeta = serde_json::from_value(submeta.clone())
-                    .expect("could not deserialize chart_of_accounts_integration meta");
+            if let Some(chart_of_accounts_integration) =
+                meta.get(Self::CHART_OF_ACCOUNTS_INTEGRATION_KEY)
+            {
+                let meta: ChartOfAccountsIntegrationMeta =
+                    serde_json::from_value(chart_of_accounts_integration.clone())
+                        .expect("could not deserialize chart_of_accounts_integration meta");
                 Ok(Some(meta.config))
             } else {
                 Ok(None)
@@ -67,11 +72,47 @@ impl AnnualClosingTransactionLedger {
 
     pub async fn attach_chart_of_accounts_integration_meta(
         &self,
+        op: es_entity::DbOp<'_>,
         root_chart_account_set_id: impl Into<AccountSetId>,
         config: ChartOfAccountsIntegrationMeta,
     ) -> Result<(), AnnualClosingTransactionError> {
         let root_chart_account_set_id = root_chart_account_set_id.into();
+        let mut account_set = self
+            .cala
+            .account_sets()
+            .find(root_chart_account_set_id)
+            .await?;
 
+        let mut metadata = account_set
+            .values()
+            .metadata
+            .clone()
+            .unwrap_or_else(|| serde_json::json!({}));
+
+        metadata
+            .as_object_mut()
+            .expect("metadata should be an object")
+            .insert(
+                Self::CHART_OF_ACCOUNTS_INTEGRATION_KEY.to_string(),
+                serde_json::to_value(config)
+                    .expect("could not serialize chart_of_accounts_integration meta"),
+            );
+
+        let mut update_values = AccountSetUpdate::default();
+        update_values
+            .metadata(Some(metadata))
+            .expect("failed to serialize metadata");
+        account_set.update(update_values);
+
+        let mut op = self
+            .cala
+            .ledger_operation_from_db_op(op.with_db_time().await?);
+        self.cala
+            .account_sets()
+            .persist_in_op(&mut op, &mut account_set)
+            .await?;
+
+        op.commit().await?;
         Ok(())
     }
 }

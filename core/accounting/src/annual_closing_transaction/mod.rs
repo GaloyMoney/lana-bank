@@ -196,8 +196,13 @@ where
             equity_retained_losses_child_account_set_id_from_chart,
         };
 
+        let db = self.repo.begin_op().await?;
         self.ledger
-            .attach_chart_of_accounts_integration_meta(chart.id, charts_integration_meta)
+            .attach_chart_of_accounts_integration_meta(
+                db,
+                chart.id,
+                charts_integration_meta,
+            )
             .await?;
 
         Ok(config)
