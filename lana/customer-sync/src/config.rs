@@ -13,8 +13,6 @@ pub struct CustomerSyncConfig {
     pub keycloak: KeycloakConnectionConfig,
     #[serde(default = "default_activity_update_job_run_time")]
     pub activity_update_utc_time: ActivityUpdateJobRunTime,
-    #[serde(default = "default_activity_update_enabled")]
-    pub activity_update_enabled: bool,
 }
 
 impl Default for CustomerSyncConfig {
@@ -25,7 +23,6 @@ impl Default for CustomerSyncConfig {
                 default_create_deposit_account_on_customer_create(),
             keycloak: default_keycloak(),
             activity_update_utc_time: default_activity_update_job_run_time(),
-            activity_update_enabled: default_activity_update_enabled(),
         }
     }
 }
@@ -86,10 +83,6 @@ fn default_activity_update_job_run_time() -> ActivityUpdateJobRunTime {
         hours_past_midnight: 0,
         minutes_past_hour: 0,
     }
-}
-
-fn default_activity_update_enabled() -> bool {
-    true
 }
 
 fn default_keycloak() -> KeycloakConnectionConfig {

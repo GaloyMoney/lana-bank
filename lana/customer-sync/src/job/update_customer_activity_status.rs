@@ -147,15 +147,11 @@ where
         &self,
         _current_job: CurrentJob,
     ) -> Result<JobCompletion, Box<dyn std::error::Error>> {
-        if self.config.activity_update_enabled {
-            let now = crate::time::now();
-            self.customers
-                .perform_customer_activity_status_update(now)
-                .await?;
-            let next_run_at = self.config.activity_update_utc_time.next_after(now);
-            Ok(JobCompletion::RescheduleAt(next_run_at))
-        } else {
-            Ok(JobCompletion::Complete)
-        }
+        let now = crate::time::now();
+        self.customers
+            .perform_customer_activity_status_update(now)
+            .await?;
+        let next_run_at = self.config.activity_update_utc_time.next_after(now);
+        Ok(JobCompletion::RescheduleAt(next_run_at))
     }
 }
