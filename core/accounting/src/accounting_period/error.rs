@@ -13,25 +13,14 @@ pub enum AccountingPeriodError {
     NoOpenAccountingPeriodFound,
     #[error("AccountingPeriodError - PeriodAlreadyClosed")]
     PeriodAlreadyClosed,
-    #[error("AccountingPeriodError - CannotCalculatePeriodEnd")]
-    CannotCalculatePeriodEnd,
+    #[error("AccountingPeriodError - CannotCalculateNextPeriod")]
+    CannotCalculateNextPeriod,
     #[error(
-        "AccountingPeriodError - ClosingDateBeforePeriodStart: {closing_date} < {period_start}"
+        "AccountingPeriodError - ClosingDateOutOfGracePeriod: {closing_date} out of {grace_period_start} -> {grace_period_end}"
     )]
-    ClosingDateBeforePeriodStart {
+    ClosingDateOutOfGracePeriod {
         closing_date: NaiveDate,
-        period_start: NaiveDate,
-    },
-    #[error("AccountingPeriodError - ClosingDateBeforePeriodEnd: {closing_date} < {period_end}")]
-    ClosingDateBeforePeriodEnd {
-        closing_date: NaiveDate,
-        period_end: NaiveDate,
-    },
-    #[error(
-        "AccountingPeriodError - ClosingDateAfterGracePeriod: {closing_date} > {grace_period_end}"
-    )]
-    ClosingDateAfterGracePeriod {
-        closing_date: NaiveDate,
+        grace_period_start: NaiveDate,
         grace_period_end: NaiveDate,
     },
 }
