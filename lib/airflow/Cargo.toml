@@ -1,7 +1,6 @@
 [package]
 name = "airflow"
 description = "Connects to the Airflow API to talk to custom plugins defined in meltano/orchestration/airflow/plugins"
-version = "0.3.771-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 

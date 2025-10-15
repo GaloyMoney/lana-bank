@@ -1,6 +1,5 @@
 [package]
 name = "sumsub"
-version = "0.3.762-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 

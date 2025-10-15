@@ -111,7 +111,7 @@ dependencies = [
 
 [[package]]
 name = "airflow"
-version = "0.3.771-dev"
+version = "0.0.0"
 dependencies = [
  "chrono",
  "reqwest",
@@ -1219,7 +1219,7 @@ checksum = "2f8a2ca5ac02d09563609681103aada9e1777d54fc57a5acd7a41404f9c93b6e"
 
 [[package]]
 name = "contract-creation"
-version = "0.3.762-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "audit",
@@ -1312,7 +1312,7 @@ dependencies = [
 
 [[package]]
 name = "core-applicant"
-version = "0.3.754-dev"
+version = "0.0.0"
 dependencies = [
  "async-graphql",
  "audit",
@@ -1521,7 +1521,7 @@ dependencies = [
 
 [[package]]
 name = "core-report"
-version = "0.3.728-dev"
+version = "0.0.0"
 dependencies = [
  "airflow",
  "async-trait",
@@ -1797,7 +1797,7 @@ checksum = "2a2330da5de22e8a3cb63252ce2abb30116bf5265e89c0e01bc17015ce30a476"
 
 [[package]]
 name = "deposit-sync"
-version = "0.3.762-dev"
+version = "0.0.0"
 dependencies = [
  "async-trait",
  "audit",
@@ -3366,7 +3366,7 @@ dependencies = [
 
 [[package]]
 name = "lana-cli"
-version = "0.0.0"
+version = "0.4.0"
 dependencies = [
  "admin-server",
  "anyhow",
@@ -6051,7 +6051,7 @@ checksum = "13c2bddecc57b384dee18652358fb23172facb8a2c51ccc10d74c157bdea3292"
 
 [[package]]
 name = "sumsub"
-version = "0.3.762-dev"
+version = "0.0.0"
 dependencies = [
  "chrono",
  "hex",

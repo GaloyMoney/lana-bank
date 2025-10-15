@@ -1,6 +1,5 @@
 [package]
 name = "core-applicant"
-version = "0.3.754-dev"
 license = "FSL-1.1-ALv2"
 edition = "2024"
 
