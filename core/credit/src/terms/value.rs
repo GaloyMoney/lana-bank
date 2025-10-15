@@ -222,8 +222,9 @@ impl InterestInterval {
     }
 }
 
-#[derive(Debug, Clone, Copy, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
+#[cfg_attr(feature = "graphql", derive(async_graphql::Enum))]
 pub enum DisbursalPolicy {
     SingleDisbursal,
     MultipleDisbursal,

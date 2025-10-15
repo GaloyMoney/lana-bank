@@ -64,6 +64,13 @@
       ],
       "type": "string"
     },
+    "DisbursalPolicy": {
+      "enum": [
+        "SingleDisbursal",
+        "MultipleDisbursal"
+      ],
+      "type": "string"
+    },
     "FacilityDuration": {
       "oneOf": [
         {
@@ -183,6 +190,9 @@
             "number"
           ]
         },
+        "disbursal_policy": {
+          "$ref": "#/$defs/DisbursalPolicy"
+        },
         "duration": {
           "$ref": "#/$defs/FacilityDuration"
         },
@@ -235,7 +245,8 @@
         "one_time_fee_rate",
         "liquidation_cvl",
         "margin_call_cvl",
-        "initial_cvl"
+        "initial_cvl",
+        "disbursal_policy"
       ],
       "type": "object"
     },
