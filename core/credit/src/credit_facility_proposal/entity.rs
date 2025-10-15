@@ -13,6 +13,13 @@ use crate::{
     terms::TermValues,
 };
 
+use super::error::CreditFacilityProposalError;
+
+pub struct NewDisbursals {
+    pub fee: Option<NewDisbursalBuilder>,
+    pub principal: Option<NewDisbursalBuilder>,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]

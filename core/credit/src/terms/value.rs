@@ -229,12 +229,6 @@ pub enum DisbursalPolicy {
     MultipleDisbursal,
 }
 
-impl DisbursalPolicy {
-    fn is_single(&self) -> bool {
-        matches!(self, DisbursalPolicy::SingleDisbursal)
-    }
-}
-
 #[derive(Builder, Debug, Serialize, Deserialize, Clone, Copy)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[builder(build_fn(validate = "Self::validate", error = "TermsError"))]
@@ -267,7 +261,7 @@ pub struct TermValues {
 
 impl TermValues {
     pub fn is_single_disbursal(&self) -> bool {
-        self.disbursal_policy.is_single()
+        matches!(self.disbursal_policy, DisbursalPolicy::SingleDisbursal)
     }
 
     pub fn maturity_date(&self, start_date: DateTime<Utc>) -> EffectiveDate {
