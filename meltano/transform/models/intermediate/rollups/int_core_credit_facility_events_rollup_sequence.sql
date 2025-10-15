@@ -16,6 +16,7 @@ with source as (
 
 proposal as (
     select
+        version as proposal_version
         pending_credit_facility_id,
         prop.approval_process_id,
         pend.approval_process_id as pending_approval_process_id,
@@ -31,6 +32,7 @@ transformed as (
     select
         credit_facility_id,
         version,
+        proposal_version,
         customer_id,
 
         cast(amount as numeric) / {{ var('cents_per_usd') }} as facility_amount_usd,
@@ -117,6 +119,7 @@ transformed as (
         * except (
             credit_facility_id,
             version,
+            proposal_version,
             customer_id,
             amount,
             ledger_tx_ids,
