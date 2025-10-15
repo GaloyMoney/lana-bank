@@ -46,7 +46,7 @@ impl AccountingPeriods {
             .remove(&id)
             .expect("Value has been confirmed to be present.");
 
-        match open_period.close(None)? {
+        match open_period.close(None) {
             Idempotent::Executed(new) => {
                 self.repo.update_in_op(&mut db, &mut open_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
