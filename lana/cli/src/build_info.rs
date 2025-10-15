@@ -27,7 +27,7 @@ impl BuildInfo {
             enabled_features,
             build_profile: env!("BUILD_PROFILE").to_string(),
             build_target: env!("BUILD_TARGET").to_string(),
-            version: env!("CARGO_PKG_VERSION").to_string(),
+            version: env!("BUILD_VERSION").to_string(),
         }
     }
 
