@@ -120,6 +120,10 @@ impl CreditFacilityProposal {
             .next()
             .expect("status should always exist")
     }
+
+    fn is_single_disbursal(&self) -> bool {
+        self.terms.is_single_disbursal()
+    }
 }
 
 impl TryFromEvents<CreditFacilityProposalEvent> for CreditFacilityProposal {
