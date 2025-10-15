@@ -4,7 +4,7 @@ mod seed;
 pub mod error;
 
 use crate::{
-    accounting::{Accounting, ChartOfAccounts},
+    accounting::{Accounting, ChartId, ChartOfAccounts},
     app::AccountingInitConfig,
     balance_sheet::BalanceSheets,
     credit::Credit,
@@ -44,7 +44,9 @@ impl StatementsInit {
 }
 
 #[derive(Clone)]
-pub struct ChartsInit;
+pub struct ChartsInit {
+    pub chart_id: ChartId,
+}
 
 impl ChartsInit {
     pub async fn charts_of_accounts(
@@ -52,7 +54,7 @@ impl ChartsInit {
         credit: &Credit,
         deposit: &Deposits,
         accounting_init_config: AccountingInitConfig,
-    ) -> Result<(), AccountingInitError> {
+    ) -> Result<Self, AccountingInitError> {
         seed::charts_of_accounts::init(
             accounting.chart_of_accounts(),
             accounting.trial_balances(),

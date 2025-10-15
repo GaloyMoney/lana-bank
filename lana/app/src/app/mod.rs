@@ -181,8 +181,10 @@ impl LanaApp {
             &customers,
         )
         .await?;
-        ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
-            .await?;
+        let _chart =
+            ChartsInit::charts_of_accounts(&accounting, &credit, &deposits, config.accounting_init)
+                .await?;
+        // TODO: Initialize ClosingOperation i.e. update with the chart root account set id.
 
         jobs.start_poll().await?;
 
