@@ -73,7 +73,7 @@ where
     }
 }
 
-const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("customer-active-sync");
+const CUSTOMER_ACTIVE_SYNC: JobType = JobType::new("outbox.customer-active-sync");
 impl<Perms, E> JobInitializer for CustomerActiveSyncInit<Perms, E>
 where
     Perms: PermissionCheck,

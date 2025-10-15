@@ -48,7 +48,7 @@ where
     }
 }
 
-const SYNC_EMAIL_JOB: JobType = JobType::new("sync-email-job");
+const SYNC_EMAIL_JOB: JobType = JobType::new("outbox.sync-email-job");
 impl<E> JobInitializer for SyncEmailInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent>,

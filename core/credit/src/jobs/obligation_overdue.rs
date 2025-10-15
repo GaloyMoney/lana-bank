@@ -51,7 +51,7 @@ where
     }
 }
 
-const OBLIGATION_OVERDUE_JOB: JobType = JobType::new("obligation-overdue");
+const OBLIGATION_OVERDUE_JOB: JobType = JobType::new("task.obligation-overdue");
 impl<Perms, E> JobInitializer for ObligationOverdueInit<Perms, E>
 where
     Perms: PermissionCheck,

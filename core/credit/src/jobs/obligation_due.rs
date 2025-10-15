@@ -51,7 +51,7 @@ where
     }
 }
 
-const OBLIGATION_DUE_JOB: JobType = JobType::new("obligation-due");
+const OBLIGATION_DUE_JOB: JobType = JobType::new("task.obligation-due");
 impl<Perms, E> JobInitializer for ObligationDueInit<Perms, E>
 where
     Perms: PermissionCheck,

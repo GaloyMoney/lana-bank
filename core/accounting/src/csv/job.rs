@@ -54,7 +54,7 @@ where
     }
 }
 
-pub const GENERATE_ACCOUNTING_CSV_JOB: JobType = JobType::new("generate-accounting-csv");
+pub const GENERATE_ACCOUNTING_CSV_JOB: JobType = JobType::new("task.generate-accounting-csv");
 
 impl<Perms> JobInitializer for GenerateAccountingCsvInit<Perms>
 where

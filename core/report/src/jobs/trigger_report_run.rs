@@ -59,7 +59,7 @@ where
     }
 }
 
-const TRIGGER_REPORT_RUN_JOB_TYPE: JobType = JobType::new("trigger-report-run");
+const TRIGGER_REPORT_RUN_JOB_TYPE: JobType = JobType::new("task.trigger-report-run");
 
 impl<E> JobInitializer for TriggerReportRunJobInit<E>
 where

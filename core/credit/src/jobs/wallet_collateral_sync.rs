@@ -170,7 +170,7 @@ where
     }
 }
 
-const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("wallet-collateral-sync");
+const WALLET_COLLATERAL_SYNC_JOB: JobType = JobType::new("outbox.wallet-collateral-sync");
 impl<Perms, E> JobInitializer for WalletCollateralSyncInit<Perms, E>
 where
     Perms: PermissionCheck,

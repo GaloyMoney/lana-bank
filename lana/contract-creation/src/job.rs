@@ -72,7 +72,7 @@ where
     }
 }
 
-pub const GENERATE_LOAN_AGREEMENT_JOB: JobType = JobType::new("generate-loan-agreement");
+pub const GENERATE_LOAN_AGREEMENT_JOB: JobType = JobType::new("task.generate-loan-agreement");
 
 impl<Perms, E> JobInitializer for GenerateLoanAgreementJobInitializer<Perms, E>
 where

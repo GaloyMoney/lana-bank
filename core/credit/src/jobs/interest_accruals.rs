@@ -68,7 +68,7 @@ where
     }
 }
 
-const INTEREST_ACCRUAL_JOB: JobType = JobType::new("interest-accrual");
+const INTEREST_ACCRUAL_JOB: JobType = JobType::new("task.interest-accrual");
 impl<Perms, E> JobInitializer for InterestAccrualInit<Perms, E>
 where
     Perms: PermissionCheck,

@@ -78,7 +78,7 @@ where
     }
 }
 
-const EMAIL_LISTENER_JOB: JobType = JobType::new("email-listener");
+const EMAIL_LISTENER_JOB: JobType = JobType::new("outbox.email-listener");
 impl<AuthzType> JobInitializer for EmailEventListenerInit<AuthzType>
 where
     AuthzType: authz::PermissionCheck + Clone + Send + Sync + 'static,

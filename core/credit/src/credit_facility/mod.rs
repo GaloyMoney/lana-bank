@@ -188,6 +188,8 @@ where
             .create_and_spawn_at_in_op(
                 &mut db,
                 JobId::new(),
+                // FIXME: I don't think this is updated if/when the facility is updated
+                // if the credit product is closed earlier than expected or if is liquidated
                 credit_facility_maturity::CreditFacilityMaturityJobConfig::<Perms, E> {
                     credit_facility_id: credit_facility.id,
                     _phantom: std::marker::PhantomData,
@@ -331,7 +333,10 @@ where
         {
             res
         } else {
-            unreachable!("Should not be possible");
+            unreachable!(
+                "record_interest_accrual_cycle returned Idempotent::Ignored, \
+                 but this should only execute when there is an accrual cycle to record"
+            );
         };
 
         if let Some(new_obligation) = new_obligation {

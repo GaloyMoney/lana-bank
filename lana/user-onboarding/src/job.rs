@@ -47,7 +47,7 @@ where
     }
 }
 
-const USER_ONBOARDING_JOB: JobType = JobType::new("user-onboarding");
+const USER_ONBOARDING_JOB: JobType = JobType::new("outbox.user-onboarding");
 impl<E> JobInitializer for UserOnboardingInit<E>
 where
     E: OutboxEventMarker<CoreAccessEvent>,

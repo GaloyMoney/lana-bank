@@ -178,7 +178,7 @@ where
     }
 }
 
-const UPDATE_LAST_ACTIVITY_DATE: JobType = JobType::new("update-last-activity-date");
+const UPDATE_LAST_ACTIVITY_DATE: JobType = JobType::new("outbox.update-last-activity-date");
 
 impl<Perms, E> JobInitializer for UpdateLastActivityDateInit<Perms, E>
 where

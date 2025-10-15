@@ -74,7 +74,7 @@ where
 }
 
 const CUSTOMER_SYNC_CREATE_DEPOSIT_ACCOUNT: JobType =
-    JobType::new("customer-sync-create-deposit-account");
+    JobType::new("outbox.customer-sync-create-deposit-account");
 impl<Perms, E> JobInitializer for CreateDepositAccountInit<Perms, E>
 where
     Perms: PermissionCheck,

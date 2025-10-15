@@ -63,7 +63,7 @@ where
 }
 
 const CREDIT_FACILITY_COLLATERALZIATION_FROM_PRICE_JOB: JobType =
-    JobType::new("credit-facility-collateralization-from-price");
+    JobType::new("cron.credit-facility-collateralization-from-price");
 impl<Perms, E> JobInitializer for CreditFacilityCollateralizationFromPriceInit<Perms, E>
 where
     Perms: PermissionCheck,

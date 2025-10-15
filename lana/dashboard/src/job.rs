@@ -25,7 +25,7 @@ impl DashboardProjectionInit {
     }
 }
 
-const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("dashboard-projection");
+const DASHBOARD_PROJECTION_JOB: JobType = JobType::new("outbox.dashboard-projection");
 impl JobInitializer for DashboardProjectionInit {
     fn job_type() -> JobType
     where

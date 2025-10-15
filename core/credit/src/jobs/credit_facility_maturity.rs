@@ -60,7 +60,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_MATURITY_JOB: JobType = JobType::new("credit-facility-maturity");
+const CREDIT_FACILITY_MATURITY_JOB: JobType = JobType::new("task.credit-facility-maturity");
 impl<Perms, E> JobInitializer for CreditFacilityMaturityInit<Perms, E>
 where
     Perms: PermissionCheck,

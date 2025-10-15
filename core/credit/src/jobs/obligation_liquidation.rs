@@ -52,7 +52,7 @@ where
 }
 
 const OBLIGATION_LIQUIDATION_PROCESSING_JOB: JobType =
-    JobType::new("obligation-liquidation-processing");
+    JobType::new("task.obligation-liquidation-processing");
 impl<Perms, E> JobInitializer for ObligationLiquidationInit<Perms, E>
 where
     Perms: PermissionCheck,

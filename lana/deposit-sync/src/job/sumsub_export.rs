@@ -19,7 +19,7 @@ use job::*;
 use lana_events::LanaEvent;
 
 /// Job configuration for Sumsub export
-pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("sumsub-export");
+pub const SUMSUB_EXPORT_JOB: JobType = JobType::new("outbox.sumsub-export");
 
 /// Direction of the transaction from Sumsub's perspective
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]

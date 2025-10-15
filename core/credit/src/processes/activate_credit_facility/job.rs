@@ -68,7 +68,7 @@ where
     }
 }
 
-const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("credit-facility-activation");
+const CREDIT_FACILITY_ACTIVATE: JobType = JobType::new("outbox.credit-facility-activation");
 impl<Perms, E> JobInitializer for CreditFacilityActivationInit<Perms, E>
 where
     Perms: PermissionCheck,

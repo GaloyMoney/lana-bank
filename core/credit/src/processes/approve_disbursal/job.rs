@@ -78,7 +78,7 @@ where
     }
 }
 
-const DISBURSAL_APPROVE_JOB: JobType = JobType::new("disbursal-approval");
+const DISBURSAL_APPROVE_JOB: JobType = JobType::new("outbox.disbursal-approval");
 impl<Perms, E> JobInitializer for DisbursalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,

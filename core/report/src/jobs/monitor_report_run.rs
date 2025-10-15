@@ -63,7 +63,7 @@ where
     }
 }
 
-const MONITOR_REPORT_RUN_JOB_TYPE: JobType = JobType::new("monitor-report-run");
+const MONITOR_REPORT_RUN_JOB_TYPE: JobType = JobType::new("task.monitor-report-run");
 
 impl<E> JobInitializer for MonitorReportRunJobInit<E>
 where

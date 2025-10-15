@@ -48,7 +48,7 @@ where
 }
 
 const CUSTOMER_SYNC_CREATE_KEYCLOAK_USER: JobType =
-    JobType::new("customer-sync-create-keycloak-user");
+    JobType::new("outbox.customer-sync-create-keycloak-user");
 impl<E> JobInitializer for CreateKeycloakUserInit<E>
 where
     E: OutboxEventMarker<CoreCustomerEvent> + OutboxEventMarker<CoreDepositEvent>,

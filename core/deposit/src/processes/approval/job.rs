@@ -65,7 +65,7 @@ where
     }
 }
 
-const WITHDRAW_APPROVE_JOB: JobType = JobType::new("withdraw-approval");
+const WITHDRAW_APPROVE_JOB: JobType = JobType::new("outbox.withdraw-approval");
 impl<Perms, E> JobInitializer for WithdrawApprovalInit<Perms, E>
 where
     E: OutboxEventMarker<GovernanceEvent> + OutboxEventMarker<CoreDepositEvent>,

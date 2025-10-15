@@ -81,7 +81,7 @@ where
 }
 
 const CREDIT_FACILITY_PROPOSAL_APPROVE_JOB: JobType =
-    JobType::new("credit-facility-proposal-approval");
+    JobType::new("outbox.credit-facility-proposal-approval");
 impl<Perms, E> JobInitializer for CreditFacilityProposalApprovalInit<Perms, E>
 where
     Perms: PermissionCheck,

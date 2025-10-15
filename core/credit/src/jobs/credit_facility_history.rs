@@ -21,13 +21,12 @@ impl<E> HistoryProjectionJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    #[instrument(name = "core_credit.history_projection_job.process_message", parent = None, skip(self, message, current_job, state), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "outbox.core_credit.history_projection_job.process_message", parent = None, skip(self, message, db), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(
         &self,
         message: &PersistentOutboxEvent<E>,
-        current_job: &mut CurrentJob,
-        state: &mut HistoryProjectionJobData,
+        db: &mut sqlx::Transaction<'_, sqlx::Postgres>,
     ) -> Result<(), Box<dyn std::error::Error>> {
         use CoreCreditEvent::*;
 
@@ -40,18 +39,9 @@ where
 
                 let facility_id: CreditFacilityId = (*id).into();
 
-                let mut db = self.repo.begin().await?;
                 let mut history = self.repo.load(facility_id).await?;
                 history.process_event(event);
-                self.repo
-                    .persist_in_tx(&mut db, facility_id, history)
-                    .await?;
-
-                state.sequence = message.sequence;
-                current_job
-                    .update_execution_state_in_op(&mut db, state)
-                    .await?;
-                db.commit().await?;
+                self.repo.persist_in_tx(db, facility_id, history).await?;
             }
             Some(event @ FacilityActivated { id, .. })
             | Some(event @ FacilityCompleted { id, .. })
@@ -126,16 +116,9 @@ where
                 Span::current().record("handled", true);
                 Span::current().record("event_type", event.as_ref());
 
-                let mut db = self.repo.begin().await?;
                 let mut history = self.repo.load(*id).await?;
                 history.process_event(event);
-                self.repo.persist_in_tx(&mut db, *id, history).await?;
-
-                state.sequence = message.sequence;
-                current_job
-                    .update_execution_state_in_op(&mut db, state)
-                    .await?;
-                db.commit().await?;
+                self.repo.persist_in_tx(db, *id, history).await?;
             }
             _ => {}
         }
@@ -158,8 +141,15 @@ where
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            self.process_message(message.as_ref(), &mut current_job, &mut state)
+            let mut db = self.repo.begin().await?;
+            self.process_message(message.as_ref(), &mut db).await?;
+
+            state.sequence = message.sequence;
+            current_job
+                .update_execution_state_in_op(&mut db, &state)
                 .await?;
+
+            db.commit().await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
@@ -183,7 +173,7 @@ where
     }
 }
 
-const HISTORY_PROJECTION: JobType = JobType::new("credit-facility-history-projection");
+const HISTORY_PROJECTION: JobType = JobType::new("outbox.credit-facility-history-projection");
 impl<E> JobInitializer for HistoryProjectionInit<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,

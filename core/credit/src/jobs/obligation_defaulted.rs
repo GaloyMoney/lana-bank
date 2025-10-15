@@ -47,7 +47,7 @@ where
     }
 }
 
-const OBLIGATION_DEFAULTED_JOB: JobType = JobType::new("obligation-defaulted");
+const OBLIGATION_DEFAULTED_JOB: JobType = JobType::new("task.obligation-defaulted");
 impl<Perms, E> JobInitializer for ObligationDefaultedInit<Perms, E>
 where
     Perms: PermissionCheck,

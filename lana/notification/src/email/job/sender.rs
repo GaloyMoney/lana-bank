@@ -30,7 +30,7 @@ impl EmailSenderInit {
     }
 }
 
-const EMAIL_SENDER_JOB: JobType = JobType::new("email-sender");
+const EMAIL_SENDER_JOB: JobType = JobType::new("task.email-sender");
 
 impl JobInitializer for EmailSenderInit {
     fn job_type() -> JobType {

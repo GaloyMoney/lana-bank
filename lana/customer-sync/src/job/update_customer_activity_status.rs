@@ -77,7 +77,8 @@ where
     }
 }
 
-const UPDATE_CUSTOMER_ACTIVITY_STATUS: JobType = JobType::new("update-customer-activity-status");
+const UPDATE_CUSTOMER_ACTIVITY_STATUS: JobType =
+    JobType::new("cron.update-customer-activity-status");
 
 impl<Perms, E> JobInitializer for UpdateCustomerActivityStatusInit<Perms, E>
 where

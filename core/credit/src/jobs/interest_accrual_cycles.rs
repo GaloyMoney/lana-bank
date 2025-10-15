@@ -80,7 +80,7 @@ where
 }
 
 // per credit facility job type
-const INTEREST_ACCRUAL_CYCLE_JOB: JobType = JobType::new("interest-accrual-cycle");
+const INTEREST_ACCRUAL_CYCLE_JOB: JobType = JobType::new("task.interest-accrual-cycle");
 impl<Perms, E> JobInitializer for InterestAccrualCycleInit<Perms, E>
 where
     Perms: PermissionCheck,

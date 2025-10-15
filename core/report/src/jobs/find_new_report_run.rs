@@ -63,7 +63,7 @@ where
     }
 }
 
-const FIND_NEW_REPORT_RUN_JOB_TYPE: JobType = JobType::new("find-new-report-run");
+const FIND_NEW_REPORT_RUN_JOB_TYPE: JobType = JobType::new("cron.find-new-report-run");
 
 impl<E> JobInitializer for FindNewReportRunJobInit<E>
 where
