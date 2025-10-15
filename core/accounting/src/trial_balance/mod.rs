@@ -1,6 +1,8 @@
 pub mod error;
 pub mod ledger;
 
+use std::collections::HashSet;
+
 use chrono::NaiveDate;
 use tracing::instrument;
 
@@ -8,7 +10,13 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
-use crate::primitives::{CalaAccountSetId, CoreAccountingAction, CoreAccountingObject};
+use crate::{
+    chart_of_accounts::Chart,
+    primitives::{
+        AccountCode, BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
+        DebitOrCredit, LedgerAccountId,
+    },
+};
 
 use error::*;
 pub use ledger::TrialBalanceRoot;
@@ -117,5 +125,90 @@ where
             .trial_balance_ledger
             .get_trial_balance(name, from, Some(until))
             .await?)
+    }
+
+    #[instrument(
+        name = "core_accounting.trial_balance.accounts_flat_for_chart",
+        skip(self, chart),
+        err
+    )]
+    pub async fn accounts_flat_for_chart(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart: &Chart,
+        from: NaiveDate,
+        until: Option<NaiveDate>,
+    ) -> Result<Vec<TrialBalanceRow>, TrialBalanceError> {
+        self.authz
+            .enforce_permission(
+                sub,
+                CoreAccountingObject::all_trial_balance(),
+                CoreAccountingAction::TRIAL_BALANCE_READ,
+            )
+            .await?;
+        let chart_tree = chart.chart();
+        let root_ids: Vec<_> = chart_tree
+            .children
+            .iter()
+            .map(|node| LedgerAccountId::from(node.id))
+            .collect();
+
+        let mut root_accounts_with_activity: HashSet<LedgerAccountId> = self
+            .trial_balance_ledger
+            .load_accounts_in_range(&root_ids, from, until)
+            .await?
+            .into_iter()
+            .map(|account| account.id)
+            .collect();
+
+        let mut ordered_ids = Vec::new();
+        for node in &chart_tree.children {
+            let ledger_id = LedgerAccountId::from(node.id);
+            if !root_accounts_with_activity.remove(&ledger_id) {
+                continue;
+            }
+            ordered_ids.push(ledger_id);
+            if node.children.is_empty() {
+                continue;
+            }
+            let mut stack = vec![node.children.iter()];
+            while let Some(iter) = stack.last_mut() {
+                if let Some(child) = iter.next() {
+                    ordered_ids.push(LedgerAccountId::from(child.id));
+                    if !child.children.is_empty() {
+                        stack.push(child.children.iter());
+                    }
+                } else {
+                    stack.pop();
+                }
+            }
+        }
+
+        Ok(self
+            .trial_balance_ledger
+            .load_accounts_in_range(&ordered_ids, from, until)
+            .await?)
+    }
+}
+
+#[derive(Debug, Clone)]
+pub struct TrialBalanceRow {
+    pub id: LedgerAccountId,
+    pub name: String,
+    pub code: Option<AccountCode>,
+    pub normal_balance_type: DebitOrCredit,
+    pub usd_balance_range: Option<BalanceRange>,
+    pub btc_balance_range: Option<BalanceRange>,
+}
+
+impl TrialBalanceRow {
+    pub fn has_non_zero_activity(&self) -> bool {
+        if let Some(usd) = self.usd_balance_range.as_ref() {
+            usd.has_non_zero_activity()
+        } else if let Some(btc) = self.btc_balance_range.as_ref() {
+            btc.has_non_zero_activity()
+        } else {
+            false
+        }
     }
 }

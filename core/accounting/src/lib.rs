@@ -38,7 +38,7 @@ pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 pub use transaction_templates::TransactionTemplates;
-pub use trial_balance::{TrialBalanceRoot, TrialBalances};
+pub use trial_balance::{TrialBalanceRoot, TrialBalanceRow, TrialBalances};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -239,6 +239,28 @@ where
         Ok(self
             .ledger_accounts()
             .list_all_account_children(sub, &chart, id, from, until, true)
+            .await?)
+    }
+
+    #[instrument(name = "core_accounting.trial_balance.accounts_flat", skip(self), err)]
+    pub async fn trial_balance_accounts_flat(
+        &self,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+        chart_ref: &str,
+        from: chrono::NaiveDate,
+        until: Option<chrono::NaiveDate>,
+    ) -> Result<Vec<TrialBalanceRow>, CoreAccountingError> {
+        let chart = self
+            .chart_of_accounts
+            .find_by_reference(chart_ref)
+            .await?
+            .ok_or_else(move || {
+                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
+            })?;
+
+        Ok(self
+            .trial_balances()
+            .accounts_flat_for_chart(sub, &chart, from, until)
             .await?)
     }
 

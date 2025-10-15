@@ -6,6 +6,8 @@ pub enum TrialBalanceLedgerError {
     Sqlx(#[from] sqlx::Error),
     #[error("TrialBalanceLedgerError - CalaLedger: {0}")]
     CalaLedger(#[from] cala_ledger::error::LedgerError),
+    #[error("TrialBalanceLedgerError - CalaAccount: {0}")]
+    CalaAccount(#[from] cala_ledger::account::error::AccountError),
     #[error("TrialBalanceLedgerError - CalaAccountSet: {0}")]
     CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
     #[error("TrialBalanceLedgerError - CalaBalance: {0}")]

@@ -2141,6 +2141,15 @@ type TrialBalance {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
 	accounts: [LedgerAccount!]!
+	accountsFlat: [TrialBalanceRow!]!
+}
+
+type TrialBalanceRow {
+	id: ID!
+	ledgerAccountId: UUID!
+	code: AccountCode
+	name: String!
+	balanceRange: LedgerAccountBalanceRange!
 }
 
 scalar UUID
