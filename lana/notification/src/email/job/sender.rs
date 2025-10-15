@@ -1,11 +1,10 @@
 use async_trait::async_trait;
 use job::{CurrentJob, Job, JobCompletion, JobConfig, JobInitializer, JobRunner, JobType};
 use serde::{Deserialize, Serialize};
+use smtp_client::SmtpClient;
+use tracing::instrument;
 
-use crate::email::{
-    smtp::SmtpClient,
-    templates::{EmailTemplate, EmailType},
-};
+use crate::email::templates::{EmailTemplate, EmailType};
 
 #[derive(Serialize, Deserialize)]
 pub struct EmailSenderConfig {
@@ -55,6 +54,7 @@ pub struct EmailSenderRunner {
 
 #[async_trait]
 impl JobRunner for EmailSenderRunner {
+    #[instrument(name = "notification.email_sender_job.run", skip(self, _current_job), fields(recipient = %self.config.recipient, email_type = ?self.config.email_type))]
     async fn run(
         &self,
         _current_job: CurrentJob,

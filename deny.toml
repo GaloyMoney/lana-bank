@@ -311,6 +311,11 @@ expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []
 
 [[licenses.clarify]]
+crate = "smtp-client"
+expression = "LicenseRef-FSL-1.1-ALv2"
+license-files = []
+
+[[licenses.clarify]]
 crate = "sumsub"
 expression = "LicenseRef-FSL-1.1-ALv2"
 license-files = []

@@ -28,6 +28,7 @@ keycloak-client = { path = "lib/keycloak-client" }
 komainu = { path = "lib/komainu" }
 outbox = { path = "lib/outbox" }
 rendering = { path = "lib/rendering" }
+smtp-client = { path = "lib/smtp-client" }
 sumsub = { path = "lib/sumsub" }
 tracing-utils = { path = "lib/tracing-utils" }
 
@@ -64,9 +65,9 @@ user-onboarding = { path = "lana/user-onboarding" }
 # External dependencies
 es-entity = { version = "0.9.3", features = ["event-context", "tracing-context"] }
 sim-time = "0.9"
-cala-ledger = "0.12.0"
+cala-ledger = "0.12.1"
 cala-cel-interpreter = "0.12"
-job = "0.2"
+job = "0.2.1"
 
 
 aes = "0.8"

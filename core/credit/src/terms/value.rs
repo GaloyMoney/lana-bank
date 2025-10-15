@@ -368,6 +368,22 @@ impl TermValues {
             }
         }
     }
+
+    pub(crate) fn get_liquidation_date_from_due_date(
+        &self,
+        due_date: EffectiveDate,
+    ) -> Option<EffectiveDate> {
+        self.obligation_liquidation_duration_from_due
+            .map(|d| d.end_date(due_date))
+    }
+
+    pub(crate) fn get_overdue_date_from_due_date(
+        &self,
+        due_date: EffectiveDate,
+    ) -> Option<EffectiveDate> {
+        self.obligation_overdue_duration_from_due
+            .map(|d| d.end_date(due_date))
+    }
 }
 
 impl TermValuesBuilder {

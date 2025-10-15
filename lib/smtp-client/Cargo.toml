@@ -1,0 +1,14 @@
+[package]
+name = "smtp-client"
+license = "FSL-1.1-ALv2"
+edition = "2024"
+
+[features]
+fail-on-warnings = []
+
+[dependencies]
+lettre = { workspace = true }
+serde = { workspace = true }
+thiserror = { workspace = true }
+workspace-hack = { version = "0.1", path = "../../workspace-hack" }
+

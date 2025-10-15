@@ -1,8 +1,6 @@
 pub mod config;
 pub mod error;
 pub mod job;
-
-mod smtp;
 pub mod templates;
 
 use ::job::{JobId, Jobs};
@@ -11,9 +9,12 @@ use core_credit::{CoreCredit, CreditFacilityId, ObligationId, ObligationType};
 use core_customer::Customers;
 use job::{EmailSenderConfig, EmailSenderInit};
 use lana_events::LanaEvent;
+use smtp_client::SmtpClient;
 
-use smtp::SmtpClient;
-use templates::{EmailTemplate, EmailType, OverduePaymentEmailData};
+use templates::{
+    DepositAccountCreatedEmailData, EmailTemplate, EmailType, OverduePaymentEmailData,
+    RoleCreatedEmailData,
+};
 
 pub use config::EmailConfig;
 pub use error::EmailError;
@@ -36,11 +37,13 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:
@@ -54,7 +57,7 @@ where
         customers: &Customers<AuthzType, LanaEvent>,
     ) -> Result<Self, EmailError> {
         let template = EmailTemplate::new(config.admin_panel_url.clone())?;
-        let smtp_client = SmtpClient::init(config)?;
+        let smtp_client = SmtpClient::init(config.to_smtp_config())?;
         jobs.add_initializer(EmailSenderInit::new(smtp_client, template));
         Ok(Self {
             jobs: jobs.clone(),
@@ -101,18 +104,25 @@ where
             customer_email: customer.email,
         };
 
-        let mut query = es_entity::PaginatedQueryArgs::default();
-        loop {
-            let first = query.first;
+        let mut has_next_page = true;
+        let mut after = None;
+        // currently email notifications are sent to all users in the system
+        // TODO: create a role for receiving margin call / overdue payment emails
+        while has_next_page {
             let es_entity::PaginatedQueryRet {
-                entities,
-                has_next_page,
+                entities: users,
+                has_next_page: next_page,
                 end_cursor,
             } = self
                 .users
-                .list_users_without_audit(query, es_entity::ListDirection::Descending)
+                .list_users_without_audit(
+                    es_entity::PaginatedQueryArgs { first: 20, after },
+                    es_entity::ListDirection::Descending,
+                )
                 .await?;
-            for user in entities {
+            (after, has_next_page) = (end_cursor, next_page);
+
+            for user in users {
                 let email_config = EmailSenderConfig {
                     recipient: user.email,
                     email_type: EmailType::OverduePayment(email_data.clone()),
@@ -121,13 +131,72 @@ where
                     .create_and_spawn_in_op(op, JobId::new(), email_config)
                     .await?;
             }
-            if has_next_page {
-                query = es_entity::PaginatedQueryArgs {
-                    first,
-                    after: end_cursor,
+        }
+        Ok(())
+    }
+
+    pub async fn send_deposit_account_created_notification(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        account_id: &core_deposit::DepositAccountId,
+        account_holder_id: &core_deposit::DepositAccountHolderId,
+    ) -> Result<(), EmailError> {
+        let customer_id: core_customer::CustomerId = (*account_holder_id).into();
+        let customer = self.customers.find_by_id_without_audit(customer_id).await?;
+
+        let email_data = DepositAccountCreatedEmailData {
+            account_id: account_id.to_string(),
+            customer_email: customer.email.clone(),
+        };
+
+        let email_config = EmailSenderConfig {
+            recipient: customer.email,
+            email_type: EmailType::DepositAccountCreated(email_data),
+        };
+
+        self.jobs
+            .create_and_spawn_in_op(op, JobId::new(), email_config)
+            .await?;
+
+        Ok(())
+    }
+
+    pub async fn send_role_created_notification(
+        &self,
+        op: &mut impl es_entity::AtomicOperation,
+        role_id: &core_access::RoleId,
+        role_name: &str,
+    ) -> Result<(), EmailError> {
+        let email_data = RoleCreatedEmailData {
+            role_id: role_id.to_string(),
+            role_name: role_name.to_string(),
+        };
+
+        let mut has_next_page = true;
+        let mut after = None;
+        // Send email to all users in the system
+        while has_next_page {
+            let es_entity::PaginatedQueryRet {
+                entities: users,
+                has_next_page: next_page,
+                end_cursor,
+            } = self
+                .users
+                .list_users_without_audit(
+                    es_entity::PaginatedQueryArgs { first: 20, after },
+                    es_entity::ListDirection::Descending,
+                )
+                .await?;
+            (after, has_next_page) = (end_cursor, next_page);
+
+            for user in users {
+                let email_config = EmailSenderConfig {
+                    recipient: user.email,
+                    email_type: EmailType::RoleCreated(email_data.clone()),
                 };
-            } else {
-                break;
+                self.jobs
+                    .create_and_spawn_in_op(op, JobId::new(), email_config)
+                    .await?;
             }
         }
         Ok(())

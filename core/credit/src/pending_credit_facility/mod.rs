@@ -17,6 +17,7 @@ use crate::{
     Collaterals, CreditFacilityProposals,
     credit_facility::NewCreditFacilityBuilder,
     credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
+    disbursal::NewDisbursalBuilder,
     event::CoreCreditEvent,
     ledger::*,
     primitives::*,
@@ -32,7 +33,10 @@ pub use repo::pending_credit_facility_cursor::*;
 
 pub enum PendingCreditFacilityCompletionOutcome {
     Ignored,
-    Completed(NewCreditFacilityBuilder),
+    Completed {
+        new_facility: NewCreditFacilityBuilder,
+        initial_disbursal: Option<NewDisbursalBuilder>,
+    },
 }
 
 pub struct PendingCreditFacilities<Perms, E>
@@ -203,12 +207,13 @@ where
             .await?;
 
         match pending_facility.complete(balances, price, crate::time::now()) {
-            Ok(es_entity::Idempotent::Executed(new_facility)) => {
+            Ok(es_entity::Idempotent::Executed((new_facility, initial_disbursal))) => {
                 self.repo.update_in_op(db, &mut pending_facility).await?;
 
-                Ok(PendingCreditFacilityCompletionOutcome::Completed(
+                Ok(PendingCreditFacilityCompletionOutcome::Completed {
                     new_facility,
-                ))
+                    initial_disbursal,
+                })
             }
             Ok(es_entity::Idempotent::Ignored)
             | Err(PendingCreditFacilityError::BelowMarginLimit) => {

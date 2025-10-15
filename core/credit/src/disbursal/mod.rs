@@ -10,9 +10,8 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use outbox::OutboxEventMarker;
-use public_id::PublicIds;
 
-use crate::{CreditFacility, Obligation, Obligations, event::CoreCreditEvent, primitives::*};
+use crate::{Obligation, Obligations, event::CoreCreditEvent, primitives::*};
 
 pub(super) use entity::*;
 use error::DisbursalError;
@@ -33,7 +32,6 @@ where
     authz: Arc<Perms>,
     obligations: Arc<Obligations<Perms, E>>,
     governance: Arc<Governance<Perms, E>>,
-    public_ids: Arc<PublicIds>,
 }
 
 impl<Perms, E> Clone for Disbursals<Perms, E>
@@ -47,7 +45,6 @@ where
             authz: self.authz.clone(),
             governance: self.governance.clone(),
             obligations: self.obligations.clone(),
-            public_ids: self.public_ids.clone(),
         }
     }
 }
@@ -73,7 +70,6 @@ where
         publisher: &crate::CreditFacilityPublisher<E>,
         obligations: Arc<Obligations<Perms, E>>,
         governance: Arc<Governance<Perms, E>>,
-        public_ids: Arc<PublicIds>,
     ) -> Result<Self, DisbursalError> {
         match governance
             .init_policy(crate::APPROVE_DISBURSAL_PROCESS)
@@ -91,7 +87,6 @@ where
             authz,
             obligations,
             governance,
-            public_ids,
         })
     }
 
@@ -118,48 +113,18 @@ where
     }
 
     #[instrument(
-        name = "disbursals.create_first_disbursal_in_op",
-        skip(self, db, credit_facility)
+        name = "disbursals.create_pre_approved_disbursal_in_op",
+        skip(self, db, new_disbursal)
     )]
-    pub(super) async fn create_first_disbursal_in_op(
+    pub(super) async fn create_pre_approved_disbursal_in_op(
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
-        credit_facility: &CreditFacility,
+        new_disbursal: NewDisbursal,
     ) -> Result<DisbursalId, DisbursalError> {
-        let disbursal_id = DisbursalId::new();
-        let public_id = self
-            .public_ids
-            .create_in_op(db, DISBURSAL_REF_TARGET, disbursal_id)
-            .await?;
-
-        let due_date = credit_facility.maturity_date;
-        let overdue_date = credit_facility
-            .terms
-            .obligation_overdue_duration_from_due
-            .map(|d| d.end_date(due_date));
-        let liquidation_date = credit_facility
-            .terms
-            .obligation_liquidation_duration_from_due
-            .map(|d| d.end_date(due_date));
-
-        let new_disbursal = NewDisbursal::builder()
-            .id(disbursal_id)
-            .credit_facility_id(credit_facility.id)
-            .approval_process_id(credit_facility.id)
-            .amount(credit_facility.structuring_fee())
-            .account_ids(credit_facility.account_ids)
-            .disbursal_credit_account_id(credit_facility.disbursal_credit_account_id)
-            .due_date(due_date)
-            .overdue_date(overdue_date)
-            .liquidation_date(liquidation_date)
-            .public_id(public_id.id)
-            .build()
-            .expect("could not build new disbursal");
-
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
-            .approval_process_concluded(LedgerTxId::new(), true, db.now().date_naive())
+            .approval_process_concluded(true, db.now().date_naive())
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
@@ -251,7 +216,6 @@ where
         op: &mut es_entity::DbOpWithTime<'_>,
         disbursal_id: DisbursalId,
         approved: bool,
-        tx_id: LedgerTxId,
     ) -> Result<ApprovalProcessOutcome, DisbursalError> {
         self.authz
             .audit()
@@ -265,8 +229,7 @@ where
 
         let mut disbursal = self.repo.find_by_id(disbursal_id).await?;
 
-        let ret = match disbursal.approval_process_concluded(tx_id, approved, op.now().date_naive())
-        {
+        let ret = match disbursal.approval_process_concluded(approved, op.now().date_naive()) {
             es_entity::Idempotent::Ignored => ApprovalProcessOutcome::Ignored(disbursal),
             es_entity::Idempotent::Executed(Some(new_obligation)) => {
                 let obligation = self

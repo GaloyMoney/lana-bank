@@ -307,6 +307,16 @@ pub fn update_schemas(
             filename: "disbursal_event_schema.json",
             toggle_events: vec!["ApprovalProcessConcluded", "Settled", "Cancelled"],
             generate_schema: || serde_json::to_value(schema_for!(DisbursalEvent)).unwrap(),
+            collections: vec![CollectionRollup {
+                column_name: "ledger_tx_ids",
+                values: "ledger_tx_id",
+                add_events: vec![
+                    "Initialized".to_string(),
+                    "Settled".to_string(),
+                    "Cancelled".to_string(),
+                ],
+                remove_events: vec![],
+            }],
             ..Default::default()
         },
         SchemaInfo {

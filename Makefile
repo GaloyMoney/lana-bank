@@ -13,6 +13,14 @@ podman-service-start:
 # available container engines. To force use of podman, set ENGINE_DEFAULT=podman in your environment.
 # The podman-* targets below are Linux-only and used for manual podman service setup.
 
+check-code-rust:
+	SQLX_OFFLINE=true cargo fmt --check --all
+	SQLX_OFFLINE=true cargo check
+	SQLX_OFFLINE=true cargo clippy --all-features --all-targets
+	SQLX_OFFLINE=true cargo audit
+	cargo deny check --hide-inclusion-graph
+	cargo machete
+
 
 # ── Test Targets ───────────────────────────────────────────────────────────────────
 
@@ -52,7 +60,7 @@ check-code: check-code-apps
 update-schemas:
 	SQLX_OFFLINE=true cargo run --package entity-rollups --all-features -- update-schemas --force-recreate
 
-e2e: clean-deps start-deps build-for-tests
+e2e: clean-deps start-deps
 	bats -t bats
 
 # Cargo alternative for faster compilation during development

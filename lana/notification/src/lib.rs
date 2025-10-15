@@ -40,11 +40,13 @@ where
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Action: From<core_credit::CoreCreditAction>
         + From<core_customer::CoreCustomerAction>
         + From<core_access::CoreAccessAction>
+        + From<core_deposit::CoreDepositAction>
         + From<governance::GovernanceAction>
         + From<core_custody::CoreCustodyAction>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Object: From<core_credit::CoreCreditObject>
         + From<core_customer::CustomerObject>
         + From<core_access::CoreAccessObject>
+        + From<core_deposit::CoreDepositObject>
         + From<governance::GovernanceObject>
         + From<core_custody::CoreCustodyObject>,
     <<AuthzType as authz::PermissionCheck>::Audit as audit::AuditSvc>::Subject:

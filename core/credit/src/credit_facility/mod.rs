@@ -151,25 +151,25 @@ where
             )
             .await?;
 
-        let mut new_credit_facility_bld = match self
+        let (mut new_credit_facility_builder, initial_disbursal) = match self
             .pending_credit_facilities
             .complete_in_op(&mut db, id.into())
             .await?
         {
-            PendingCreditFacilityCompletionOutcome::Completed(new_credit_facility_bld) => {
-                new_credit_facility_bld
-            }
+            PendingCreditFacilityCompletionOutcome::Completed {
+                new_facility: new_credit_facility_builder,
+                initial_disbursal,
+            } => (new_credit_facility_builder, initial_disbursal),
             PendingCreditFacilityCompletionOutcome::Ignored => {
                 return Ok(());
             }
         };
-
         let public_id = self
             .public_ids
             .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
             .await?;
 
-        let new_credit_facility = new_credit_facility_bld
+        let new_credit_facility = new_credit_facility_builder
             .public_id(public_id.id)
             .build()
             .expect("Could not build NewCreditFacility");
@@ -213,12 +213,24 @@ where
             )
             .await?;
 
-        if !credit_facility.structuring_fee().is_zero() {
+        if let Some(mut new_disbursal_builder) = initial_disbursal {
+            let public_id = self
+                .public_ids
+                .create_in_op(
+                    &mut db,
+                    DISBURSAL_REF_TARGET,
+                    new_disbursal_builder.unwrap_id(),
+                )
+                .await?;
+            let new_disbursal = new_disbursal_builder
+                .public_id(public_id.id)
+                .build()
+                .expect("could not build new disbursal");
+
             let disbursal_id = self
                 .disbursals
-                .create_first_disbursal_in_op(&mut db, &credit_facility)
+                .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
                 .await?;
-
             self.ledger
                 .handle_activation_with_structuring_fee(
                     db,
@@ -226,7 +238,6 @@ where
                     disbursal_id,
                 )
                 .await?;
-
             return Ok(());
         }
 

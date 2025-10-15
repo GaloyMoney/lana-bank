@@ -67,7 +67,6 @@ num-traits = { version = "0.2", features = ["i128"] }
 once_cell = { version = "1", features = ["portable-atomic"] }
 opentelemetry-http = { version = "0.30", features = ["reqwest-rustls-webpki-roots"] }
 opentelemetry-otlp = { version = "0.30", default-features = false, features = ["grpc-tonic", "http-proto", "reqwest-client", "reqwest-rustls-webpki-roots"] }
-opentelemetry_sdk = { version = "0.30", features = ["rt-tokio"] }
 percent-encoding = { version = "2" }
 petgraph = { version = "0.6" }
 pkcs8 = { version = "0.10", default-features = false, features = ["encryption", "pem", "std"] }
@@ -225,7 +224,6 @@ ignored = [
     "once_cell",
     "opentelemetry-http",
     "opentelemetry-otlp",
-    "opentelemetry_sdk",
     "percent-encoding",
     "petgraph",
     "pkcs8",

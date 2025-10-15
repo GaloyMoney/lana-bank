@@ -55,7 +55,7 @@ pub async fn run(
 
     println!("waiting for real time");
     sim_time::wait_until_realtime().await;
-    println!("done");
+    println!("switching to real time");
 
     Ok(())
 }

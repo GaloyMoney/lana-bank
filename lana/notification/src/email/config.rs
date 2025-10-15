@@ -20,3 +20,17 @@ pub struct EmailConfig {
     #[serde(default)]
     pub admin_panel_url: String,
 }
+
+impl EmailConfig {
+    pub fn to_smtp_config(&self) -> smtp_client::SmtpConfig {
+        smtp_client::SmtpConfig {
+            username: self.username.clone(),
+            password: self.password.clone(),
+            from_email: self.from_email.clone(),
+            from_name: self.from_name.clone(),
+            relay: self.relay.clone(),
+            port: self.port,
+            insecure: self.insecure,
+        }
+    }
+}

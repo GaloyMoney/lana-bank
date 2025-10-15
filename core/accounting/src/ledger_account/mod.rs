@@ -174,11 +174,6 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.ledger_account.list_account_children",
-        skip(self, chart),
-        err
-    )]
-    #[instrument(
         name = "core_accounting.ledger_account.list_all_account_children",
         skip(self, chart),
         err

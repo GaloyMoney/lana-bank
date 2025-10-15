@@ -8,6 +8,7 @@ use es_entity::*;
 
 use crate::{
     credit_facility::NewCreditFacilityBuilder,
+    disbursal::NewDisbursalBuilder,
     ledger::{
         CreditFacilityProposalBalanceSummary, PendingCreditFacilityAccountIds,
         PendingCreditFacilityCreation,
@@ -181,7 +182,10 @@ impl PendingCreditFacility {
         balances: CreditFacilityProposalBalanceSummary,
         price: PriceOfOneBTC,
         time: DateTime<Utc>,
-    ) -> Result<Idempotent<NewCreditFacilityBuilder>, PendingCreditFacilityError> {
+    ) -> Result<
+        Idempotent<(NewCreditFacilityBuilder, Option<NewDisbursalBuilder>)>,
+        PendingCreditFacilityError,
+    > {
         idempotency_guard!(
             self.events.iter_all(),
             PendingCreditFacilityEvent::Completed { .. }
@@ -194,29 +198,58 @@ impl PendingCreditFacility {
         self.events.push(PendingCreditFacilityEvent::Completed {});
 
         let mut new_credit_facility = NewCreditFacilityBuilder::default();
+        let maturity_date = self.terms.maturity_date(time);
+        let account_ids = crate::CreditFacilityLedgerAccountIds::from(self.account_ids);
         new_credit_facility
             .id(self.id)
             .pending_credit_facility_id(self.id)
             .ledger_tx_id(LedgerTxId::new())
             .customer_id(self.customer_id)
             .customer_type(self.customer_type)
-            .account_ids(crate::CreditFacilityLedgerAccountIds::from(
-                self.account_ids,
-            ))
+            .account_ids(account_ids)
             .disbursal_credit_account_id(self.disbursal_credit_account_id)
             .collateral_id(self.collateral_id)
             .terms(self.terms)
             .amount(self.amount)
             .activated_at(crate::time::now())
-            .maturity_date(self.terms.maturity_date(time));
+            .maturity_date(maturity_date);
 
-        Ok(Idempotent::Executed(new_credit_facility))
+        let initial_disbursal = if self.structuring_fee().is_zero() {
+            None
+        } else {
+            let due_date = maturity_date;
+            let overdue_date = self.terms.get_overdue_date_from_due_date(due_date);
+            let liquidation_date = self.terms.get_liquidation_date_from_due_date(due_date);
+
+            let mut new_disbursal_builder = NewDisbursalBuilder::default();
+            new_disbursal_builder
+                .id(DisbursalId::new())
+                .credit_facility_id(self.id)
+                .approval_process_id(self.approval_process_id)
+                .amount(self.structuring_fee())
+                .account_ids(account_ids)
+                .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .due_date(due_date)
+                .overdue_date(overdue_date)
+                .liquidation_date(liquidation_date);
+
+            Some(new_disbursal_builder)
+        };
+
+        Ok(Idempotent::Executed((
+            new_credit_facility,
+            initial_disbursal,
+        )))
     }
 
     fn is_completed(&self) -> bool {
         self.events
             .iter_all()
             .any(|event| matches!(event, PendingCreditFacilityEvent::Completed { .. }))
+    }
+
+    fn structuring_fee(&self) -> UsdCents {
+        self.terms.one_time_fee_rate.apply(self.amount)
     }
 }
 

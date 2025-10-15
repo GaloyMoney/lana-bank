@@ -1,13 +1,10 @@
-pub mod error;
-
 use lettre::{
     AsyncSmtpTransport, AsyncTransport, Tokio1Executor,
     message::{Mailbox, Message, header::ContentType},
     transport::smtp::authentication::Credentials,
 };
 
-use crate::email::EmailConfig;
-use error::SmtpError;
+use crate::{SmtpConfig, SmtpError};
 
 #[derive(Clone)]
 pub struct SmtpClient {
@@ -17,7 +14,7 @@ pub struct SmtpClient {
 }
 
 impl SmtpClient {
-    pub fn init(config: EmailConfig) -> Result<Self, SmtpError> {
+    pub fn init(config: SmtpConfig) -> Result<Self, SmtpError> {
         let client = if config.insecure {
             AsyncSmtpTransport::<Tokio1Executor>::builder_dangerous(&config.relay)
                 .port(config.port)

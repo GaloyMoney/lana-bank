@@ -21,7 +21,7 @@ impl<E> HistoryProjectionJobRunner<E>
 where
     E: OutboxEventMarker<CoreCreditEvent>,
 {
-    #[instrument(name = "core_credit.history_projection_job.process_msg", parent = None, skip(self, message, current_job, state), fields(seq = ?message.sequence, handled = false, event_type = tracing::field::Empty))]
+    #[instrument(name = "core_credit.history_projection_job.process_message", parent = None, skip(self, message, current_job, state), fields(seq = %message.sequence, handled = false, event_type = tracing::field::Empty))]
     #[allow(clippy::single_match)]
     async fn process_message(
         &self,

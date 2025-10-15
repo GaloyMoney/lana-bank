@@ -163,9 +163,11 @@ where
                 .record_interest_accrual(db, interest_accrual)
                 .await?;
 
-            println!(
-                "All ({:?}) accruals completed for {:?} of {:?}",
-                accrued_count, accrual_idx, self.config.credit_facility_id
+            tracing::info!(
+                accrued_count = %accrued_count,
+                accrual_idx = %accrual_idx,
+                credit_facility_id = %self.config.credit_facility_id,
+                "All accruals completed for period"
             );
             Ok(JobCompletion::Complete)
         }

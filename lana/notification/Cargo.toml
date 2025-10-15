@@ -14,21 +14,23 @@ lana-events = { workspace = true }
 core-access = { workspace = true }
 core-credit = { workspace = true }
 core-customer = { workspace = true }
+core-deposit = { workspace = true }
 audit = { workspace = true }
 authz = { workspace = true }
 core-money = { workspace = true }
 governance = { workspace = true }
 core-custody = { workspace = true }
 
+smtp-client = { workspace = true }
 es-entity = { workspace = true }
 serde = { workspace = true }
 serde_json = { workspace = true }
 async-trait = { workspace = true }
 futures = { workspace = true }
 thiserror = { workspace = true }
-lettre = { workspace = true }
 handlebars = { workspace = true }
 chrono = { workspace = true }
+tracing = { workspace = true }
 workspace-hack = { version = "0.1", path = "../../workspace-hack" }
 
 [dev-dependencies]

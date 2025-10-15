@@ -240,7 +240,6 @@ where
             &publisher,
             obligations_arc.clone(),
             governance_arc.clone(),
-            public_ids_arc.clone(),
         )
         .await?;
         let disbursals_arc = Arc::new(disbursals);
@@ -704,6 +703,7 @@ where
             .initiate_disbursal(
                 db,
                 disbursal.id,
+                disbursal.initiated_tx_id,
                 disbursal.amount,
                 disbursal.account_ids.facility_account_id,
             )

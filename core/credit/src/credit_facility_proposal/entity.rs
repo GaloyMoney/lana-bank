@@ -4,9 +4,8 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use es_entity::*;
-
 use core_custody::CustodianId;
+use es_entity::*;
 
 use crate::{
     pending_credit_facility::{NewPendingCreditFacility, NewPendingCreditFacilityBuilder},
