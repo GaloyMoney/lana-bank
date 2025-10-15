@@ -31,7 +31,7 @@ impl AccountingPeriods {
     /// Fails if no such Accounting Period is found.
     pub async fn close_month_in_op(
         &self,
-        db: &mut es_entity::DbOp<'_>,
+        mut db: es_entity::DbOp<'_>,
         chart_id: ChartId,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
         let mut open_periods = self.find_open_accounting_periods(chart_id).await?;
@@ -53,8 +53,9 @@ impl AccountingPeriods {
 
         match open_period.close(None)? {
             Idempotent::Executed(new) => {
-                self.repo.update_in_op(db, &mut open_period).await?;
-                let new_period = self.repo.create_in_op(db, new).await?;
+                self.repo.update_in_op(&mut db, &mut open_period).await?;
+                let new_period = self.repo.create_in_op(&mut db, new).await?;
+                self.somehow_update_metadata_in_op(db, &open_period).await;
                 Ok(new_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
@@ -71,7 +72,11 @@ impl AccountingPeriods {
         todo!()
     }
 
-    pub async fn somehow_update_metadate(&self) {
+    async fn somehow_update_metadata_in_op(
+        &self,
+        db: es_entity::DbOp<'_>,
+        period: &AccountingPeriod,
+    ) {
         todo!()
     }
 }
