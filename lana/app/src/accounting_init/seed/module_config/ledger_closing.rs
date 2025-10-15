@@ -13,6 +13,12 @@ struct LedgerClosingConfigData {
     expenses_code: String,
     equity_retained_earnings_code: String,
     equity_retained_losses_code: String,
+    // TODO: primitives.
+    fiscal_year_end_month: u8,
+    fiscal_month_end: String, // "start", "mid", "end"
+    grace_period_days: u8, // 5
+    extended_grace_period_days: u8, // 10
+    extended_grace_period_after_months: [u8; 4], // [6, 12]
 }
 
 pub(in crate::accounting_init::seed) async fn ledger_closing_module_configure(
@@ -20,6 +26,7 @@ pub(in crate::accounting_init::seed) async fn ledger_closing_module_configure(
     chart: &Chart,
     config_path: std::path::PathBuf,
 ) -> Result<(), AccountingInitError> {
+    // TODO: Working with non-String types.
     let data = std::fs::read_to_string(config_path)?;
     let LedgerClosingConfigData {
         revenue_code,
@@ -27,6 +34,11 @@ pub(in crate::accounting_init::seed) async fn ledger_closing_module_configure(
         expenses_code,
         equity_retained_earnings_code,
         equity_retained_losses_code,
+        fiscal_year_end_month,
+        fiscal_month_end,
+        grace_period_days,
+        extended_grace_period_days,
+        extended_grace_period_after_months,
     } = serde_json::from_str(&data)?;
 
     let config_values = ChartOfAccountsIntegrationConfig {
@@ -36,6 +48,11 @@ pub(in crate::accounting_init::seed) async fn ledger_closing_module_configure(
         chart_of_accounts_expenses_code: expenses_code.parse()?,
         chart_of_accounts_equity_retained_earnings_code: equity_retained_earnings_code.parse()?,
         chart_of_accounts_equity_retained_losses_code: equity_retained_losses_code.parse()?,
+        fiscal_year_end_month,
+        fiscal_month_end,
+        grace_period_days,
+        extended_grace_period_days,
+        extended_grace_period_after_months,
     };
 
     match ledger_closing
