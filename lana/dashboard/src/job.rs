@@ -1,7 +1,9 @@
 use async_trait::async_trait;
 use futures::StreamExt;
+use tracing::{Span, instrument};
 
 use job::*;
+use outbox::PersistentOutboxEvent;
 
 use crate::{Outbox, repo::DashboardRepo, values::*};
 
@@ -59,6 +61,24 @@ pub struct DashboardProjectionJobRunner {
     outbox: Outbox,
     repo: DashboardRepo,
 }
+
+impl DashboardProjectionJobRunner {
+    #[instrument(name = "dashboard.projection_job.process_message", parent = None, skip(self, message, dashboard), fields(seq = %message.sequence, handled = false))]
+    async fn process_message(
+        &self,
+        message: &PersistentOutboxEvent<lana_events::LanaEvent>,
+        dashboard: &mut DashboardValues,
+    ) -> Result<(), Box<dyn std::error::Error>> {
+        if let Some(payload) = &message.payload
+            && dashboard.process_event(message.recorded_at, payload)
+        {
+            message.inject_trace_parent();
+            Span::current().record("handled", true);
+        }
+        Ok(())
+    }
+}
+
 #[async_trait]
 impl JobRunner for DashboardProjectionJobRunner {
     async fn run(
@@ -71,17 +91,16 @@ impl JobRunner for DashboardProjectionJobRunner {
         let mut stream = self.outbox.listen_persisted(Some(state.sequence)).await?;
 
         while let Some(message) = stream.next().await {
-            if let Some(payload) = &message.payload
-                && state.dashboard.process_event(message.recorded_at, payload)
-            {
-                let mut db = self.repo.begin().await?;
-                self.repo.persist_in_tx(&mut db, &state.dashboard).await?;
-                state.sequence = message.sequence;
-                current_job
-                    .update_execution_state_in_op(&mut db, &state)
-                    .await?;
-                db.commit().await?;
-            }
+            let mut db = self.repo.begin().await?;
+            self.process_message(&message, &mut state.dashboard).await?;
+            self.repo.persist_in_tx(&mut db, &state.dashboard).await?;
+
+            state.sequence = message.sequence;
+            current_job
+                .update_execution_state_in_op(&mut db, &state)
+                .await?;
+
+            db.commit().await?;
         }
 
         Ok(JobCompletion::RescheduleNow)
