@@ -53,24 +53,21 @@ impl AccountingPeriod {
     pub fn close(
         &mut self,
         closing_transaction: Option<LedgerTransactionId>,
-    ) -> Result<Idempotent<NewAccountingPeriod>, AccountingPeriodError> {
+    ) -> Idempotent<NewAccountingPeriod> {
         idempotency_guard!(self.events.iter_all(), AccountingPeriodEvent::Closed { .. });
 
         let new_accounting_period = NewAccountingPeriod {
             id: AccountingPeriodId::new(),
             chart_id: self.chart_id,
             tracking_account_set: self.tracking_account_set,
-            period: self
-                .period
-                .next()
-                .ok_or(AccountingPeriodError::CannotCalculateNextPeriod)?,
+            period: self.period.next(),
         };
 
         self.events.push(AccountingPeriodEvent::Closed {
             closing_transaction,
         });
 
-        Ok(Idempotent::Executed(new_accounting_period))
+        Idempotent::Executed(new_accounting_period)
     }
 
     /// Closes this Accounting Period if all temporal conditions are
@@ -86,7 +83,7 @@ impl AccountingPeriod {
         closing_date: NaiveDate,
     ) -> Result<Idempotent<NewAccountingPeriod>, AccountingPeriodError> {
         self.check_can_close(closing_date)?;
-        self.close(closing_transaction)
+        Ok(self.close(closing_transaction))
     }
 
     /// Verifies that `closing_date` falls into allowable time range,
