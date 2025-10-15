@@ -7,7 +7,9 @@ use crate::{
 
 use rbac_types::Subject;
 
-use super::module_config::{balance_sheet::*, credit::*, deposit::*, profit_and_loss::*};
+use super::module_config::{
+    annual_closing_transaction::*, balance_sheet::*, credit::*, deposit::*, profit_and_loss::*,
+};
 
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
@@ -16,6 +18,7 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    annual_closing_transactions: &AnnualClosingTransactions,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -37,6 +40,7 @@ pub(crate) async fn init(
             deposit,
             balance_sheet,
             profit_and_loss,
+            annual_closing_transactions,
             chart_id,
             path,
             accounting_init_config,
@@ -72,6 +76,7 @@ async fn seed_chart_of_accounts(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    annual_closing: &AnnualClosingTransactions,
     chart_id: ChartId,
     chart_of_accounts_seed_path: PathBuf,
     accounting_init_config: AccountingInitConfig,
@@ -128,6 +133,14 @@ async fn seed_chart_of_accounts(
 
     if let Some(config_path) = profit_and_loss_config_path {
         profit_and_loss_module_configure(profit_and_loss, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
+    if let Some(config_path) = annual_closing_config_path {
+        annual_closing_transaction_module_configure(annual_closing, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently

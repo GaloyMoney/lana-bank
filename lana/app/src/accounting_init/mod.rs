@@ -5,6 +5,7 @@ pub mod error;
 
 use crate::{
     accounting::{Accounting, ChartOfAccounts},
+    annual_closing_transaction::AnnualClosingTransactions,
     app::AccountingInitConfig,
     balance_sheet::BalanceSheets,
     credit::Credit,
@@ -60,6 +61,7 @@ impl ChartsInit {
             deposit,
             accounting.balance_sheets(),
             accounting.profit_and_loss(),
+            accounting.annual_closing_transactions(),
             accounting_init_config,
         )
         .await
