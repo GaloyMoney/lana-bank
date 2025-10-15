@@ -19,6 +19,11 @@ use crate::{
 
 use super::error::PendingCreditFacilityError;
 
+pub struct NewDisbursals {
+    pub fee: Option<NewDisbursalBuilder>,
+    pub principal: Option<NewDisbursalBuilder>,
+}
+
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -182,10 +187,8 @@ impl PendingCreditFacility {
         balances: PendingCreditFacilityBalanceSummary,
         price: PriceOfOneBTC,
         time: DateTime<Utc>,
-    ) -> Result<
-        Idempotent<(NewCreditFacilityBuilder, Option<NewDisbursalBuilder>)>,
-        PendingCreditFacilityError,
-    > {
+    ) -> Result<Idempotent<(NewCreditFacilityBuilder, NewDisbursals)>, PendingCreditFacilityError>
+    {
         idempotency_guard!(
             self.events.iter_all(),
             PendingCreditFacilityEvent::Completed { .. }
@@ -214,7 +217,29 @@ impl PendingCreditFacility {
             .activated_at(crate::time::now())
             .maturity_date(maturity_date);
 
-        let initial_disbursal = if self.structuring_fee().is_zero() {
+        let principal_amount_disbursal = if self.is_single_disbursal() {
+            let due_date = maturity_date;
+            let overdue_date = self.terms.get_overdue_date_from_due_date(due_date);
+            let liquidation_date = self.terms.get_liquidation_date_from_due_date(due_date);
+
+            let mut new_disbursal_builder = NewDisbursalBuilder::default();
+            new_disbursal_builder
+                .id(DisbursalId::new())
+                .credit_facility_id(self.id)
+                .approval_process_id(self.approval_process_id)
+                .amount(self.amount - self.structuring_fee())
+                .account_ids(account_ids)
+                .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .due_date(due_date)
+                .overdue_date(overdue_date)
+                .liquidation_date(liquidation_date);
+
+            Some(new_disbursal_builder)
+        } else {
+            None
+        };
+
+        let fee_disbursal = if self.structuring_fee().is_zero() {
             None
         } else {
             let due_date = maturity_date;
@@ -238,7 +263,10 @@ impl PendingCreditFacility {
 
         Ok(Idempotent::Executed((
             new_credit_facility,
-            initial_disbursal,
+            NewDisbursals {
+                fee: fee_disbursal,
+                principal: principal_amount_disbursal,
+            },
         )))
     }
 
@@ -250,6 +278,10 @@ impl PendingCreditFacility {
 
     fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.amount)
+    }
+
+    fn is_single_disbursal(&self) -> bool {
+        self.terms.is_single_disbursal()
     }
 }
 
@@ -350,7 +382,7 @@ mod test {
 
     use crate::{
         ObligationDuration,
-        terms::{FacilityDuration, InterestInterval, OneTimeFeeRatePct},
+        terms::{DisbursalPolicy, FacilityDuration, InterestInterval, OneTimeFeeRatePct},
     };
 
     use super::*;
@@ -364,6 +396,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
