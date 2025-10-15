@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use cala_ledger::TransactionId as LedgerTransactionId;
+use cala_ledger::{AccountSetId as LedgerAccountSetId, TransactionId as LedgerTransactionId};
 
 use crate::{AccountingPeriodId, primitives::ChartId};
 
@@ -108,6 +108,7 @@ pub enum AccountingPeriodEvent {
     Initialized {
         id: AccountingPeriodId,
         chart_id: ChartId,
+        tracking_account_set: LedgerAccountSetId,
         frequency: Frequency,
         period_start: NaiveDate,
         period_end: NaiveDate,
@@ -123,6 +124,7 @@ pub enum AccountingPeriodEvent {
 pub struct AccountingPeriod {
     pub(super) id: AccountingPeriodId,
     chart_id: ChartId,
+    tracking_account_set: LedgerAccountSetId,
     pub(super) frequency: Frequency,
     period_start: NaiveDate,
     period_end: NaiveDate,
@@ -154,6 +156,7 @@ impl AccountingPeriod {
             id: AccountingPeriodId::new(),
             chart_id: self.chart_id,
             frequency: self.frequency.clone(),
+            tracking_account_set: self.tracking_account_set,
             period_start: new_period_start,
             period_end: new_period_end,
             grace_period: self.grace_period.clone(),
@@ -193,6 +196,7 @@ impl TryFromEvents<AccountingPeriodEvent> for AccountingPeriod {
 pub struct NewAccountingPeriod {
     pub id: AccountingPeriodId,
     pub chart_id: ChartId,
+    pub tracking_account_set: LedgerAccountSetId,
     pub frequency: Frequency,
     pub period_start: NaiveDate,
     pub period_end: NaiveDate,
