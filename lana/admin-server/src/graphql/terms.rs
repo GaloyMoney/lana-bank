@@ -2,7 +2,7 @@ use async_graphql::*;
 use serde::{Deserialize, Serialize};
 
 pub use lana_app::terms::{
-    AnnualRatePct, CVLPct as DomainCVLPct, FacilityDuration as DomainDuration, InterestInterval,
+    AnnualRatePct, CVLPct as DomainCVLPct, DisbursalPolicy, FacilityDuration as DomainDuration, InterestInterval,
     ObligationDuration as DomainObligationDuration, OneTimeFeeRatePct,
     TermValues as DomainTermValues,
 };
@@ -13,6 +13,7 @@ pub struct TermValues {
     accrual_interval: InterestInterval,
     accrual_cycle_interval: InterestInterval,
     one_time_fee_rate: OneTimeFeeRatePct,
+    disbursal_policy: DisbursalPolicy,
     duration: Duration,
     liquidation_cvl: CVLPct,
     margin_call_cvl: CVLPct,
@@ -26,6 +27,7 @@ impl From<DomainTermValues> for TermValues {
             accrual_interval: values.accrual_interval,
             accrual_cycle_interval: values.accrual_cycle_interval,
             one_time_fee_rate: values.one_time_fee_rate,
+            disbursal_policy: values.disbursal_policy,
             duration: values.duration.into(),
             liquidation_cvl: values.liquidation_cvl.into(),
             margin_call_cvl: values.margin_call_cvl.into(),
@@ -39,6 +41,7 @@ pub struct TermsInput {
     pub accrual_interval: InterestInterval,
     pub accrual_cycle_interval: InterestInterval,
     pub one_time_fee_rate: OneTimeFeeRatePct,
+    pub disbursal_policy: DisbursalPolicy,
     pub duration: DurationInput,
     pub interest_due_duration_from_accrual: DurationInput,
     pub obligation_overdue_duration_from_due: DurationInput,
