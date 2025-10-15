@@ -24,6 +24,10 @@ pub enum PendingCreditFacilityError {
     CoreCustodyError(#[from] core_custody::error::CoreCustodyError),
     #[error("PendingCreditFacilityError - CollateralError: {0}")]
     CollateralError(#[from] crate::collateral::error::CollateralError),
+    #[error("PendingCreditFacilityError - CreditFacilityProposalError: {0}")]
+    CreditFacilityProposalError(
+        #[from] crate::credit_facility_proposal::error::CreditFacilityProposalError,
+    ),
 }
 
 es_entity::from_es_entity_error!(PendingCreditFacilityError);

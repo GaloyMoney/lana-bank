@@ -30,7 +30,8 @@ CREATE TABLE core_credit_facility_events_rollup (
   obligation_ids UUID[],
 
   -- Toggle fields
-  is_completed BOOLEAN DEFAULT false
+  is_completed BOOLEAN DEFAULT false,
+  is_matured BOOLEAN DEFAULT false
 ,
   PRIMARY KEY (id, version)
 );
@@ -84,6 +85,7 @@ BEGIN
 ;
     new_row.interest_period := (NEW.event -> 'interest_period');
     new_row.is_completed := false;
+    new_row.is_matured := false;
     new_row.ledger_tx_ids := CASE
        WHEN NEW.event ? 'ledger_tx_ids' THEN
          ARRAY(SELECT value::text::UUID FROM jsonb_array_elements_text(NEW.event -> 'ledger_tx_ids'))
@@ -118,6 +120,7 @@ BEGIN
     new_row.interest_accrual_ids := current_row.interest_accrual_ids;
     new_row.interest_period := current_row.interest_period;
     new_row.is_completed := current_row.is_completed;
+    new_row.is_matured := current_row.is_matured;
     new_row.ledger_tx_ids := current_row.ledger_tx_ids;
     new_row.maturity_date := current_row.maturity_date;
     new_row.obligation_ids := current_row.obligation_ids;
@@ -159,6 +162,7 @@ BEGIN
     WHEN 'collateralization_ratio_changed' THEN
       new_row.collateralization_ratio := (NEW.event -> 'collateralization_ratio');
     WHEN 'matured' THEN
+      new_row.is_matured := true;
     WHEN 'completed' THEN
       new_row.is_completed := true;
     WHEN 'activated' THEN
@@ -184,6 +188,7 @@ BEGIN
     interest_accrual_ids,
     interest_period,
     is_completed,
+    is_matured,
     ledger_tx_ids,
     maturity_date,
     obligation_ids,
@@ -212,6 +217,7 @@ BEGIN
     new_row.interest_accrual_ids,
     new_row.interest_period,
     new_row.is_completed,
+    new_row.is_matured,
     new_row.ledger_tx_ids,
     new_row.maturity_date,
     new_row.obligation_ids,

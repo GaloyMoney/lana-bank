@@ -6,9 +6,7 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
-use core_custody::{
-    CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject, CustodianId,
-};
+use core_custody::{CoreCustody, CoreCustodyAction, CoreCustodyEvent, CoreCustodyObject};
 use core_price::Price;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
@@ -16,11 +14,18 @@ use outbox::OutboxEventMarker;
 use tracing::instrument;
 
 use crate::{
-    Collaterals, CreditFacilityProposal, credit_facility::NewCreditFacilityBuilder,
-    event::CoreCreditEvent, ledger::*, primitives::*,
+    Collaterals, CreditFacilityProposals,
+    credit_facility::NewCreditFacilityBuilder,
+    credit_facility_proposal::{CreditFacilityProposal, ProposalApprovalOutcome},
+    event::CoreCreditEvent,
+    ledger::*,
+    primitives::*,
 };
 
-pub use entity::{NewPendingCreditFacility, PendingCreditFacility, PendingCreditFacilityEvent};
+pub use entity::{
+    NewPendingCreditFacility, NewPendingCreditFacilityBuilder, PendingCreditFacility,
+    PendingCreditFacilityEvent,
+};
 use error::*;
 use repo::PendingCreditFacilityRepo;
 pub use repo::pending_credit_facility_cursor::*;
@@ -38,6 +43,7 @@ where
         + OutboxEventMarker<CoreCustodyEvent>,
 {
     repo: Arc<PendingCreditFacilityRepo<E>>,
+    proposals: Arc<CreditFacilityProposals<Perms, E>>,
     custody: Arc<CoreCustody<Perms, E>>,
     collaterals: Arc<Collaterals<Perms, E>>,
     authz: Arc<Perms>,
@@ -56,6 +62,7 @@ where
     fn clone(&self) -> Self {
         Self {
             repo: self.repo.clone(),
+            proposals: self.proposals.clone(),
             custody: self.custody.clone(),
             collaterals: self.collaterals.clone(),
             authz: self.authz.clone(),
@@ -80,6 +87,7 @@ where
 {
     pub async fn init(
         pool: &sqlx::PgPool,
+        proposals: Arc<CreditFacilityProposals<Perms, E>>,
         custody: Arc<CoreCustody<Perms, E>>,
         collaterals: Arc<Collaterals<Perms, E>>,
         authz: Arc<Perms>,
@@ -103,6 +111,7 @@ where
 
         Ok(Self {
             repo: Arc::new(repo),
+            proposals,
             custody,
             collaterals,
             authz,
@@ -117,68 +126,65 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    pub async fn create_in_op(
+    pub async fn transition_from_proposal(
         &self,
-        mut db: es_entity::DbOp<'_>,
-        proposal: &CreditFacilityProposal,
-    ) -> Result<(), PendingCreditFacilityError> {
-        let account_ids = PendingCreditFacilityAccountIds::new();
-        let collateral_id = CollateralId::new();
-        let id = proposal.id;
-
-        let wallet_id = if let Some(custodian_id) = proposal.custodian_id {
-            let custodian_id: CustodianId = custodian_id;
-
-            #[cfg(feature = "mock-custodian")]
-            if custodian_id.is_mock_custodian() {
-                self.custody.ensure_mock_custodian_in_op(&mut db).await?;
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
+        approved: bool,
+    ) -> Result<Option<CreditFacilityProposal>, PendingCreditFacilityError> {
+        let mut db = self.repo.begin_op().await?;
+        match self.proposals.approve_in_op(&mut db, id, approved).await? {
+            ProposalApprovalOutcome::Ignored => Ok(None),
+            ProposalApprovalOutcome::Rejected(proposal) => {
+                db.commit().await?;
+                Ok(Some(proposal))
             }
+            ProposalApprovalOutcome::Approved {
+                new_pending_facility,
+                custodian_id,
+                proposal,
+            } => {
+                let wallet_id = if let Some(custodian_id) = custodian_id {
+                    #[cfg(feature = "mock-custodian")]
+                    if custodian_id.is_mock_custodian() {
+                        self.custody.ensure_mock_custodian_in_op(&mut db).await?;
+                    }
 
-            let wallet = self
-                .custody
-                .create_wallet_in_op(&mut db, custodian_id, &format!("CF {id}"))
-                .await?;
+                    let wallet = self
+                        .custody
+                        .create_wallet_in_op(
+                            &mut db,
+                            custodian_id,
+                            &format!("CF {}", new_pending_facility.id),
+                        )
+                        .await?;
 
-            Some(wallet.id)
-        } else {
-            None
-        };
+                    Some(wallet.id)
+                } else {
+                    None
+                };
 
-        let new_pending_facility = NewPendingCreditFacility::builder()
-            .id(id)
-            .credit_facility_proposal_id(id)
-            .customer_id(proposal.customer_id)
-            .customer_type(proposal.customer_type)
-            .approval_process_id(proposal.approval_process_id)
-            .ledger_tx_id(LedgerTxId::new())
-            .account_ids(account_ids)
-            .disbursal_credit_account_id(proposal.disbursal_credit_account_id)
-            .collateral_id(collateral_id)
-            .terms(proposal.terms)
-            .amount(proposal.amount)
-            .build()
-            .expect("could not build new pending credit facility");
+                self.collaterals
+                    .create_in_op(
+                        &mut db,
+                        new_pending_facility.collateral_id,
+                        new_pending_facility.id,
+                        wallet_id,
+                        new_pending_facility.account_ids.collateral_account_id,
+                    )
+                    .await?;
 
-        self.collaterals
-            .create_in_op(
-                &mut db,
-                collateral_id,
-                id.into(),
-                wallet_id,
-                account_ids.collateral_account_id,
-            )
-            .await?;
+                let pending_credit_facility = self
+                    .repo
+                    .create_in_op(&mut db, new_pending_facility)
+                    .await?;
 
-        let pending_credit_facility = self
-            .repo
-            .create_in_op(&mut db, new_pending_facility)
-            .await?;
+                self.ledger
+                    .handle_pending_facility_creation(db, &pending_credit_facility)
+                    .await?;
 
-        self.ledger
-            .handle_pending_facility_creation(db, &pending_credit_facility)
-            .await?;
-
-        Ok(())
+                Ok(Some(proposal))
+            }
+        }
     }
 
     #[instrument(name = "credit.pending_credit_facility.complete_in_op", skip(self, db))]

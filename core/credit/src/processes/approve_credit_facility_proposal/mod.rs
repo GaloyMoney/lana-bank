@@ -96,13 +96,14 @@ where
 
         let res = match process.status() {
             ApprovalProcessStatus::Approved => {
-                Some(self.execute(credit_facility_proposal.id, true).await?)
+                self.execute(credit_facility_proposal.id, true).await?
             }
             ApprovalProcessStatus::Denied => {
-                Some(self.execute(credit_facility_proposal.id, false).await?)
+                self.execute(credit_facility_proposal.id, false).await?
             }
             _ => None,
         };
+
         Ok(res)
     }
 
@@ -112,22 +113,11 @@ where
         &self,
         id: impl es_entity::RetryableInto<CreditFacilityProposalId>,
         approved: bool,
-    ) -> Result<CreditFacilityProposal, CoreCreditError> {
-        let mut db = self.proposals.begin_op().await?;
-        let proposal = self.proposals.approve(&mut db, id.into(), approved).await?;
-
-        if approved
-            && matches!(
-                self.pending_credit_facilities.find_by_id_without_audit(&proposal.id.into()).await,
-                Err(ref e) if e.was_not_found()
-            )
-        {
-            self.pending_credit_facilities
-                .create_in_op(db, &proposal)
-                .await?;
-        } else {
-            db.commit().await?;
-        }
+    ) -> Result<Option<CreditFacilityProposal>, CoreCreditError> {
+        let proposal = self
+            .pending_credit_facilities
+            .transition_from_proposal(id.into(), approved)
+            .await?;
 
         Ok(proposal)
     }

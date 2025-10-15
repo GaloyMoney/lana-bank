@@ -278,7 +278,7 @@ pub struct NewPendingCreditFacility {
     pub(super) collateral_id: CollateralId,
     #[builder(setter(skip), default)]
     pub(super) collateralization_state: PendingCreditFacilityCollateralizationState,
-    account_ids: PendingCreditFacilityAccountIds,
+    pub(super) account_ids: PendingCreditFacilityAccountIds,
     disbursal_credit_account_id: CalaAccountId,
     terms: TermValues,
     amount: UsdCents,

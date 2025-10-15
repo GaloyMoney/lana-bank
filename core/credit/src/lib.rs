@@ -78,6 +78,7 @@ pub mod event_schema {
         interest_accrual_cycle::InterestAccrualCycleEvent,
         liquidation_process::LiquidationProcessEvent, obligation::ObligationEvent,
         payment::PaymentEvent, payment_allocation::PaymentAllocationEvent,
+        pending_credit_facility::PendingCreditFacilityEvent,
     };
 }
 
@@ -220,6 +221,7 @@ where
 
         let pending_credit_facilities = PendingCreditFacilities::init(
             pool,
+            proposals_arc.clone(),
             custody_arc.clone(),
             collaterals_arc.clone(),
             authz_arc.clone(),

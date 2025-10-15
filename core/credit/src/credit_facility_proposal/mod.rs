@@ -6,17 +6,30 @@ use std::sync::Arc;
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use core_custody::CustodianId;
 use governance::{Governance, GovernanceAction, GovernanceEvent, GovernanceObject};
 use job::Jobs;
 use outbox::OutboxEventMarker;
 use tracing::instrument;
 
-use crate::{event::CoreCreditEvent, primitives::*};
+use crate::{
+    event::CoreCreditEvent, pending_credit_facility::NewPendingCreditFacility, primitives::*,
+};
 
 pub use entity::{CreditFacilityProposal, CreditFacilityProposalEvent, NewCreditFacilityProposal};
 use error::*;
 use repo::CreditFacilityProposalRepo;
 pub use repo::credit_facility_proposal_cursor::*;
+
+pub enum ProposalApprovalOutcome {
+    Rejected(CreditFacilityProposal),
+    Approved {
+        new_pending_facility: NewPendingCreditFacility,
+        custodian_id: Option<CustodianId>,
+        proposal: CreditFacilityProposal,
+    },
+    Ignored,
+}
 
 pub struct CreditFacilityProposals<Perms, E>
 where
@@ -79,12 +92,6 @@ where
         })
     }
 
-    pub(super) async fn begin_op(
-        &self,
-    ) -> Result<es_entity::DbOp<'_>, CreditFacilityProposalError> {
-        Ok(self.repo.begin_op().await?)
-    }
-
     #[instrument(
         name = "credit.credit_facility_proposals.create_in_op",
         skip(self, db, new_proposal)
@@ -105,29 +112,34 @@ where
         self.repo.create_in_op(db, new_proposal).await
     }
 
-    #[instrument(name = "credit.credit_facility_proposals.approve", skip(self, db))]
-    pub(super) async fn approve(
+    #[instrument(
+        name = "credit.credit_facility_proposals.approve_in_op",
+        skip(self, db)
+    )]
+    pub(super) async fn approve_in_op(
         &self,
         db: &mut es_entity::DbOp<'_>,
-        id: CreditFacilityProposalId,
+        id: impl Into<CreditFacilityProposalId> + std::fmt::Debug,
         approved: bool,
-    ) -> Result<CreditFacilityProposal, CreditFacilityProposalError> {
-        let mut facility_proposal = self.repo.find_by_id(id).await?;
-
-        if facility_proposal.is_approval_process_concluded() {
-            return Ok(facility_proposal);
+    ) -> Result<ProposalApprovalOutcome, CreditFacilityProposalError> {
+        let id = id.into();
+        let mut proposal = self.repo.find_by_id(id).await?;
+        match proposal.conclude_approval_process(approved) {
+            es_entity::Idempotent::Executed(res) => {
+                self.repo.update_in_op(db, &mut proposal).await?;
+                Ok(match res {
+                    Some((new_pending_facility, custodian_id)) => {
+                        ProposalApprovalOutcome::Approved {
+                            new_pending_facility,
+                            custodian_id,
+                            proposal,
+                        }
+                    }
+                    None => ProposalApprovalOutcome::Rejected(proposal),
+                })
+            }
+            es_entity::Idempotent::Ignored => Ok(ProposalApprovalOutcome::Ignored),
         }
-
-        if facility_proposal
-            .approval_process_concluded(approved)
-            .was_ignored()
-        {
-            return Ok(facility_proposal);
-        }
-
-        self.repo.update_in_op(db, &mut facility_proposal).await?;
-
-        Ok(facility_proposal)
     }
 
     #[instrument(name = "credit.credit_facility_proposals.find_all", skip(self, ids))]

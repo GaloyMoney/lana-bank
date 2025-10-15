@@ -8,7 +8,11 @@ use es_entity::*;
 
 use core_custody::CustodianId;
 
-use crate::{primitives::*, terms::TermValues};
+use crate::{
+    pending_credit_facility::{NewPendingCreditFacility, NewPendingCreditFacilityBuilder},
+    primitives::*,
+    terms::TermValues,
+};
 
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
@@ -63,7 +67,10 @@ impl CreditFacilityProposal {
         })
     }
 
-    pub(crate) fn approval_process_concluded(&mut self, approved: bool) -> Idempotent<()> {
+    pub(super) fn conclude_approval_process(
+        &mut self,
+        approved: bool,
+    ) -> Idempotent<Option<(NewPendingCreditFacility, Option<CustodianId>)>> {
         idempotency_guard!(
             self.events.iter_all(),
             CreditFacilityProposalEvent::ApprovalProcessConcluded { .. }
@@ -80,7 +87,27 @@ impl CreditFacilityProposal {
                 approval_process_id: self.id.into(),
                 status,
             });
-        Idempotent::Executed(())
+
+        if approved {
+            let new_pending_facility = NewPendingCreditFacilityBuilder::default()
+                .id(self.id)
+                .credit_facility_proposal_id(self.id)
+                .customer_id(self.customer_id)
+                .customer_type(self.customer_type)
+                .approval_process_id(self.approval_process_id)
+                .ledger_tx_id(LedgerTxId::new())
+                .account_ids(crate::PendingCreditFacilityAccountIds::new())
+                .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .collateral_id(CollateralId::new())
+                .terms(self.terms)
+                .amount(self.amount)
+                .build()
+                .expect("Could not build new pending credit facility");
+
+            return Idempotent::Executed(Some((new_pending_facility, self.custodian_id)));
+        }
+
+        Idempotent::Executed(None)
     }
 
     pub fn status(&self) -> CreditFacilityProposalStatus {
