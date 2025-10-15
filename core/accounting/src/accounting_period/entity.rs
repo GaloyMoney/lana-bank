@@ -4,9 +4,8 @@ use derive_builder::Builder;
 use schemars::JsonSchema;
 use serde::{Deserialize, Serialize};
 
-use es_entity::*;
-
 use cala_ledger::{AccountSetId as LedgerAccountSetId, TransactionId as LedgerTransactionId};
+use es_entity::*;
 
 use crate::{AccountingPeriodId, primitives::ChartId};
 
@@ -179,17 +178,66 @@ impl AccountingPeriod {
     pub fn checked_close(
         &mut self,
         closing_transaction: Option<LedgerTransactionId>,
-        date: NaiveDate,
+        closing_date: NaiveDate,
     ) -> Result<Idempotent<NewAccountingPeriod>, AccountingPeriodError> {
-        todo!("verify conditions");
-
+        self.check_can_close(closing_date)?;
         self.close(closing_transaction)
+    }
+
+    /// Verifies that `closing_date` falls into allowable time range,
+    /// i. e. between the end of this period and the end of grace
+    /// period. Returns error otherwise.
+    fn check_can_close(&self, closing_date: NaiveDate) -> Result<(), AccountingPeriodError> {
+        if closing_date < self.period_start {
+            Err(AccountingPeriodError::ClosingDateBeforePeriodStart {
+                closing_date,
+                period_start: self.period_start,
+            })
+        } else if closing_date < self.period_end {
+            Err(AccountingPeriodError::ClosingDateBeforePeriodEnd {
+                closing_date,
+                period_end: self.period_end,
+            })
+        } else if closing_date > self.period_end + self.grace_period {
+            Err(AccountingPeriodError::ClosingDateAfterGracePeriod {
+                closing_date,
+                grace_period_end: self.period_end + self.grace_period,
+            })
+        } else {
+            Ok(())
+        }
     }
 }
 
 impl TryFromEvents<AccountingPeriodEvent> for AccountingPeriod {
     fn try_from_events(events: EntityEvents<AccountingPeriodEvent>) -> Result<Self, EsEntityError> {
-        todo!()
+        let mut builder = AccountingPeriodBuilder::default();
+
+        for event in events.iter_all() {
+            match event {
+                AccountingPeriodEvent::Initialized {
+                    id,
+                    chart_id,
+                    tracking_account_set,
+                    frequency,
+                    period_start,
+                    period_end,
+                    grace_period,
+                } => {
+                    builder = builder
+                        .id(*id)
+                        .chart_id(*chart_id)
+                        .tracking_account_set(*tracking_account_set)
+                        .frequency(frequency.clone())
+                        .period_start(*period_start)
+                        .period_end(*period_end)
+                        .grace_period(*grace_period);
+                }
+                AccountingPeriodEvent::Closed { .. } => {}
+            }
+        }
+
+        builder.events(events).build()
     }
 }
 
@@ -205,7 +253,17 @@ pub struct NewAccountingPeriod {
 
 impl IntoEvents<AccountingPeriodEvent> for NewAccountingPeriod {
     fn into_events(self) -> EntityEvents<AccountingPeriodEvent> {
-        todo!()
+        let mut events = vec![AccountingPeriodEvent::Initialized {
+            id: self.id,
+            chart_id: self.chart_id,
+            tracking_account_set: self.tracking_account_set,
+            frequency: self.frequency,
+            period_start: self.period_start,
+            period_end: self.period_end,
+            grace_period: self.grace_period,
+        }];
+
+        EntityEvents::init(self.id, events)
     }
 }
 
