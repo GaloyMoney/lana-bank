@@ -1,5 +1,6 @@
 pub mod entity;
 mod error;
+mod period;
 mod repo;
 
 use std::collections::HashMap;
@@ -38,13 +39,7 @@ impl AccountingPeriods {
 
         let id = open_periods
             .iter()
-            .find_map(|(id, p)| {
-                if p.frequency.is_monthly() {
-                    Some(*id)
-                } else {
-                    None
-                }
-            })
+            .find_map(|(id, p)| if p.is_monthly() { Some(*id) } else { None })
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
 
         let mut open_period = open_periods
