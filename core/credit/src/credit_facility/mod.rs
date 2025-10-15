@@ -151,19 +151,21 @@ where
             )
             .await?;
 
-        let (mut new_credit_facility_builder, initial_disbursal) = match self
+            let (mut new_credit_facility_builder, fee_disbursal, principal_amount_disbursal) = match self
             .pending_credit_facilities
             .complete_in_op(&mut db, id.into())
             .await?
         {
             PendingCreditFacilityCompletionOutcome::Completed {
                 new_facility: new_credit_facility_builder,
-                initial_disbursal,
-            } => (new_credit_facility_builder, initial_disbursal),
+                fee_disbursal,
+                principal_amount_disbursal,
+            } => (new_credit_facility_builder, fee_disbursal, principal_amount_disbursal),
             PendingCreditFacilityCompletionOutcome::Ignored => {
                 return Ok(());
             }
         };
+
         let public_id = self
             .public_ids
             .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
@@ -215,7 +217,19 @@ where
             )
             .await?;
 
-        if let Some(mut new_disbursal_builder) = initial_disbursal {
+        if let Some(mut new_disbursal_builder) = principal_amount_disbursal {
+            let public_id = self
+                .public_ids
+                .create_in_op(&mut db, DISBURSAL_REF_TARGET, new_disbursal_builder.unwrap_id())
+                .await?;
+            let new_disbursal = new_disbursal_builder.public_id(public_id.id).build().expect("could not build new disbursal");
+            self
+                .disbursals
+                .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
+                .await?;
+        }
+
+        if let Some(mut new_disbursal_builder) = fee_disbursal {
             let public_id = self
                 .public_ids
                 .create_in_op(
