@@ -7,7 +7,9 @@ use crate::{
 
 use rbac_types::Subject;
 
-use super::module_config::{balance_sheet::*, credit::*, deposit::*, profit_and_loss::*};
+use super::module_config::{
+    balance_sheet::*, credit::*, deposit::*, ledger_closing::*, profit_and_loss::*,
+};
 
 pub(crate) async fn init(
     chart_of_accounts: &ChartOfAccounts,
@@ -16,6 +18,7 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
+    ledger_closings: &LedgerClosings,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<ChartsInit, AccountingInitError> {
     let AccountingInitConfig {
@@ -39,6 +42,7 @@ pub(crate) async fn init(
             profit_and_loss,
             chart_id,
             path,
+            ledger_closings,
             accounting_init_config,
         )
         .await?;
@@ -74,6 +78,7 @@ async fn seed_chart_of_accounts(
     profit_and_loss: &ProfitAndLossStatements,
     chart_id: ChartId,
     chart_of_accounts_seed_path: PathBuf,
+    ledger_closings: &LedgerClosings,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -81,7 +86,7 @@ async fn seed_chart_of_accounts(
         deposit_config_path,
         balance_sheet_config_path,
         profit_and_loss_config_path,
-
+        ledger_closing_config_path,
         chart_of_accounts_opening_date: _,
         chart_of_accounts_seed_path: _,
     } = accounting_init_config;
@@ -128,6 +133,14 @@ async fn seed_chart_of_accounts(
 
     if let Some(config_path) = profit_and_loss_config_path {
         profit_and_loss_module_configure(profit_and_loss, &chart, config_path)
+            .await
+            .unwrap_or_else(|e| {
+                dbg!(&e); // TODO: handle the un-returned error differently
+            });
+    }
+
+    if let Some(config_path) = ledger_closing_config_path {
+        ledger_closing_module_configure(ledger_closings, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently

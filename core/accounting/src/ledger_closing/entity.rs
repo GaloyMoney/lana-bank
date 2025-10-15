@@ -1,4 +1,4 @@
-use chrono::{DateTime, NaiveDate, Utc};
+use chrono::NaiveDate;
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -6,7 +6,7 @@ use serde::{Deserialize, Serialize};
 
 use es_entity::*;
 
-use crate::primitives::*;
+use crate::primitives::{CalaTxId, ChartId, LedgerClosingId};
 
 use super::error::*;
 
@@ -15,14 +15,12 @@ use super::error::*;
 #[serde(tag = "type", rename_all = "snake_case")]
 #[es_event(id = "LedgerClosingId")]
 pub enum LedgerClosingEvent {
-    MetadataConfigured {
+    Initialized {
         id: LedgerClosingId,
-        root_account_set_id: CalaAccountSetId,
-        opened_as_of: NaiveDate,
-    },
-    AccountingPeriodClosed {
+        accountant: Option<String>,
         closed_as_of: NaiveDate,
         closing_tx_id: Option<CalaTxId>,
+        chart_id: ChartId,
     },
 }
 
@@ -30,8 +28,7 @@ pub enum LedgerClosingEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct LedgerClosing {
     pub id: LedgerClosingId,
-    pub root_account_set_id: CalaAccountSetId,
-    pub opened_as_of: NaiveDate,
+    pub chart_id: ChartId,
     pub last_closing: PeriodClosing,
     events: EntityEvents<LedgerClosingEvent>,
 }
@@ -44,25 +41,18 @@ impl TryFromEvents<LedgerClosingEvent> for LedgerClosing {
 
         for event in events.iter_all() {
             match event {
-                LedgerClosingEvent::MetadataConfigured {
+                LedgerClosingEvent::Initialized {
                     id,
-                    root_account_set_id,
-                    opened_as_of,
+                    accountant,
+                    closed_as_of,
+                    closing_tx_id,
+                    chart_id,
                 } => {
-                    let last_monthly_closed_as_of = opened_as_of
-                        .pred_opt()
-                        .expect("Failed to get day prior to opening date");
-                    let monthly_closing =
-                        PeriodClosing::new(last_monthly_closed_as_of, None);
+                    let last_closing = PeriodClosing::new(*closed_as_of, *closing_tx_id);
                     builder = builder
                         .id(*id)
-                        .root_account_set_id(*root_account_set_id)
-                        .opened_as_of(*opened_as_of)
-                        .last_closing(monthly_closing);
-                }
-                LedgerClosingEvent::AccountingPeriodClosed {
-                    closed_as_of, closing_tx_id } => {
-                    builder = builder.last_closing(PeriodClosing::new(*closed_as_of, *closing_tx_id));
+                        .last_closing(last_closing)
+                        .chart_id(*chart_id);
                 }
             }
         }
@@ -75,8 +65,10 @@ pub struct NewLedgerClosing {
     #[builder(setter(into))]
     pub(super) id: LedgerClosingId,
     #[builder(setter(into))]
-    pub(super) root_account_set_id: CalaAccountSetId,
-    pub(super) opened_as_of: NaiveDate,
+    pub(super) chart_id: ChartId,
+    pub(super) closed_as_of: NaiveDate,
+    pub(super) closing_tx_id: Option<CalaTxId>,
+    pub(super) accountant: Option<String>,
 }
 
 impl NewLedgerClosing {
@@ -89,10 +81,12 @@ impl IntoEvents<LedgerClosingEvent> for NewLedgerClosing {
     fn into_events(self) -> EntityEvents<LedgerClosingEvent> {
         EntityEvents::init(
             self.id,
-            [LedgerClosingEvent::MetadataConfigured {
+            [LedgerClosingEvent::Initialized {
                 id: self.id,
-                root_account_set_id: self.root_account_set_id,
-                opened_as_of: self.opened_as_of,
+                accountant: self.accountant,
+                closed_as_of: self.closed_as_of,
+                closing_tx_id: self.closing_tx_id,
+                chart_id: self.chart_id,
             }],
         )
     }

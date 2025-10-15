@@ -375,6 +375,8 @@ pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
 pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
 // option
+pub type LedgerClosingAllOrOne = AllOrOne<LedgerClosingId>;
+pub type LedgerClosingConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 
 pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
 pub const PERMISSION_SET_ACCOUNTING_WRITER: &str = "accounting_writer";
@@ -395,6 +397,8 @@ pub enum CoreAccountingAction {
     BalanceSheetConfiguration(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
     TrialBalance(TrialBalanceAction),
+    LedgerClosing(LedgerClosingAction),
+    LedgerClosingConfiguration(LedgerClosingConfigurationAction),
 }
 
 impl CoreAccountingAction {
@@ -441,6 +445,16 @@ impl CoreAccountingAction {
                 TrialBalance => {
                     map_action!(accounting, TrialBalance, TrialBalanceAction)
                 }
+                LedgerClosing => {
+                    map_action!(accounting, LedgerClosing, LedgerClosingAction)
+                }
+                LedgerClosingConfiguration => {
+                    map_action!(
+                        accounting,
+                        LedgerClosingConfiguration,
+                        LedgerClosingConfigurationAction
+                    )
+                }
             })
             .collect()
     }
@@ -462,6 +476,8 @@ pub enum CoreAccountingObject {
     BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
     AccountingCsv(AccountingCsvAllOrOne),
     TrialBalance(TrialBalanceAllOrOne),
+    LedgerClosing(LedgerClosingAllOrOne),
+    LedgerClosingConfiguration(LedgerClosingConfigurationAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -543,6 +559,18 @@ impl CoreAccountingObject {
     pub fn all_trial_balance() -> Self {
         CoreAccountingObject::TrialBalance(AllOrOne::All)
     }
+
+    pub fn ledger_closing(id: LedgerClosingId) -> Self {
+        CoreAccountingObject::LedgerClosing(AllOrOne::ById(id))
+    }
+
+    pub fn all_ledger_closings() -> Self {
+        CoreAccountingObject::LedgerClosing(AllOrOne::All)
+    }
+
+    pub fn all_ledger_closing_configuration() -> Self {
+        CoreAccountingObject::LedgerClosingConfiguration(AllOrOne::All)
+    }
 }
 
 impl Display for CoreAccountingObject {
@@ -562,6 +590,8 @@ impl Display for CoreAccountingObject {
             BalanceSheetConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             AccountingCsv(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             TrialBalance(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            LedgerClosing(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            LedgerClosingConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -630,6 +660,16 @@ impl FromStr for CoreAccountingObject {
             TrialBalance => {
                 let obj_ref = id.parse().map_err(|_| "could not parse TrialBalance")?;
                 CoreAccountingObject::TrialBalance(obj_ref)
+            }
+            LedgerClosing => {
+                let obj_ref = id.parse().map_err(|_| "could not parse LedgerClosing")?;
+                CoreAccountingObject::LedgerClosing(obj_ref)
+            }
+            LedgerClosingConfiguration => {
+                let obj_ref = id
+                    .parse()
+                    .map_err(|_| "could not parse LedgerClosingConfiguration")?;
+                CoreAccountingObject::LedgerClosingConfiguration(obj_ref)
             }
         };
         Ok(res)
@@ -704,6 +744,15 @@ impl CoreAccountingAction {
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Create);
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
+
+    pub const LEDGER_CLOSING_READ: Self =
+        CoreAccountingAction::LedgerClosing(LedgerClosingAction::Read);
+    pub const LEDGER_CLOSING_CREATE: Self =
+        CoreAccountingAction::LedgerClosing(LedgerClosingAction::Create);
+    pub const LEDGER_CLOSING_CONFIGURATION_READ: Self =
+        CoreAccountingAction::LedgerClosingConfiguration(LedgerClosingConfigurationAction::Read);
+    pub const LEDGER_CLOSING_CONFIGURATION_UPDATE: Self =
+        CoreAccountingAction::LedgerClosingConfiguration(LedgerClosingConfigurationAction::Update);
 }
 
 impl Display for CoreAccountingAction {
@@ -723,6 +772,8 @@ impl Display for CoreAccountingAction {
             BalanceSheetConfiguration(action) => action.fmt(f),
             AccountingCsv(action) => action.fmt(f),
             TrialBalance(action) => action.fmt(f),
+            LedgerClosing(action) => action.fmt(f),
+            LedgerClosingConfiguration(action) => action.fmt(f),
         }
     }
 }
@@ -768,6 +819,12 @@ impl FromStr for CoreAccountingAction {
             }
             CoreAccountingActionDiscriminants::TrialBalance => {
                 CoreAccountingAction::from(action.parse::<TrialBalanceAction>()?)
+            }
+            CoreAccountingActionDiscriminants::LedgerClosing => {
+                CoreAccountingAction::from(action.parse::<LedgerClosingAction>()?)
+            }
+            CoreAccountingActionDiscriminants::LedgerClosingConfiguration => {
+                CoreAccountingAction::from(action.parse::<LedgerClosingConfigurationAction>()?)
             }
         };
         Ok(res)
@@ -994,6 +1051,50 @@ impl ActionPermission for BalanceSheetConfigurationAction {
 impl From<BalanceSheetConfigurationAction> for CoreAccountingAction {
     fn from(action: BalanceSheetConfigurationAction) -> Self {
         CoreAccountingAction::BalanceSheetConfiguration(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum LedgerClosingAction {
+    Read,
+    Create,
+}
+
+impl ActionPermission for LedgerClosingAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Create => PERMISSION_SET_ACCOUNTING_WRITER,
+        }
+    }
+}
+
+impl From<LedgerClosingAction> for CoreAccountingAction {
+    fn from(action: LedgerClosingAction) -> Self {
+        CoreAccountingAction::LedgerClosing(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum LedgerClosingConfigurationAction {
+    Read,
+    Update,
+}
+
+impl ActionPermission for LedgerClosingConfigurationAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Update => PERMISSION_SET_ACCOUNTING_WRITER,
+        }
+    }
+}
+
+impl From<LedgerClosingConfigurationAction> for CoreAccountingAction {
+    fn from(action: LedgerClosingConfigurationAction) -> Self {
+        CoreAccountingAction::LedgerClosingConfiguration(action)
     }
 }
 

@@ -22,6 +22,10 @@ pub enum LedgerClosingError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("LedgerClosingError - ChartOfAccounts: {0}")]
     ChartOfAccountsError(#[from] chart_of_accounts::error::ChartOfAccountsError),
+    #[error("LedgerClosingError - LedgerClosingIntegrationConfigAlreadyExists")]
+    LedgerClosingIntegrationConfigAlreadyExists,
+    #[error("LedgerClosingError - ChartIdMismatch")]
+    ChartIdMismatch,
 }
 
 es_entity::from_es_entity_error!(LedgerClosingError);

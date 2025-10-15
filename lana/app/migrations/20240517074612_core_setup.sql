@@ -538,7 +538,7 @@ CREATE TABLE core_manual_transaction_events (
 
 CREATE TABLE core_ledger_closings (
   id UUID PRIMARY KEY,
-  root_account_set_id UUID NOT NULL,
+  chart_id UUID NOT NULL REFERENCES core_charts(id),
   created_at TIMESTAMPTZ NOT NULL
 );
 

@@ -1,16 +1,14 @@
 use sqlx::PgPool;
 
+use crate::primitives::{ChartId, LedgerClosingId};
 use es_entity::*;
-// TODO: New types? Use ChartId or CalaAccountSetId for an FK
-// relationship?
-use crate::primitives::{LedgerClosingId};
 
 use super::{entity::*, error::*};
-// TODO: Simple FK relationship to core_charts?
 #[derive(EsRepo)]
 #[es_repo(
     entity = "LedgerClosing",
     err = "LedgerClosingError",
+    columns(chart_id(ty = "ChartId")),
     tbl_prefix = "core"
 )]
 pub struct LedgerClosingRepo {

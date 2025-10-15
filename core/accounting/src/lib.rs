@@ -3,11 +3,11 @@
 
 pub mod balance_sheet;
 pub mod chart_of_accounts;
-pub mod ledger_closing;
 pub mod csv;
 pub mod error;
 pub mod journal;
 pub mod ledger_account;
+pub mod ledger_closing;
 pub mod ledger_transaction;
 pub mod manual_transaction;
 mod primitives;
@@ -23,6 +23,7 @@ use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 use document_storage::DocumentStorage;
 use job::Jobs;
+pub use ledger_closing::LedgerClosings;
 use manual_transaction::ManualTransactions;
 use tracing::instrument;
 
@@ -63,6 +64,7 @@ where
     balance_sheets: BalanceSheets<Perms>,
     csvs: AccountingCsvExports<Perms>,
     trial_balances: TrialBalances<Perms>,
+    ledger_closings: LedgerClosings<Perms>,
 }
 
 impl<Perms> Clone for CoreAccounting<Perms>
@@ -82,6 +84,7 @@ where
             balance_sheets: self.balance_sheets.clone(),
             csvs: self.csvs.clone(),
             trial_balances: self.trial_balances.clone(),
+            ledger_closings: self.ledger_closings.clone(),
         }
     }
 }
@@ -111,6 +114,8 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
+        // TODO: Discuss passing &chart_of_accounts or just the ChartId.
+        let ledger_closings = LedgerClosings::new(pool, authz, cala, &chart_of_accounts, journal_id);
         Self {
             authz: authz.clone(),
             chart_of_accounts,
@@ -123,6 +128,7 @@ where
             balance_sheets,
             csvs,
             trial_balances,
+            ledger_closings,
         }
     }
 
@@ -164,6 +170,10 @@ where
 
     pub fn trial_balances(&self) -> &TrialBalances<Perms> {
         &self.trial_balances
+    }
+
+    pub fn ledger_closings(&self) -> &LedgerClosings<Perms> {
+        &self.ledger_closings
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
