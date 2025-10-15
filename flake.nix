@@ -208,6 +208,7 @@
           cargo-deny
           cargo-machete
           cargo-hakari
+          cocogitto
           bacon
           typos
           postgresql

@@ -1,0 +1,12 @@
+skip_ci = "[ci skip]"
+
+[commit_types]
+build = { bump_patch = true }
+chore = { bump_patch = true }
+
+[changelog]
+path = "CHANGELOG.md"
+template = "remote"
+remote = "github.com"
+repository = "lana-bank"
+owner = "galoymoney"
