@@ -7,7 +7,7 @@ chart as (
 
 final as (
     select
-        dotted_code as id_codigo_cuenta,
+        code as id_codigo_cuenta,
         node_name as nom_cuenta,
         balance as valor
 
