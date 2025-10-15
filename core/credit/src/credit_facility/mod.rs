@@ -151,15 +151,15 @@ where
             )
             .await?;
 
-        let (mut new_credit_facility_builder, initial_disbursal) = match self
+        let (mut new_credit_facility_builder, structuring_fee_disbursal) = match self
             .pending_credit_facilities
             .complete_in_op(&mut db, id.into())
             .await?
         {
             PendingCreditFacilityCompletionOutcome::Completed {
                 new_facility: new_credit_facility_builder,
-                initial_disbursal,
-            } => (new_credit_facility_builder, initial_disbursal),
+                structuring_fee_disbursal,
+            } => (new_credit_facility_builder, structuring_fee_disbursal),
             PendingCreditFacilityCompletionOutcome::Ignored => {
                 return Ok(());
             }
@@ -213,7 +213,7 @@ where
             )
             .await?;
 
-        if let Some(mut new_disbursal_builder) = initial_disbursal {
+        if let Some(mut new_disbursal_builder) = structuring_fee_disbursal {
             let public_id = self
                 .public_ids
                 .create_in_op(
@@ -229,7 +229,7 @@ where
 
             let disbursal_id = self
                 .disbursals
-                .create_pre_approved_disbursal_in_op(&mut db, new_disbursal)
+                .create_pre_approved_disbursal_for_structuring_fee_in_op(&mut db, new_disbursal)
                 .await?;
             self.ledger
                 .handle_activation_with_structuring_fee(

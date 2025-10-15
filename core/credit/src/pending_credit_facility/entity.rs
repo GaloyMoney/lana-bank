@@ -214,7 +214,7 @@ impl PendingCreditFacility {
             .activated_at(crate::time::now())
             .maturity_date(maturity_date);
 
-        let initial_disbursal = if self.structuring_fee().is_zero() {
+        let structuring_fee_disbursal = if self.structuring_fee().is_zero() {
             None
         } else {
             let due_date = maturity_date;
@@ -238,7 +238,7 @@ impl PendingCreditFacility {
 
         Ok(Idempotent::Executed((
             new_credit_facility,
-            initial_disbursal,
+            structuring_fee_disbursal,
         )))
     }
 
