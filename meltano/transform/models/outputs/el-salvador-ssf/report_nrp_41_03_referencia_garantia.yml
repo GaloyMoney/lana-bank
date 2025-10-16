@@ -13,6 +13,9 @@ models:
             - cod_activo
             - identificacion_garantia
             - tipo_garantia
+      - relationships:
+          to: ref('report_nrp_41_02_referencia')
+          field: num_referencia
     columns:
       - name: num_referencia
         description: Credit reference number of the exposure (referencia.xml 2.4), left-trimmed to 20 characters; used with cod_cartera and cod_activo to relate to the reference.
@@ -37,6 +40,10 @@ models:
         description: Unique identifier of the guarantee associated to the reference (referencia_garantia.xml 3.4); used to relate to the corresponding guarantee file (e.g., hipotecaria, pignorada, prenda, bono, póliza, fondo).
         tests:
           - not_null
+          - relationships:
+              to: ref('report_nrp_41_07_garantia_pignorada')
+              field: identificacion_garantia
+              where: "tipo_garantia = 'PI'"
 
       - name: tipo_garantia
         description: Guarantee type code (referencia_garantia.xml 3.5) per Table 9; two-character code.
