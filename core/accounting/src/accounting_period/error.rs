@@ -1,3 +1,4 @@
+use crate::primitives::ChartId;
 use chrono::NaiveDate;
 use thiserror::Error;
 
@@ -21,6 +22,10 @@ pub enum AccountingPeriodError {
         grace_period_start: NaiveDate,
         grace_period_end: NaiveDate,
     },
+    #[error("AccountingPeriodError - ClosingMetadataNotFound")]
+    ClosingMetadataNotFound { chart_id: ChartId },
+    #[error("ChartOfAccountsError - CalaAccountSetError: {0}")]
+    CalaAccountSet(#[from] cala_ledger::account_set::error::AccountSetError),
 }
 
 es_entity::from_es_entity_error!(AccountingPeriodError);
