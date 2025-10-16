@@ -11,8 +11,7 @@ active_cf as (
             obligation_ids
         )
     from {{ ref('int_core_credit_facility_events_rollup') }}
-    where is_activated
-    -- and not is_matured -- TODO request the field from rollup, it's been overlooked
+    where not is_matured
 ),
 
 disbursals as (
