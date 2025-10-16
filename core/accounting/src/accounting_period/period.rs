@@ -117,6 +117,10 @@ impl Period {
         self.frequency.is_monthly()
     }
 
+    pub const fn is_annual(&self) -> bool {
+        self.frequency.is_annual()
+    }
+
     /// Returns new period immediately following this one.
     pub fn next(&self) -> Self {
         let new_period_start = self
@@ -194,6 +198,10 @@ impl Frequency {
 
     pub const fn is_monthly(&self) -> bool {
         matches!(self, Frequency::Month(..))
+    }
+
+    pub const fn is_annual(&self) -> bool {
+        matches!(self, Frequency::Year(..))
     }
 
     /// Returns end date of a period with this frequency and for given
