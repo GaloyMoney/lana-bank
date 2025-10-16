@@ -124,7 +124,7 @@ where
                 self.repo.update_in_op(&mut db, &mut open_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
                 self.update_close_metadata(db, chart_id, now, &open_period)
-                    .await;
+                    .await?;
                 Ok(new_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
