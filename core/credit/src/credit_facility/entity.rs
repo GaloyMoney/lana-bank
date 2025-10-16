@@ -192,7 +192,6 @@ impl CreditFacility {
                     structuring_fee_amount: self.structuring_fee(),
                     customer_type: *customer_type,
                     duration_type: terms.duration.duration_type(),
-                    principal_amount: *amount - self.structuring_fee(),
                 }),
                 _ => None,
             })

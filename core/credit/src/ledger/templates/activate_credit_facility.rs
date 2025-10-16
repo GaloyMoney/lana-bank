@@ -15,12 +15,9 @@ pub struct ActivateCreditFacilityParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
-    pub facility_disbursed_receivable_account: CalaAccountId,
-    pub debit_account_id: CalaAccountId,
     pub facility_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
-    pub principal_amount: Decimal,
 }
 
 impl ActivateCreditFacilityParams {
@@ -38,16 +35,6 @@ impl ActivateCreditFacilityParams {
                 .unwrap(),
             NewParamDefinition::builder()
                 .name("credit_facility_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("facility_disbursed_receivable_account")
-                .r#type(ParamDataType::Uuid)
-                .build()
-                .unwrap(),
-            NewParamDefinition::builder()
-                .name("debit_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -71,11 +58,6 @@ impl ActivateCreditFacilityParams {
                 .r#type(ParamDataType::Date)
                 .build()
                 .unwrap(),
-            NewParamDefinition::builder()
-                .name("principal_amount")
-                .r#type(ParamDataType::Decimal)
-                .build()
-                .unwrap(),
         ]
     }
 }
@@ -86,25 +68,19 @@ impl From<ActivateCreditFacilityParams> for Params {
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
-            facility_disbursed_receivable_account,
-            debit_account_id,
             facility_amount,
             currency,
             external_id,
-            principal_amount,
         }: ActivateCreditFacilityParams,
     ) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", journal_id);
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("credit_omnibus_account", credit_omnibus_account);
-        params.insert("facility_disbursed_receivable_account", facility_disbursed_receivable_account);
-        params.insert("debit_account_id", debit_account_id);
         params.insert("facility_amount", facility_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
         params.insert("effective", crate::time::now().date_naive());
-        params.insert("principal_amount", principal_amount);
         params
     }
 }
@@ -155,42 +131,6 @@ impl ActivateCreditFacility {
                 .units("params.facility_amount")
                 .currency("params.currency")
                 .entry_type("'ACTIVATE_CREDIT_FACILITY_SETTLED_CR'")
-                .direction("CREDIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.credit_facility_account")
-                .units("params.principal_amount")
-                .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_DR'")
-                .direction("DEBIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.credit_omnibus_account")
-                .units("params.principal_amount")
-                .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_DRAWDOWN_CR'")
-                .direction("CREDIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.facility_disbursed_receivable_account")
-                .units("params.principal_amount")
-                .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_DR'")
-                .direction("DEBIT")
-                .layer("SETTLED")
-                .build()
-                .expect("Couldn't build entry"),
-            NewTxTemplateEntry::builder()
-                .account_id("params.debit_account_id")
-                .units("params.principal_amount")
-                .currency("params.currency")
-                .entry_type("'ACTIVATE_CREDIT_FACILITY_DISBURSEMENT_CR'")
                 .direction("CREDIT")
                 .layer("SETTLED")
                 .build()
