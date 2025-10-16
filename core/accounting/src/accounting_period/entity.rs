@@ -29,7 +29,7 @@ pub enum AccountingPeriodEvent {
     },
 }
 
-#[derive(EsEntity, Builder)]
+#[derive(EsEntity, Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingPeriod {
     pub(super) id: AccountingPeriodId,
@@ -45,6 +45,10 @@ pub struct AccountingPeriod {
 impl AccountingPeriod {
     pub const fn is_monthly(&self) -> bool {
         self.period.is_monthly()
+    }
+
+    pub const fn is_annual(&self) -> bool {
+        self.period.is_annual()
     }
 
     /// Unconditionally closes this Accounting Period. Returns a
@@ -65,6 +69,7 @@ impl AccountingPeriod {
             chart_id: self.chart_id,
             tracking_account_set: self.tracking_account_set,
             period: self.period.next(),
+            closed_at: None,
         };
 
         self.events.push(AccountingPeriodEvent::Closed {
@@ -140,6 +145,7 @@ pub struct NewAccountingPeriod {
     pub chart_id: ChartId,
     pub tracking_account_set: LedgerAccountSetId,
     pub period: Period,
+    pub closed_at: Option<DateTime<Utc>>,
 }
 
 impl IntoEvents<AccountingPeriodEvent> for NewAccountingPeriod {
