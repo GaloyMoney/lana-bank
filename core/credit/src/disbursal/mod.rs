@@ -120,7 +120,7 @@ where
         &self,
         db: &mut es_entity::DbOpWithTime<'_>,
         new_disbursal: NewDisbursal,
-    ) -> Result<DisbursalId, DisbursalError> {
+    ) -> Result<(DisbursalId, Obligation), DisbursalError> {
         let mut disbursal = self.repo.create_in_op(db, new_disbursal).await?;
 
         let new_obligation = disbursal
@@ -128,13 +128,14 @@ where
             .expect("First instance of idempotent action ignored")
             .expect("First disbursal obligation was already created");
 
-        self.obligations
+        let obligation = self
+            .obligations
             .create_with_jobs_in_op(db, new_obligation)
             .await?;
 
         self.repo.update_in_op(db, &mut disbursal).await?;
 
-        Ok(disbursal.id)
+        Ok((disbursal.id, obligation))
     }
 
     #[instrument(name = "core_credit.disbursals.find_by_id", skip(self), err)]

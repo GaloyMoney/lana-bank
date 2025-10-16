@@ -111,7 +111,6 @@ pub struct CreditFacilityActivation {
     pub facility_amount: UsdCents,
     pub debit_account_id: CalaAccountId,
     pub structuring_fee_amount: UsdCents,
-    pub principal_amount: UsdCents,
 }
 
 #[derive(Debug, Clone)]

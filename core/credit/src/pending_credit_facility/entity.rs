@@ -19,11 +19,6 @@ use crate::{
 
 use super::error::PendingCreditFacilityError;
 
-pub struct NewDisbursals {
-    pub fee: Option<NewDisbursalBuilder>,
-    pub principal: Option<NewDisbursalBuilder>,
-}
-
 #[derive(EsEvent, Debug, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
 #[serde(tag = "type", rename_all = "snake_case")]
@@ -187,8 +182,7 @@ impl PendingCreditFacility {
         balances: PendingCreditFacilityBalanceSummary,
         price: PriceOfOneBTC,
         time: DateTime<Utc>,
-    ) -> Result<Idempotent<(NewCreditFacilityBuilder, NewDisbursals)>, PendingCreditFacilityError>
-    {
+    ) -> Result<Idempotent<NewCreditFacilityWithDisbursals>, PendingCreditFacilityError> {
         idempotency_guard!(
             self.events.iter_all(),
             PendingCreditFacilityEvent::Completed { .. }
@@ -217,7 +211,7 @@ impl PendingCreditFacility {
             .activated_at(crate::time::now())
             .maturity_date(maturity_date);
 
-        let principal_amount_disbursal = if self.is_single_disbursal() {
+        let single_disbursal = if self.is_single_disbursal() {
             let due_date = maturity_date;
             let overdue_date = self.terms.get_overdue_date_from_due_date(due_date);
             let liquidation_date = self.terms.get_liquidation_date_from_due_date(due_date);
@@ -227,7 +221,7 @@ impl PendingCreditFacility {
                 .id(DisbursalId::new())
                 .credit_facility_id(self.id)
                 .approval_process_id(self.approval_process_id)
-                .amount(self.amount - self.structuring_fee())
+                .amount(self.principal_amount())
                 .account_ids(account_ids)
                 .disbursal_credit_account_id(self.disbursal_credit_account_id)
                 .due_date(due_date)
@@ -239,7 +233,7 @@ impl PendingCreditFacility {
             None
         };
 
-        let fee_disbursal = if self.structuring_fee().is_zero() {
+        let structuring_fee_disbursal = if self.structuring_fee().is_zero() {
             None
         } else {
             let due_date = maturity_date;
@@ -261,13 +255,11 @@ impl PendingCreditFacility {
             Some(new_disbursal_builder)
         };
 
-        Ok(Idempotent::Executed((
+        Ok(Idempotent::Executed(NewCreditFacilityWithDisbursals {
             new_credit_facility,
-            NewDisbursals {
-                fee: fee_disbursal,
-                principal: principal_amount_disbursal,
-            },
-        )))
+            structuring_fee_disbursal,
+            single_disbursal,
+        }))
     }
 
     fn is_completed(&self) -> bool {
@@ -278,6 +270,10 @@ impl PendingCreditFacility {
 
     fn structuring_fee(&self) -> UsdCents {
         self.terms.one_time_fee_rate.apply(self.amount)
+    }
+
+    fn principal_amount(&self) -> UsdCents {
+        self.amount - self.structuring_fee()
     }
 
     fn is_single_disbursal(&self) -> bool {
@@ -374,6 +370,12 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
             }],
         )
     }
+}
+
+pub struct NewCreditFacilityWithDisbursals {
+    pub new_credit_facility: NewCreditFacilityBuilder,
+    pub structuring_fee_disbursal: Option<NewDisbursalBuilder>,
+    pub single_disbursal: Option<NewDisbursalBuilder>,
 }
 
 #[cfg(test)]
