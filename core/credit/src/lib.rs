@@ -306,11 +306,11 @@ where
         let terms_templates_arc = Arc::new(terms_templates);
 
         jobs.add_initializer_and_spawn_unique(
-            collateralization_from_price_for_proposal::PendingCreditFacilityCollateralizationFromPriceInit::<
+            collateralization_from_price_for_pending_facility::PendingCreditFacilityCollateralizationFromPriceInit::<
                 Perms,
                 E,
             >::new(pending_credit_facilities_arc.as_ref().clone()),
-            collateralization_from_price_for_proposal::PendingCreditFacilityCollateralizationFromPriceJobConfig {
+            collateralization_from_price_for_pending_facility::PendingCreditFacilityCollateralizationFromPriceJobConfig {
                 job_interval: std::time::Duration::from_secs(30),
                 _phantom: std::marker::PhantomData,
             },
@@ -330,11 +330,11 @@ where
             .await?;
         jobs
             .add_initializer_and_spawn_unique(
-                collateralization_from_events_for_proposal::PendingCreditFacilityCollateralizationFromEventsInit::<
+                collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsInit::<
                     Perms,
                     E,
                 >::new(outbox, pending_credit_facilities_arc.as_ref()),
-                collateralization_from_events_for_proposal::PendingCreditFacilityCollateralizationFromEventsJobConfig {
+                collateralization_from_events_for_pending_facility::PendingCreditFacilityCollateralizationFromEventsJobConfig {
                     _phantom: std::marker::PhantomData,
                 },
             )

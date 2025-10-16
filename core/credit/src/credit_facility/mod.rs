@@ -496,9 +496,17 @@ where
         &self,
         id: CreditFacilityId,
         upgrade_buffer_cvl_pct: CVLPct,
-    ) -> Result<CreditFacility, CreditFacilityError> {
+    ) -> Result<(), CreditFacilityError> {
         let mut op = self.repo.begin_op().await?;
-        let mut credit_facility = self.repo.find_by_id_in_op(&mut op, id).await?;
+        // if the pending facility is not collateralized enough to be activated there will be no
+        // credit facility to update the collateralization state for
+        let mut credit_facility = match self.repo.find_by_id(id).await {
+            Ok(cf) => cf,
+            Err(e) if e.was_not_found() => {
+                return Ok(());
+            }
+            Err(e) => return Err(e),
+        };
 
         self.authz
             .audit()
@@ -525,7 +533,7 @@ where
 
             op.commit().await?;
         }
-        Ok(credit_facility)
+        Ok(())
     }
 
     #[instrument(name = "credit.credit_facility.list", skip(self), err)]

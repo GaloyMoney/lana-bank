@@ -1,7 +1,7 @@
 pub mod collateralization_from_events;
-pub mod collateralization_from_events_for_proposal;
+pub mod collateralization_from_events_for_pending_facility;
 pub mod collateralization_from_price;
-pub mod collateralization_from_price_for_proposal;
+pub mod collateralization_from_price_for_pending_facility;
 pub mod credit_facility_history;
 pub mod credit_facility_maturity;
 pub mod credit_facility_repayment_plan;

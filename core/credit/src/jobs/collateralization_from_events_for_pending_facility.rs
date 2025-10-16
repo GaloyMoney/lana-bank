@@ -69,8 +69,8 @@ where
     }
 }
 
-const CREDIT_FACILITY_PROPOSAL_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
-    JobType::new("outbox.credit-facility-proposal-collateralization-from-events");
+const PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB: JobType =
+    JobType::new("outbox.pending-credit-facility-collateralization-from-events");
 impl<Perms, E> JobInitializer for PendingCreditFacilityCollateralizationFromEventsInit<Perms, E>
 where
     Perms: PermissionCheck,
@@ -86,7 +86,7 @@ where
     where
         Self: Sized,
     {
-        CREDIT_FACILITY_PROPOSAL_COLLATERALIZATION_FROM_EVENTS_JOB
+        PENDING_CREDIT_FACILITY_COLLATERALIZATION_FROM_EVENTS_JOB
     }
 
     fn init(&self, _job: &Job) -> Result<Box<dyn JobRunner>, Box<dyn std::error::Error>> {
