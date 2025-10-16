@@ -1,6 +1,6 @@
 {{ config(
     materialized = 'incremental',
-    unique_key = ['credit_facility_id', 'version'],
+    unique_key = ['credit_facility_id', 'version', 'proposal_version'],
 ) }}
 
 
@@ -16,7 +16,7 @@ with source as (
 
 proposal as (
     select
-        version as proposal_version
+        version as proposal_version,
         pending_credit_facility_id,
         prop.approval_process_id,
         pend.approval_process_id as pending_approval_process_id,
