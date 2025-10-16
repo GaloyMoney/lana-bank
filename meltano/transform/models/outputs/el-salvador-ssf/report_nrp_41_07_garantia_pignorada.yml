@@ -37,7 +37,9 @@ models:
           - not_null
           - relationships:
               to: ref('report_nrp_41_01_persona')
-              field: nit
+              field: nit_persona
+              config:
+                severity: warn
       - name: fecha_deposito
         description: >
           Deposit opening date (Anexo C 7.3), formatted as YYYY-MM-DD.

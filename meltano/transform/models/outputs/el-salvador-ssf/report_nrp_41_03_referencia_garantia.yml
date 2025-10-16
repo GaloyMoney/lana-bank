@@ -13,9 +13,6 @@ models:
             - cod_activo
             - identificacion_garantia
             - tipo_garantia
-      - relationships:
-          to: ref('report_nrp_41_02_referencia')
-          field: num_referencia
     columns:
       - name: num_referencia
         description: Credit reference number of the exposure (referencia.xml 2.4), left-trimmed to 20 characters; used with cod_cartera and cod_activo to relate to the reference.

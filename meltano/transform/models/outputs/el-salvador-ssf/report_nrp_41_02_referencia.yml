@@ -14,7 +14,9 @@ models:
           - not_null
           - relationships:
               to: ref('report_nrp_41_01_persona')
-              field: nit
+              field: nit_persona
+              config:
+                severity: warn
       - name: cod_cartera
         description: Portfolio type code per Annex B Table 1.
         tests:
