@@ -1,7 +1,7 @@
 #![cfg_attr(feature = "fail-on-warnings", deny(warnings))]
 #![cfg_attr(feature = "fail-on-warnings", deny(clippy::all))]
 
-pub mod annual_closing_transaction;
+pub mod accounting_period;
 pub mod balance_sheet;
 pub mod chart_of_accounts;
 pub mod csv;
@@ -15,7 +15,6 @@ pub mod profit_and_loss;
 mod time;
 pub mod transaction_templates;
 pub mod trial_balance;
-mod accounting_period;
 
 use std::collections::HashMap;
 
