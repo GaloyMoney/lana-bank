@@ -34,6 +34,7 @@ pub enum AccountingPeriodEvent {
 pub struct AccountingPeriod {
     pub(super) id: AccountingPeriodId,
     pub(super) chart_id: ChartId,
+    pub(super) closed_as_of: Option<DateTime<Utc>>,
     tracking_account_set: LedgerAccountSetId,
     period: Period,
 
