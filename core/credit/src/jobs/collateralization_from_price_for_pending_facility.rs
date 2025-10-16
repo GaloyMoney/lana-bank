@@ -92,6 +92,13 @@ where
             },
         ))
     }
+
+    fn retry_on_error_settings() -> RetrySettings
+    where
+        Self: Sized,
+    {
+        RetrySettings::repeat_indefinitely()
+    }
 }
 
 pub struct PendingCreditFacilityCollateralizationFromPriceJobRunner<Perms, E>
