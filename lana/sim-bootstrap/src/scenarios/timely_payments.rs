@@ -36,7 +36,7 @@ pub async fn timely_payments_scenario(sub: Subject, app: &LanaApp) -> anyhow::Re
                 if cf_proposal.id == *id =>
             {
                 app.credit()
-                    .update_proposal_collateral(
+                    .update_pending_facility_collateral(
                         &sub,
                         *id,
                         Satoshis::try_from_btc(dec!(230))?,

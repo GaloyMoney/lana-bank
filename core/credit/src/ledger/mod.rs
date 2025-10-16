@@ -952,7 +952,7 @@ impl CreditLedger {
             facility_account_id,
             collateral_account_id,
         }: PendingCreditFacilityAccountIds,
-    ) -> Result<CreditFacilityProposalBalanceSummary, CreditLedgerError> {
+    ) -> Result<PendingCreditFacilityBalanceSummary, CreditLedgerError> {
         let facility_id = (self.journal_id, facility_account_id, self.usd);
         let collateral_id = (self.journal_id, collateral_account_id, self.btc);
 
@@ -974,7 +974,7 @@ impl CreditLedger {
             Satoshis::ZERO
         };
 
-        Ok(CreditFacilityProposalBalanceSummary::new(
+        Ok(PendingCreditFacilityBalanceSummary::new(
             facility, collateral,
         ))
     }
@@ -1157,7 +1157,7 @@ impl CreditLedger {
         })
     }
 
-    pub async fn update_credit_facility_proposal_collateral(
+    pub async fn update_pending_credit_facility_collateral(
         &self,
         op: es_entity::DbOp<'_>,
         CollateralUpdate {

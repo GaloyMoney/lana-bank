@@ -47,7 +47,7 @@ pub async fn principal_under_payment_scenario(sub: Subject, app: &LanaApp) -> an
                 if *id == cf_proposal.id =>
             {
                 app.credit()
-                    .update_proposal_collateral(
+                    .update_pending_facility_collateral(
                         &sub,
                         *id,
                         Satoshis::try_from_btc(dec!(230))?,

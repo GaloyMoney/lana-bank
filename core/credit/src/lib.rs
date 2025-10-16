@@ -742,24 +742,23 @@ where
             .await?)
     }
 
-    #[instrument(name = "credit.update_proposal_collateral", skip(self), err)]
-    pub async fn update_proposal_collateral(
+    #[instrument(name = "credit.update_pending_facility_collateral", skip(self), err)]
+    pub async fn update_pending_facility_collateral(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        credit_facility_proposal_id: impl Into<CreditFacilityId> + std::fmt::Debug + Copy,
+        id: impl Into<PendingCreditFacilityId> + std::fmt::Debug + Copy,
         updated_collateral: Satoshis,
         effective: impl Into<chrono::NaiveDate> + std::fmt::Debug + Copy,
     ) -> Result<PendingCreditFacility, CoreCreditError> {
-        let credit_facility_proposal_id = credit_facility_proposal_id.into();
         let effective = effective.into();
 
         self.subject_can_update_collateral(sub, true)
             .await?
             .expect("audit info missing");
 
-        let credit_facility_proposal = self
+        let pending_facility = self
             .pending_credit_facilities()
-            .find_by_id_without_audit(credit_facility_proposal_id)
+            .find_by_id_without_audit(id.into())
             .await?;
 
         let mut db = self.facilities.begin_op().await?;
@@ -768,7 +767,7 @@ where
             .collaterals
             .record_collateral_update_via_manual_input_in_op(
                 &mut db,
-                credit_facility_proposal.collateral_id,
+                pending_facility.collateral_id,
                 updated_collateral,
                 effective,
             )
@@ -776,18 +775,18 @@ where
         {
             collateral_update
         } else {
-            return Ok(credit_facility_proposal);
+            return Ok(pending_facility);
         };
 
         self.ledger
-            .update_credit_facility_proposal_collateral(
+            .update_pending_credit_facility_collateral(
                 db,
                 collateral_update,
-                credit_facility_proposal.account_ids,
+                pending_facility.account_ids,
             )
             .await?;
 
-        Ok(credit_facility_proposal)
+        Ok(pending_facility)
     }
 
     #[instrument(name = "credit.update_collateral", skip(self), err)]

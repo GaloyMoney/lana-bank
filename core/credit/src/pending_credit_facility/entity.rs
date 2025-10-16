@@ -10,7 +10,7 @@ use crate::{
     credit_facility::NewCreditFacilityBuilder,
     disbursal::NewDisbursalBuilder,
     ledger::{
-        CreditFacilityProposalBalanceSummary, PendingCreditFacilityAccountIds,
+        PendingCreditFacilityAccountIds, PendingCreditFacilityBalanceSummary,
         PendingCreditFacilityCreation,
     },
     primitives::*,
@@ -100,7 +100,7 @@ impl PendingCreditFacility {
     pub(crate) fn update_collateralization(
         &mut self,
         price: PriceOfOneBTC,
-        balances: CreditFacilityProposalBalanceSummary,
+        balances: PendingCreditFacilityBalanceSummary,
     ) -> Idempotent<Option<PendingCreditFacilityCollateralizationState>> {
         if self.is_completed() {
             return Idempotent::Ignored;
@@ -134,7 +134,7 @@ impl PendingCreditFacility {
 
     fn update_collateralization_ratio(
         &mut self,
-        balance: &CreditFacilityProposalBalanceSummary,
+        balance: &PendingCreditFacilityBalanceSummary,
     ) -> Idempotent<()> {
         let ratio = balance.current_collateralization_ratio();
 
@@ -179,7 +179,7 @@ impl PendingCreditFacility {
 
     pub(super) fn complete(
         &mut self,
-        balances: CreditFacilityProposalBalanceSummary,
+        balances: PendingCreditFacilityBalanceSummary,
         price: PriceOfOneBTC,
         time: DateTime<Utc>,
     ) -> Result<
@@ -379,8 +379,8 @@ mod test {
         PriceOfOneBTC::new(UsdCents::try_from_usd(dec!(100_000)).unwrap())
     }
 
-    fn default_balances() -> CreditFacilityProposalBalanceSummary {
-        CreditFacilityProposalBalanceSummary::new(default_facility(), Satoshis::ZERO)
+    fn default_balances() -> PendingCreditFacilityBalanceSummary {
+        PendingCreditFacilityBalanceSummary::new(default_facility(), Satoshis::ZERO)
     }
 
     fn initial_events() -> Vec<PendingCreditFacilityEvent> {
@@ -428,7 +428,7 @@ mod test {
 
             assert!(matches!(
                 facility_proposal.complete(
-                    CreditFacilityProposalBalanceSummary::new(
+                    PendingCreditFacilityBalanceSummary::new(
                         default_facility(),
                         Satoshis::from(1_000)
                     ),
@@ -459,7 +459,7 @@ mod test {
             assert!(
                 facility_proposal
                     .complete(
-                        CreditFacilityProposalBalanceSummary::new(
+                        PendingCreditFacilityBalanceSummary::new(
                             default_facility(),
                             Satoshis::from(1_000_000)
                         ),

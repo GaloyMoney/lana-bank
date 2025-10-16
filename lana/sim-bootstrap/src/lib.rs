@@ -88,7 +88,7 @@ async fn create_and_process_facility(
                 if cf_proposal.id == *id =>
             {
                 app.credit()
-                    .update_proposal_collateral(
+                    .update_pending_facility_collateral(
                         &sub,
                         cf_proposal.id,
                         Satoshis::try_from_btc(dec!(230))?,

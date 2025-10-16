@@ -43,7 +43,7 @@ pub async fn disbursal_different_months_scenario(
                 if cf_proposal.id == *id =>
             {
                 app.credit()
-                    .update_proposal_collateral(
+                    .update_pending_facility_collateral(
                         &sub,
                         cf_proposal.id,
                         Satoshis::try_from_btc(dec!(230))?,
