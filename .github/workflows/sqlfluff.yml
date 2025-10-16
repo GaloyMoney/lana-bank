@@ -56,6 +56,7 @@ jobs:
 
       - name: Install Meltano utilities
         run: nix develop -c meltano install utility sqlfluff
+      - run: nix develop -c meltano run dbt-bigquery:deps
       - name: Run sqlfluff
         # Run through bash to cd into meltano because sqlfluff does not respect $MELTANO_PROJECT_ROOT
         run: |
