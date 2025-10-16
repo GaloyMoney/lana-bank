@@ -101,8 +101,8 @@ mod tests {
         fn allows_tx_after_monthly_closing_date() {
             let account = json!({
                 "metadata": {
-                    "data": {
-                        "closing": {
+                    "closing": {
+                        "data": {
                                 "closed_as_of": CLOSING_DATE
                             }
                         }
@@ -202,7 +202,7 @@ mod tests {
 
             let closing_meta: ClosingMetadata =
                 serde_json::from_value(metadata["closing"].clone()).unwrap();
-            assert_eq!(closing_meta.monthly.closed_as_of, closed_as_of);
+            assert_eq!(closing_meta.data.closed_as_of, closed_as_of);
         }
 
         #[test]
@@ -223,8 +223,8 @@ mod tests {
 
             let closing_meta: ClosingMetadata =
                 serde_json::from_value(metadata["closing"].clone()).unwrap();
-            assert_eq!(closing_meta.monthly.closed_as_of, new_date);
-            assert!(closing_meta.monthly.closed_at != existing_time);
+            assert_eq!(closing_meta.data.closed_as_of, new_date);
+            assert!(closing_meta.data.closed_at != existing_time);
         }
 
         #[test]
