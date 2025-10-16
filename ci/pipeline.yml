@@ -42,7 +42,7 @@ groups:
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
       - build-meltano-edge-image
-      - build-static-binary
+      - build-release-binary
   - name: nix-cache
     jobs: [populate-nix-cache]
 
@@ -73,7 +73,7 @@ jobs:
                 cachix use $CACHIX_CACHE_NAME
                 cachix watch-exec ${CACHIX_CACHE_NAME} -- nix develop --profile /tmp/dev-profile --command true
 
-      - task: cache-lana-cli-static
+      - task: cache-lana-cli-release
         config:
           platform: linux
           image_resource: #@ nix_flake_cachix_image_config()
@@ -91,7 +91,7 @@ jobs:
                 set -euo pipefail
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
-                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-static
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-release
 
       - do:
         - in_parallel:
@@ -294,14 +294,14 @@ jobs:
               
               nix flake check
 
-  - name: build-static-binary
+  - name: build-release-binary
     serial: true
     plan:
     - in_parallel:
       - get: repo
         trigger: true
       - get: pipeline-tasks
-    - task: nix-build-static
+    - task: nix-build-release
       attempts: 2
       config:
         platform: linux
@@ -323,7 +323,7 @@ jobs:
             # Setup Cachix cache
             cachix use $CACHIX_CACHE_NAME
             
-            nix build .#lana-cli-static
+            nix build .#lana-cli-release
 
             # Copy the binary to output
             mkdir -p ../bin
@@ -338,7 +338,7 @@ jobs:
               - flake-check
               - test-bats
               - test-integration
-              - build-static-binary
+              - build-release-binary
             trigger: true
           - get: pipeline-tasks
           - get: version
@@ -384,7 +384,7 @@ jobs:
                   path: customer-portal-src
               run:
                 path: pipeline-tasks/ci/tasks/prep-release-apps.sh
-        - task: nix-build-static
+        - task: nix-build-release
           attempts: 2
           config:
             platform: linux
@@ -408,7 +408,7 @@ jobs:
                 # Setup Cachix cache
                 cachix use $CACHIX_CACHE_NAME
                 
-                nix build .#lana-cli-static
+                nix build .#lana-cli-release
 
                 # Copy the binary to output
                 mkdir -p ../bin

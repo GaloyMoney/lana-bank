@@ -24,7 +24,9 @@
     rust-overlay,
     crane,
     advisory-db,
-  }:
+  }: let
+    releaseVersion = builtins.getEnv "RELEASE_BUILD_VERSION";
+  in
     flake-utils.lib.eachDefaultSystem
     (system: let
       overlays = [
@@ -102,6 +104,15 @@
           cargoExtraArgs = "--features sim-time,mock-custodian,sumsub-testing";
         });
 
+      # Get the default version from Cargo.toml
+      defaultVersion = (craneLib.crateNameFromCargoToml {src = rustSource;}).version;
+
+      # Use release version if set, otherwise fall back to Cargo.toml version
+      cliVersion =
+        if releaseVersion != ""
+        then releaseVersion
+        else defaultVersion;
+
       individualCrateArgs =
         commonArgs
         // {
@@ -129,20 +140,22 @@
         }
       );
 
-      lana-cli-static = let
+      lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
       in
         craneLibMusl.buildPackage {
-          inherit (craneLib.crateNameFromCargoToml {src = rustSource;}) version;
+          version = cliVersion; # Use the conditional version
           src = rustSource;
           strictDeps = true;
           cargoToml = ./lana/cli/Cargo.toml;
           doCheck = false;
-          pname = "lana-cli-static";
+          pname = "lana-cli-release";
           CARGO_PROFILE = "release";
           SQLX_OFFLINE = true;
           CARGO_BUILD_TARGET = rustTarget;
           cargoExtraArgs = "-p lana-cli --features sim-time,sim-bootstrap --target ${rustTarget}";
+
+          RELEASE_BUILD_VERSION = cliVersion;
 
           # Add musl target for static linking
           depsBuildBuild = with pkgs; [
@@ -268,7 +281,7 @@
           meltano-image = meltanoPkgs.meltano-image;
           default = lana-cli-debug;
           lana-cli-debug = lana-cli-debug;
-          lana-cli-static = lana-cli-static;
+          lana-cli-release = lana-cli-release;
 
           lana-deps = cargoArtifacts;
 
