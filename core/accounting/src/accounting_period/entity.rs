@@ -47,6 +47,10 @@ impl AccountingPeriod {
         self.period.is_monthly()
     }
 
+    pub const fn is_annual(&self) -> bool {
+        self.period.is_annual()
+    }
+
     /// Unconditionally closes this Accounting Period. Returns a
     /// blueprint for the next Accounting Period or
     /// `Idempotent::Ignored` if the period has already been closed.

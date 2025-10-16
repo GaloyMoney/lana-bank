@@ -67,7 +67,6 @@ impl AccountingPeriods {
         db: es_entity::DbOp<'_>,
         chart_id: ChartId,
         closed_as_of: DateTime<Utc>,
-        // TODO: Can we remove this parameter?
         _period: &AccountingPeriod,
     ) -> Result<(), AccountingPeriodError> {
         let closed_as_of = closed_as_of.date_naive();

@@ -33,8 +33,7 @@ impl AccountingPeriodLedger {
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
-        // TODO: Validate that the metadata already exists,
-        // it should be there from the `ChartOfAccounts` initialization w/ `ChartOfAccountsIntegrationConfig`.
+
         let mut metadata = chart_root_account_set
             .values()
             .clone()
