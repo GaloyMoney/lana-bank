@@ -191,6 +191,13 @@ where
             repo: self.repo.clone(),
         }))
     }
+
+    fn retry_on_error_settings() -> RetrySettings
+    where
+        Self: Sized,
+    {
+        RetrySettings::repeat_indefinitely()
+    }
 }
 
 #[derive(Serialize, Deserialize)]

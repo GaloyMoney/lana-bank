@@ -94,6 +94,13 @@ where
             credit_facilities: self.credit_facilities.clone(),
         }))
     }
+
+    fn retry_on_error_settings() -> RetrySettings
+    where
+        Self: Sized,
+    {
+        RetrySettings::repeat_indefinitely()
+    }
 }
 
 // TODO: reproduce 'collateralization_ratio' test from old credit facility
