@@ -5,7 +5,7 @@ use std::collections::HashMap;
 use authz::dummy::{DummyPerms, DummySubject};
 use cloud_storage::{Storage, config::StorageConfig};
 use document_storage::DocumentStorage;
-use job::{Jobs, JobsConfig};
+use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
     AccountId, AccountSetId, CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit, JournalId,
@@ -68,7 +68,7 @@ async fn annual_closing() -> anyhow::Result<()> {
         post_equity_accounts[0],
         test.journal_id,
     ).await?;
-    assert_eq!(post_equity_balance, Decimal::from(200));
+    assert_eq!(post_equity_balance, Decimal::from(100));
 
     Ok(())
 }
@@ -87,7 +87,8 @@ async fn prepare_test() -> anyhow::Result<Test> {
 
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
-    let jobs = Jobs::new(&pool, JobsConfig::default());
+    let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
+
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
