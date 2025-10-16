@@ -4,7 +4,6 @@ use chrono::NaiveDate;
 
 use cala_ledger::{
     AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation,
-    account::{Account, AccountId},
     account_set::{AccountSet, NewAccountSet},
 };
 
@@ -223,7 +222,6 @@ impl TrialBalanceLedger {
         until: Option<NaiveDate>,
     ) -> Result<Vec<TrialBalanceRow>, TrialBalanceLedgerError> {
         let account_set_ids: Vec<AccountSetId> = ids.iter().map(|id| (*id).into()).collect();
-        let account_ids: Vec<AccountId> = ids.iter().map(|id| (*id).into()).collect();
         let balance_ids = ids
             .iter()
             .flat_map(|id| {
@@ -234,11 +232,10 @@ impl TrialBalanceLedger {
             })
             .collect::<Vec<_>>();
 
-        let (account_sets_result, accounts_result, balances_result) = tokio::join!(
+        let (account_sets_result, balances_result) = tokio::join!(
             self.cala
                 .account_sets()
                 .find_all::<AccountSet>(&account_set_ids),
-            self.cala.accounts().find_all::<Account>(&account_ids),
             self.cala
                 .balances()
                 .effective()
@@ -246,7 +243,6 @@ impl TrialBalanceLedger {
         );
 
         let mut account_sets = account_sets_result?;
-        let mut accounts = accounts_result?;
         let mut balances = balances_result?;
 
         let mut rows = Vec::with_capacity(ids.len());
@@ -261,20 +257,6 @@ impl TrialBalanceLedger {
                     balances.remove(&(self.journal_id, ledger_id.into(), Currency::USD));
 
                 let row = TrialBalanceRow::from((account_set, (btc_balance, usd_balance)));
-                if row.has_non_zero_activity() {
-                    rows.push(row);
-                }
-                continue;
-            }
-
-            let account_id: AccountId = ledger_id.into();
-            if let Some(account) = accounts.remove(&account_id) {
-                let btc_balance =
-                    balances.remove(&(self.journal_id, ledger_id.into(), Currency::BTC));
-                let usd_balance =
-                    balances.remove(&(self.journal_id, ledger_id.into(), Currency::USD));
-
-                let row = TrialBalanceRow::from((account, (btc_balance, usd_balance)));
                 if row.has_non_zero_activity() {
                     rows.push(row);
                 }
@@ -357,41 +339,6 @@ impl
             id: values.id.into(),
             name: values.name,
             code,
-            normal_balance_type: values.normal_balance_type,
-            usd_balance_range,
-            btc_balance_range,
-        }
-    }
-}
-
-impl
-    From<(
-        Account,
-        (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-    )> for TrialBalanceRow
-{
-    fn from(
-        (account, (btc_balance, usd_balance)): (
-            Account,
-            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-        ),
-    ) -> Self {
-        let values = account.into_values();
-        let usd_balance_range = usd_balance.map(|range| BalanceRange {
-            open: Some(range.open),
-            close: Some(range.close),
-            period_activity: Some(range.period),
-        });
-        let btc_balance_range = btc_balance.map(|range| BalanceRange {
-            open: Some(range.open),
-            close: Some(range.close),
-            period_activity: Some(range.period),
-        });
-
-        TrialBalanceRow {
-            id: values.id.into(),
-            name: values.name,
-            code: None,
             normal_balance_type: values.normal_balance_type,
             usd_balance_range,
             btc_balance_range,
