@@ -12,6 +12,9 @@ models:
         description: Debtor identifier (NIT, NIU, or 9-digit DUI-NIT replacement) without hyphens; key used to link to persona.xml.
         tests:
           - not_null
+          - relationships:
+              to: ref('report_nrp_41_01_persona')
+              field: nit
       - name: cod_cartera
         description: Portfolio type code per Annex B Table 1.
         tests:
@@ -203,6 +206,9 @@ models:
         tests:
           - accepted_values:
               values: ['A1','A2','B','C1','C2','D1','D2','E','E1','E2','E3']
+          - relationships:
+              to: ref('static_ncb_022_porcentaje_reservas_saneamiento')
+              field: category
       - name: reserva_constituir
         description: Accumulated reserve pending constitution for COVID credits (graduality). Two-decimal string.
       - name: porcentaje_reserva

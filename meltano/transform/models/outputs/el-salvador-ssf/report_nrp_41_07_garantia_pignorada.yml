@@ -35,6 +35,9 @@ models:
           and the XML constraint.
         tests:
           - not_null
+          - relationships:
+              to: ref('report_nrp_41_01_persona')
+              field: nit
       - name: fecha_deposito
         description: >
           Deposit opening date (Anexo C 7.3), formatted as YYYY-MM-DD.
