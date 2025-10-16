@@ -51,7 +51,7 @@ impl AccountingPeriodLedger {
             .account_sets()
             .persist_in_op(&mut op, &mut chart_root_account_set)
             .await?;
-        // TODO: Commit here?
+        
         op.commit().await?;
         Ok(())
     }
