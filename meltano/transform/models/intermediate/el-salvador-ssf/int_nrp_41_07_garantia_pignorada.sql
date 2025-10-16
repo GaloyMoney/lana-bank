@@ -11,7 +11,7 @@ select
     -- "DE" for cash deposits
     'DE' as `tipo_deposito`,
 
-   NULL as `cod_banco`,
+    null as `cod_banco`,
 
     -- Deposit date.
     date(most_recent_collateral_deposit_at) as `fecha_deposito`
