@@ -23,6 +23,22 @@ pub struct TreeNode {
     pub children: Vec<TreeNode>,
 }
 
+impl TreeNode {
+    // returns the ids of all the descendants of the node
+    pub fn descendants(&self) -> Vec<CalaAccountSetId> {
+        let mut result = Vec::new();
+        let mut stack: Vec<&TreeNode> = self.children.iter().rev().collect();
+
+        while let Some(node) = stack.pop() {
+            result.push(node.id);
+            for child in node.children.iter().rev() {
+                stack.push(child);
+            }
+        }
+        result
+    }
+}
+
 #[derive(Debug, Clone)]
 pub struct TreeNodeWithRef {
     id: CalaAccountSetId,

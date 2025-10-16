@@ -168,20 +168,7 @@ where
                 continue;
             }
             ordered_ids.push(ledger_id);
-            if node.children.is_empty() {
-                continue;
-            }
-            let mut stack = vec![node.children.iter()];
-            while let Some(iter) = stack.last_mut() {
-                if let Some(child) = iter.next() {
-                    ordered_ids.push(LedgerAccountId::from(child.id));
-                    if !child.children.is_empty() {
-                        stack.push(child.children.iter());
-                    }
-                } else {
-                    stack.pop();
-                }
-            }
+            ordered_ids.extend(node.descendants().into_iter().map(LedgerAccountId::from));
         }
 
         Ok(self
