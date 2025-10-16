@@ -77,6 +77,7 @@ wait_for_collateral() {
           annualRate: "12",
           accrualCycleInterval: "END_OF_MONTH",
           accrualInterval: "END_OF_DAY",
+          disbursalPolicy: "SINGLE_DISBURSAL",
           oneTimeFeeRate: "5",
           duration: { period: "MONTHS", units: 3 },
           interestDueDurationFromAccrual: { period: "DAYS", units: 0 },
@@ -138,10 +139,10 @@ wait_for_collateral() {
   variables=$(
     jq -n \
       --arg pending_credit_facility_id "$pending_credit_facility_id" \
-    '{ id: $pending_credit_facility_id }'
+      '{ id: $pending_credit_facility_id }'
   )
-  exec_admin_graphql 'find-credit-facility' "$variables"
-  collateral=$(graphql_output '.data.creditFacility.balance.collateral.btcBalance')
+  exec_admin_graphql 'find-pending-credit-facility' "$variables"
+  collateral=$(graphql_output '.data.pendingCreditFacility.collateral.btcBalance')
   [[ "$collateral" -eq 0 ]] || exit 1
 
   # external wallet ID 123 is hard coded in mock custodian

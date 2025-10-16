@@ -15,6 +15,8 @@ pub struct ActivateCreditFacilityParams {
     pub journal_id: JournalId,
     pub credit_omnibus_account: CalaAccountId,
     pub credit_facility_account: CalaAccountId,
+    pub facility_disbursed_receivable_account: CalaAccountId,
+    pub debit_account_id: CalaAccountId,
     pub facility_amount: Decimal,
     pub currency: Currency,
     pub external_id: String,
@@ -36,6 +38,16 @@ impl ActivateCreditFacilityParams {
                 .unwrap(),
             NewParamDefinition::builder()
                 .name("credit_facility_account")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("facility_disbursed_receivable_account")
+                .r#type(ParamDataType::Uuid)
+                .build()
+                .unwrap(),
+            NewParamDefinition::builder()
+                .name("debit_account_id")
                 .r#type(ParamDataType::Uuid)
                 .build()
                 .unwrap(),
@@ -74,6 +86,8 @@ impl From<ActivateCreditFacilityParams> for Params {
             journal_id,
             credit_omnibus_account,
             credit_facility_account,
+            facility_disbursed_receivable_account,
+            debit_account_id,
             facility_amount,
             currency,
             external_id,
@@ -84,6 +98,8 @@ impl From<ActivateCreditFacilityParams> for Params {
         params.insert("journal_id", journal_id);
         params.insert("credit_facility_account", credit_facility_account);
         params.insert("credit_omnibus_account", credit_omnibus_account);
+        params.insert("facility_disbursed_receivable_account", facility_disbursed_receivable_account);
+        params.insert("debit_account_id", debit_account_id);
         params.insert("facility_amount", facility_amount);
         params.insert("currency", currency);
         params.insert("external_id", external_id);
