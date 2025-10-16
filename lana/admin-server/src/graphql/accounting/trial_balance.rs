@@ -2,7 +2,7 @@ use async_graphql::*;
 
 use crate::{graphql::loader::CHART_REF, primitives::*};
 
-use lana_app::trial_balance::TrialBalanceRow as DomainTrialBalanceRow;
+use lana_app::trial_balance::TrialBalanceEntry as DomainTrialBalanceEntry;
 
 use super::{
     AccountCode, BtcLedgerAccountBalanceRange, LedgerAccount, LedgerAccountBalanceRange,
@@ -11,19 +11,19 @@ use super::{
 
 #[derive(Clone, SimpleObject)]
 #[graphql(complex)]
-pub struct TrialBalanceRow {
+pub struct TrialBalanceEntry {
     id: ID,
     ledger_account_id: UUID,
     code: Option<AccountCode>,
     name: String,
 
     #[graphql(skip)]
-    entity: Arc<DomainTrialBalanceRow>,
+    entity: Arc<DomainTrialBalanceEntry>,
 }
 
-impl From<DomainTrialBalanceRow> for TrialBalanceRow {
-    fn from(row: DomainTrialBalanceRow) -> Self {
-        TrialBalanceRow {
+impl From<DomainTrialBalanceEntry> for TrialBalanceEntry {
+    fn from(row: DomainTrialBalanceEntry) -> Self {
+        TrialBalanceEntry {
             id: row.id.to_global_id(),
             ledger_account_id: UUID::from(row.id),
             code: row.code.as_ref().map(|code| code.into()),
@@ -34,7 +34,7 @@ impl From<DomainTrialBalanceRow> for TrialBalanceRow {
 }
 
 #[ComplexObject]
-impl TrialBalanceRow {
+impl TrialBalanceEntry {
     async fn balance_range(&self) -> LedgerAccountBalanceRange {
         if self.entity.btc_balance_range.is_some() {
             self.entity.btc_balance_range.as_ref().into()
@@ -91,22 +91,21 @@ impl TrialBalance {
         Ok(accounts.into_iter().map(LedgerAccount::from).collect())
     }
 
-    // TODO: rename to just "accounts or something else" after removing the old accounts field above
-    pub async fn accounts_flat(
+    pub async fn entries(
         &self,
         ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<TrialBalanceRow>> {
+    ) -> async_graphql::Result<Vec<TrialBalanceEntry>> {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let accounts = app
             .accounting()
-            .trial_balance_accounts_flat(
+            .list_trial_balance_entries(
                 sub,
                 CHART_REF.0,
                 self.from.into_inner(),
                 Some(self.until.into_inner()),
             )
             .await?;
-        Ok(accounts.into_iter().map(TrialBalanceRow::from).collect())
+        Ok(accounts.into_iter().map(TrialBalanceEntry::from).collect())
     }
 }
 

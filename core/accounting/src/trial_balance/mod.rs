@@ -1,8 +1,6 @@
 pub mod error;
 pub mod ledger;
 
-use std::collections::HashSet;
-
 use chrono::NaiveDate;
 use tracing::instrument;
 
@@ -128,17 +126,17 @@ where
     }
 
     #[instrument(
-        name = "core_accounting.trial_balance.accounts_flat_for_chart",
+        name = "core_accounting.trial_balance.list_entries",
         skip(self, chart),
         err
     )]
-    pub async fn accounts_flat_for_chart(
+    pub async fn list_entries(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart: &Chart,
         from: NaiveDate,
         until: Option<NaiveDate>,
-    ) -> Result<Vec<TrialBalanceRow>, TrialBalanceError> {
+    ) -> Result<Vec<TrialBalanceEntry>, TrialBalanceError> {
         self.authz
             .enforce_permission(
                 sub,
@@ -161,7 +159,7 @@ where
 }
 
 #[derive(Debug, Clone)]
-pub struct TrialBalanceRow {
+pub struct TrialBalanceEntry {
     pub id: LedgerAccountId,
     pub name: String,
     pub code: Option<AccountCode>,
@@ -170,7 +168,7 @@ pub struct TrialBalanceRow {
     pub btc_balance_range: Option<BalanceRange>,
 }
 
-impl TrialBalanceRow {
+impl TrialBalanceEntry {
     pub fn has_non_zero_activity(&self) -> bool {
         if let Some(usd) = self.usd_balance_range.as_ref() {
             usd.has_non_zero_activity()

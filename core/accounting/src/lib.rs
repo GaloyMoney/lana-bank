@@ -38,7 +38,7 @@ pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 pub use transaction_templates::TransactionTemplates;
-pub use trial_balance::{TrialBalanceRoot, TrialBalanceRow, TrialBalances};
+pub use trial_balance::{TrialBalanceEntry, TrialBalanceRoot, TrialBalances};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -242,14 +242,14 @@ where
             .await?)
     }
 
-    #[instrument(name = "core_accounting.trial_balance.accounts_flat", skip(self), err)]
-    pub async fn trial_balance_accounts_flat(
+    #[instrument(name = "core_accounting.list_trial_balance_entries", skip(self), err)]
+    pub async fn list_trial_balance_entries(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
-    ) -> Result<Vec<TrialBalanceRow>, CoreAccountingError> {
+    ) -> Result<Vec<TrialBalanceEntry>, CoreAccountingError> {
         let chart = self
             .chart_of_accounts
             .find_by_reference(chart_ref)
@@ -260,7 +260,7 @@ where
 
         Ok(self
             .trial_balances()
-            .accounts_flat_for_chart(sub, &chart, from, until)
+            .list_entries(sub, &chart, from, until)
             .await?)
     }
 

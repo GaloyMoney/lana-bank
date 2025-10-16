@@ -2141,10 +2141,10 @@ type TrialBalance {
 	name: String!
 	total: LedgerAccountBalanceRangeByCurrency!
 	accounts: [LedgerAccount!]!
-	accountsFlat: [TrialBalanceRow!]!
+	entries: [TrialBalanceEntry!]!
 }
 
-type TrialBalanceRow {
+type TrialBalanceEntry {
 	id: ID!
 	ledgerAccountId: UUID!
 	code: AccountCode

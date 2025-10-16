@@ -9,7 +9,7 @@ use cala_ledger::{
 
 use crate::primitives::{AccountCode, BalanceRange, CalaBalanceRange, LedgerAccountId};
 
-use super::TrialBalanceRow;
+use super::TrialBalanceEntry;
 
 use error::*;
 
@@ -220,7 +220,7 @@ impl TrialBalanceLedger {
         ids: &[LedgerAccountId],
         from: NaiveDate,
         until: Option<NaiveDate>,
-    ) -> Result<Vec<TrialBalanceRow>, TrialBalanceLedgerError> {
+    ) -> Result<Vec<TrialBalanceEntry>, TrialBalanceLedgerError> {
         let account_set_ids: Vec<AccountSetId> = ids.iter().map(|id| (*id).into()).collect();
         let balance_ids = ids
             .iter()
@@ -256,7 +256,7 @@ impl TrialBalanceLedger {
                 let usd_balance =
                     balances.remove(&(self.journal_id, ledger_id.into(), Currency::USD));
 
-                let row = TrialBalanceRow::from((account_set, (btc_balance, usd_balance)));
+                let row = TrialBalanceEntry::from((account_set, (btc_balance, usd_balance)));
                 if row.has_non_zero_activity() {
                     rows.push(row);
                 }
@@ -310,7 +310,7 @@ impl
     From<(
         AccountSet,
         (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-    )> for TrialBalanceRow
+    )> for TrialBalanceEntry
 {
     fn from(
         (account_set, (btc_balance, usd_balance)): (
@@ -335,7 +335,7 @@ impl
             period_activity: Some(range.period),
         });
 
-        TrialBalanceRow {
+        TrialBalanceEntry {
             id: values.id.into(),
             name: values.name,
             code,
