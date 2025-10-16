@@ -69,7 +69,7 @@ impl AccountingPeriod {
             chart_id: self.chart_id,
             tracking_account_set: self.tracking_account_set,
             period: self.period.next(),
-            closed_as_of: None,
+            closed_at: None,
         };
 
         self.events.push(AccountingPeriodEvent::Closed {
@@ -145,7 +145,7 @@ pub struct NewAccountingPeriod {
     pub chart_id: ChartId,
     pub tracking_account_set: LedgerAccountSetId,
     pub period: Period,
-    pub closed_as_of: Option<DateTime<Utc>>,
+    pub closed_at: Option<DateTime<Utc>>,
 }
 
 impl IntoEvents<AccountingPeriodEvent> for NewAccountingPeriod {
