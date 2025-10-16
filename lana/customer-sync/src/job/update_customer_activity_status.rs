@@ -152,7 +152,8 @@ where
         self.customers
             .perform_customer_activity_status_update(now)
             .await?;
-        let next_run_at = self.config.activity_update_utc_time.next_after(now);
-        Ok(JobCompletion::RescheduleAt(next_run_at))
+        Ok(JobCompletion::RescheduleIn(
+            self.config.activity_update_job_interval,
+        ))
     }
 }

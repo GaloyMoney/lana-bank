@@ -311,7 +311,7 @@ where
                 E,
             >::new(pending_credit_facilities_arc.as_ref().clone()),
             collateralization_from_price_for_pending_facility::PendingCreditFacilityCollateralizationFromPriceJobConfig {
-                job_interval: std::time::Duration::from_secs(30),
+                job_interval: config_arc.pending_collateralization_from_price_job_interval,
                 _phantom: std::marker::PhantomData,
             },
         ).await?;
@@ -323,7 +323,7 @@ where
                     E,
                 >::new(facilities_arc.as_ref().clone()),
                 collateralization_from_price::CreditFacilityCollateralizationFromPriceJobConfig {
-                    job_interval: std::time::Duration::from_secs(30),
+                    job_interval: config_arc.collateralization_from_price_job_interval,
                     _phantom: std::marker::PhantomData,
                 },
             )

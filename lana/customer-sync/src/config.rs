@@ -1,7 +1,7 @@
-use chrono::{DateTime, Duration, NaiveTime, Timelike, Utc};
 use keycloak_client::KeycloakConnectionConfig;
-use serde::{Deserialize, Deserializer, Serialize, Serializer};
+use serde::{Deserialize, Serialize};
 
+#[serde_with::serde_as]
 #[derive(Debug, Clone, Serialize, Deserialize)]
 #[serde(deny_unknown_fields)]
 pub struct CustomerSyncConfig {
@@ -11,8 +11,9 @@ pub struct CustomerSyncConfig {
     pub create_deposit_account_on_customer_create: bool,
     #[serde(default = "default_keycloak")]
     pub keycloak: KeycloakConnectionConfig,
-    #[serde(default = "default_activity_update_job_run_time")]
-    pub activity_update_utc_time: ActivityUpdateJobRunTime,
+    #[serde(default = "default_activity_update_job_interval_secs")]
+    #[serde_as(as = "serde_with::DurationSeconds<u64>")]
+    pub activity_update_job_interval: std::time::Duration,
 }
 
 impl Default for CustomerSyncConfig {
@@ -22,66 +23,8 @@ impl Default for CustomerSyncConfig {
             create_deposit_account_on_customer_create:
                 default_create_deposit_account_on_customer_create(),
             keycloak: default_keycloak(),
-            activity_update_utc_time: default_activity_update_job_run_time(),
+            activity_update_job_interval: default_activity_update_job_interval_secs(),
         }
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct ActivityUpdateJobRunTime {
-    hours_past_midnight: u32,
-    minutes_past_hour: u32,
-}
-
-impl ActivityUpdateJobRunTime {
-    pub fn next_after(&self, after: DateTime<Utc>) -> DateTime<Utc> {
-        let tomorrow = after + Duration::days(1);
-
-        let midnight = tomorrow
-            .date_naive()
-            .and_hms_opt(self.hours_past_midnight, self.minutes_past_hour, 0)
-            .expect("Cannot update time");
-
-        midnight
-            .and_local_timezone(Utc)
-            .single()
-            .expect("Cannot update time")
-    }
-}
-
-impl<'de> Deserialize<'de> for ActivityUpdateJobRunTime {
-    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
-    where
-        D: Deserializer<'de>,
-    {
-        let s = String::deserialize(deserializer)?;
-        let time = NaiveTime::parse_from_str(&s, "%H:%M")
-            .map_err(|e| serde::de::Error::custom(format!("Invalid time format '{}': {}", s, e)))?;
-
-        Ok(ActivityUpdateJobRunTime {
-            hours_past_midnight: time.hour(),
-            minutes_past_hour: time.minute(),
-        })
-    }
-}
-
-impl Serialize for ActivityUpdateJobRunTime {
-    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
-    where
-        S: Serializer,
-    {
-        let time_str = format!(
-            "{:02}:{:02}",
-            self.hours_past_midnight, self.minutes_past_hour
-        );
-        serializer.serialize_str(&time_str)
-    }
-}
-
-fn default_activity_update_job_run_time() -> ActivityUpdateJobRunTime {
-    ActivityUpdateJobRunTime {
-        hours_past_midnight: 0,
-        minutes_past_hour: 0,
     }
 }
 
@@ -100,4 +43,8 @@ fn default_customer_status_sync_active() -> bool {
 
 fn default_create_deposit_account_on_customer_create() -> bool {
     false
+}
+
+fn default_activity_update_job_interval_secs() -> std::time::Duration {
+    std::time::Duration::from_secs(24 * 60 * 60) // 24 hours
 }

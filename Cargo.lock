@@ -1689,6 +1689,7 @@ dependencies = [
  "lana-events",
  "outbox",
  "serde",
+ "serde_with",
  "sim-time",
  "thiserror 2.0.17",
  "tracing",

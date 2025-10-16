@@ -10,6 +10,8 @@ app:
     root_folder: ".lana"
   credit:
     customer_active_check_enabled: false
+    collateralization_from_price_job_interval: 31536000 # 1 year
+    pending_collateralization_from_price_job_interval: 31536000 # 1 year
   notification:
     email:
       admin_panel_url: "http://admin.localhost:4455"
@@ -21,6 +23,7 @@ app:
   customer_sync:
     customer_status_sync_active: false
     create_deposit_account_on_customer_create: true
+    activity_update_job_interval: 31536000 # 1 year
   accounting_init:
     chart_of_accounts_seed_path: "./bats/accounting-init/coa.csv"
     chart_of_accounts_opening_date: "2021-01-01"
