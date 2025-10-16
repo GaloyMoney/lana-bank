@@ -147,27 +147,9 @@ where
             )
             .await?;
         let chart_tree = chart.chart();
-        let root_ids: Vec<_> = chart_tree
-            .children
-            .iter()
-            .map(|node| LedgerAccountId::from(node.id))
-            .collect();
-
-        let mut root_accounts_with_activity: HashSet<LedgerAccountId> = self
-            .trial_balance_ledger
-            .load_accounts_in_range(&root_ids, from, until)
-            .await?
-            .into_iter()
-            .map(|account| account.id)
-            .collect();
-
         let mut ordered_ids = Vec::new();
         for node in &chart_tree.children {
-            let ledger_id = LedgerAccountId::from(node.id);
-            if !root_accounts_with_activity.remove(&ledger_id) {
-                continue;
-            }
-            ordered_ids.push(ledger_id);
+            ordered_ids.push(LedgerAccountId::from(node.id));
             ordered_ids.extend(node.descendants().into_iter().map(LedgerAccountId::from));
         }
 
