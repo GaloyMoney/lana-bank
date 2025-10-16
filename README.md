@@ -169,5 +169,3 @@ make honeycomb-init   # Initialize OpenTofu
 make honeycomb-plan   # Preview changes
 make honeycomb-apply  # Create dashboards
 ```
-
-See `tf/honeycomb/README.md` for more details.
