@@ -21,6 +21,9 @@ models:
         description: Credit reference number of the exposure (referencia.xml 2.4), left-trimmed to 20 characters; used with cod_cartera and cod_activo to relate to the reference.
         tests:
           - not_null
+          - relationships:
+              to: ref('report_nrp_41_02_referencia')
+              field: num_referencia
 
       - name: cod_cartera
         description: Portfolio type code of the reference (referencia.xml 2.2) per Table 1; two-character code.
