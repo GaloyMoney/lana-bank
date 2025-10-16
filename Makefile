@@ -78,9 +78,6 @@ sdl-js:
 
 sdl: sdl-rust sdl-js
 
-# Cargo alternative for full SDL generation
-sdl-cargo: sdl-rust-cargo sdl-js
-
 # Frontend Apps
 check-code-apps: sdl-js check-code-apps-admin-panel check-code-apps-customer-portal
 	git diff --exit-code apps/admin-panel/lib/graphql/generated/

@@ -600,14 +600,14 @@
               echo "Comparing admin SDL..."
               if ! diff -u lana/admin-server/src/graphql/schema.graphql admin-schema-generated.graphql; then
                 echo "ERROR: Admin GraphQL schema is out of date!"
-                echo "Run 'make sdl-rust-cargo' to update the schema"
+                echo "Run 'make sdl-rust' to update the schema"
                 exit 1
               fi
 
               echo "Comparing customer SDL..."
               if ! diff -u lana/customer-server/src/graphql/schema.graphql customer-schema-generated.graphql; then
                 echo "ERROR: Customer GraphQL schema is out of date!"
-                echo "Run 'make sdl-rust-cargo' to update the schema"
+                echo "Run 'make sdl-rust' to update the schema"
                 exit 1
               fi
 
