@@ -24,6 +24,7 @@ pub enum AccountingPeriodEvent {
         period: Period,
     },
     Closed {
+        closed_at: DateTime<Utc>,
         closing_transaction: Option<LedgerTransactionId>,
     },
 }
@@ -32,7 +33,9 @@ pub enum AccountingPeriodEvent {
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingPeriod {
     pub(super) id: AccountingPeriodId,
-    chart_id: ChartId,
+    pub(super) chart_id: ChartId,
+    #[builder(default)]
+    pub(super) closed_at: Option<DateTime<Utc>>,
     tracking_account_set: LedgerAccountSetId,
     period: Period,
 
@@ -52,6 +55,7 @@ impl AccountingPeriod {
     /// `checked_close` if temporal conditions have to be verified.
     pub fn close(
         &mut self,
+        closed_at: DateTime<Utc>,
         closing_transaction: Option<LedgerTransactionId>,
     ) -> Idempotent<NewAccountingPeriod> {
         idempotency_guard!(self.events.iter_all(), AccountingPeriodEvent::Closed { .. });
@@ -64,8 +68,11 @@ impl AccountingPeriod {
         };
 
         self.events.push(AccountingPeriodEvent::Closed {
+            closed_at,
             closing_transaction,
         });
+
+        self.closed_at = Some(closed_at);
 
         Idempotent::Executed(new_accounting_period)
     }
@@ -79,11 +86,11 @@ impl AccountingPeriod {
     /// To close unconditionally call `close`.
     pub fn checked_close(
         &mut self,
+        closed_at: DateTime<Utc>,
         closing_transaction: Option<LedgerTransactionId>,
-        closing_date: NaiveDate,
     ) -> Result<Idempotent<NewAccountingPeriod>, AccountingPeriodError> {
-        self.check_can_close(closing_date)?;
-        Ok(self.close(closing_transaction))
+        self.check_can_close(closed_at.date_naive())?;
+        Ok(self.close(closed_at, closing_transaction))
     }
 
     /// Verifies that `closing_date` falls into allowable time range,
