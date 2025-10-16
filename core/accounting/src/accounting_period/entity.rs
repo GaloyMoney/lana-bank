@@ -24,15 +24,16 @@ pub enum AccountingPeriodEvent {
         period: Period,
     },
     Closed {
+        closed_as_of: DateTime<Utc>,
         closing_transaction: Option<LedgerTransactionId>,
     },
 }
 
-#[derive(EsEntity, Builder)]
+#[derive(EsEntity, Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingPeriod {
     pub(super) id: AccountingPeriodId,
-    chart_id: ChartId,
+    pub(super) chart_id: ChartId,
     tracking_account_set: LedgerAccountSetId,
     period: Period,
 
@@ -52,6 +53,7 @@ impl AccountingPeriod {
     /// `checked_close` if temporal conditions have to be verified.
     pub fn close(
         &mut self,
+        closed_as_of: DateTime<Utc>,
         closing_transaction: Option<LedgerTransactionId>,
     ) -> Idempotent<NewAccountingPeriod> {
         idempotency_guard!(self.events.iter_all(), AccountingPeriodEvent::Closed { .. });
@@ -61,9 +63,11 @@ impl AccountingPeriod {
             chart_id: self.chart_id,
             tracking_account_set: self.tracking_account_set,
             period: self.period.next(),
+            closed_as_of: None,
         };
 
         self.events.push(AccountingPeriodEvent::Closed {
+            closed_as_of,
             closing_transaction,
         });
 
@@ -80,10 +84,11 @@ impl AccountingPeriod {
     pub fn checked_close(
         &mut self,
         closing_transaction: Option<LedgerTransactionId>,
-        closing_date: NaiveDate,
+        closing_date: DateTime<Utc>,
     ) -> Result<Idempotent<NewAccountingPeriod>, AccountingPeriodError> {
-        self.check_can_close(closing_date)?;
-        Ok(self.close(closing_transaction))
+        let date_naive = closing_date.date_naive();
+        self.check_can_close(date_naive)?;
+        Ok(self.close(closing_date, closing_transaction))
     }
 
     /// Verifies that `closing_date` falls into allowable time range,
@@ -133,6 +138,7 @@ pub struct NewAccountingPeriod {
     pub chart_id: ChartId,
     pub tracking_account_set: LedgerAccountSetId,
     pub period: Period,
+    pub closed_as_of: Option<DateTime<Utc>>,
 }
 
 impl IntoEvents<AccountingPeriodEvent> for NewAccountingPeriod {
