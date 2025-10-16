@@ -5,6 +5,7 @@ mod repo;
 
 use std::collections::HashMap;
 
+use chrono::{DateTime, Utc};
 use entity::{AccountingPeriod, NewAccountingPeriod};
 use error::AccountingPeriodError;
 use es_entity::Idempotent;
@@ -17,36 +18,24 @@ struct AccountingPeriods {
 }
 
 impl AccountingPeriods {
-    /// Returns a list of all Accounting Periods that are currently
-    /// open on the given chart. No specific order of the periods is
-    /// guaranteed.
-    pub async fn find_open_accounting_periods(
-        &self,
-        chart_id: ChartId,
-    ) -> Result<HashMap<AccountingPeriodId, AccountingPeriod>, AccountingPeriodError> {
-        todo!()
-    }
-
     /// Closes currently open monthly Accounting Period under the given
     /// Chart of Accounts and returns next Accounting Period.
     /// Fails if no such Accounting Period is found.
     pub async fn close_month_in_op(
         &self,
         mut db: es_entity::DbOp<'_>,
+        closed_at: DateTime<Utc>,
         chart_id: ChartId,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
-        let mut open_periods = self.find_open_accounting_periods(chart_id).await?;
+        let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
-        let id = open_periods
+        let pos = open_periods
             .iter()
-            .find_map(|(id, p)| if p.is_monthly() { Some(*id) } else { None })
+            .position(|p| p.is_monthly())
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
 
-        let mut open_period = open_periods
-            .remove(&id)
-            .expect("Value has been confirmed to be present.");
-
-        match open_period.close(None) {
+        let mut open_period = open_periods.remove(pos);
+        match open_period.close(closed_at, None) {
             Idempotent::Executed(new) => {
                 self.repo.update_in_op(&mut db, &mut open_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
