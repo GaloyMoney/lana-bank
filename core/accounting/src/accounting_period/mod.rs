@@ -1,20 +1,24 @@
 pub mod entity;
 mod error;
 mod period;
+mod ledger;
 mod repo;
 
-use std::collections::HashMap;
-
 use chrono::{DateTime, Utc};
+
 use entity::{AccountingPeriod, NewAccountingPeriod};
 use error::AccountingPeriodError;
 use es_entity::Idempotent;
 use repo::AccountingPeriodRepo;
+use ledger::AccountingPeriodLedger;
+use crate::{
+    AccountingPeriodId, CalaJournalId, ChartId,
+};
 
-use crate::{AccountingPeriodId, ChartId};
-
-struct AccountingPeriods {
+pub struct AccountingPeriods {
     repo: AccountingPeriodRepo,
+    ledger: AccountingPeriodLedger,
+    journal_id: CalaJournalId,
 }
 
 impl AccountingPeriods {
@@ -34,12 +38,14 @@ impl AccountingPeriods {
             .position(|p| p.is_monthly())
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
 
+        let now = crate::time::now();
         let mut open_period = open_periods.remove(pos);
         match open_period.close(closed_at, None) {
             Idempotent::Executed(new) => {
                 self.repo.update_in_op(&mut db, &mut open_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
-                self.somehow_update_metadata_in_op(db, &open_period).await;
+                self.update_close_metadata(db, chart_id, now, &open_period)
+                    .await;
                 Ok(new_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
@@ -56,11 +62,18 @@ impl AccountingPeriods {
         todo!()
     }
 
-    async fn somehow_update_metadata_in_op(
+    async fn update_close_metadata(
         &self,
         db: es_entity::DbOp<'_>,
-        period: &AccountingPeriod,
-    ) {
-        todo!()
+        chart_id: ChartId,
+        closed_as_of: DateTime<Utc>,
+        // TODO: Can we remove this parameter?
+        _period: &AccountingPeriod,
+    ) -> Result<(), AccountingPeriodError> {
+        let closed_as_of = closed_as_of.date_naive();
+        self.ledger
+            .update_close_metadata(db, chart_id, closed_as_of)
+            .await?;
+        Ok(())
     }
 }
