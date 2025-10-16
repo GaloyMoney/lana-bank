@@ -11,8 +11,8 @@ use super::{entity::{AccountingPeriod, AccountingPeriodEvent}, error::Accounting
     entity = "AccountingPeriod",
     err = "AccountingPeriodError",
     columns(
-        chart_id(ty = "ChartId", update(persist = false)),
-        closed_as_of(ty = "Option<DateTime<Utc>>", update(persist = false)),
+        chart_id(ty = "ChartId", list_for, update(persist = false)),
+        closed_as_of(ty = "Option<DateTime<Utc>>", list_by)
     ),
     tbl_prefix = "core"
 )]

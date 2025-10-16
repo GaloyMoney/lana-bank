@@ -7,7 +7,7 @@ mod repo;
 use std::collections::HashMap;
 use chrono::{DateTime, Utc};
 
-use audit::AuditSvc;
+use audit::{AuditSvc, PaginatedQueryArgs};
 use authz::PermissionCheck;
 
 use entity::{AccountingPeriod, NewAccountingPeriod};
@@ -66,21 +66,37 @@ where
         &self,
         chart_id: ChartId,
     ) -> Result<HashMap<AccountingPeriodId, AccountingPeriod>, AccountingPeriodError> {
-        // TODO: Discuss a stopping assumption - once we found a `AccountingPeriodEvent::Closed` for the largest `Frequency`,
-        // where we can assume there will be no more?
-        // - `find_open_periods_in_current_year`?
-        // let periods = self.repo.list_by_created_at(
-        //     Default::default(),
-        //     es_entity::ListDirection::Descending,
-        // ).await?;
+        let mut open_periods = HashMap::new();
+        let mut next = Some(PaginatedQueryArgs::default());
 
-        // let mut open_by_id: HashMap<AccountingPeriodId, AccountingPeriod> = HashMap::new();
-        // for p in periods.entities {
-        //     if !p.is_closed() {
-        //         open_by_id.insert(p.id, p);
-        //     }
-        // }
-        todo!()
+        while let Some(query) = next.take() {
+            let ret = self
+                .repo
+                .list_for_chart_id_by_created_at(
+                    chart_id, 
+                    query, 
+                    es_entity::ListDirection::Descending
+                ).await?;
+
+            let mut found_closed_annual_period = false;
+            for period in &ret.entities {
+                if period.closed_as_of.is_none() {
+                    open_periods.insert(period.id, period.clone());
+                    continue;
+                }
+
+                if period.is_annual() {
+                    found_closed_annual_period = true;
+                    break;
+                }
+            }
+            if found_closed_annual_period {
+                break;
+            }
+            next = ret.into_next_query();
+        }
+
+        Ok(open_periods)
     }
 
     /// Closes currently open monthly Accounting Period under the given
