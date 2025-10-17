@@ -18,7 +18,6 @@ pub mod trial_balance;
 
 use std::{collections::HashMap, sync::Arc};
 
-pub use annual_closing_transaction::AnnualClosingTransactions;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
@@ -40,6 +39,7 @@ pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 use tracing::instrument;
 pub use transaction_templates::TransactionTemplates;
 pub use trial_balance::{TrialBalanceRoot, TrialBalances};
+pub use accounting_period::AccountingPeriods;
 
 use crate::accounting_period::AccountingPeriods;
 
@@ -115,9 +115,8 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
-        let annual_closing_transactions =
-            AnnualClosingTransactions::new(pool, authz, &chart_of_accounts, cala, journal_id);
-        let accounting_periods = AccountingPeriods::new(authz, pool, cala, journal_id);
+        let accounting_periods =
+            AccountingPeriods::new(authz, pool, cala, journal_id);
         Self {
             authz: Arc::new(authz.clone()),
             chart_of_accounts: Arc::new(chart_of_accounts),
@@ -130,7 +129,7 @@ where
             balance_sheets: Arc::new(balance_sheets),
             csvs: Arc::new(csvs),
             trial_balances: Arc::new(trial_balances),
-            accounting_periods: Arc::new(accounting_periods)
+            accounting_periods: Arc::new(accounting_periods),
         }
     }
 
@@ -174,8 +173,8 @@ where
         &*self.trial_balances
     }
 
-    pub fn annual_closing_transactions(&self) -> &AnnualClosingTransactions<Perms> {
-        &self.annual_closing_transactions
+    pub fn accounting_periods(&self) -> &AccountingPeriods<Perms> {
+        &self.accounting_periods
     }
 
     #[instrument(name = "core_accounting.find_ledger_account_by_id", skip(self), err)]
@@ -308,50 +307,50 @@ where
         Ok(chart)
     }
 
-    #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
-    pub async fn close_monthly(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_id: ChartId,
-    ) -> Result<Chart, CoreAccountingError> {
-        Ok(self
-            .chart_of_accounts()
-            .close_monthly(sub, chart_id)
-            .await?)
-    }
+    // #[instrument(name = "core_accounting.close_monthly", skip(self), err)]
+    // pub async fn close_monthly(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     chart_id: ChartId,
+    // ) -> Result<Chart, CoreAccountingError> {
+    //     Ok(self
+    //         .accounting_periods()
+    //         .close_month(sub, chart_id)
+    //         .await?)
+    // }
 
-    #[instrument(
-        name = "core_accounting.execute_annual_closing_transaction",
-        skip(self),
-        err
-    )]
-    pub async fn execute_annual_closing_transaction(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        // TODO: Need both? Can lookup one from the other?
-        chart_id: ChartId,
-    ) -> Result<LedgerTransaction, CoreAccountingError> {
-        let annual_closing_tx = self
-            .annual_closing_transactions()
-            .execute(
-                sub,
-                chart_id,
-                // TODO: Where to source `reference`?
-                None,
-                // TODO: Add optional description to API?
-                "Annual Closing".to_string(),
-            )
-            .await?;
+    // #[instrument(
+    //     name = "core_accounting.execute_annual_closing_transaction",
+    //     skip(self),
+    //     err
+    // )]
+    // pub async fn execute_annual_closing_transaction(
+    //     &self,
+    //     sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
+    //     // TODO: Need both? Can lookup one from the other?
+    //     chart_id: ChartId,
+    // ) -> Result<LedgerTransaction, CoreAccountingError> {
+    //     let annual_closing_tx = self
+    //         .annual_closing_transactions()
+    //         .execute(
+    //             sub,
+    //             chart_id,
+    //             // TODO: Where to source `reference`?
+    //             None,
+    //             // TODO: Add optional description to API?
+    //             "Annual Closing".to_string(),
+    //         )
+    //         .await?;
 
-        let ledger_tx_id = annual_closing_tx.ledger_transaction_id;
-        Ok(self
-            .ledger_transactions
-            .find_by_id(sub, ledger_tx_id)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::AnnualClosingTransactionNotFoundById(ledger_tx_id.to_string())
-            })?)
-    }
+    //     let ledger_tx_id = annual_closing_tx.ledger_transaction_id;
+    //     Ok(self
+    //         .ledger_transactions
+    //         .find_by_id(sub, ledger_tx_id)
+    //         .await?
+    //         .ok_or_else(move || {
+    //             CoreAccountingError::AnnualClosingTransactionNotFoundById(ledger_tx_id.to_string())
+    //         })?)
+    // }
 
     #[instrument(name = "core_accounting.add_root_node", skip(self), err)]
     pub async fn add_root_node(

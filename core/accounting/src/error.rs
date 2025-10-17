@@ -18,10 +18,6 @@ pub enum CoreAccountingError {
     AccountingCsvExportError(#[from] super::csv::error::AccountingCsvExportError),
     #[error("CoreAccountingError - TrialBalanceError: {0}")]
     TrialBalance(#[from] super::trial_balance::error::TrialBalanceError),
-    #[error("CoreAccountingError - AnnualClosingTransaction: {0}")]
-    AnnualClosingTransactionError(
-        #[from] super::annual_closing_transaction::error::AnnualClosingTransactionError,
-    ),
-    #[error("CoreAccountingError - AnnualClosingTransactionNotFoundById: {0}")]
-    AnnualClosingTransactionNotFoundById(String),
+    #[error("CoreAccountingError - AccountingPeriodError: {0}")]
+    AccountingPeriodError(#[from] super::accounting_period::error::AccountingPeriodError),
 }

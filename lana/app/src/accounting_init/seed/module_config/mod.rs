@@ -1,4 +1,4 @@
-pub(super) mod annual_closing_transaction;
+pub(super) mod period;
 pub(super) mod balance_sheet;
 pub(super) mod credit;
 pub(super) mod deposit;

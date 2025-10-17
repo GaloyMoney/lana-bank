@@ -8,8 +8,6 @@ use cala_ledger::{
     *,
 };
 
-use crate::primitives::TransactionEntrySpec;
-
 #[derive(Debug, Builder)]
 pub struct EntryParams {
     pub account_id: CalaAccountId,
@@ -93,29 +91,16 @@ impl EntryParams {
     }
 }
 
-impl From<TransactionEntrySpec> for EntryParams {
-    fn from(spec: TransactionEntrySpec) -> Self {
-        EntryParams::builder()
-            .account_id(spec.account_id.into())
-            .amount(spec.amount)
-            .currency(spec.currency)
-            .direction(spec.direction)
-            .description(spec.description)
-            .build()
-            .expect("Failed to build EntryParams from TransactionEntrySpec")
-    }
-}
-
 #[derive(Debug)]
-pub struct AnnualClosingTransactionParams {
+pub struct ClosingTransactionParams {
     pub journal_id: JournalId,
     pub description: String,
     pub effective: chrono::NaiveDate,
     pub entry_params: Vec<EntryParams>,
 }
 
-impl From<AnnualClosingTransactionParams> for Params {
-    fn from(input_params: AnnualClosingTransactionParams) -> Self {
+impl From<ClosingTransactionParams> for Params {
+    fn from(input_params: ClosingTransactionParams) -> Self {
         let mut params = Self::default();
         params.insert("journal_id", input_params.journal_id);
         params.insert("description", input_params.description);
@@ -129,7 +114,7 @@ impl From<AnnualClosingTransactionParams> for Params {
     }
 }
 
-impl AnnualClosingTransactionParams {
+impl ClosingTransactionParams {
     pub fn defs(n: usize) -> Vec<NewParamDefinition> {
         let mut params = vec![
             NewParamDefinition::builder()
@@ -155,13 +140,13 @@ impl AnnualClosingTransactionParams {
     }
 }
 
-pub(super) struct AnnualClosingTransactionTemplate {
+pub(super) struct ClosingTransactionTemplate {
     pub n_entries: usize,
 }
 
-impl AnnualClosingTransactionTemplate {
+impl ClosingTransactionTemplate {
     pub fn code(&self) -> String {
-        format!("ANNUAL_CLOSING_TRANSACTION_{}", self.n_entries)
+        format!("CLOSING_TRANSACTION_{}", self.n_entries)
     }
 
     pub async fn init(ledger: &CalaLedger, n_entries: usize) -> Result<Self, TxTemplateError> {
@@ -176,9 +161,9 @@ impl AnnualClosingTransactionTemplate {
             .description("params.description")
             .effective("params.effective")
             .build()
-            .expect("Couldn't build TxInput for AnnualClosingTransactionTxTemplate");
+            .expect("Couldn't build TxInput for ClosingTransactionTxTemplate");
 
-        let params = AnnualClosingTransactionParams::defs(self.n_entries);
+        let params = ClosingTransactionParams::defs(self.n_entries);
         let template = NewTxTemplate::builder()
             .id(TxTemplateId::new())
             .code(self.code())
@@ -186,11 +171,11 @@ impl AnnualClosingTransactionTemplate {
             .entries(self.entries())
             .params(params)
             .description(format!(
-                "Template to execute an annual closing transaction with {} entries.",
+                "Template to execute an closing transaction with {} entries.",
                 self.n_entries
             ))
             .build()
-            .expect("Couldn't build template for AnnualClosingTransactionTxTemplate");
+            .expect("Couldn't build template for ClosingTransactionTxTemplate");
         match ledger.tx_templates().create(template).await {
             Err(TxTemplateError::DuplicateCode) => Ok(()),
             Err(e) => Err(e),
@@ -204,7 +189,7 @@ impl AnnualClosingTransactionTemplate {
             entries.push(
                 NewTxTemplateEntry::builder()
                     .entry_type(format!(
-                        "'ANNUAL_CLOSING_TRANSACTION_{}_ENTRY_{}'",
+                        "'CLOSING_TRANSACTION_{}_ENTRY_{}'",
                         self.n_entries, i
                     ))
                     .account_id(format!("params.{}", EntryParams::account_id_param_name(i)))
@@ -214,7 +199,7 @@ impl AnnualClosingTransactionTemplate {
                     .direction(format!("params.{}", EntryParams::direction_param_name(i)))
                     .description(format!("params.entry_{i}_description"))
                     .build()
-                    .expect("Couldn't build AnnualClosingTransaction TxTemplateEntry entry"),
+                    .expect("Couldn't build ClosingTransaction TxTemplateEntry entry"),
             );
         }
         entries

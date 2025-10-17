@@ -8,7 +8,7 @@ use crate::{
 use rbac_types::Subject;
 
 use super::module_config::{
-    annual_closing_transaction::*, balance_sheet::*, credit::*, deposit::*, profit_and_loss::*,
+    period::*, balance_sheet::*, credit::*, deposit::*, profit_and_loss::*,
 };
 
 pub(crate) async fn init(
@@ -18,7 +18,7 @@ pub(crate) async fn init(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
-    annual_closing_transactions: &AnnualClosingTransactions,
+    accounting_periods: &AccountingPeriods,
     accounting_init_config: AccountingInitConfig,
 ) -> Result<(), AccountingInitError> {
     let AccountingInitConfig {
@@ -40,7 +40,7 @@ pub(crate) async fn init(
             deposit,
             balance_sheet,
             profit_and_loss,
-            annual_closing_transactions,
+            accounting_periods,
             chart_id,
             path,
             accounting_init_config,
@@ -76,7 +76,7 @@ async fn seed_chart_of_accounts(
     deposit: &Deposits,
     balance_sheet: &BalanceSheets,
     profit_and_loss: &ProfitAndLossStatements,
-    annual_closing: &AnnualClosingTransactions,
+    accounting_periods: &AccountingPeriods,
     chart_id: ChartId,
     chart_of_accounts_seed_path: PathBuf,
     accounting_init_config: AccountingInitConfig,
@@ -86,7 +86,7 @@ async fn seed_chart_of_accounts(
         deposit_config_path,
         balance_sheet_config_path,
         profit_and_loss_config_path,
-        annual_closing_config_path,
+        accounting_period_config_path,
         chart_of_accounts_opening_date: _,
         chart_of_accounts_seed_path: _,
     } = accounting_init_config;
@@ -139,8 +139,8 @@ async fn seed_chart_of_accounts(
             });
     }
 
-    if let Some(config_path) = annual_closing_config_path {
-        annual_closing_transaction_module_configure(annual_closing, &chart, config_path)
+    if let Some(config_path) = accounting_period_config_path {
+        accounting_period_module_configure(accounting_periods, &chart, config_path)
             .await
             .unwrap_or_else(|e| {
                 dbg!(&e); // TODO: handle the un-returned error differently
