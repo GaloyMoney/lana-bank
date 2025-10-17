@@ -25,7 +25,8 @@
 #@   "app_latest_image",
 #@   "build_app_edge_image",
 #@   "app_edge_image",
-#@   "nix_flake_cachix_image_config"
+#@   "nix_flake_cachix_image_config",
+#@   "task_image_config"
 #@ )
 
 groups:
@@ -487,6 +488,32 @@ jobs:
                 nix build --no-sandbox .#meltano-image
                 cp $(nix eval --raw .#meltano-image.outPath) ../image/image.tar
       - put: meltano-edge-image
+        params:
+          image: image/image.tar
+
+  - name: build-dagster-edge-image
+    serial: true
+    plan:
+      - get: repo
+        trigger: true
+      - task: build
+        privileged: true
+        config:
+          platform: linux
+          image_resource:
+            type: registry-image
+            source:
+              repository: concourse/oci-build-task
+          inputs:
+            - name: repo
+          outputs:
+            - name: image
+          params:
+            CONTEXT: repo
+            DOCKERFILE: repo/dagster/Dockerfile
+          run:
+            path: build
+      - put: dagster-edge-image
         params:
           image: image/image.tar
 
