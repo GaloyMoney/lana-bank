@@ -52,8 +52,13 @@ jobs:
         path: prs
         status: pending
         context: cache-lana-deps
-    - #@ check_latest_commit()
+    - #@ check_latest_commit("lana-deps")
     - #@ nix_build_and_cache("lana-deps")
+    - put: prs
+      params:
+        path: prs
+        status: success
+        context: cache-lana-deps
 
 resources:
   - name: repo

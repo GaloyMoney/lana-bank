@@ -78,13 +78,13 @@ config:
         cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#${BUILD_PKG_NAME}
 #@ end
 
-#@ def check_latest_commit(resource_name="prs"):
+#@ def check_latest_commit(pkg):
 task: check-latest-commit
 config:
   platform: linux
   image_resource: #@ nix_flake_cachix_image_config()
   inputs:
-  - name: #@ resource_name
+  - name: prs
     path: repo
   params:
     GITHUB_TOKEN: #@ data.values.github_token
@@ -101,4 +101,11 @@ config:
         cd repo
         cachix use $CACHIX_CACHE_NAME
         cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check_latest_commit
+on_failure:
+  put: prs
+  params:
+    path: prs
+    status: success
+    context: #@ "cache-" + pkg
+    description: "Outdated commit - skipped"
 #@ end
