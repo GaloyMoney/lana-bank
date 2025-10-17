@@ -518,6 +518,14 @@ resources:
       password: #@ data.values.gar_registry_password
       repository: #@ public_gar_registry() + "/meltano"
 
+  - name: dagster-edge-image
+    type: registry-image
+    source:
+      tag: edge
+      username: #@ data.values.gar_registry_user
+      password: #@ data.values.gar_registry_password
+      repository: #@ public_gar_registry() + "/dagster-code-location-lana-dw"
+
   - name: meltano-latest-image
     type: registry-image
     source:
