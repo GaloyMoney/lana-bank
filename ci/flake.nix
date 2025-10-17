@@ -58,7 +58,8 @@
           exit 1
         fi
 
-        echo "This is the latest commit. Proceeding with build."
+        echo "Latest commit - confirmed"
+        exit 0
       '';
     in {
       apps.check_latest_commit = {
