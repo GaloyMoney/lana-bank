@@ -8,7 +8,7 @@ use crate::{
 use rbac_types::Subject;
 
 use super::module_config::{
-    period::*, balance_sheet::*, credit::*, deposit::*, profit_and_loss::*,
+    balance_sheet::*, credit::*, deposit::*, period::*, profit_and_loss::*,
 };
 
 pub(crate) async fn init(
@@ -20,7 +20,7 @@ pub(crate) async fn init(
     profit_and_loss: &ProfitAndLossStatements,
     accounting_periods: &AccountingPeriods,
     accounting_init_config: AccountingInitConfig,
-) -> Result<(), AccountingInitError> {
+) -> Result<Chart, AccountingInitError> {
     let AccountingInitConfig {
         chart_of_accounts_opening_date,
         chart_of_accounts_seed_path,
@@ -30,7 +30,7 @@ pub(crate) async fn init(
         AccountingInitError::MissingConfig("chart_of_accounts_opening_date".to_string())
     })?;
 
-    let chart_id = create_chart_of_accounts(chart_of_accounts, opening_date).await?;
+    let chart = create_chart_of_accounts(chart_of_accounts, opening_date).await?;
 
     if let Some(path) = chart_of_accounts_seed_path {
         seed_chart_of_accounts(
@@ -41,21 +41,21 @@ pub(crate) async fn init(
             balance_sheet,
             profit_and_loss,
             accounting_periods,
-            chart_id,
+            chart.id,
             path,
             accounting_init_config,
         )
         .await?;
     }
-    Ok(())
+    Ok(chart)
 }
 
 async fn create_chart_of_accounts(
     chart_of_accounts: &ChartOfAccounts,
     opening_date: chrono::NaiveDate,
-) -> Result<ChartId, AccountingInitError> {
+) -> Result<Chart, AccountingInitError> {
     if let Some(chart) = chart_of_accounts.find_by_reference(CHART_REF).await? {
-        Ok(chart.id)
+        Ok(chart)
     } else {
         Ok(chart_of_accounts
             .create_chart(
@@ -64,8 +64,7 @@ async fn create_chart_of_accounts(
                 CHART_REF.to_string(),
                 opening_date,
             )
-            .await?
-            .id)
+            .await?)
     }
 }
 
