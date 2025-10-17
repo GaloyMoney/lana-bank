@@ -13,7 +13,7 @@ pub struct AccountingPeriod {
     accounting_period_id: UUID,
     tracking_account_set_id: UUID,
     period: PeriodRange,
-
+    // TODO: Optional closing cala transaction ID from events.
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainAccountingPeriod>,
 }
@@ -48,7 +48,7 @@ impl From<DomainPeriod> for PeriodRange {
 }
 
 #[derive(InputObject)]
-pub struct AccountingPeriodCloseMonthlyInput {
+pub struct AccountingPeriodCloseInput {
     pub chart_id: UUID,
 }
-crate::mutation_payload! { AccountingPeriodCloseMonthlyPayload, accounting_period: AccountingPeriod }
+crate::mutation_payload! { AccountingPeriodClosePayload, accounting_period: AccountingPeriod }
