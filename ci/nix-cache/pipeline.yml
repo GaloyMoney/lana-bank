@@ -36,14 +36,14 @@ jobs:
             - |
               set -euo pipefail
               cd repo
-              cachix use $CACHIX_CACHE_NAME
-              cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-release
+              nix run .#cocogitto bump -- --auto --dry-run | tr -d '\n' > ../version/version
     - task: build-lana-cli-release
       config:
         platform: linux
         image_resource: #@ nix_flake_cachix_image_config()
         inputs:
         - name: repo
+        - name: version
         params:
           CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
           CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
@@ -55,7 +55,8 @@ jobs:
               set -euo pipefail
               cd repo
               cachix use $CACHIX_CACHE_NAME
-              cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-release
+              cachix watch-exec ${CACHIX_CACHE_NAME} -- \
+                RELEASE_BUILD_VERSION=$(cat ../version/version) nix build --impure .#lana-cli-release
 
 resources:
   - name: repo
