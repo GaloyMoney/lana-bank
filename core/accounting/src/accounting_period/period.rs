@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike as _, Days, Duration, Months, NaiveDate, Utc};
+use chrono::{Datelike as _, Days, Duration, Months, NaiveDate};
 use serde::{Deserialize, Serialize};
 
 #[derive(Debug, Clone, Serialize, Deserialize)]
@@ -147,6 +147,10 @@ impl Period {
 
     pub fn grace_period_end(&self) -> NaiveDate {
         self.period_end + self.grace_period_duration
+    }
+
+    pub const fn period_end(&self) -> NaiveDate {
+        self.period_end
     }
 }
 

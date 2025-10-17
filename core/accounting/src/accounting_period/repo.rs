@@ -1,10 +1,13 @@
-use sqlx::PgPool;
 use chrono::{DateTime, Utc};
 use es_entity::*;
+use sqlx::PgPool;
 
 use crate::primitives::{AccountingPeriodId, ChartId};
 
-use super::{entity::{AccountingPeriod, AccountingPeriodEvent}, error::AccountingPeriodError};
+use super::{
+    entity::{AccountingPeriod, AccountingPeriodEvent},
+    error::AccountingPeriodError,
+};
 
 #[derive(EsRepo, Clone)]
 #[es_repo(
@@ -21,6 +24,10 @@ pub struct AccountingPeriodRepo {
 }
 
 impl AccountingPeriodRepo {
+    pub fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
+    }
+
     /// Returns a list of all Accounting Periods that are currently
     /// open on the given chart. No specific order of the periods is
     /// guaranteed.
