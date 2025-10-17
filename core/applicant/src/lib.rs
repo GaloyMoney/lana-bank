@@ -222,6 +222,12 @@ where
         Ok(())
     }
 
+    #[instrument(
+        name = "applicant.process_payload",
+        skip(self, db, payload),
+        fields(ignore_for_sandbox = false),
+        err
+    )]
     async fn process_payload(
         &self,
         db: &mut es_entity::DbOp<'_>,
@@ -242,6 +248,7 @@ where
                 match res {
                     Ok(_) => (),
                     Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        tracing::Span::current().record("ignore_for_sandbox", true);
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),
@@ -266,6 +273,7 @@ where
                 match res {
                     Ok(_) => (),
                     Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        tracing::Span::current().record("ignore_for_sandbox", true);
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),
@@ -301,6 +309,7 @@ where
                 match res {
                     Ok(_) => (),
                     Err(e) if e.was_not_found() && sandbox_mode.unwrap_or(false) => {
+                        tracing::Span::current().record("ignore_for_sandbox", true);
                         return Ok(());
                     }
                     Err(e) => return Err(e.into()),
