@@ -1,63 +1,41 @@
 #@ load("@ytt:data", "data")
 
 #@ load("fragments.lib.yml",
-#@   "nix_flake_cachix_image_config"
+#@   "nix_flake_cachix_image_config",
+#@   "next_version_task",
+#@   "build_release"
 #@ )
 
 groups:
   - name: all
     jobs:
       - build-release-main
-
+      - build-release-pr
   - name: main
     jobs:
       - build-release-main
+  - name: pr
+    jobs:
+      - build-release-pr
+
 jobs:
   - name: build-release-main
     serial: true
     plan:
     - get: repo
       trigger: true
-    - task: next-version
-      config:
-        platform: linux
-        image_resource: #@ nix_flake_cachix_image_config()
-        inputs:
-        - name: repo
-        outputs:
-        - name: version
-        params:
-          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-          CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
-        run:
-          path: sh
-          args:
-            - -exc
-            - |
-              set -euo pipefail
-              cd repo
-              nix run .#cocogitto bump -- --auto --dry-run | tr -d '\n' > ../version/version
-    - task: build-lana-cli-release
-      config:
-        platform: linux
-        image_resource: #@ nix_flake_cachix_image_config()
-        inputs:
-        - name: repo
-        - name: version
-        params:
-          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
-          CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
-        run:
-          path: sh
-          args:
-            - -exc
-            - |
-              set -euo pipefail
-              export RELEASE_BUILD_VERSION=$(cat version/version)
-              cd repo
-              cachix use $CACHIX_CACHE_NAME
-              cachix watch-exec ${CACHIX_CACHE_NAME} -- \
-                nix build --impure .#lana-cli-release
+    - #@ next_version_task()
+    - #@ build_release()
+
+  - name: build-release-pr
+    plan:
+    - get: prs
+      trigger: true
+      version: every
+      params:
+        fetch_tags: true
+    - #@ next_version_task("prs")
+    - #@ build_release("prs")
 
 resources:
   - name: repo
@@ -65,9 +43,22 @@ resources:
     source:
       ignore_paths:
         - "ci/*[^md]"
-        - apps/**/*
       fetch_tags: true
       uri: #@ data.values.git_uri
       branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
+  - name: prs
+    type: pull-request
+    check_every: 24h
+    webhook_token: ((webhook.secret))
+    source:
+      base_branch: #@ data.values.git_branch
+      repository: #@ data.values.gh_org + "/" + data.values.gh_repository
+      access_token: #@ data.values.github_token
+
+resource_types:
+- name: pull-request
+  type: docker-image
+  source:
+    repository: teliaoss/github-pr-resource

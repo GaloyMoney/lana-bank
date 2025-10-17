@@ -1,6 +1,56 @@
+#@ load("@ytt:data", "data")
+
 #@ def nix_flake_cachix_image_config():
 type: registry-image
 source:
   repository: ghcr.io/nix-community/docker-nixpkgs/cachix-flakes
   tag: latest-x86_64-linux
+#@ end
+
+#@ def next_version_task(resource_name="repo"):
+task: next-version
+config:
+  platform: linux
+  image_resource: #@ nix_flake_cachix_image_config()
+  inputs:
+  - name: #@ resource_name
+    path: repo
+  outputs:
+  - name: version
+  params:
+    CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+    CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+  run:
+    path: sh
+    args:
+      - -exc
+      - |
+        set -euo pipefail
+        cd repo
+        nix run .#cocogitto bump -- --auto --dry-run | tr -d '\n' > ../version/version
+#@ end
+
+#@ def build_release(resource_name="repo"):
+task: build-release
+config:
+  platform: linux
+  image_resource: #@ nix_flake_cachix_image_config()
+  inputs:
+  - name: #@ resource_name
+    path: repo
+  - name: version
+  params:
+    CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+    CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+  run:
+    path: sh
+    args:
+      - -exc
+      - |
+        set -euo pipefail
+        export RELEASE_BUILD_VERSION=$(cat version/version)
+        cd repo
+        cachix use $CACHIX_CACHE_NAME
+        cachix watch-exec ${CACHIX_CACHE_NAME} -- \
+          nix build --impure .#lana-cli-release
 #@ end

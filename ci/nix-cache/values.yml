@@ -1,8 +1,12 @@
 #@data/values
 ---
 git_uri: git@github.com:GaloyMoney/lana-bank.git
-git_branch: cocogitto
+git_branch: main
 github_private_key: ((github.private_key))
+github_token: ((github.api_token))
 
 cachix_auth_token: ((write-cachix-token.token))
 cachix_cache_name: galoymoney
+
+gh_org: GaloyMoney
+gh_repository: lana-bank
