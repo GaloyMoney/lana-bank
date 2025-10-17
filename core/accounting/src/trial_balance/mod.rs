@@ -8,13 +8,7 @@ use audit::AuditSvc;
 use authz::PermissionCheck;
 use cala_ledger::CalaLedger;
 
-use crate::{
-    chart_of_accounts::Chart,
-    primitives::{
-        AccountCode, BalanceRange, CalaAccountSetId, CoreAccountingAction, CoreAccountingObject,
-        DebitOrCredit, LedgerAccountId,
-    },
-};
+use crate::primitives::{CalaAccountSetId, CoreAccountingAction, CoreAccountingObject};
 
 use error::*;
 pub use ledger::TrialBalanceRoot;
@@ -123,59 +117,5 @@ where
             .trial_balance_ledger
             .get_trial_balance(name, from, Some(until))
             .await?)
-    }
-
-    #[instrument(
-        name = "core_accounting.trial_balance.list_entries",
-        skip(self, chart),
-        err
-    )]
-    pub async fn list_entries(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart: &Chart,
-        from: NaiveDate,
-        until: Option<NaiveDate>,
-    ) -> Result<Vec<TrialBalanceEntry>, TrialBalanceError> {
-        self.authz
-            .enforce_permission(
-                sub,
-                CoreAccountingObject::all_trial_balance(),
-                CoreAccountingAction::TRIAL_BALANCE_READ,
-            )
-            .await?;
-        let chart_tree = chart.chart();
-        let mut ordered_ids = Vec::new();
-        for node in &chart_tree.children {
-            ordered_ids.push(LedgerAccountId::from(node.id));
-            ordered_ids.extend(node.descendants().into_iter().map(LedgerAccountId::from));
-        }
-
-        Ok(self
-            .trial_balance_ledger
-            .load_accounts_in_range(&ordered_ids, from, until)
-            .await?)
-    }
-}
-
-#[derive(Debug, Clone)]
-pub struct TrialBalanceEntry {
-    pub id: LedgerAccountId,
-    pub name: String,
-    pub code: Option<AccountCode>,
-    pub normal_balance_type: DebitOrCredit,
-    pub usd_balance_range: Option<BalanceRange>,
-    pub btc_balance_range: Option<BalanceRange>,
-}
-
-impl TrialBalanceEntry {
-    pub fn has_non_zero_activity(&self) -> bool {
-        if let Some(usd) = self.usd_balance_range.as_ref() {
-            usd.has_non_zero_activity()
-        } else if let Some(btc) = self.btc_balance_range.as_ref() {
-            btc.has_non_zero_activity()
-        } else {
-            false
-        }
     }
 }

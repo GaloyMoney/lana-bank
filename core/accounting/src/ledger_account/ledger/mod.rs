@@ -10,6 +10,7 @@ use cala_ledger::{
         AccountSetMembersByExternalIdCursor,
     },
 };
+use chrono::NaiveDate;
 
 use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
 
@@ -262,6 +263,62 @@ impl LedgerAccountLedger {
         Ok(result)
     }
 
+    pub async fn load_account_sets_in_range(
+        &self,
+        ids: &[LedgerAccountId],
+        from: NaiveDate,
+        until: Option<NaiveDate>,
+        filter_non_zero: bool,
+    ) -> Result<Vec<LedgerAccount>, LedgerAccountLedgerError> {
+        let account_set_ids: Vec<AccountSetId> = ids.iter().map(|id| (*id).into()).collect();
+        let balance_ids = ids
+            .iter()
+            .flat_map(|id| {
+                [
+                    (self.journal_id, (*id).into(), Currency::USD),
+                    (self.journal_id, (*id).into(), Currency::BTC),
+                ]
+            })
+            .collect::<Vec<_>>();
+
+        let (account_sets_result, balances_result) = tokio::join!(
+            self.cala
+                .account_sets()
+                .find_all::<AccountSet>(&account_set_ids),
+            self.cala
+                .balances()
+                .effective()
+                .find_all_in_range(&balance_ids, from, until)
+        );
+
+        let mut account_sets = account_sets_result?;
+        let mut balances = balances_result?;
+
+        let mut rows = Vec::with_capacity(ids.len());
+        for ledger_id in ids {
+            let ledger_id = *ledger_id;
+            let account_set_id: AccountSetId = ledger_id.into();
+            if let Some(account_set) = account_sets.remove(&account_set_id) {
+                let btc_balance =
+                    balances.remove(&(self.journal_id, ledger_id.into(), Currency::BTC));
+                let usd_balance =
+                    balances.remove(&(self.journal_id, ledger_id.into(), Currency::USD));
+                let balance_ranges = BalanceRanges {
+                    btc: btc_balance,
+                    usd: usd_balance,
+                };
+                let row = LedgerAccount::from((account_set, balance_ranges));
+                if filter_non_zero && !row.has_non_zero_activity() {
+                    continue;
+                }
+                rows.push(row);
+            }
+        }
+
+        Ok(rows)
+    }
+
+    #[allow(dead_code)]
     pub async fn list_children(
         &self,
         id: AccountSetId,
@@ -361,6 +418,7 @@ impl LedgerAccountLedger {
         })
     }
 
+    #[allow(dead_code)]
     async fn get_member_account_sets<U>(
         &self,
         account_set_id: AccountSetId,

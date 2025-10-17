@@ -7,9 +7,7 @@ use cala_ledger::{
     account_set::{AccountSet, NewAccountSet},
 };
 
-use crate::primitives::{AccountCode, BalanceRange, CalaBalanceRange, LedgerAccountId};
-
-use super::TrialBalanceEntry;
+use crate::primitives::{BalanceRange, CalaBalanceRange};
 
 use error::*;
 
@@ -214,57 +212,6 @@ impl TrialBalanceLedger {
 
         Ok(TrialBalanceRoot::from((account, balances, from, until)))
     }
-
-    pub async fn load_accounts_in_range(
-        &self,
-        ids: &[LedgerAccountId],
-        from: NaiveDate,
-        until: Option<NaiveDate>,
-    ) -> Result<Vec<TrialBalanceEntry>, TrialBalanceLedgerError> {
-        let account_set_ids: Vec<AccountSetId> = ids.iter().map(|id| (*id).into()).collect();
-        let balance_ids = ids
-            .iter()
-            .flat_map(|id| {
-                [
-                    (self.journal_id, (*id).into(), Currency::USD),
-                    (self.journal_id, (*id).into(), Currency::BTC),
-                ]
-            })
-            .collect::<Vec<_>>();
-
-        let (account_sets_result, balances_result) = tokio::join!(
-            self.cala
-                .account_sets()
-                .find_all::<AccountSet>(&account_set_ids),
-            self.cala
-                .balances()
-                .effective()
-                .find_all_in_range(&balance_ids, from, until)
-        );
-
-        let mut account_sets = account_sets_result?;
-        let mut balances = balances_result?;
-
-        let mut rows = Vec::with_capacity(ids.len());
-        for ledger_id in ids {
-            let ledger_id = *ledger_id;
-            let account_set_id: AccountSetId = ledger_id.into();
-
-            if let Some(account_set) = account_sets.remove(&account_set_id) {
-                let btc_balance =
-                    balances.remove(&(self.journal_id, ledger_id.into(), Currency::BTC));
-                let usd_balance =
-                    balances.remove(&(self.journal_id, ledger_id.into(), Currency::USD));
-
-                let row = TrialBalanceEntry::from((account_set, (btc_balance, usd_balance)));
-                if row.has_non_zero_activity() {
-                    rows.push(row);
-                }
-            }
-        }
-
-        Ok(rows)
-    }
 }
 
 impl
@@ -302,46 +249,6 @@ impl
             usd_balance_range,
             from,
             until,
-        }
-    }
-}
-
-impl
-    From<(
-        AccountSet,
-        (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-    )> for TrialBalanceEntry
-{
-    fn from(
-        (account_set, (btc_balance, usd_balance)): (
-            AccountSet,
-            (Option<CalaBalanceRange>, Option<CalaBalanceRange>),
-        ),
-    ) -> Self {
-        let values = account_set.into_values();
-        let code = values
-            .external_id
-            .as_ref()
-            .and_then(|id| id.parse::<AccountCode>().ok());
-
-        let usd_balance_range = usd_balance.map(|range| BalanceRange {
-            open: Some(range.open),
-            close: Some(range.close),
-            period_activity: Some(range.period),
-        });
-        let btc_balance_range = btc_balance.map(|range| BalanceRange {
-            open: Some(range.open),
-            close: Some(range.close),
-            period_activity: Some(range.period),
-        });
-
-        TrialBalanceEntry {
-            id: values.id.into(),
-            name: values.name,
-            code,
-            normal_balance_type: values.normal_balance_type,
-            usd_balance_range,
-            btc_balance_range,
         }
     }
 }

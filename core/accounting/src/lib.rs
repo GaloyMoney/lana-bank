@@ -38,7 +38,7 @@ pub use manual_transaction::ManualEntryInput;
 pub use primitives::*;
 pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 pub use transaction_templates::TransactionTemplates;
-pub use trial_balance::{TrialBalanceEntry, TrialBalanceRoot, TrialBalances};
+pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -220,11 +220,10 @@ where
     }
 
     #[instrument(name = "core_accounting.list_all_account_children", skip(self), err)]
-    pub async fn list_all_account_children(
+    pub async fn list_all_account_flattened(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_ref: &str,
-        id: cala_ledger::AccountSetId,
         from: chrono::NaiveDate,
         until: Option<chrono::NaiveDate>,
     ) -> Result<Vec<LedgerAccount>, CoreAccountingError> {
@@ -238,29 +237,7 @@ where
 
         Ok(self
             .ledger_accounts()
-            .list_all_account_children(sub, &chart, id, from, until, true)
-            .await?)
-    }
-
-    #[instrument(name = "core_accounting.list_trial_balance_entries", skip(self), err)]
-    pub async fn list_trial_balance_entries(
-        &self,
-        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        chart_ref: &str,
-        from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
-    ) -> Result<Vec<TrialBalanceEntry>, CoreAccountingError> {
-        let chart = self
-            .chart_of_accounts
-            .find_by_reference(chart_ref)
-            .await?
-            .ok_or_else(move || {
-                CoreAccountingError::ChartOfAccountsNotFoundByReference(chart_ref.to_string())
-            })?;
-
-        Ok(self
-            .trial_balances()
-            .list_entries(sub, &chart, from, until)
+            .list_all_account_flattened(sub, &chart, from, until, true)
             .await?)
     }
 

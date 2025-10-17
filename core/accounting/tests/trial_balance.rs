@@ -63,21 +63,10 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .create_trial_balance_statement(trial_balance_name.to_string())
         .await?;
 
-    let trial_balance = accounting
-        .trial_balances()
-        .trial_balance(
-            &DummySubject,
-            trial_balance_name.to_string(),
-            Utc::now().date_naive(),
-            Utc::now().date_naive(),
-        )
-        .await?;
-
     let accounts = accounting
-        .list_all_account_children(
+        .list_all_account_flattened(
             &DummySubject,
             &chart_ref,
-            trial_balance.id,
             Utc::now().date_naive(),
             Some(Utc::now().date_naive()),
         )
@@ -91,10 +80,9 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
 
     let accounts = accounting
         .ledger_accounts()
-        .list_all_account_children(
+        .list_all_account_flattened(
             &DummySubject,
             &chart,
-            trial_balance.id,
             Utc::now().date_naive(),
             Some(Utc::now().date_naive()),
             false,

@@ -2,47 +2,10 @@ use async_graphql::*;
 
 use crate::{graphql::loader::CHART_REF, primitives::*};
 
-use lana_app::trial_balance::TrialBalanceEntry as DomainTrialBalanceEntry;
-
 use super::{
-    AccountCode, BtcLedgerAccountBalanceRange, LedgerAccount, LedgerAccountBalanceRange,
-    LedgerAccountBalanceRangeByCurrency, UsdLedgerAccountBalanceRange,
+    BtcLedgerAccountBalanceRange, LedgerAccount, LedgerAccountBalanceRangeByCurrency,
+    UsdLedgerAccountBalanceRange,
 };
-
-#[derive(Clone, SimpleObject)]
-#[graphql(complex)]
-pub struct TrialBalanceEntry {
-    id: ID,
-    ledger_account_id: UUID,
-    code: Option<AccountCode>,
-    name: String,
-
-    #[graphql(skip)]
-    entity: Arc<DomainTrialBalanceEntry>,
-}
-
-impl From<DomainTrialBalanceEntry> for TrialBalanceEntry {
-    fn from(row: DomainTrialBalanceEntry) -> Self {
-        TrialBalanceEntry {
-            id: row.id.to_global_id(),
-            ledger_account_id: UUID::from(row.id),
-            code: row.code.as_ref().map(|code| code.into()),
-            name: row.name.clone(),
-            entity: Arc::new(row),
-        }
-    }
-}
-
-#[ComplexObject]
-impl TrialBalanceEntry {
-    async fn balance_range(&self) -> LedgerAccountBalanceRange {
-        if self.entity.btc_balance_range.is_some() {
-            self.entity.btc_balance_range.as_ref().into()
-        } else {
-            self.entity.usd_balance_range.as_ref().into()
-        }
-    }
-}
 
 #[derive(SimpleObject)]
 #[graphql(complex)]
@@ -80,32 +43,14 @@ impl TrialBalance {
         let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
         let accounts = app
             .accounting()
-            .list_all_account_children(
+            .list_all_account_flattened(
                 sub,
                 CHART_REF.0,
-                self.entity.id,
                 self.from.into_inner(),
                 Some(self.until.into_inner()),
             )
             .await?;
         Ok(accounts.into_iter().map(LedgerAccount::from).collect())
-    }
-
-    pub async fn entries(
-        &self,
-        ctx: &Context<'_>,
-    ) -> async_graphql::Result<Vec<TrialBalanceEntry>> {
-        let (app, sub) = crate::app_and_sub_from_ctx!(ctx);
-        let accounts = app
-            .accounting()
-            .list_trial_balance_entries(
-                sub,
-                CHART_REF.0,
-                self.from.into_inner(),
-                Some(self.until.into_inner()),
-            )
-            .await?;
-        Ok(accounts.into_iter().map(TrialBalanceEntry::from).collect())
     }
 }
 
