@@ -1,6 +1,21 @@
 use chrono::{Datelike as _, Days, Duration, Months, NaiveDate};
 use serde::{Deserialize, Serialize};
 
+/// Recurring time interval (i. e. a portion of time between two
+/// dates) with a _grace period_ after the period's end.
+///
+/// Grace period is typically used as a time buffer for some external,
+/// time-sensitive action. It is purely informative and does not
+/// contribute to the periodicity, i. e. the next period starts right
+/// after the end of the previous period, regardless of grace period:
+///
+/// ```
+/// S = start of period, E = end of period, G = end of grace period
+///
+/// S—————————————————E······G
+///                   S—————————————————E······G
+///                                     S—————————————————E······G
+/// ```
 #[derive(Debug, Clone, Serialize, Deserialize)]
 pub struct Period {
     frequency: Frequency,
