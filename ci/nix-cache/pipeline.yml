@@ -53,10 +53,11 @@ jobs:
             - -exc
             - |
               set -euo pipefail
+              export RELEASE_BUILD_VERSION=$(cat version/version)
               cd repo
               cachix use $CACHIX_CACHE_NAME
               cachix watch-exec ${CACHIX_CACHE_NAME} -- \
-                RELEASE_BUILD_VERSION=$(cat ../version/version) nix build --impure .#lana-cli-release
+                nix build --impure .#lana-cli-release
 
 resources:
   - name: repo

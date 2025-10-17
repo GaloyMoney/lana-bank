@@ -1,6 +1,6 @@
 #@ load("@ytt:data", "data")
 
-#@ load("vendor/pipeline-fragments.lib.yml",
+#@ load("fragments.lib.yml",
 #@   "build_edge_image",
 #@   "public_gar_registry",
 #@   "nodejs_task_image_config",

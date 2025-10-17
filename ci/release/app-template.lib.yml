@@ -1,6 +1,6 @@
 #@ load("@ytt:data", "data")
 
-#@ load("vendor/pipeline-fragments.lib.yml",
+#@ load("fragments.lib.yml",
 #@   "private_gar_registry",
 #@   "release_task_image_config")
 
