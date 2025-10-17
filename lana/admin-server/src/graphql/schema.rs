@@ -1994,9 +1994,6 @@ impl Mutation {
         input: AccountingPeriodCloseInput,
     ) -> async_graphql::Result<AccountingPeriodClosePayload> {
         let (app, sub) = app_and_sub_from_ctx!(ctx);
-        // TODO: Otherwise asking for user (possibly via selection?) on the closed_at 
-        // param to the domain service or move into use-case.
-        let closed_at = chrono::Utc::now();
         exec_mutation!(
             AccountingPeriodClosePayload,
             AccountingPeriod,
@@ -2004,7 +2001,6 @@ impl Mutation {
             ctx,
             app.accounting().accounting_periods().close_month(
                 sub,
-                closed_at,
                 input.chart_id.into()
             )
         )

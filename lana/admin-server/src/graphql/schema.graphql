@@ -34,11 +34,11 @@ type AccountingPeriod {
 	period: PeriodRange!
 }
 
-input AccountingPeriodCloseMonthlyInput {
+input AccountingPeriodCloseInput {
 	chartId: UUID!
 }
 
-type AccountingPeriodCloseMonthlyPayload {
+type AccountingPeriodClosePayload {
 	accountingPeriod: AccountingPeriod!
 }
 
@@ -1546,7 +1546,7 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	accountingPeriodCloseMonthly(input: AccountingPeriodCloseMonthlyInput!): AccountingPeriodCloseMonthlyPayload!
+	accountingPeriodCloseMonthly(input: AccountingPeriodCloseInput!): AccountingPeriodClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!

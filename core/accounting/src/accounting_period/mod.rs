@@ -77,7 +77,6 @@ where
     pub async fn close_month(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
-        closed_at: DateTime<Utc>,
         chart_id: ChartId,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
         // TODO: Fix perms.
@@ -87,7 +86,7 @@ where
             .iter_mut()
             .find(|p| p.is_monthly())
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
-
+        let closed_at = crate::time::now();
         match open_period.close(closed_at, None)? {
             Idempotent::Executed(new) => {
                 let mut db = self.repo.begin_op().await?;
