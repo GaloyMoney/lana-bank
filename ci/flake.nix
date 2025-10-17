@@ -22,7 +22,6 @@
           echo "Error: GITHUB_TOKEN environment variable is not set"
           exit 1
         fi
-
         if [ -z "''${GITHUB_ORG:-}" ] || [ -z "''${GITHUB_REPO:-}" ]; then
           echo "Error: GITHUB_ORG and GITHUB_REPO environment variables must be set"
           echo "Example: GITHUB_ORG=myorg GITHUB_REPO=myrepo"

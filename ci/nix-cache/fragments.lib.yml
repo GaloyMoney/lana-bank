@@ -107,5 +107,5 @@ on_failure:
     path: prs
     status: success
     context: #@ "cache-" + pkg
-    description: "Outdated commit - skipped"
+    description: "Aborted - old commit"
 #@ end
