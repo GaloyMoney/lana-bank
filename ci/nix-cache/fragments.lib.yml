@@ -54,3 +54,51 @@ config:
         cachix watch-exec ${CACHIX_CACHE_NAME} -- \
           nix build --impure .#lana-cli-release
 #@ end
+
+#@ def nix_build_and_cache(pkg, resource_name="prs"):
+task: #@ "cache-" + pkg
+config:
+  platform: linux
+  image_resource: #@ nix_flake_cachix_image_config()
+  inputs:
+  - name: #@ resource_name
+    path: repo
+  params:
+    CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+    CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+    BUILD_PKG_NAME: #@ pkg
+  run:
+    path: sh
+    args:
+      - -exc
+      - |
+        set -euo pipefail
+        cd repo
+        cachix use $CACHIX_CACHE_NAME
+        cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#${BUILD_PKG_NAME}
+#@ end
+
+#@ def check_latest_commit(resource_name="prs"):
+task: check-latest-commit
+config:
+  platform: linux
+  image_resource: #@ nix_flake_cachix_image_config()
+  inputs:
+  - name: #@ resource_name
+    path: repo
+  params:
+    GITHUB_TOKEN: #@ data.values.github_token
+    GITHUB_ORG: #@ data.values.gh_org
+    GITHUB_REPO: #@ data.values.gh_repository
+    CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+    CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+  run:
+    path: sh
+    args:
+      - -exc
+      - |
+        set -euo pipefail
+        cd repo
+        cachix use $CACHIX_CACHE_NAME
+        cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check_latest_commit
+#@ end
