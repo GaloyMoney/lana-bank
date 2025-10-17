@@ -339,6 +339,7 @@ jobs:
               - test-bats
               - test-integration
               - build-release-binary
+              - build-meltano-edge-image
             trigger: true
           - get: pipeline-tasks
           - get: version
@@ -349,6 +350,7 @@ jobs:
             passed:
               -  #@ build_app_edge_image_name("customer-portal")
           - get: meltano-edge-image
+            params: { skip_download: true }
             passed:
               - build-meltano-edge-image
       - in_parallel:
