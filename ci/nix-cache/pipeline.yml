@@ -5,20 +5,23 @@
 #@   "next_version_task",
 #@   "build_release",
 #@   "check_latest_commit",
-#@   "nix_build_and_cache"
+#@   "nix_build_and_cache",
+#@   "set_pr_status"
 #@ )
 
 groups:
   - name: all
     jobs:
       - build-release-main
-      - build-release-pr
+      - kickoff-pr
       - cache-lana-deps-pr
+      - build-release-pr
   - name: main
     jobs:
       - build-release-main
   - name: pr
     jobs:
+      - kickoff-pr
       - build-release-pr
       - cache-lana-deps-pr
 
@@ -31,15 +34,14 @@ jobs:
     - #@ next_version_task()
     - #@ build_release()
 
-  - name: build-release-pr
+  - name: kickoff-pr
+    max_in_flight: 3
     plan:
     - get: prs
       trigger: true
       version: every
-      params:
-        fetch_tags: true
-    - #@ next_version_task("prs")
-    - #@ build_release("prs")
+    - #@ set_pr_status("Awaiting build slot") 
+    - #@ check_latest_commit("lana-deps")
 
   - name: cache-lana-deps-pr
     max_in_flight: 3
@@ -47,18 +49,26 @@ jobs:
     - get: prs
       trigger: true
       version: every
-    - put: prs
-      params:
-        path: prs
-        status: pending
-        context: cache-lana-deps
-    - #@ check_latest_commit("lana-deps")
+      passed:
+      - kickoff-pr
+    - do:
+      - #@ set_pr_status("Caching deps") 
+      - #@ set_pr_status("Building deps", context = "lana-deps") 
+      - #@ check_latest_commit("lana-deps")
     - #@ nix_build_and_cache("lana-deps")
-    - put: prs
+    - #@ set_pr_status("Deps cached", context = "lana-deps", status = "success") 
+
+  - name: build-release-pr
+    plan:
+    - get: prs
+      trigger: true
+      version: every
+      passed:
+      - cache-lana-deps-pr
       params:
-        path: prs
-        status: success
-        context: cache-lana-deps
+        fetch_tags: true
+    - #@ next_version_task("prs")
+    - #@ build_release("prs")
 
 resources:
   - name: repo

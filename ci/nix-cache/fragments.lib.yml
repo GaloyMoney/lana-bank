@@ -55,6 +55,16 @@ config:
           nix build --impure .#lana-cli-release
 #@ end
 
+#@ def set_pr_status(description, context = "status", status = "pending"):
+put: prs
+params:
+  path: prs
+  status: #@ status
+  base_context: nix-cache
+  context: #@ context
+  description: #@ description
+#@ end
+
 #@ def nix_build_and_cache(pkg, resource_name="prs"):
 task: #@ "cache-" + pkg
 config:
@@ -101,11 +111,12 @@ config:
         cd repo
         cachix use $CACHIX_CACHE_NAME
         cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check_latest_commit
+#@ if pkg == "":
+on_failure: #@ set_pr_status("Aborted - old commit", status = "success")
+#@ else:
 on_failure:
-  put: prs
-  params:
-    path: prs
-    status: success
-    context: #@ "cache-" + pkg
-    description: "Aborted - old commit"
+  do:
+  - #@ set_pr_status("Aborted - old commit", status = "success")
+  - #@ set_pr_status("Aborted - old commit", context = pkg, status = "success")
+#@ end
 #@ end
