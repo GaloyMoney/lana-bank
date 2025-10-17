@@ -17,7 +17,6 @@ use authz::PermissionCheck;
 use cala_ledger::{AccountSetId, BalanceId, CalaLedger, Currency, account::Account};
 
 use crate::{
-    TransactionEntrySpec,
     primitives::{
         AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
         ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
@@ -216,11 +215,12 @@ where
         Ok(chart)
     }
 
+    // TODO: Refactor
     pub async fn create_annual_closing_entries(
         &self,
         now: DateTime<Utc>,
         id: impl Into<ChartId> + std::fmt::Debug,
-    ) -> Result<Vec<TransactionEntrySpec>, ChartOfAccountsError> {
+    ) -> Result<Vec<()>, ChartOfAccountsError> {
         let id = id.into();
         let chart = self.repo.find_by_id(id).await?;
 
@@ -287,7 +287,7 @@ where
             )
             .await?;
 
-        Ok(entries)
+        todo!()
     }
 
     #[instrument(

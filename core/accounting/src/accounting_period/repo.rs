@@ -6,7 +6,7 @@ use crate::primitives::{AccountingPeriodId, ChartId};
 
 use super::{entity::{AccountingPeriod, AccountingPeriodEvent}, error::AccountingPeriodError};
 
-#[derive(EsRepo, Clone)]
+#[derive(EsRepo)]
 #[es_repo(
     entity = "AccountingPeriod",
     err = "AccountingPeriodError",
@@ -39,5 +39,19 @@ impl AccountingPeriodRepo {
         .await?;
 
         Ok(result)
+    }
+}
+
+impl Clone for AccountingPeriodRepo {
+    fn clone(&self) -> Self {
+        Self {
+            pool: self.pool.clone(),
+        }
+    }
+}
+
+impl AccountingPeriodRepo {
+    pub fn new(pool: &PgPool) -> Self {
+        Self { pool: pool.clone() }
     }
 }

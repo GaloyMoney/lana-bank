@@ -23,7 +23,6 @@ es_entity::entity_id! {
     ChartId,
     ChartNodeId,
     ManualTransactionId,
-    AnnualClosingTransactionId,
     LedgerAccountId,
     AccountingCsvId,
     AccountingPeriodId;
@@ -378,8 +377,8 @@ pub type BalanceSheetAllOrOne = AllOrOne<LedgerAccountId>;
 pub type BalanceSheetConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 pub type AccountingCsvAllOrOne = AllOrOne<AccountingCsvId>;
 pub type TrialBalanceAllOrOne = AllOrOne<LedgerAccountId>; // what to do if there is only All
-pub type AnnualClosingTransactionAllOrOne = AllOrOne<AnnualClosingTransactionId>;
-pub type AnnualClosingTransactionConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
+pub type AccountingPeriodAllOrOne = AllOrOne<AccountingPeriodId>;
+pub type AccountingPeriodConfigurationAllOrOne = AllOrOne<LedgerAccountId>;
 // option
 
 pub const PERMISSION_SET_ACCOUNTING_VIEWER: &str = "accounting_viewer";
@@ -401,7 +400,8 @@ pub enum CoreAccountingAction {
     BalanceSheetConfiguration(BalanceSheetConfigurationAction),
     AccountingCsv(AccountingCsvAction),
     TrialBalance(TrialBalanceAction),
-    AnnualClosingTransactionConfiguration(AnnualClosingTransactionConfigurationAction),
+    AccountingPeriod(AccountingPeriodAction),
+    AccountingPeriodConfiguration(AccountingPeriodConfigurationAction),
 }
 
 impl CoreAccountingAction {
@@ -448,10 +448,15 @@ impl CoreAccountingAction {
                 TrialBalance => {
                     map_action!(accounting, TrialBalance, TrialBalanceAction)
                 }
-                AnnualClosingTransactionConfiguration => map_action!(
+                AccountingPeriod => map_action!(
                     accounting,
-                    AnnualClosingTransactionConfiguration,
-                    AnnualClosingTransactionConfigurationAction
+                    AccountingPeriod,
+                    AccountingPeriodAction
+                ),
+                AccountingPeriodConfiguration => map_action!(
+                    accounting,
+                    AccountingPeriodConfiguration,
+                    AccountingPeriodConfigurationAction
                 ),
             })
             .collect()
@@ -474,8 +479,8 @@ pub enum CoreAccountingObject {
     BalanceSheetConfiguration(BalanceSheetConfigurationAllOrOne),
     AccountingCsv(AccountingCsvAllOrOne),
     TrialBalance(TrialBalanceAllOrOne),
-    AnnualClosingTransaction(AnnualClosingTransactionAllOrOne),
-    AnnualClosingTransactionConfiguration(AnnualClosingTransactionConfigurationAllOrOne),
+    AccountingPeriod(AccountingPeriodAllOrOne),
+    AccountingPeriodConfiguration(AccountingPeriodConfigurationAllOrOne),
 }
 
 impl CoreAccountingObject {
@@ -558,12 +563,12 @@ impl CoreAccountingObject {
         CoreAccountingObject::TrialBalance(AllOrOne::All)
     }
 
-    pub fn annual_closing_transaction(id: AnnualClosingTransactionId) -> Self {
-        CoreAccountingObject::AnnualClosingTransaction(AllOrOne::ById(id))
+    pub fn accounting_period(id: AccountingPeriodId) -> Self {
+        CoreAccountingObject::AccountingPeriod(AllOrOne::ById(id))
     }
 
-    pub fn all_annual_closing_transaction_configuration() -> Self {
-        CoreAccountingObject::AnnualClosingTransactionConfiguration(AllOrOne::All)
+    pub fn all_accounting_period_configuration() -> Self {
+        CoreAccountingObject::AccountingPeriodConfiguration(AllOrOne::All)
     }
 }
 
@@ -584,8 +589,8 @@ impl Display for CoreAccountingObject {
             BalanceSheetConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             AccountingCsv(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
             TrialBalance(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
-            AnnualClosingTransaction(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
-            AnnualClosingTransactionConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            AccountingPeriod(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
+            AccountingPeriodConfiguration(obj_ref) => write!(f, "{discriminant}/{obj_ref}"),
         }
     }
 }
@@ -655,17 +660,17 @@ impl FromStr for CoreAccountingObject {
                 let obj_ref = id.parse().map_err(|_| "could not parse TrialBalance")?;
                 CoreAccountingObject::TrialBalance(obj_ref)
             }
-            AnnualClosingTransaction => {
+            AccountingPeriod => {
                 let obj_ref = id
                     .parse()
-                    .map_err(|_| "could not parse AnnualClosingTransaction")?;
-                CoreAccountingObject::AnnualClosingTransaction(obj_ref)
+                    .map_err(|_| "could not parse AccountingPeriod")?;
+                CoreAccountingObject::AccountingPeriod(obj_ref)
             }
-            AnnualClosingTransactionConfiguration => {
+            AccountingPeriodConfiguration => {
                 let obj_ref = id
                     .parse()
-                    .map_err(|_| "could not parse AnnualClosingTransactionConfiguration")?;
-                CoreAccountingObject::AnnualClosingTransactionConfiguration(obj_ref)
+                    .map_err(|_| "could not parse AccountingPeriodConfiguration")?;
+                CoreAccountingObject::AccountingPeriodConfiguration(obj_ref)
             }
         };
         Ok(res)
@@ -741,13 +746,13 @@ impl CoreAccountingAction {
     pub const TRIAL_BALANCE_UPDATE: Self =
         CoreAccountingAction::TrialBalance(TrialBalanceAction::Update);
 
-    pub const ANNUAL_CLOSING_TRANSACTION_CONFIGURATION_READ: Self =
-        CoreAccountingAction::AnnualClosingTransactionConfiguration(
-            AnnualClosingTransactionConfigurationAction::Read,
+    pub const ACCOUNTING_PERIOD_CONFIGURATION_READ: Self =
+        CoreAccountingAction::AccountingPeriodConfiguration(
+            AccountingPeriodConfigurationAction::Read,
         );
-    pub const ANNUAL_CLOSING_TRANSACTION_CONFIGURATION_UPDATE: Self =
-        CoreAccountingAction::AnnualClosingTransactionConfiguration(
-            AnnualClosingTransactionConfigurationAction::Update,
+    pub const ACCOUNTING_PERIOD_CONFIGURATION_UPDATE: Self =
+        CoreAccountingAction::AccountingPeriodConfiguration(
+            AccountingPeriodConfigurationAction::Update,
         );
 }
 
@@ -768,7 +773,8 @@ impl Display for CoreAccountingAction {
             BalanceSheetConfiguration(action) => action.fmt(f),
             AccountingCsv(action) => action.fmt(f),
             TrialBalance(action) => action.fmt(f),
-            AnnualClosingTransactionConfiguration(action) => action.fmt(f),
+            AccountingPeriod(action) => action.fmt(f),
+            AccountingPeriodConfiguration(action) => action.fmt(f),
         }
     }
 }
@@ -815,9 +821,12 @@ impl FromStr for CoreAccountingAction {
             CoreAccountingActionDiscriminants::TrialBalance => {
                 CoreAccountingAction::from(action.parse::<TrialBalanceAction>()?)
             }
-            CoreAccountingActionDiscriminants::AnnualClosingTransactionConfiguration => {
+            CoreAccountingActionDiscriminants::AccountingPeriod => {
+                CoreAccountingAction::from(action.parse::<AccountingPeriodAction>()?)
+            }
+            CoreAccountingActionDiscriminants::AccountingPeriodConfiguration => {
                 CoreAccountingAction::from(
-                    action.parse::<AnnualClosingTransactionConfigurationAction>()?,
+                    action.parse::<AccountingPeriodConfigurationAction>()?,
                 )
             }
         };
@@ -1006,12 +1015,12 @@ impl From<ProfitAndLossConfigurationAction> for CoreAccountingAction {
 
 #[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
 #[strum(serialize_all = "kebab-case")]
-pub enum AnnualClosingTransactionConfigurationAction {
+pub enum AccountingPeriodAction {
     Read,
     Update,
 }
 
-impl ActionPermission for AnnualClosingTransactionConfigurationAction {
+impl ActionPermission for AccountingPeriodAction {
     fn permission_set(&self) -> &'static str {
         match self {
             Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
@@ -1020,9 +1029,31 @@ impl ActionPermission for AnnualClosingTransactionConfigurationAction {
     }
 }
 
-impl From<AnnualClosingTransactionConfigurationAction> for CoreAccountingAction {
-    fn from(action: AnnualClosingTransactionConfigurationAction) -> Self {
-        CoreAccountingAction::AnnualClosingTransactionConfiguration(action)
+impl From<AccountingPeriodAction> for CoreAccountingAction {
+    fn from(action: AccountingPeriodAction) -> Self {
+        CoreAccountingAction::AccountingPeriod(action)
+    }
+}
+
+#[derive(PartialEq, Clone, Copy, Debug, strum::Display, strum::EnumString, strum::VariantArray)]
+#[strum(serialize_all = "kebab-case")]
+pub enum AccountingPeriodConfigurationAction {
+    Read,
+    Update,
+}
+
+impl ActionPermission for AccountingPeriodConfigurationAction {
+    fn permission_set(&self) -> &'static str {
+        match self {
+            Self::Read => PERMISSION_SET_ACCOUNTING_VIEWER,
+            Self::Update => PERMISSION_SET_ACCOUNTING_WRITER,
+        }
+    }
+}
+
+impl From<AccountingPeriodConfigurationAction> for CoreAccountingAction {
+    fn from(action: AccountingPeriodConfigurationAction) -> Self {
+        CoreAccountingAction::AccountingPeriodConfiguration(action)
     }
 }
 
@@ -1138,18 +1169,6 @@ impl BalanceRange {
             false
         }
     }
-}
-
-// TODO: Does something exist for this or should Cala primitives be used to pass a return value
-// from ChartOfAccounts that can be consumed by ManualTranactions
-// (the Vec<ManualEntryInput> param of execute specifically)?
-#[derive(Debug, Clone)]
-pub struct TransactionEntrySpec {
-    pub account_id: LedgerAccountId,
-    pub amount: Decimal,
-    pub currency: CalaCurrency,
-    pub description: String,
-    pub direction: DebitOrCredit,
 }
 
 #[cfg(test)]
