@@ -279,7 +279,7 @@ BEGIN
   IF payload_size <= 8000 THEN
     PERFORM pg_notify('cala_outbox_events', payload);
   ELSE
-    RAISE NOTICE 'Cala: Payload too large for notification: % bytes. First 8000 bytes: %', payload_size, left(payload, 8000);
+    RAISE NOTICE 'Cala: Payload too large for notification: % bytes. First 2000 chars: %', payload_size, left(payload, 2000);
   END IF;
 
   RETURN NULL;
