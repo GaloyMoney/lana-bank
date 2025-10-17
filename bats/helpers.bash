@@ -19,7 +19,7 @@ server_cmd() {
     export LANA_CONFIG="${REPO_ROOT}/bats/lana.yml"
     "${LANA_BIN}"
   else
-    make run-server
+    SQLX_OFFLINE=true make run-server
   fi
 }
 wait_for_keycloak_user_ready() {
@@ -47,10 +47,12 @@ start_server() {
   fi
 
   # Start server if not already running
+  local server_started=false
   background server_cmd > "$LOG_FILE" 2>&1
-  for i in {1..20}; do
+  for i in {1..30}; do
     echo "--- Checking server ${i} ---"
     if grep -q 'Starting' "$LOG_FILE"; then
+      server_started=true
       break
     elif grep -q 'Connection reset by peer' "$LOG_FILE"; then
       stop_server
@@ -62,6 +64,11 @@ start_server() {
       cat "$LOG_FILE"
     fi
   done
+
+  if [[ "$server_started" == "false" ]]; then
+    echo "--- Server unable to start ---"
+    return 1
+  fi
 }
 stop_server() {
   if [[ -f "$SERVER_PID_FILE" ]]; then
