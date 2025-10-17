@@ -245,7 +245,6 @@
           procps
           meltanoPkgs.meltano
           poppler_utils
-          cocogitto
           keycloak
           # Documentation tools
           mdbook
@@ -277,6 +276,7 @@
     in
       with pkgs; {
         packages = {
+          cocogitto = pkgs.cocogitto;
           meltano = meltanoPkgs.meltano;
           meltano-image = meltanoPkgs.meltano-image;
           default = lana-cli-debug;

@@ -1,0 +1,71 @@
+#@ load("@ytt:data", "data")
+
+#@ load("fragments.lib.yml",
+#@   "nix_flake_cachix_image_config"
+#@ )
+
+groups:
+  - name: all
+    jobs:
+      - build-release-main
+
+  - name: main
+    jobs:
+      - build-release-main
+jobs:
+  - name: build-release-main
+    serial: true
+    plan:
+    - get: repo
+      trigger: true
+    - task: next-version
+      config:
+        platform: linux
+        image_resource: #@ nix_flake_cachix_image_config()
+        inputs:
+        - name: repo
+        outputs:
+        - name: version
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              set -euo pipefail
+              cd repo
+              cachix use $CACHIX_CACHE_NAME
+              cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-release
+    - task: build-lana-cli-release
+      config:
+        platform: linux
+        image_resource: #@ nix_flake_cachix_image_config()
+        inputs:
+        - name: repo
+        params:
+          CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+          CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+        run:
+          path: sh
+          args:
+            - -exc
+            - |
+              set -euo pipefail
+              cd repo
+              cachix use $CACHIX_CACHE_NAME
+              cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#lana-cli-release
+
+resources:
+  - name: repo
+    type: git
+    source:
+      ignore_paths:
+        - "ci/*[^md]"
+        - apps/**/*
+      fetch_tags: true
+      uri: #@ data.values.git_uri
+      branch: #@ data.values.git_branch
+      private_key: #@ data.values.github_private_key
+    webhook_token: ((webhook.secret))
