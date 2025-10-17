@@ -225,7 +225,7 @@ where
     #[instrument(
         name = "applicant.process_payload",
         skip(self, db),
-        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty),
+        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty),
         err
     )]
     async fn process_payload(
@@ -241,6 +241,7 @@ where
                 ..
             } => {
                 tracing::Span::current().record("callback_type", "ApplicantCreated");
+                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 let res = self
                     .customers
                     .start_kyc(db, external_user_id, applicant_id)
@@ -267,6 +268,7 @@ where
                 ..
             } => {
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Red");
+                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 let res = self
                     .customers
                     .decline_kyc(db, external_user_id, applicant_id)
@@ -294,6 +296,7 @@ where
                 ..
             } => {
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Green");
+                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
                 // Try to parse the level name, will return error for unrecognized values
                 match level_name.parse::<SumsubVerificationLevel>() {
                     Ok(_) => {} // Level is valid, continue
@@ -320,6 +323,7 @@ where
             }
             SumsubCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
+                tracing::Span::current().record("sandbox_mode", false);
                 return Err(ApplicantError::UnhandledCallbackType(format!(
                     "callback event not processed for payload {payload}",
                 )));
