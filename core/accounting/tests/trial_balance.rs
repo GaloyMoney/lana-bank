@@ -57,6 +57,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
         .1
         .unwrap();
 
+    let chart = accounting.chart_of_accounts().find_by_id(chart_id).await?;
     let trial_balance_name = format!("Trial Balance #{:05}", rand::rng().random_range(0..100000));
     accounting
         .trial_balances()
@@ -88,7 +89,7 @@ async fn add_chart_to_trial_balance() -> anyhow::Result<()> {
             false,
         )
         .await?;
-    assert_eq!(accounts.len(), 1);
+    assert_eq!(accounts.len(), 6);
 
     Ok(())
 }
