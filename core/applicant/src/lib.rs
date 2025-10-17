@@ -323,7 +323,6 @@ where
             }
             SumsubCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
-                tracing::Span::current().record("sandbox_mode", false);
                 return Err(ApplicantError::UnhandledCallbackType(format!(
                     "callback event not processed for payload {payload}",
                 )));
