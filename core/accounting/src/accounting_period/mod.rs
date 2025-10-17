@@ -1,24 +1,27 @@
-pub mod entity;
 pub mod chart_of_accounts_integration;
+pub mod entity;
 pub mod error;
 
-mod period;
 mod ledger;
+mod period;
 mod repo;
 
-use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use cala_ledger::{AccountSetId, CalaLedger, JournalId};
 use chrono::{DateTime, Utc};
 use es_entity::Idempotent;
-use cala_ledger::{CalaLedger, JournalId};
+use period::Period;
+use tracing::instrument;
 
-use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta};
 use crate::{
     Chart,
-   primitives::{AccountingPeriodId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject},
+    primitives::{
+        AccountingPeriodId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
+    },
 };
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
+use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta};
 
 use error::*;
 use repo::*;
@@ -28,10 +31,9 @@ pub use entity::AccountingPeriod;
 pub use entity::AccountingPeriodEvent;
 pub(super) use entity::*;
 
-
 #[derive(Clone)]
 pub struct AccountingPeriods<Perms>
-where 
+where
     Perms: PermissionCheck,
 {
     authz: Perms,
@@ -40,19 +42,28 @@ where
     journal_id: CalaJournalId,
 }
 
-
-
 impl<Perms> AccountingPeriods<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn new(authz: &Perms, pool: &sqlx::PgPool, cala: &CalaLedger, journal_id: CalaJournalId) -> Self {
+    pub fn new(
+        authz: &Perms,
+        pool: &sqlx::PgPool,
+        cala: &CalaLedger,
+        journal_id: CalaJournalId,
+    ) -> Self {
         let repo = AccountingPeriodRepo::new(pool);
         let ledger = AccountingPeriodLedger::new(cala, journal_id);
-        Self { authz: authz.clone(), repo: repo.clone(), ledger: ledger.clone(), journal_id }
+        Self {
+            authz: authz.clone(),
+            repo: repo.clone(),
+            ledger: ledger.clone(),
+            journal_id,
+        }
     }
+
     fn clone(&self) -> Self {
         Self {
             authz: self.authz.clone(),
@@ -61,6 +72,34 @@ where
             journal_id: self.journal_id,
         }
     }
+
+    /// Generates Accounting Periods to initialize their cycle. If any
+    /// Accounting Periods already exist, no new periods are added.
+    pub async fn open_initial_periods(
+        &self,
+        chart_id: ChartId,
+        tracking_account_set: AccountSetId,
+        periods: Vec<Period>,
+    ) -> Result<(), AccountingPeriodError> {
+        let open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
+
+        if open_periods.is_empty() {
+            for period in periods {
+                self.repo
+                    .create(NewAccountingPeriod {
+                        id: AccountingPeriodId::new(),
+                        chart_id,
+                        tracking_account_set,
+                        period,
+                        closed_at: None,
+                    })
+                    .await?;
+            }
+        }
+
+        Ok(())
+    }
+
     /// Closes currently open monthly Accounting Period under the given
     /// Chart of Accounts and returns next Accounting Period.
     /// Fails if no such Accounting Period is found.
@@ -83,8 +122,7 @@ where
             Idempotent::Executed(new) => {
                 self.repo.update_in_op(&mut db, &mut open_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
-                self.update_close_metadata(db, chart_id, now,)
-                    .await?;
+                self.update_close_metadata(db, chart_id, now).await?;
                 Ok(new_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
@@ -184,11 +222,7 @@ where
 
         let db = self.repo.begin_op().await?;
         self.ledger
-            .attach_chart_of_accounts_integration_meta(
-                db,
-                chart.id,
-                charts_integration_meta,
-            )
+            .attach_chart_of_accounts_integration_meta(db, chart.id, charts_integration_meta)
             .await?;
 
         Ok(config)
