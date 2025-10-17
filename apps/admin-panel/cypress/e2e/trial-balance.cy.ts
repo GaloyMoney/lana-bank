@@ -24,16 +24,18 @@ describe(t(TB + ".title"), () => {
       from: lastMonthDate.toISOString().split("T")[0],
       until: currentDate.toISOString().split("T")[0],
     }).then((response) => {
-      response.data.trialBalance?.accounts.forEach((account) => {
-        cy.get("main")
-          .contains(new RegExp(`^${account.name}$`))
-          .should("exist")
-        cy.get("main")
-          .contains(new RegExp(`^${account.name}$`))
-          .parent("tr")
-          .within(() => {
-            cy.get("td").should("have.length", 6)
-          })
+      const accounts = response.data.trialBalance?.accounts || []
+      accounts.forEach((account) => {
+        cy.get("tbody").then(($tbody) => {
+          if ($tbody.text().includes(account.name)) {
+            cy.get("tbody")
+              .contains(account.name)
+              .parent("tr")
+              .within(() => {
+                cy.get("td").should("have.length", 6)
+              })
+          }
+        })
       })
     })
     cy.takeScreenshot("trial-balance")

@@ -2,6 +2,7 @@
 
 import React, { useState } from "react"
 import { gql } from "@apollo/client"
+
 import {
   Table,
   TableBody,
@@ -34,42 +35,6 @@ gql`
       name
       accounts {
         ...TrialBalanceAccountBase
-        childrenWithCodeAndActivity {
-          ...TrialBalanceAccountBase
-          childrenWithCodeAndActivity {
-            ...TrialBalanceAccountBase
-            childrenWithCodeAndActivity {
-              ...TrialBalanceAccountBase
-              childrenWithCodeAndActivity {
-                ...TrialBalanceAccountBase
-                childrenWithCodeAndActivity {
-                  ...TrialBalanceAccountBase
-                  childrenWithCodeAndActivity {
-                    ...TrialBalanceAccountBase
-                    childrenWithCodeAndActivity {
-                      ...TrialBalanceAccountBase
-                      childrenWithCodeAndActivity {
-                        ...TrialBalanceAccountBase
-                        childrenWithCodeAndActivity {
-                          ...TrialBalanceAccountBase
-                          childrenWithCodeAndActivity {
-                            ...TrialBalanceAccountBase
-                            childrenWithCodeAndActivity {
-                              ...TrialBalanceAccountBase
-                              childrenWithCodeAndActivity {
-                                ...TrialBalanceAccountBase
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }
-        }
       }
     }
   }
@@ -88,96 +53,61 @@ gql`
 
 type Account = NonNullable<
   NonNullable<GetTrialBalanceQuery["trialBalance"]>["accounts"]
->[0]
+>[number]
 
-const TrialBalanceAccountRow = ({
-  account,
-  isRoot,
+const TrialBalanceRowComponent = ({
+  row,
   currency,
   layer,
+  router,
 }: {
-  account: Account
-  isRoot: boolean
+  row: Account
   currency: Currency
   layer: ReportLayer
+  router: ReturnType<typeof useRouter>
 }) => {
-  const router = useRouter()
-  if (!hasInEitherSettledOrPending(account.balanceRange)) return null
-  const balanceData = getBalanceData(account.balanceRange, currency, layer)
+  if (!hasInEitherSettledOrPending(row.balanceRange)) return null
+  const balanceData = getBalanceData(row.balanceRange, currency, layer)
 
   return (
-    <React.Fragment key={account.id}>
-      <TableRow
-        className="cursor-pointer hover:bg-muted/50"
-        onClick={() => router.push(`/ledger-accounts/${account.code}`)}
-      >
-        <TableCell className="w-32">
-          <div className={`font-mono text-xs ${isRoot ? "font-bold" : "text-gray-500"}`}>
-            {account.code}
-          </div>
-        </TableCell>
-        <TableCell className={`min-w-64 ${isRoot ? "font-bold" : ""}`}>
-          {account.name}
-        </TableCell>
-        <TableCell className="text-right w-48">
-          {balanceData?.start ? (
-            <Balance
-              align="end"
-              currency={currency}
-              className={isRoot ? "font-bold" : ""}
-              amount={balanceData.start.net}
-            />
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </TableCell>
-        <TableCell className="text-right w-48">
-          {balanceData?.diff ? (
-            <Balance
-              align="end"
-              currency={currency}
-              className={isRoot ? "font-bold" : ""}
-              amount={balanceData.diff.debit}
-            />
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </TableCell>
-        <TableCell className="text-left w-48">
-          {balanceData?.diff ? (
-            <Balance
-              align="start"
-              currency={currency}
-              className={isRoot ? "font-bold" : ""}
-              amount={balanceData.diff.credit}
-            />
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </TableCell>
-        <TableCell className="text-right w-48">
-          {balanceData?.end ? (
-            <Balance
-              align="end"
-              currency={currency}
-              className={isRoot ? "font-bold" : ""}
-              amount={balanceData.end.net}
-            />
-          ) : (
-            <span className="text-muted-foreground">-</span>
-          )}
-        </TableCell>
-      </TableRow>
-      {account.childrenWithCodeAndActivity?.map((child) => (
-        <TrialBalanceAccountRow
-          key={child.id}
-          account={child as Account}
-          isRoot={false}
-          currency={currency}
-          layer={layer}
-        />
-      ))}
-    </React.Fragment>
+    <TableRow
+      key={row.id}
+      className="cursor-pointer hover:bg-muted/50"
+      onClick={() => router.push(`/ledger-accounts/${row.code || row.id}`)}
+    >
+      <TableCell className="w-32">
+        <div className={`font-mono text-xs text-muted-foreground`}>{row.code ?? "-"}</div>
+      </TableCell>
+      <TableCell className={`min-w-64`}>{row.name}</TableCell>
+      <TableCell className="text-right w-48">
+        {balanceData?.start ? (
+          <Balance align="end" currency={currency} amount={balanceData.start.net} />
+        ) : (
+          <span>-</span>
+        )}
+      </TableCell>
+      <TableCell className="text-right w-48">
+        {balanceData?.diff ? (
+          <Balance align="end" currency={currency} amount={balanceData.diff.debit} />
+        ) : (
+          <span>-</span>
+        )}
+      </TableCell>
+      <TableCell className="text-left w-48">
+        {balanceData?.diff ? (
+          <Balance align="start" currency={currency} amount={balanceData.diff.credit} />
+        ) : (
+          <span>-</span>
+        )}
+      </TableCell>
+      <TableCell className="text-right w-48">
+        {balanceData?.end ? (
+          <Balance align="end" currency={currency} amount={balanceData.end.net} />
+        ) : (
+          <span>-</span>
+        )}
+      </TableCell>
+    </TableRow>
   )
 }
 
@@ -186,15 +116,19 @@ function TrialBalancePage() {
   const [dateRange, setDateRange] = useState<DateRange>(getInitialDateRange())
   const [currency, setCurrency] = useState<Currency>("usd")
   const [layer, setLayer] = useState<ReportLayer>("settled")
+  const router = useRouter()
 
-  const { data, loading, error } = useGetTrialBalanceQuery({
+  const {
+    data: data,
+    loading: loading,
+    error: error,
+  } = useGetTrialBalanceQuery({
     variables: {
       from: dateRange.from,
       until: dateRange.until,
     },
   })
 
-  const accounts = data?.trialBalance?.accounts
   if (error) return <div className="text-destructive">{error.message}</div>
 
   return (
@@ -212,7 +146,7 @@ function TrialBalancePage() {
           layer={layer}
           onLayerChange={setLayer}
         />
-        {loading && !accounts ? (
+        {loading && !data?.trialBalance?.accounts ? (
           <Skeleton className="h-96 w-full" />
         ) : (
           <div className="overflow-x-auto rounded-md border">
@@ -237,17 +171,19 @@ function TrialBalancePage() {
                   </TableHead>
                 </TableRow>
               </TableHeader>
-              {accounts ? (
+              {data?.trialBalance?.accounts && data.trialBalance.accounts.length > 0 ? (
                 <TableBody>
-                  {accounts.map((account) => (
-                    <TrialBalanceAccountRow
-                      key={account.id}
-                      account={account}
-                      isRoot={true}
-                      currency={currency}
-                      layer={layer}
-                    />
-                  ))}
+                  {data.trialBalance.accounts.map((entry) => {
+                    return (
+                      <TrialBalanceRowComponent
+                        key={entry.id}
+                        row={entry}
+                        currency={currency}
+                        layer={layer}
+                        router={router}
+                      />
+                    )
+                  })}
                 </TableBody>
               ) : (
                 <TableBody>
