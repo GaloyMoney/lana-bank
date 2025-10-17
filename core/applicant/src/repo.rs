@@ -18,6 +18,7 @@ impl ApplicantRepo {
         Ok(es_entity::DbOp::init(&self.pool).await?)
     }
 
+    #[tracing::instrument(name = "applicant.persist_webhook_data", skip(self), err)]
     pub async fn persist_webhook_data(
         &self,
         customer_id: CustomerId,
