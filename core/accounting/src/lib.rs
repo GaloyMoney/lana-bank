@@ -41,8 +41,6 @@ pub use transaction_templates::TransactionTemplates;
 pub use trial_balance::{TrialBalanceRoot, TrialBalances};
 pub use accounting_period::AccountingPeriods;
 
-use crate::accounting_period::AccountingPeriods;
-
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
     pub use crate::chart_of_accounts::ChartEvent;
