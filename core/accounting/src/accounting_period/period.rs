@@ -193,7 +193,7 @@ impl Frequency {
     }
 
     pub const fn monthly_by_day_in_month(day_in_month: u8) -> Option<Self> {
-        if day_in_month > 1 && day_in_month < 28 {
+        if day_in_month > 1 && day_in_month < 29 {
             Some(Self::Month(Month::OnDay(day_in_month)))
         } else {
             None
@@ -245,7 +245,7 @@ impl Frequency {
                 .with_day((*d).into())
                 .expect("valid date")
                 .checked_add_months(Months::new(1))
-                .expect("always in valid date range (avoiding date >27)")
+                .expect("always in valid date range (avoiding date >28)")
                 .checked_sub_days(Days::new(1))
                 .expect("always in valid date range"),
         }
@@ -279,20 +279,20 @@ mod tests {
 
     #[test]
     fn frequency_month_onday() {
-        let freq = Frequency::monthly_by_day_in_month(12).unwrap();
+        let freq = Frequency::monthly_by_day_in_month(28).unwrap();
 
-        test(&freq, "2025-05-12", "2025-06-11");
-        test(&freq, "2025-04-12", "2025-05-11");
-        test(&freq, "2025-03-12", "2025-04-11");
-        test(&freq, "2025-12-12", "2026-01-11");
-        test(&freq, "2025-01-12", "2025-02-11");
+        test(&freq, "2025-05-28", "2025-06-27");
+        test(&freq, "2025-04-28", "2025-05-27");
+        test(&freq, "2025-02-28", "2025-03-27");
+        test(&freq, "2025-12-28", "2026-01-27");
+        test(&freq, "2025-01-28", "2025-02-27");
 
         fn freq2(day: u8) -> Option<Frequency> {
             Frequency::monthly_by_day_in_month(day)
         }
 
         assert!(freq2(0).is_none());
-        assert!(freq2(28).is_none());
+        assert!(freq2(29).is_none());
     }
 
     #[test]
