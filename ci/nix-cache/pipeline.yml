@@ -41,7 +41,6 @@ jobs:
       trigger: true
       version: every
     - #@ set_pr_status("Awaiting build slot") 
-    - #@ check_latest_commit("lana-deps")
 
   - name: cache-lana-deps-pr
     max_in_flight: 3
@@ -51,7 +50,7 @@ jobs:
       version: every
       passed:
       - kickoff-pr
-    - do:
+    - in_parallel:
       - #@ set_pr_status("Caching deps") 
       - #@ set_pr_status("Building deps", context = "lana-deps") 
       - #@ check_latest_commit("lana-deps")
