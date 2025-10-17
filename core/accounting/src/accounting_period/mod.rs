@@ -1,37 +1,38 @@
-pub mod entity;
 pub mod chart_of_accounts_integration;
+pub mod entity;
 pub mod error;
 
-mod period;
 mod ledger;
+mod period;
 mod repo;
 
-use tracing::instrument;
 use audit::AuditSvc;
 use authz::PermissionCheck;
+use cala_ledger::{CalaLedger, JournalId};
 use chrono::{DateTime, Utc};
 use es_entity::Idempotent;
-use cala_ledger::{CalaLedger, JournalId};
+use tracing::instrument;
 
-use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta};
 use crate::{
     Chart,
-   primitives::{AccountingPeriodId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject},
+    primitives::{
+        AccountingPeriodId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
+    },
 };
+
+use error::AccountingPeriodError;
+use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta};
+use repo::AccountingPeriodRepo;
+
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
-
-use error::*;
-use repo::*;
-
 pub use entity::AccountingPeriod;
 #[cfg(feature = "json-schema")]
 pub use entity::AccountingPeriodEvent;
 pub(super) use entity::*;
+pub use period::Period;
 
-
-#[derive(Clone)]
 pub struct AccountingPeriods<Perms>
-where 
+where
     Perms: PermissionCheck,
 {
     authz: Perms,
@@ -40,18 +41,26 @@ where
     journal_id: CalaJournalId,
 }
 
-
-
 impl<Perms> AccountingPeriods<Perms>
 where
     Perms: PermissionCheck,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Action: From<CoreAccountingAction>,
     <<Perms as PermissionCheck>::Audit as AuditSvc>::Object: From<CoreAccountingObject>,
 {
-    pub fn new(authz: &Perms, pool: &sqlx::PgPool, cala: &CalaLedger, journal_id: CalaJournalId) -> Self {
+    pub fn new(
+        authz: &Perms,
+        pool: &sqlx::PgPool,
+        cala: &CalaLedger,
+        journal_id: CalaJournalId,
+    ) -> Self {
         let repo = AccountingPeriodRepo::new(pool);
         let ledger = AccountingPeriodLedger::new(cala, journal_id);
-        Self { authz: authz.clone(), repo: repo.clone(), ledger: ledger.clone(), journal_id }
+        Self {
+            authz: authz.clone(),
+            repo: repo.clone(),
+            ledger: ledger.clone(),
+            journal_id,
+        }
     }
     fn clone(&self) -> Self {
         Self {
@@ -61,30 +70,38 @@ where
             journal_id: self.journal_id,
         }
     }
+
     /// Closes currently open monthly Accounting Period under the given
     /// Chart of Accounts and returns next Accounting Period.
     /// Fails if no such Accounting Period is found.
     pub async fn close_month(
         &self,
-        mut db: es_entity::DbOp<'_>,
+        sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         closed_at: DateTime<Utc>,
         chart_id: ChartId,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
+        // TODO: Fix perms.
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
-        let pos = open_periods
-            .iter()
-            .position(|p| p.is_monthly())
+        let open_period = open_periods
+            .iter_mut()
+            .find(|p| p.is_monthly())
             .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
-        // TODO: Return or fetch from repo?
-        let now = crate::time::now();
-        let mut open_period = open_periods.remove(pos);
-        match open_period.close(closed_at, None) {
+
+        match open_period.close(closed_at, None)? {
             Idempotent::Executed(new) => {
-                self.repo.update_in_op(&mut db, &mut open_period).await?;
+                let mut db = self.repo.begin_op().await?;
+
+                self.repo.update_in_op(&mut db, open_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
-                self.update_close_metadata(db, chart_id, now,)
+                self.ledger
+                    .update_close_metadata_in_op(
+                        db,
+                        open_period.tracking_account_set,
+                        open_period.period_end(),
+                    )
                     .await?;
+
                 Ok(new_period)
             }
             Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
@@ -101,18 +118,6 @@ where
         todo!()
     }
 
-    async fn update_close_metadata(
-        &self,
-        db: es_entity::DbOp<'_>,
-        chart_id: ChartId,
-        closed_as_of: DateTime<Utc>,
-    ) -> Result<(), AccountingPeriodError> {
-        let closed_as_of = closed_as_of.date_naive();
-        self.ledger
-            .update_close_metadata(db, chart_id, closed_as_of)
-            .await?;
-        Ok(())
-    }
     pub async fn get_chart_of_accounts_integration_config(
         &self,
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
@@ -184,13 +189,17 @@ where
 
         let db = self.repo.begin_op().await?;
         self.ledger
-            .attach_chart_of_accounts_integration_meta(
-                db,
-                chart.id,
-                charts_integration_meta,
-            )
+            .attach_chart_of_accounts_integration_meta(db, chart.id, charts_integration_meta)
             .await?;
 
         Ok(config)
+    }
+
+    #[instrument(name = "core_accounting.accounting_periods.find_all", skip(self), err)]
+    pub async fn find_all<T: From<AccountingPeriod>>(
+        &self,
+        ids: &[AccountingPeriodId],
+    ) -> Result<std::collections::HashMap<AccountingPeriodId, T>, AccountingPeriodError> {
+        self.repo.find_all(ids).await
     }
 }

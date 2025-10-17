@@ -1,16 +1,18 @@
 mod closing;
 mod template;
 
-use serde::{Deserialize, Serialize};
-use chrono::{NaiveDate, DateTime, Utc};
 use audit::AuditInfo;
+use chrono::{DateTime, NaiveDate, Utc};
+use serde::{Deserialize, Serialize};
 
 use template::*;
-pub use template::{EntryParams, ClosingTransactionParams};
+pub use template::{ClosingTransactionParams, EntryParams};
 
-use crate::primitives::{ChartId, CalaTxId, AccountCode};
-use cala_ledger::{CalaLedger, account_set::AccountSetUpdate, JournalId, AccountSetId};
-use super::{chart_of_accounts_integration::ChartOfAccountsIntegrationConfig, error::AccountingPeriodError};
+use super::{
+    chart_of_accounts_integration::ChartOfAccountsIntegrationConfig, error::AccountingPeriodError,
+};
+use crate::primitives::{AccountCode, CalaTxId, ChartId};
+use cala_ledger::{AccountSetId, CalaLedger, JournalId, account_set::AccountSetUpdate};
 use closing::*;
 
 #[derive(Clone)]
@@ -103,20 +105,23 @@ impl AccountingPeriodLedger {
         Ok(())
     }
 
-    pub async fn update_close_metadata(
+    pub async fn update_close_metadata_in_op(
         &self,
         op: es_entity::DbOp<'_>,
-        chart_id: impl Into<AccountSetId>,
+        tracking_account_set_id: AccountSetId,
         closed_as_of: NaiveDate,
     ) -> Result<(), AccountingPeriodError> {
-        let id = chart_id.into();
-        let mut chart_root_account_set = self.cala.account_sets().find(id).await?;
+        let mut tracking_account_set = self
+            .cala
+            .account_sets()
+            .find(tracking_account_set_id)
+            .await?;
 
         let mut op = self
             .cala
             .ledger_operation_from_db_op(op.with_db_time().await?);
 
-        let mut metadata = chart_root_account_set
+        let mut metadata = tracking_account_set
             .values()
             .clone()
             .metadata
@@ -128,12 +133,12 @@ impl AccountingPeriodLedger {
             .metadata(Some(metadata))
             .expect("Failed to serialize metadata");
 
-        chart_root_account_set.update(update_values);
+        tracking_account_set.update(update_values);
         self.cala
             .account_sets()
-            .persist_in_op(&mut op, &mut chart_root_account_set)
+            .persist_in_op(&mut op, &mut tracking_account_set)
             .await?;
-        
+
         op.commit().await?;
         Ok(())
     }
@@ -192,7 +197,7 @@ impl AccountingPeriodLedger {
         //     .balances()
         //     .find_all(&expense_accounts)
         //     .await?;
-        
+
         //let op = self.repo.begin_op().await?.with_db_time().await?;
         let entries = vec![];
         // TODO: Move logic.

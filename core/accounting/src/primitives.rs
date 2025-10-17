@@ -448,11 +448,9 @@ impl CoreAccountingAction {
                 TrialBalance => {
                     map_action!(accounting, TrialBalance, TrialBalanceAction)
                 }
-                AccountingPeriod => map_action!(
-                    accounting,
-                    AccountingPeriod,
-                    AccountingPeriodAction
-                ),
+                AccountingPeriod => {
+                    map_action!(accounting, AccountingPeriod, AccountingPeriodAction)
+                }
                 AccountingPeriodConfiguration => map_action!(
                     accounting,
                     AccountingPeriodConfiguration,
@@ -661,9 +659,7 @@ impl FromStr for CoreAccountingObject {
                 CoreAccountingObject::TrialBalance(obj_ref)
             }
             AccountingPeriod => {
-                let obj_ref = id
-                    .parse()
-                    .map_err(|_| "could not parse AccountingPeriod")?;
+                let obj_ref = id.parse().map_err(|_| "could not parse AccountingPeriod")?;
                 CoreAccountingObject::AccountingPeriod(obj_ref)
             }
             AccountingPeriodConfiguration => {
@@ -825,9 +821,7 @@ impl FromStr for CoreAccountingAction {
                 CoreAccountingAction::from(action.parse::<AccountingPeriodAction>()?)
             }
             CoreAccountingActionDiscriminants::AccountingPeriodConfiguration => {
-                CoreAccountingAction::from(
-                    action.parse::<AccountingPeriodConfigurationAction>()?,
-                )
+                CoreAccountingAction::from(action.parse::<AccountingPeriodConfigurationAction>()?)
             }
         };
         Ok(res)

@@ -8,7 +8,7 @@ use crate::{
 use rbac_types::Subject;
 
 use super::module_config::{
-    period::*, balance_sheet::*, credit::*, deposit::*, profit_and_loss::*,
+    balance_sheet::*, credit::*, deposit::*, period::*, profit_and_loss::*,
 };
 
 pub(crate) async fn init(

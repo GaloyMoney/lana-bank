@@ -9,18 +9,18 @@ use job::{JobSvcConfig, Jobs};
 
 use cala_ledger::{
     AccountId, AccountSetId, CalaLedger, CalaLedgerConfig, Currency, DebitOrCredit, JournalId,
-    account::NewAccount, balance::error::BalanceError,
+    account::NewAccount,
     account_set::{AccountSetMemberId, error::AccountSetError},
+    balance::error::BalanceError,
 };
-use core_accounting::{AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput, AccountCode};
+use core_accounting::{AccountCode, AccountIdOrCode, Chart, CoreAccounting, ManualEntryInput};
 use helpers::{action, object};
 use rust_decimal::Decimal;
-
 
 #[tokio::test]
 async fn annual_closing() -> anyhow::Result<()> {
     let mut test = prepare_test().await?;
-    
+
     test.account("41.01.0102", 300, DebitOrCredit::Credit).await;
     test.account("51.01.0101", 100, DebitOrCredit::Debit).await;
     test.account("61.01.0101", 100, DebitOrCredit::Debit).await;
@@ -29,12 +29,11 @@ async fn annual_closing() -> anyhow::Result<()> {
 
     let equity_account_code = "3".parse::<AccountCode>().unwrap();
     let equity_parent_account_set_id = test.chart.account_set_id_from_code(&equity_account_code)?;
- 
-    let pre_equity_accounts = find_all_accounts(
-        &test.cala,
-        equity_parent_account_set_id.clone(),
-    ).await?;
-    let _closed_chart = test.accounting
+
+    let pre_equity_accounts =
+        find_all_accounts(&test.cala, equity_parent_account_set_id.clone()).await?;
+    let _closed_chart = test
+        .accounting
         .chart_of_accounts()
         .close_monthly(&DummySubject, test.chart.id)
         .await?;
@@ -43,7 +42,7 @@ async fn annual_closing() -> anyhow::Result<()> {
         .accounting
         .annual_closing_transactions()
         .execute(
-            &DummySubject, 
+            &DummySubject,
             test.chart.id,
             None,
             "Test Annual Closing".to_string(),
@@ -57,17 +56,12 @@ async fn annual_closing() -> anyhow::Result<()> {
         }
     }
 
-    let post_equity_accounts = find_all_accounts(
-        &test.cala,
-        equity_parent_account_set_id.clone(),
-    ).await?;
+    let post_equity_accounts =
+        find_all_accounts(&test.cala, equity_parent_account_set_id.clone()).await?;
     assert_eq!(post_equity_accounts.len(), pre_equity_accounts.len() + 1);
 
-    let post_equity_balance = find_account_balance(
-        &test.cala,
-        post_equity_accounts[0],
-        test.journal_id,
-    ).await?;
+    let post_equity_balance =
+        find_account_balance(&test.cala, post_equity_accounts[0], test.journal_id).await?;
     assert_eq!(post_equity_balance, Decimal::from(100));
 
     Ok(())
@@ -88,7 +82,6 @@ async fn prepare_test() -> anyhow::Result<Test> {
     let storage = Storage::new(&StorageConfig::default());
     let document_storage = DocumentStorage::new(&pool, &storage);
     let jobs = Jobs::init(JobSvcConfig::builder().pool(pool.clone()).build().unwrap()).await?;
-
 
     let accounting = CoreAccounting::new(&pool, &authz, &cala, journal_id, document_storage, &jobs);
     let chart_ref = format!("ref-{:08}", rand::rng().random_range(0..10000));
@@ -315,7 +308,7 @@ impl Test {
             )
             .await
             .unwrap();
-        
+
         let (source_dir, dest_dir) = if balance_type == DebitOrCredit::Debit {
             (DebitOrCredit::Credit, DebitOrCredit::Debit)
         } else {

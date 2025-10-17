@@ -1,7 +1,4 @@
-use crate::{
-    primitives::ChartId,
-    chart_of_accounts::error::ChartOfAccountsError,
-};
+use crate::{chart_of_accounts::error::ChartOfAccountsError, primitives::ChartId};
 
 use chrono::NaiveDate;
 use thiserror::Error;
@@ -34,9 +31,7 @@ pub enum AccountingPeriodError {
     CalaError(#[from] cala_ledger::error::LedgerError),
     #[error("AccountingPeriodError - CalaTxTemplateError: {0}")]
     TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
-    #[error(
-        "AccountingPeriodError - AccountingPeriodIntegrationConfigAlreadyExists"
-    )]
+    #[error("AccountingPeriodError - AccountingPeriodIntegrationConfigAlreadyExists")]
     AccountingPeriodIntegrationConfigAlreadyExists,
     #[error("AccountingPeriodError - ChartIdMismatch")]
     ChartIdMismatch,

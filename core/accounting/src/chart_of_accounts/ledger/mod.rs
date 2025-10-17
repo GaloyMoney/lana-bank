@@ -5,17 +5,20 @@ use rust_decimal::Decimal;
 use std::collections::HashMap;
 
 use cala_ledger::{
-    account::NewAccount, account_set::{AccountSetUpdate, NewAccountSet, AccountSetMemberId}, balance::AccountBalance, velocity::{
+    AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId,
+    LedgerOperation, VelocityControlId, VelocityLimitId,
+    account::NewAccount,
+    account_set::{AccountSetMemberId, AccountSetUpdate, NewAccountSet},
+    balance::AccountBalance,
+    velocity::{
         NewBalanceLimit, NewLimit, NewVelocityControl, NewVelocityLimit, Params, VelocityLimit,
-    }, AccountId, AccountSetId, BalanceId, CalaLedger, Currency, DebitOrCredit, JournalId, LedgerOperation, VelocityControlId, VelocityLimitId
+    },
 };
 
 use closing::*;
 use error::*;
 
-use crate::{
-    CHART_OF_ACCOUNTS_ENTITY_TYPE, EntityRef, LedgerAccountId,
-};
+use crate::{CHART_OF_ACCOUNTS_ENTITY_TYPE, EntityRef, LedgerAccountId};
 
 use crate::Chart;
 
@@ -144,11 +147,8 @@ impl ChartLedger {
             self.create_annual_close_offset_entries(None, revenue_accounts);
         let (expense_offset_entries, net_expenses) =
             self.create_annual_close_offset_entries(None, expense_accounts);
-        let (cost_of_revenue_offset_entries, net_cost_of_revenue) = self
-            .create_annual_close_offset_entries(
-                None,
-                cost_of_revenue_accounts,
-            );
+        let (cost_of_revenue_offset_entries, net_cost_of_revenue) =
+            self.create_annual_close_offset_entries(None, cost_of_revenue_accounts);
 
         let mut all_entries = Vec::new();
         // all_entries.extend(revenue_offset_entries);
@@ -167,7 +167,7 @@ impl ChartLedger {
             .await?;
         all_entries.push(equity_entry);
         // TODO: Ideally this should occur after the annual closing transaction
-        // and not only after the  account is created for retained earnings... 
+        // and not only after the  account is created for retained earnings...
         // punt until period entity is established.
         op.commit().await?;
 
@@ -466,12 +466,10 @@ impl ChartLedger {
         let mut accounts: Vec<BalanceId> = Vec::new();
         // TODO: Doesn't seem like pagination is used anywhere else... confirm default behavior
         // will provide all.
-        let members = self.cala
+        let members = self
+            .cala
             .account_sets()
-            .list_members_by_created_at(
-                parent_set_id, 
-                Default::default()
-            )
+            .list_members_by_created_at(parent_set_id, Default::default())
             .await?;
         for member in members.entities {
             match member.id {
@@ -479,7 +477,10 @@ impl ChartLedger {
                     accounts.push((journal_id, account_id, Currency::USD));
                 }
                 AccountSetMemberId::AccountSet(account_set_id) => {
-                    let nested_accounts = Box::pin(self.find_all_accounts_by_parent_set_id(journal_id, account_set_id)).await?;
+                    let nested_accounts = Box::pin(
+                        self.find_all_accounts_by_parent_set_id(journal_id, account_set_id),
+                    )
+                    .await?;
                     accounts.extend(nested_accounts);
                 }
             }

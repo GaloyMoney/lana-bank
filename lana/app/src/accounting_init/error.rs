@@ -27,9 +27,7 @@ pub enum AccountingInitError {
     #[error("AccountingInitError - BalanceSheetError: {0}")]
     BalanceSheetError(#[from] crate::balance_sheet::error::BalanceSheetError),
     #[error("AccountingInitError - AccountingPeriodError: {0}")]
-    AccountingPeriodError(
-        #[from] crate::accounting_period::error::AccountingPeriodError,
-    ),
+    AccountingPeriodError(#[from] crate::accounting_period::error::AccountingPeriodError),
     #[error("AccountingInitError - SeedFileError: {0}")]
     SeedFileError(#[from] std::io::Error),
     #[error("AccountingInitError - MissingConfig: {0}")]

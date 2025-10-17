@@ -3,10 +3,7 @@ use serde::Deserialize;
 use crate::{
     accounting::Chart,
     accounting_init::AccountingInitError,
-    accounting_period::{
-        AccountingPeriods, ChartOfAccountsIntegrationConfig,
-        error::AccountingPeriodError,
-    },
+    accounting_period::{AccountingPeriods, error::AccountingPeriodError},
 };
 
 #[derive(Deserialize)]
@@ -51,9 +48,7 @@ pub(in crate::accounting_init::seed) async fn accounting_period_module_configure
         .await
     {
         Ok(_) => (),
-        Err(
-            AccountingPeriodError::AccountingPeriodIntegrationConfigAlreadyExists,
-        ) => (),
+        Err(AccountingPeriodError::AccountingPeriodIntegrationConfigAlreadyExists) => (),
         Err(e) => return Err(e.into()),
     };
 

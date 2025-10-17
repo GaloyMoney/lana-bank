@@ -1,4 +1,4 @@
-use chrono::{DateTime, Datelike as _, Days, Duration, Months, NaiveDate, Utc};
+use chrono::{DateTime, NaiveDate, Utc};
 use derive_builder::Builder;
 #[cfg(feature = "json-schema")]
 use schemars::JsonSchema;
@@ -7,7 +7,7 @@ use serde::{Deserialize, Serialize};
 use cala_ledger::{AccountSetId as LedgerAccountSetId, TransactionId as LedgerTransactionId};
 use es_entity::*;
 
-use crate::{AccountingPeriodId, primitives::ChartId};
+use crate::primitives::{AccountingPeriodId, ChartId};
 
 use super::error::AccountingPeriodError;
 use super::period::Period;
@@ -32,12 +32,12 @@ pub enum AccountingPeriodEvent {
 #[derive(EsEntity, Builder, Clone)]
 #[builder(pattern = "owned", build_fn(error = "EsEntityError"))]
 pub struct AccountingPeriod {
-    pub(super) id: AccountingPeriodId,
-    pub(super) chart_id: ChartId,
+    pub id: AccountingPeriodId,
+    pub chart_id: ChartId,
     #[builder(default)]
-    pub(super) closed_at: Option<DateTime<Utc>>,
-    tracking_account_set: LedgerAccountSetId,
-    period: Period,
+    pub closed_at: Option<DateTime<Utc>>,
+    pub tracking_account_set: LedgerAccountSetId,
+    pub period: Period,
 
     events: EntityEvents<AccountingPeriodEvent>,
 }
@@ -51,13 +51,33 @@ impl AccountingPeriod {
         self.period.is_annual()
     }
 
+    pub const fn period_end(&self) -> NaiveDate {
+        self.period.period_end()
+    }
+
+    /// Closes this Accounting Period if all temporal conditions are
+    /// met, otherwise returns an error describing the unfulfilled
+    /// condition. Returns a blueprint for the next Accounting Period
+    /// or `Idempotent::Ignored` if the period has already been
+    /// closed.
+    ///
+    /// To close unconditionally call `close_unchecked`.
+    pub fn close(
+        &mut self,
+        closed_at: DateTime<Utc>,
+        closing_transaction: Option<LedgerTransactionId>,
+    ) -> Result<Idempotent<NewAccountingPeriod>, AccountingPeriodError> {
+        self.check_can_close(closed_at.date_naive())?;
+        Ok(self.close_unchecked(closed_at, closing_transaction))
+    }
+
     /// Unconditionally closes this Accounting Period. Returns a
     /// blueprint for the next Accounting Period or
     /// `Idempotent::Ignored` if the period has already been closed.
     ///
     /// This method does not verify any temporal conditions. Call
-    /// `checked_close` if temporal conditions have to be verified.
-    pub fn close(
+    /// `close` if temporal conditions have to be verified.
+    pub fn close_unchecked(
         &mut self,
         closed_at: DateTime<Utc>,
         closing_transaction: Option<LedgerTransactionId>,
@@ -80,22 +100,6 @@ impl AccountingPeriod {
         self.closed_at = Some(closed_at);
 
         Idempotent::Executed(new_accounting_period)
-    }
-
-    /// Closes this Accounting Period if all temporal conditions are
-    /// met, otherwise returns an error describing the unfulfilled
-    /// condition. Returns a blueprint for the next Accounting Period
-    /// or `Idempotent::Ignored` if the period has already been
-    /// closed.
-    ///
-    /// To close unconditionally call `close`.
-    pub fn checked_close(
-        &mut self,
-        closed_at: DateTime<Utc>,
-        closing_transaction: Option<LedgerTransactionId>,
-    ) -> Result<Idempotent<NewAccountingPeriod>, AccountingPeriodError> {
-        self.check_can_close(closed_at.date_naive())?;
-        Ok(self.close(closed_at, closing_transaction))
     }
 
     /// Verifies that `closing_date` falls into allowable time range,
@@ -150,7 +154,7 @@ pub struct NewAccountingPeriod {
 
 impl IntoEvents<AccountingPeriodEvent> for NewAccountingPeriod {
     fn into_events(self) -> EntityEvents<AccountingPeriodEvent> {
-        let mut events = vec![AccountingPeriodEvent::Initialized {
+        let events = vec![AccountingPeriodEvent::Initialized {
             id: self.id,
             chart_id: self.chart_id,
             tracking_account_set: self.tracking_account_set,

@@ -27,6 +27,21 @@ type AccountingCsvDownloadLinkGeneratePayload {
 	link: AccountingCsvDownloadLink!
 }
 
+type AccountingPeriod {
+	id: ID!
+	accountingPeriodId: UUID!
+	trackingAccountSetId: UUID!
+	period: PeriodRange!
+}
+
+input AccountingPeriodCloseMonthlyInput {
+	chartId: UUID!
+}
+
+type AccountingPeriodCloseMonthlyPayload {
+	accountingPeriod: AccountingPeriod!
+}
+
 enum Activity {
 	INACTIVE
 	ACTIVE
@@ -1531,6 +1546,7 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
+	accountingPeriodCloseMonthly(input: AccountingPeriodCloseMonthlyInput!): AccountingPeriodCloseMonthlyPayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!
@@ -1644,6 +1660,11 @@ enum PendingCreditFacilityStatus {
 enum Period {
 	MONTHS
 	DAYS
+}
+
+type PeriodRange {
+	periodStart: Date!
+	periodEnd: Date!
 }
 
 type PermissionSet {

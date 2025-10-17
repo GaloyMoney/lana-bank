@@ -1,11 +1,25 @@
 use chrono::{DateTime, Datelike as _, Days, Duration, Months, NaiveDate, Utc};
 use serde::{Deserialize, Serialize};
-
-#[derive(Debug, Clone, Serialize, Deserialize)]
+/// Recurring time interval (i. e. a portion of time between two
+/// dates) with a _grace period_ after the period's end.
+///
+/// Grace period is typically used as a time buffer for some external,
+/// time-sensitive action. It is purely informative and does not
+/// contribute to the periodicity, i. e. the next period starts right
+/// after the end of the previous period, regardless of grace period:
+///
+/// ```
+/// S = start of period, E = end of period, G = end of grace period
+///
+/// S—————————————————E······G
+///                   S—————————————————E······G
+///                                     S—————————————————E······G
+/// ```
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 pub struct Period {
     frequency: Frequency,
-    period_start: NaiveDate,
-    period_end: NaiveDate,
+    pub period_start: NaiveDate,
+    pub period_end: NaiveDate,
     grace_period_duration: Duration,
 }
 
@@ -148,21 +162,25 @@ impl Period {
     pub fn grace_period_end(&self) -> NaiveDate {
         self.period_end + self.grace_period_duration
     }
+
+    pub const fn period_end(&self) -> NaiveDate {
+        self.period_end
+    }
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 enum Year {
     Calendar,
     Fiscal { day: u32, month: u32 },
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 enum Month {
     Calendar,
     OnDay(u8),
 }
 
-#[derive(Debug, Clone, Serialize, Deserialize)]
+#[derive(Debug, Clone, Copy, Serialize, Deserialize, PartialEq, Eq)]
 enum Frequency {
     Year(Year),
     Month(Month),
@@ -174,7 +192,7 @@ impl Frequency {
     }
 
     pub const fn monthly_by_day_in_month(day_in_month: u8) -> Option<Self> {
-        if day_in_month > 1 && day_in_month < 28 {
+        if day_in_month > 1 && day_in_month < 29 {
             Some(Self::Month(Month::OnDay(day_in_month)))
         } else {
             None
@@ -226,7 +244,7 @@ impl Frequency {
                 .with_day((*d).into())
                 .expect("valid date")
                 .checked_add_months(Months::new(1))
-                .expect("always in valid date range (avoiding date >27)")
+                .expect("always in valid date range (avoiding date >28)")
                 .checked_sub_days(Days::new(1))
                 .expect("always in valid date range"),
         }
@@ -260,20 +278,20 @@ mod tests {
 
     #[test]
     fn frequency_month_onday() {
-        let freq = Frequency::monthly_by_day_in_month(12).unwrap();
+        let freq = Frequency::monthly_by_day_in_month(28).unwrap();
 
-        test(&freq, "2025-05-12", "2025-06-11");
-        test(&freq, "2025-04-12", "2025-05-11");
-        test(&freq, "2025-03-12", "2025-04-11");
-        test(&freq, "2025-12-12", "2026-01-11");
-        test(&freq, "2025-01-12", "2025-02-11");
+        test(&freq, "2025-05-28", "2025-06-27");
+        test(&freq, "2025-04-28", "2025-05-27");
+        test(&freq, "2025-02-28", "2025-03-27");
+        test(&freq, "2025-12-28", "2026-01-27");
+        test(&freq, "2025-01-28", "2025-02-27");
 
         fn freq2(day: u8) -> Option<Frequency> {
             Frequency::monthly_by_day_in_month(day)
         }
 
         assert!(freq2(0).is_none());
-        assert!(freq2(28).is_none());
+        assert!(freq2(29).is_none());
     }
 
     #[test]

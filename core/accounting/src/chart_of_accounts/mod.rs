@@ -7,20 +7,18 @@ pub mod ledger;
 mod repo;
 pub mod tree;
 
+use chrono::{DateTime, Utc};
 use es_entity::Idempotent;
 use tracing::instrument;
-use chrono::{DateTime, Utc};
 
 use audit::AuditSvc;
 use authz::PermissionCheck;
 
 use cala_ledger::{AccountSetId, BalanceId, CalaLedger, Currency, account::Account};
 
-use crate::{
-    primitives::{
-        AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
-        ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
-    },
+use crate::primitives::{
+    AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
+    ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId,
 };
 
 #[cfg(feature = "json-schema")]
@@ -242,26 +240,28 @@ where
         let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
         // TODO: These profit/loss destination AccountSets must also be configured but slightly differently than the ProfitAndLoss (top-level) AccountSets.
         let retained_earnings_parent_code = "32.01".parse::<AccountCode>().unwrap();
-        let retained_earnings_set_id = chart.account_set_id_from_code(&retained_earnings_parent_code)?;
+        let retained_earnings_set_id =
+            chart.account_set_id_from_code(&retained_earnings_parent_code)?;
         let retained_losses_parent_code = "32.02".parse::<AccountCode>().unwrap();
-        let retained_losses_set_id = chart.account_set_id_from_code(&retained_losses_parent_code)?;
+        let retained_losses_set_id =
+            chart.account_set_id_from_code(&retained_losses_parent_code)?;
 
-        let revenue_accounts = self.chart_ledger
+        let revenue_accounts = self
+            .chart_ledger
             .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
             .await?;
 
-        let expense_accounts = self.chart_ledger
+        let expense_accounts = self
+            .chart_ledger
             .find_all_accounts_by_parent_set_id(self.journal_id, expenses_set_id)
             .await?;
 
-        let cost_of_revenue_accounts = self.chart_ledger
+        let cost_of_revenue_accounts = self
+            .chart_ledger
             .find_all_accounts_by_parent_set_id(self.journal_id, cost_of_revenue_set_id)
             .await?;
 
-        let revenue_account_balances = self.cala
-            .balances()
-            .find_all(&revenue_accounts)
-            .await?;
+        let revenue_account_balances = self.cala.balances().find_all(&revenue_accounts).await?;
 
         let cost_of_revenue_account_balances = self
             .cala
@@ -269,11 +269,8 @@ where
             .find_all(&cost_of_revenue_accounts)
             .await?;
 
-        let expenses_account_balances = self.cala
-            .balances()
-            .find_all(&expense_accounts)
-            .await?;
-        
+        let expenses_account_balances = self.cala.balances().find_all(&expense_accounts).await?;
+
         let op = self.repo.begin_op().await?.with_db_time().await?;
         let entries = self
             .chart_ledger

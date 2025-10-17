@@ -18,6 +18,7 @@ pub mod trial_balance;
 
 use std::{collections::HashMap, sync::Arc};
 
+pub use accounting_period::AccountingPeriods;
 use audit::AuditSvc;
 use authz::PermissionCheck;
 pub use balance_sheet::{BalanceSheet, BalanceSheets};
@@ -39,7 +40,6 @@ pub use profit_and_loss::{ProfitAndLossStatement, ProfitAndLossStatements};
 use tracing::instrument;
 pub use transaction_templates::TransactionTemplates;
 pub use trial_balance::{TrialBalanceRoot, TrialBalances};
-pub use accounting_period::AccountingPeriods;
 
 #[cfg(feature = "json-schema")]
 pub mod event_schema {
@@ -113,8 +113,7 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
-        let accounting_periods =
-            AccountingPeriods::new(authz, pool, cala, journal_id);
+        let accounting_periods = AccountingPeriods::new(authz, pool, cala, journal_id);
         Self {
             authz: Arc::new(authz.clone()),
             chart_of_accounts: Arc::new(chart_of_accounts),

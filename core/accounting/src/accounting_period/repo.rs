@@ -1,10 +1,13 @@
-use sqlx::PgPool;
 use chrono::{DateTime, Utc};
 use es_entity::*;
+use sqlx::PgPool;
 
 use crate::primitives::{AccountingPeriodId, ChartId};
 
-use super::{entity::{AccountingPeriod, AccountingPeriodEvent}, error::AccountingPeriodError};
+use super::{
+    entity::{AccountingPeriod, AccountingPeriodEvent},
+    error::AccountingPeriodError,
+};
 
 #[derive(EsRepo)]
 #[es_repo(
