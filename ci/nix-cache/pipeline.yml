@@ -40,7 +40,6 @@ jobs:
     - get: prs
       trigger: true
       version: every
-    - #@ set_pr_status("Awaiting build slot") 
 
   - name: cache-lana-deps-pr
     max_in_flight: 3
