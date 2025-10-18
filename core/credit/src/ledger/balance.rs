@@ -172,12 +172,12 @@ impl CreditFacilityBalanceSummary {
 
 #[derive(Debug, Default, Copy, Clone, Serialize, Deserialize)]
 #[cfg_attr(feature = "json-schema", derive(JsonSchema))]
-pub struct CreditFacilityProposalBalanceSummary {
+pub struct PendingCreditFacilityBalanceSummary {
     facility: UsdCents,
     collateral: Satoshis,
 }
 
-impl CreditFacilityProposalBalanceSummary {
+impl PendingCreditFacilityBalanceSummary {
     pub fn new(facility: UsdCents, collateral: Satoshis) -> Self {
         Self {
             collateral,
