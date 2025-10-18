@@ -5,16 +5,13 @@ use std::collections::HashMap;
 use cala_ledger::{
     CalaLedger, Currency, JournalId,
     account::Account,
-    account_set::{
-        AccountSet, AccountSetId, AccountSetMemberByExternalId, AccountSetMemberId,
-        AccountSetMembersByExternalIdCursor,
-    },
+    account_set::{AccountSet, AccountSetId, AccountSetMemberId},
 };
 use chrono::NaiveDate;
 
 use crate::{AccountCode, LedgerAccount, LedgerAccountId, journal_error::JournalError};
 
-use super::{AccountBalances, BalanceRanges, LedgerAccountChildrenCursor};
+use super::{AccountBalances, BalanceRanges};
 
 use error::*;
 
@@ -316,137 +313,5 @@ impl LedgerAccountLedger {
         }
 
         Ok(rows)
-    }
-
-    #[allow(dead_code)]
-    pub async fn list_children(
-        &self,
-        id: AccountSetId,
-        args: es_entity::PaginatedQueryArgs<LedgerAccountChildrenCursor>,
-        from: chrono::NaiveDate,
-        until: Option<chrono::NaiveDate>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<LedgerAccount, LedgerAccountChildrenCursor>,
-        LedgerAccountLedgerError,
-    > {
-        let member_account_sets = self
-            .get_member_account_sets::<LedgerAccountChildrenCursor>(id, args)
-            .await?;
-        let mut account_set_ids = Vec::new();
-        let mut account_ids = Vec::new();
-        let mut external_ids = HashMap::new();
-        for member in member_account_sets.entities {
-            match member.id {
-                cala_ledger::account_set::AccountSetMemberId::AccountSet(inner_id) => {
-                    account_set_ids.push(inner_id);
-                    if let Some(ext_id) = member.external_id {
-                        external_ids.insert(LedgerAccountId::from(inner_id), ext_id);
-                    }
-                }
-                cala_ledger::account_set::AccountSetMemberId::Account(inner_id) => {
-                    account_ids.push(inner_id);
-                    if let Some(ext_id) = member.external_id {
-                        external_ids.insert(LedgerAccountId::from(inner_id), ext_id);
-                    }
-                }
-            }
-        }
-
-        let ledger_account_ids: Vec<LedgerAccountId> = account_set_ids
-            .iter()
-            .map(|id| (*id).into())
-            .chain(account_ids.iter().map(|id| (*id).into()))
-            .collect();
-
-        let balance_ids = ledger_account_ids
-            .iter()
-            .flat_map(|id| {
-                [
-                    (self.journal_id, (*id).into(), Currency::USD),
-                    (self.journal_id, (*id).into(), Currency::BTC),
-                ]
-            })
-            .collect::<Vec<_>>();
-
-        let (account_sets_result, accounts_result, balances_result) = tokio::join!(
-            self.cala
-                .account_sets()
-                .find_all::<AccountSet>(&account_set_ids),
-            self.cala.accounts().find_all::<Account>(&account_ids),
-            self.cala
-                .balances()
-                .effective()
-                .find_all_in_range(&balance_ids, from, until)
-        );
-
-        let mut account_sets = account_sets_result?;
-        let mut accounts = accounts_result?;
-        let mut balances = balances_result?;
-
-        let mut result = Vec::with_capacity(account_set_ids.len() + account_ids.len());
-
-        for id in account_set_ids {
-            if let Some(account_set) = account_sets.remove(&id) {
-                let account_id: LedgerAccountId = id.into();
-                let balance_ranges = BalanceRanges::extract_from_balances(
-                    &mut balances,
-                    self.journal_id,
-                    account_id,
-                );
-                let ledger_account = LedgerAccount::from((account_set, balance_ranges));
-                result.push(ledger_account);
-            }
-        }
-
-        for id in account_ids {
-            if let Some(account) = accounts.remove(&id) {
-                let account_id: LedgerAccountId = id.into();
-                let balance_ranges = BalanceRanges::extract_from_balances(
-                    &mut balances,
-                    self.journal_id,
-                    account_id,
-                );
-                let ledger_account = LedgerAccount::from((account, balance_ranges));
-                result.push(ledger_account);
-            }
-        }
-
-        Ok(es_entity::PaginatedQueryRet {
-            entities: result,
-            has_next_page: member_account_sets.has_next_page,
-            end_cursor: member_account_sets.end_cursor,
-        })
-    }
-
-    #[allow(dead_code)]
-    async fn get_member_account_sets<U>(
-        &self,
-        account_set_id: AccountSetId,
-        cursor: es_entity::PaginatedQueryArgs<U>,
-    ) -> Result<
-        es_entity::PaginatedQueryRet<AccountSetMemberByExternalId, U>,
-        LedgerAccountLedgerError,
-    >
-    where
-        U: std::fmt::Debug
-            + From<AccountSetMembersByExternalIdCursor>
-            + Into<AccountSetMembersByExternalIdCursor>,
-    {
-        let cala_cursor = es_entity::PaginatedQueryArgs {
-            after: cursor.after.map(Into::into),
-            first: cursor.first,
-        };
-
-        let ret = self
-            .cala
-            .account_sets()
-            .list_members_by_external_id(account_set_id, cala_cursor)
-            .await?;
-
-        Ok(es_entity::PaginatedQueryRet {
-            entities: ret.entities,
-            has_next_page: ret.has_next_page,
-            end_cursor: ret.end_cursor.map(Into::into),
-        })
     }
 }
