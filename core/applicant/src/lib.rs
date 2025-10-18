@@ -134,6 +134,18 @@ pub enum SumsubCallbackPayload {
         created_at_ms: String,
         sandbox_mode: Option<bool>,
     },
+    #[serde(rename = "applicantPending")]
+    #[serde(rename_all = "camelCase")]
+    ApplicantPending {
+        applicant_id: String,
+        sandbox_mode: Option<bool>,
+    },
+    #[serde(rename = "applicantPersonalInfoChanged")]
+    #[serde(rename_all = "camelCase")]
+    ApplicantPersonalInfoChanged {
+        applicant_id: String,
+        sandbox_mode: Option<bool>,
+    },
     #[serde(other)]
     Unknown,
 }
@@ -213,7 +225,7 @@ where
 
         match self.process_payload(&mut db, payload).await {
             Ok(_) => (),
-            Err(ApplicantError::UnhandledCallbackType(_)) => (),
+            Err(ApplicantError::UnhandledCallbackType) => (),
             Err(e) => return Err(e),
         }
 
@@ -225,7 +237,7 @@ where
     #[instrument(
         name = "applicant.process_payload",
         skip(self, db),
-        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty),
+        fields(ignore_for_sandbox = false, callback_type = tracing::field::Empty, sandbox_mode = tracing::field::Empty, applicant_id = tracing::field::Empty, level = tracing::field::Empty, customer_id = tracing::field::Empty),
         err
     )]
     async fn process_payload(
@@ -237,11 +249,16 @@ where
             SumsubCallbackPayload::ApplicantCreated {
                 external_user_id,
                 applicant_id,
+                level_name,
                 sandbox_mode,
                 ..
             } => {
                 tracing::Span::current().record("callback_type", "ApplicantCreated");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current().record("level", level_name.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
                 let res = self
                     .customers
                     .start_kyc(db, external_user_id, applicant_id)
@@ -264,11 +281,16 @@ where
                         ..
                     },
                 applicant_id,
+                level_name,
                 sandbox_mode,
                 ..
             } => {
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Red");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current().record("level", level_name.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
                 let res = self
                     .customers
                     .decline_kyc(db, external_user_id, applicant_id)
@@ -297,13 +319,15 @@ where
             } => {
                 tracing::Span::current().record("callback_type", "ApplicantReviewed.Green");
                 tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("applicant_id", applicant_id.as_str());
+                tracing::Span::current().record("level", level_name.as_str());
+                tracing::Span::current()
+                    .record("customer_id", external_user_id.to_string().as_str());
                 // Try to parse the level name, will return error for unrecognized values
                 match level_name.parse::<SumsubVerificationLevel>() {
                     Ok(_) => {} // Level is valid, continue
                     Err(_) => {
-                        return Err(ApplicantError::UnhandledCallbackType(format!(
-                            "Sumsub level {level_name} not implemented"
-                        )));
+                        return Err(ApplicantError::UnhandledLevelType);
                     }
                 };
 
@@ -321,11 +345,29 @@ where
                     Err(e) => return Err(e.into()),
                 }
             }
+            SumsubCallbackPayload::ApplicantPending {
+                applicant_id,
+                sandbox_mode,
+                ..
+            } => {
+                // No-op: we don't need to process pending applicants
+                tracing::Span::current().record("callback_type", "ApplicantPending");
+                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("applicant_id", applicant_id.as_str());
+            }
+            SumsubCallbackPayload::ApplicantPersonalInfoChanged {
+                applicant_id,
+                sandbox_mode,
+                ..
+            } => {
+                // No-op: we don't need to process personal info changes
+                tracing::Span::current().record("callback_type", "ApplicantPersonalInfoChanged");
+                tracing::Span::current().record("sandbox_mode", sandbox_mode.unwrap_or(false));
+                tracing::Span::current().record("applicant_id", applicant_id.as_str());
+            }
             SumsubCallbackPayload::Unknown => {
                 tracing::Span::current().record("callback_type", "Unknown");
-                return Err(ApplicantError::UnhandledCallbackType(format!(
-                    "callback event not processed for payload {payload}",
-                )));
+                return Err(ApplicantError::UnhandledCallbackType);
             }
         }
         Ok(())

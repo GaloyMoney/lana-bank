@@ -10,8 +10,10 @@ pub enum ApplicantError {
     CustomerError(#[from] core_customer::error::CustomerError),
     #[error("ApplicantError - SystemTimeError: {0}")]
     SystemTimeError(#[from] std::time::SystemTimeError),
-    #[error("ApplicantError - UnhandledCallbackType: {0}")]
-    UnhandledCallbackType(String),
+    #[error("ApplicantError - UnhandledCallbackType")]
+    UnhandledCallbackType,
+    #[error("ApplicantError - UnhandledLevelType")]
+    UnhandledLevelType,
     #[error("ApplicantError - MissingExternalUserId: {0}")]
     MissingExternalUserId(String),
     #[error("ApplicantError - UuidError: {0}")]
