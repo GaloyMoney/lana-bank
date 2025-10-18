@@ -27,7 +27,7 @@ config:
       - |
         set -euo pipefail
         cd repo
-        nix run .#cocogitto bump -- --auto --dry-run | tr -d '\n' > ../version/version
+        nix run ./ci#next-version > ../version/version
 #@ end
 
 #@ def build_release(resource_name="repo"):
@@ -110,7 +110,7 @@ config:
         set -euo pipefail
         cd repo
         cachix use $CACHIX_CACHE_NAME
-        cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check_latest_commit
+        cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check-latest-commit
 #@ if pkg == "":
 on_failure: #@ set_pr_status("Aborted - old commit", status = "success")
 #@ else:
