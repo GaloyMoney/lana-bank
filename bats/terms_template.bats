@@ -22,6 +22,7 @@ teardown_file() {
         accrualCycleInterval: "END_OF_MONTH",
         accrualInterval: "END_OF_DAY",
         oneTimeFeeRate: "5",
+        disbursalPolicy: "SINGLE_DISBURSAL",
         duration: {
           period: "MONTHS",
           units: 12
@@ -57,6 +58,7 @@ teardown_file() {
         accrualCycleInterval: "END_OF_MONTH",
         accrualInterval: "END_OF_DAY",
         oneTimeFeeRate: "5",
+        disbursalPolicy: "SINGLE_DISBURSAL",
         duration: {
           period: "MONTHS",
           units: 24

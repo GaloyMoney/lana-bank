@@ -212,6 +212,10 @@ impl CreditFacility {
         self.terms.one_time_fee_rate.apply(self.amount)
     }
 
+    pub fn is_single_disbursal(&self) -> bool {
+        self.terms.is_single_disbursal()
+    }
+
     fn is_matured(&self) -> bool {
         self.events
             .iter_all()
@@ -625,7 +629,7 @@ mod test {
     use rust_decimal_macros::dec;
 
     use crate::{
-        terms::{FacilityDuration, InterestInterval, OneTimeFeeRatePct},
+        terms::{DisbursalPolicy, FacilityDuration, InterestInterval, OneTimeFeeRatePct},
         *,
     };
 
@@ -641,6 +645,7 @@ mod test {
             .accrual_cycle_interval(InterestInterval::EndOfMonth)
             .accrual_interval(InterestInterval::EndOfDay)
             .one_time_fee_rate(OneTimeFeeRatePct::new(5))
+            .disbursal_policy(DisbursalPolicy::SingleDisbursal)
             .liquidation_cvl(dec!(105))
             .margin_call_cvl(dec!(125))
             .initial_cvl(dec!(140))
