@@ -1761,6 +1761,7 @@ export const mockLedgerAccount = (overrides?: Partial<LedgerAccount>, _relations
         entity: overrides && overrides.hasOwnProperty('entity') ? overrides.entity! : relationshipsToOmit.has('Collateral') ? {} as Collateral : mockCollateral({}, relationshipsToOmit),
         history: overrides && overrides.hasOwnProperty('history') ? overrides.history! : relationshipsToOmit.has('JournalEntryConnection') ? {} as JournalEntryConnection : mockJournalEntryConnection({}, relationshipsToOmit),
         id: overrides && overrides.hasOwnProperty('id') ? overrides.id! : faker.string.uuid(),
+        isRootAccount: overrides && overrides.hasOwnProperty('isRootAccount') ? overrides.isRootAccount! : faker.datatype.boolean(),
         ledgerAccountId: overrides && overrides.hasOwnProperty('ledgerAccountId') ? overrides.ledgerAccountId! : generateMockValue.uuid(),
         name: overrides && overrides.hasOwnProperty('name') ? overrides.name! : generateMockValue.name(),
         normalBalanceType: overrides && overrides.hasOwnProperty('normalBalanceType') ? overrides.normalBalanceType! : DebitOrCredit.Credit,

@@ -43,6 +43,7 @@ gql`
     id
     code
     name
+    isRootAccount
     balanceRange {
       __typename
       ...UsdLedgerBalanceRangeFragment
@@ -76,31 +77,39 @@ const TrialBalanceRowComponent = ({
       onClick={() => router.push(`/ledger-accounts/${row.code || row.id}`)}
     >
       <TableCell className="w-32">
-        <div className={`font-mono text-xs text-muted-foreground`}>{row.code ?? "-"}</div>
+        <div
+          className={`font-mono text-xs  ${row.isRootAccount ? "font-bold" : "text-muted-foreground"}`}
+        >
+          {row.code}
+        </div>
       </TableCell>
-      <TableCell className={`min-w-64`}>{row.name}</TableCell>
-      <TableCell className="text-right w-48">
+      <TableCell
+        className={`min-w-64 ${row.isRootAccount ? "font-bold" : "text-muted-foreground"}`}
+      >
+        {row.name}
+      </TableCell>
+      <TableCell className={`text-right w-48 ${row.isRootAccount && "font-bold"}`}>
         {balanceData?.start ? (
           <Balance align="end" currency={currency} amount={balanceData.start.net} />
         ) : (
           <span>-</span>
         )}
       </TableCell>
-      <TableCell className="text-right w-48">
+      <TableCell className={`text-right w-48 ${row.isRootAccount && "font-bold"}`}>
         {balanceData?.diff ? (
           <Balance align="end" currency={currency} amount={balanceData.diff.debit} />
         ) : (
           <span>-</span>
         )}
       </TableCell>
-      <TableCell className="text-left w-48">
+      <TableCell className={`text-left w-48 ${row.isRootAccount && "font-bold"}`}>
         {balanceData?.diff ? (
           <Balance align="start" currency={currency} amount={balanceData.diff.credit} />
         ) : (
           <span>-</span>
         )}
       </TableCell>
-      <TableCell className="text-right w-48">
+      <TableCell className={`text-right w-48 ${row.isRootAccount && "font-bold"}`}>
         {balanceData?.end ? (
           <Balance align="end" currency={currency} amount={balanceData.end.net} />
         ) : (

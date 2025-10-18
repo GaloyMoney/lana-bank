@@ -106,6 +106,10 @@ impl LedgerAccount {
         }
     }
 
+    async fn is_root_account(&self) -> bool {
+        self.entity.ancestor_ids.is_empty()
+    }
+
     async fn ancestors(&self, ctx: &Context<'_>) -> async_graphql::Result<Vec<LedgerAccount>> {
         let loader = ctx.data_unchecked::<LanaDataLoader>();
         let mut ancestors = loader.load_many(self.entity.ancestor_ids.clone()).await?;
