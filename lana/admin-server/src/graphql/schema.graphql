@@ -1376,10 +1376,10 @@ type LedgerAccount {
 	name: String!
 	normalBalanceType: DebitOrCredit!
 	balanceRange: LedgerAccountBalanceRange!
+	isRootAccount: Boolean!
 	ancestors: [LedgerAccount!]!
 	closestAccountWithCode: LedgerAccount
 	children: [LedgerAccount!]!
-	childrenWithCodeAndActivity: [LedgerAccount!]!
 	history(first: Int!, after: String): JournalEntryConnection!
 }
 
