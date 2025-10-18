@@ -1380,7 +1380,6 @@ type LedgerAccount {
 	ancestors: [LedgerAccount!]!
 	closestAccountWithCode: LedgerAccount
 	children: [LedgerAccount!]!
-	childrenWithCodeAndActivity: [LedgerAccount!]!
 	history(first: Int!, after: String): JournalEntryConnection!
 }
 

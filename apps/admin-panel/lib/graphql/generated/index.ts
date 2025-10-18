@@ -1381,7 +1381,6 @@ export type LedgerAccount = {
   ancestors: Array<LedgerAccount>;
   balanceRange: LedgerAccountBalanceRange;
   children: Array<LedgerAccount>;
-  childrenWithCodeAndActivity: Array<LedgerAccount>;
   closestAccountWithCode?: Maybe<LedgerAccount>;
   code?: Maybe<Scalars['AccountCode']['output']>;
   entity?: Maybe<LedgerAccountEntity>;
