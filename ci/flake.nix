@@ -54,7 +54,7 @@
         echo "Latest PR SHA: $LATEST_SHA"
 
         if [ "$CURRENT_SHA" != "$LATEST_SHA" ]; then
-          echo "This is not the latest commit. Skipping build."
+          echo "This is not the latest commit. Aborting."
           exit 1
         fi
 
