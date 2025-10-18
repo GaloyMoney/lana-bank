@@ -554,6 +554,22 @@ CREATE TABLE core_manual_transaction_events (
   UNIQUE(id, sequence)
 );
 
+CREATE TABLE core_ledger_closings (
+  id UUID PRIMARY KEY,
+  chart_id UUID NOT NULL REFERENCES core_charts(id),
+  created_at TIMESTAMPTZ NOT NULL
+);
+
+CREATE TABLE core_ledger_closing_events (
+  id UUID NOT NULL REFERENCES core_ledger_closings(id),
+  sequence INT NOT NULL,
+  event_type VARCHAR NOT NULL,
+  event JSONB NOT NULL,
+  context JSONB DEFAULT NULL,
+  recorded_at TIMESTAMPTZ NOT NULL,
+  UNIQUE(id, sequence)
+);
+
 CREATE TABLE casbin_rule (
   id SERIAL PRIMARY KEY,
   ptype VARCHAR NOT NULL,

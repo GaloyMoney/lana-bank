@@ -10,6 +10,7 @@ pub(super) struct PeriodClosing {
 #[derive(Debug, Clone, Copy, Serialize, Deserialize)]
 pub(super) struct AccountingClosingMetadata {
     pub(super) monthly: PeriodClosing,
+    // TODO: Add more info from new accounting_init configs.
 }
 
 impl AccountingClosingMetadata {

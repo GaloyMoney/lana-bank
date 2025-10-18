@@ -52,4 +52,6 @@ pub struct AccountingInitConfig {
     pub balance_sheet_config_path: Option<PathBuf>,
     #[serde(default)]
     pub profit_and_loss_config_path: Option<PathBuf>,
+    #[serde(default)]
+    pub ledger_closing_config_path: Option<PathBuf>,
 }
