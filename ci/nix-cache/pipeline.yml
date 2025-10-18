@@ -49,12 +49,6 @@ jobs:
       version: every
       passed:
       - kickoff-pr
-    - in_parallel:
-      - #@ set_pr_status("Caching deps") 
-      - #@ set_pr_status("Building deps", context = "lana-deps") 
-      - #@ check_latest_commit("lana-deps")
-    - #@ nix_build_and_cache("lana-deps")
-    - #@ set_pr_status("Deps cached", context = "lana-deps", status = "success") 
 
   - name: build-release-pr
     plan:
@@ -81,15 +75,6 @@ resources:
     webhook_token: ((webhook.secret))
 
   - name: prs
-    type: pull-request
-    check_every: 24h
-    webhook_token: ((webhook.secret))
-    source:
-      base_branch: #@ data.values.git_branch
-      repository: #@ data.values.gh_org + "/" + data.values.gh_repository
-      access_token: #@ data.values.github_token
-
-  - name: prs-out
     type: pull-request
     check_every: 24h
     webhook_token: ((webhook.secret))
