@@ -56,7 +56,7 @@ config:
 #@ end
 
 #@ def set_pr_status(description, context = "status", status = "pending"):
-put: prs
+put: prs-out
 params:
   path: prs
   status: #@ status

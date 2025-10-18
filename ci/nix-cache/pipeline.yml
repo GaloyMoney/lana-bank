@@ -80,7 +80,17 @@ resources:
       branch: #@ data.values.git_branch
       private_key: #@ data.values.github_private_key
     webhook_token: ((webhook.secret))
+
   - name: prs
+    type: pull-request
+    check_every: 24h
+    webhook_token: ((webhook.secret))
+    source:
+      base_branch: #@ data.values.git_branch
+      repository: #@ data.values.gh_org + "/" + data.values.gh_repository
+      access_token: #@ data.values.github_token
+
+  - name: prs-out
     type: pull-request
     check_every: 24h
     webhook_token: ((webhook.secret))
