@@ -27,6 +27,7 @@ config:
       - |
         set -euo pipefail
         cd repo
+        cachix use $CACHIX_CACHE_NAME
         nix run ./ci#next-version > ../version/version
 #@ end
 
@@ -132,6 +133,6 @@ config:
         set -euo pipefail
         cd repo
         cachix use $CACHIX_CACHE_NAME
-        cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check-latest-commit
+        nix run ./ci#check-latest-commit
 on_failure: #@ set_pr_status("Aborted - old commit", status = "failure")
 #@ end
