@@ -140,11 +140,11 @@ config:
         cachix use $CACHIX_CACHE_NAME
         cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check-latest-commit
 #@ if pkg == "":
-on_failure: #@ set_pr_status("Aborted - old commit", status = "success")
+on_failure: #@ set_pr_status("Aborted - old commit", status = "failure")
 #@ else:
 on_failure:
   do:
-  - #@ set_pr_status("Aborted - old commit", status = "success")
-  - #@ set_pr_status("Aborted - old commit", context = pkg, status = "success")
+  - #@ set_pr_status("Aborted - old commit", status = "failure")
+  - #@ set_pr_status("Aborted - old commit", context = pkg, status = "failure")
 #@ end
 #@ end
