@@ -67,6 +67,8 @@ jobs:
     - get: prs
       trigger: true
       version: every
+      params:
+        fetch_tags: true
     - #@ exec_phase(["lana-deps"])
     - in_parallel:
       - #@ exec_phase(["nextest"])
