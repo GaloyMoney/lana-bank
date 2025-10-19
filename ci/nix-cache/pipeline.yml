@@ -96,6 +96,10 @@ jobs:
                   cachix watch-exec ${CACHIX_CACHE_NAME} -- nix flake check
       - #@ exec_phase(["lana-cli-release"])
     - #@ set_pr_status("Complete", status = "success")
+    on_failure: #@ set_pr_status("Failure", status = "failure") 
+    on_abort: #@ set_pr_status("Aborted", status = "failure") 
+    on_error: #@ set_pr_status("Errored", status = "error") 
+
 
 resources:
   - name: repo
