@@ -92,6 +92,7 @@ config:
   params:
     CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
     CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+    BUILD_PACKAGES: #@ " ".join(pkgs)
   run:
     path: sh
     args:
@@ -100,9 +101,9 @@ config:
         set -euo pipefail
         cd repo
         cachix use $CACHIX_CACHE_NAME
-        #@ for build_pkg in pkgs:
-        cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#@= build_pkg
-        #@ end
+        for build_pkg in $BUILD_PACKAGES; do
+          cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build .#${build_pkg}
+        done
 #@ end
 
 #@ def set_pr_status(description, context = "status", status = "pending"):

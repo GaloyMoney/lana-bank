@@ -14,14 +14,14 @@ groups:
   - name: all
     jobs:
       - build-release-main
-      - kickoff-pr
+      - cache-dev-profile
       - populate-nix-cache-pr
   - name: main
     jobs:
       - build-release-main
   - name: pr
     jobs:
-      - kickoff-pr
+      - cache-dev-profile
       - populate-nix-cache-pr
 
 jobs:
@@ -33,7 +33,7 @@ jobs:
     - #@ next_version_task()
     - #@ build_release()
 
-  - name: kickoff-pr
+  - name: cache-dev-profile
     max_in_flight: 3
     plan:
     - get: prs
