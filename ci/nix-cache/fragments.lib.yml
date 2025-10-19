@@ -58,7 +58,7 @@ config:
 #@ def exec_phase(pkgs):
 #@ pkg = pkgs[0]
 do:
-- #@ check_latest_commit(pkg)
+- #@ check_latest_commit()
 - in_parallel:
   - #@ set_pr_status("Executing phase " + pkg) 
   - #@ set_pr_status("Running", context = pkg) 
@@ -116,7 +116,7 @@ params:
   description: #@ description
 #@ end
 
-#@ def check_latest_commit(pkg):
+#@ def check_latest_commit():
 task: check-latest-commit
 config:
   platform: linux
@@ -139,12 +139,5 @@ config:
         cd repo
         cachix use $CACHIX_CACHE_NAME
         cachix watch-exec ${CACHIX_CACHE_NAME} -- nix run ./ci#check-latest-commit
-#@ if pkg == "":
 on_failure: #@ set_pr_status("Aborted - old commit", status = "failure")
-#@ else:
-on_failure:
-  do:
-  - #@ set_pr_status("Aborted - old commit", status = "failure")
-  - #@ set_pr_status("Aborted - old commit", context = pkg, status = "failure")
-#@ end
 #@ end
