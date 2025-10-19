@@ -100,7 +100,7 @@ jobs:
           - #@ set_pr_status("Executing phase lana-cli-release")
           - #@ set_pr_status("Running", context = "lana-cli-release")
           - do:
-            - #@ next_version_task()
+            - #@ next_version_task(resource_name = "prs")
             - #@ build_release(resource_name = "prs")
           on_failure:
             in_parallel:
