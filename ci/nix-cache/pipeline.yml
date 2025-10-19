@@ -113,6 +113,9 @@ jobs:
       - in_parallel:
         - #@ set_pr_status("Complete", context = "lana-cli-release", status = "success")
         - #@ set_pr_status("Complete", status = "success")
+      - in_parallel:
+        - #@ set_pr_status("Complete", context = "lana-cli-release", status = "success")
+        - #@ set_pr_status("Complete", status = "success")
     on_abort: #@ set_pr_status("Aborted", status = "failure")
     on_error: #@ set_pr_status("Errored", status = "error")
 
