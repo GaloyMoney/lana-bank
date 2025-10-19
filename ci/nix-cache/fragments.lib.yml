@@ -63,19 +63,20 @@ do:
   - #@ set_pr_status("Running", context = pkg) 
   - #@ nix_build_and_cache(pkg)
   on_failure:
-    do:
+    in_parallel:
     - #@ set_pr_status("Phase " + pkg + " failed", status = "failure") 
     - #@ set_pr_status("Failed", context = pkg, status = "failure") 
   on_abort:
-    do:
+    in_parallel:
     - #@ set_pr_status("Phase " + pkg + " aborted", status = "failure") 
     - #@ set_pr_status("Aborted", context = pkg, status = "failure") 
   on_error:
-    do:
+    in_parallel:
     - #@ set_pr_status("Phase " + pkg + " errored", status = "error") 
     - #@ set_pr_status("Errored", context = pkg, status = "error") 
-- #@ set_pr_status("Complete", context = pkg, status = "success") 
-- #@ set_pr_status("Awaiting next phase") 
+- in_parallel:
+  - #@ set_pr_status("Complete", context = pkg, status = "success") 
+  - #@ set_pr_status("Awaiting next phase") 
 
 #@ end
 

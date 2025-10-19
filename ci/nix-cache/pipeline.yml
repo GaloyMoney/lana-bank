@@ -48,6 +48,7 @@ jobs:
       trigger: true
       version: every
     - #@ exec_phase("lana-deps")
+    - #@ exec_phase("lana-cli-debug")
 
 resources:
   - name: repo
