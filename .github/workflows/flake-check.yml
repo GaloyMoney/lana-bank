@@ -12,27 +12,6 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
-
-      - name: Get system and checks
-        id: get-checks
-        run: |
-          system=$(nix eval --impure --expr 'builtins.currentSystem' --raw)
-          echo "system=$system" >> "$GITHUB_OUTPUT"
-          
-          # Get all check derivations and save to file
-          nix eval --json .#checks.$system | jq -r '.[]' > nix-checks-paths.txt
-          
-          echo "Checks to wait for:"
-          cat nix-checks-paths.txt
-
-      - name: Wait for checks in Cachix
-        uses: ./.github/actions/wait-for-cachix-paths
-        with:
-          paths-file: ./nix-checks-paths.txt
-          cache-name: lana-bank-ci
-          max-attempts: 300
-          retry-delay: 10
-
       - uses: cachix/cachix-action@v15
         with:
           name: lana-bank-ci
