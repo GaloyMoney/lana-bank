@@ -225,7 +225,10 @@ where
 
         match self.process_payload(&mut db, payload).await {
             Ok(_) => (),
+            // Silenty ignoring these errors instead of returning, 
+            // this prevents sumsub from retrying for these unhandled cases
             Err(ApplicantError::UnhandledCallbackType) => (),
+            Err(ApplicantError::UnhandledLevelType) => (),
             Err(e) => return Err(e),
         }
 
