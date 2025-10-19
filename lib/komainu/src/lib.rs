@@ -238,10 +238,10 @@ impl KomainuClient {
         // Optimistically try reading first (common case: token is valid)
         {
             let access_token = self.access_token.read().await;
-            if let Some(token) = access_token.as_ref() {
-                if token.expires_at > Instant::now() {
-                    return Ok(token.access_token.clone());
-                }
+            if let Some(token) = access_token.as_ref()
+                && token.expires_at > Instant::now()
+            {
+                return Ok(token.access_token.clone());
             }
         }
 
@@ -249,10 +249,10 @@ impl KomainuClient {
         let mut access_token = self.access_token.write().await;
 
         // Check again: another task may have refreshed while we waited for write lock
-        if let Some(token) = access_token.as_ref() {
-            if token.expires_at > Instant::now() {
-                return Ok(token.access_token.clone());
-            }
+        if let Some(token) = access_token.as_ref()
+            && token.expires_at > Instant::now()
+        {
+            return Ok(token.access_token.clone());
         }
 
         // Actually refresh the token
