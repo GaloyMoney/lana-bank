@@ -39,7 +39,27 @@ jobs:
     - get: prs
       trigger: true
       version: every
-    - #@ set_pr_status("Awaiting build slot") 
+    - in_parallel:
+      - #@ set_pr_status("Awaiting build slot") 
+      - task: cache-dev-profile
+        config:
+          platform: linux
+          image_resource: #@ nix_flake_cachix_image_config()
+          inputs:
+          - name: prs
+            path: repo
+          params:
+            CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
+            CACHIX_CACHE_NAME: #@ data.values.cachix_cache_name
+          run:
+            path: sh
+            args:
+              - -exc
+              - |
+                set -euo pipefail
+                cd repo
+                cachix use $CACHIX_CACHE_NAME
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix develop --profile /tmp/dev-profile --command true
 
   - name: populate-nix-cache-pr
     max_in_flight: 3
@@ -47,8 +67,8 @@ jobs:
     - get: prs
       trigger: true
       version: every
-    - #@ exec_phase("lana-deps")
-    - #@ exec_phase("lana-cli-debug")
+    - #@ exec_phase(["lana-deps"])
+    - #@ exec_phase(["lana-cli-debug", "bats"])
 
 resources:
   - name: repo
