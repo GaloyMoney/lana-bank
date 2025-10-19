@@ -6,6 +6,7 @@
 #@   "build_release",
 #@   "check_latest_commit",
 #@   "nix_build_and_cache",
+#@   "exec_phase",
 #@   "set_pr_status"
 #@ )
 
@@ -14,16 +15,14 @@ groups:
     jobs:
       - build-release-main
       - kickoff-pr
-      - cache-lana-deps-pr
-      - build-release-pr
+      - populate-nix-cache-pr
   - name: main
     jobs:
       - build-release-main
   - name: pr
     jobs:
       - kickoff-pr
-      - build-release-pr
-      - cache-lana-deps-pr
+      - populate-nix-cache-pr
 
 jobs:
   - name: build-release-main
@@ -42,32 +41,13 @@ jobs:
       version: every
     - #@ set_pr_status("Awaiting build slot") 
 
-  - name: cache-lana-deps-pr
+  - name: populate-nix-cache-pr
     max_in_flight: 3
     plan:
     - get: prs
       trigger: true
       version: every
-      passed:
-      - kickoff-pr
-    - in_parallel:
-      - #@ set_pr_status("Caching deps") 
-      - #@ set_pr_status("Building deps", context = "lana-deps") 
-      - #@ check_latest_commit("lana-deps")
-    - #@ nix_build_and_cache("lana-deps")
-    - #@ set_pr_status("Deps cached", context = "lana-deps", status = "success") 
-
-  - name: build-release-pr
-    plan:
-    - get: prs
-      trigger: true
-      version: every
-      passed:
-      - cache-lana-deps-pr
-      params:
-        fetch_tags: true
-    - #@ next_version_task("prs")
-    - #@ build_release("prs")
+    - #@ exec_phase("lana-deps")
 
 resources:
   - name: repo
