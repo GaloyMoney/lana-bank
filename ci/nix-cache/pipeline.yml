@@ -78,8 +78,8 @@ jobs:
                 set -euo pipefail
                 cd repo
                 cachix use $CACHIX_CACHE_NAME
-                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix ./ci#check-latest-commit
-                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix ./ci#next-version
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#check-latest-commit
+                cachix watch-exec ${CACHIX_CACHE_NAME} -- nix build ./ci#next-version
 
   - name: populate-nix-cache-pr
     max_in_flight: 3
