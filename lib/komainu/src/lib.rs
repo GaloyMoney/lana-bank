@@ -22,7 +22,7 @@ use reqwest::{
 };
 use serde::{Serialize, de::DeserializeOwned};
 use sha2::{Digest as _, Sha256};
-use tokio::sync::Mutex;
+use tokio::sync::RwLock;
 
 pub use config::{KomainuConfig, KomainuDirectoryConfig, KomainuSecretKey};
 pub use error::KomainuError;
@@ -32,7 +32,7 @@ use wire::{Fallible, GetToken, GetTokenResponse, Many};
 #[derive(Clone)]
 pub struct KomainuClient {
     http_client: Client,
-    access_token: Arc<Mutex<Option<AccessToken>>>,
+    access_token: Arc<RwLock<Option<AccessToken>>>,
     signing_key: SigningKey,
     endpoint: Url,
     get_token_request: GetToken,
@@ -235,16 +235,31 @@ impl KomainuClient {
     }
 
     async fn get_access_token(&self) -> Result<String, reqwest::Error> {
-        let mut access_token = self.access_token.lock().await;
-        match access_token.as_ref() {
-            Some(token) if token.expires_at > Instant::now() => Ok(token.access_token.clone()),
-            _ => {
-                let new_token = self.refresh_token().await?;
-                let token = new_token.access_token.clone();
-                *access_token = Some(new_token);
-                Ok(token)
+        // Optimistically try reading first (common case: token is valid)
+        {
+            let access_token = self.access_token.read().await;
+            if let Some(token) = access_token.as_ref() {
+                if token.expires_at > Instant::now() {
+                    return Ok(token.access_token.clone());
+                }
             }
         }
+
+        // Token expired or missing - acquire write lock to refresh
+        let mut access_token = self.access_token.write().await;
+
+        // Check again: another task may have refreshed while we waited for write lock
+        if let Some(token) = access_token.as_ref() {
+            if token.expires_at > Instant::now() {
+                return Ok(token.access_token.clone());
+            }
+        }
+
+        // Actually refresh the token
+        let new_token = self.refresh_token().await?;
+        let token = new_token.access_token.clone();
+        *access_token = Some(new_token);
+        Ok(token)
     }
 
     #[tracing::instrument(name = "komainu.refresh_token", skip(self))]
