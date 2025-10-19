@@ -49,11 +49,11 @@
         echo "Latest commit - confirmed"
         exit 0
       '';
-      
+
       next-version = pkgs.writeShellScriptBin "next-version" ''
         # Try to get version from auto bump
         OUTPUT=$(${pkgs.cocogitto}/bin/cog bump --auto --dry-run 2>&1 || true)
-        
+
         # Check if no conventional commits were found
         if echo "$OUTPUT" | grep -q "No conventional commits for your repository that required a bump"; then
           # Default to patch bump
@@ -68,19 +68,19 @@
         type = "app";
         program = "${check-latest-commit}/bin/check-latest-commit";
       };
-      
+
       apps.next-version = {
         type = "app";
         program = "${next-version}/bin/next-version";
       };
-      
+
       # Also expose as default app
       apps.default = self.apps.${system}.check-latest-commit;
-      
+
       # For convenience, also provide as packages
       packages.check-latest-commit = check-latest-commit;
       packages.next-version = next-version;
-      
+
       formatter = pkgs.alejandra;
     });
 }
