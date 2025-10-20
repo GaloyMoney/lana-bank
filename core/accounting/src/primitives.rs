@@ -1,5 +1,6 @@
 use rust_decimal::Decimal;
 use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
 use std::{borrow::Cow, fmt::Display, str::FromStr};
 use thiserror::Error;
 
@@ -1172,6 +1173,13 @@ pub struct TransactionEntrySpec {
     pub currency: CalaCurrency,
     pub description: String,
     pub direction: DebitOrCredit,
+}
+
+#[derive(Debug, Clone)]
+pub struct ClosingAccountGroups {
+    pub revenue_accounts: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaAccountBalance>,
+    pub cost_of_revenue_accounts: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaAccountBalance>,
+    pub expense_accounts: HashMap<(CalaJournalId, CalaAccountId, CalaCurrency), CalaAccountBalance>,
 }
 
 #[cfg(test)]

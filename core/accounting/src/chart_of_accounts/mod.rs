@@ -19,6 +19,7 @@ use cala_ledger::{AccountSetId, BalanceId, CalaLedger, Currency, account::Accoun
 use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
     ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId, TransactionEntrySpec,
+    ClosingAccountGroups,
 };
 
 #[cfg(feature = "json-schema")]
@@ -211,6 +212,57 @@ where
             .await?;
 
         Ok(chart)
+    }
+
+    // TODO: Move to `ProfitAndLossStatement` and use that service from `AccountingPeriod`?
+    // TODO: Discuss end of period job (1/2) - need to diff balance at this time and from the true `AccountingPeriod` `period_end`
+    pub async fn get_all_profit_and_loss_statement_account_balances(
+        &self,
+        now: DateTime<Utc>,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        revenue_parent_code: AccountCode,
+        cost_of_revenue_parent_code: AccountCode,
+        expenses_parent_code: AccountCode,
+        retained_earnings_parent_code: AccountCode,
+        retained_losses_parent_code: AccountCode,
+    ) -> Result<ClosingAccountGroups, ChartOfAccountsError> {
+        let id = id.into();
+        let chart = self.repo.find_by_id(id).await?;
+
+        let revenue_set_id = chart.account_set_id_from_code(&revenue_parent_code)?;
+        let cost_of_revenue_set_id =
+            chart.account_set_id_from_code(&cost_of_revenue_parent_code)?;
+        let expenses_set_id = chart.account_set_id_from_code(&expenses_parent_code)?;
+
+        let revenue_accounts = self
+            .chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, revenue_set_id)
+            .await?;
+
+        let expense_accounts = self
+            .chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, expenses_set_id)
+            .await?;
+
+        let cost_of_revenue_accounts = self
+            .chart_ledger
+            .find_all_accounts_by_parent_set_id(self.journal_id, cost_of_revenue_set_id)
+            .await?;
+
+        let revenue_account_balances = self.cala.balances().find_all(&revenue_accounts).await?;
+
+        let cost_of_revenue_account_balances = self
+            .cala
+            .balances()
+            .find_all(&cost_of_revenue_accounts)
+            .await?;
+
+        let expenses_account_balances = self.cala.balances().find_all(&expense_accounts).await?;
+        Ok(ClosingAccountGroups{
+            revenue_accounts: revenue_account_balances,
+            cost_of_revenue_accounts: cost_of_revenue_account_balances,
+            expense_accounts: expenses_account_balances,
+        })
     }
 
     // TODO: Discuss dependence on `ChartOfAccounts`.
