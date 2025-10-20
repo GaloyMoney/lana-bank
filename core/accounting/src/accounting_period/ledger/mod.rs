@@ -143,6 +143,11 @@ impl AccountingPeriodLedger {
         Ok(())
     }
 
+    // TODO: Expose or make private?
+    pub async fn prepare_closing_entries() -> Result<Vec<ClosingTransactionParams>, AccountingPeriodError> {
+        todo!()
+    }
+
     pub async fn execute_closing_transaction(
         &self,
         op: es_entity::DbOp<'_>,

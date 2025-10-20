@@ -33,6 +33,8 @@ pub enum AccountingPeriodError {
     TxTemplateError(#[from] cala_ledger::tx_template::error::TxTemplateError),
     #[error("AccountingPeriodError - AccountingPeriodIntegrationConfigAlreadyExists")]
     AccountingPeriodIntegrationConfigAlreadyExists,
+    #[error("AccountingPeriodError - AccountingPeriodIntegrationConfigNotFound")]
+    AccountingPeriodIntegrationConfigNotFound,
     #[error("AccountingPeriodError - ChartIdMismatch")]
     ChartIdMismatch,
     #[error("AccountingPeriodError - AuthorizationError: {0}")]

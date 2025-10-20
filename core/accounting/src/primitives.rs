@@ -1165,6 +1165,16 @@ impl BalanceRange {
     }
 }
 
+
+#[derive(Debug, Clone)]
+pub struct TransactionEntrySpec {
+    pub account_id: LedgerAccountId,
+    pub amount: Decimal,
+    pub currency: CalaCurrency,
+    pub description: String,
+    pub direction: DebitOrCredit,
+}
+
 #[cfg(test)]
 mod tests {
     use super::*;

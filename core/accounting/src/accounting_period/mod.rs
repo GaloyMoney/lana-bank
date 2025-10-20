@@ -15,13 +15,15 @@ use tracing::instrument;
 
 use crate::{
     Chart,
+    chart_of_accounts::ChartOfAccounts,
     primitives::{
         AccountingPeriodId, CalaJournalId, ChartId, CoreAccountingAction, CoreAccountingObject,
+        CalaTxId,
     },
 };
 
 use error::AccountingPeriodError;
-use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta};
+use ledger::{AccountingPeriodLedger, ChartOfAccountsIntegrationMeta, ClosingTransactionParams, EntryParams};
 use repo::AccountingPeriodRepo;
 
 pub use chart_of_accounts_integration::ChartOfAccountsIntegrationConfig;
@@ -39,6 +41,7 @@ where
     repo: AccountingPeriodRepo,
     ledger: AccountingPeriodLedger,
     journal_id: CalaJournalId,
+    chart_of_accounts: ChartOfAccounts<Perms>,
 }
 
 impl<Perms> AccountingPeriods<Perms>
@@ -52,6 +55,7 @@ where
         pool: &sqlx::PgPool,
         cala: &CalaLedger,
         journal_id: CalaJournalId,
+        chart_of_accounts: &ChartOfAccounts<Perms>,
     ) -> Self {
         let repo = AccountingPeriodRepo::new(pool);
         let ledger = AccountingPeriodLedger::new(cala, journal_id);
@@ -59,6 +63,7 @@ where
             authz: authz.clone(),
             repo: repo.clone(),
             ledger: ledger.clone(),
+            chart_of_accounts: chart_of_accounts.clone(),
             journal_id,
         }
     }
@@ -68,6 +73,7 @@ where
             repo: self.repo.clone(),
             ledger: self.ledger.clone(),
             journal_id: self.journal_id,
+            chart_of_accounts: self.chart_of_accounts.clone(),
         }
     }
 
@@ -79,7 +85,6 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
-        // TODO: Fix perms.
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
         let open_period = open_periods
@@ -113,8 +118,54 @@ where
     ///
     /// This method does not automatically close any other underlying
     /// Accounting Period.
-    pub async fn close_year(&self, chart_id: &ChartId) -> Result<AccountingPeriod, String> {
-        todo!()
+    pub async fn close_year(&self, sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject, chart_id: ChartId, description: Option<String>) -> Result<AccountingPeriod, AccountingPeriodError> {
+        // TODO: Perms.
+        let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
+        let open_annual_period = open_periods
+            .iter_mut()
+            .find(|p| p.is_annual())
+            .ok_or(AccountingPeriodError::NoOpenAccountingPeriodFound)?;
+        
+        let chart_config = self.ledger
+            .get_chart_of_accounts_integration_config(chart_id)
+            .await?
+            .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
+
+        let effective = crate::time::now();
+        let params = self.chart_of_accounts.create_annual_closing_entries(
+            effective, 
+            chart_id,
+            chart_config.chart_of_accounts_revenue_code,
+            chart_config.chart_of_accounts_cost_of_revenue_code,
+            chart_config.chart_of_accounts_expenses_code,
+            chart_config.chart_of_accounts_equity_retained_earnings_code,
+            chart_config.chart_of_accounts_equity_retained_losses_code,
+        ).await?;
+        let entry_params = params.into_iter().map(EntryParams::from).collect();
+        let ledger_tx_id = CalaTxId::new();
+        match open_annual_period.close(effective, Some(ledger_tx_id))? {
+            Idempotent::Executed(new) => {
+                let mut db = self.repo.begin_op().await?;
+                self.repo.update_in_op(&mut db, open_annual_period).await?;
+                let new_period = self.repo.create_in_op(&mut db, new).await?;
+                self.ledger
+                    .execute_closing_transaction(
+                        db, 
+                        ledger_tx_id, 
+                        chart_id, 
+                        ClosingTransactionParams {
+                            journal_id: self.journal_id,
+                            // TODO: Create a proper default.
+                            description: description.unwrap_or("Closing Entry".to_string()),
+                            effective: effective.date_naive(),
+                            entry_params,
+                        }
+                    )
+                    .await?;
+                Ok(new_period)
+            }
+            Idempotent::Ignored => Err(AccountingPeriodError::PeriodAlreadyClosed),
+        }
     }
 
     pub async fn get_chart_of_accounts_integration_config(

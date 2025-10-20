@@ -1999,10 +1999,12 @@ impl Mutation {
             AccountingPeriod,
             AccountingPeriodId,
             ctx,
-            app.accounting().accounting_periods().close_month(
-                sub,
-                input.chart_id.into()
-            )
+            app.accounting()
+                .accounting_periods()
+                .close_month(
+                    sub, 
+                    input.chart_id.into(),
+                )
         )
     }
 

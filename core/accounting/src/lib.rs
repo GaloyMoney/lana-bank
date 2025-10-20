@@ -113,7 +113,7 @@ where
         let balance_sheets = BalanceSheets::new(pool, authz, cala, journal_id);
         let csvs = AccountingCsvExports::new(authz, jobs, document_storage, &ledger_accounts);
         let trial_balances = TrialBalances::new(pool, authz, cala, journal_id);
-        let accounting_periods = AccountingPeriods::new(authz, pool, cala, journal_id);
+        let accounting_periods = AccountingPeriods::new(authz, pool, cala, journal_id, &chart_of_accounts);
         Self {
             authz: Arc::new(authz.clone()),
             chart_of_accounts: Arc::new(chart_of_accounts),

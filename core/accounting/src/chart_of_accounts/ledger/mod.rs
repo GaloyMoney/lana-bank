@@ -18,9 +18,8 @@ use cala_ledger::{
 use closing::*;
 use error::*;
 
-use crate::{CHART_OF_ACCOUNTS_ENTITY_TYPE, EntityRef, LedgerAccountId};
-
-use crate::Chart;
+use crate::{CHART_OF_ACCOUNTS_ENTITY_TYPE, EntityRef, LedgerAccountId, Chart};
+use crate::primitives::TransactionEntrySpec;
 
 #[derive(Clone)]
 pub struct ChartLedger {
@@ -136,13 +135,12 @@ impl ChartLedger {
     pub async fn prepare_annual_closing_entries(
         &self,
         op: es_entity::DbOpWithTime<'_>,
-        // TODO: Check types to use for ChartLedger params.
         revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
         expense_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
         cost_of_revenue_accounts: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
         retained_earnings_account_set: AccountSetId,
         retained_losses_account_set: AccountSetId,
-    ) -> Result<(), ChartLedgerError> {
+    ) -> Result<Vec<TransactionEntrySpec>, ChartLedgerError> {
         let (revenue_offset_entries, net_revenue) =
             self.create_annual_close_offset_entries(None, revenue_accounts);
         let (expense_offset_entries, net_expenses) =
@@ -151,12 +149,13 @@ impl ChartLedger {
             self.create_annual_close_offset_entries(None, cost_of_revenue_accounts);
 
         let mut all_entries = Vec::new();
-        // all_entries.extend(revenue_offset_entries);
-        // all_entries.extend(expense_offset_entries);
-        // all_entries.extend(cost_of_revenue_offset_entries);
+        all_entries.extend(revenue_offset_entries);
+        all_entries.extend(expense_offset_entries);
+        all_entries.extend(cost_of_revenue_offset_entries);
 
         let retained_earnings = net_revenue - net_expenses - net_cost_of_revenue;
         let mut op = self.cala.ledger_operation_from_db_op(op);
+        // TODO (I): Separate this step - may need to be a find or create.
         let equity_entry = self
             .create_annual_close_destination_account(
                 &mut op,
@@ -166,12 +165,10 @@ impl ChartLedger {
             )
             .await?;
         all_entries.push(equity_entry);
-        // TODO: Ideally this should occur after the annual closing transaction
-        // and not only after the  account is created for retained earnings...
-        // punt until period entity is established.
+        // TODO (II): Separate this step - may need to be a find or create.
         op.commit().await?;
 
-        Ok(())
+        Ok(all_entries)
     }
 
     async fn create_annual_close_destination_account(
@@ -180,7 +177,7 @@ impl ChartLedger {
         net_earnings: Decimal,
         retained_earnings_account_set: AccountSetId,
         retained_losses_account_set: AccountSetId,
-    ) -> Result<(), ChartLedgerError> {
+    ) -> Result<TransactionEntrySpec, ChartLedgerError> {
         // TODO: Where to source ther reference, name and/or description params from?
         let (direction, parent_account_set, reference) = if net_earnings >= Decimal::ZERO {
             (
@@ -210,15 +207,14 @@ impl ChartLedger {
             )
             .await?;
         let ledger_account_id = LedgerAccountId::from(account_id);
-        // Ok(TransactionEntrySpec {
-        //     account_id: ledger_account_id,
-        //     // TODO: Make currency a param?
-        //     currency: Currency::USD,
-        //     amount: net_earnings.abs(),
-        //     description: "Annual Close Net Income to Equity".to_string(),
-        //     direction,
-        // })
-        todo!()
+        Ok(TransactionEntrySpec {
+            account_id: ledger_account_id,
+            // TODO: Make currency a param?
+            currency: Currency::USD,
+            amount: net_earnings.abs(),
+            description: "Annual Close Net Income to Equity".to_string(),
+            direction,
+        })
     }
 
     async fn create_annual_close_equity_account_in_op(
@@ -261,13 +257,10 @@ impl ChartLedger {
 
     fn create_annual_close_offset_entries(
         &self,
-        // TODO: Can we make this assumption across a category
-        // or do we need to expose `AccountBalance.balance_type` from Cala?
-        // https://www.twisp.com/docs/accounting-core/chart-of-accounts#credit-normal-and-debit-normal
         description: Option<String>,
         accounts_by_code: HashMap<(JournalId, AccountId, Currency), AccountBalance>,
-    ) -> ((), Decimal) {
-        //let mut entries = Vec::new();
+    ) -> (Vec<TransactionEntrySpec>, Decimal) {
+        let mut entries = Vec::new();
         let mut net: Decimal = Decimal::from(0);
         for ((_journal_id, account_id, currency), bal_details) in accounts_by_code.iter() {
             let amt = bal_details.settled();
@@ -281,19 +274,19 @@ impl ChartLedger {
                 DebitOrCredit::Debit
             };
             let ledger_account_id = LedgerAccountId::from(*account_id);
-            // let entry = TransactionEntrySpec {
-            //     account_id: ledger_account_id,
-            //     currency: currency.clone(),
-            //     amount: amt,
-            //     // TODO: Default description.
-            //     description: description
-            //         .clone()
-            //         .unwrap_or("Annual Close Offset".to_string()),
-            //     direction: direction,
-            // };
-            // entries.push(entry);
+            let entry = TransactionEntrySpec {
+                account_id: ledger_account_id,
+                currency: currency.clone(),
+                amount: amt,
+                // TODO: Default description.
+                description: description
+                    .clone()
+                    .unwrap_or("Annual Close Offset".to_string()),
+                direction: direction,
+            };
+            entries.push(entry);
         }
-        ((), net)
+        (entries, net)
     }
 
     async fn create_monthly_close_control_with_limits_in_op(

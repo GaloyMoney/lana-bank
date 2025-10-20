@@ -8,6 +8,8 @@ use cala_ledger::{
     *,
 };
 
+use crate::primitives::TransactionEntrySpec;
+
 #[derive(Debug, Builder)]
 pub struct EntryParams {
     pub account_id: CalaAccountId,
@@ -15,6 +17,19 @@ pub struct EntryParams {
     pub amount: Decimal,
     pub description: String,
     pub direction: DebitOrCredit,
+}
+
+impl From<TransactionEntrySpec> for EntryParams {
+    fn from(spec: TransactionEntrySpec) -> Self {
+        EntryParams::builder()
+            .account_id(spec.account_id.into())
+            .amount(spec.amount)
+            .currency(spec.currency)
+            .direction(spec.direction)
+            .description(spec.description)
+            .build()
+            .expect("Failed to build EntryParams from TransactionEntrySpec")
+    }
 }
 
 impl EntryParams {
