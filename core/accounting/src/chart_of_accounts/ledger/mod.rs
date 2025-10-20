@@ -18,8 +18,8 @@ use cala_ledger::{
 use closing::*;
 use error::*;
 
-use crate::{CHART_OF_ACCOUNTS_ENTITY_TYPE, EntityRef, LedgerAccountId, Chart};
 use crate::primitives::TransactionEntrySpec;
+use crate::{CHART_OF_ACCOUNTS_ENTITY_TYPE, Chart, EntityRef, LedgerAccountId};
 
 #[derive(Clone)]
 pub struct ChartLedger {

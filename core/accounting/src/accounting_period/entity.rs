@@ -82,10 +82,7 @@ impl AccountingPeriod {
         closed_at: DateTime<Utc>,
         closing_transaction: Option<LedgerTransactionId>,
     ) -> Idempotent<NewAccountingPeriod> {
-        idempotency_guard!(
-            self.events.iter_all(), 
-            AccountingPeriodEvent::Closed { .. }
-        );
+        idempotency_guard!(self.events.iter_all(), AccountingPeriodEvent::Closed { .. });
 
         let new_accounting_period = NewAccountingPeriod {
             id: AccountingPeriodId::new(),

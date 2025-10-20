@@ -36,6 +36,7 @@ type AccountingPeriod {
 
 input AccountingPeriodCloseInput {
 	chartId: UUID!
+	description: String
 }
 
 type AccountingPeriodClosePayload {
@@ -1546,7 +1547,8 @@ type Mutation {
 	customerDocumentDelete(input: CustomerDocumentDeleteInput!): CustomerDocumentDeletePayload!
 	customerDocumentArchive(input: CustomerDocumentArchiveInput!): CustomerDocumentArchivePayload!
 	chartOfAccountsCsvImport(input: ChartOfAccountsCsvImportInput!): ChartOfAccountsCsvImportPayload!
-	accountingPeriodCloseMonthly(input: AccountingPeriodCloseInput!): AccountingPeriodClosePayload!
+	accountingPeriodCloseMonth(input: AccountingPeriodCloseInput!): AccountingPeriodClosePayload!
+	accountingPeriodCloseYear(input: AccountingPeriodCloseInput!): AccountingPeriodClosePayload!
 	chartOfAccountsAddRootNode(input: ChartOfAccountsAddRootNodeInput!): ChartOfAccountsAddRootNodePayload!
 	chartOfAccountsAddChildNode(input: ChartOfAccountsAddChildNodeInput!): ChartOfAccountsAddChildNodePayload!
 	balanceSheetConfigure(input: BalanceSheetModuleConfigureInput!): BalanceSheetModuleConfigurePayload!

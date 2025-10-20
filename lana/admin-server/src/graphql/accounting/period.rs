@@ -1,6 +1,5 @@
 use async_graphql::*;
 
-//use super::ledger_transaction::LedgerTransaction;
 use crate::primitives::*;
 
 use lana_app::accounting::accounting_period::{
@@ -13,7 +12,6 @@ pub struct AccountingPeriod {
     accounting_period_id: UUID,
     tracking_account_set_id: UUID,
     period: PeriodRange,
-    // TODO: Optional closing cala transaction ID from events.
     #[graphql(skip)]
     pub(crate) entity: Arc<DomainAccountingPeriod>,
 }
@@ -31,7 +29,6 @@ impl From<DomainAccountingPeriod> for AccountingPeriod {
     }
 }
 
-// TODO:  Naming.
 #[derive(SimpleObject, Clone, Copy)]
 pub struct PeriodRange {
     period_start: Date,
@@ -50,5 +47,6 @@ impl From<DomainPeriod> for PeriodRange {
 #[derive(InputObject)]
 pub struct AccountingPeriodCloseInput {
     pub chart_id: UUID,
+    pub description: Option<String>,
 }
 crate::mutation_payload! { AccountingPeriodClosePayload, accounting_period: AccountingPeriod }

@@ -1165,7 +1165,6 @@ impl BalanceRange {
     }
 }
 
-
 #[derive(Debug, Clone)]
 pub struct TransactionEntrySpec {
     pub account_id: LedgerAccountId,

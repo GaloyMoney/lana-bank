@@ -144,7 +144,8 @@ impl AccountingPeriodLedger {
     }
 
     // TODO: Expose or make private?
-    pub async fn prepare_closing_entries() -> Result<Vec<ClosingTransactionParams>, AccountingPeriodError> {
+    pub async fn prepare_closing_entries()
+    -> Result<Vec<ClosingTransactionParams>, AccountingPeriodError> {
         todo!()
     }
 

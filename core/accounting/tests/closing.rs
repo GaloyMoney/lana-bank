@@ -18,7 +18,7 @@ use helpers::{action, object};
 use rust_decimal::Decimal;
 
 #[tokio::test]
-async fn annual_closing() -> anyhow::Result<()> {
+async fn closing() -> anyhow::Result<()> {
     let mut test = prepare_test().await?;
 
     test.account("41.01.0102", 300, DebitOrCredit::Credit).await;
@@ -34,18 +34,17 @@ async fn annual_closing() -> anyhow::Result<()> {
         find_all_accounts(&test.cala, equity_parent_account_set_id.clone()).await?;
     let _closed_chart = test
         .accounting
-        .chart_of_accounts()
-        .close_monthly(&DummySubject, test.chart.id)
+        .accounting_periods()
+        .close_month(&DummySubject, test.chart.id)
         .await?;
 
     let _ann_closing_tx = test
         .accounting
-        .annual_closing_transactions()
-        .execute(
+        .accounting_periods()
+        .close_year(
             &DummySubject,
             test.chart.id,
-            None,
-            "Test Annual Closing".to_string(),
+            Some("Test Annual Closing".to_string()),
         )
         .await?;
 

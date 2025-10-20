@@ -1988,7 +1988,7 @@ impl Mutation {
         )
     }
 
-    async fn accounting_period_close_monthly(
+    async fn accounting_period_close_month(
         &self,
         ctx: &Context<'_>,
         input: AccountingPeriodCloseInput,
@@ -2001,10 +2001,24 @@ impl Mutation {
             ctx,
             app.accounting()
                 .accounting_periods()
-                .close_month(
-                    sub, 
-                    input.chart_id.into(),
-                )
+                .close_month(sub, input.chart_id.into(),)
+        )
+    }
+
+    async fn accounting_period_close_year(
+        &self,
+        ctx: &Context<'_>,
+        input: AccountingPeriodCloseInput,
+    ) -> async_graphql::Result<AccountingPeriodClosePayload> {
+        let (app, sub) = app_and_sub_from_ctx!(ctx);
+        exec_mutation!(
+            AccountingPeriodClosePayload,
+            AccountingPeriod,
+            AccountingPeriodId,
+            ctx,
+            app.accounting()
+                .accounting_periods()
+                .close_year(sub, input.chart_id.into(), input.description)
         )
     }
 

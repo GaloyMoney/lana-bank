@@ -16,10 +16,10 @@ use authz::PermissionCheck;
 
 use cala_ledger::{AccountSetId, BalanceId, CalaLedger, Currency, account::Account};
 
-use crate::{primitives::{
+use crate::primitives::{
     AccountCode, AccountIdOrCode, AccountName, AccountSpec, CalaAccountSetId, CalaJournalId,
     ChartId, CoreAccountingAction, CoreAccountingObject, LedgerAccountId, TransactionEntrySpec,
-}};
+};
 
 #[cfg(feature = "json-schema")]
 pub use chart_node::ChartNodeEvent;
