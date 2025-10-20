@@ -31,6 +31,6 @@ app:
     deposit_config_path: "./bats/accounting-init/deposit-module-config.json"
     balance_sheet_config_path: "./bats/accounting-init/balance-sheet-module-config.json"
     profit_and_loss_config_path: "./bats/accounting-init/profit-and-loss-module-config.json"
-    annual_closing_config_path: "./bats/accounting-init/annual-closing-config.json"
+    accounting_period_config_path: "./bats/accounting-init/accounting-period-config.json"
 time:
   realtime: false

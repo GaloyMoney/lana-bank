@@ -4,7 +4,7 @@ use crate::{
     accounting::Chart,
     accounting_init::AccountingInitError,
     accounting_period::{
-        AccountingPeriods, ChartOfAccountsIntegrationConfig,
+        AccountingPeriods, Annually, ChartOfAccountsIntegrationConfig, Monthly,
         error::AccountingPeriodError,
     },
 };
@@ -16,7 +16,10 @@ struct AccountingPeriodConfigData {
     expenses_code: String,
     equity_retained_earnings_code: String,
     equity_retained_losses_code: String,
-    // TODO: Add additional config.
+
+    // period configuration
+    monthly: Monthly,
+    annually: Annually,
 }
 
 pub(in crate::accounting_init::seed) async fn accounting_period_module_configure(
@@ -31,15 +34,21 @@ pub(in crate::accounting_init::seed) async fn accounting_period_module_configure
         expenses_code,
         equity_retained_earnings_code,
         equity_retained_losses_code,
+
+        monthly,
+        annually,
     } = serde_json::from_str(&data)?;
 
-    let config_values = crate::accounting_period::ChartOfAccountsIntegrationConfig {
+    let config_values = ChartOfAccountsIntegrationConfig {
         chart_of_accounts_id: chart.id,
         chart_of_accounts_revenue_code: revenue_code.parse()?,
         chart_of_accounts_cost_of_revenue_code: cost_of_revenue_code.parse()?,
         chart_of_accounts_expenses_code: expenses_code.parse()?,
         chart_of_accounts_equity_retained_earnings_code: equity_retained_earnings_code.parse()?,
         chart_of_accounts_equity_retained_losses_code: equity_retained_losses_code.parse()?,
+
+        accounting_period_monthly: monthly,
+        accounting_period_annually: annually,
     };
 
     match accounting_periods
@@ -51,9 +60,7 @@ pub(in crate::accounting_init::seed) async fn accounting_period_module_configure
         .await
     {
         Ok(_) => (),
-        Err(
-            AccountingPeriodError::AccountingPeriodIntegrationConfigAlreadyExists,
-        ) => (),
+        Err(AccountingPeriodError::AccountingPeriodIntegrationConfigAlreadyExists) => (),
         Err(e) => return Err(e.into()),
     };
 
