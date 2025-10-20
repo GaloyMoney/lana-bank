@@ -24,6 +24,7 @@ yq -i e '.appVersion = strenv(app_version)' ./charts/${CHARTS_SUBDIR}/Chart.yaml
 rm -rf ./charts/${CHARTS_SUBDIR}/tf || true
 mkdir -p ./charts/${CHARTS_SUBDIR}/tf
 cp -r ../repo/tf/bq-setup ./charts/${CHARTS_SUBDIR}/tf/bq-setup
+cp -r ../repo/tf/honeycomb ./charts/${CHARTS_SUBDIR}/tf/honeycomb
 cat ../repo/.git/ref > ./charts/${CHARTS_SUBDIR}/tf/repo-ref
 
 if [[ -z $(git config --global user.email) ]]; then
