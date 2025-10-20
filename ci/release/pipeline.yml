@@ -419,6 +419,9 @@ jobs:
           - get: meltano-latest-image
             passed: [release-docker]
             params: { skip_download: true }
+          - get: dagster-latest-image
+            passed: [release-docker]
+            params: { skip_download: true }
           - get: repo
             trigger: true
             passed: [release-docker]
@@ -438,6 +441,7 @@ jobs:
             - name: #@ app_latest_image_resource_name("admin-panel")
             - name: #@ app_latest_image_resource_name("customer-portal")
             - name: meltano-latest-image
+            - name: dagster-latest-image
             - name: pipeline-tasks
             - name: charts-repo
             - name: version
