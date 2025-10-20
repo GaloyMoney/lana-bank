@@ -140,11 +140,39 @@
         }
       );
 
+      rustToolchainMusl = rustVersion.override {
+        extensions = ["rust-src"];
+        targets = ["x86_64-unknown-linux-musl"];
+      };
+
+      craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
+
+      cargoArtifactsRelease = let
+        rustTarget = "x86_64-unknown-linux-musl";
+      in
+        craneLibMusl.buildDepsOnly (commonArgs
+          // {
+            version = defaultVersion;
+            cargoExtraArgs = "--features sim-time,sim-bootstrap --target ${rustTarget}";
+            CARGO_PROFILE = "release";
+            SQLX_OFFLINE = true;
+            CARGO_BUILD_TARGET = rustTarget;
+
+            depsBuildBuild = with pkgs; [
+              pkgsCross.musl64.stdenv.cc
+            ];
+
+            CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+            CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+            TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
+          });
+
       lana-cli-release = let
         rustTarget = "x86_64-unknown-linux-musl";
       in
         craneLibMusl.buildPackage {
-          version = cliVersion; # Use the conditional version
+          inherit cargoArtifactsRelease;
+          version = cliVersion;
           src = rustSource;
           strictDeps = true;
           cargoToml = ./lana/cli/Cargo.toml;
@@ -157,12 +185,10 @@
 
           RELEASE_BUILD_VERSION = cliVersion;
 
-          # Add musl target for static linking
           depsBuildBuild = with pkgs; [
             pkgsCross.musl64.stdenv.cc
           ];
 
-          # Environment variables for static linking
           CARGO_TARGET_X86_64_UNKNOWN_LINUX_MUSL_LINKER = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           CC_x86_64_unknown_linux_musl = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
           TARGET_CC = "${pkgs.pkgsCross.musl64.stdenv.cc}/bin/x86_64-unknown-linux-musl-gcc";
@@ -197,13 +223,6 @@
           nativeBuildInputs = [pkgs.cargo-nextest];
         }
       );
-
-      rustToolchainMusl = rustVersion.override {
-        extensions = ["rust-src"];
-        targets = ["x86_64-unknown-linux-musl"];
-      };
-
-      craneLibMusl = (crane.mkLib pkgs).overrideToolchain rustToolchainMusl;
 
       meltanoPkgs = pkgs.callPackage ./nix/meltano.nix {};
 
