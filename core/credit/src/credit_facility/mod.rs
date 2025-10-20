@@ -164,7 +164,7 @@ where
                 return Ok(());
             }
         };
-        
+
         let public_id = self
             .public_ids
             .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
