@@ -14,19 +14,17 @@ jobs:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
 
-      - name: Get nextest derivation
+      - name: Wait for .#nextest in Cachix
         id: nextest-derivation
         run: |
           nix build .#nextest --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
           echo "Checks to wait for:"
           cat nix-checks-paths.txt
-      - name: Wait for .#nextest in Cachix
-        uses: ./.github/actions/wait-for-cachix-paths
-        with:
-          paths-file: ./nix-checks-paths.txt
-          cache-name: galoymoney
-          max-attempts: 300
-          retry-delay: 10
+          nix run #wait-cachix-paths -- \
+            -p ./nix-checks-paths.txt \
+            -c galoymoney \
+            -a 300 \
+            -d 10
 
       - uses: cachix/cachix-action@v15
         with:

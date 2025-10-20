@@ -49,11 +49,9 @@
         echo "Latest commit - confirmed"
         exit 0
       '';
-
       next-version = pkgs.writeShellScriptBin "next-version" ''
         # Try to get version from auto bump
         OUTPUT=$(${pkgs.cocogitto}/bin/cog bump --auto --dry-run 2>&1 || true)
-
         # Check if no conventional commits were found
         if echo "$OUTPUT" | grep -q "No conventional commits for your repository that required a bump"; then
           # Default to patch bump
@@ -63,24 +61,119 @@
           echo "$OUTPUT" | ${pkgs.coreutils}/bin/tr -d '\n'
         fi
       '';
+      wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
+        set +e  # Don't exit on non-zero return codes
+
+        # Parse command line arguments
+        PATHS_FILE=""
+        CACHE_NAME=""
+        MAX_ATTEMPTS=60
+        RETRY_DELAY=10
+
+        usage() {
+          echo "Usage: $0 -p PATHS_FILE -c CACHE_NAME [-a MAX_ATTEMPTS] [-d RETRY_DELAY]"
+          echo ""
+          echo "Options:"
+          echo "  -p PATHS_FILE    Path to file containing nix store paths (required)"
+          echo "  -c CACHE_NAME    Name of the Cachix cache (required)"
+          echo "  -a MAX_ATTEMPTS  Maximum number of retry attempts (default: 60)"
+          echo "  -d RETRY_DELAY   Delay between retries in seconds (default: 10)"
+          echo "  -h               Show this help message"
+          exit 1
+        }
+
+        while getopts "p:c:a:d:h" opt; do
+          case $opt in
+            p) PATHS_FILE="$OPTARG" ;;
+            c) CACHE_NAME="$OPTARG" ;;
+            a) MAX_ATTEMPTS="$OPTARG" ;;
+            d) RETRY_DELAY="$OPTARG" ;;
+            h) usage ;;
+            *) usage ;;
+          esac
+        done
+
+        # Check required arguments
+        if [ -z "$PATHS_FILE" ] || [ -z "$CACHE_NAME" ]; then
+          echo "Error: Both -p and -c options are required"
+          usage
+        fi
+
+        if [ ! -f "$PATHS_FILE" ]; then
+          echo "Error: Paths file not found: $PATHS_FILE"
+          exit 1
+        fi
+
+        echo "Waiting for all paths to be available in cache: $CACHE_NAME"
+        echo "Max attempts: $MAX_ATTEMPTS, Retry delay: ''${RETRY_DELAY}s"
+
+        attempt=1
+        while [ $attempt -le $MAX_ATTEMPTS ]; do
+          echo -e "\nAttempt $attempt of $MAX_ATTEMPTS"
+          all_found=true
+          missing_count=0
+
+          while IFS= read -r path; do
+            # Skip empty lines
+            [ -z "$path" ] && continue
+
+            # Extract hash from nix store path
+            hash=$(echo "$path" | ${pkgs.gnused}/bin/sed -n 's|/nix/store/\([^-]*\).*|\1|p')
+
+            if [ -z "$hash" ]; then
+              echo "Warning: Could not extract hash from path: $path"
+              continue
+            fi
+
+            url="https://''${CACHE_NAME}.cachix.org/''${hash}.narinfo"
+
+            # Check if path exists in cache
+            if ${pkgs.curl}/bin/curl -s -f -o /dev/null "$url" 2>/dev/null; then
+              echo "✓ Found: $path"
+            else
+              echo "✗ Missing: $path"
+              all_found=false
+              missing_count=$((missing_count + 1))
+            fi
+          done < "$PATHS_FILE"
+
+          if [ "$all_found" = true ]; then
+            echo -e "\nSuccess! All paths are available in the cache."
+            exit 0
+          fi
+
+          echo -e "\nStill missing $missing_count paths..."
+
+          if [ $attempt -lt $MAX_ATTEMPTS ]; then
+            echo "Waiting ''${RETRY_DELAY}s before next attempt..."
+            ${pkgs.coreutils}/bin/sleep "$RETRY_DELAY"
+          fi
+
+          ((attempt++))
+        done
+
+        echo -e "\nError: Maximum attempts reached. Some paths are still not available in the cache."
+        exit 1
+      '';
     in {
       apps.check-latest-commit = {
         type = "app";
         program = "${check-latest-commit}/bin/check-latest-commit";
       };
-
       apps.next-version = {
         type = "app";
         program = "${next-version}/bin/next-version";
       };
-
+      apps.wait-cachix-paths = {
+        type = "app";
+        program = "${wait-cachix-paths}/bin/wait-cachix-paths";
+      };
       # Also expose as default app
       apps.default = self.apps.${system}.check-latest-commit;
-
       # For convenience, also provide as packages
       packages.check-latest-commit = check-latest-commit;
       packages.next-version = next-version;
-
+      packages.wait-cachix-paths = wait-cachix-paths;
       formatter = pkgs.alejandra;
     });
 }

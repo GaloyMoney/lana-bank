@@ -1,11 +1,9 @@
 name: "BATS Tests"
-
 on:
   pull_request:
     branches:
       - main
       - "feature/**"
-
 jobs:
   bats-tests:
     name: End to End BATS Tests
@@ -13,27 +11,21 @@ jobs:
     steps:
       - uses: actions/checkout@v4
       - uses: DeterminateSystems/nix-installer-action@v16
-
-      - name: Get bats derivation
-        id: bats-derivation
+      - name: Wait for .#bats in Cachix
         run: |
           nix build .#bats --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt
           echo "Checks to wait for:"
           cat nix-checks-paths.txt
-      - name: Wait for .#bats in Cachix
-        uses: ./.github/actions/wait-for-cachix-paths
-        with:
-          paths-file: ./nix-checks-paths.txt
-          cache-name: galoymoney
-          max-attempts: 300
-          retry-delay: 10
-
+          nix run #wait-cachix-paths -- \
+            -p ./nix-checks-paths.txt \
+            -c galoymoney \
+            -a 300 \
+            -d 10
       - uses: cachix/cachix-action@v15
         with:
           name: galoymoney
           authToken: ${{ secrets.CACHIX_AUTH_TOKEN }}
           skipPush: true
-
       - name: Run BATS tests
         run: nix run .#bats
           
@@ -48,4 +40,4 @@ jobs:
           name: BATS Logs
           path: |
             e2e-logs
-            *.e2e-logs 
+            *.e2e-logs
