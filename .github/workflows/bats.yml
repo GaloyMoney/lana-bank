@@ -4,6 +4,7 @@ on:
     branches:
       - main
       - "feature/**"
+
 jobs:
   bats-tests:
     name: End to End BATS Tests
