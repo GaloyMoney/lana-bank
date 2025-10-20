@@ -25,8 +25,7 @@
 #@   "app_latest_image",
 #@   "build_app_edge_image",
 #@   "app_edge_image",
-#@   "nix_flake_cachix_image_config",
-#@   "task_image_config"
+#@   "nix_flake_cachix_image_config"
 #@ )
 
 groups:
@@ -44,6 +43,8 @@ groups:
       -  #@ build_app_edge_image_name("customer-portal")
       - build-meltano-edge-image
       - await-release-binary
+      - build-dagster-edge-image
+      - build-release-binary
 
 jobs:
   -  #@ build_edge_image()
@@ -495,24 +496,29 @@ jobs:
     serial: true
     plan:
       - get: repo
-        trigger: true
+        trigger: false
       - task: build
-        privileged: true
         config:
           platform: linux
           image_resource:
             type: registry-image
             source:
-              repository: concourse/oci-build-task
+              repository: gcr.io/kaniko-project/executor
+              tag: debug
           inputs:
-            - name: repo
+          - name: repo
           outputs:
-            - name: image
-          params:
-            CONTEXT: repo
-            DOCKERFILE: repo/dagster/Dockerfile
+          - name: image
           run:
-            path: build
+            path: /kaniko/executor
+            args:
+              - --dockerfile=dagster/Dockerfile
+              - --context=repo
+              - --use-new-run
+              - --single-snapshot
+              - --cache=false
+              - --no-push
+              - --tar-path=image/image.tar
       - put: dagster-edge-image
         params:
           image: image/image.tar
