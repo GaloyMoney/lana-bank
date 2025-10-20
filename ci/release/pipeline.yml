@@ -194,6 +194,10 @@ jobs:
             params: { skip_download: true }
             passed:
               - build-meltano-edge-image
+          - get: dagster-edge-image
+            params: { skip_download: true }
+            passed:
+              - build-dagster-edge-image
       - in_parallel:
         - do:
           - task: prep-release
@@ -496,7 +500,7 @@ jobs:
     serial: true
     plan:
       - get: repo
-        trigger: false
+        trigger: true
       - task: build
         config:
           platform: linux
