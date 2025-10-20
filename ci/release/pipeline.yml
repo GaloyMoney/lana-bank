@@ -357,6 +357,11 @@ jobs:
               - release
             params:
               format: oci
+          - get: dagster-edge-image
+            passed:
+              - release
+            params:
+              format: oci
       - task: prepare-docker-build
         config:
           platform: linux
@@ -398,6 +403,10 @@ jobs:
           - put: meltano-latest-image
             params:
               image: meltano-edge-image/image.tar
+              additional_tags: version/version
+          - put: dagster-latest-image
+            params:
+              image: dagster-edge-image/image.tar
               additional_tags: version/version
   - name: bump-image-in-chart
     plan:
@@ -570,6 +579,14 @@ resources:
       username: #@ data.values.gar_registry_user
       password: #@ data.values.gar_registry_password
       repository: #@ public_gar_registry() + "/meltano"
+
+  - name: dagster-latest-image
+    type: registry-image
+    source:
+      tag: latest
+      username: #@ data.values.gar_registry_user
+      password: #@ data.values.gar_registry_password
+      repository: #@ public_gar_registry() + "/dagster-code-location-lana-dw"
 
   -  #@ pipeline_tasks_resource()
   -  #@ edge_image_resource(publicRepo=False)
