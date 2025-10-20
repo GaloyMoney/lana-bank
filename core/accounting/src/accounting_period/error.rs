@@ -41,6 +41,8 @@ pub enum AccountingPeriodError {
     AuthorizationError(#[from] authz::error::AuthorizationError),
     #[error("AccountingPeriodError - ChartOfAccounts: {0}")]
     ChartOfAccountsError(#[from] crate::chart_of_accounts::error::ChartOfAccountsError),
+    #[error("AccountingPeriodError - CalaAccountError: {0}")]
+    CalaAccount(#[from] cala_ledger::account::error::AccountError),
 }
 
 es_entity::from_es_entity_error!(AccountingPeriodError);

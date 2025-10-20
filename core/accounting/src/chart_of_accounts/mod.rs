@@ -214,17 +214,25 @@ where
         Ok(chart)
     }
 
+    pub async fn find_account_set_id_by_code(
+        &self,
+        id: impl Into<ChartId> + std::fmt::Debug,
+        parent_code: AccountCode,
+    ) -> Result<AccountSetId, ChartOfAccountsError> {
+        let id = id.into();
+        let chart = self.repo.find_by_id(id).await?;
+        Ok(
+            chart.account_set_id_from_code(&parent_code)?
+        )
+    }
     // TODO: Move to `ProfitAndLossStatement` and use that service from `AccountingPeriod`?
     // TODO: Discuss end of period job (1/2) - need to diff balance at this time and from the true `AccountingPeriod` `period_end`
     pub async fn get_all_profit_and_loss_statement_account_balances(
         &self,
-        now: DateTime<Utc>,
         id: impl Into<ChartId> + std::fmt::Debug,
         revenue_parent_code: AccountCode,
         cost_of_revenue_parent_code: AccountCode,
         expenses_parent_code: AccountCode,
-        retained_earnings_parent_code: AccountCode,
-        retained_losses_parent_code: AccountCode,
     ) -> Result<ClosingAccountGroups, ChartOfAccountsError> {
         let id = id.into();
         let chart = self.repo.find_by_id(id).await?;
@@ -250,7 +258,6 @@ where
             .await?;
 
         let revenue_account_balances = self.cala.balances().find_all(&revenue_accounts).await?;
-
         let cost_of_revenue_account_balances = self
             .cala
             .balances()

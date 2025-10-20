@@ -153,20 +153,20 @@ impl ChartLedger {
         all_entries.extend(expense_offset_entries);
         all_entries.extend(cost_of_revenue_offset_entries);
 
-        let retained_earnings = net_revenue - net_expenses - net_cost_of_revenue;
-        let mut op = self.cala.ledger_operation_from_db_op(op);
-        // TODO (I): Separate this step - may need to be a find or create.
-        let equity_entry = self
-            .create_annual_close_destination_account(
-                &mut op,
-                retained_earnings,
-                retained_earnings_account_set,
-                retained_losses_account_set,
-            )
-            .await?;
-        all_entries.push(equity_entry);
-        // TODO (II): Separate this step - may need to be a find or create.
-        op.commit().await?;
+        // let retained_earnings = net_revenue - net_expenses - net_cost_of_revenue;
+        // let mut op = self.cala.ledger_operation_from_db_op(op);
+        // // TODO (I): Separate this step - may need to be a find or create.
+        // let equity_entry = self
+        //     .create_annual_close_destination_account(
+        //         &mut op,
+        //         retained_earnings,
+        //         retained_earnings_account_set,
+        //         retained_losses_account_set,
+        //     )
+        //     .await?;
+        // all_entries.push(equity_entry);
+        // // TODO (II): Separate this step - may need to be a find or create.
+        // op.commit().await?;
 
         Ok(all_entries)
     }

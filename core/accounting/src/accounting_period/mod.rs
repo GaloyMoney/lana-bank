@@ -18,7 +18,7 @@ use crate::{
     chart_of_accounts::ChartOfAccounts,
     primitives::{
         AccountingPeriodId, CalaJournalId, CalaTxId, ChartId, CoreAccountingAction,
-        CoreAccountingObject,
+        CoreAccountingObject, TransactionEntrySpec
     },
 };
 
@@ -87,6 +87,7 @@ where
         sub: &<<Perms as PermissionCheck>::Audit as AuditSvc>::Subject,
         chart_id: ChartId,
     ) -> Result<AccountingPeriod, AccountingPeriodError> {
+        // TODO: Perms.
         let mut open_periods = self.repo.find_open_accounting_periods(chart_id).await?;
 
         let open_period = open_periods
@@ -140,25 +141,52 @@ where
             .ok_or(AccountingPeriodError::AccountingPeriodIntegrationConfigNotFound)?;
 
         let effective = crate::time::now();
-        let params = self
+        let parent_profit_acccount_set_id = self.chart_of_accounts.find_account_set_id_by_code(
+            chart_id, 
+            chart_config.chart_of_accounts_equity_retained_earnings_code
+        ).await?;
+        let parent_losses_account_set_id = self.chart_of_accounts.find_account_set_id_by_code(
+            chart_id, 
+            chart_config.chart_of_accounts_equity_retained_losses_code
+        ).await?;
+        // TODO: We need information from the true end of the `AccountingPeriod` (`period_end` value).
+        let current_account_balances = self
             .chart_of_accounts
-            .create_annual_closing_entries(
-                effective,
+            .get_all_profit_and_loss_statement_account_balances(
                 chart_id,
                 chart_config.chart_of_accounts_revenue_code,
                 chart_config.chart_of_accounts_cost_of_revenue_code,
                 chart_config.chart_of_accounts_expenses_code,
-                chart_config.chart_of_accounts_equity_retained_earnings_code,
-                chart_config.chart_of_accounts_equity_retained_losses_code,
-            )
-            .await?;
-        let entry_params = params.into_iter().map(EntryParams::from).collect();
+            ).await?;
+        let (revenue_closing_entries, net_revenue) = self
+            .ledger
+            .create_closing_offset_entries(None, current_account_balances.revenue_accounts);
+        let (expense_closing_entries, net_expenses) = self
+            .ledger
+            .create_closing_offset_entries(None, current_account_balances.expense_accounts);
+        let (cost_of_revenue_closing_entries, net_cost_of_revenue) = self
+            .ledger
+            .create_closing_offset_entries(None, current_account_balances.cost_of_revenue_accounts);
+
+        let net_income = net_revenue - net_expenses - net_cost_of_revenue;
+        let mut tx_entries = Vec::new();
+        tx_entries.extend(revenue_closing_entries);
+        tx_entries.extend(expense_closing_entries);
+        tx_entries.extend(cost_of_revenue_closing_entries);
+        let entry_params = tx_entries.into_iter().map(EntryParams::from).collect();
+        
         let ledger_tx_id = CalaTxId::new();
         match open_annual_period.close(effective, Some(ledger_tx_id))? {
             Idempotent::Executed(new) => {
-                let mut db = self.repo.begin_op().await?;
+                let mut db = self.repo.begin_op().await?.with_db_time().await?;
                 self.repo.update_in_op(&mut db, open_annual_period).await?;
                 let new_period = self.repo.create_in_op(&mut db, new).await?;
+                let _equity_account = self.ledger.create_closing_equity_account_in_op(
+                    db, 
+                    net_income,  
+                    parent_profit_account_set_id, 
+                    parent_losses_account_set_id
+                ).await?;
                 self.ledger
                     .execute_closing_transaction(
                         db,
