@@ -25,7 +25,7 @@ jobs:
         with:
           credentials_json: ${{ secrets.GOOGLE_CREDENTIALS }}
       - uses: DeterminateSystems/nix-installer-action@v16
-      - name: Wait for .#cli in Cachix
+      - name: Wait for .#bats in Cachix
         id: bats-derivation
         run: |
           nix build .#bats --dry-run --json | jq -r '.[].outputs.out' > nix-checks-paths.txt

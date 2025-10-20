@@ -42,7 +42,7 @@ groups:
       -  #@ build_app_edge_image_name("admin-panel")
       -  #@ build_app_edge_image_name("customer-portal")
       - build-meltano-edge-image
-      - build-release-binary
+      - await-release-binary
 
 jobs:
   -  #@ build_edge_image()
@@ -127,20 +127,17 @@ jobs:
               
               nix flake check
 
-  - name: build-release-binary
+  - name: await-release-binary
     serial: true
     plan:
     - in_parallel:
       - get: repo
         trigger: true
-      - get: pipeline-tasks
-    - task: nix-build-release
-      attempts: 2
+    - task: await-release-binary
       config:
         platform: linux
         image_resource: #@ nix_flake_cachix_image_config()
         inputs:
-        - name: pipeline-tasks
         - name: repo
         params:
           CACHIX_AUTH_TOKEN: #@ data.values.cachix_auth_token
@@ -151,16 +148,24 @@ jobs:
           - -exc
           - |
             set -euo pipefail
+            mkdir version
             cd repo
-            
-            # Setup Cachix cache
-            cachix use $CACHIX_CACHE_NAME
-            
-            nix build .#lana-cli-release
 
-            # Copy the binary to output
-            mkdir -p ../bin
-            cp result/bin/lana-cli ../bin/
+            cachix use $CACHIX_CACHE_NAME
+
+            nix run ./ci#next-version > ../version/version
+            export RELEASE_BUILD_VERSION=$(cat ../version/version)
+            
+            nix build --impure .#lana-cli-release --dry-run --json | jq -r '.[].outputs.out' \
+              nix-checks-paths.txt
+            echo "Checks to wait for:"
+            cat nix-checks-paths.txt
+
+            nix run ./ci#wait-cachix-paths -- \
+              -p ./nix-checks-paths.txt \
+              -c galoymoney \
+              -a 300 \
+              -d 10
 
   - name: release
     serial: true
@@ -171,7 +176,7 @@ jobs:
               - flake-check
               - test-bats
               - test-integration
-              - build-release-binary
+              - await-release-binary
               - build-meltano-edge-image
             trigger: true
           - get: pipeline-tasks
@@ -240,12 +245,9 @@ jobs:
                 set -euo pipefail
                 cd repo
                 
-                # Setup Cachix cache
                 cachix use $CACHIX_CACHE_NAME
-                
                 nix build .#lana-cli-release
 
-                # Copy the binary to output
                 mkdir -p ../bin
                 cp result/bin/lana-cli ../binaries/
       - in_parallel:
