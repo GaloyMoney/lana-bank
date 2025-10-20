@@ -5,8 +5,6 @@ models:
     tests:
       - dbt_utils.unique_combination_of_columns:
           combination_of_columns: [num_referencia, cod_cartera, cod_activo]
-          config:
-            severity: warn
     columns:
       - name: nit_deudor
         description: Debtor identifier (NIT, NIU, or 9-digit DUI-NIT replacement) without hyphens; key used to link to persona.xml.

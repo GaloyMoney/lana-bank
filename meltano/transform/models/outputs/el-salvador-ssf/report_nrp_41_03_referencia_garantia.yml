@@ -5,8 +5,6 @@ models:
     description: Association between credit references and guarantees required by NRP-41 (Anexo A, Archivo 3 referencia_garantia.xml). For each reference (num_referencia, cod_cartera, cod_activo) it records the guarantee identifier, guarantee type, and the proportional value of the guarantee that covers the reference.
     tests:
       - dbt_utils.unique_combination_of_columns:
-          config:
-            severity: warn
           combination_of_columns:
             - num_referencia
             - cod_cartera

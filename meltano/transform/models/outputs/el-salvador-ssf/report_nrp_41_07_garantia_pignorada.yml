@@ -26,9 +26,7 @@ models:
           characters to meet the XML limit. Intended to be unique within the file.
         tests:
           - not_null
-          - unique:
-              config:
-                severity: warn
+          - unique
       - name: nit_depositante
         description: >
           Owner’s NIT (Anexo C 7.2). Hyphens are removed and the value is trimmed to 14 characters, per Art. 10
