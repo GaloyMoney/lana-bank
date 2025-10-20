@@ -1,0 +1,17 @@
+{
+    "revenue_code": "4",
+    "cost_of_revenue_code": "5",
+    "expenses_code": "6",
+    "equity_retained_earnings_code": "3140.01.0101",
+    "equity_retained_losses_code": "3140.01.0201",
+    "monthly": {
+        "basis": "calendar",
+        "grace_period_days": 5
+    },
+    "annually": {
+        "basis": "fiscal",
+        "on_day": 12,
+        "on_month": 6,
+        "grace_period_days": 10
+    }
+}
