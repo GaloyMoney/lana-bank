@@ -105,7 +105,7 @@ where
 {
     #[tracing::instrument(
         name = "core_reports.job.monitor_report_run.run",
-        skip(self, _current_job),
+        skip(self, _current_job)
     )]
     async fn run(
         &self,
