@@ -39,6 +39,8 @@ jobs:
     - get: prs
       trigger: true
       version: every
+      params:
+        integration_tool: rebase
     - in_parallel:
       - #@ set_pr_status("Awaiting build slot")
       - task: cache-dev-profile
