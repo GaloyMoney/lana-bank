@@ -138,7 +138,7 @@ where
         Ok(self.repo.begin_op().await?)
     }
 
-    #[instrument(name = "credit.credit_facility.activate", skip(self), err)]
+    #[instrument(name = "credit.credit_facility.activate", skip(self))]
     pub(super) async fn activate(&self, id: CreditFacilityId) -> Result<(), CreditFacilityError> {
         let mut db = self.repo.begin_op().await?.with_db_time().await?;
 
@@ -164,6 +164,7 @@ where
                 return Ok(());
             }
         };
+        
         let public_id = self
             .public_ids
             .create_in_op(&mut db, CREDIT_FACILITY_REF_TARGET, id)
