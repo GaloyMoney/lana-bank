@@ -53,12 +53,12 @@
         # Try to get version from auto bump
         OUTPUT=$(${pkgs.cocogitto}/bin/cog bump --auto --dry-run 2>&1 || true)
         # Check if no conventional commits were found
-        if echo "$OUTPUT" | grep -q "No conventional commits for your repository that required a bump"; then
+        if ${pkgs.coreutils}/bin/echo "$OUTPUT" | ${pkgs.gnugrep}/bin/grep -q "No conventional commits for your repository that required a bump"; then
           # Default to patch bump
           ${pkgs.cocogitto}/bin/cog bump --patch --dry-run | ${pkgs.coreutils}/bin/tr -d '\n'
         else
           # Output the auto bump result
-          echo "$OUTPUT" | ${pkgs.coreutils}/bin/tr -d '\n'
+          ${pkgs.coreutils}/bin/echo "$OUTPUT" | ${pkgs.coreutils}/bin/tr -d '\n'
         fi
       '';
       wait-cachix-paths = pkgs.writeShellScriptBin "wait-cachix-paths" ''
