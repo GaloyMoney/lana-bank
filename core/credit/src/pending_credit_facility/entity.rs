@@ -233,9 +233,32 @@ impl PendingCreditFacility {
             None
         };
 
+        let fee_disbursal = if !self.is_single_disbursal() && !self.structuring_fee().is_zero() {
+            let due_date = maturity_date;
+            let overdue_date = self.terms.get_overdue_date_from_due_date(due_date);
+            let liquidation_date = self.terms.get_liquidation_date_from_due_date(due_date);
+
+            let mut new_disbursal_builder = NewDisbursalBuilder::default();
+            new_disbursal_builder
+                .id(DisbursalId::new())
+                .credit_facility_id(self.id)
+                .approval_process_id(self.approval_process_id)
+                .amount(self.structuring_fee())
+                .account_ids(account_ids)
+                .disbursal_credit_account_id(self.disbursal_credit_account_id)
+                .due_date(due_date)
+                .overdue_date(overdue_date)
+                .liquidation_date(liquidation_date);
+
+            Some(new_disbursal_builder)
+        } else {
+            None
+        };
+
         Ok(Idempotent::Executed(NewCreditFacilityWithDisbursals {
             new_credit_facility,
             single_disbursal,
+            fee_disbursal,
         }))
     }
 
@@ -243,6 +266,10 @@ impl PendingCreditFacility {
         self.events
             .iter_all()
             .any(|event| matches!(event, PendingCreditFacilityEvent::Completed { .. }))
+    }
+
+    fn structuring_fee(&self) -> UsdCents {
+        self.terms.one_time_fee_rate.apply(self.amount)
     }
 
     fn is_single_disbursal(&self) -> bool {
@@ -344,6 +371,7 @@ impl IntoEvents<PendingCreditFacilityEvent> for NewPendingCreditFacility {
 pub struct NewCreditFacilityWithDisbursals {
     pub new_credit_facility: NewCreditFacilityBuilder,
     pub single_disbursal: Option<NewDisbursalBuilder>,
+    pub fee_disbursal: Option<NewDisbursalBuilder>,
 }
 
 #[cfg(test)]

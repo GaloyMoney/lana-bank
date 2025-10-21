@@ -36,6 +36,7 @@ pub enum PendingCreditFacilityCompletionOutcome {
     Completed {
         new_credit_facility: NewCreditFacilityBuilder,
         single_disbursal: Option<NewDisbursalBuilder>,
+        fee_disbursal: Option<NewDisbursalBuilder>,
     },
 }
 
@@ -210,12 +211,14 @@ where
             Ok(es_entity::Idempotent::Executed(NewCreditFacilityWithDisbursals {
                 new_credit_facility,
                 single_disbursal,
+                fee_disbursal,
             })) => {
                 self.repo.update_in_op(db, &mut pending_facility).await?;
 
                 Ok(PendingCreditFacilityCompletionOutcome::Completed {
                     new_credit_facility,
                     single_disbursal,
+                    fee_disbursal,
                 })
             }
             Ok(es_entity::Idempotent::Ignored)

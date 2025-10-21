@@ -185,6 +185,7 @@ impl CreditLedger {
     pub async fn init(cala: &CalaLedger, journal_id: JournalId) -> Result<Self, CreditLedgerError> {
         templates::AddCollateral::init(cala).await?;
         templates::AddStructuringFee::init(cala).await?;
+        templates::AddStructuringFeeAfterSingleDisbursal::init(cala).await?;
         templates::ActivateCreditFacility::init(cala).await?;
         templates::RemoveCollateral::init(cala).await?;
         templates::RecordPaymentAllocation::init(cala).await?;
@@ -1594,7 +1595,7 @@ impl CreditLedger {
         .await?;
 
         if !structuring_fee_amount.is_zero() {
-            self.add_structuring_fee(
+            self.add_structuring_fee_after_single_disbursal(
                 &mut op,
                 single_disbursal_id,
                 account_ids,
@@ -1603,6 +1604,49 @@ impl CreditLedger {
             )
             .await?;
         }
+
+        op.commit().await?;
+        Ok(())
+    }
+
+    pub async fn handle_activation_with_only_structuring_fee(
+        &self,
+        op: es_entity::DbOpWithTime<'_>,
+        single_disbursal_id: DisbursalId,
+        CreditFacilityActivation {
+            credit_facility_id,
+            tx_id,
+            tx_ref,
+            account_ids,
+            facility_amount,
+            debit_account_id,
+            structuring_fee_amount,
+            customer_type,
+            duration_type,
+            ..
+        }: CreditFacilityActivation,
+    ) -> Result<(), CreditLedgerError> {
+        let mut op = self.cala.ledger_operation_from_db_op(op);
+
+        self.create_accounts_for_credit_facility(
+            &mut op,
+            credit_facility_id,
+            account_ids,
+            customer_type,
+            duration_type,
+        )
+        .await?;
+
+        self.activate_credit_facility(&mut op, tx_id, account_ids, facility_amount, tx_ref)
+            .await?;
+        self.add_structuring_fee(
+            &mut op,
+            single_disbursal_id,
+            account_ids,
+            debit_account_id,
+            structuring_fee_amount,
+        )
+        .await?;
 
         op.commit().await?;
         Ok(())
@@ -1664,6 +1708,33 @@ impl CreditLedger {
         Ok(())
     }
 
+    async fn add_structuring_fee_after_single_disbursal(
+        &self,
+        op: &mut cala_ledger::LedgerOperation<'_>,
+        disbursal_id: DisbursalId,
+        account_ids: CreditFacilityLedgerAccountIds,
+        debit_account_id: CalaAccountId,
+        structuring_fee_amount: UsdCents,
+    ) -> Result<(), CreditLedgerError> {
+        let tx_id = disbursal_id.into();
+        self.cala
+            .post_transaction_in_op(
+                op,
+                tx_id,
+                templates::ADD_STRUCTURING_FEE_AFTER_SINGLE_DISBURSAL_CODE,
+                templates::AddStructuringFeeAfterSingleDisbursalParams {
+                    journal_id: self.journal_id,
+                    facility_fee_income_account: account_ids.fee_income_account_id,
+                    debit_account_id,
+                    structuring_fee_amount: structuring_fee_amount.to_usd(),
+                    currency: self.usd,
+                    external_id: format!("{}-structuring-fee", disbursal_id),
+                },
+            )
+            .await?;
+        Ok(())
+    }
+
     async fn add_structuring_fee(
         &self,
         op: &mut cala_ledger::LedgerOperation<'_>,
@@ -1680,6 +1751,10 @@ impl CreditLedger {
                 templates::ADD_STRUCTURING_FEE_CODE,
                 templates::AddStructuringFeeParams {
                     journal_id: self.journal_id,
+                    credit_omnibus_account: self.facility_omnibus_account_ids.account_id,
+                    credit_facility_account: account_ids.facility_account_id,
+                    facility_disbursed_receivable_account: account_ids
+                        .disbursed_receivable_not_yet_due_account_id,
                     facility_fee_income_account: account_ids.fee_income_account_id,
                     debit_account_id,
                     structuring_fee_amount: structuring_fee_amount.to_usd(),
