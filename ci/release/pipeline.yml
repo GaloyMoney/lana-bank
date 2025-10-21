@@ -407,7 +407,9 @@ jobs:
           - put: dagster-latest-image
             params:
               image: dagster-edge-image/image.tar
-              additional_tags: version/version
+              additional_tags: 
+                - version/version
+                - repo/.git/short_ref
   - name: bump-image-in-chart
     plan:
       - in_parallel:
